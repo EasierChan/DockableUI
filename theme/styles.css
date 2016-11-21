@@ -1,0 +1,18 @@
+/* Master Styles */
+* {
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+
+.dock-container {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  background-color: #000000;
+}
+
+.splitter-container-horizental {
+  flex: 1 1 auto;
+}
+
