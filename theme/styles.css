@@ -1,18 +1,21 @@
 /* Master Styles */
-* {
-  margin: 0;
-  border: 0;
-  padding: 0;
+.page-title {
+  background-color: rgba(45, 45, 45, 1);
 }
 
-.dock-container {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: center;
-  background-color: #000000;
+.page-body {
+  background-color: #1e1e1e;
 }
 
-.splitter-container-horizental {
-  flex: 1 1 auto;
+.panel-header-list {
+    background-color: rgba(45, 45, 45, 1);
+    box-shadow: 0 -2px 2px rgba(0, 140, 240, 1);
 }
 
+.panel-header-list > .tab.active {
+    background-color: rgba(0, 140, 240, 1);
+}
+
+.splitter-bar {
+    background-color: red;
+}

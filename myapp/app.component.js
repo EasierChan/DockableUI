@@ -8,18 +8,31 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var core_1 = require("@angular/core");
+var core_1 = require('@angular/core');
+var control_1 = require('controls/control');
 var AppComponent = (function () {
     function AppComponent() {
+        this.children = [];
     }
+    AppComponent.prototype.ngOnInit = function () {
+        this.className = "dock-container vertical";
+        var horizentalContainer = new control_1.DockContainer("h");
+        horizentalContainer.addChildContianer(new control_1.DockContainer("v")).addChildContianer(new control_1.DockContainer("v"));
+        this.children.push(horizentalContainer);
+        horizentalContainer = null;
+        this.children.push(new control_1.Splitter("h"));
+        horizentalContainer = new control_1.DockContainer("h");
+        horizentalContainer.addChildContianer(new control_1.DockContainer("v")).addChildContianer(new control_1.DockContainer("v"));
+        this.children.push(horizentalContainer);
+    };
+    AppComponent = __decorate([
+        core_1.Component({
+            selector: 'body',
+            template: "\n    <div id=\"root\" class=\"{{className}}\">\n      <div *ngFor=\"let child of children\" class=\"{{child.className}}\">\n      </div>\n    </div>\n    "
+        }), 
+        __metadata('design:paramtypes', [])
+    ], AppComponent);
     return AppComponent;
 }());
-AppComponent = __decorate([
-    core_1.Component({
-        selector: 'my-app',
-        template: '<h1>My First Angular App</h1>'
-    }),
-    __metadata("design:paramtypes", [])
-], AppComponent);
 exports.AppComponent = AppComponent;
 //# sourceMappingURL=app.component.js.map
