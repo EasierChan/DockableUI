@@ -3,12 +3,16 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule }     from "@angular/forms";
 
 import { AppComponent }   from './app.component';
+import { DockContainerComponent }   from 'controls/control';
 
 @NgModule({
   imports:      [ 
     BrowserModule
     ],
-  declarations: [ AppComponent ],
+  declarations: [
+    AppComponent,
+    DockContainerComponent 
+    ],
   bootstrap:    [ AppComponent ]
 })
 

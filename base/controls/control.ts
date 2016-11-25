@@ -1,6 +1,23 @@
 /**
  * created by chenlei
  */
+import { Component, Input } from "@angular/core"
+
+@Component({
+  selector: 'dock-control',
+  template: `
+  <div class="{{className}}">
+    <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children">
+    </dock-control>
+  </div>
+  `,
+  inputs: ['className','children']
+})
+export class DockContainerComponent{
+  className: string;
+  children: Control[];
+}
+
 
 export class Control {
   className: string;
@@ -8,7 +25,7 @@ export class Control {
 }
 
 export class DockContainer extends Control{
-  children: DockContainer[] = [];
+  children: Control[] = [];
   constructor(type) {
     super();
     if(type === "v"){
@@ -18,7 +35,7 @@ export class DockContainer extends Control{
     }
   }
 
-  addChildContianer(containerRef: DockContainer): DockContainer {
+  addChild(containerRef: Control): DockContainer {
     this.children.push(containerRef);
     return this;
   }

@@ -417,6 +417,11 @@ $(".panel-header-list .tab").click(function () {
 function initDocklayout(){
     initSplitBar();
     initDragAndDrop();
-    reallocChildSize($("#root"), ".dock-container.horizental");
+    $("dock-control > div").unwrap();
+    var child = $(document.body).children(".dock-container");
+    if(child.is(".vertical"))
+        reallocChildSize(child, ".dock-container.horizental");
+    else
+        reallocChildSize(child, ".dock-container.vertical");
 }
 exports.init = initDocklayout;
