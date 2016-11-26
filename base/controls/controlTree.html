@@ -1,0 +1,21 @@
+<div [ngSwitch]="className" [class]="className">
+    <template [ngSwitchCase]="'tab-panel'">
+        <!-- tab pages-->
+        <div class="tab-pages">
+            <div *ngFor="let page of children[0].pages" [id]="page.id" [class]="page.className">
+                <div class="page-title">{{page.title}}</div>
+                <div class="page-body"></div>
+            </div>
+        </div>
+        <!-- panel headers-->
+        <div class="panel-header-list">
+            <div *ngFor="let header of children[1].headers" [attr.data-target]="header.targetId" [class]="header.className">
+                {{header.targetId}}
+            </div>
+        </div>
+    </template>
+    <template ngSwitchDefault>
+        <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children">
+        </dock-control>
+    </template>
+</div>
