@@ -10,9 +10,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require("@angular/core");
 var control_1 = require("controls/control");
-// <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children">
-//       </dock-control>
-// <div *ngFor="let child of children" className="{{child.className}}"> </div>
 var AppComponent = (function () {
     function AppComponent() {
         this.children = [];
@@ -20,6 +17,13 @@ var AppComponent = (function () {
     AppComponent.prototype.ngOnInit = function () {
         this.className = "dock-container vertical";
         var horizentalContainer = new control_1.DockContainer("h");
+        var leftPanel = new control_1.TabPanel();
+        leftPanel.addTab("Toolbox", "Toolbox");
+        leftPanel.addTab("Server", "Server");
+        leftPanel.setActive("Toolbox");
+        var child = new control_1.DockContainer("v").addChild(leftPanel);
+        horizentalContainer.addChild(child);
+        horizentalContainer.addChild(new control_1.Splitter("v"));
         horizentalContainer.addChild(new control_1.DockContainer("v"));
         horizentalContainer.addChild(new control_1.Splitter("v"));
         horizentalContainer.addChild(new control_1.DockContainer("v"));
@@ -27,9 +31,6 @@ var AppComponent = (function () {
         horizentalContainer = null;
         this.children.push(new control_1.Splitter("h"));
         horizentalContainer = new control_1.DockContainer("h");
-        horizentalContainer.addChild(new control_1.DockContainer("v"));
-        horizentalContainer.addChild(new control_1.Splitter("v"));
-        horizentalContainer.addChild(new control_1.DockContainer("v"));
         this.children.push(horizentalContainer);
         horizentalContainer = null;
     };
@@ -38,7 +39,7 @@ var AppComponent = (function () {
 AppComponent = __decorate([
     core_1.Component({
         selector: 'body',
-        template: "\n    <div id=\"root\" class=\"{{className}}\">\n        <dock-control *ngFor=\"let child of children\" [className]=\"child.className\" [children]=\"child.children\">\n        </dock-control>\n    </div>\n    "
+        template: "\n    <div id=\"root\" class=\"{{className}}\">\n        <dock-control *ngFor=\"let child of children\" [className]=\"child.className\" [children]=\"child.children\">\n        </dock-control>\n    </div>\n    <div class=\"dock-ew\">\n      <div class=\"dock-west\">\n        <div class=\"bar-block\"></div>\n        <div class=\"bar-arrow\"></div>\n      </div>\n      <div class=\"dock-center\"></div>\n      <div class=\"dock-east\">\n        <div class=\"bar-block\"></div>\n        <div class=\"bar-arrow\"></div>\n      </div>\n    </div>\n    <div class=\"dock-sn\">\n      <div class=\"dock-north\">\n        <div class=\"bar-block\"></div>\n        <div class=\"bar-arrow\"></div>\n      </div>\n      <div class=\"dock-south\">\n        <div class=\"bar-block\"></div>\n        <div class=\"bar-arrow\"></div>\n      </div>\n    </div>\n    <div class=\"dock-cover\"></div>\n    "
     }),
     __metadata("design:paramtypes", [])
 ], AppComponent);

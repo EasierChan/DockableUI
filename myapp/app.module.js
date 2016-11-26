@@ -10,6 +10,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 var core_1 = require("@angular/core");
 var platform_browser_1 = require("@angular/platform-browser");
+var common_1 = require("@angular/common");
 var app_component_1 = require("./app.component");
 var control_1 = require("controls/control");
 var AppModule = (function () {
@@ -20,7 +21,8 @@ var AppModule = (function () {
 AppModule = __decorate([
     core_1.NgModule({
         imports: [
-            platform_browser_1.BrowserModule
+            platform_browser_1.BrowserModule,
+            common_1.CommonModule
         ],
         declarations: [
             app_component_1.AppComponent,

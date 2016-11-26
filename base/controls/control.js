@@ -24,8 +24,9 @@ var DockContainerComponent = (function () {
 }());
 DockContainerComponent = __decorate([
     core_1.Component({
+        moduleId: module.id,
         selector: 'dock-control',
-        template: "\n  <div class=\"{{className}}\">\n    <dock-control *ngFor=\"let child of children\" [className]=\"child.className\" [children]=\"child.children\">\n    </dock-control>\n  </div>\n  ",
+        templateUrl: 'controlTree.html',
         inputs: ['className', 'children']
     }),
     __metadata("design:paramtypes", [])
@@ -41,13 +42,13 @@ var DockContainer = (function (_super) {
     __extends(DockContainer, _super);
     function DockContainer(type) {
         var _this = _super.call(this) || this;
-        _this.children = [];
         if (type === "v") {
             _this.className = "dock-container vertical";
         }
         else {
             _this.className = "dock-container horizental";
         }
+        _this.children = [];
         return _this;
     }
     DockContainer.prototype.addChild = function (containerRef) {
@@ -67,4 +68,123 @@ var Splitter = (function (_super) {
     return Splitter;
 }(Control));
 exports.Splitter = Splitter;
+var TabPanel = (function (_super) {
+    __extends(TabPanel, _super);
+    function TabPanel() {
+        var _this = _super.call(this) || this;
+        _this.pages = new TabPages();
+        _this.headers = new TabHeaders();
+        _this.className = "tab-panel";
+        _this.children = [];
+        _this.children.push(_this.pages);
+        _this.children.push(_this.headers);
+        return _this;
+    }
+    TabPanel.prototype.addTab = function (pageId, pageTitle) {
+        this.headers.addHeader(new TabHeader(pageId));
+        this.pages.addPage(new TabPage(pageId, pageTitle));
+        return this;
+    };
+    TabPanel.prototype.addTab2 = function (page) {
+        this.headers.addHeader(new TabHeader(page.id));
+        this.pages.addPage(page);
+        return this;
+    };
+    TabPanel.prototype.setActive = function (pageId) {
+        this.pages.getAllPage().forEach(function (page) {
+            if (page.id == pageId)
+                page.setActive();
+        });
+        this.headers.getAllHeader().forEach(function (header) {
+            if (header.targetId == pageId)
+                header.setActive();
+        });
+        return this;
+    };
+    return TabPanel;
+}(Control));
+exports.TabPanel = TabPanel;
+var TabPages = (function (_super) {
+    __extends(TabPages, _super);
+    function TabPages() {
+        var _this = _super.call(this) || this;
+        _this.pages = [];
+        return _this;
+    }
+    TabPages.prototype.addPage = function (page) {
+        this.pages.push(page);
+        return this;
+    };
+    TabPages.prototype.getAllPage = function () {
+        return this.pages;
+    };
+    return TabPages;
+}(Control));
+exports.TabPages = TabPages;
+var TabHeaders = (function (_super) {
+    __extends(TabHeaders, _super);
+    function TabHeaders() {
+        var _this = _super.call(this) || this;
+        _this.headers = [];
+        return _this;
+    }
+    TabHeaders.prototype.addHeader = function (header) {
+        this.headers.push(header);
+        return this;
+    };
+    TabHeaders.prototype.getAllHeader = function () {
+        return this.headers;
+    };
+    return TabHeaders;
+}(Control));
+exports.TabHeaders = TabHeaders;
+var TabPage = (function (_super) {
+    __extends(TabPage, _super);
+    function TabPage(id_, title_) {
+        var _this = _super.call(this) || this;
+        _this.id_ = id_;
+        _this.title_ = title_;
+        _this.className = "tab-page";
+        return _this;
+    }
+    Object.defineProperty(TabPage.prototype, "id", {
+        get: function () {
+            return this.id_;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(TabPage.prototype, "title", {
+        get: function () {
+            return this.title_;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    TabPage.prototype.setActive = function () {
+        this.className = this.className + " active";
+        return this;
+    };
+    return TabPage;
+}(Control));
+exports.TabPage = TabPage;
+var TabHeader = (function (_super) {
+    __extends(TabHeader, _super);
+    function TabHeader(targetId) {
+        var _this = _super.call(this) || this;
+        _this.targetId = "";
+        _this.className = "tab";
+        _this.targetId = targetId;
+        return _this;
+    }
+    TabHeader.prototype.setTargetId = function (value) {
+        this.targetId = value;
+    };
+    TabHeader.prototype.setActive = function () {
+        this.className = this.className + " active";
+        return this;
+    };
+    return TabHeader;
+}(Control));
+exports.TabHeader = TabHeader;
 //# sourceMappingURL=control.js.map
