@@ -136,9 +136,9 @@ function init() {
             var $splitter = $(this);
             console.log("mousedown", $splitter);
             $(document.body).on("mousemove", { src: $(this) }, move);
+            $(document.body).off("mouseup");
             $(document.body).on("mouseup", function (e) {
                 console.log("mouseup", $(this));
-                $(this).off("mouseup");
                 $(this).off("mousemove");
             })
         })
@@ -376,13 +376,13 @@ function init() {
             return;
         }
         var $target = $(e.target);
-        var parents = $target.parents(".dock-container");
-        var $parent;
-        parents.each(function (i) {
+        //var parents = 
+        var $parent = $target.parents(".dock-container").first();
+        //parents.each(function (i) {
             //&& $(parents[i]).children(".tab-panel").length > 0
-            if (i === 0) { // first parent; and have tab-panel
-                console.log("drag over dockcontainer", parents.length);
-                $parent = $(parents[i]);
+            //if (i === 0) { // first parent; and have tab-panel
+                console.log("drag over dockcontainer");
+                //$parent = $(parents[i]);
                 $(".dock-sn").css({
                     display: "flex",
                     left: $parent.offset().left + $parent.outerWidth() / 2 - 15, // 15 represents half of dock-nav
@@ -408,9 +408,9 @@ function init() {
                 });
                 $(document).data("drop-dock-ref", $parent);
                 return;
-            }
+            //} // endif
             //$(".dock-nav").clone().
-        })
+        //});//end each
     });
 
     $(".dock-container").on("drop", (function (e) {
