@@ -2,7 +2,7 @@ import { app, BrowserWindow } from 'electron';
 
 app.on('ready', function(){
     let win = new BrowserWindow({
-        autoHideMenuBar: true
+        autoHideMenuBar: false
     });
     win.loadURL(__dirname + '/index.html');
     win.show();

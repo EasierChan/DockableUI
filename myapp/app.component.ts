@@ -8,6 +8,16 @@ import { Control, DockContainer, Splitter, TabPanel } from 'controls/control';
         <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children">
         </dock-control>
     </div>
+    <div class="dock-sn">
+      <div class="dock-north">
+        <div class="bar-block"></div>
+        <div class="bar-arrow"></div>
+      </div>
+      <div class="dock-south">
+        <div class="bar-block"></div>
+        <div class="bar-arrow"></div>
+      </div>
+    </div>
     <div class="dock-ew">
       <div class="dock-west">
         <div class="bar-block"></div>
@@ -15,16 +25,6 @@ import { Control, DockContainer, Splitter, TabPanel } from 'controls/control';
       </div>
       <div class="dock-center"></div>
       <div class="dock-east">
-        <div class="bar-block"></div>
-        <div class="bar-arrow"></div>
-      </div>
-    </div>
-    <div class="dock-sn">
-      <div class="dock-north">
-        <div class="bar-block"></div>
-        <div class="bar-arrow"></div>
-      </div>
-      <div class="dock-south">
         <div class="bar-block"></div>
         <div class="bar-arrow"></div>
       </div>

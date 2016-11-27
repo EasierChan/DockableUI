@@ -2,7 +2,7 @@
 var electron_1 = require("electron");
 electron_1.app.on('ready', function () {
     var win = new electron_1.BrowserWindow({
-        autoHideMenuBar: true
+        autoHideMenuBar: false
     });
     win.loadURL(__dirname + '/index.html');
     win.show();

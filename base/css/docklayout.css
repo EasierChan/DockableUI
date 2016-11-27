@@ -75,6 +75,7 @@ body,
     width: 100%;
     display: flex;
     flex-direction: column;
+    -webkit-user-drag: none;
 }
 
 .tab-page:not(.active) {
@@ -94,6 +95,7 @@ body,
 .page-body {
     background-color: #1e1e1e;
     flex: 1 1 auto;
+    -webkit-user-drag: none;
 }
 
 .panel-header-list {
@@ -101,6 +103,7 @@ body,
     background-color: rgba(45, 45, 45, 1);
     box-shadow: 0 -2px 2px rgba(0, 140, 240, 1);
     display: flex;
+    -webkit-user-drag: none;
 }
 
 .panel-header-list > .tab {
@@ -112,6 +115,8 @@ body,
     border: 1px solid transparent;
     cursor: pointer;
     text-overflow: ellipsis;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
 }
 
 .panel-header-list > .tab.active {

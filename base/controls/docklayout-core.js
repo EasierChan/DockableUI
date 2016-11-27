@@ -45,8 +45,10 @@ function init() {
 
     function moveTabPage(srcPage, dstContainer) {
         var originContainer = srcPage.closest(".dock-container");
-        if (originContainer === dstContainer)
-            return;
+        //if (originContainer === dstContainer)
+          //  return;
+        
+        // console.log(originContainer, dstContainer);
 
         var siblingsLen = srcPage.siblings().length;
         if (srcPage.next().length > 0)
@@ -88,7 +90,7 @@ function init() {
                 originContainer.next().remove();
                 if (originContainer.siblings().length == 1) {
                     console.log("clear unnecessary container");
-                    originContainer.parent().append(originContainer.next().chidren());
+                    originContainer.parent().append(originContainer.next().children());
                     originContainer.next().remove();
                 } else {
                     if (originContainer.is(".vertical"))
@@ -131,8 +133,12 @@ function init() {
     function initSplitBar() {
         $(".splitter-bar").off("mousedown");
         $(".splitter-bar").on("mousedown", function (e) {
+            var $splitter = $(this);
+            console.log("mousedown", $splitter);
             $(document.body).on("mousemove", { src: $(this) }, move);
             $(document.body).on("mouseup", function (e) {
+                console.log("mouseup", $(this));
+                $(this).off("mouseup");
                 $(this).off("mousemove");
             })
         })
@@ -181,17 +187,18 @@ function init() {
 
     // drag and drop panel
     function initDragAndDrop() {
-        $(".tab-page").off(); //remove all listener
+        $(".page-title").off(); //remove all listener
         $(".dock-sn, .dock-ew, .dock-cover").css("display", "none");
-        $(".tab-page").attr("draggable", "true");
-        $(".tab-page").on("dragstart", function (e) {
-            console.log("tabpage drag start");
-            $(document).data("drag-src-id", e.target.id);
+        $(".page-title").attr("draggable", "true");
+        $(".page-title").on("dragstart", function (e) {
+            console.log(e.target.parentNode.id, " tabpage drag start");
+            $(document).data("drag-src-id", e.target.parentNode.id);
         });
-        $(".tab-page").on("dragend", function (e) {
+        $(".page-title").on("dragend", function (e) {
             $(".dock-sn, .dock-ew, .dock-cover").css("display", "none");
             //$(".dock-center, .dock-west, .dock-east, .dock-north, .dock-south").off("dragover");
             //$(".dock-center, .dock-west, .dock-east, .dock-north, .dock-south").off("drop");
+            $(document).removeData("drag-src-id")
         });
     }
     initDragAndDrop();
@@ -250,6 +257,10 @@ function init() {
         var $src = $("#" + id);
 
         if ($(this).is(".dock-center")) {
+            if($parent.find("#" + id).length > 0){
+                console.log( "#", id, $parent.find("#" + id).length);
+                return;
+            }
             console.log("direct put into $parent");
             moveTabPage($src, $parent);
         } else if ($(this).is(".dock-west,.dock-east")) {
@@ -354,12 +365,16 @@ function init() {
             $newEle.append(createTabPanel());
             moveTabPage($src, $newEle);
         }
+        $(document).data("drag-src-id", null);
         initSplitBar();
         initDragAndDrop();
     });
 
     $(".dock-container").on("dragover", function (e) {
         e.preventDefault();
+        if(typeof $(document).data("drag-src-id") == "undefined"){
+            return;
+        }
         var $target = $(e.target);
         var parents = $target.parents(".dock-container");
         var $parent;

@@ -3,7 +3,7 @@
         <!-- tab pages-->
         <div class="tab-pages">
             <div *ngFor="let page of children[0].pages" [id]="page.id" [class]="page.className">
-                <div class="page-title">{{page.title}}</div>
+                <div class="page-title"><span>{{page.title}}</span></div>
                 <div class="page-body"></div>
             </div>
         </div>
