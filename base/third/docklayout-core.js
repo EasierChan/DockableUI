@@ -1,4 +1,4 @@
-window.jQuery = window.$ = require("jquery-3.1.1.js");
+window.jQuery = window.$ = require("jquery.js");
 
 function init() {
     if (typeof jQuery == 'undefined') {

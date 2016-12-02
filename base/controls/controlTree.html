@@ -1,4 +1,4 @@
-<div [ngSwitch]="className" [class]="className">
+<div [ngSwitch]="className" [class]="className" [style.width.px]="styleObj?.width != null ? styleObj?.width : null" [style.height.px]="styleObj?.height != null ? styleObj?.height : null">
     <template [ngSwitchCase]="'tab-panel'">
         <!-- tab pages-->
         <div class="tab-pages">
@@ -14,8 +14,14 @@
             </div>
         </div>
     </template>
+    <template [ngSwitchCase]="'table'">
+        <dock-table [className]="className" [dataSource]="dataSource"></dock-table>
+    </template>
+    <template [ngSwitchCase]="'controls'">
+        <usercontrol [class]="styleObj.type" [children]="children" [dataSource]="dataSource" [styleObj]="styleObj" ></usercontrol>
+    </template>
     <template ngSwitchDefault>
-        <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children">
+        <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj" [dataSource]="child.dataSource">
         </dock-control>
     </template>
 </div>

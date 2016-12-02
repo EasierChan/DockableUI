@@ -1,5 +1,5 @@
 "use strict";
-var electron_1 = require("electron");
+var electron_1 = require('electron');
 electron_1.app.on('ready', function () {
     var win = new electron_1.BrowserWindow({
         autoHideMenuBar: false

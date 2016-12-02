@@ -6,6 +6,7 @@
   System.config({
     paths: {
       // paths serve as alias
+      'base:': 'base/',
       'npm:': 'node_modules/'
     },
     // map tells the System loader where to look for things
@@ -25,9 +26,8 @@
       //'@angular/upgrade': 'npm:@angular/upgrade/bundles/upgrade.umd.js',
 
       // other libraries
-      'rxjs':                      'npm:rxjs',
-      'controls/control': 'base/controls/control.js',
-      'controls/dockmanager': 'base/controls/docklayout-core.js'
+      'controls/dockmanager': 'base:third/docklayout-core.js',
+      'rxjs':                      'npm:rxjs'
       //'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js'
     },
     // packages tells the System loader how to load when no filename and/or no extension
@@ -37,6 +37,9 @@
         defaultExtension: 'js'
       },
       rxjs: {
+        defaultExtension: 'js'
+      },
+      base: {
         defaultExtension: 'js'
       }
     }

@@ -1,7 +1,7 @@
 /**
  * created by chenlei
  */
-import { Component, Input } from "@angular/core"
+import { Component, Input } from "@angular/core";
 
 @Component({
   moduleId: module.id,
@@ -12,29 +12,52 @@ import { Component, Input } from "@angular/core"
 export class DockContainerComponent {
   className: string;
   children: Control[];
+  @Input() styleObj: any;
+  @Input() dataSource: any;
 }
 
+
+export interface CssStyle {
+  type: string;
+  width : number;
+  height: number;
+}
 
 export class Control {
   protected className: string;
   protected children: any[];
+  protected dataSource: any;
+  protected styleObj: CssStyle;
+  protected listeners: any;
 }
 
-export class DockContainer extends Control {
-  constructor(type) {
+export class DockContainer extends Control{
+
+  constructor(type: string, width?: number, height?: number) {
     super();
     if (type === "v") {
       this.className = "dock-container vertical";
+      this.styleObj = {
+        type: '',
+        width: width == undefined ? 300 : width,
+        height: null
+      };
     } else {
       this.className = "dock-container horizental";
+      this.styleObj = {
+        type: '',
+        width: null,
+        height: height == undefined ? 200 : height
+      };
     }
     this.children = [];
   }
 
-  addChild(containerRef: Control): DockContainer {
+  addChild(containerRef: any): DockContainer {
     this.children.push(containerRef);
     return this;
   }
+
 }
 
 export class Splitter extends Control {
@@ -69,14 +92,14 @@ export class TabPanel extends Control {
     return this;
   }
 
-  setActive(pageId: string): TabPanel{
-    this.pages.getAllPage().forEach(page=>{
-      if(page.id == pageId)
+  setActive(pageId: string): TabPanel {
+    this.pages.getAllPage().forEach(page => {
+      if (page.id == pageId)
         page.setActive();
     });
 
-    this.headers.getAllHeader().forEach(header=>{
-      if(header.targetId == pageId)
+    this.headers.getAllHeader().forEach(header => {
+      if (header.targetId == pageId)
         header.setActive();
     });
     return this;
@@ -128,7 +151,7 @@ export class TabPage extends Control {
     return this.title_;
   }
 
-  setActive(): TabPage{
+  setActive(): TabPage {
     this.className = this.className + " active";
     return this;
   }
@@ -146,7 +169,7 @@ export class TabHeader extends Control {
     this.targetId = value;
   }
 
-  setActive(): TabHeader{
+  setActive(): TabHeader {
     this.className = this.className + " active";
     return this;
   }

@@ -15,12 +15,13 @@ body,
 #root {
     height: 100%;
     width: 100%;
+    font-size: 12px;
 }
 
 .dock-container {
     /*display: flex;*/
-    background-color: #000000;
-    color: #fff;
+    background-color: #000010;
+    color: #F0F0F0;
     overflow: hidden;
     position: relative;
 }
@@ -53,10 +54,14 @@ body,
 
 .dock-container.horizental {
     height: 200px;
+    display: flex;
+    flex-flow: row nowrap;
 }
 
 .dock-container.vertical {
     width: 300px;
+    display: flex;
+    flex-flow: column nowrap;
 }
 
 .tab-panel {
@@ -84,12 +89,14 @@ body,
 }
 
 .page-title {
-    height: 25px;
+    height: 20px;
+    line-height: 20px;
     padding-left: 5px;
     background-color: rgba(45, 45, 45, 1);
     overflow: hidden;
     white-space: nowrap;
     -webkit-user-select: none;
+    user-select: none;
     cursor: default;
 }
 
@@ -102,7 +109,7 @@ body,
 .panel-header-list {
     flex: 0 0 25px;
     background-color: rgba(45, 45, 45, 1);
-    box-shadow: 0 -2px 2px rgba(0, 140, 240, 1);
+    box-shadow: 0 -1px 0px rgba(0, 140, 240, 1);
     display: flex;
     -webkit-user-drag: none;
 }
@@ -110,13 +117,15 @@ body,
 .panel-header-list > .tab {
     flex: none;
     height: 20px;
-    min-width: fit-content;
-    width: 60px;
-    padding-left: 5px;
+    line-height: 20px;
+    width: fit-content;
+    /*width: 60px;*/
+    padding: 0 5px;
     border: 1px solid transparent;
     cursor: pointer;
     text-overflow: ellipsis;
     -webkit-user-select: none;
+    user-select: none;
     -webkit-user-drag: none;
 }
 

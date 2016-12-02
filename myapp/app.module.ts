@@ -4,16 +4,21 @@ import { FormsModule }     from "@angular/forms";
 import { CommonModule }   from '@angular/common';
 
 import { AppComponent }   from './app.component';
-import { DockContainerComponent }   from 'controls/control';
+import { DockContainerComponent }   from '../base/controls/control';
+import { DataTableComponent } from '../base/controls/data.component';
+import { UserControlComponent } from './user.component';
 
 @NgModule({
   imports:      [ 
     BrowserModule,
-    CommonModule
+    CommonModule,
+    FormsModule
     ],
   declarations: [
     AppComponent,
-    DockContainerComponent 
+    DockContainerComponent,
+    DataTableComponent,
+    UserControlComponent
     ],
   bootstrap:    [ AppComponent ]
 })
