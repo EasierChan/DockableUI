@@ -16,6 +16,8 @@ body,
     height: 100%;
     width: 100%;
     font-size: 12px;
+    -webkit-user-select: none;
+    -webkit-user-drag: none;
 }
 
 .dock-container {
@@ -54,14 +56,14 @@ body,
 
 .dock-container.horizental {
     height: 200px;
-    display: flex;
-    flex-flow: row nowrap;
+    /*display: flex;
+    flex-flow: row nowrap;*/
 }
 
 .dock-container.vertical {
     width: 300px;
-    display: flex;
-    flex-flow: column nowrap;
+    /*display: flex;
+    flex-flow: column nowrap;*/
 }
 
 .tab-panel {

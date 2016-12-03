@@ -136,8 +136,8 @@ function init() {
             var $splitter = $(this);
             console.log("mousedown", $splitter);
             $(document.body).on("mousemove", { src: $(this) }, move);
-            $(document.body).off("mouseup");
-            $(document.body).on("mouseup", function (e) {
+            //$(document.body).off("mouseup");
+            $(document.body).one("mouseup", function (e) {
                 console.log("mouseup", $(this));
                 $(this).off("mousemove");
             })

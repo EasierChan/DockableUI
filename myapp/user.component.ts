@@ -11,21 +11,21 @@ import { Control, CssStyle } from "../base/controls/control";
     selector: 'usercontrol',
     template: `
         <template ngFor let-child [ngForOf]="children">
-            <span *ngIf="child.styleObj.type=='text-plain'" [class]="child.className">
+            <span *ngIf="child.styleObj.type=='label'" [class]="child.className">
                 {{child.dataSource.value}}
             </span>
-            <button *ngIf="child.styleObj.type=='btn'" [class]="child.className" [name]="child.dataSource.name"
+            <button *ngIf="child.styleObj.type=='button'" [class]="child.className" [name]="child.dataSource.name"
              (click)="child.dataSource.click()">
                 {{child.dataSource.value}}
             </button>
-            <input type="text" *ngIf="child.styleObj.type=='input-text'" [(ngModel)]="child.dataSource.modelVal"
+            <input type="text" *ngIf="child.styleObj.type=='textbox'" [(ngModel)]="child.dataSource.modelVal"
              [class]="child.className" [name]="child.dataSource.name">
-            <input type="radio" *ngIf="child.styleObj.type=='input-radio'" [class]="child.className">
-            <input type="checkbox" *ngIf="child.styleObj.type=='input-check'" [class]="child.className">
-            <input type="range" *ngIf="child.styleObj.type=='input-range'" [class]="child.className">
+            <input type="radio" *ngIf="child.styleObj.type=='radiobtn'" [class]="child.className">
+            <input type="checkbox" *ngIf="child.styleObj.type=='checkbox'" [class]="child.className">
+            <input type="range" *ngIf="child.styleObj.type=='range'" [class]="child.className">
             <dock-table *ngIf="child.className=='table'" [className]="className" [dataSource]="child.dataSource"></dock-table>
             <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource"
-             [styleObj]="child.styleObj">
+             [class]="child.styleObj.type">
             </usercontrol>
         </template>
     `,

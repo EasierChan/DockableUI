@@ -52,42 +52,42 @@ export class AppComponent implements OnInit {
     // Splitter
     horizentalContainer.addChild(new Splitter("v"));
     // col 2
-    let btn_dayview = new MetaControl("btn");
+    let btn_dayview = new MetaControl("button");
     btn_dayview.Name = "test";
     btn_dayview.Value = "AllDayView";
 
-    let lbl_min = new MetaControl("text-plain");
+    let lbl_min = new MetaControl("label");
     lbl_min.Value= "Min:";
 
-    let txt_min = new MetaControl("input-text");
+    let txt_min = new MetaControl("textbox");
     txt_min.Name = "min";
     txt_min.ModelVal = "";
 
-    let lbl_max = new MetaControl("text-plain");
+    let lbl_max = new MetaControl("label");
     lbl_max.Value= "Max:";
 
-    let txt_max = new MetaControl("input-text");
+    let txt_max = new MetaControl("textbox");
     txt_max.Name = "max";
     txt_max.ModelVal = "";
 
-    let lbl_tick = new MetaControl("text-plain");
+    let lbl_tick = new MetaControl("label");
     lbl_tick.Value= "Tick:";
 
-    let txt_tick = new MetaControl("input-text");
+    let txt_tick = new MetaControl("textbox");
     txt_tick.Name = "Tick";
     txt_tick.ModelVal = "";
     
-    let lbl_TimeRange = new MetaControl("text-plain");
+    let lbl_TimeRange = new MetaControl("label");
     lbl_TimeRange.Value= "TimeRange:";
 
-    let txt_TimeRange = new MetaControl("input-text");
+    let txt_TimeRange = new MetaControl("textbox");
     txt_TimeRange.Name = "TimeRange";
     txt_TimeRange.ModelVal = "";
     
-    let lbl_Slippage= new MetaControl("text-plain");
+    let lbl_Slippage= new MetaControl("label");
     lbl_Slippage.Value= "Slippage:";
 
-    let txt_Slippage = new MetaControl("input-text");
+    let txt_Slippage = new MetaControl("textbox");
     txt_Slippage.Name = "Slippage";
     txt_Slippage.ModelVal = "";
 
@@ -104,23 +104,25 @@ export class AppComponent implements OnInit {
     headControls.addChild(txt_TimeRange);
     headControls.addChild(lbl_Slippage);
     headControls.addChild(txt_Slippage);
-    btn_dayview.onClick(()=>{
-      console.log(JSON.stringify(txt_min.ModelVal));
-    });
 
     let table: DataTable = new DataTable();
     table.addColumn("姓名").addColumn("年龄").addColumn("性别").addColumn("成绩");
-    for(let i = 0; i< 100; ++i){
-      let row = table.newRow();
-      row.values[0] = "leige";
-      row.values[1] = "1212";
-      row.values[2] = "男";
-      row.values[3] = "100.1";
-    }
+    
+    
+    btn_dayview.onClick(()=>{
+      for(let i = 0; i< 100; ++i){
+        let row = table.newRow();
+        row.values[0] = "leige";
+        row.values[1] = "1212";
+        row.values[2] = "男";
+        row.values[3] = "100.1";
+      }
+    });
 
     let body = new ComboControl("col");
     body.addChild(headControls);
     body.addChild(table);
+    body.addChild(headControls);
     horizentalContainer.addChild(new DockContainer("v", 800, null).addChild(body));
     horizentalContainer.addChild(new Splitter("v"));
     //col 3

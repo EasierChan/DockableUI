@@ -8,35 +8,35 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var core_1 = require('@angular/core');
-var platform_browser_1 = require('@angular/platform-browser');
+var core_1 = require("@angular/core");
+var platform_browser_1 = require("@angular/platform-browser");
 var forms_1 = require("@angular/forms");
-var common_1 = require('@angular/common');
-var app_component_1 = require('./app.component');
-var control_1 = require('../base/controls/control');
-var data_component_1 = require('../base/controls/data.component');
-var user_component_1 = require('./user.component');
+var common_1 = require("@angular/common");
+var app_component_1 = require("./app.component");
+var control_1 = require("../base/controls/control");
+var data_component_1 = require("../base/controls/data.component");
+var user_component_1 = require("./user.component");
 var AppModule = (function () {
     function AppModule() {
     }
-    AppModule = __decorate([
-        core_1.NgModule({
-            imports: [
-                platform_browser_1.BrowserModule,
-                common_1.CommonModule,
-                forms_1.FormsModule
-            ],
-            declarations: [
-                app_component_1.AppComponent,
-                control_1.DockContainerComponent,
-                data_component_1.DataTableComponent,
-                user_component_1.UserControlComponent
-            ],
-            bootstrap: [app_component_1.AppComponent]
-        }), 
-        __metadata('design:paramtypes', [])
-    ], AppModule);
     return AppModule;
 }());
+AppModule = __decorate([
+    core_1.NgModule({
+        imports: [
+            platform_browser_1.BrowserModule,
+            common_1.CommonModule,
+            forms_1.FormsModule
+        ],
+        declarations: [
+            app_component_1.AppComponent,
+            control_1.DockContainerComponent,
+            data_component_1.DataTableComponent,
+            user_component_1.UserControlComponent
+        ],
+        bootstrap: [app_component_1.AppComponent]
+    }),
+    __metadata("design:paramtypes", [])
+], AppModule);
 exports.AppModule = AppModule;
 //# sourceMappingURL=app.module.js.map

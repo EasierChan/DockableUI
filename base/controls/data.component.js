@@ -28,32 +28,33 @@ var DataTableComponent = (function () {
     };
     DataTableComponent.prototype.ngAfterViewInit = function () {
     };
-    DataTableComponent = __decorate([
-        core_1.Component({
-            moduleId: module.id,
-            selector: "dock-table",
-            template: "\n        <div class=\"tb-header\">\n            <div *ngFor=\"let col of dataSource.columns\" class=\"td\">\n                {{col.columnHeader}}\n            </div>\n        </div>\n        <div class=\"tb-body\">\n            <div class=\"tr\" *ngFor=\"let row of dataSource.rows\">\n                <div *ngFor=\"let col of row.values\" class=\"td\">\n                    {{col}}\n                </div>\n            </div>\n        <div>\n    ",
-            inputs: ['className', 'dataSource']
-        }), 
-        __metadata('design:paramtypes', [])
-    ], DataTableComponent);
     return DataTableComponent;
 }());
+DataTableComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: "dock-table",
+        template: "\n        <div class=\"tb-header\">\n            <div *ngFor=\"let col of dataSource.columns\" class=\"td\">\n                {{col.columnHeader}}\n            </div>\n        </div>\n        <div class=\"tb-body\">\n            <div class=\"tr\" *ngFor=\"let row of dataSource.rows\">\n                <div *ngFor=\"let col of row.values\" class=\"td\">\n                    {{col}}\n                </div>\n            </div>\n        <div>\n    ",
+        inputs: ['className', 'dataSource']
+    }),
+    __metadata("design:paramtypes", [])
+], DataTableComponent);
 exports.DataTableComponent = DataTableComponent;
 var DataTable = (function (_super) {
     __extends(DataTable, _super);
     function DataTable() {
-        _super.call(this);
-        this.columns = [];
-        this.rows = [];
-        this.enableFooter = false;
-        this.className = "table";
-        this.dataSource = {
+        var _this = _super.call(this) || this;
+        _this.columns = [];
+        _this.rows = [];
+        _this.enableFooter = false;
+        _this.className = "table";
+        _this.dataSource = {
             columns: null,
             rows: null,
-            enableFooter: this.enableFooter
+            enableFooter: _this.enableFooter
         };
-        this.styleObj = { type: null, width: null, height: null };
+        _this.styleObj = { type: null, width: null, height: null };
+        return _this;
     }
     DataTable.prototype.newRow = function () {
         var row = new DataTableRow(this.columns.length);

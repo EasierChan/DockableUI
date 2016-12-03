@@ -28,29 +28,30 @@ var UserControlComponent = (function () {
     UserControlComponent.prototype.ngAfterContentInit = function () {
         // console.log(JSON.stringify(this.children));
     };
-    UserControlComponent = __decorate([
-        core_1.Component({
-            moduleId: module.id,
-            selector: 'usercontrol',
-            template: "\n        <template ngFor let-child [ngForOf]=\"children\">\n            <span *ngIf=\"child.styleObj.type=='text-plain'\" [class]=\"child.className\">\n                {{child.dataSource.value}}\n            </span>\n            <button *ngIf=\"child.styleObj.type=='btn'\" [class]=\"child.className\" [name]=\"child.dataSource.name\"\n             (click)=\"child.dataSource.click()\">\n                {{child.dataSource.value}}\n            </button>\n            <input type=\"text\" *ngIf=\"child.styleObj.type=='input-text'\" [(ngModel)]=\"child.dataSource.modelVal\"\n             [class]=\"child.className\" [name]=\"child.dataSource.name\">\n            <input type=\"radio\" *ngIf=\"child.styleObj.type=='input-radio'\" [class]=\"child.className\">\n            <input type=\"checkbox\" *ngIf=\"child.styleObj.type=='input-check'\" [class]=\"child.className\">\n            <input type=\"range\" *ngIf=\"child.styleObj.type=='input-range'\" [class]=\"child.className\">\n            <dock-table *ngIf=\"child.className=='table'\" [className]=\"className\" [dataSource]=\"child.dataSource\"></dock-table>\n            <usercontrol *ngIf=\"child.className=='controls'\" [children]=\"child.children\" [dataSource]=\"child.dataSource\"\n             [styleObj]=\"child.styleObj\">\n            </usercontrol>\n        </template>\n    ",
-            inputs: ['children', 'dataSource', 'styleObj']
-        }), 
-        __metadata('design:paramtypes', [])
-    ], UserControlComponent);
     return UserControlComponent;
 }());
+UserControlComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: 'usercontrol',
+        template: "\n        <template ngFor let-child [ngForOf]=\"children\">\n            <span *ngIf=\"child.styleObj.type=='label'\" [class]=\"child.className\">\n                {{child.dataSource.value}}\n            </span>\n            <button *ngIf=\"child.styleObj.type=='button'\" [class]=\"child.className\" [name]=\"child.dataSource.name\"\n             (click)=\"child.dataSource.click()\">\n                {{child.dataSource.value}}\n            </button>\n            <input type=\"text\" *ngIf=\"child.styleObj.type=='textbox'\" [(ngModel)]=\"child.dataSource.modelVal\"\n             [class]=\"child.className\" [name]=\"child.dataSource.name\">\n            <input type=\"radio\" *ngIf=\"child.styleObj.type=='radiobtn'\" [class]=\"child.className\">\n            <input type=\"checkbox\" *ngIf=\"child.styleObj.type=='checkbox'\" [class]=\"child.className\">\n            <input type=\"range\" *ngIf=\"child.styleObj.type=='range'\" [class]=\"child.className\">\n            <dock-table *ngIf=\"child.className=='table'\" [className]=\"className\" [dataSource]=\"child.dataSource\"></dock-table>\n            <usercontrol *ngIf=\"child.className=='controls'\" [children]=\"child.children\" [dataSource]=\"child.dataSource\"\n             [class]=\"child.styleObj.type\">\n            </usercontrol>\n        </template>\n    ",
+        inputs: ['children', 'dataSource', 'styleObj']
+    }),
+    __metadata("design:paramtypes", [])
+], UserControlComponent);
 exports.UserControlComponent = UserControlComponent;
 var ComboControl = (function (_super) {
     __extends(ComboControl, _super);
     function ComboControl(type) {
-        _super.call(this);
-        this.className = "controls";
-        this.styleObj = {
+        var _this = _super.call(this) || this;
+        _this.className = "controls";
+        _this.styleObj = {
             type: type,
             width: null,
             height: null
         };
-        this.children = [];
+        _this.children = [];
+        return _this;
     }
     ComboControl.prototype.addChild = function (childControl) {
         this.children.push(childControl);
@@ -62,13 +63,14 @@ exports.ComboControl = ComboControl;
 var MetaControl = (function (_super) {
     __extends(MetaControl, _super);
     function MetaControl(type) {
-        _super.call(this);
-        this.styleObj = {
+        var _this = _super.call(this) || this;
+        _this.styleObj = {
             type: type,
             width: null,
             height: null
         };
-        this.dataSource = new Object();
+        _this.dataSource = new Object();
+        return _this;
     }
     MetaControl.prototype.onClick = function (aaa) {
         this.dataSource.click = aaa;

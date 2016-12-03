@@ -20,25 +20,25 @@ var core_1 = require("@angular/core");
 var DockContainerComponent = (function () {
     function DockContainerComponent() {
     }
-    __decorate([
-        core_1.Input(), 
-        __metadata('design:type', Object)
-    ], DockContainerComponent.prototype, "styleObj", void 0);
-    __decorate([
-        core_1.Input(), 
-        __metadata('design:type', Object)
-    ], DockContainerComponent.prototype, "dataSource", void 0);
-    DockContainerComponent = __decorate([
-        core_1.Component({
-            moduleId: module.id,
-            selector: 'dock-control',
-            templateUrl: 'controlTree.html',
-            inputs: ['className', 'children']
-        }), 
-        __metadata('design:paramtypes', [])
-    ], DockContainerComponent);
     return DockContainerComponent;
 }());
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], DockContainerComponent.prototype, "styleObj", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], DockContainerComponent.prototype, "dataSource", void 0);
+DockContainerComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: 'dock-control',
+        templateUrl: 'controlTree.html',
+        inputs: ['className', 'children']
+    }),
+    __metadata("design:paramtypes", [])
+], DockContainerComponent);
 exports.DockContainerComponent = DockContainerComponent;
 var Control = (function () {
     function Control() {
@@ -49,24 +49,25 @@ exports.Control = Control;
 var DockContainer = (function (_super) {
     __extends(DockContainer, _super);
     function DockContainer(type, width, height) {
-        _super.call(this);
+        var _this = _super.call(this) || this;
         if (type === "v") {
-            this.className = "dock-container vertical";
-            this.styleObj = {
+            _this.className = "dock-container vertical";
+            _this.styleObj = {
                 type: '',
                 width: width == undefined ? 300 : width,
                 height: null
             };
         }
         else {
-            this.className = "dock-container horizental";
-            this.styleObj = {
+            _this.className = "dock-container horizental";
+            _this.styleObj = {
                 type: '',
                 width: null,
                 height: height == undefined ? 200 : height
             };
         }
-        this.children = [];
+        _this.children = [];
+        return _this;
     }
     DockContainer.prototype.addChild = function (containerRef) {
         this.children.push(containerRef);
@@ -78,8 +79,9 @@ exports.DockContainer = DockContainer;
 var Splitter = (function (_super) {
     __extends(Splitter, _super);
     function Splitter(type) {
-        _super.call(this);
-        this.className = type == "v" ? "splitter-bar vertical" : "splitter-bar horizental";
+        var _this = _super.call(this) || this;
+        _this.className = type == "v" ? "splitter-bar vertical" : "splitter-bar horizental";
+        return _this;
     }
     return Splitter;
 }(Control));
@@ -87,13 +89,14 @@ exports.Splitter = Splitter;
 var TabPanel = (function (_super) {
     __extends(TabPanel, _super);
     function TabPanel() {
-        _super.call(this);
-        this.pages = new TabPages();
-        this.headers = new TabHeaders();
-        this.className = "tab-panel";
-        this.children = [];
-        this.children.push(this.pages);
-        this.children.push(this.headers);
+        var _this = _super.call(this) || this;
+        _this.pages = new TabPages();
+        _this.headers = new TabHeaders();
+        _this.className = "tab-panel";
+        _this.children = [];
+        _this.children.push(_this.pages);
+        _this.children.push(_this.headers);
+        return _this;
     }
     TabPanel.prototype.addTab = function (pageId, pageTitle) {
         this.headers.addHeader(new TabHeader(pageId));
@@ -122,8 +125,9 @@ exports.TabPanel = TabPanel;
 var TabPages = (function (_super) {
     __extends(TabPages, _super);
     function TabPages() {
-        _super.call(this);
-        this.pages = [];
+        var _this = _super.call(this) || this;
+        _this.pages = [];
+        return _this;
     }
     TabPages.prototype.addPage = function (page) {
         this.pages.push(page);
@@ -138,8 +142,9 @@ exports.TabPages = TabPages;
 var TabHeaders = (function (_super) {
     __extends(TabHeaders, _super);
     function TabHeaders() {
-        _super.call(this);
-        this.headers = [];
+        var _this = _super.call(this) || this;
+        _this.headers = [];
+        return _this;
     }
     TabHeaders.prototype.addHeader = function (header) {
         this.headers.push(header);
@@ -154,10 +159,11 @@ exports.TabHeaders = TabHeaders;
 var TabPage = (function (_super) {
     __extends(TabPage, _super);
     function TabPage(id_, title_) {
-        _super.call(this);
-        this.id_ = id_;
-        this.title_ = title_;
-        this.className = "tab-page";
+        var _this = _super.call(this) || this;
+        _this.id_ = id_;
+        _this.title_ = title_;
+        _this.className = "tab-page";
+        return _this;
     }
     Object.defineProperty(TabPage.prototype, "id", {
         get: function () {
@@ -183,10 +189,11 @@ exports.TabPage = TabPage;
 var TabHeader = (function (_super) {
     __extends(TabHeader, _super);
     function TabHeader(targetId) {
-        _super.call(this);
-        this.targetId = "";
-        this.className = "tab";
-        this.targetId = targetId;
+        var _this = _super.call(this) || this;
+        _this.targetId = "";
+        _this.className = "tab";
+        _this.targetId = targetId;
+        return _this;
     }
     TabHeader.prototype.setTargetId = function (value) {
         this.targetId = value;
