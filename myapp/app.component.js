@@ -20,16 +20,16 @@ var AppComponent = (function () {
     AppComponent.prototype.ngOnInit = function () {
         // this.className = "dock-container vertical";
         // row 1
-        var horizentalContainer = new control_1.DockContainer("h", null, 800);
+        var row1 = new control_1.DockContainer("h", null, 800);
         var leftPanel = new control_1.TabPanel();
         leftPanel.addTab("Toolbox", "Toolbox");
         leftPanel.addTab("Server", "Server");
         leftPanel.setActive("Toolbox");
-        var child = new control_1.DockContainer("v").addChild(leftPanel);
+        var row1col1 = new control_1.DockContainer("v").addChild(leftPanel);
         // col 1
-        horizentalContainer.addChild(child);
+        // row1.addChild(row1col1);
         // Splitter
-        horizentalContainer.addChild(new control_1.Splitter("v"));
+        // row1.addChild(new Splitter("v"));
         // col 2
         var btn_dayview = new user_component_1.MetaControl("button");
         btn_dayview.Name = "test";
@@ -86,17 +86,16 @@ var AppComponent = (function () {
         body.addChild(headControls);
         body.addChild(table);
         body.addChild(headControls);
-        horizentalContainer.addChild(new control_1.DockContainer("v", 800, null).addChild(body));
-        horizentalContainer.addChild(new control_1.Splitter("v"));
+        row1.addChild(new control_1.DockContainer("v", 800, null).addChild(body));
+        row1.addChild(new control_1.Splitter("v"));
         //col 3
-        horizentalContainer.addChild(new control_1.DockContainer("v"));
-        this.children.push(horizentalContainer);
-        horizentalContainer = null;
-        this.children.push(new control_1.Splitter("h"));
+        // row1.addChild(new DockContainer("v"));
+        this.children.push(row1);
+        // splitter between row1 and row2
+        // this.children.push(new Splitter("h"));
         // row 2
-        horizentalContainer = new control_1.DockContainer("h");
-        this.children.push(horizentalContainer);
-        horizentalContainer = null;
+        // let row2 = new DockContainer("h");
+        // this.children.push(row2);
     };
     return AppComponent;
 }());

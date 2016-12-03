@@ -16,6 +16,7 @@ body,
     height: 100%;
     width: 100%;
     font-size: 12px;
+    font-family: "Segoe UI", "Open Sans", sans-serif, serif;
     -webkit-user-select: none;
     -webkit-user-drag: none;
 }

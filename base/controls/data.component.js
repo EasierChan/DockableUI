@@ -85,4 +85,21 @@ var DataTableColumn = (function () {
     return DataTableColumn;
 }());
 exports.DataTableColumn = DataTableColumn;
+/**
+ * chart components created by chenlei
+ */
+var ChartComponent = (function () {
+    function ChartComponent() {
+    }
+    return ChartComponent;
+}());
+ChartComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: 'chart',
+        template: "\n        <div></div>\n    "
+    }),
+    __metadata("design:paramtypes", [])
+], ChartComponent);
+exports.ChartComponent = ChartComponent;
 //# sourceMappingURL=data.component.js.map

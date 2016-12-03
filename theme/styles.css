@@ -86,12 +86,18 @@ usercontrol.row{
     flex: none;
     height: 25px;
     line-height: 25px;
-    padding: 2px 5px;
+    vertical-align: middle;
+    padding: 5px 5px;
 }
 usercontrol.col{
     flex: 1;
     flex-flow: column nowrap;
     width: 100%;
+}
+input[type='text'],
+button,
+span{
+    margin: 0 5px;
 }
 /* textbox style */
 input[type='text']{

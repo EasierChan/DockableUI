@@ -40,17 +40,17 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // this.className = "dock-container vertical";
     // row 1
-    let horizentalContainer: DockContainer = new DockContainer("h", null, 800);
+    let row1: DockContainer = new DockContainer("h", null, 800);
 
     let leftPanel: TabPanel = new TabPanel();
     leftPanel.addTab("Toolbox", "Toolbox");
     leftPanel.addTab("Server", "Server");
     leftPanel.setActive("Toolbox");
-    let child = new DockContainer("v").addChild(leftPanel);
+    let row1col1 = new DockContainer("v").addChild(leftPanel);
     // col 1
-    horizentalContainer.addChild(child);
+    // row1.addChild(row1col1);
     // Splitter
-    horizentalContainer.addChild(new Splitter("v"));
+    // row1.addChild(new Splitter("v"));
     // col 2
     let btn_dayview = new MetaControl("button");
     btn_dayview.Name = "test";
@@ -123,17 +123,15 @@ export class AppComponent implements OnInit {
     body.addChild(headControls);
     body.addChild(table);
     body.addChild(headControls);
-    horizentalContainer.addChild(new DockContainer("v", 800, null).addChild(body));
-    horizentalContainer.addChild(new Splitter("v"));
+    row1.addChild(new DockContainer("v", 800, null).addChild(body));
+    row1.addChild(new Splitter("v"));
     //col 3
-    horizentalContainer.addChild(new DockContainer("v"));
-    this.children.push(horizentalContainer);
-    horizentalContainer = null;
-
-    this.children.push(new Splitter("h"));
+    // row1.addChild(new DockContainer("v"));
+    this.children.push(row1);
+    // splitter between row1 and row2
+    // this.children.push(new Splitter("h"));
     // row 2
-    horizentalContainer = new DockContainer("h");
-    this.children.push(horizentalContainer);
-    horizentalContainer = null;
+    // let row2 = new DockContainer("h");
+    // this.children.push(row2);
   }
 }

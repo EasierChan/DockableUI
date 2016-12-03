@@ -1,4 +1,3 @@
-
 // data Component
 /**
  * author: chenlei
@@ -77,4 +76,19 @@ export class DataTableRow {
 export class DataTableColumn {
     constructor(private columnHeader: string) {
     }
+}
+
+
+/**
+ * chart components created by chenlei
+ */
+@Component({
+    moduleId: module.id,
+    selector: 'chart',
+    template: `
+        <div></div>
+    `
+})
+export class ChartComponent{
+    
 }
