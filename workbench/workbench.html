@@ -1,0 +1,38 @@
+<div id="workbench">
+
+    <div class="body">
+        <form *ngIf="isAuthorized==false" class="loginForm" #loginForm="ngForm" (ngSubmit)="OnLogin()">
+            <div class="userImage">
+                <span class="mif-user mif-4x fg-blue"></span>
+            </div>
+            <div class="input-control text">
+                <input name="username" type="text" required placeholder="User Name" [(ngModel)]="username" #name="ngModel">
+            </div>
+            <div [hidden]="name.valid || name.pristine" class="bg-lightOrange fg-darkRed alert">
+                UserName is required.
+            </div>
+            <div class="input-control password">
+                <input name="password" type="Password" required placeholder="Password" [(ngModel)]="password" #passwd="ngModel">
+            </div>
+            <div [hidden]="passwd.valid || passwd.pristine" class="bg-lightOrange fg-darkRed alert">
+                Password is required.
+            </div>
+            <div class="accept-buttons">
+                <button type="submit" class="button primary" (onsubmit)="OnLogin()" [disabled]="!loginForm.form.valid">
+                            登录
+                        </button>
+                <button class="button danger" (click)="OnReset()">
+                            重置
+                        </button>
+            </div>
+        </form>
+        <div *ngIf="isAuthorized" class="appstore">
+            <div *ngFor="let app of apps" class="tile-square bg-orange fg-white" data-role="tile">
+                <div class="tile-content iconic">
+                    <span class="icon mif-cloud"></span>
+                    <span class="tile-label">{{ app.name }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

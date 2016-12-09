@@ -1,13 +1,11 @@
-import { app, BrowserWindow } from 'electron';
+'use strict';
 
-app.on('ready', function(){
-    let win = new BrowserWindow({
-        autoHideMenuBar: false
-    });
-    win.loadURL(__dirname + '/index.html');
-    win.show();
+import { app } from 'electron';
+import { ULoader } from './base/api/common/base/loader';
+
+ULoader.init();
+import { UApplication } from './base/api/common/app/appstore';
+
+app.on('ready', () => {
+    UApplication.bootstrap();
 });
-
-app.on('window-all-closed', function(){
-    app.quit();
-})

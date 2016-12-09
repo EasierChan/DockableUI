@@ -1,13 +1,9 @@
-"use strict";
-var electron_1 = require("electron");
+'use strict';
+var electron_1 = require('electron');
+var loader_1 = require('./base/api/common/base/loader');
+loader_1.ULoader.init();
+var appstore_1 = require('./base/api/common/app/appstore');
 electron_1.app.on('ready', function () {
-    var win = new electron_1.BrowserWindow({
-        autoHideMenuBar: false
-    });
-    win.loadURL(__dirname + '/index.html');
-    win.show();
-});
-electron_1.app.on('window-all-closed', function () {
-    electron_1.app.quit();
+    appstore_1.UApplication.bootstrap();
 });
 //# sourceMappingURL=index.js.map

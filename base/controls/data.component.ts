@@ -78,7 +78,6 @@ export class DataTableColumn {
     }
 }
 
-
 /**
  * chart components created by chenlei
  */
