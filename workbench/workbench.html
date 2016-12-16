@@ -18,7 +18,7 @@
                 Password is required.
             </div>
             <div class="accept-buttons">
-                <button type="submit" class="button primary" (onsubmit)="OnLogin()" [disabled]="!loginForm.form.valid">
+                <button type="submit" class="button primary" [disabled]="!loginForm.form.valid">
                             登录
                         </button>
                 <button class="button danger" (click)="OnReset()">
@@ -27,10 +27,10 @@
             </div>
         </form>
         <div *ngIf="isAuthorized" class="appstore">
-            <div *ngFor="let app of apps" class="tile-square bg-orange fg-white" data-role="tile">
+            <div *ngFor="let app of apps" class="tile-square bg-orange fg-white" data-role="tile" (click)="OnStartApp(app.name)">
                 <div class="tile-content iconic">
                     <span class="icon mif-cloud"></span>
-                    <span class="tile-label">{{ app.name }}</span>
+                    <span class="tile-label">{{ app.desc }}</span>
                 </div>
             </div>
         </div>

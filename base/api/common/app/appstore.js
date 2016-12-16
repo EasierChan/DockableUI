@@ -1,10 +1,11 @@
 /**
  * app store manager the apps.
  */
-'use strict';
-var fs = require('fs');
-var windows_1 = require('./windows');
-require('../../dal/itrade/priceDal');
+"use strict";
+var electron_1 = require("electron");
+var fs = require("fs");
+var path = require("path");
+var windows_1 = require("./windows");
 var UApplication = (function () {
     function UApplication() {
     }
@@ -12,32 +13,41 @@ var UApplication = (function () {
         var _this = this;
         fs.readdir(this._appstoreHome, function (err, files) {
             files.forEach(function (curfile) {
-                fs.stat(_this._appstoreHome + curfile, function (err, stat) {
-                    if (stat.isDirectory() && fs.existsSync(_this._appstoreHome + curfile + '/index.html')) {
-                        if (userApps.indexOf(curfile) >= 0 || userApps[0] == '*')
-                            _this._windows[curfile] = new windows_1.ContentWindow();
+                fs.stat(path.join(_this._appstoreHome, curfile), function (err, stat) {
+                    if (stat.isDirectory()) {
+                        if (userApps.indexOf(curfile) >= 0 || userApps[0] === "*")
+                            _this._apps[curfile] = require(path.join(_this._appstoreHome, curfile, "startup"));
                     }
                 });
             });
         });
     };
     UApplication.startupAnApp = function (name) {
-        if (this._windows.hasOwnProperty(name)) {
-            this._windows[name].loadURL(this._appstoreHome + name + '/index.html');
-            this._windows[name].show();
+        if (this._apps.hasOwnProperty(name)) {
+            this._apps[name].StartUp.instance().bootstrap();
+            return true;
+        }
+        else {
+            return false;
         }
     };
     UApplication.bootstrap = function () {
         var contentWindow = new windows_1.ContentWindow();
-        contentWindow.loadURL(this._appstoreHome + '../workbench' + '/index.html');
-        this._windows[this._workbench] = contentWindow;
+        contentWindow.loadURL(path.join(this._appstoreHome, "..", "workbench", "index.html"));
+        this._apps[this._workbench] = contentWindow;
         contentWindow.show();
+        electron_1.ipcMain.on("appstore://startupAnApp", function (event, appname) {
+            event.returnValue = UApplication.startupAnApp(appname);
+        });
+        electron_1.ipcMain.on("appstore://initStore", function (event, apps) {
+            UApplication.initStore(apps);
+        });
     };
     UApplication.quit = function () {
-        this._windows[this._workbench].close();
+        this._apps[this._workbench].close();
     };
-    UApplication._appstoreHome = __dirname + '/../../../../appstore/';
-    UApplication._windows = {};
+    UApplication._appstoreHome = path.join(__dirname, "..", "..", "..", "..", "appstore");
+    UApplication._apps = {};
     UApplication._workbench = "workbench";
     return UApplication;
 }());

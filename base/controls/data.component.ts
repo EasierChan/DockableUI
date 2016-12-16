@@ -3,8 +3,9 @@
  * author: chenlei
  * desc: components for acesss data, such as datatable, treeview, charts, 
  */
-import { Component, Input, OnInit, AfterViewInit } from "@angular/core"
+import { Component, Input, OnInit, AfterViewInit, Directive, ElementRef, Renderer } from "@angular/core"
 import { Control, CssStyle } from "./control";
+const echarts: ECharts = require("../third/echart/echarts");
 
 @Component({
     moduleId: module.id,
@@ -23,7 +24,7 @@ import { Control, CssStyle } from "./control";
             </div>
         <div>
     `,
-    inputs: ['className', 'dataSource']
+    inputs: ["className", "dataSource"]
 })
 export class DataTableComponent implements OnInit, AfterViewInit {
     className: string;
@@ -49,7 +50,7 @@ export class DataTable extends Control {
             rows: null,
             enableFooter: this.enableFooter
         }
-        this.styleObj = {type:null, width:null, height:null};
+        this.styleObj = { type: null, width: null, height: null };
     }
 
     newRow(): DataTableRow {
@@ -82,12 +83,74 @@ export class DataTableColumn {
  * chart components created by chenlei
  */
 @Component({
-    moduleId: module.id,
-    selector: 'chart',
-    template: `
-        <div></div>
-    `
+    selector: "echart",
+    template: "",
+    inputs: [
+        "className",
+        "dataSource"
+    ]
 })
-export class ChartComponent{
-    
+export class EChartComponent implements OnInit, AfterViewInit {
+    className: string;
+    dataSource: any;
+
+    constructor(private el: ElementRef, private render: Renderer) {
+    }
+
+    ngOnInit(): void {
+        if (this.dataSource.events && this.dataSource.events.hasOwnProperty("click")) {
+            this.render.listen(this.el.nativeElement, "click", this.dataSource.events["click"]);
+        }
+    }
+
+    ngAfterViewInit(): void {
+        if (this.dataSource.option) {
+            setTimeout(() => {
+                let myChart: EChartsInstance = echarts.init(this.el.nativeElement);
+                myChart.setOption(this.dataSource.option, true);
+
+                window.addEventListener("resize", () => {
+                    myChart.resize();
+                });
+
+                this.dataSource.setOption = (option) => {
+                    myChart.setOption(option);
+                };
+            }, 100);
+        }
+    }
+}
+
+export class EChart extends Control {
+    // private _option: Object = null;
+    // private _events: Object = null;
+
+    constructor() {
+        super();
+        this.styleObj = {
+            type: "echart",
+            width: null,
+            height: null
+        };
+        this.dataSource = {
+            option: {},
+            events: {}
+        };
+    }
+    /**
+     * @param option refer to http://echarts.baidu.com/option.html
+     */
+    setOption(option: Object): void {
+        this.dataSource.option = option;
+    }
+
+    resetOption(option: Object): void {
+        if (this.dataSource.setOption) {
+            this.dataSource.setOption(option);
+        }
+    }
+
+    onClick(cb: Function) {
+        this.dataSource.events["click"] = cb;
+    }
 }

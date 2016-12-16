@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 
 const UNIT_PER_YUAN: number = 10000.0;
@@ -21,10 +21,10 @@ export class Message {
     toString(): string {
         let props = Object.getOwnPropertyNames(this);
         let rets = "|";
-        for (var i in props) {
-            if (typeof this[props[i]] == 'function' || props[i] == "len")
+        for (let i in props) {
+            if (typeof this[props[i]] === "function" || props[i] === "len")
                 continue;
-            rets = rets.concat(props[i], '=', this[props[i]], '|');
+            rets = rets.concat(props[i], "=", this[props[i]], "|");
         }
         return rets;
     }
@@ -82,6 +82,51 @@ export class MsgBidAskIOPV extends Message implements BufferDecoder {
     }
 }
 
+export class DepthMarketData extends Message implements BufferDecoder {
+    static len: number = 128;
+    type: number;
+    UKey: number;
+    LastPrice: number;
+    PreClosePrice: number;
+    PreSettlePrice: number;
+    OpenPrice: number;
+    HighestPrice: number;
+    LowestPrice: number;
+    Volume: number;
+    VolumeGap: number;
+    Time: number;
+    BidPrice: number;
+    BidVolume: number;
+    AskPrice: number;
+    AskVolume: number;
+    InstrumentID: string;
+
+    fromBuffer(buffer: Buffer): void {
+        if (buffer.length < DepthMarketData.len) {
+            console.error("MarketDataMsg::fromBuffer error");
+            return;
+        }
+
+        let offset = 0;
+        this.type       = buffer.readInt32LE(offset); offset += 4;
+        this.UKey       = buffer.readInt32LE(offset); offset += 4;
+        this.LastPrice  = buffer.readIntLE(offset, 8); offset += 8;
+        this.PreClosePrice  = buffer.readIntLE(offset, 8); offset += 8;
+        this.PreSettlePrice = buffer.readIntLE(offset, 8); offset += 8;
+        this.OpenPrice      = buffer.readIntLE(offset, 8); offset += 8;
+        this.HighestPrice   = buffer.readIntLE(offset, 8); offset += 8;
+        this.LowestPrice    = buffer.readIntLE(offset, 8); offset += 8;
+        this.Volume         = buffer.readInt32LE(offset); offset += 4;
+        this.VolumeGap      = buffer.readInt32LE(offset); offset += 4;
+        this.Time           = buffer.readIntLE(offset, 8); offset += 8;
+        this.BidPrice       = buffer.readIntLE(offset, 8); offset += 8;
+        this.BidVolume      = buffer.readIntLE(offset, 4); offset += 4;
+        this.AskPrice       = buffer.readIntLE(offset, 8); offset += 8;
+        this.AskVolume      = buffer.readInt32LE(offset); offset += 4;
+        this.InstrumentID   = buffer.toString("utf-8", offset);
+    }
+}
+
 export enum MsgType {
     PS_MSG_TYPE_UNKNOWN,
     PS_MSG_TYPE_TRANSACTION,
@@ -103,5 +148,13 @@ export enum MsgType {
     PS_MSG_TYPE_IOPV_P = 1001,
     PS_MSG_TYPE_IOPV_T = 1002,
     PS_MSG_TYPE_IOPV_M = 1003,
-    PS_MSG_TYPE_IOPV_R = 1004
+    PS_MSG_TYPE_IOPV_R = 1004,
+
+
+    MSG_TYPE_CODETABLE = 6,
+    MSG_TYPE_TRANSACTION_EX = 1105,
+    MSG_TYPE_MARKETDATA = 1102,
+    MSG_TYPE_MARKETDATA_FUTURES = 1106,
+    MSG_TYPE_UPDATE_DATE = 1118,
+    MSG_TYPE_FUTURES = 100
 }

@@ -31,9 +31,9 @@ var DockContainerComponent = (function () {
     DockContainerComponent = __decorate([
         core_1.Component({
             moduleId: module.id,
-            selector: 'dock-control',
-            templateUrl: 'controlTree.html',
-            inputs: ['className', 'children']
+            selector: "dock-control",
+            templateUrl: "controlTree.html",
+            inputs: ["className", "children"]
         }), 
         __metadata('design:paramtypes', [])
     ], DockContainerComponent);
@@ -53,17 +53,17 @@ var DockContainer = (function (_super) {
         if (type === "v") {
             this.className = "dock-container vertical";
             this.styleObj = {
-                type: '',
-                width: width == undefined ? 300 : width,
+                type: "",
+                width: width === undefined ? 300 : width,
                 height: null
             };
         }
         else {
             this.className = "dock-container horizental";
             this.styleObj = {
-                type: '',
+                type: "",
                 width: null,
-                height: height == undefined ? 200 : height
+                height: height === undefined ? 200 : height
             };
         }
         this.children = [];
@@ -79,7 +79,7 @@ var Splitter = (function (_super) {
     __extends(Splitter, _super);
     function Splitter(type) {
         _super.call(this);
-        this.className = type == "v" ? "splitter-bar vertical" : "splitter-bar horizental";
+        this.className = type === "v" ? "splitter-bar vertical" : "splitter-bar horizental";
     }
     return Splitter;
 }(Control));
@@ -107,11 +107,11 @@ var TabPanel = (function (_super) {
     };
     TabPanel.prototype.setActive = function (pageId) {
         this.pages.getAllPage().forEach(function (page) {
-            if (page.id == pageId)
+            if (page.id === pageId)
                 page.setActive();
         });
         this.headers.getAllHeader().forEach(function (header) {
-            if (header.targetId == pageId)
+            if (header.targetId === pageId)
                 header.setActive();
         });
         return this;

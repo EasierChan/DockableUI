@@ -1,13 +1,13 @@
-'use strict';
+"use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var client_1 = require('../../common/base/client');
-var logger_1 = require('../../common/base/logger');
-var events = require('events');
-var message_model_1 = require('../../model/itrade/message.model');
+var client_1 = require("../../common/base/client");
+var logger_1 = require("../../common/base/logger");
+var events_1 = require("events");
+var message_model_1 = require("../../model/itrade/message.model");
 var PriceClient = (function (_super) {
     __extends(PriceClient, _super);
     function PriceClient(resolver) {
@@ -48,8 +48,8 @@ var PriceClient = (function (_super) {
     };
     PriceClient.prototype.onReceived = function (data) {
         // TODO deal the json Object Data.
-        //DefaultLogger.info(data);
-        this.emit('PS_MSG', data);
+        // DefaultLogger.info(data);
+        this.emit("PS_MSG", data);
     };
     return PriceClient;
 }(client_1.TcpClient));
@@ -76,8 +76,8 @@ var PriceResolver = (function (_super) {
     PriceResolver.prototype.resetBuffer = function (bufLen) {
         if (bufLen) {
             if (bufLen < this.bufMiniumLen) {
-                logger_1.DefaultLogger.error('buffer minium length can\'t less than ' + this.bufMiniumLen);
-                throw Error('buffer minium length can\'t less than ' + this.bufMiniumLen);
+                logger_1.DefaultLogger.error("buffer minium length can\"t less than " + this.bufMiniumLen);
+                throw Error("buffer minium length can\"t less than " + this.bufMiniumLen);
             }
             else {
                 this.bufLen = bufLen;
@@ -99,10 +99,10 @@ var PriceResolver = (function (_super) {
         logger_1.DefaultLogger.trace("got data from server! datalen= %d", data.length);
         // auto grow buffer to store big data unless it greater than maxlimit.
         while (data.length + this.bufEnd > this.bufLen) {
-            logger_1.DefaultLogger.warn('more buffer length required.');
+            logger_1.DefaultLogger.warn("more buffer length required.");
             if ((this.bufLen << 1) > this.bufMaxiumLen) {
-                logger_1.DefaultLogger.fatal('too max buffer');
-                throw Error('too max buffer');
+                logger_1.DefaultLogger.fatal("too max buffer");
+                throw Error("too max buffer");
             }
             this.buffer = Buffer.concat([this.buffer, Buffer.alloc(this.bufLen)], this.bufLen << 1);
             this.bufLen <<= 1;
@@ -125,9 +125,6 @@ var PriceResolver = (function (_super) {
     PriceResolver.prototype.onClose = function (arg) {
         logger_1.DefaultLogger.info("connection closed!");
     };
-    PriceResolver.prototype.onResolved = function (callback) {
-        this.on('data', callback);
-    };
     PriceResolver.prototype.readHeader = function () {
         return {
             type: this.buffer.readUInt16LE(this.bufBeg),
@@ -143,8 +140,8 @@ var PriceResolver = (function (_super) {
         // read head
         var header = this.readHeader();
         logger_1.DefaultLogger.info("MsgHeader: ", header);
-        if (header.msglen == 0) {
-            logger_1.DefaultLogger.warn('empty message!(maybe a Heartbeat)');
+        if (header.msglen === 0) {
+            logger_1.DefaultLogger.warn("empty message!(maybe a Heartbeat)");
             return this.headLen;
         }
         // read content
@@ -156,10 +153,24 @@ var PriceResolver = (function (_super) {
             case message_model_1.MsgType.PS_MSG_TYPE_UPDATE_DATE:
                 var msgupdate = new message_model_1.MsgUpdateDate();
                 msgupdate.fromBuffer(content);
-                this.emit('data', msgupdate);
+                logger_1.DefaultLogger.debug("market date: ", msgupdate.newDate);
+                // DefaultLogger.info(msgupdate.toString());
+                // this.emit("data", msgupdate);
                 break;
             case message_model_1.MsgType.PS_MSG_TYPE_MARKETDATA:
                 // deserializeMarketData();
+                logger_1.DefaultLogger.debug("=== New Quote Data ===");
+                switch (header.subtype) {
+                    case message_model_1.MsgType.MSG_TYPE_FUTURES:
+                        var futureMarketData = new message_model_1.DepthMarketData();
+                        futureMarketData.fromBuffer(content);
+                        // DefaultLogger.debug(futureMarketData.toString());
+                        this.emit("data", futureMarketData);
+                        break;
+                    default:
+                        logger_1.DefaultLogger.debug("type=", content.readInt32LE(0));
+                        break;
+                }
                 break;
             default:
                 {
@@ -171,7 +182,7 @@ var PriceResolver = (function (_super) {
                             // deserializeMarketDataIopvItem();
                             var iopvMsg = new message_model_1.MsgBidAskIOPV();
                             iopvMsg.fromBuffer(content);
-                            this.emit('data', iopvMsg);
+                            this.emit("data", iopvMsg);
                             break;
                     }
                 }
@@ -180,46 +191,45 @@ var PriceResolver = (function (_super) {
         return this.headLen + header.msglen;
     };
     return PriceResolver;
-}(events.EventEmitter));
+}(events_1.EventEmitter));
 exports.PriceResolver = PriceResolver;
 var PriceDal = (function () {
     function PriceDal() {
     }
     PriceDal.start = function () {
-        PriceDal._client = new PriceClient(new PriceResolver());
-        PriceDal._client.connect(10000, '172.24.13.5');
-        PriceDal._client.sendHeartBeat(10);
-        setTimeout(function () {
-            PriceDal.registerQuoteMsg("MARKETDATA", [2006912]);
-        }, 3000);
+        if (!PriceDal._client) {
+            PriceDal._resolver = new PriceResolver();
+            PriceDal._client = new PriceClient(PriceDal._resolver);
+            PriceDal._client.connect(10000, "172.24.13.5");
+            PriceDal._client.sendHeartBeat(10);
+        }
+        // PriceDal.registerQuoteMsg("MARKETDATA", [2006622]);
     };
     // register PriceServer msg
     PriceDal.registerQuoteMsg = function (name, innercodeList) {
+        PriceDal.start();
         var type = 0;
         var subtype = 0;
-        if (name == "IOPVP") {
-            type = 65;
-        }
         switch (name) {
             case "IOPVP":
-                type = 65;
-                subtype = 1001;
+                type = message_model_1.MsgType.PS_MSG_REGISTER;
+                subtype = message_model_1.MsgType.PS_MSG_TYPE_IOPV_P;
                 break;
             case "IOPVT":
-                type = 65;
-                subtype = 1002;
+                type = message_model_1.MsgType.PS_MSG_REGISTER;
+                subtype = message_model_1.MsgType.PS_MSG_TYPE_IOPV_T;
                 break;
             case "IOPVM":
-                type = 65;
-                subtype = 1003;
+                type = message_model_1.MsgType.PS_MSG_REGISTER;
+                subtype = message_model_1.MsgType.PS_MSG_TYPE_IOPV_M;
                 break;
             case "IOPVR":
-                type = 65;
-                subtype = 1004;
+                type = message_model_1.MsgType.PS_MSG_REGISTER;
+                subtype = message_model_1.MsgType.PS_MSG_TYPE_IOPV_R;
                 break;
             case "MARKETDATA":
-                type = 65;
-                subtype = 3;
+                type = message_model_1.MsgType.PS_MSG_REGISTER;
+                subtype = message_model_1.MsgType.PS_MSG_TYPE_MARKETDATA;
                 break;
             default:
                 logger_1.DefaultLogger.info("Wrong type in message, must be IOPV or FUTURES, but got ", name);
@@ -235,13 +245,36 @@ var PriceDal = (function () {
         });
         PriceDal._client.sendWithHead(type, subtype, data);
     };
-    PriceDal.addListener = function (cb) {
-        PriceDal._client.on("PS_MSG", function (data) {
-            cb(data);
+    PriceDal.addListener = function (name, cb) {
+        PriceDal.start();
+        PriceDal._resolver.on("data", function (data) {
+            switch (name) {
+                case "MARKETDATA":
+                    switch (data.type) {
+                        case message_model_1.MsgType.MSG_TYPE_FUTURES:
+                            logger_1.DefaultLogger.info(data.toString());
+                            cb(data);
+                            break;
+                        default:
+                            logger_1.DefaultLogger.info(data.toString());
+                            break;
+                    }
+                    break;
+                default:
+                    logger_1.DefaultLogger.info("listener >> " + name + " is not valid");
+                    break;
+            }
         });
     };
     return PriceDal;
 }());
 exports.PriceDal = PriceDal;
-PriceDal.start();
+var electron_1 = require("electron");
+electron_1.ipcMain.on("dal://itrade/ps/marketdata", function (e, param, cb) {
+    PriceDal.registerQuoteMsg(param.name, param.codes);
+    PriceDal.addListener(param.name, function (data) {
+        if (!e.sender.isDestroyed())
+            e.sender.send("dal://itrade/ps/marketdata-reply", data);
+    });
+});
 //# sourceMappingURL=priceDal.js.map

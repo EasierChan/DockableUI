@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -19,9 +19,9 @@ var Message = (function () {
         var props = Object.getOwnPropertyNames(this);
         var rets = "|";
         for (var i in props) {
-            if (typeof this[props[i]] == 'function' || props[i] == "len")
+            if (typeof this[props[i]] === "function" || props[i] === "len")
                 continue;
-            rets = rets.concat(props[i], '=', this[props[i]], '|');
+            rets = rets.concat(props[i], "=", this[props[i]], "|");
         }
         return rets;
     };
@@ -82,6 +82,53 @@ var MsgBidAskIOPV = (function (_super) {
     return MsgBidAskIOPV;
 }(Message));
 exports.MsgBidAskIOPV = MsgBidAskIOPV;
+var DepthMarketData = (function (_super) {
+    __extends(DepthMarketData, _super);
+    function DepthMarketData() {
+        _super.apply(this, arguments);
+    }
+    DepthMarketData.prototype.fromBuffer = function (buffer) {
+        if (buffer.length < DepthMarketData.len) {
+            console.error("MarketDataMsg::fromBuffer error");
+            return;
+        }
+        var offset = 0;
+        this.type = buffer.readInt32LE(offset);
+        offset += 4;
+        this.UKey = buffer.readInt32LE(offset);
+        offset += 4;
+        this.LastPrice = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.PreClosePrice = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.PreSettlePrice = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.OpenPrice = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.HighestPrice = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.LowestPrice = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.Volume = buffer.readInt32LE(offset);
+        offset += 4;
+        this.VolumeGap = buffer.readInt32LE(offset);
+        offset += 4;
+        this.Time = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.BidPrice = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.BidVolume = buffer.readIntLE(offset, 4);
+        offset += 4;
+        this.AskPrice = buffer.readIntLE(offset, 8);
+        offset += 8;
+        this.AskVolume = buffer.readInt32LE(offset);
+        offset += 4;
+        this.InstrumentID = buffer.toString("utf-8", offset);
+    };
+    DepthMarketData.len = 128;
+    return DepthMarketData;
+}(Message));
+exports.DepthMarketData = DepthMarketData;
 (function (MsgType) {
     MsgType[MsgType["PS_MSG_TYPE_UNKNOWN"] = 0] = "PS_MSG_TYPE_UNKNOWN";
     MsgType[MsgType["PS_MSG_TYPE_TRANSACTION"] = 1] = "PS_MSG_TYPE_TRANSACTION";
@@ -101,6 +148,12 @@ exports.MsgBidAskIOPV = MsgBidAskIOPV;
     MsgType[MsgType["PS_MSG_TYPE_IOPV_T"] = 1002] = "PS_MSG_TYPE_IOPV_T";
     MsgType[MsgType["PS_MSG_TYPE_IOPV_M"] = 1003] = "PS_MSG_TYPE_IOPV_M";
     MsgType[MsgType["PS_MSG_TYPE_IOPV_R"] = 1004] = "PS_MSG_TYPE_IOPV_R";
+    MsgType[MsgType["MSG_TYPE_CODETABLE"] = 6] = "MSG_TYPE_CODETABLE";
+    MsgType[MsgType["MSG_TYPE_TRANSACTION_EX"] = 1105] = "MSG_TYPE_TRANSACTION_EX";
+    MsgType[MsgType["MSG_TYPE_MARKETDATA"] = 1102] = "MSG_TYPE_MARKETDATA";
+    MsgType[MsgType["MSG_TYPE_MARKETDATA_FUTURES"] = 1106] = "MSG_TYPE_MARKETDATA_FUTURES";
+    MsgType[MsgType["MSG_TYPE_UPDATE_DATE"] = 1118] = "MSG_TYPE_UPDATE_DATE";
+    MsgType[MsgType["MSG_TYPE_FUTURES"] = 100] = "MSG_TYPE_FUTURES";
 })(exports.MsgType || (exports.MsgType = {}));
 var MsgType = exports.MsgType;
 //# sourceMappingURL=message.model.js.map

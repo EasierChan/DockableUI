@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
-import { Control, DockContainer, Splitter, TabPanel } from '../../base/controls/control';
-import { DataTable, DataTableRow, DataTableColumn } from '../../base/controls/data.component';
-import { ComboControl, MetaControl } from '../../base/controls/user.component';
- 
+import { Component, OnInit } from "@angular/core";
+import { Control, DockContainer, Splitter, TabPanel } from "../../base/controls/control";
+import { DataTable, DataTableRow, DataTableColumn } from "../../base/controls/data.component";
+import { ComboControl, MetaControl } from "../../base/controls/user.component";
+
 @Component({
-  selector: 'body',
+  selector: "body",
   template: `
     <div id="root" [class]="className">
         <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj">
@@ -48,50 +48,50 @@ export class AppComponent implements OnInit {
     leftPanel.setActive("Toolbox");
     let row1col1 = new DockContainer("v").addChild(leftPanel);
     // col 1
-    // row1.addChild(row1col1);
+    row1.addChild(row1col1);
     // Splitter
-    // row1.addChild(new Splitter("v"));
+    row1.addChild(new Splitter("v"));
     // col 2
     let btn_dayview = new MetaControl("button");
     btn_dayview.Name = "test";
     btn_dayview.Value = "AllDayView";
 
     let lbl_min = new MetaControl("label");
-    lbl_min.Value= "Min:";
+    lbl_min.Value = "Min:";
 
     let txt_min = new MetaControl("textbox");
     txt_min.Name = "min";
     txt_min.ModelVal = "";
 
     let lbl_max = new MetaControl("label");
-    lbl_max.Value= "Max:";
+    lbl_max.Value = "Max:";
 
     let txt_max = new MetaControl("textbox");
     txt_max.Name = "max";
     txt_max.ModelVal = "";
 
     let lbl_tick = new MetaControl("label");
-    lbl_tick.Value= "Tick:";
+    lbl_tick.Value = "Tick:";
 
     let txt_tick = new MetaControl("textbox");
     txt_tick.Name = "Tick";
     txt_tick.ModelVal = "";
-    
+
     let lbl_TimeRange = new MetaControl("label");
-    lbl_TimeRange.Value= "TimeRange:";
+    lbl_TimeRange.Value = "TimeRange:";
 
     let txt_TimeRange = new MetaControl("textbox");
     txt_TimeRange.Name = "TimeRange";
     txt_TimeRange.ModelVal = "";
-    
-    let lbl_Slippage= new MetaControl("label");
-    lbl_Slippage.Value= "Slippage:";
+
+    let lbl_Slippage = new MetaControl("label");
+    lbl_Slippage.Value = "Slippage:";
 
     let txt_Slippage = new MetaControl("textbox");
     txt_Slippage.Name = "Slippage";
     txt_Slippage.ModelVal = "";
 
-    
+
     let headControls = new ComboControl("row");
     headControls.addChild(btn_dayview);
     headControls.addChild(lbl_min);
@@ -107,10 +107,10 @@ export class AppComponent implements OnInit {
 
     let table: DataTable = new DataTable();
     table.addColumn("姓名").addColumn("年龄").addColumn("性别").addColumn("成绩");
-    
-    
-    btn_dayview.onClick(()=>{
-      for(let i = 0; i< 100; ++i){
+
+
+    btn_dayview.onClick(() => {
+      for (let i = 0; i < 100; ++i) {
         let row = table.newRow();
         row.values[0] = "leige";
         row.values[1] = "1212";
@@ -125,13 +125,13 @@ export class AppComponent implements OnInit {
     body.addChild(headControls);
     row1.addChild(new DockContainer("v", 800, null).addChild(body));
     row1.addChild(new Splitter("v"));
-    //col 3
-    // row1.addChild(new DockContainer("v"));
+    // col 3
+    row1.addChild(new DockContainer("v"));
     this.children.push(row1);
     // splitter between row1 and row2
-    // this.children.push(new Splitter("h"));
+    this.children.push(new Splitter("h"));
     // row 2
-    // let row2 = new DockContainer("h");
-    // this.children.push(row2);
+    let row2 = new DockContainer("h");
+    this.children.push(row2);
   }
 }

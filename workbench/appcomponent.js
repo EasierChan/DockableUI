@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -8,48 +8,74 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var backendService_1 = require("../base/api/services/backendService");
 var core_1 = require("@angular/core");
 var AppComponent = (function () {
-    function AppComponent() {
+    function AppComponent(appService) {
+        this.appService = appService;
         this.isAuthorized = false;
     }
     AppComponent.prototype.OnLogin = function () {
-        //alert('hello')
+        // alert("hello")
         console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.
-        if (this.username == 'chenlei' && this.password == '123') {
+        if (this.username === "chenlei" && this.password === "123") {
             this.isAuthorized = true;
             this.apps = [
                 {
-                    name: 'Dockable-layout'
+                    id: "DockDemo",
+                    name: "DockDemo",
+                    desc: "Dockable-layout"
                 },
                 {
-                    name: 'SpreadViewer'
+                    id: "SimpleDemo",
+                    name: "SimpleDemo",
+                    desc: "SpreadViewer"
                 }
             ];
+            var appnames_1 = [];
+            this.apps.forEach(function (item) {
+                appnames_1.push(item.name);
+            });
+            this.appService.initStore(appnames_1);
             return true;
         }
         else {
-            $.Notify({
-                caption: 'Error',
-                content: 'Username or password wrong.',
-                type: 'alert'
-            });
+            this.showError("Error", "Username or password wrong.", "alert");
             return false;
         }
     };
     AppComponent.prototype.OnReset = function () {
-        this.username = '';
-        this.password = '';
+        this.username = "";
+        this.password = "";
+    };
+    AppComponent.prototype.OnStartApp = function (name) {
+        if (name) {
+            if (!this.appService.startApp(name))
+                this.showError("Error", "start app error!", "alert");
+        }
+        else {
+            this.showError("Error", "App is unvalid!", "alert");
+        }
+    };
+    AppComponent.prototype.showError = function (caption, content, type) {
+        $.Notify({
+            caption: caption,
+            content: content,
+            type: type
+        });
     };
     AppComponent = __decorate([
         core_1.Component({
             moduleId: module.id,
-            selector: 'body',
-            templateUrl: 'workbench.html',
-            styleUrls: ['appcomponent.css']
+            selector: "body",
+            templateUrl: "workbench.html",
+            styleUrls: ["appcomponent.css"],
+            providers: [
+                backendService_1.AppStoreService
+            ]
         }), 
-        __metadata('design:paramtypes', [])
+        __metadata('design:paramtypes', [backendService_1.AppStoreService])
     ], AppComponent);
     return AppComponent;
 }());

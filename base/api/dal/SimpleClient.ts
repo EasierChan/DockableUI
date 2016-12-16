@@ -1,6 +1,6 @@
-import {IResolver}  from '../common/base/resolver';
-import {TcpClient} from '../common/base/client';
-import {DefaultLogger} from '../common/base/logger';
+import {IResolver}  from "../common/base/resolver";
+import {TcpClient} from "../common/base/client";
+import {DefaultLogger} from "../common/base/logger";
 
 /**
  * QtpMessageClient
@@ -13,11 +13,11 @@ export class SimpleClient extends TcpClient {
     send(data: any): void {
         DefaultLogger.debug(data);
         // TODO custom protocol to encode data.
-        var header = Buffer.alloc(12, 0);
+        let header = Buffer.alloc(12, 0);
         header.writeUInt16LE(data.msgtype, 2);
-        var total = header;
+        let total = header;
         if (data) {
-            var content = Buffer.from(JSON.stringify(data));
+            let content = Buffer.from(JSON.stringify(data));
             header.writeUInt32LE(content.length, 8);
             total = Buffer.concat([header, content], header.length + content.length);
             // 释放资源

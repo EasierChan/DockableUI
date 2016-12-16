@@ -1,8 +1,8 @@
 /**
  * manager the windows
  */
-import {UWindow, IWindowCreationOptions, WindowStyle} from '../base/window';
-import {MenuWindow, MenuPath} from './windows';
+import { UWindow, IWindowCreationOptions, WindowStyle } from "../base/window";
+import { MenuWindow, MenuPath } from "./windows";
 
 interface Bounds {
     x: number;
@@ -12,30 +12,37 @@ interface Bounds {
 }
 
 export class UWindwManager {
-    private static _windows: Array<UWindow> = [];
-    private static _menuWindow: MenuWindow = null;
+    private _windows: Array<UWindow> = [];
+    private _menuWindow: MenuWindow = null;
 
     constructor() {
-
     }
-
-    static addMenuWindow(menuWindow: MenuWindow): void {
+    /**
+     * add menu window
+     */
+    addMenuWindow(menuWindow: MenuWindow): void {
         if (!this._menuWindow) {
             this._menuWindow = menuWindow;
-            this._menuWindow.onClosed = ()=>{
-                UWindwManager.closeAll();
+            this._menuWindow.onClosed = () => {
+                this.closeAll();
             }
             this._windows.push(this._menuWindow);
         }
     }
     /**
+     * add content window
+     */
+    addContentWindow(contentWindow: UWindow) {
+        this._windows.push(contentWindow);
+    }
+    /**
      * @description 添加菜单
      * @param window an instance of UWindow.
-     * @param presentName item's presentation on MenuWindow, it supports 
+     * @param presentName item"s presentation on MenuWindow, it supports 
      * @param fatherPath presentItem attached to.
      */
-    static addWindowToMenu(window: UWindow, presentItem: string, fatherPath: MenuPath): void {
-        this._menuWindow.insertMenu(fatherPath, presentItem, ()=>{
+    addWindowToMenu(window: UWindow, presentItem: string, fatherPath: MenuPath): void {
+        this._menuWindow.insertMenu(fatherPath, presentItem, () => {
             window.show();
         });
         this._windows.push(window);
@@ -43,20 +50,20 @@ export class UWindwManager {
     /**
      * @description 广播消息
      */
-    static broadcastMessage(message: Object): void {
+    broadcastMessage(message: Object): void {
 
     }
     /**
      * @description 发消息至某个窗口
      */
-    static sendMessage(windowItem: Object, message: Object): void {
+    sendMessage(windowItem: Object, message: Object): void {
 
     }
     /**
      * @description 关闭所有窗口
      */
-    static closeAll(): void {
-        this._windows.forEach(function(window){
+    closeAll(): void {
+        this._windows.forEach(function (window) {
             window.close();
         })
     }

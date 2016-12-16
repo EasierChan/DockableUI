@@ -1,51 +1,84 @@
-'use strict';
+"use strict";
 
-import { UApplication } from '../base/api/common/app/appstore';
+
+import { AppStoreService } from "../base/api/services/backendService";
 import { Component } from "@angular/core";
-import { IApp } from '../base/api/model/app.model';
+import { IApp } from "../base/api/model/app.model";
 
 @Component({
     moduleId: module.id,
-    selector: 'body',
-    templateUrl: 'workbench.html',
-    styleUrls: ['appcomponent.css']
+    selector: "body",
+    templateUrl: "workbench.html",
+    styleUrls: ["appcomponent.css"],
+    providers: [
+        AppStoreService
+    ]
 })
 export class AppComponent {
     isAuthorized: boolean = false;
     username: string;
     password: string;
-    apps: Array<Object>;
+    apps: Array<IApp>;
+
+    constructor(private appService: AppStoreService) {
+    }
 
     OnLogin(): boolean {
-        //alert('hello')
+        // alert("hello")
         console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.
-        if (this.username == 'chenlei' && this.password == '123') {
+        if (this.username === "chenlei" && this.password === "123") {
             this.isAuthorized = true;
             this.apps = [
                 {
-                    name: 'Dockable-layout'
+                    id: "DockDemo",
+                    name: "DockDemo",
+                    desc: "Dockable-layout"
                 },
                 {
-                    name: 'SpreadViewer'
+                    id: "SimpleDemo",
+                    name: "SimpleDemo",
+                    desc: "SpreadViewer"
                 }
-            ]
+            ];
+
+            let appnames = [];
+            this.apps.forEach((item) => {
+                appnames.push(item.name);
+            })
+
+            this.appService.initStore(appnames);
             return true;
         } else {
-            $.Notify({
-                caption: 'Error',
-                content: 'Username or password wrong.',
-                type: 'alert'
-            })
+            this.showError("Error", "Username or password wrong.", "alert");
             return false;
         }
     }
 
     OnReset(): void {
-        this.username = '';
-        this.password = '';
+        this.username = "";
+        this.password = "";
+    }
+
+    OnStartApp(name: string): void {
+        if (name) {
+            if (!this.appService.startApp(name))
+                this.showError("Error", "start app error!", "alert");
+        } else {
+            this.showError("Error", "App is unvalid!", "alert");
+        }
+    }
+
+    showError(caption: string, content: string, type: string): void {
+        $.Notify({
+            caption: caption,
+            content: content,
+            type: type
+        })
     }
 }
+
+
 
 /**
  * <div class="tile-square bg-orange fg-white" data-role="tile">

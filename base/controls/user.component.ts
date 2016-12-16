@@ -3,12 +3,12 @@
  * used to created custom user control based on className and dataSource.
  */
 import { Component, AfterContentInit } from "@angular/core";
-import { NgForm } from '@angular/forms';
+import { NgForm } from "@angular/forms";
 import { Control, CssStyle } from "./control";
 
 @Component({
     moduleId: module.id,
-    selector: 'usercontrol',
+    selector: "usercontrol",
     template: `
         <template ngFor let-child [ngForOf]="children">
             <span *ngIf="child.styleObj.type=='label'" [class]="child.className">
@@ -24,12 +24,13 @@ import { Control, CssStyle } from "./control";
             <input type="checkbox" *ngIf="child.styleObj.type=='checkbox'" [class]="child.className">
             <input type="range" *ngIf="child.styleObj.type=='range'" [class]="child.className">
             <dock-table *ngIf="child.className=='table'" [className]="className" [dataSource]="child.dataSource"></dock-table>
+            <echart *ngIf="child.styleObj.type=='echart'" [dataSource]="child.dataSource"></echart>
             <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource"
              [class]="child.styleObj.type">
             </usercontrol>
         </template>
     `,
-    inputs: ['children', 'dataSource', 'styleObj']
+    inputs: ["children", "dataSource", "styleObj"]
 })
 export class UserControlComponent implements AfterContentInit {
     children: any[];
@@ -75,7 +76,7 @@ export class MetaControl extends Control {
 
     onClick(aaa: any): void {
         this.dataSource.click = aaa;
-        //console.log(JSON.stringify(this.dataSource));
+        // console.log(JSON.stringify(this.dataSource));
     }
 
     set Class(classStr: string) {

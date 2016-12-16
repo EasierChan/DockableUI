@@ -5,9 +5,9 @@ import { Component, Input } from "@angular/core";
 
 @Component({
   moduleId: module.id,
-  selector: 'dock-control',
-  templateUrl: 'controlTree.html',
-  inputs: ['className', 'children']
+  selector: "dock-control",
+  templateUrl: "controlTree.html",
+  inputs: ["className", "children"]
 })
 export class DockContainerComponent {
   className: string;
@@ -19,7 +19,7 @@ export class DockContainerComponent {
 
 export interface CssStyle {
   type: string;
-  width : number;
+  width: number;
   height: number;
 }
 
@@ -31,23 +31,23 @@ export class Control {
   protected listeners: any;
 }
 
-export class DockContainer extends Control{
+export class DockContainer extends Control {
 
   constructor(type: string, width?: number, height?: number) {
     super();
     if (type === "v") {
       this.className = "dock-container vertical";
       this.styleObj = {
-        type: '',
-        width: width == undefined ? 300 : width,
+        type: "",
+        width: width === undefined ? 300 : width,
         height: null
       };
     } else {
       this.className = "dock-container horizental";
       this.styleObj = {
-        type: '',
+        type: "",
         width: null,
-        height: height == undefined ? 200 : height
+        height: height === undefined ? 200 : height
       };
     }
     this.children = [];
@@ -63,7 +63,7 @@ export class DockContainer extends Control{
 export class Splitter extends Control {
   constructor(type) {
     super();
-    this.className = type == "v" ? "splitter-bar vertical" : "splitter-bar horizental";
+    this.className = type === "v" ? "splitter-bar vertical" : "splitter-bar horizental";
   }
 }
 
@@ -94,12 +94,12 @@ export class TabPanel extends Control {
 
   setActive(pageId: string): TabPanel {
     this.pages.getAllPage().forEach(page => {
-      if (page.id == pageId)
+      if (page.id === pageId)
         page.setActive();
     });
 
     this.headers.getAllHeader().forEach(header => {
-      if (header.targetId == pageId)
+      if (header.targetId === pageId)
         header.setActive();
     });
     return this;

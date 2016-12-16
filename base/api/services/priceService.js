@@ -1,9 +1,4 @@
-'use strict';
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -14,37 +9,29 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 var core_1 = require("@angular/core");
-var events_1 = require('events');
-var priceDal_1 = require("../dal/itrade/priceDal");
-var PriceService = (function (_super) {
-    __extends(PriceService, _super);
+var PriceService = (function () {
     function PriceService() {
-        _super.apply(this, arguments);
     }
-    PriceService.prototype.start = function () {
-        if (!this._client) {
-            this._client = new priceDal_1.PriceClient(new priceDal_1.PriceResolver());
-        }
-        this._client.connect(10001);
-        this._client.onReceived;
-    };
     /**
      * QTS::MSG::PS_MSG_TYPE_MARKETDATA
      */
-    PriceService.prototype.subscribeMarketData = function (listener) {
-        this.on("PS_MSG_TYPE_MARKETDATA", listener);
+    PriceService.prototype.subscribeMarketData = function (innerCodeList, listener) {
+        electron.ipcRenderer.send("dal://itrade/ps/marketdata", { name: "MARKETDATA", codes: innerCodeList });
+        electron.ipcRenderer.on("dal://itrade/ps/marketdata-reply", function (e, msg) {
+            listener(msg);
+        });
     };
     /**
      * IOPV MarketData
      */
     PriceService.prototype.subscribeMarketDataIOPV = function (listener) {
-        this.on("PS_MSG_IOPV_MARKETDATA", listener);
+        electron.ipcRenderer.send("dal://itrade/ps/marketdataIOPV", {}, listener);
     };
     PriceService = __decorate([
         core_1.Injectable(), 
         __metadata('design:paramtypes', [])
     ], PriceService);
     return PriceService;
-}(events_1.EventEmitter));
+}());
 exports.PriceService = PriceService;
 //# sourceMappingURL=priceService.js.map

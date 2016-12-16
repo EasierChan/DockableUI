@@ -1,0 +1,81 @@
+/* Master Styles */
+.page-title {
+  background-color: rgba(45, 45, 45, 1);
+}
+
+.page-body {
+  background-color: #1e1e1e;
+}
+
+.panel-header-list {
+  background-color: rgba(45, 45, 45, 1);
+  box-shadow: 0 -2px 2px rgba(0, 140, 240, 1);
+}
+
+.panel-header-list > .tab.active {
+    background-color: rgba(0, 140, 240, 1);
+}
+
+.splitter-bar {
+    background-color: grey;
+}
+
+.loading {
+    background: rgba(0, 140, 240, 1);
+    font-size: 30px;
+}
+
+/* fixed header table style*/
+.table{
+    border-radius: 3px;
+}
+.tb-header{
+    height: 25px;
+    line-height: 25px;
+    background-color: #3C3C3C;
+    box-shadow: 0 -1px 0 #5C5C66 inset;
+    padding-right: 5px;
+}
+.tb-body{
+    background-color: rgb(45,45,48);
+}
+.td{
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.tr{
+    line-height: 20px;
+}
+.tr:hover{
+    background-color: rgb(25,25,25);
+}
+/*user control*/
+usercontrol.row{
+    height: 25px;
+    line-height: 25px;
+    vertical-align: middle;
+    padding: 5px 5px;
+}
+usercontrol.col{
+    width: 100%;
+}
+input[type='text'],
+button,
+span{
+    margin: 0 5px;
+}
+/* textbox style */
+input[type='text']{
+    width: 50px;
+}
+/* button style */
+button{
+    padding: 5px;
+    background-color: deepskyblue;
+}
+button:hover{
+    background-color: mediumturquoise;
+}
+
+
+

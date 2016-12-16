@@ -66,7 +66,8 @@ var UWindow = (function () {
             autoHideMenuBar: true,
             //title: this.envService.product.nameLong,
             webPreferences: {
-                'backgroundThrottling': false // by default if Code is in the background, intervals and timeouts get throttled
+                backgroundThrottling: false,
+                nodeIntegration: true
             }
         };
         if (this.options.state.wStyle === WindowStyle.Aqy) {

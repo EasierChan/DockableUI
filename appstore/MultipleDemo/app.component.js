@@ -8,10 +8,10 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var core_1 = require('@angular/core');
-var control_1 = require('../../base/controls/control');
-var data_component_1 = require('../../base/controls/data.component');
-var user_component_1 = require('../../base/controls/user.component');
+var core_1 = require("@angular/core");
+var control_1 = require("../../base/controls/control");
+var data_component_1 = require("../../base/controls/data.component");
+var user_component_1 = require("../../base/controls/user.component");
 var AppComponent = (function () {
     function AppComponent() {
         this.className = "dock-container vertical";
@@ -88,7 +88,7 @@ var AppComponent = (function () {
         body.addChild(headControls);
         row1.addChild(new control_1.DockContainer("v", 800, null).addChild(body));
         row1.addChild(new control_1.Splitter("v"));
-        //col 3
+        // col 3
         // row1.addChild(new DockContainer("v"));
         this.children.push(row1);
         // splitter between row1 and row2
@@ -99,7 +99,7 @@ var AppComponent = (function () {
     };
     AppComponent = __decorate([
         core_1.Component({
-            selector: 'body',
+            selector: "body",
             template: "\n    <div id=\"root\" [class]=\"className\">\n        <dock-control *ngFor=\"let child of children\" [className]=\"child.className\" [children]=\"child.children\" [styleObj]=\"child.styleObj\">\n        </dock-control>\n    </div>\n    <div class=\"dock-sn\">\n      <div class=\"dock-north\">\n        <div class=\"bar-block\"></div>\n        <div class=\"bar-arrow\"></div>\n      </div>\n      <div class=\"dock-south\">\n        <div class=\"bar-block\"></div>\n        <div class=\"bar-arrow\"></div>\n      </div>\n    </div>\n    <div class=\"dock-ew\">\n      <div class=\"dock-west\">\n        <div class=\"bar-block\"></div>\n        <div class=\"bar-arrow\"></div>\n      </div>\n      <div class=\"dock-center\"></div>\n      <div class=\"dock-east\">\n        <div class=\"bar-block\"></div>\n        <div class=\"bar-arrow\"></div>\n      </div>\n    </div>\n    <div class=\"dock-cover\"></div>\n    "
         }), 
         __metadata('design:paramtypes', [])

@@ -9,7 +9,7 @@ import * as objects from 'lodash';
 import { shell, screen, BrowserWindow, Menu } from 'electron';
 import { TValueCallback } from './common';
 import * as platform from './platform';
-import {DefaultLogger} from './logger';
+import { DefaultLogger } from './logger';
 
 export interface IWindowState {
 	width?: number;
@@ -67,7 +67,7 @@ export class UWindow {
 
 	public static menuBarHiddenKey = 'menuBarHidden';
 	public static colorThemeStorageKey = 'theme';
-	public onClosed: ()=>void; 
+	public onClosed: () => void;
 
 	protected static MIN_WIDTH = 300;
 	protected static MIN_HEIGHT = 120;
@@ -115,7 +115,8 @@ export class UWindow {
 			autoHideMenuBar: true,
 			//title: this.envService.product.nameLong,
 			webPreferences: {
-				'backgroundThrottling': false // by default if Code is in the background, intervals and timeouts get throttled
+				backgroundThrottling: false, // by default if Code is in the background, intervals and timeouts get throttled
+				nodeIntegration: true
 			}
 		};
 
@@ -265,7 +266,7 @@ export class UWindow {
 			this.win.loadURL(__dirname + '/titlebar.tpl');
 			this.win.webContents.executeJavaScript("window.document.getElementById('fr_content').src = '" + contentUrl + "';");
 		} else {
-			if(this.options.menuTemplate){
+			if (this.options.menuTemplate) {
 				this.setMenuBarVisibility(true);
 			}
 			this.win.loadURL(contentUrl);
@@ -278,7 +279,7 @@ export class UWindow {
 	}
 
 	public close(): void {
-		if(this.win != null && !this.win.isVisible())
+		if (this.win != null && !this.win.isVisible())
 			this.win.close();
 	}
 
@@ -456,10 +457,10 @@ export class UWindow {
 	}
 
 
-	public build() : void {
+	public build(): void {
 		this._win.on('closed', () => {
 			this.dispose();
-			if(this.onClosed){
+			if (this.onClosed) {
 				this.onClosed();
 			}
 		})

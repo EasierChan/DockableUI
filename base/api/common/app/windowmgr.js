@@ -1,23 +1,35 @@
 "use strict";
 var UWindwManager = (function () {
     function UWindwManager() {
+        this._windows = [];
+        this._menuWindow = null;
     }
-    UWindwManager.addMenuWindow = function (menuWindow) {
+    /**
+     * add menu window
+     */
+    UWindwManager.prototype.addMenuWindow = function (menuWindow) {
+        var _this = this;
         if (!this._menuWindow) {
             this._menuWindow = menuWindow;
             this._menuWindow.onClosed = function () {
-                UWindwManager.closeAll();
+                _this.closeAll();
             };
             this._windows.push(this._menuWindow);
         }
     };
     /**
+     * add content window
+     */
+    UWindwManager.prototype.addContentWindow = function (contentWindow) {
+        this._windows.push(contentWindow);
+    };
+    /**
      * @description 添加菜单
      * @param window an instance of UWindow.
-     * @param presentName item's presentation on MenuWindow, it supports
+     * @param presentName item"s presentation on MenuWindow, it supports
      * @param fatherPath presentItem attached to.
      */
-    UWindwManager.addWindowToMenu = function (window, presentItem, fatherPath) {
+    UWindwManager.prototype.addWindowToMenu = function (window, presentItem, fatherPath) {
         this._menuWindow.insertMenu(fatherPath, presentItem, function () {
             window.show();
         });
@@ -26,23 +38,21 @@ var UWindwManager = (function () {
     /**
      * @description 广播消息
      */
-    UWindwManager.broadcastMessage = function (message) {
+    UWindwManager.prototype.broadcastMessage = function (message) {
     };
     /**
      * @description 发消息至某个窗口
      */
-    UWindwManager.sendMessage = function (windowItem, message) {
+    UWindwManager.prototype.sendMessage = function (windowItem, message) {
     };
     /**
      * @description 关闭所有窗口
      */
-    UWindwManager.closeAll = function () {
+    UWindwManager.prototype.closeAll = function () {
         this._windows.forEach(function (window) {
             window.close();
         });
     };
-    UWindwManager._windows = [];
-    UWindwManager._menuWindow = null;
     return UWindwManager;
 }());
 exports.UWindwManager = UWindwManager;

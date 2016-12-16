@@ -1,15 +1,15 @@
 /**
  * 
  */
-import {DefaultLogger} from '../base/logger';
-import {UWindow, IWindowCreationOptions, WindowStyle} from '../base/window';
-import {Menu} from 'electron';
+import { DefaultLogger } from "../base/logger";
+import { UWindow, IWindowCreationOptions, WindowStyle } from "../base/window";
+import { Menu } from "electron";
 
 
 export interface MenuPath {
     level1: number;
     level2?: number;
-    //level3?: number;
+    // level3?: number;
 }
 // MenuWindow 
 export class MenuWindow extends UWindow {
@@ -20,22 +20,22 @@ export class MenuWindow extends UWindow {
             config.state.wStyle = WindowStyle.System;
             config.menuTemplate = [
                 {
-                    label: '文件',
+                    label: "文件",
                     submenu: [
                         {
-                            label: '退出',
-                            role: 'quit'
+                            label: "退出",
+                            role: "quit"
                         }
                     ]
                 },
                 {
-                    label: '查看'
+                    label: "查看"
                 },
                 {
-                    label: '窗口'
+                    label: "窗口"
                 },
                 {
-                    label: '帮助'
+                    label: "帮助"
                 }
             ];
         }
@@ -49,33 +49,33 @@ export class MenuWindow extends UWindow {
 
     public insertMenu(pos: MenuPath, name: string, clickCallback: () => void): void {
         if (pos.level1 >= this._defaultTemplate.length || pos.level1 < 0) {
-            DefaultLogger.error('菜单设置不合法！');
+            DefaultLogger.error("菜单设置不合法！");
             return;
         }
 
-        var menuItem = {
+        let menuItem = {
             label: name,
             click: clickCallback
         };
 
-        if (!this._defaultTemplate[pos.level1].hasOwnProperty('submenu'))
-            this._defaultTemplate[pos.level1]['submenu'] = [];
+        if (!this._defaultTemplate[pos.level1].hasOwnProperty("submenu"))
+            this._defaultTemplate[pos.level1]["submenu"] = [];
 
         if (pos.level2 == null) {
-            this._defaultTemplate[pos.level1]['submenu'].push(menuItem);
+            this._defaultTemplate[pos.level1]["submenu"].push(menuItem);
             this.setMenu(this._defaultTemplate);
             return;
         }
 
-        if (pos.level2 < 0 || pos.level2 >= this._defaultTemplate[pos.level1]['submenu'].length) {
-            DefaultLogger.error('菜单设置不合法！');
+        if (pos.level2 < 0 || pos.level2 >= this._defaultTemplate[pos.level1]["submenu"].length) {
+            DefaultLogger.error("菜单设置不合法！");
             return;
         }
 
-        if (pos.level2 && !this._defaultTemplate[pos.level2].hasOwnProperty('submenu'))
-            this._defaultTemplate[pos.level1]['submenu'][pos.level2]['submenu'] = [];
+        if (pos.level2 && !this._defaultTemplate[pos.level2].hasOwnProperty("submenu"))
+            this._defaultTemplate[pos.level1]["submenu"][pos.level2]["submenu"] = [];
 
-        this._defaultTemplate[pos.level1]['submenu'][pos.level2]['submenu'].push(menuItem);
+        this._defaultTemplate[pos.level1]["submenu"][pos.level2]["submenu"].push(menuItem);
         this.setMenu(this._defaultTemplate);
     }
 }
@@ -87,12 +87,12 @@ export class ContentWindow extends UWindow {
 }
 // Win10 start menu Container
 export class StartWindow extends UWindow {
-    constructor(config?: IWindowCreationOptions){
+    constructor(config?: IWindowCreationOptions) {
         super(config);
     }
 
     addAppItem(appname: string, option: Object): void {
-        
+
     }
 }
 
