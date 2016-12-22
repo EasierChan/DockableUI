@@ -1,7 +1,7 @@
 /**
  * cl 2016/09/08
  */
-'use strict';
+"use strict";
 var _isWindows = false;
 var _isMacintosh = false;
 var _isLinux = false;
@@ -11,20 +11,20 @@ var _isWeb = false;
 var _isQunit = false;
 var _locale = undefined;
 var _language = undefined;
-exports.LANGUAGE_DEFAULT = 'en';
+exports.LANGUAGE_DEFAULT = "en";
 // OS detection
-if (typeof process === 'object') {
-    _isWindows = (process.platform === 'win32');
-    _isMacintosh = (process.platform === 'darwin');
-    _isLinux = (process.platform === 'linux');
+if (typeof process === "object") {
+    _isWindows = (process.platform === "win32");
+    _isMacintosh = (process.platform === "darwin");
+    _isLinux = (process.platform === "linux");
     _isRootUser = !_isWindows && (process.getuid() === 0);
-    var rawNlsConfig = process.env['EasierApp_NLS_CONFIG'];
+    var rawNlsConfig = process.env["EasierApp_NLS_CONFIG"];
     if (rawNlsConfig) {
         try {
             var nlsConfig = JSON.parse(rawNlsConfig);
-            var resolved = nlsConfig.availableLanguages['*'];
+            var resolved = nlsConfig.availableLanguages["*"];
             _locale = nlsConfig.locale;
-            // VSCode's default language is 'en'
+            // VSCode"s default language is "en"
             _language = resolved ? resolved : exports.LANGUAGE_DEFAULT;
         }
         catch (e) {
@@ -32,11 +32,11 @@ if (typeof process === 'object') {
     }
     _isNative = true;
 }
-else if (typeof navigator === 'object') {
+else if (typeof navigator === "object") {
     var userAgent = navigator.userAgent;
-    _isWindows = userAgent.indexOf('Windows') >= 0;
-    _isMacintosh = userAgent.indexOf('Macintosh') >= 0;
-    _isLinux = userAgent.indexOf('Linux') >= 0;
+    _isWindows = userAgent.indexOf("Windows") >= 0;
+    _isMacintosh = userAgent.indexOf("Macintosh") >= 0;
+    _isLinux = userAgent.indexOf("Linux") >= 0;
     _isWeb = true;
     _locale = navigator.language;
     _language = _locale;
@@ -81,10 +81,10 @@ exports.language = _language;
  * Chinese). The UI is not necessarily shown in the provided locale.
  */
 exports.locale = _locale;
-var _globals = (typeof self === 'object' ? self : global);
+var _globals = (typeof self === "object" ? self : global);
 exports.globals = _globals;
 function hasWebWorkerSupport() {
-    return typeof _globals.Worker !== 'undefined';
+    return typeof _globals.Worker !== "undefined";
 }
 exports.hasWebWorkerSupport = hasWebWorkerSupport;
 exports.setTimeout = _globals.setTimeout.bind(_globals);

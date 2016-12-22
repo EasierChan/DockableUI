@@ -2,14 +2,14 @@
  * chenlei 2016/09/08
  */
 
-'use strict';
+"use strict";
 
-import * as path from 'path';
-import * as objects from 'lodash';
-import { shell, screen, BrowserWindow, Menu } from 'electron';
-import { TValueCallback } from './common';
-import * as platform from './platform';
-import { DefaultLogger } from './logger';
+import * as path from "path";
+import * as objects from "lodash";
+import { shell, screen, BrowserWindow, Menu } from "electron";
+import { TValueCallback } from "./common";
+import * as platform from "./platform";
+import { DefaultLogger } from "./logger";
 
 export interface IWindowState {
 	width?: number;
@@ -65,14 +65,14 @@ export enum ReadyState {
 
 export class UWindow {
 
-	public static menuBarHiddenKey = 'menuBarHidden';
-	public static colorThemeStorageKey = 'theme';
+	public static menuBarHiddenKey = "menuBarHidden";
+	public static colorThemeStorageKey = "theme";
 	public onClosed: () => void;
 
 	protected static MIN_WIDTH = 300;
 	protected static MIN_HEIGHT = 120;
 
-	private options: IWindowCreationOptions;
+	protected options: IWindowCreationOptions;
 	private showTimeoutHandle: any;
 	private _id: number;
 	private _win: Electron.BrowserWindow;
@@ -107,13 +107,13 @@ export class UWindow {
 			height: this.windowState.height,
 			x: this.windowState.x,
 			y: this.windowState.y,
-			backgroundColor: useLightTheme ? '#FFFFFF' : platform.isMacintosh ? '#131313' : '#1E1E1E', // https://github.com/electron/electron/issues/5150
+			backgroundColor: useLightTheme ? "#FFFFFF" : platform.isMacintosh ? "#131313" : "#1E1E1E", // https://github.com/electron/electron/issues/5150
 			minWidth: UWindow.MIN_WIDTH,
 			minHeight: UWindow.MIN_HEIGHT,
-			show: false,//!isFullscreenOrMaximized,
+			show: false, // !isFullscreenOrMaximized,
 			useContentSize: true,
 			autoHideMenuBar: true,
-			//title: this.envService.product.nameLong,
+			// title: this.envService.product.nameLong,
 			webPreferences: {
 				backgroundThrottling: false, // by default if Code is in the background, intervals and timeouts get throttled
 				nodeIntegration: true
@@ -125,7 +125,7 @@ export class UWindow {
 		}
 
 		if (platform.isLinux) {
-			//options.icon = path.join(appRoot, 'resources/linux/code.png'); // Windows and Mac are better off using the embedded icon(s)
+			// options.icon = path.join(appRoot, "resources/linux/code.png"); // Windows and Mac are better off using the embedded icon(s)
 		}
 
 		// Create the browser window.
@@ -217,7 +217,7 @@ export class UWindow {
 	private registerListeners(): void {
 
 		// Remember that we loaded
-		this._win.webContents.on('did-finish-load', () => {
+		this._win.webContents.on("did-finish-load", () => {
 			this._readyState = ReadyState.LOADING;
 
 			// To prevent flashing, we set the window visible after the page has finished to load but before VSCode is loaded
@@ -237,20 +237,20 @@ export class UWindow {
 		});
 
 		// Handle code that wants to open links
-		this._win.webContents.on('new-window', (event: Event, url: string) => {
+		this._win.webContents.on("new-window", (event: Event, url: string) => {
 			event.preventDefault();
 
 			shell.openExternal(url);
 		});
 
 		// Window Focus
-		this._win.on('focus', () => {
+		this._win.on("focus", () => {
 			this._lastFocusTime = Date.now();
 		});
 
 		// Window Failed to load
-		this._win.webContents.on('did-fail-load', (event: Event, errorCode: string, errorDescription: string) => {
-			DefaultLogger.warn('[electron event]: fail to load, ', errorDescription);
+		this._win.webContents.on("did-fail-load", (event: Event, errorCode: string, errorDescription: string) => {
+			DefaultLogger.warn("[electron event]: fail to load, ", errorDescription);
 		});
 
 	}
@@ -259,11 +259,12 @@ export class UWindow {
 		if (!contentUrl)
 			return;
 
+		this.options.viewUrl = contentUrl;
 		this.registerListeners();
 
 		if (this.options.state.wStyle === WindowStyle.Aqy) {
 			this.setMenuBarVisibility(false);
-			this.win.loadURL(__dirname + '/titlebar.tpl');
+			this.win.loadURL(__dirname + "/titlebar.tpl");
 			this.win.webContents.executeJavaScript("window.document.getElementById('fr_content').src = '" + contentUrl + "';");
 		} else {
 			if (this.options.menuTemplate) {
@@ -271,15 +272,17 @@ export class UWindow {
 			}
 			this.win.loadURL(contentUrl);
 		}
-		//this.win.webContents.reloadIgnoringCache();
+		// this.win.webContents.reloadIgnoringCache();
 	}
 
 	public show(): void {
-		this.win.show();
+		if (this.win !== null) {
+			this.win.show();
+		}
 	}
 
 	public close(): void {
-		if (this.win != null && !this.win.isVisible())
+		if (this.win !== null && !this.win.isDestroyed())
 			this.win.close();
 	}
 
@@ -328,7 +331,7 @@ export class UWindow {
 			try {
 				state = this.validateWindowState(state);
 			} catch (err) {
-				//.log(`Unexpected error validating window state: ${err}\n${err.stack}`); // somehow display API can be picky about the state to validate
+				DefaultLogger.log(`Unexpected error validating window state: ${err}\n${err.stack}`); // somehow display API can be picky about the state to validate
 			}
 		}
 
@@ -353,7 +356,7 @@ export class UWindow {
 			return null;
 		}
 
-		if ([state.x, state.y, state.width, state.height].some(n => typeof n !== 'number')) {
+		if ([state.x, state.y, state.width, state.height].some(n => typeof n !== "number")) {
 			return null;
 		}
 
@@ -458,12 +461,12 @@ export class UWindow {
 
 
 	public build(): void {
-		this._win.on('closed', () => {
+		this._win.on("closed", () => {
 			this.dispose();
 			if (this.onClosed) {
 				this.onClosed();
 			}
-		})
+		});
 	}
 
 	public dispose(): void {

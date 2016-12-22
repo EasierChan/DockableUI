@@ -2,7 +2,7 @@
     "rules": {
         "class-name": true,
         "comment-format": [true, "check-space"],
-        "indent": [true, "spaces"],
+        "indent": [false, "spaces"],
         "no-duplicate-variable": true,
         "no-eval": true,
         "no-internal-module": true,
@@ -10,7 +10,7 @@
         "no-var-keyword": true,
         "one-line": [true, "check-open-brace", "check-whitespace"],
         "quotemark": [true, "double"],
-        "semicolon": false,
+        "semicolon": true,
         "triple-equals": [true, "allow-null-check"],
         "typedef-whitespace": [true, {
             "call-signature": "nospace",

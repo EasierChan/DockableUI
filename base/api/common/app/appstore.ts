@@ -38,7 +38,7 @@ export class UApplication {
     }
 
     public static bootstrap(): void {
-        let contentWindow: ContentWindow = new ContentWindow();
+        let contentWindow: ContentWindow = new ContentWindow({state: {x: 200, y: 100, width: 1000, height: 600}});
         contentWindow.loadURL(path.join(this._appstoreHome, "..", "workbench", "index.html") );
         this._apps[this._workbench] = contentWindow;
         contentWindow.show();

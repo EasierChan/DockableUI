@@ -1,4 +1,5 @@
 "use strict";
+
 import { TcpClient } from "../../common/base/client";
 import { IResolver } from "../../common/base/resolver";
 import { DefaultLogger } from "../../common/base/logger";
@@ -101,7 +102,8 @@ export class PriceResolver extends EventEmitter implements IResolver {
     }
 
     onError(err: any): void {
-        DefaultLogger.info(err);
+        // DefaultLogger.info(err);
+        this.emit("ps-error" , err);
     }
 
     onData(data: Buffer): void {
@@ -146,7 +148,7 @@ export class PriceResolver extends EventEmitter implements IResolver {
             type: this.buffer.readUInt16LE(this.bufBeg),
             subtype: this.buffer.readUInt16LE((this.bufBeg + 2)),
             msglen: this.buffer.readUInt32LE((this.bufBeg + 4))
-        }
+        };
     }
     // really unpack msg
     readMsg(): number {
@@ -278,7 +280,7 @@ export class PriceDal {
                 case "MARKETDATA":
                     switch (data.type) {
                         case MsgType.MSG_TYPE_FUTURES:
-                            DefaultLogger.info(data.toString());
+                            // DefaultLogger.info(data.toString());
                             cb(data);
                             break;
                         default:
@@ -290,7 +292,7 @@ export class PriceDal {
                     DefaultLogger.info(`listener >> ${name} is not valid`);
                     break;
             }
-        })
+        });
     }
 }
 
@@ -303,4 +305,4 @@ ipcMain.on("dal://itrade/ps/marketdata", (e, param, cb) => {
         if (!e.sender.isDestroyed())
             e.sender.send("dal://itrade/ps/marketdata-reply", data);
     });
-})
+});

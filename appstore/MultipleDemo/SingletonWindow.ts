@@ -1,3 +1,5 @@
+"use strict";
+
 import { Component, OnInit } from "@angular/core";
 import { Control, DockContainer, Splitter, TabPanel } from "../../base/controls/control";
 import { DataTable, DataTableRow, DataTableColumn } from "../../base/controls/data.component";
@@ -34,7 +36,7 @@ import { ComboControl, MetaControl } from "../../base/controls/user.component";
     <div class="dock-cover"></div>
     `
 })
-export class AppComponent implements OnInit {
+export class SingletonWindowComponent implements OnInit {
   className: string = "dock-container vertical";
   children: Control[] = [];
   ngOnInit(): void {
@@ -126,18 +128,12 @@ export class AppComponent implements OnInit {
     row1.addChild(new DockContainer("v", 800, null).addChild(body));
     row1.addChild(new Splitter("v"));
     // col 3
-    let rightPanel: TabPanel = new TabPanel();
-    rightPanel.addTab("Solution", "Solution");
-    rightPanel.setActive("Solution");
-    row1.addChild(new DockContainer("v").addChild(rightPanel));
+    row1.addChild(new DockContainer("v"));
     this.children.push(row1);
     // splitter between row1 and row2
     this.children.push(new Splitter("h"));
     // row 2
-    let bottomPanel: TabPanel = new TabPanel();
-    bottomPanel.addTab("Output", "Output");
-    bottomPanel.setActive("Output");
-    let row2 = new DockContainer("h").addChild(bottomPanel);
+    let row2 = new DockContainer("h");
     this.children.push(row2);
   }
 }

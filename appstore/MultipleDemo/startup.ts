@@ -2,53 +2,58 @@
  * App startup entry
  */
 "use strict";
-var backend_1 = require("../../base/api/backend");
-var path = require("path");
-var StartUp = (function () {
-    function StartUp() {
-        this._windowMgr = new backend_1.UWindwManager();
+
+import { IApplication, MenuWindow, MultiWindow, UWindwManager, SingletonWindow } from "../../base/api/backend";
+const path = require("path");
+
+export class StartUp implements IApplication {
+    _windowMgr: UWindwManager;
+    static _instance: StartUp;
+
+    constructor() {
+        this._windowMgr = new UWindwManager();
     }
     /**
      * bootstrap
      */
-    StartUp.prototype.bootstrap = function () {
-        var _this = this;
-        var menuWindow = new backend_1.MenuWindow({ state: { x: 500, y: 0, width: 300, height: 60 } });
+    bootstrap(): any {
+        let menuWindow: MenuWindow = new MenuWindow({ state: { x: 500, y: 0, width: 300, height: 60 } });
         menuWindow.ready().then(function () {
             console.log("when MenuWindow ready say: hello");
         });
-        menuWindow.win.on("closed", function () {
-            _this.quit();
+        menuWindow.win.on("closed", () => {
+            this.quit();
         });
         menuWindow.loadURL(__dirname + "menu.html");
         this._windowMgr.addMenuWindow(menuWindow);
-        var singleton = new backend_1.SingletonWindow();
+
+        let singleton: SingletonWindow = new SingletonWindow();
         singleton.loadURL(path.join(__dirname, "singleton.html"));
         this._windowMgr.addWindowToMenu(singleton, "SingletonWindow", { level1: 2 });
-        var multiple = new backend_1.MultiWindow();
+
+        let multiple: MultiWindow = new MultiWindow();
         multiple.loadURL(path.join(__dirname, "multiple.html"));
         this._windowMgr.addWindowToMenu(multiple, "MultipleWin", { level1: 2 });
+
         menuWindow.show();
-    };
+    }
     /**
      * quit
      */
-    StartUp.prototype.quit = function () {
+    quit(): void {
         this._windowMgr.closeAll();
-    };
+    }
     /**
      * restart
      */
-    StartUp.prototype.restart = function () {
+    restart(): void {
         this.quit();
         this.bootstrap();
-    };
-    StartUp.instance = function () {
+    }
+
+    static instance(): StartUp {
         if (!StartUp._instance) {
             return new StartUp();
         }
-    };
-    return StartUp;
-}());
-exports.StartUp = StartUp;
-//# sourceMappingURL=startup.js.map
+    }
+}

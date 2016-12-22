@@ -25,7 +25,7 @@ export class UWindwManager {
             this._menuWindow = menuWindow;
             this._menuWindow.onClosed = () => {
                 this.closeAll();
-            }
+            };
             this._windows.push(this._menuWindow);
         }
     }
@@ -42,10 +42,10 @@ export class UWindwManager {
      * @param fatherPath presentItem attached to.
      */
     addWindowToMenu(window: UWindow, presentItem: string, fatherPath: MenuPath): void {
+        this._windows.push(window);
         this._menuWindow.insertMenu(fatherPath, presentItem, () => {
             window.show();
         });
-        this._windows.push(window);
     }
     /**
      * @description 广播消息
@@ -64,8 +64,11 @@ export class UWindwManager {
      */
     closeAll(): void {
         this._windows.forEach(function (window) {
-            window.close();
-        })
+            if (window.win !== null) {
+                window.win.removeAllListeners();
+                window.close();
+            }
+        });
     }
 }
 

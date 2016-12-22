@@ -2,9 +2,9 @@
  * autoupdater
  */
 
-import path = require('path');
-import os = require('os');
-import fs = require('fs');
+import path = require("path");
+import os = require("os");
+import fs = require("fs");
 import { mkdirp } from "./common";
 
 interface IUpdate {
@@ -25,13 +25,13 @@ export class UAutoUpdaterImpl {
     }
 
     get cachePath(): Promise<string> {
-        const result = path.join(os.tmpdir(), 'universalui-update');
+        const result = path.join(os.tmpdir(), "universalui-update");
         return new Promise<string>((c, e) => mkdirp(result, null, err => err ? e(err) : c(result)));
     }
 
     checkForUpdates(): void {
         if (!this.url) {
-            throw new Error('No feed url set');
+            throw new Error("No feed url set");
         }
 
 

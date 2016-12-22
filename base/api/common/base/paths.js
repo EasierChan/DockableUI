@@ -1,7 +1,7 @@
 /**
  * chenlei 2016-09-01
  */
-'use strict';
+"use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -11,17 +11,17 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var fs = require('fs');
-var path = require('path');
-var decorator_1 = require('./decorator');
+var fs = require("fs");
+var path = require("path");
+var decorator_1 = require("./decorator");
 var Paths = (function () {
     function Paths() {
         this.basedir_ = process.cwd();
-        this.logdir_ = path.join(this.basedir_, 'logs');
-        this.backupdir_ = path.join(this.basedir_, '/backup');
+        this.logdir_ = path.join(this.basedir_, "logs");
+        this.backupdir_ = path.join(this.basedir_, "/backup");
         this.settings_ = {
-            default: 'default-setting.json',
-            user: 'user-setting.json'
+            default: "default-setting.json",
+            user: "user-setting.json"
         };
         if (!fs.existsSync(this.logdir_)) {
             fs.mkdir(this.logdir_);
@@ -30,7 +30,7 @@ var Paths = (function () {
             fs.mkdir(this.backupdir_);
         }
         if (!fs.existsSync(path.join(this.basedir_, this.settings_.default))) {
-            throw Error(this.settings_.default + ' can not be found!');
+            throw Error(this.settings_.default + " can not be found!");
         }
     }
     Object.defineProperty(Paths, "configration", {

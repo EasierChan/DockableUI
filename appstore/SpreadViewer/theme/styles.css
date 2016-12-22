@@ -59,23 +59,43 @@ usercontrol.row{
 usercontrol.col{
     width: 100%;
 }
-input[type='text'],
+.sd-input,
 button,
 span{
     margin: 0 5px;
 }
 /* textbox style */
-input[type='text']{
+.sd-input{
     width: 50px;
+    border-radius: 3px;
+    padding: 5px;
+    background-color: #e8bd73;
 }
 /* button style */
-button{
+.sd-button{
     padding: 5px;
-    background-color: deepskyblue;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+    min-width: 88px;
+    border-radius: 3px;
+    font-size: 14px;
+    text-align: center;
+    text-transform: uppercase;
+    text-decoration:none;
+    border: none;
+    outline: none;
+    background-color: rgb(16, 148, 243);
 }
-button:hover{
-    background-color: mediumturquoise;
+.sd-button:hover{
+    background-color: rgb(123, 194, 245);
 }
 
+.prespace{
+    margin-left:  100px;
+}
 
+.spreadview.input {
+    background-color:  #ee3322;
+    height: 20px;
+    border-radius: 5px;
+}
 

@@ -13,6 +13,7 @@ var window_1 = require("../base/window");
 var MenuWindow = (function (_super) {
     __extends(MenuWindow, _super);
     function MenuWindow(config) {
+        var _this = this;
         if (config) {
             config.state.wStyle = window_1.WindowStyle.System;
             config.menuTemplate = [
@@ -21,7 +22,9 @@ var MenuWindow = (function (_super) {
                     submenu: [
                         {
                             label: "退出",
-                            role: "quit"
+                            click: function (e) {
+                                _this.close();
+                            }
                         }
                     ]
                 },
@@ -70,6 +73,27 @@ var MenuWindow = (function (_super) {
     return MenuWindow;
 }(window_1.UWindow));
 exports.MenuWindow = MenuWindow;
+var MultiWindow = (function (_super) {
+    __extends(MultiWindow, _super);
+    function MultiWindow(config) {
+        _super.call(this, config);
+        this._windows = [];
+    }
+    MultiWindow.prototype.show = function () {
+        var newWin = new window_1.UWindow(this.options);
+        this._windows.push(newWin);
+        newWin.show();
+        newWin = null;
+    };
+    MultiWindow.prototype.close = function () {
+        this._windows.forEach(function (child) {
+            child.close();
+        });
+        _super.prototype.close.call(this);
+    };
+    return MultiWindow;
+}(window_1.UWindow));
+exports.MultiWindow = MultiWindow;
 var ContentWindow = (function (_super) {
     __extends(ContentWindow, _super);
     function ContentWindow(config) {
@@ -78,15 +102,21 @@ var ContentWindow = (function (_super) {
     return ContentWindow;
 }(window_1.UWindow));
 exports.ContentWindow = ContentWindow;
-// Win10 start menu Container
-var StartWindow = (function (_super) {
-    __extends(StartWindow, _super);
-    function StartWindow(config) {
+var SingletonWindow = (function (_super) {
+    __extends(SingletonWindow, _super);
+    function SingletonWindow(config) {
+        var _this = this;
         _super.call(this, config);
+        this.win.on("close", function (e) {
+            e.preventDefault();
+            _this.win.hide();
+        });
     }
-    StartWindow.prototype.addAppItem = function (appname, option) {
+    SingletonWindow.prototype.show = function () {
+        this.win.show();
+        return this;
     };
-    return StartWindow;
+    return SingletonWindow;
 }(window_1.UWindow));
-exports.StartWindow = StartWindow;
+exports.SingletonWindow = SingletonWindow;
 //# sourceMappingURL=windows.js.map

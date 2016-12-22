@@ -11,6 +11,7 @@ export interface MenuPath {
     level2?: number;
     // level3?: number;
 }
+
 // MenuWindow 
 export class MenuWindow extends UWindow {
     private _defaultTemplate: Array<Object>;
@@ -24,7 +25,9 @@ export class MenuWindow extends UWindow {
                     submenu: [
                         {
                             label: "退出",
-                            role: "quit"
+                            click: (e) => {
+                                this.close();
+                            }
                         }
                     ]
                 },
@@ -43,7 +46,6 @@ export class MenuWindow extends UWindow {
         UWindow.MIN_HEIGHT = 30;
         super(config);
         this._defaultTemplate = config.menuTemplate;
-
         this.build();
     }
 
@@ -80,19 +82,49 @@ export class MenuWindow extends UWindow {
     }
 }
 
+export class MultiWindow extends UWindow {
+    _windows: UWindow[] = [];
+    constructor(config?: IWindowCreationOptions) {
+        super(config);
+    }
+
+    show(): void {
+        let newWin = new UWindow(this.options);
+        this._windows.push(newWin);
+        newWin.show();
+        newWin = null;
+    }
+
+    close(): void {
+        this._windows.forEach((child) => {
+            child.close();
+        });
+        super.close();
+    }
+}
+
 export class ContentWindow extends UWindow {
     constructor(config?: IWindowCreationOptions) {
         super(config);
     }
 }
-// Win10 start menu Container
-export class StartWindow extends UWindow {
+
+export class SingletonWindow extends UWindow {
     constructor(config?: IWindowCreationOptions) {
         super(config);
+        this.win.on("close", (e) => {
+            e.preventDefault();
+            this.win.hide();
+        });
     }
 
-    addAppItem(appname: string, option: Object): void {
-
+    show(): UWindow {
+        this.win.show();
+        return this;
     }
+
+    // close(): void {
+    //     this.win.hide();
+    // }
 }
 

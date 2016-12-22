@@ -26,11 +26,38 @@
                         </button>
             </div>
         </form>
-        <div *ngIf="isAuthorized" class="appstore">
-            <div *ngFor="let app of apps" class="tile-square bg-orange fg-white" data-role="tile" (click)="OnStartApp(app.name)">
-                <div class="tile-content iconic">
-                    <span class="icon mif-cloud"></span>
-                    <span class="tile-label">{{ app.desc }}</span>
+        <div class="appstore" *ngIf="isAuthorized">
+            <!--<div class="fg-white" style="padding-left: 80px; position: fixed; width: 100%; box-shadow: 0 2px 2px black; background-color: #2c2c2c; z-index: 99">
+                <h3>Applications</h3>
+            </div>-->
+            <div class="tile-area fg-white tile-area-scheme-dark" style="min-width: 1000px">
+                <h1 class="tile-area-title">Start</h1>
+                <div class="tile-area-controls"></div>
+                <div class="tile-group double">
+                    <span class="tile-group-title">Transanctional</span>
+                    <div class="tile-container">
+                        <template ngFor let-app [ngForOf]="apps">
+                            <div *ngIf="app.category=='Transanctional'" class="tile-square bg-orange fg-white" data-role="tile" (click)="OnStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-trademark"></span>
+                                </div>
+                                <span class="tile-label">{{ app.desc }}</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="tile-group double">
+                    <span class="tile-group-title">Analytical</span>
+                    <div class="tile-container">
+                        <template ngFor let-app [ngForOf]="apps">
+                            <div *ngIf="app.category=='Analytical'" class="tile-square bg-orange fg-white" data-role="tile" (click)="OnStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-library"></span>
+                                </div>
+                                <span class="tile-label">{{ app.desc }}</span>
+                            </div>
+                        </template>
+                    </div>
                 </div>
             </div>
         </div>

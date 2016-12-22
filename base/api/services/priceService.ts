@@ -14,7 +14,7 @@ export class PriceService {
         electron.ipcRenderer.send("dal://itrade/ps/marketdata", { name: "MARKETDATA", codes: innerCodeList });
         electron.ipcRenderer.on("dal://itrade/ps/marketdata-reply", (e, msg) => {
             listener(msg);
-        })
+        });
     }
     /**
      * IOPV MarketData

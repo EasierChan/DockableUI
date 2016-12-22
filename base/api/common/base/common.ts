@@ -1,21 +1,21 @@
 /**
  * 
  */
-'use strict';
+"use strict";
 
-import fs = require('fs');
-import paths = require('path');
+import fs = require("fs");
+import paths = require("path");
 
 export interface TValueCallback<T> {
 	(value: T): void;
 }
 
 const _typeof = {
-	number: 'number',
-	string: 'string',
-	undefined: 'undefined',
-	object: 'object',
-	function: 'function'
+	number: "number",
+	string: "string",
+	undefined: "undefined",
+	object: "object",
+	function: "function"
 };
 
 /**
@@ -57,7 +57,7 @@ export function isStringArray(value: any): value is string[] {
  *	`null`, an `array`, a `regexp`, nor a `date`.
  */
 export function isObject(obj: any): boolean {
-	// The method can't do a type cast since there are type (like strings) which
+	// The method can"t do a type cast since there are type (like strings) which
 	// are subclasses of any put not positvely matched by the function. Hence type
 	// narrowing results in wrong results.
 	return typeof obj === _typeof.object
@@ -109,7 +109,7 @@ export function mkdirp(path: string, mode: number, callback: (error: Error) => v
 				}
 
 				if (!itIs) {
-					return callback(new Error('"' + path + '" is not a directory.'));
+					return callback(new Error(path + " is not a directory."));
 				}
 
 				callback(null);

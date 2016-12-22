@@ -23,14 +23,40 @@ var AppComponent = (function () {
             this.isAuthorized = true;
             this.apps = [
                 {
-                    id: "DockDemo",
-                    name: "DockDemo",
-                    desc: "Dockable-layout"
+                    id: "StrategyMonitor",
+                    name: "StrategyMonitor",
+                    desc: "StrategyMonitor",
+                    category: "Transanctional"
                 },
                 {
-                    id: "SimpleDemo",
-                    name: "SimpleDemo",
-                    desc: "SpreadViewer"
+                    id: "PortfolioMonitor",
+                    name: "PortfolioMonitor",
+                    desc: "PortfolioMonitor",
+                    category: "Transanctional"
+                },
+                {
+                    id: "DockDemo",
+                    name: "DockDemo",
+                    desc: "DockDemo",
+                    category: "Transanctional"
+                },
+                {
+                    id: "SpreadViewer",
+                    name: "SpreadViewer",
+                    desc: "SpreadViewer",
+                    category: "Analytical"
+                },
+                {
+                    id: "BookViewer",
+                    name: "BookViewer",
+                    desc: "BookViewer",
+                    category: "Analytical"
+                },
+                {
+                    id: "MultipleDemo",
+                    name: "MultipleDemo",
+                    desc: "MultipleDemo",
+                    category: "Analytical"
                 }
             ];
             var appnames_1 = [];

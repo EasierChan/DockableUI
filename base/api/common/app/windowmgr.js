@@ -30,10 +30,10 @@ var UWindwManager = (function () {
      * @param fatherPath presentItem attached to.
      */
     UWindwManager.prototype.addWindowToMenu = function (window, presentItem, fatherPath) {
+        this._windows.push(window);
         this._menuWindow.insertMenu(fatherPath, presentItem, function () {
             window.show();
         });
-        this._windows.push(window);
     };
     /**
      * @description 广播消息
@@ -50,7 +50,10 @@ var UWindwManager = (function () {
      */
     UWindwManager.prototype.closeAll = function () {
         this._windows.forEach(function (window) {
-            window.close();
+            if (window.win !== null) {
+                window.win.removeAllListeners();
+                window.close();
+            }
         });
     };
     return UWindwManager;

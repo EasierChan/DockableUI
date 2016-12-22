@@ -1,11 +1,11 @@
 /**
  * chenlei 2016-09-01
  */
-'use strict';
+"use strict";
 
-import fs = require('fs');
-import path = require('path');
-import {sealed} from './decorator';
+import fs = require("fs");
+import path = require("path");
+import {sealed} from "./decorator";
 
 @sealed
 export class Paths {
@@ -22,11 +22,11 @@ export class Paths {
     private settings_: { default: string, user: string };
     constructor() {
         this.basedir_ = process.cwd();
-        this.logdir_ = path.join(this.basedir_, 'logs');
-        this.backupdir_ = path.join(this.basedir_, '/backup');
+        this.logdir_ = path.join(this.basedir_, "logs");
+        this.backupdir_ = path.join(this.basedir_, "/backup");
         this.settings_ = {
-            default: 'default-setting.json',
-            user: 'user-setting.json'
+            default: "default-setting.json",
+            user: "user-setting.json"
         };
 
         if (!fs.existsSync(this.logdir_)) {
@@ -38,7 +38,7 @@ export class Paths {
         }
 
         if (!fs.existsSync(path.join(this.basedir_, this.settings_.default))) {
-            throw Error(this.settings_.default + ' can not be found!');
+            throw Error(this.settings_.default + " can not be found!");
         }
     }
 

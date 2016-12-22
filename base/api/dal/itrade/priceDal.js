@@ -93,7 +93,8 @@ var PriceResolver = (function (_super) {
         logger_1.DefaultLogger.info("connected!");
     };
     PriceResolver.prototype.onError = function (err) {
-        logger_1.DefaultLogger.info(err);
+        // DefaultLogger.info(err);
+        this.emit("ps-error", err);
     };
     PriceResolver.prototype.onData = function (data) {
         logger_1.DefaultLogger.trace("got data from server! datalen= %d", data.length);
@@ -252,7 +253,7 @@ var PriceDal = (function () {
                 case "MARKETDATA":
                     switch (data.type) {
                         case message_model_1.MsgType.MSG_TYPE_FUTURES:
-                            logger_1.DefaultLogger.info(data.toString());
+                            // DefaultLogger.info(data.toString());
                             cb(data);
                             break;
                         default:

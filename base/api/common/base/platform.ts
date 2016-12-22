@@ -1,7 +1,7 @@
 /**
  * cl 2016/09/08
  */
-'use strict';
+"use strict";
 
 let _isWindows = false;
 let _isMacintosh = false;
@@ -33,32 +33,32 @@ interface INavigator {
 declare let navigator: INavigator;
 declare let self: any;
 
-export const LANGUAGE_DEFAULT = 'en';
+export const LANGUAGE_DEFAULT = "en";
 
 // OS detection
-if (typeof process === 'object') {
-    _isWindows = (process.platform === 'win32');
-    _isMacintosh = (process.platform === 'darwin');
-    _isLinux = (process.platform === 'linux');
+if (typeof process === "object") {
+    _isWindows = (process.platform === "win32");
+    _isMacintosh = (process.platform === "darwin");
+    _isLinux = (process.platform === "linux");
     _isRootUser = !_isWindows && (process.getuid() === 0);
-    let rawNlsConfig = process.env['EasierApp_NLS_CONFIG'];
+    let rawNlsConfig = process.env["EasierApp_NLS_CONFIG"];
 
     if (rawNlsConfig) {
         try {
             let nlsConfig: NLSConfig = JSON.parse(rawNlsConfig);
-            let resolved = nlsConfig.availableLanguages['*'];
+            let resolved = nlsConfig.availableLanguages["*"];
             _locale = nlsConfig.locale;
-            // VSCode's default language is 'en'
+            // VSCode"s default language is "en"
             _language = resolved ? resolved : LANGUAGE_DEFAULT;
         } catch (e) {
         }
     }
     _isNative = true;
-} else if (typeof navigator === 'object') {
+} else if (typeof navigator === "object") {
     let userAgent = navigator.userAgent;
-    _isWindows = userAgent.indexOf('Windows') >= 0;
-    _isMacintosh = userAgent.indexOf('Macintosh') >= 0;
-    _isLinux = userAgent.indexOf('Linux') >= 0;
+    _isWindows = userAgent.indexOf("Windows") >= 0;
+    _isMacintosh = userAgent.indexOf("Macintosh") >= 0;
+    _isLinux = userAgent.indexOf("Linux") >= 0;
     _isWeb = true;
     _locale = navigator.language;
     _language = _locale;
@@ -121,11 +121,11 @@ interface IGlobals {
     clearInterval(token: IntervalToken);
 }
 
-const _globals = <IGlobals>(typeof self === 'object' ? self : global);
+const _globals = <IGlobals>(typeof self === "object" ? self : global);
 export const globals: any = _globals;
 
 export function hasWebWorkerSupport(): boolean {
-    return typeof _globals.Worker !== 'undefined';
+    return typeof _globals.Worker !== "undefined";
 }
 export const setTimeout = _globals.setTimeout.bind(_globals);
 export const clearTimeout = _globals.clearTimeout.bind(_globals);

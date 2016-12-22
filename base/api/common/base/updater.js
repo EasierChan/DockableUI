@@ -2,8 +2,8 @@
  * autoupdater
  */
 "use strict";
-var path = require('path');
-var os = require('os');
+var path = require("path");
+var os = require("os");
 var common_1 = require("./common");
 var UAutoUpdaterImpl = (function () {
     function UAutoUpdaterImpl() {
@@ -13,7 +13,7 @@ var UAutoUpdaterImpl = (function () {
     };
     Object.defineProperty(UAutoUpdaterImpl.prototype, "cachePath", {
         get: function () {
-            var result = path.join(os.tmpdir(), 'universalui-update');
+            var result = path.join(os.tmpdir(), "universalui-update");
             return new Promise(function (c, e) { return common_1.mkdirp(result, null, function (err) { return err ? e(err) : c(result); }); });
         },
         enumerable: true,
@@ -21,7 +21,7 @@ var UAutoUpdaterImpl = (function () {
     });
     UAutoUpdaterImpl.prototype.checkForUpdates = function () {
         if (!this.url) {
-            throw new Error('No feed url set');
+            throw new Error("No feed url set");
         }
     };
     return UAutoUpdaterImpl;

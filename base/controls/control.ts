@@ -79,9 +79,12 @@ export class TabPanel extends Control {
     this.children.push(this.pages);
     this.children.push(this.headers);
   }
-
+  /**
+   * @param pageId connection between header and title
+   * @param pageTitle show the tab desc
+   */
   addTab(pageId, pageTitle): TabPanel {
-    this.headers.addHeader(new TabHeader(pageId))
+    this.headers.addHeader(new TabHeader(pageId));
     this.pages.addPage(new TabPage(pageId, pageTitle));
     return this;
   }

@@ -3,7 +3,7 @@
  * author: chenlei
  * desc: components for acesss data, such as datatable, treeview, charts, 
  */
-import { Component, Input, OnInit, AfterViewInit, Directive, ElementRef, Renderer } from "@angular/core"
+import { Component, Input, OnInit, AfterViewInit, Directive, ElementRef, Renderer } from "@angular/core";
 import { Control, CssStyle } from "./control";
 const echarts: ECharts = require("../third/echart/echarts");
 
@@ -49,7 +49,7 @@ export class DataTable extends Control {
             columns: null,
             rows: null,
             enableFooter: this.enableFooter
-        }
+        };
         this.styleObj = { type: null, width: null, height: null };
     }
 

@@ -1,10 +1,10 @@
 /**
  * chenlei 2016/09/08
  */
-'use strict';
-var electron_1 = require('electron');
-var platform = require('./platform');
-var logger_1 = require('./logger');
+"use strict";
+var electron_1 = require("electron");
+var platform = require("./platform");
+var logger_1 = require("./logger");
 (function (WindowStyle) {
     WindowStyle[WindowStyle["System"] = 0] = "System";
     WindowStyle[WindowStyle["Aqy"] = 1] = "Aqy";
@@ -58,13 +58,13 @@ var UWindow = (function () {
             height: this.windowState.height,
             x: this.windowState.x,
             y: this.windowState.y,
-            backgroundColor: useLightTheme ? '#FFFFFF' : platform.isMacintosh ? '#131313' : '#1E1E1E',
+            backgroundColor: useLightTheme ? "#FFFFFF" : platform.isMacintosh ? "#131313" : "#1E1E1E",
             minWidth: UWindow.MIN_WIDTH,
             minHeight: UWindow.MIN_HEIGHT,
             show: false,
             useContentSize: true,
             autoHideMenuBar: true,
-            //title: this.envService.product.nameLong,
+            // title: this.envService.product.nameLong,
             webPreferences: {
                 backgroundThrottling: false,
                 nodeIntegration: true
@@ -164,7 +164,7 @@ var UWindow = (function () {
     UWindow.prototype.registerListeners = function () {
         var _this = this;
         // Remember that we loaded
-        this._win.webContents.on('did-finish-load', function () {
+        this._win.webContents.on("did-finish-load", function () {
             _this._readyState = ReadyState.LOADING;
             // To prevent flashing, we set the window visible after the page has finished to load but before VSCode is loaded
             // if (!this.win.isVisible()) {
@@ -180,26 +180,27 @@ var UWindow = (function () {
             _this.setReady();
         });
         // Handle code that wants to open links
-        this._win.webContents.on('new-window', function (event, url) {
+        this._win.webContents.on("new-window", function (event, url) {
             event.preventDefault();
             electron_1.shell.openExternal(url);
         });
         // Window Focus
-        this._win.on('focus', function () {
+        this._win.on("focus", function () {
             _this._lastFocusTime = Date.now();
         });
         // Window Failed to load
-        this._win.webContents.on('did-fail-load', function (event, errorCode, errorDescription) {
-            logger_1.DefaultLogger.warn('[electron event]: fail to load, ', errorDescription);
+        this._win.webContents.on("did-fail-load", function (event, errorCode, errorDescription) {
+            logger_1.DefaultLogger.warn("[electron event]: fail to load, ", errorDescription);
         });
     };
     UWindow.prototype.loadURL = function (contentUrl) {
         if (!contentUrl)
             return;
+        this.options.viewUrl = contentUrl;
         this.registerListeners();
         if (this.options.state.wStyle === WindowStyle.Aqy) {
             this.setMenuBarVisibility(false);
-            this.win.loadURL(__dirname + '/titlebar.tpl');
+            this.win.loadURL(__dirname + "/titlebar.tpl");
             this.win.webContents.executeJavaScript("window.document.getElementById('fr_content').src = '" + contentUrl + "';");
         }
         else {
@@ -208,13 +209,15 @@ var UWindow = (function () {
             }
             this.win.loadURL(contentUrl);
         }
-        //this.win.webContents.reloadIgnoringCache();
+        // this.win.webContents.reloadIgnoringCache();
     };
     UWindow.prototype.show = function () {
-        this.win.show();
+        if (this.win !== null) {
+            this.win.show();
+        }
     };
     UWindow.prototype.close = function () {
-        if (this.win != null && !this.win.isVisible())
+        if (this.win !== null && !this.win.isDestroyed())
             this.win.close();
     };
     UWindow.prototype.serializeWindowState = function () {
@@ -259,6 +262,7 @@ var UWindow = (function () {
                 state = this.validateWindowState(state);
             }
             catch (err) {
+                logger_1.DefaultLogger.log("Unexpected error validating window state: " + err + "\n" + err.stack); // somehow display API can be picky about the state to validate
             }
         }
         if (!state) {
@@ -277,7 +281,7 @@ var UWindow = (function () {
             }
             return null;
         }
-        if ([state.x, state.y, state.width, state.height].some(function (n) { return typeof n !== 'number'; })) {
+        if ([state.x, state.y, state.width, state.height].some(function (n) { return typeof n !== "number"; })) {
             return null;
         }
         if (state.width <= 0 || state.height <= 0) {
@@ -369,7 +373,7 @@ var UWindow = (function () {
     };
     UWindow.prototype.build = function () {
         var _this = this;
-        this._win.on('closed', function () {
+        this._win.on("closed", function () {
             _this.dispose();
             if (_this.onClosed) {
                 _this.onClosed();
@@ -382,8 +386,8 @@ var UWindow = (function () {
         }
         this._win = null; // Important to dereference the window object to allow for GC
     };
-    UWindow.menuBarHiddenKey = 'menuBarHidden';
-    UWindow.colorThemeStorageKey = 'theme';
+    UWindow.menuBarHiddenKey = "menuBarHidden";
+    UWindow.colorThemeStorageKey = "theme";
     UWindow.MIN_WIDTH = 300;
     UWindow.MIN_HEIGHT = 120;
     return UWindow;

@@ -29,23 +29,50 @@ export class AppComponent {
         // send username and password to server. get user profile to determine which apps user can access.
         if (this.username === "chenlei" && this.password === "123") {
             this.isAuthorized = true;
+
             this.apps = [
+                {
+                    id: "StrategyMonitor",
+                    name: "StrategyMonitor",
+                    desc: "StrategyMonitor",
+                    category: "Transanctional"
+                },
+                {
+                    id: "PortfolioMonitor",
+                    name: "PortfolioMonitor",
+                    desc: "PortfolioMonitor",
+                    category: "Transanctional"
+                },
                 {
                     id: "DockDemo",
                     name: "DockDemo",
-                    desc: "Dockable-layout"
+                    desc: "DockDemo",
+                    category: "Transanctional"
                 },
                 {
-                    id: "SimpleDemo",
-                    name: "SimpleDemo",
-                    desc: "SpreadViewer"
+                    id: "SpreadViewer",
+                    name: "SpreadViewer",
+                    desc: "SpreadViewer",
+                    category: "Analytical"
+                },
+                {
+                    id: "BookViewer",
+                    name: "BookViewer",
+                    desc: "BookViewer",
+                    category: "Analytical"
+                },
+                {
+                    id: "MultipleDemo",
+                    name: "MultipleDemo",
+                    desc: "MultipleDemo",
+                    category: "Analytical"
                 }
             ];
 
             let appnames = [];
             this.apps.forEach((item) => {
                 appnames.push(item.name);
-            })
+            });
 
             this.appService.initStore(appnames);
             return true;
@@ -74,7 +101,7 @@ export class AppComponent {
             caption: caption,
             content: content,
             type: type
-        })
+        });
     }
 }
 

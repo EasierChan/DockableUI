@@ -89,12 +89,18 @@ var AppComponent = (function () {
         row1.addChild(new control_1.DockContainer("v", 800, null).addChild(body));
         row1.addChild(new control_1.Splitter("v"));
         // col 3
-        row1.addChild(new control_1.DockContainer("v"));
+        var rightPanel = new control_1.TabPanel();
+        rightPanel.addTab("Solution", "Solution");
+        rightPanel.setActive("Solution");
+        row1.addChild(new control_1.DockContainer("v").addChild(rightPanel));
         this.children.push(row1);
         // splitter between row1 and row2
         this.children.push(new control_1.Splitter("h"));
         // row 2
-        var row2 = new control_1.DockContainer("h");
+        var bottomPanel = new control_1.TabPanel();
+        bottomPanel.addTab("Output", "Output");
+        bottomPanel.setActive("Output");
+        var row2 = new control_1.DockContainer("h").addChild(bottomPanel);
         this.children.push(row2);
     };
     AppComponent = __decorate([

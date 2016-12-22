@@ -12,7 +12,7 @@ var core_1 = require("@angular/core");
 var platform_browser_1 = require("@angular/platform-browser");
 var forms_1 = require("@angular/forms");
 var common_1 = require("@angular/common");
-var app_component_1 = require("./app.component");
+var SingletonWindow_1 = require("./SingletonWindow");
 var control_1 = require("../../base/controls/control");
 var data_component_1 = require("../../base/controls/data.component");
 var user_component_1 = require("../../base/controls/user.component");
@@ -27,16 +27,17 @@ var AppModule = (function () {
                 forms_1.FormsModule
             ],
             declarations: [
-                app_component_1.AppComponent,
+                SingletonWindow_1.SingletonWindowComponent,
                 control_1.DockContainerComponent,
                 data_component_1.DataTableComponent,
-                user_component_1.UserControlComponent
+                user_component_1.UserControlComponent,
+                data_component_1.EChartComponent
             ],
-            bootstrap: [app_component_1.AppComponent]
+            bootstrap: [SingletonWindow_1.SingletonWindowComponent]
         }), 
         __metadata('design:paramtypes', [])
     ], AppModule);
     return AppModule;
 }());
 exports.AppModule = AppModule;
-//# sourceMappingURL=app.module.js.map
+//# sourceMappingURL=SingletonWindow.module.js.map
