@@ -1,7 +1,7 @@
 window.jQuery = window.$ = require("./jquery");
 
 function init() {
-    if (typeof jQuery == 'undefined') {
+    if (typeof jQuery === 'undefined') {
         console.error("jQuery runtime needed.");
         // return;
     }
@@ -46,8 +46,8 @@ function init() {
     function moveTabPage(srcPage, dstContainer) {
         var originContainer = srcPage.closest(".dock-container");
         //if (originContainer === dstContainer)
-          //  return;
-        
+        //  return;
+
         // console.log(originContainer, dstContainer);
 
         var siblingsLen = srcPage.siblings().length;
@@ -134,11 +134,11 @@ function init() {
         $(".splitter-bar").off("mousedown");
         $(".splitter-bar").on("mousedown", function (e) {
             var $splitter = $(this);
-            console.log("mousedown", $splitter);
+            // console.log("mousedown", $splitter);
             $(document.body).on("mousemove", { src: $(this) }, move);
             //$(document.body).off("mouseup");
             $(document.body).one("mouseup", function (e) {
-                console.log("mouseup", $(this));
+                // console.log("mouseup", $(this));
                 $(this).off("mousemove");
             })
         })
@@ -257,8 +257,8 @@ function init() {
         var $src = $("#" + id);
 
         if ($(this).is(".dock-center")) {
-            if($parent.find("#" + id).length > 0){
-                console.log( "#", id, $parent.find("#" + id).length);
+            if ($parent.find("#" + id).length > 0) {
+                console.log("#", id, $parent.find("#" + id).length);
                 return;
             }
             console.log("direct put into $parent");
@@ -372,44 +372,44 @@ function init() {
 
     $(".dock-container").on("dragover", function (e) {
         e.preventDefault();
-        if(typeof $(document).data("drag-src-id") == "undefined"){
+        if (typeof $(document).data("drag-src-id") == "undefined") {
             return;
         }
         var $target = $(e.target);
         //var parents = 
         var $parent = $target.parents(".dock-container").first();
         //parents.each(function (i) {
-            //&& $(parents[i]).children(".tab-panel").length > 0
-            //if (i === 0) { // first parent; and have tab-panel
-                console.log("drag over dockcontainer");
-                //$parent = $(parents[i]);
-                $(".dock-sn").css({
-                    display: "flex",
-                    left: $parent.offset().left + $parent.outerWidth() / 2 - 15, // 15 represents half of dock-nav
-                    top: $parent.offset().top,
-                    height: $parent.outerHeight()
-                });
-                $(".dock-ew").css({
-                    display: "flex",
-                    left: $parent.offset().left,
-                    top: $parent.offset().top + $parent.outerHeight() / 2 - 15, //same as above
-                    width: $parent.outerWidth()
-                });
+        //&& $(parents[i]).children(".tab-panel").length > 0
+        //if (i === 0) { // first parent; and have tab-panel
+        console.log("drag over dockcontainer");
+        //$parent = $(parents[i]);
+        $(".dock-sn").css({
+            display: "flex",
+            left: $parent.offset().left + $parent.outerWidth() / 2 - 15, // 15 represents half of dock-nav
+            top: $parent.offset().top,
+            height: $parent.outerHeight()
+        });
+        $(".dock-ew").css({
+            display: "flex",
+            left: $parent.offset().left,
+            top: $parent.offset().top + $parent.outerHeight() / 2 - 15, //same as above
+            width: $parent.outerWidth()
+        });
 
-                if ($parent.children(".tab-panel").length > 0) {
-                    $(".dock-center").css("display", "flex");
-                } else {
-                    $(".dock-center,.dock-cover").css("display", "none");
-                }
+        if ($parent.children(".tab-panel").length > 0) {
+            $(".dock-center").css("display", "flex");
+        } else {
+            $(".dock-center,.dock-cover").css("display", "none");
+        }
 
-                $(document).data("drop-dock-bound", {
-                    left: $parent.offset().left, top: $parent.offset().top,
-                    width: $parent.outerWidth(), height: $parent.outerHeight()
-                });
-                $(document).data("drop-dock-ref", $parent);
-                return;
-            //} // endif
-            //$(".dock-nav").clone().
+        $(document).data("drop-dock-bound", {
+            left: $parent.offset().left, top: $parent.offset().top,
+            width: $parent.outerWidth(), height: $parent.outerHeight()
+        });
+        $(document).data("drop-dock-ref", $parent);
+        return;
+        //} // endif
+        //$(".dock-nav").clone().
         //});//end each
     });
 

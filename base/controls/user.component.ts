@@ -18,11 +18,19 @@ import { Control, CssStyle } from "./control";
              (click)="child.dataSource.click()">
                 {{child.dataSource.value}}
             </button>
-            <input type="text" *ngIf="child.styleObj.type=='textbox'" [(ngModel)]="child.dataSource.modelVal"
-             [class]="child.className" [name]="child.dataSource.name">
-            <input type="radio" *ngIf="child.styleObj.type=='radiobtn'" [class]="child.className">
-            <input type="checkbox" *ngIf="child.styleObj.type=='checkbox'" [class]="child.className">
-            <input type="range" *ngIf="child.styleObj.type=='range'" [class]="child.className">
+            <label *ngIf="child.styleObj.type=='textbox'">
+                <span>{{child.dataSource.value}}</span>
+                <input type="text" [(ngModel)]="child.dataSource.modelVal"[class]="child.className" [name]="child.dataSource.name" />
+             </label>
+             <label *ngIf="child.styleObj.type=='radio'">
+                <span>{{child.dataSource.value}}</span> <input type="radio" [class]="child.className" [name]="child.dataSource.name">
+             </label>
+             <label *ngIf="child.styleObj.type=='checkbox'">
+                <span>{{child.dataSource.value}}</span> <input type="checkbox" [class]="child.className">
+             </label>
+             <label *ngIf="child.styleObj.type=='range'">
+                <span>{{child.dataSource.value}}</span> <input type="range" [class]="child.className">
+             </label>
             <dock-table *ngIf="child.className=='table'" [className]="className" [dataSource]="child.dataSource"></dock-table>
             <echart *ngIf="child.styleObj.type=='echart'" [dataSource]="child.dataSource"></echart>
             <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource"

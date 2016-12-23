@@ -4,7 +4,11 @@
         <div class="tab-pages">
             <div *ngFor="let page of children[0].pages" [id]="page.id" [class]="page.className">
                 <div class="page-title"><span>{{page.title}}</span></div>
-                <div class="page-body"></div>
+                <div class="page-body">
+                    <usercontrol *ngIf="page.content" [class]="page.content.styleObj.type" [children]="page.content.children"
+                     [dataSource]="page.content.dataSource"  [styleObj]="page.content.styleObj">
+                    </usercontrol>
+                </div>
             </div>
         </div>
         <!-- panel headers-->

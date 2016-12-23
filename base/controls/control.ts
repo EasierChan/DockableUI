@@ -2,6 +2,7 @@
  * created by chenlei
  */
 import { Component, Input } from "@angular/core";
+import { ComboControl } from "./user.component";
 
 @Component({
   moduleId: module.id,
@@ -141,21 +142,31 @@ export class TabHeaders extends Control {
 }
 
 export class TabPage extends Control {
-  constructor(private id_: string, private title_: string) {
+  _content: ComboControl;
+  constructor(private _id: string, private _title: string) {
     super();
     this.className = "tab-page";
   }
 
   get id(): string {
-    return this.id_;
+    return this._id;
+  }
+
+  get content(): Control {
+    return this._content;
   }
 
   get title(): string {
-    return this.title_;
+    return this._title;
   }
 
   setActive(): TabPage {
     this.className = this.className + " active";
+    return this;
+  }
+
+  setContent(ele: ComboControl): TabPage {
+    this._content = ele;
     return this;
   }
 }

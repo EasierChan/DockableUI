@@ -1,5 +1,5 @@
 import { Component, OnInit } from "@angular/core";
-import { Control, DockContainer, Splitter, TabPanel } from "../../base/controls/control";
+import { Control, DockContainer, Splitter, TabPanel, TabPage } from "../../base/controls/control";
 import { DataTable, DataTableRow, DataTableColumn } from "../../base/controls/data.component";
 import { ComboControl, MetaControl } from "../../base/controls/user.component";
 
@@ -56,53 +56,42 @@ export class AppComponent implements OnInit {
     btn_dayview.Name = "test";
     btn_dayview.Value = "AllDayView";
 
-    let lbl_min = new MetaControl("label");
-    lbl_min.Value = "Min:";
+    // let lbl_min = new MetaControl("label");
+    // lbl_min.Value = "Min:";
 
     let txt_min = new MetaControl("textbox");
     txt_min.Name = "min";
+    txt_min.Value = "Min:";
     txt_min.ModelVal = "";
 
-    let lbl_max = new MetaControl("label");
-    lbl_max.Value = "Max:";
-
-    let txt_max = new MetaControl("textbox");
-    txt_max.Name = "max";
+    let txt_max = new MetaControl("radio");
+    txt_max.Name = "sex";
+    txt_max.Value = "male:";
     txt_max.ModelVal = "";
 
-    let lbl_tick = new MetaControl("label");
-    lbl_tick.Value = "Tick:";
-
-    let txt_tick = new MetaControl("textbox");
-    txt_tick.Name = "Tick";
+    let txt_tick = new MetaControl("radio");
+    txt_tick.Name = "sex";
+    txt_tick.Value = "female:";
     txt_tick.ModelVal = "";
 
-    let lbl_TimeRange = new MetaControl("label");
-    lbl_TimeRange.Value = "TimeRange:";
-
-    let txt_TimeRange = new MetaControl("textbox");
-    txt_TimeRange.Name = "TimeRange";
+    let txt_TimeRange = new MetaControl("checkbox");
+    txt_TimeRange.Name = "All";
+    txt_TimeRange.Value = "All:";
     txt_TimeRange.ModelVal = "";
 
-    let lbl_Slippage = new MetaControl("label");
-    lbl_Slippage.Value = "Slippage:";
-
-    let txt_Slippage = new MetaControl("textbox");
-    txt_Slippage.Name = "Slippage";
+    let txt_Slippage = new MetaControl("range");
+    txt_Slippage.Name = "TimeRange";
+    txt_Slippage.Value = "TimeRange:";
     txt_Slippage.ModelVal = "";
 
 
     let headControls = new ComboControl("row");
     headControls.addChild(btn_dayview);
-    headControls.addChild(lbl_min);
+    // headControls.addChild(lbl_min);
     headControls.addChild(txt_min);
-    headControls.addChild(lbl_max);
     headControls.addChild(txt_max);
-    headControls.addChild(lbl_tick);
     headControls.addChild(txt_tick);
-    headControls.addChild(lbl_TimeRange);
     headControls.addChild(txt_TimeRange);
-    headControls.addChild(lbl_Slippage);
     headControls.addChild(txt_Slippage);
 
     let table: DataTable = new DataTable();
@@ -122,7 +111,6 @@ export class AppComponent implements OnInit {
     let body = new ComboControl("col");
     body.addChild(headControls);
     body.addChild(table);
-    body.addChild(headControls);
     row1.addChild(new DockContainer("v", 800, null).addChild(body));
     row1.addChild(new Splitter("v"));
     // col 3
@@ -135,8 +123,10 @@ export class AppComponent implements OnInit {
     this.children.push(new Splitter("h"));
     // row 2
     let bottomPanel: TabPanel = new TabPanel();
-    bottomPanel.addTab("Output", "Output");
-    bottomPanel.setActive("Output");
+    let outputPage = new TabPage("Output", "Output");
+    bottomPanel.addTab2(outputPage);
+    outputPage.setContent(body);
+    bottomPanel.setActive(outputPage.id);
     let row2 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row2);
   }

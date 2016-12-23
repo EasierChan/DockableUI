@@ -157,28 +157,39 @@ var TabHeaders = (function (_super) {
 exports.TabHeaders = TabHeaders;
 var TabPage = (function (_super) {
     __extends(TabPage, _super);
-    function TabPage(id_, title_) {
+    function TabPage(_id, _title) {
         _super.call(this);
-        this.id_ = id_;
-        this.title_ = title_;
+        this._id = _id;
+        this._title = _title;
         this.className = "tab-page";
     }
     Object.defineProperty(TabPage.prototype, "id", {
         get: function () {
-            return this.id_;
+            return this._id;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(TabPage.prototype, "content", {
+        get: function () {
+            return this._content;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(TabPage.prototype, "title", {
         get: function () {
-            return this.title_;
+            return this._title;
         },
         enumerable: true,
         configurable: true
     });
     TabPage.prototype.setActive = function () {
         this.className = this.className + " active";
+        return this;
+    };
+    TabPage.prototype.setContent = function (ele) {
+        this._content = ele;
         return this;
     };
     return TabPage;

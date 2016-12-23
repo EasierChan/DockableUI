@@ -24,6 +24,7 @@ export class StartUp implements IApplication {
         // this._windowMgr.addMenuWindow(menuWindow);
         let contentWindow: ContentWindow = new ContentWindow();
         contentWindow.loadURL(path.join(__dirname, "index.html"));
+        contentWindow.setMenuBarVisibility(true);
         this._windowMgr.addContentWindow(contentWindow);
         contentWindow.show();
     }

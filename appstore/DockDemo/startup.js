@@ -20,6 +20,7 @@ var StartUp = (function () {
         // this._windowMgr.addMenuWindow(menuWindow);
         var contentWindow = new backend_1.ContentWindow();
         contentWindow.loadURL(path.join(__dirname, "index.html"));
+        contentWindow.setMenuBarVisibility(true);
         this._windowMgr.addContentWindow(contentWindow);
         contentWindow.show();
     };
