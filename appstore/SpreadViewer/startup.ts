@@ -33,7 +33,7 @@ export class StartUp implements IApplication {
                 type: "error",
                 message: "spreadviewer config need to be specified.",
                 detail: "--svc=filepath",
-                buttons:["Got it"]
+                buttons: ["Got it"]
             });
             return;
         }
