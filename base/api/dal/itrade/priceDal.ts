@@ -228,7 +228,7 @@ export class PriceDal {
     }
 
     // register PriceServer msg
-    static registerQuoteMsg(name: string, innercodeList: Array<number>): void {
+    static registerQuoteMsg(name: string, innercode: number): void {
         PriceDal.start();
 
         let type: number = 0;
@@ -261,15 +261,13 @@ export class PriceDal {
         }
 
         let offset = 0;
-        let data = new Buffer(4 + innercodeList.length * MsgInnerCode.len);
+        let data = new Buffer(4 + MsgInnerCode.len);
 
-        data.writeInt32LE(innercodeList.length, 0);
+        data.writeInt32LE(1, 0);
         offset += 4;
 
-        innercodeList.forEach((item) => {
-            data.writeInt32LE(item, offset);
-            offset += 4;
-        });
+        data.writeInt32LE(innercode, offset);
+        offset += 4;
         PriceDal._client.sendWithHead(type, subtype, data);
     }
 
@@ -296,12 +294,10 @@ export class PriceDal {
     }
 }
 
-
-
 import { ipcMain } from "electron";
 ipcMain.on("dal://itrade/ps/marketdata", (e, param, cb) => {
-    PriceDal.registerQuoteMsg(param.name, param.codes);
-    PriceDal.addListener(param.name, (data) => {
+    PriceDal.registerQuoteMsg(param.type, param.code);
+    PriceDal.addListener(param.type, (data) => {
         if (!e.sender.isDestroyed())
             e.sender.send("dal://itrade/ps/marketdata-reply", data);
     });

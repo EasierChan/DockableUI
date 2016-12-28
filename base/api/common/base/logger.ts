@@ -6,7 +6,7 @@
 import { Paths } from "./paths";
 let log4js = require("log4js");
 
-export var DefaultLogger: any;
+export let DefaultLogger: any;
 export class ULogger {
     static init(): void {
         log4js.configure({

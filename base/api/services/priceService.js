@@ -15,17 +15,13 @@ var PriceService = (function () {
     /**
      * QTS::MSG::PS_MSG_TYPE_MARKETDATA
      */
-    PriceService.prototype.subscribeMarketData = function (innerCodeList, listener) {
-        electron.ipcRenderer.send("dal://itrade/ps/marketdata", { name: "MARKETDATA", codes: innerCodeList });
+    PriceService.prototype.subscribeMarketData = function (innerCode, typestr, listener) {
+        electron.ipcRenderer.send("dal://itrade/ps/marketdata", { type: typestr, code: innerCode });
         electron.ipcRenderer.on("dal://itrade/ps/marketdata-reply", function (e, msg) {
-            listener(msg);
+            if (msg.UKey === innerCode) {
+                listener(msg);
+            }
         });
-    };
-    /**
-     * IOPV MarketData
-     */
-    PriceService.prototype.subscribeMarketDataIOPV = function (listener) {
-        electron.ipcRenderer.send("dal://itrade/ps/marketdataIOPV", {}, listener);
     };
     PriceService = __decorate([
         core_1.Injectable(), 

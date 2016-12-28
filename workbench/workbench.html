@@ -37,7 +37,7 @@
                     <span class="tile-group-title">Transanctional</span>
                     <div class="tile-container">
                         <template ngFor let-app [ngForOf]="apps">
-                            <div *ngIf="app.category=='Transanctional'" class="tile-square bg-orange fg-white" data-role="tile" (click)="OnStartApp(app.name)">
+                            <div *ngIf="app.category=='Transanctional'" class="tile-square bg-blue fg-white" data-role="tile" (click)="OnStartApp(app.name)">
                                 <div class="tile-content iconic">
                                     <span class="icon mif-trademark"></span>
                                 </div>
@@ -50,7 +50,7 @@
                     <span class="tile-group-title">Analytical</span>
                     <div class="tile-container">
                         <template ngFor let-app [ngForOf]="apps">
-                            <div *ngIf="app.category=='Analytical'" class="tile-square bg-orange fg-white" data-role="tile" (click)="OnStartApp(app.name)">
+                            <div *ngIf="app.category=='Analytical'" class="tile-square bg-green fg-white" data-role="tile" (click)="OnStartApp(app.name)">
                                 <div class="tile-content iconic">
                                     <span class="icon mif-library"></span>
                                 </div>

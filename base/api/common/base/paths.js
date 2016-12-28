@@ -18,7 +18,7 @@ var Paths = (function () {
     function Paths() {
         this.basedir_ = process.cwd();
         this.logdir_ = path.join(this.basedir_, "logs");
-        this.backupdir_ = path.join(this.basedir_, "/backup");
+        this.backupdir_ = path.join(this.basedir_, "backup");
         this.settings_ = {
             default: "default-setting.json",
             user: "user-setting.json"

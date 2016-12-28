@@ -4,6 +4,8 @@
 "use strict";
 var backend_1 = require("../../base/api/backend");
 var path = require("path");
+var fs = require("fs");
+var electron_1 = require("electron");
 var StartUp = (function () {
     function StartUp() {
         this._windowMgr = new backend_1.UWindwManager();
@@ -12,12 +14,28 @@ var StartUp = (function () {
      * bootstrap
      */
     StartUp.prototype.bootstrap = function () {
-        // let menuWindow: MenuWindow = new MenuWindow({ state: { width: 300, height: 60 } });
-        // menuWindow.ready().then(function () {
-        //     console.log("when MenuWindow ready say: hello");
-        // });
-        // menuWindow.loadURL(__dirname + "/appstore/start/sample.html");
-        // this._windowMgr.addMenuWindow(menuWindow);
+        var bHasConfig = false;
+        var svcpath = null;
+        process.argv.forEach(function (arg) {
+            if (arg.startsWith("--svc=")) {
+                bHasConfig = true;
+                svcpath = arg.substr(6);
+            }
+        });
+        if (!bHasConfig) {
+            electron_1.dialog.showMessageBox({
+                title: "Startup Error",
+                type: "error",
+                message: "spreadviewer config need to be specified.",
+                detail: "--svc=filepath",
+                buttons: ["Got it"]
+            });
+            return;
+        }
+        electron_1.ipcMain.on("svc://get-config", function (e, arg) {
+            var obj = path.isAbsolute(svcpath) ? JSON.parse(fs.readFileSync(svcpath, { encoding: "utf-8" }))
+                : JSON.parse(fs.readFileSync(path.join(process.cwd(), svcpath), { encoding: "utf-8" }));
+        });
         var contentWindow = new backend_1.ContentWindow();
         contentWindow.loadURL(path.join(__dirname, "index.html"));
         this._windowMgr.addContentWindow(contentWindow);

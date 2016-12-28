@@ -3,8 +3,10 @@
  */
 "use strict";
 
-import { IApplication, MenuWindow, ContentWindow, UWindwManager } from "../../base/api/backend";
-const path = require("path");
+import { IApplication, MenuWindow, ContentWindow, UWindwManager, UConfig } from "../../base/api/backend";
+import * as path from "path";
+import * as fs from "fs";
+import { ipcMain, dialog } from "electron";
 
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
@@ -16,12 +18,30 @@ export class StartUp implements IApplication {
      * bootstrap
      */
     bootstrap(): any {
-        // let menuWindow: MenuWindow = new MenuWindow({ state: { width: 300, height: 60 } });
-        // menuWindow.ready().then(function () {
-        //     console.log("when MenuWindow ready say: hello");
-        // });
-        // menuWindow.loadURL(__dirname + "/appstore/start/sample.html");
-        // this._windowMgr.addMenuWindow(menuWindow);
+        let bHasConfig = false;
+        let svcpath = null;
+        process.argv.forEach((arg) => {
+            if (arg.startsWith("--svc=")) {
+                bHasConfig = true;
+                svcpath = arg.substr(6);
+            }
+        });
+
+        if (!bHasConfig) {
+            dialog.showMessageBox({
+                title: "Startup Error",
+                type: "error",
+                message: "spreadviewer config need to be specified.",
+                detail: "--svc=filepath",
+                buttons:["Got it"]
+            });
+            return;
+        }
+
+        ipcMain.on("svc://get-config", (e, arg) => {
+            let obj = path.isAbsolute(svcpath) ? JSON.parse(fs.readFileSync(svcpath, { encoding: "utf-8" }))
+                : JSON.parse(fs.readFileSync(path.join(process.cwd(), svcpath), { encoding: "utf-8" }));
+        });
         let contentWindow: ContentWindow = new ContentWindow();
         contentWindow.loadURL(path.join(__dirname, "index.html"));
         this._windowMgr.addContentWindow(contentWindow);

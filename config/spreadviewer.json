@@ -1,0 +1,25 @@
+[
+    {
+        "symbolCode1": "IF1701",
+        "innerCode1": 2008296,
+        "coeff1": 1,
+        "symbolCode2": "IF1703",
+        "innerCode2": 2006912,
+        "coeff2": 1,
+        "durations": [
+            {
+                "start": {
+                    "hour": 21,
+                    "minute": 30
+                },
+                "end": {
+                    "hour": 22,
+                    "minute": 30
+                }
+            }
+        ],
+        "multiplier": 1,
+        "marketdataType1": "MARKETDATA",
+        "marketdataType2": "MARKETDATA"
+    }
+]

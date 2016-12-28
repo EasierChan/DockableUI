@@ -20,7 +20,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
  */
 var core_1 = require("@angular/core");
 var control_1 = require("./control");
-var echarts = require("../third/echart/echarts");
+var echarts = require("../script/echart/echarts");
 var DataTableComponent = (function () {
     function DataTableComponent() {
     }
@@ -94,9 +94,16 @@ var EChartComponent = (function () {
         this.render = render;
     }
     EChartComponent.prototype.ngOnInit = function () {
-        if (this.dataSource.events && this.dataSource.events.hasOwnProperty("click")) {
-            this.render.listen(this.el.nativeElement, "click", this.dataSource.events["click"]);
-        }
+        // this.dataSource.init = () => {
+        //   this._echart = echarts.init(this.el.nativeElement);
+        //   this._echart.setOption(this.dataSource.option, true);
+        //   window.addEventListener("resize", () => {
+        //     this._echart.resize();
+        //   });
+        //   this.dataSource.setOption = (option) => {
+        //     this._echart.setOption(option);
+        //   };
+        // };
     };
     EChartComponent.prototype.ngAfterViewInit = function () {
         var _this = this;
@@ -107,8 +114,8 @@ var EChartComponent = (function () {
                 window.addEventListener("resize", function () {
                     myChart.resize();
                 });
-                _this.dataSource.setOption = function (option) {
-                    myChart.setOption(option);
+                _this.dataSource.setOption = function (option, notMerge) {
+                    myChart.setOption(option, notMerge);
                 };
             }, 100);
         }
@@ -143,15 +150,22 @@ var EChart = (function (_super) {
             events: {}
         };
     }
+    EChart.prototype.init = function () {
+        if (this.dataSource.init)
+            this.dataSource.init();
+        else
+            console.error("echart::init failed.");
+    };
     /**
      * @param option refer to http://echarts.baidu.com/option.html
      */
     EChart.prototype.setOption = function (option) {
         this.dataSource.option = option;
     };
-    EChart.prototype.resetOption = function (option) {
+    EChart.prototype.resetOption = function (option, notMerge) {
+        if (notMerge === void 0) { notMerge = false; }
         if (this.dataSource.setOption) {
-            this.dataSource.setOption(option);
+            this.dataSource.setOption(option, notMerge);
         }
     };
     EChart.prototype.onClick = function (cb) {
@@ -160,4 +174,325 @@ var EChart = (function (_super) {
     return EChart;
 }(control_1.Control));
 exports.EChart = EChart;
+var SpreadViewer = (function () {
+    function SpreadViewer(priceServ) {
+        this.priceServ = priceServ;
+        this._msgs = {};
+        this._lastIdx = {};
+        this._firstIdx = -1;
+        this._curIdx = -1;
+        this._xInterval = 1000;
+        this._multiplier = 1;
+        this._marketdataType1 = "MARKETDATA";
+        this._marketdataType2 = "MARKETDATA";
+        this._echart = new EChart();
+    }
+    SpreadViewer.prototype.init = function () {
+        this._echart.init();
+    };
+    SpreadViewer.prototype.start = function () {
+        var _this = this;
+        this.priceServ.subscribeMarketData(this._innerCode1, this._marketdataType1, function (msg) {
+            _this.setMarketData(msg);
+        });
+        this.priceServ.subscribeMarketData(this._innerCode2, this._marketdataType2, function (msg) {
+            _this.setMarketData(msg);
+        });
+        this._timeoutHandler = setInterval(function () {
+            if (_this._lastIdx[_this._innerCode1] === -1 || _this._lastIdx[_this._innerCode2] === -1)
+                return;
+            if (!_this._msgs[_this._innerCode1][_this._curIdx] || !_this._msgs[_this._innerCode2][_this._curIdx]) {
+                console.warn("curIdx: " + _this._curIdx + " don't have data of both.");
+                return;
+            }
+            // console.info(this._curIdx, this.values);
+            _this.values[0][_this._curIdx] = _this.getSpreadValue1(_this._curIdx);
+            _this.values[1][_this._curIdx] = _this.getSpreadValue2(_this._curIdx);
+            var newOption = {
+                series: [{
+                        name: _this.names[0],
+                        data: _this.values[0]
+                    }, {
+                        name: _this.names[1],
+                        data: _this.values[1]
+                    }]
+            };
+            console.info(newOption);
+            _this.setEChartOption(newOption);
+            ++_this._curIdx;
+        }, SpreadViewer.xInternal);
+    };
+    Object.defineProperty(SpreadViewer.prototype, "ControlRef", {
+        get: function () {
+            return this._echart;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    // only can change the names
+    SpreadViewer.prototype.setConfig = function (config, bReset) {
+        if (bReset === void 0) { bReset = false; }
+        this._bReset = bReset;
+        this._symbolCode1 = config.symbolCode1;
+        this._innerCode1 = config.innerCode1;
+        this._coeff1 = config.coeff1;
+        this._symbolCode2 = config.symbolCode2;
+        this._innerCode2 = config.innerCode2;
+        this._coeff2 = config.coeff2;
+        this._durations = config.durations;
+        if (config.marketdataType1)
+            this._marketdataType1 = config.marketdataType1;
+        if (config.marketdataType2)
+            this._marketdataType2 = config.marketdataType2;
+        if (config.xInterval)
+            this._xInterval = config.xInterval;
+        if (config.multiplier)
+            this._multiplier = config.multiplier;
+        this._lastIdx[this._innerCode1] = -1;
+        this._lastIdx[this._innerCode2] = -1;
+        var echartOption = {
+            title: {
+                bottom: 10,
+                text: "SpreadViewer"
+            },
+            tooltip: {
+                trigger: "axis"
+            },
+            legend: {
+                bottom: 10,
+                data: this.names,
+                textStyle: {
+                    color: "#fff"
+                }
+            },
+            grid: {
+                left: 100,
+                right: 80,
+                bottom: 100,
+                containLabel: false
+            },
+            xAxis: {
+                type: "category",
+                boundaryGap: false,
+                data: this.timePoints
+            },
+            yAxis: {
+                type: "value",
+                min: "dataMin",
+                max: "dataMax"
+            },
+            dataZoom: [
+                {
+                    type: "inside",
+                    xAxisIndex: 0
+                },
+            ],
+            series: [
+                {
+                    name: this.names[0],
+                    type: "line",
+                    // smooth: true,
+                    data: this.values[0],
+                    lineStyle: {
+                        normal: {
+                            width: 1
+                        }
+                    },
+                    tooltip: {
+                        formatter: function (param) {
+                            return JSON.stringify(param);
+                        }
+                    }
+                },
+                {
+                    name: this.names[1],
+                    type: "line",
+                    // smooth: true,
+                    data: this.values[1],
+                    lineStyle: {
+                        normal: {
+                            width: 1
+                        }
+                    }
+                }
+            ]
+        };
+        if (!bReset)
+            this._echart.setOption(echartOption);
+        else
+            this._echart.resetOption(echartOption, false);
+        echartOption = null;
+    };
+    SpreadViewer.prototype.setEChartOption = function (option) {
+        this._echart.resetOption(option);
+    };
+    Object.defineProperty(SpreadViewer.prototype, "names", {
+        get: function () {
+            if (!this._names || this._bReset) {
+                this._names = [this.getSpreadTraceName1(), this.getSpreadTraceName2()];
+            }
+            return this._names;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SpreadViewer.prototype, "timePoints", {
+        get: function () {
+            var _this = this;
+            if (!this._timePoints || this._bReset) {
+                this._timePoints = [];
+                var today_1 = new Date(), min_date_1;
+                this._durations.forEach(function (duration) {
+                    var seconds = (duration.end.hour - duration.start.hour) * 3600 + (duration.end.minute - duration.start.minute) * 60;
+                    var originLen = _this._timePoints.length;
+                    _this._timePoints.length += seconds;
+                    min_date_1 = new Date(today_1.getFullYear(), today_1.getMonth(), today_1.getDate(), duration.start.hour, duration.start.minute);
+                    for (var sec = 0; sec < seconds; ++sec) {
+                        _this._timePoints[originLen + sec] = min_date_1.toLocaleTimeString([], { hour12: false });
+                        min_date_1.setSeconds(min_date_1.getSeconds() + 1);
+                    }
+                });
+                min_date_1 = null;
+                today_1 = null;
+            }
+            return this._timePoints;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(SpreadViewer.prototype, "values", {
+        get: function () {
+            var _this = this;
+            if (!this._values || this._bReset) {
+                this._values = new Array(this.names.length);
+                this.names.forEach(function (name, index) {
+                    _this._values[index] = new Array(_this.timePoints.length).fill(null);
+                });
+            }
+            return this._values;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    SpreadViewer.prototype.getSpreadTraceName1 = function () {
+        var namePrimary = this._symbolCode1 + ".askPrice1";
+        var nameSecondary = this._symbolCode2 + ".bidPrice1";
+        return namePrimary + "-" + (Math.abs(this._coeff1 - 1) < SpreadViewer.EPS ? "" : this._coeff1.toFixed(2) + " * ") + nameSecondary;
+    };
+    SpreadViewer.prototype.getSpreadTraceName2 = function () {
+        var namePrimary = this._symbolCode1 + ".bidPrice1";
+        var nameSecondary = this._symbolCode2 + ".askPrice1";
+        return namePrimary + "-" + (Math.abs(this._coeff2 - 1) < SpreadViewer.EPS ? "" : this._coeff2.toFixed(2) + "*") + nameSecondary;
+    };
+    SpreadViewer.prototype.getSpreadValue1 = function (idx) {
+        // console.info(idx, this._msgs[this._innerCode1], this._msgs[this._innerCode2]);
+        return Math.round((this._msgs[this._innerCode1][idx].askPrice1 - this._coeff1 * this._msgs[this._innerCode2][idx].bidPrice1) * this._multiplier * 100) / 100;
+    };
+    SpreadViewer.prototype.getSpreadValue2 = function (idx) {
+        return Math.round((this._msgs[this._innerCode1][idx].bidPrice1 - this._coeff2 * this._msgs[this._innerCode2][idx].askPrice1) * this._multiplier * 100) / 100;
+    };
+    SpreadViewer.prototype.index = function (timestamp) {
+        var itime = Math.floor(timestamp / 1000);
+        var ihour = Math.floor(itime / 10000);
+        var iminute = Math.floor(itime % 10000 / 100);
+        return (ihour - this._durations[0].start.hour) * 60 * 60 + (iminute - this._durations[0].start.minute) * 60 +
+            +itime % 10000 % 100;
+    };
+    SpreadViewer.prototype.setMarketData = function (msg) {
+        console.log(msg.Time, msg.UKey);
+        if (!msg.InstrumentID || !this.hasInstrumentID(msg.InstrumentID))
+            return;
+        var idx = this.index(msg.Time);
+        if (idx > this.timePoints.length || idx < 0) {
+            console.error("msg time: " + msg.Time + " is not valid");
+            return;
+        }
+        if (!this._msgs[msg.UKey])
+            this._msgs[msg.UKey] = {};
+        if (!this._msgs[msg.UKey][idx])
+            this._msgs[msg.UKey][idx] = {};
+        this._msgs[msg.UKey][idx].askPrice1 = msg.AskPrice / SpreadViewer.YUAN_PER_UNIT;
+        this._msgs[msg.UKey][idx].bidPrice1 = msg.BidPrice / SpreadViewer.YUAN_PER_UNIT;
+        if (this._lastIdx[this._innerCode1] !== -1 && this._lastIdx[this._innerCode2] !== -1) {
+            // console.info(msg.UKey, this._lastIdx, idx, this._msgs);
+            for (var i = this._lastIdx[this._innerCode1] + 1; i < idx; ++i) {
+                if (!this._msgs[this._innerCode1][i])
+                    this._msgs[this._innerCode1][i] = {};
+                this._msgs[this._innerCode1][i].askPrice1 = this._msgs[this._innerCode1][i - 1].askPrice1;
+                this._msgs[this._innerCode1][i].bidPrice1 = this._msgs[this._innerCode1][i - 1].bidPrice1;
+            }
+            for (var i = this._lastIdx[this._innerCode2] + 1; i < idx; ++i) {
+                if (!this._msgs[this._innerCode2][i])
+                    this._msgs[this._innerCode2][i] = {};
+                this._msgs[this._innerCode2][i].askPrice1 = this._msgs[this._innerCode2][i - 1].askPrice1;
+                this._msgs[this._innerCode2][i].bidPrice1 = this._msgs[this._innerCode2][i - 1].bidPrice1;
+            }
+            if (msg.UKey === this._innerCode1 && idx > this._lastIdx[this._innerCode2]) {
+                if (!this._msgs[this._innerCode2][idx])
+                    this._msgs[this._innerCode2][idx] = {};
+                this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][idx - 1].askPrice1;
+                this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][idx - 1].bidPrice1;
+            }
+            if (msg.UKey === this._innerCode2 && idx > this._lastIdx[this._innerCode1]) {
+                if (!this._msgs[this._innerCode1][idx])
+                    this._msgs[this._innerCode1][idx] = {};
+                this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][idx - 1].askPrice1;
+                this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][idx - 1].bidPrice1;
+            }
+        }
+        else if (this._lastIdx[this._innerCode1] === -1 && this._lastIdx[this._innerCode2] === -1) {
+            this._firstIdx = idx;
+        }
+        else {
+            if (this._lastIdx[this._innerCode1] === -1) {
+                if (msg.UKey === this._innerCode1) {
+                    // for (let i = this._lastIdx[this._innerCode2] + 1; i <= idx; ++i) {
+                    //   if (!this._msgs[this._innerCode2][i])
+                    //     this._msgs[this._innerCode2][i] = {};
+                    //   this._msgs[this._innerCode2][i].askPrice1 = this._msgs[this._innerCode2][i - 1].askPrice1;
+                    //   this._msgs[this._innerCode2][i].bidPrice1 = this._msgs[this._innerCode2][i - 1].bidPrice1;
+                    // }
+                    if (!this._msgs[this._innerCode2][idx])
+                        this._msgs[this._innerCode2][idx] = {};
+                    this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].askPrice1;
+                    this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].bidPrice1;
+                    this._curIdx = idx;
+                }
+                else {
+                }
+            }
+            else {
+                if (msg.UKey === this._innerCode2) {
+                    // for (let i = this._lastIdx[this._innerCode1] + 1; i <= idx; ++i) {
+                    //   if (!this._msgs[this._innerCode1][i])
+                    //     this._msgs[this._innerCode1][i] = {};
+                    //   this._msgs[this._innerCode1][i].askPrice1 = this._msgs[this._innerCode1][i - 1].askPrice1;
+                    //   this._msgs[this._innerCode1][i].bidPrice1 = this._msgs[this._innerCode1][i - 1].bidPrice1;
+                    // }
+                    if (!this._msgs[this._innerCode1][idx])
+                        this._msgs[this._innerCode1][idx] = {};
+                    this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].askPrice1;
+                    this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].bidPrice1;
+                    this._curIdx = idx;
+                }
+                else {
+                }
+            }
+        }
+        this._lastIdx[msg.UKey] = idx;
+    };
+    SpreadViewer.prototype.hasInstrumentID = function (instrumentID) {
+        return this._symbolCode1.startsWith(instrumentID.substr(0, 6)) || this._symbolCode2.startsWith(instrumentID.substr(0, 6));
+    };
+    SpreadViewer.prototype.dispose = function () {
+        if (this._timeoutHandler) {
+            clearTimeout(this._timeoutHandler);
+        }
+    };
+    SpreadViewer.EPS = 1.0e-5;
+    SpreadViewer.YUAN_PER_UNIT = 10000;
+    SpreadViewer.xInternal = 1000; // ms
+    return SpreadViewer;
+}());
+exports.SpreadViewer = SpreadViewer;
 //# sourceMappingURL=data.component.js.map

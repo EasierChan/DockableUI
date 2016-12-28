@@ -10,18 +10,13 @@ export class PriceService {
     /**
      * QTS::MSG::PS_MSG_TYPE_MARKETDATA
      */
-    subscribeMarketData(innerCodeList, listener: TValueCallback<any>): void {
-        electron.ipcRenderer.send("dal://itrade/ps/marketdata", { name: "MARKETDATA", codes: innerCodeList });
+    subscribeMarketData(innerCode: number, typestr: string, listener: TValueCallback<any>): void {
+        electron.ipcRenderer.send("dal://itrade/ps/marketdata", { type: typestr, code: innerCode });
         electron.ipcRenderer.on("dal://itrade/ps/marketdata-reply", (e, msg) => {
-            listener(msg);
+            if (msg.UKey === innerCode) {
+                listener(msg);
+            }
         });
     }
-    /**
-     * IOPV MarketData
-     */
-    subscribeMarketDataIOPV(listener: TValueCallback<Object>): void {
-        electron.ipcRenderer.send("dal://itrade/ps/marketdataIOPV", {}, listener);
-    }
-
 }
 

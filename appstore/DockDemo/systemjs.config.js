@@ -26,7 +26,7 @@
       //'@angular/upgrade': 'npm:@angular/upgrade/bundles/upgrade.umd.js',
 
       // other libraries
-      'controls/dockmanager': 'base:third/docklayout-core.js',
+      'controls/dockmanager': 'base:script/docklayout-core.js',
       'rxjs': 'npm:rxjs'
       //'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js'
     },

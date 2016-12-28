@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { IApplication, MenuWindow, MultiWindow, UWindwManager, SingletonWindow } from "../../base/api/backend";
+import { IApplication, MenuWindow, MultiWindow, UWindwManager, SingletonWindow, DefaultLogger } from "../../base/api/backend";
 const path = require("path");
 
 export class StartUp implements IApplication {
@@ -19,12 +19,12 @@ export class StartUp implements IApplication {
     bootstrap(): any {
         let menuWindow: MenuWindow = new MenuWindow({ state: { x: 500, y: 0, width: 300, height: 60 } });
         menuWindow.ready().then(function () {
-            console.log("when MenuWindow ready say: hello");
+            DefaultLogger.info("when MenuWindow ready say: hello");
         });
         menuWindow.win.on("closed", () => {
             this.quit();
         });
-        menuWindow.loadURL(__dirname + "menu.html");
+        menuWindow.loadURL(path.join(__dirname, "menu.html"));
         this._windowMgr.addMenuWindow(menuWindow);
 
         let singleton: SingletonWindow = new SingletonWindow();
@@ -32,7 +32,7 @@ export class StartUp implements IApplication {
         this._windowMgr.addWindowToMenu(singleton, "SingletonWindow", { level1: 2 });
 
         let multiple: MultiWindow = new MultiWindow();
-        multiple.loadURL(path.join(__dirname, "multiple.html"));
+        multiple.loadURL(path.join(__dirname, "singleton.html"));
         this._windowMgr.addWindowToMenu(multiple, "MultipleWin", { level1: 2 });
 
         menuWindow.show();

@@ -5,7 +5,6 @@
 var paths_1 = require("./paths");
 var fs = require("fs");
 var _ = require("lodash");
-var logger_1 = require("./logger");
 function stripComments(content) {
     var regexp = /("(?:[^\\\"]*(?:\\.)?)*")|('(?:[^\\\']*(?:\\.)?)*')|(\/\*(?:\r?\n|.)*?\*\/)|(\/{2,}.*?(?:(?:\r?\n)|$))/g;
     var result = content.replace(regexp, function (match, m1, m2, m3, m4) {
@@ -39,12 +38,13 @@ var UConfig = (function () {
             UConfig.default = JSON.parse(stripComments(fs.readFileSync(paths_1.Paths.configration.settings.default, "utf-8")));
             // DefaultLogger.trace(JSON.stringify(UConfig.default));
             if (paths_1.Paths.configration.settings.user !== null) {
-                UConfig.user = _.cloneDeep(UConfig.default);
-                _.assign(UConfig.user, JSON.parse(stripComments(fs.readFileSync(paths_1.Paths.configration.settings.user, "utf-8"))));
+                UConfig.user = JSON.parse(stripComments(fs.readFileSync(paths_1.Paths.configration.settings.user, "utf-8")));
+                UConfig.all = _.cloneDeep(UConfig.default);
+                _.assign(UConfig.all, UConfig.user);
             }
         }
         catch (err) {
-            logger_1.DefaultLogger.error("app settings load error!");
+            console.error("app settings load error!");
             throw Error("app settings load error!");
         }
     };

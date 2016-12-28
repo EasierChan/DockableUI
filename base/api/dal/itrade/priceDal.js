@@ -207,7 +207,7 @@ var PriceDal = (function () {
         // PriceDal.registerQuoteMsg("MARKETDATA", [2006622]);
     };
     // register PriceServer msg
-    PriceDal.registerQuoteMsg = function (name, innercodeList) {
+    PriceDal.registerQuoteMsg = function (name, innercode) {
         PriceDal.start();
         var type = 0;
         var subtype = 0;
@@ -237,13 +237,11 @@ var PriceDal = (function () {
                 break;
         }
         var offset = 0;
-        var data = new Buffer(4 + innercodeList.length * message_model_1.MsgInnerCode.len);
-        data.writeInt32LE(innercodeList.length, 0);
+        var data = new Buffer(4 + message_model_1.MsgInnerCode.len);
+        data.writeInt32LE(1, 0);
         offset += 4;
-        innercodeList.forEach(function (item) {
-            data.writeInt32LE(item, offset);
-            offset += 4;
-        });
+        data.writeInt32LE(innercode, offset);
+        offset += 4;
         PriceDal._client.sendWithHead(type, subtype, data);
     };
     PriceDal.addListener = function (name, cb) {
@@ -272,8 +270,8 @@ var PriceDal = (function () {
 exports.PriceDal = PriceDal;
 var electron_1 = require("electron");
 electron_1.ipcMain.on("dal://itrade/ps/marketdata", function (e, param, cb) {
-    PriceDal.registerQuoteMsg(param.name, param.codes);
-    PriceDal.addListener(param.name, function (data) {
+    PriceDal.registerQuoteMsg(param.type, param.code);
+    PriceDal.addListener(param.type, function (data) {
         if (!e.sender.isDestroyed())
             e.sender.send("dal://itrade/ps/marketdata-reply", data);
     });

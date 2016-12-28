@@ -15,18 +15,18 @@ var StartUp = (function () {
         var _this = this;
         var menuWindow = new backend_1.MenuWindow({ state: { x: 500, y: 0, width: 300, height: 60 } });
         menuWindow.ready().then(function () {
-            console.log("when MenuWindow ready say: hello");
+            backend_1.DefaultLogger.info("when MenuWindow ready say: hello");
         });
         menuWindow.win.on("closed", function () {
             _this.quit();
         });
-        menuWindow.loadURL(__dirname + "menu.html");
+        menuWindow.loadURL(path.join(__dirname, "menu.html"));
         this._windowMgr.addMenuWindow(menuWindow);
         var singleton = new backend_1.SingletonWindow();
         singleton.loadURL(path.join(__dirname, "singleton.html"));
         this._windowMgr.addWindowToMenu(singleton, "SingletonWindow", { level1: 2 });
         var multiple = new backend_1.MultiWindow();
-        multiple.loadURL(path.join(__dirname, "multiple.html"));
+        multiple.loadURL(path.join(__dirname, "singleton.html"));
         this._windowMgr.addWindowToMenu(multiple, "MultipleWin", { level1: 2 });
         menuWindow.show();
     };
