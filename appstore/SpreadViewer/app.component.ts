@@ -19,44 +19,27 @@ export class AppComponent implements OnInit {
   children: Control[] = [];
   bHiddenProfile: boolean;
   profiles: SpreadViewerConfig[];
-  spreadviewer: SpreadViewer;
+  spreadviewers: SpreadViewer[];
+  currentViewer: SpreadViewer;
 
   constructor(private priceServ: PriceService) {
   }
 
   clickItem(item: SpreadViewerConfig): void {
     this.bHiddenProfile = true;
-    this.spreadviewer.start();
+    this.profiles.forEach((profile, index) => {
+      if (profile === item) {
+        this.currentViewer = this.spreadviewers[index];
+        this.currentViewer.show();
+        window.resizeBy(1, 1);
+      }
+    });
+
+    this.currentViewer.start();
   }
 
   ngOnInit(): void {
     this.bHiddenProfile = false;
-    this.profiles = [];
-    this.profiles.push(
-      {
-        symbolCode1: "IF1701",
-        innerCode1: 2008296,
-        coeff1: 1,
-        symbolCode2: "IF1703",
-        innerCode2: 2006912,
-        coeff2: 1,
-        durations: [
-          {
-            start: {
-              hour: 20,
-              minute: 30
-            },
-            end: {
-              hour: 22,
-              minute: 30
-            }
-          }
-        ],
-        multiplier: 1,
-        marketdataType1: "MARKETDATA",
-        marketdataType2: "MARKETDATA"
-      });
-
 
     let row1: DockContainer = new DockContainer("h", null, 800);
     let btn_dayview = new MetaControl("button");
@@ -116,22 +99,27 @@ export class AppComponent implements OnInit {
 
     let body = new ComboControl("col");
     body.addChild(headControls);
+    this.profiles = [];
+    this.spreadviewers = [];
+    this.profiles = electron.ipcRenderer.sendSync("svc://get-config", null);
 
-    let viewConfigs: SpreadViewerConfig[] = electron.ipcRenderer.sendSync("svc://get-config", null);
-    this.spreadviewer = new SpreadViewer(this.priceServ);
-    this.spreadviewer.setConfig(viewConfigs[0]);
+    this.profiles.forEach((profile, index) => {
+      this.spreadviewers.push(new SpreadViewer(this.priceServ));
+      this.spreadviewers[index].setConfig(profile);
+      this.spreadviewers[index].hidden();
+      body.addChild(this.spreadviewers[index].ControlRef);
+    });
     btn_dayview.onClick(() => {
       let yaxis: any = {};
       if (txt_min.ModelVal.length > 0) yaxis.min = parseFloat(txt_min.ModelVal);
       if (txt_max.ModelVal.length > 0) yaxis.max = parseFloat(txt_max.ModelVal);
       if (txt_tick.ModelVal.length > 0) yaxis.interval = parseFloat(txt_tick.ModelVal);
 
-      this.spreadviewer.setEChartOption({ yAxis: yaxis });
+      this.currentViewer.setEChartOption({ yAxis: yaxis });
 
       yaxis = null;
     });
 
-    body.addChild(this.spreadviewer.ControlRef);
     row1.addChild(new DockContainer("v", 800, null).addChild(body));
     this.children.push(row1);
   }

@@ -168,6 +168,9 @@ var EChart = (function (_super) {
             this.dataSource.setOption(option, notMerge);
         }
     };
+    EChart.prototype.setClassName = function (className) {
+        this.className = className;
+    };
     EChart.prototype.onClick = function (cb) {
         this.dataSource.events["click"] = cb;
     };
@@ -189,6 +192,12 @@ var SpreadViewer = (function () {
     }
     SpreadViewer.prototype.init = function () {
         this._echart.init();
+    };
+    SpreadViewer.prototype.hidden = function () {
+        this._echart.setClassName("hidden");
+    };
+    SpreadViewer.prototype.show = function () {
+        this._echart.setClassName("");
     };
     SpreadViewer.prototype.start = function () {
         var _this = this;
@@ -232,6 +241,8 @@ var SpreadViewer = (function () {
     // only can change the names
     SpreadViewer.prototype.setConfig = function (config, bReset) {
         if (bReset === void 0) { bReset = false; }
+        // this._width = config.width;
+        // this._height = config.height;
         this._bReset = bReset;
         this._symbolCode1 = config.symbolCode1;
         this._innerCode1 = config.innerCode1;
@@ -323,6 +334,12 @@ var SpreadViewer = (function () {
             this._echart.resetOption(echartOption, false);
         echartOption = null;
     };
+    // get width(){
+    //   return this._width;
+    // }
+    // get height(){
+    //   return this._height;
+    // }
     SpreadViewer.prototype.setEChartOption = function (option) {
         this._echart.resetOption(option);
     };

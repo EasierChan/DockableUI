@@ -33,7 +33,7 @@ var StartUp = (function () {
             return;
         }
         electron_1.ipcMain.on("svc://get-config", function (e, arg) {
-            var obj = path.isAbsolute(svcpath) ? JSON.parse(fs.readFileSync(svcpath, { encoding: "utf-8" }))
+            e.returnValue = path.isAbsolute(svcpath) ? JSON.parse(fs.readFileSync(svcpath, { encoding: "utf-8" }))
                 : JSON.parse(fs.readFileSync(path.join(process.cwd(), svcpath), { encoding: "utf-8" }));
         });
         var contentWindow = new backend_1.ContentWindow();

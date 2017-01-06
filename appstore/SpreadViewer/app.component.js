@@ -20,36 +20,20 @@ var AppComponent = (function () {
         this.children = [];
     }
     AppComponent.prototype.clickItem = function (item) {
+        var _this = this;
         this.bHiddenProfile = true;
-        this.spreadviewer.start();
+        this.profiles.forEach(function (profile, index) {
+            if (profile === item) {
+                _this.currentViewer = _this.spreadviewers[index];
+                _this.currentViewer.show();
+                window.resizeBy(1, 1);
+            }
+        });
+        this.currentViewer.start();
     };
     AppComponent.prototype.ngOnInit = function () {
         var _this = this;
         this.bHiddenProfile = false;
-        this.profiles = [];
-        this.profiles.push({
-            symbolCode1: "IF1701",
-            innerCode1: 2008296,
-            coeff1: 1,
-            symbolCode2: "IF1703",
-            innerCode2: 2006912,
-            coeff2: 1,
-            durations: [
-                {
-                    start: {
-                        hour: 20,
-                        minute: 30
-                    },
-                    end: {
-                        hour: 22,
-                        minute: 30
-                    }
-                }
-            ],
-            multiplier: 1,
-            marketdataType1: "MARKETDATA",
-            marketdataType2: "MARKETDATA"
-        });
         var row1 = new control_1.DockContainer("h", null, 800);
         var btn_dayview = new user_component_1.MetaControl("button");
         btn_dayview.Class = "sd-button prespace";
@@ -95,9 +79,15 @@ var AppComponent = (function () {
         headControls.addChild(txt_tick);
         var body = new user_component_1.ComboControl("col");
         body.addChild(headControls);
-        var viewConfigs = electron.ipcRenderer.sendSync("svc://get-config", null);
-        this.spreadviewer = new data_component_1.SpreadViewer(this.priceServ);
-        this.spreadviewer.setConfig(viewConfigs[0]);
+        this.profiles = [];
+        this.spreadviewers = [];
+        this.profiles = electron.ipcRenderer.sendSync("svc://get-config", null);
+        this.profiles.forEach(function (profile, index) {
+            _this.spreadviewers.push(new data_component_1.SpreadViewer(_this.priceServ));
+            _this.spreadviewers[index].setConfig(profile);
+            _this.spreadviewers[index].hidden();
+            body.addChild(_this.spreadviewers[index].ControlRef);
+        });
         btn_dayview.onClick(function () {
             var yaxis = {};
             if (txt_min.ModelVal.length > 0)
@@ -106,10 +96,9 @@ var AppComponent = (function () {
                 yaxis.max = parseFloat(txt_max.ModelVal);
             if (txt_tick.ModelVal.length > 0)
                 yaxis.interval = parseFloat(txt_tick.ModelVal);
-            _this.spreadviewer.setEChartOption({ yAxis: yaxis });
+            _this.currentViewer.setEChartOption({ yAxis: yaxis });
             yaxis = null;
         });
-        body.addChild(this.spreadviewer.ControlRef);
         row1.addChild(new control_1.DockContainer("v", 800, null).addChild(body));
         this.children.push(row1);
     };

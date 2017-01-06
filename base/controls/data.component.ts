@@ -167,6 +167,10 @@ export class EChart extends Control {
     }
   }
 
+  setClassName(className: string): void {
+    this.className = className;
+  }
+
   onClick(cb: Function) {
     this.dataSource.events["click"] = cb;
   }
@@ -174,6 +178,8 @@ export class EChart extends Control {
 
 
 export interface SpreadViewerConfig {
+  width: number;
+  height: number;
   symbolCode1: string;
   innerCode1: number;
   coeff1: number;
@@ -219,6 +225,8 @@ export class SpreadViewer {
 
   private _echart: EChart;
   private _bReset: boolean;
+  private _width: number;
+  private _height: number;
 
   constructor(private priceServ: PriceService) {
     this._echart = new EChart();
@@ -226,6 +234,14 @@ export class SpreadViewer {
 
   init(): void {
     this._echart.init();
+  }
+
+  hidden(): void {
+    this._echart.setClassName("hidden");
+  }
+
+  show(): void {
+    this._echart.setClassName("");
   }
 
   start(): void {
@@ -270,6 +286,8 @@ export class SpreadViewer {
   }
   // only can change the names
   setConfig(config: SpreadViewerConfig, bReset: boolean = false): void {
+    // this._width = config.width;
+    // this._height = config.height;
     this._bReset = bReset;
     this._symbolCode1 = config.symbolCode1;
     this._innerCode1 = config.innerCode1;
@@ -360,6 +378,14 @@ export class SpreadViewer {
       this._echart.resetOption(echartOption, false);
     echartOption = null;
   }
+
+  // get width(){
+  //   return this._width;
+  // }
+
+  // get height(){
+  //   return this._height;
+  // }
 
   setEChartOption(option: any): void {
     this._echart.resetOption(option);

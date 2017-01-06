@@ -39,7 +39,7 @@ export class StartUp implements IApplication {
         }
 
         ipcMain.on("svc://get-config", (e, arg) => {
-            let obj = path.isAbsolute(svcpath) ? JSON.parse(fs.readFileSync(svcpath, { encoding: "utf-8" }))
+            e.returnValue = path.isAbsolute(svcpath) ? JSON.parse(fs.readFileSync(svcpath, { encoding: "utf-8" }))
                 : JSON.parse(fs.readFileSync(path.join(process.cwd(), svcpath), { encoding: "utf-8" }));
         });
         let contentWindow: ContentWindow = new ContentWindow();

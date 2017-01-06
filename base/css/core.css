@@ -304,6 +304,10 @@ echart{
     overflow: hidden;
 }
 
+.hidden{
+    display: none;
+}
+
 /* scroller */
 ::-webkit-scrollbar{
     width: 5px;

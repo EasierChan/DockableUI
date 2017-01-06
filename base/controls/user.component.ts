@@ -32,7 +32,7 @@ import { Control, CssStyle } from "./control";
                 <span>{{child.dataSource.value}}</span> <input type="range" [class]="child.className">
              </label>
             <dock-table *ngIf="child.className=='table'" [className]="className" [dataSource]="child.dataSource"></dock-table>
-            <echart *ngIf="child.styleObj.type=='echart'" [dataSource]="child.dataSource"></echart>
+            <echart *ngIf="child.styleObj.type=='echart'" [dataSource]="child.dataSource" [class]="child.className"></echart>
             <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource"
              [class]="child.styleObj.type">
             </usercontrol>
