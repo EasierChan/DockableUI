@@ -6,10 +6,10 @@ var electron_1 = require("electron");
 var fs = require("fs");
 var path = require("path");
 var windows_1 = require("./windows");
-var UApplication = (function () {
-    function UApplication() {
+var AppStore = (function () {
+    function AppStore() {
     }
-    UApplication.initStore = function (userApps) {
+    AppStore.initStore = function (userApps) {
         var _this = this;
         fs.readdir(this._appstoreHome, function (err, files) {
             files.forEach(function (curfile) {
@@ -22,7 +22,7 @@ var UApplication = (function () {
             });
         });
     };
-    UApplication.startupAnApp = function (name) {
+    AppStore.startupAnApp = function (name) {
         if (this._apps.hasOwnProperty(name)) {
             this._apps[name].StartUp.instance().bootstrap();
             return true;
@@ -31,25 +31,46 @@ var UApplication = (function () {
             return false;
         }
     };
-    UApplication.bootstrap = function () {
+    AppStore.bootstrap = function () {
         var contentWindow = new windows_1.ContentWindow({ state: { x: 200, y: 100, width: 1000, height: 600 } });
         contentWindow.loadURL(path.join(this._appstoreHome, "..", "workbench", "index.html"));
         this._apps[this._workbench] = contentWindow;
         contentWindow.show();
+        contentWindow.win.on("close", function (e) {
+            e.preventDefault();
+            contentWindow.win.hide();
+        });
         electron_1.ipcMain.on("appstore://startupAnApp", function (event, appname) {
-            event.returnValue = UApplication.startupAnApp(appname);
+            event.returnValue = AppStore.startupAnApp(appname);
         });
         electron_1.ipcMain.on("appstore://initStore", function (event, apps) {
-            UApplication.initStore(apps);
+            AppStore.initStore(apps);
         });
+        // set tray icon
+        AppStore._tray = new electron_1.Tray(path.join(__dirname, "..", "..", "..", "images", "AppStore.png"));
+        var contextMenu = electron_1.Menu.buildFromTemplate([
+            {
+                label: "Show Workbench", click: function () {
+                    contentWindow.show();
+                }
+            },
+            {
+                label: "Exit", click: function () {
+                    contentWindow.win.removeAllListeners();
+                    electron_1.app.quit();
+                }
+            }
+        ]);
+        AppStore._tray.setToolTip("This is appstore's Workbench.");
+        AppStore._tray.setContextMenu(contextMenu);
     };
-    UApplication.quit = function () {
+    AppStore.quit = function () {
         this._apps[this._workbench].close();
     };
-    UApplication._appstoreHome = path.join(__dirname, "..", "..", "..", "..", "appstore");
-    UApplication._apps = {};
-    UApplication._workbench = "workbench";
-    return UApplication;
+    AppStore._appstoreHome = path.join(__dirname, "..", "..", "..", "..", "appstore");
+    AppStore._apps = {};
+    AppStore._workbench = "workbench";
+    return AppStore;
 }());
-exports.UApplication = UApplication;
+exports.AppStore = AppStore;
 //# sourceMappingURL=appstore.js.map

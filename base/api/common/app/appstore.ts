@@ -3,14 +3,15 @@
  */
 "use strict";
 
-import { ipcMain } from "electron";
+import { ipcMain, Menu, Tray, app } from "electron";
 import * as fs from "fs";
 import path = require("path");
 import { ContentWindow } from "./windows";
 import { UWindwManager } from "./windowmgr";
 import { DefaultLogger } from "../base/logger";
 
-export class UApplication {
+export class AppStore {
+    private static _tray: Electron.Tray;
     private static _appstoreHome: string = path.join(__dirname, "..", "..", "..", "..", "appstore");
     private static _apps: Object = {};
     private static readonly _workbench: string = "workbench";
@@ -38,18 +39,40 @@ export class UApplication {
     }
 
     public static bootstrap(): void {
-        let contentWindow: ContentWindow = new ContentWindow({state: {x: 200, y: 100, width: 1000, height: 600}});
-        contentWindow.loadURL(path.join(this._appstoreHome, "..", "workbench", "index.html") );
+        let contentWindow: ContentWindow = new ContentWindow({ state: { x: 200, y: 100, width: 1000, height: 600 } });
+        contentWindow.loadURL(path.join(this._appstoreHome, "..", "workbench", "index.html"));
         this._apps[this._workbench] = contentWindow;
         contentWindow.show();
 
+        contentWindow.win.on("close", (e) => {
+            e.preventDefault();
+            contentWindow.win.hide();
+        });
+
         ipcMain.on("appstore://startupAnApp", (event, appname) => {
-            event.returnValue = UApplication.startupAnApp(appname);
+            event.returnValue = AppStore.startupAnApp(appname);
         });
 
         ipcMain.on("appstore://initStore", (event, apps) => {
-            UApplication.initStore(apps);
-        })
+            AppStore.initStore(apps);
+        });
+        // set tray icon
+        AppStore._tray = new Tray(path.join(__dirname, "..", "..", "..", "images", "AppStore.png"));
+        const contextMenu = Menu.buildFromTemplate([
+            {
+                label: "Show Workbench", click() {
+                    contentWindow.show();
+                }
+            },
+            {
+                label: "Exit", click() {
+                    contentWindow.win.removeAllListeners();
+                    app.quit();
+                }
+            }
+        ]);
+        AppStore._tray.setToolTip("This is appstore's Workbench.");
+        AppStore._tray.setContextMenu(contextMenu);
     }
 
     public static quit(): void {
