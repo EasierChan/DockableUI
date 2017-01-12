@@ -6,6 +6,7 @@ var electron_1 = require("electron");
 var fs = require("fs");
 var path = require("path");
 var windows_1 = require("./windows");
+var userDal_1 = require("../../dal/itrade/userDal");
 var AppStore = (function () {
     function AppStore() {
     }
@@ -31,11 +32,17 @@ var AppStore = (function () {
             return false;
         }
     };
+    AppStore.authorize = function (username, password) {
+        AppStore._userDal = AppStore._userDal || new userDal_1.UserDal();
+        AppStore._userDal.on("connect", function () {
+            AppStore._userDal.authorize(username, password);
+        });
+    };
     AppStore.bootstrap = function () {
         var contentWindow = new windows_1.ContentWindow({ state: { x: 200, y: 100, width: 1000, height: 600 } });
         contentWindow.loadURL(path.join(this._appstoreHome, "..", "workbench", "index.html"));
         this._apps[this._workbench] = contentWindow;
-        contentWindow.show();
+        // contentWindow.show();
         contentWindow.win.on("close", function (e) {
             e.preventDefault();
             contentWindow.win.hide();
@@ -43,8 +50,27 @@ var AppStore = (function () {
         electron_1.ipcMain.on("appstore://startupAnApp", function (event, appname) {
             event.returnValue = AppStore.startupAnApp(appname);
         });
-        electron_1.ipcMain.on("appstore://initStore", function (event, apps) {
-            AppStore.initStore(apps);
+        electron_1.ipcMain.on("appstore://login", function (event, loginInfo) {
+            AppStore.authorize(loginInfo.username, loginInfo.password);
+            AppStore._userDal.on("authorize", function (bRet) {
+                if (bRet) {
+                    AppStore._userDal.getUserProfile(loginInfo.username);
+                }
+                else {
+                    event.returnValue = bRet;
+                }
+            });
+            AppStore._userDal.on("userprofile", function (res) {
+                var appIds = [];
+                res.apps.forEach(function (item) {
+                    appIds.push(item.id);
+                });
+                AppStore.initStore(appIds);
+                event.returnValue = res.apps;
+            });
+            AppStore._userDal.on("error", function (error) {
+                event.returnValue = false;
+            });
         });
         // set tray icon
         AppStore._tray = new electron_1.Tray(path.join(__dirname, "..", "..", "..", "images", "AppStore.png"));

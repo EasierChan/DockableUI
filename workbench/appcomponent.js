@@ -19,51 +19,15 @@ var AppComponent = (function () {
         // alert("hello")
         console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.
-        if (this.username === "chenlei" && this.password === "123") {
+        var ret = this.appService.authorize({
+            username: this.username,
+            password: this.password,
+            roles: null,
+            apps: null
+        });
+        if (ret !== true && ret instanceof Array) {
             this.isAuthorized = true;
-            this.apps = [
-                {
-                    id: "StrategyMonitor",
-                    name: "StrategyMonitor",
-                    desc: "StrategyMonitor",
-                    category: "Transanctional"
-                },
-                {
-                    id: "PortfolioMonitor",
-                    name: "PortfolioMonitor",
-                    desc: "PortfolioMonitor",
-                    category: "Transanctional"
-                },
-                {
-                    id: "DockDemo",
-                    name: "DockDemo",
-                    desc: "DockDemo",
-                    category: "Transanctional"
-                },
-                {
-                    id: "SpreadViewer",
-                    name: "SpreadViewer",
-                    desc: "SpreadViewer",
-                    category: "Analytical"
-                },
-                {
-                    id: "BookViewer",
-                    name: "BookViewer",
-                    desc: "BookViewer",
-                    category: "Analytical"
-                },
-                {
-                    id: "MultipleDemo",
-                    name: "MultipleDemo",
-                    desc: "MultipleDemo",
-                    category: "Analytical"
-                }
-            ];
-            var appnames_1 = [];
-            this.apps.forEach(function (item) {
-                appnames_1.push(item.name);
-            });
-            this.appService.initStore(appnames_1);
+            this.apps = ret;
             return true;
         }
         else {

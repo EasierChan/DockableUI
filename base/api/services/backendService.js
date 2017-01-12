@@ -15,8 +15,8 @@ var AppStoreService = (function () {
     AppStoreService.prototype.startApp = function (name) {
         return electron.ipcRenderer.sendSync("appstore://startupAnApp", name);
     };
-    AppStoreService.prototype.initStore = function (userApps) {
-        electron.ipcRenderer.send("appstore://initStore", userApps);
+    AppStoreService.prototype.authorize = function (loginInfo) {
+        return electron.ipcRenderer.sendSync("appstore://login", loginInfo);
     };
     AppStoreService = __decorate([
         core_1.Injectable(), 

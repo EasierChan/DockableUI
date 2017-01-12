@@ -27,54 +27,16 @@ export class AppComponent {
         // alert("hello")
         console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.
-        if (this.username === "chenlei" && this.password === "123") {
+        let ret = this.appService.authorize({
+            username: this.username,
+            password: this.password,
+            roles: null,
+            apps: null
+        });
+
+        if (ret !== true && ret instanceof Array) {
             this.isAuthorized = true;
-
-            this.apps = [
-                {
-                    id: "StrategyMonitor",
-                    name: "StrategyMonitor",
-                    desc: "StrategyMonitor",
-                    category: "Transanctional"
-                },
-                {
-                    id: "PortfolioMonitor",
-                    name: "PortfolioMonitor",
-                    desc: "PortfolioMonitor",
-                    category: "Transanctional"
-                },
-                {
-                    id: "DockDemo",
-                    name: "DockDemo",
-                    desc: "DockDemo",
-                    category: "Transanctional"
-                },
-                {
-                    id: "SpreadViewer",
-                    name: "SpreadViewer",
-                    desc: "SpreadViewer",
-                    category: "Analytical"
-                },
-                {
-                    id: "BookViewer",
-                    name: "BookViewer",
-                    desc: "BookViewer",
-                    category: "Analytical"
-                },
-                {
-                    id: "MultipleDemo",
-                    name: "MultipleDemo",
-                    desc: "MultipleDemo",
-                    category: "Analytical"
-                }
-            ];
-
-            let appnames = [];
-            this.apps.forEach((item) => {
-                appnames.push(item.name);
-            });
-
-            this.appService.initStore(appnames);
+            this.apps = ret;
             return true;
         } else {
             this.showError("Error", "Username or password wrong.", "alert");

@@ -9,8 +9,11 @@ import path = require("path");
 import { ContentWindow } from "./windows";
 import { UWindwManager } from "./windowmgr";
 import { DefaultLogger } from "../base/logger";
+import { UserDal } from "../../dal/itrade/userDal";
 
 export class AppStore {
+    private static _bAuthorized: boolean;
+    private static _userDal: UserDal;
     private static _tray: Electron.Tray;
     private static _appstoreHome: string = path.join(__dirname, "..", "..", "..", "..", "appstore");
     private static _apps: Object = {};
@@ -38,11 +41,18 @@ export class AppStore {
         }
     }
 
+    public static authorize(username: string, password: string): void {
+        AppStore._userDal = AppStore._userDal || new UserDal();
+        AppStore._userDal.on("connect", () => {
+            AppStore._userDal.authorize(username, password);
+        });
+    }
+
     public static bootstrap(): void {
         let contentWindow: ContentWindow = new ContentWindow({ state: { x: 200, y: 100, width: 1000, height: 600 } });
         contentWindow.loadURL(path.join(this._appstoreHome, "..", "workbench", "index.html"));
         this._apps[this._workbench] = contentWindow;
-        contentWindow.show();
+        // contentWindow.show();
 
         contentWindow.win.on("close", (e) => {
             e.preventDefault();
@@ -53,8 +63,28 @@ export class AppStore {
             event.returnValue = AppStore.startupAnApp(appname);
         });
 
-        ipcMain.on("appstore://initStore", (event, apps) => {
-            AppStore.initStore(apps);
+        ipcMain.on("appstore://login", (event, loginInfo) => {
+            AppStore.authorize(loginInfo.username, loginInfo.password);
+            AppStore._userDal.on("authorize", (bRet) => {
+                if (bRet) {
+                    AppStore._userDal.getUserProfile(loginInfo.username);
+                } else {
+                    event.returnValue = bRet;
+                }
+            });
+
+            AppStore._userDal.on("userprofile", (res) => {
+                let appIds = [];
+                res.apps.forEach((item) => {
+                    appIds.push(item.id);
+                });
+                AppStore.initStore(appIds);
+                event.returnValue = res.apps;
+            });
+
+            AppStore._userDal.on("error", (error) => {
+                event.returnValue = false;
+            });
         });
         // set tray icon
         AppStore._tray = new Tray(path.join(__dirname, "..", "..", "..", "images", "AppStore.png"));
