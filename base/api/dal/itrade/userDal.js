@@ -10,12 +10,20 @@ var __extends = (this && this.__extends) || function (d, b) {
 var mongodb_1 = require("mongodb");
 var events_1 = require("events");
 var logger_1 = require("../../common/base/logger");
+/**
+ * access database file.
+ * Event: 'error', 'connect', 'authorize', 'userprofile'
+ */
 var UserDal = (function (_super) {
     __extends(UserDal, _super);
     function UserDal(url, bReset) {
         if (url === void 0) { url = "mongodb://172.24.13.5:27016/itrade"; }
         if (bReset === void 0) { bReset = false; }
         _super.call(this);
+    }
+    UserDal.prototype.init = function (url, bReset) {
+        if (url === void 0) { url = "mongodb://172.24.13.5:27016/itrade"; }
+        if (bReset === void 0) { bReset = false; }
         var self = this;
         if (bReset === false && UserDal._db)
             return;
@@ -36,8 +44,12 @@ var UserDal = (function (_super) {
                 self.emit("connect");
             });
         });
-    }
+    };
     UserDal.prototype.authorize = function (username, password) {
+        if (UserDal._db === null) {
+            this.emit("error", "need a db instance.");
+            return;
+        }
         var self = this;
         var userprofiles = UserDal._db.collection("users");
         userprofiles.count({ name: username, password: password }, function (err, nRet) {

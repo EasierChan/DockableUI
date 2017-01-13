@@ -12,47 +12,45 @@ import { DefaultLogger } from "../base/logger";
 import { UserDal } from "../../dal/itrade/userDal";
 
 export class AppStore {
-    private static _bAuthorized: boolean;
+    private static _bAuthorized: boolean = false;
+    private static _env: any;
     private static _userDal: UserDal;
     private static _tray: Electron.Tray;
     private static _appstoreHome: string = path.join(__dirname, "..", "..", "..", "..", "appstore");
     private static _apps: Object = {};
+    private static _appInfo: any;
     private static readonly _workbench: string = "workbench";
 
     public static initStore(userApps: Array<string>): void {
-        fs.readdir(this._appstoreHome, (err, files) => {
+        fs.readdir(AppStore._appstoreHome, (err, files) => {
+            if (err) {
+                DefaultLogger.info(err);
+                return;
+            }
             files.forEach(curfile => {
-                fs.stat(path.join(this._appstoreHome, curfile), (err, stat) => {
-                    if (stat.isDirectory()) {
-                        if (userApps.indexOf(curfile) >= 0 || userApps[0] === "*")
-                            this._apps[curfile] = require(path.join(this._appstoreHome, curfile, "startup"));
-                    }
-                });
+                if (fs.statSync(path.join(AppStore._appstoreHome, curfile)).isDirectory()) {
+                    if (userApps.indexOf(curfile) >= 0 || userApps[0] === "*")
+                        AppStore._apps[curfile] = require(path.join(AppStore._appstoreHome, curfile, "startup"));
+                }
             });
+            ipcMain.emit("appstore://ready");
         });
     }
 
     public static startupAnApp(name: string): boolean {
-        if (this._apps.hasOwnProperty(name)) {
-            this._apps[name].StartUp.instance().bootstrap();
+        if (AppStore._apps.hasOwnProperty(name)) {
+            AppStore._apps[name].StartUp.instance().bootstrap();
             return true;
         } else {
             return false;
         }
     }
 
-    public static authorize(username: string, password: string): void {
-        AppStore._userDal = AppStore._userDal || new UserDal();
-        AppStore._userDal.on("connect", () => {
-            AppStore._userDal.authorize(username, password);
-        });
-    }
-
     public static bootstrap(): void {
+        AppStore.parseCommandArgs();
         let contentWindow: ContentWindow = new ContentWindow({ state: { x: 200, y: 100, width: 1000, height: 600 } });
-        contentWindow.loadURL(path.join(this._appstoreHome, "..", "workbench", "index.html"));
-        this._apps[this._workbench] = contentWindow;
-        // contentWindow.show();
+        contentWindow.loadURL(path.join(AppStore._appstoreHome, "..", "workbench", "index.html"));
+        AppStore._apps[AppStore._workbench] = contentWindow;
 
         contentWindow.win.on("close", (e) => {
             e.preventDefault();
@@ -64,12 +62,29 @@ export class AppStore {
         });
 
         ipcMain.on("appstore://login", (event, loginInfo) => {
-            AppStore.authorize(loginInfo.username, loginInfo.password);
+            if (AppStore._appInfo) {
+                event.returnValue = AppStore._appInfo;
+                return;
+            }
+
+            AppStore._userDal = AppStore._userDal || new UserDal();
+            AppStore._userDal.init();
+            AppStore._userDal.on("error", (error) => {
+                if (event !== null)
+                    event.returnValue = false;
+                AppStore._bAuthorized = false;
+            });
+
+            AppStore._userDal.on("connect", () => {
+                AppStore._userDal.authorize(loginInfo.username, loginInfo.password);
+            });
             AppStore._userDal.on("authorize", (bRet) => {
-                if (bRet) {
+                AppStore._bAuthorized = bRet;
+                if (bRet === true) {
                     AppStore._userDal.getUserProfile(loginInfo.username);
                 } else {
-                    event.returnValue = bRet;
+                    if (event !== null)
+                        event.returnValue = bRet;
                 }
             });
 
@@ -79,11 +94,9 @@ export class AppStore {
                     appIds.push(item.id);
                 });
                 AppStore.initStore(appIds);
-                event.returnValue = res.apps;
-            });
-
-            AppStore._userDal.on("error", (error) => {
-                event.returnValue = false;
+                AppStore._appInfo = res.apps;
+                if (event !== null)
+                    event.returnValue = AppStore._appInfo;
             });
         });
         // set tray icon
@@ -103,9 +116,37 @@ export class AppStore {
         ]);
         AppStore._tray.setToolTip("This is appstore's Workbench.");
         AppStore._tray.setContextMenu(contextMenu);
+        // work with args
+        if (AppStore._env.hideStore !== true) {
+            contentWindow.show();
+        }
+        if (AppStore._env.startapps && AppStore._env.startapps.length > 0
+            && AppStore._env.username && AppStore._env.password) {
+            ipcMain.emit("appstore://login", null, { username: AppStore._env.username, password: AppStore._env.password });
+            ipcMain.on("appstore://ready", () => {
+                AppStore._env.startapps.forEach(app => {
+                    AppStore.startupAnApp(app);
+                });
+            });
+        }
     }
 
     public static quit(): void {
-        this._apps[this._workbench].close();
+        AppStore._apps[AppStore._workbench].close();
+    }
+
+    public static parseCommandArgs(): void {
+        AppStore._env = AppStore._env || new Object();
+        process.argv.forEach(arg => {
+            if (arg === "--hide-store") {
+                AppStore._env.hideStore = true;
+            } else if (arg.startsWith("--startapps=")) {
+                AppStore._env.startapps = arg.substr(12).split(",");
+            } else if (arg.startsWith("--username=")) {
+                AppStore._env.username = arg.substr(11);
+            } else if (arg.startsWith("--password=")) {
+                AppStore._env.password = arg.substr(11);
+            }
+        });
     }
 }
