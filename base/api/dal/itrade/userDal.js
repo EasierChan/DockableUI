@@ -20,17 +20,20 @@ var UserDal = (function (_super) {
         if (url === void 0) { url = "mongodb://172.24.13.5:27016/itrade"; }
         if (bReset === void 0) { bReset = false; }
         _super.call(this);
+        this.init();
     }
     UserDal.prototype.init = function (url, bReset) {
         if (url === void 0) { url = "mongodb://172.24.13.5:27016/itrade"; }
         if (bReset === void 0) { bReset = false; }
         var self = this;
-        if (bReset === false && UserDal._db)
+        if (bReset === false && UserDal._db && UserDal._bConnected) {
+            this.emit("connect");
             return;
+        }
         // Use connect method to connect to the server
         mongodb_1.MongoClient.connect(url, function (err, db) {
             if (err) {
-                logger_1.DefaultLogger.error(err);
+                logger_1.DefaultLogger.error(err.message);
                 self.emit("error", err);
                 return;
             }
@@ -42,38 +45,23 @@ var UserDal = (function (_super) {
                     return;
                 }
                 self.emit("connect");
+                UserDal._bConnected = true;
             });
         });
     };
-    UserDal.prototype.authorize = function (username, password) {
-        if (UserDal._db === null) {
-            this.emit("error", "need a db instance.");
-            return;
-        }
+    UserDal.prototype.getUserProfile = function (username, password) {
         var self = this;
-        var userprofiles = UserDal._db.collection("users");
-        userprofiles.count({ name: username, password: password }, function (err, nRet) {
-            if (err) {
-                logger_1.DefaultLogger.error(err);
-                self.emit("error", err);
-                return;
-            }
-            if (nRet > 0)
-                self.emit("authorize", true);
-            else
-                self.emit("authorize", false);
+        this.on("connect", function () {
+            var userprofiles = UserDal._db.collection("users");
+            userprofiles.find({ name: username, password: password }, null, 0, 1, 1000).next(function (err, result) {
+                if (err) {
+                    self.emit("error", err);
+                    return;
+                }
+                self.emit("userprofile", result);
+            });
         });
-    };
-    UserDal.prototype.getUserProfile = function (username) {
-        var self = this;
-        var userprofiles = UserDal._db.collection("users");
-        userprofiles.find({ name: username }, null, 0, 1, 1000).next(function (err, result) {
-            if (err) {
-                self.emit("error", err);
-                return;
-            }
-            self.emit("userprofile", result);
-        });
+        this.init();
     };
     return UserDal;
 }(events_1.EventEmitter));

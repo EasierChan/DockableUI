@@ -2,9 +2,9 @@
  * created by chenlei
  * used to created custom user control based on className and dataSource.
  */
-import { Component, AfterContentInit } from "@angular/core";
+import { Component, AfterContentInit, Input } from "@angular/core";
 import { NgForm } from "@angular/forms";
-import { Control, CssStyle } from "./control";
+import { CssStyle, Control } from "./control";
 
 @Component({
     moduleId: module.id,
@@ -12,29 +12,42 @@ import { Control, CssStyle } from "./control";
     template: `
         <template ngFor let-child [ngForOf]="children">
             <span *ngIf="child.styleObj.type=='label'" [class]="child.className">
-                {{child.dataSource.value}}
+                {{child.dataSource.text}}
             </span>
-            <button *ngIf="child.styleObj.type=='button'" [class]="child.className" [name]="child.dataSource.name"
-             (click)="child.dataSource.click()">
-                {{child.dataSource.value}}
+            <button *ngIf="child.styleObj.type=='button'" class="btn btn-{{child.className}} btn-xs" [name]="child.dataSource.name"
+             (click)="child.dataSource.click()" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
+                {{child.dataSource.text}}
             </button>
-            <label *ngIf="child.styleObj.type=='textbox'">
-                <span>{{child.dataSource.value}}</span>
-                <input type="text" [(ngModel)]="child.dataSource.modelVal"[class]="child.className" [name]="child.dataSource.name" />
+            <label *ngIf="child.styleObj.type=='textbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
+                <pre>{{child.dataSource.text}}</pre>
+                <input type="text" [(ngModel)]="child.dataSource.modelVal" [name]="child.dataSource.name" placeholder="" class="btn-{{child.className}} btn-xs">
              </label>
+             <div *ngIf="child.styleObj.type=='dropdown'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
+                <pre>{{child.dataSource.text}}</pre>
+                <div class="btn-group">
+                    <button type="button" class="btn-xs btn-default dropdown-toggle" (click)="child.dataSource.click()">
+                        <pre>{{child.dataSource.selectedItem.Text}}</pre> <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu" [style.display]="child.dataSource.dropdown?'block':'none'">
+                        <li *ngFor="let item of child.dataSource.items" (click)="child.dataSource?.onselect(item)"><a href="#">{{item.Text}}</a></li>
+                    </ul>
+                </div>
+             </div>
              <label *ngIf="child.styleObj.type=='radio'">
-                <span>{{child.dataSource.value}}</span> <input type="radio" [class]="child.className" [name]="child.dataSource.name">
+                {{child.dataSource.text}}
+                <input [name]="child.dataSource.name" type="radio"> 
              </label>
-             <label *ngIf="child.styleObj.type=='checkbox'">
-                <span>{{child.dataSource.value}}</span> <input type="checkbox" [class]="child.className">
-             </label>
+            <label *ngIf="child.styleObj.type=='checkbox'">
+                <input [name]="child.dataSource.name" type="checkbox" checked="checked"> 
+                <span style="break-word: keep-all">{{child.dataSource.text}}</span>
+            </label>
              <label *ngIf="child.styleObj.type=='range'">
-                <span>{{child.dataSource.value}}</span> <input type="range" [class]="child.className">
+                {{child.dataSource.text}} <input type="range" [class]="child.className">
              </label>
             <dock-table *ngIf="child.className=='table'" [className]="className" [dataSource]="child.dataSource"></dock-table>
             <echart *ngIf="child.styleObj.type=='echart'" [dataSource]="child.dataSource" [class]="child.className"></echart>
             <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource"
-             [class]="child.styleObj.type">
+             [class]="child.styleObj.type" [style.min-width.px]="child.styleObj?.minWidth" [style.min-height.px]="child.styleObj?.minHeight">
             </usercontrol>
         </template>
     `,
@@ -43,67 +56,22 @@ import { Control, CssStyle } from "./control";
 export class UserControlComponent implements AfterContentInit {
     children: any[];
     dataSource: any;
-    styleObj: CssStyle;
+    styleObj: any;
 
-    onClick(): void {
-        this.dataSource.click();
-    }
     ngAfterContentInit(): void {
         // console.log(JSON.stringify(this.children));
     }
 }
 
-export class ComboControl extends Control {
-    constructor(type: string) {
-        super();
-        this.className = "controls";
-        this.styleObj = {
-            type: type, // store this controls container's css class.
-            width: null,
-            height: null
-        };
-        this.children = [];
-    }
-
-    addChild(childControl: Control): ComboControl {
-        this.children.push(childControl);
-        return this;
-    }
-}
-
-export class MetaControl extends Control {
-    constructor(type: string) {
-        super();
-        this.styleObj = {
-            type: type,
-            width: null,
-            height: null
-        };
-        this.dataSource = new Object();
-    }
-
-    onClick(aaa: any): void {
-        this.dataSource.click = aaa;
-        // console.log(JSON.stringify(this.dataSource));
-    }
-
-    set Class(classStr: string) {
-        this.className = classStr;
-    }
-
-    set Value(value: string) {
-        this.dataSource.value = value;
-    }
-
-    set ModelVal(value: string) {
-        this.dataSource.modelVal = value;
-    }
-
-    get ModelVal(): string {
-        return this.dataSource.modelVal;
-    }
-
-    set Name(name: string) {
-        this.dataSource.name = name;
-    }
+@Component({
+    moduleId: module.id,
+    selector: "dock-control",
+    templateUrl: "controlTree.html",
+    inputs: ["className", "children"]
+})
+export class DockContainerComponent {
+    className: string;
+    children: Control[];
+    @Input() styleObj: any;
+    @Input() dataSource: any;
 }

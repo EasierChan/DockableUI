@@ -27,7 +27,7 @@ export class AppComponent {
         // alert("hello")
         console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.
-        let ret = this.appService.authorize({
+        let ret = this.appService.getUserProfile({
             username: this.username,
             password: this.password,
             roles: null,
@@ -50,9 +50,10 @@ export class AppComponent {
     }
 
     OnStartApp(name: string): void {
+        // alert(name);
         if (name) {
             if (!this.appService.startApp(name))
-                this.showError("Error", "start app error!", "alert");
+                this.showError("Error", `start ${name} app error!`, "alert");
         } else {
             this.showError("Error", "App is unvalid!", "alert");
         }

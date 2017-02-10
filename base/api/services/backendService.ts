@@ -12,7 +12,7 @@ export class AppStoreService {
         return electron.ipcRenderer.sendSync("appstore://startupAnApp", name);
     }
 
-    authorize(loginInfo: UserProfile): any {
+    getUserProfile(loginInfo: UserProfile): any {
         return electron.ipcRenderer.sendSync("appstore://login", loginInfo);
     }
 }

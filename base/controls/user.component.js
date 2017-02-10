@@ -1,9 +1,4 @@
 "use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -18,13 +13,9 @@ var __metadata = (this && this.__metadata) || function (k, v) {
  * used to created custom user control based on className and dataSource.
  */
 var core_1 = require("@angular/core");
-var control_1 = require("./control");
 var UserControlComponent = (function () {
     function UserControlComponent() {
     }
-    UserControlComponent.prototype.onClick = function () {
-        this.dataSource.click();
-    };
     UserControlComponent.prototype.ngAfterContentInit = function () {
         // console.log(JSON.stringify(this.children));
     };
@@ -32,7 +23,7 @@ var UserControlComponent = (function () {
         core_1.Component({
             moduleId: module.id,
             selector: "usercontrol",
-            template: "\n        <template ngFor let-child [ngForOf]=\"children\">\n            <span *ngIf=\"child.styleObj.type=='label'\" [class]=\"child.className\">\n                {{child.dataSource.value}}\n            </span>\n            <button *ngIf=\"child.styleObj.type=='button'\" [class]=\"child.className\" [name]=\"child.dataSource.name\"\n             (click)=\"child.dataSource.click()\">\n                {{child.dataSource.value}}\n            </button>\n            <label *ngIf=\"child.styleObj.type=='textbox'\">\n                <span>{{child.dataSource.value}}</span>\n                <input type=\"text\" [(ngModel)]=\"child.dataSource.modelVal\"[class]=\"child.className\" [name]=\"child.dataSource.name\" />\n             </label>\n             <label *ngIf=\"child.styleObj.type=='radio'\">\n                <span>{{child.dataSource.value}}</span> <input type=\"radio\" [class]=\"child.className\" [name]=\"child.dataSource.name\">\n             </label>\n             <label *ngIf=\"child.styleObj.type=='checkbox'\">\n                <span>{{child.dataSource.value}}</span> <input type=\"checkbox\" [class]=\"child.className\">\n             </label>\n             <label *ngIf=\"child.styleObj.type=='range'\">\n                <span>{{child.dataSource.value}}</span> <input type=\"range\" [class]=\"child.className\">\n             </label>\n            <dock-table *ngIf=\"child.className=='table'\" [className]=\"className\" [dataSource]=\"child.dataSource\"></dock-table>\n            <echart *ngIf=\"child.styleObj.type=='echart'\" [dataSource]=\"child.dataSource\" [class]=\"child.className\"></echart>\n            <usercontrol *ngIf=\"child.className=='controls'\" [children]=\"child.children\" [dataSource]=\"child.dataSource\"\n             [class]=\"child.styleObj.type\">\n            </usercontrol>\n        </template>\n    ",
+            template: "\n        <template ngFor let-child [ngForOf]=\"children\">\n            <span *ngIf=\"child.styleObj.type=='label'\" [class]=\"child.className\">\n                {{child.dataSource.text}}\n            </span>\n            <button *ngIf=\"child.styleObj.type=='button'\" class=\"btn btn-{{child.className}} btn-xs\" [name]=\"child.dataSource.name\"\n             (click)=\"child.dataSource.click()\" [style.margin-left.px]=\"child.styleObj.left\" [style.margin-top.px]=\"child.styleObj.top\">\n                {{child.dataSource.text}}\n            </button>\n            <label *ngIf=\"child.styleObj.type=='textbox'\" [style.margin-left.px]=\"child.styleObj.left\" [style.margin-top.px]=\"child.styleObj.top\">\n                <pre>{{child.dataSource.text}}</pre>\n                <input type=\"text\" [(ngModel)]=\"child.dataSource.modelVal\" [name]=\"child.dataSource.name\" placeholder=\"\" class=\"btn-{{child.className}} btn-xs\">\n             </label>\n             <div *ngIf=\"child.styleObj.type=='dropdown'\" [style.margin-left.px]=\"child.styleObj.left\" [style.margin-top.px]=\"child.styleObj.top\">\n                <pre>{{child.dataSource.text}}</pre>\n                <div class=\"btn-group\">\n                    <button type=\"button\" class=\"btn-xs btn-default dropdown-toggle\" (click)=\"child.dataSource.click()\">\n                        <pre>{{child.dataSource.selectedItem.Text}}</pre> <span class=\"caret\"></span>\n                    </button>\n                    <ul class=\"dropdown-menu\" [style.display]=\"child.dataSource.dropdown?'block':'none'\">\n                        <li *ngFor=\"let item of child.dataSource.items\" (click)=\"child.dataSource?.onselect(item)\"><a href=\"#\">{{item.Text}}</a></li>\n                    </ul>\n                </div>\n             </div>\n             <label *ngIf=\"child.styleObj.type=='radio'\">\n                {{child.dataSource.text}}\n                <input [name]=\"child.dataSource.name\" type=\"radio\"> \n             </label>\n            <label *ngIf=\"child.styleObj.type=='checkbox'\">\n                <input [name]=\"child.dataSource.name\" type=\"checkbox\" checked=\"checked\"> \n                <span style=\"break-word: keep-all\">{{child.dataSource.text}}</span>\n            </label>\n             <label *ngIf=\"child.styleObj.type=='range'\">\n                {{child.dataSource.text}} <input type=\"range\" [class]=\"child.className\">\n             </label>\n            <dock-table *ngIf=\"child.className=='table'\" [className]=\"className\" [dataSource]=\"child.dataSource\"></dock-table>\n            <echart *ngIf=\"child.styleObj.type=='echart'\" [dataSource]=\"child.dataSource\" [class]=\"child.className\"></echart>\n            <usercontrol *ngIf=\"child.className=='controls'\" [children]=\"child.children\" [dataSource]=\"child.dataSource\"\n             [class]=\"child.styleObj.type\" [style.min-width.px]=\"child.styleObj?.minWidth\" [style.min-height.px]=\"child.styleObj?.minHeight\">\n            </usercontrol>\n        </template>\n    ",
             inputs: ["children", "dataSource", "styleObj"]
         }), 
         __metadata('design:paramtypes', [])
@@ -40,72 +31,27 @@ var UserControlComponent = (function () {
     return UserControlComponent;
 }());
 exports.UserControlComponent = UserControlComponent;
-var ComboControl = (function (_super) {
-    __extends(ComboControl, _super);
-    function ComboControl(type) {
-        _super.call(this);
-        this.className = "controls";
-        this.styleObj = {
-            type: type,
-            width: null,
-            height: null
-        };
-        this.children = [];
+var DockContainerComponent = (function () {
+    function DockContainerComponent() {
     }
-    ComboControl.prototype.addChild = function (childControl) {
-        this.children.push(childControl);
-        return this;
-    };
-    return ComboControl;
-}(control_1.Control));
-exports.ComboControl = ComboControl;
-var MetaControl = (function (_super) {
-    __extends(MetaControl, _super);
-    function MetaControl(type) {
-        _super.call(this);
-        this.styleObj = {
-            type: type,
-            width: null,
-            height: null
-        };
-        this.dataSource = new Object();
-    }
-    MetaControl.prototype.onClick = function (aaa) {
-        this.dataSource.click = aaa;
-        // console.log(JSON.stringify(this.dataSource));
-    };
-    Object.defineProperty(MetaControl.prototype, "Class", {
-        set: function (classStr) {
-            this.className = classStr;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MetaControl.prototype, "Value", {
-        set: function (value) {
-            this.dataSource.value = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MetaControl.prototype, "ModelVal", {
-        get: function () {
-            return this.dataSource.modelVal;
-        },
-        set: function (value) {
-            this.dataSource.modelVal = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(MetaControl.prototype, "Name", {
-        set: function (name) {
-            this.dataSource.name = name;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    return MetaControl;
-}(control_1.Control));
-exports.MetaControl = MetaControl;
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', Object)
+    ], DockContainerComponent.prototype, "styleObj", void 0);
+    __decorate([
+        core_1.Input(), 
+        __metadata('design:type', Object)
+    ], DockContainerComponent.prototype, "dataSource", void 0);
+    DockContainerComponent = __decorate([
+        core_1.Component({
+            moduleId: module.id,
+            selector: "dock-control",
+            templateUrl: "controlTree.html",
+            inputs: ["className", "children"]
+        }), 
+        __metadata('design:paramtypes', [])
+    ], DockContainerComponent);
+    return DockContainerComponent;
+}());
+exports.DockContainerComponent = DockContainerComponent;
 //# sourceMappingURL=user.component.js.map

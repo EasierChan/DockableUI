@@ -6,7 +6,8 @@
                 <div class="page-title"><span>{{page.title}}</span></div>
                 <div class="page-body">
                     <usercontrol *ngIf="page.content" [class]="page.content.styleObj.type" [children]="page.content.children"
-                     [dataSource]="page.content.dataSource"  [styleObj]="page.content.styleObj">
+                     [dataSource]="page.content.dataSource" [style.min-width.px]="page.content.styleObj?.minWidth"
+                      [style.min-height.px]="page.content.styleObj?.minHeight">
                     </usercontrol>
                 </div>
             </div>

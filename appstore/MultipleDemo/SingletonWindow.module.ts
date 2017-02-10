@@ -4,9 +4,8 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
 import { SingletonWindowComponent } from "./SingletonWindow";
-import { DockContainerComponent } from "../../base/controls/control";
 import { DataTableComponent, EChartComponent } from "../../base/controls/data.component";
-import { UserControlComponent } from "../../base/controls/user.component";
+import { UserControlComponent, DockContainerComponent } from "../../base/controls/user.component";
 
 @NgModule({
   imports: [

@@ -19,7 +19,7 @@ var AppComponent = (function () {
         // alert("hello")
         console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.
-        var ret = this.appService.authorize({
+        var ret = this.appService.getUserProfile({
             username: this.username,
             password: this.password,
             roles: null,
@@ -40,9 +40,10 @@ var AppComponent = (function () {
         this.password = "";
     };
     AppComponent.prototype.OnStartApp = function (name) {
+        // alert(name);
         if (name) {
             if (!this.appService.startApp(name))
-                this.showError("Error", "start app error!", "alert");
+                this.showError("Error", "start " + name + " app error!", "alert");
         }
         else {
             this.showError("Error", "App is unvalid!", "alert");

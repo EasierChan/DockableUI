@@ -11,6 +11,7 @@
   <link rel="stylesheet/css" href="css/theme.css">-->
   <style>
   @import "css/bootstrap.css";
+  @import "../../base/css/core.css";
   /*@import "css/theme.css";*/
   </style>
 </head>
@@ -28,6 +29,19 @@
       <li role="presentation"><a role="menuitem" tabindex="-1" href="#">Separated link</a></li>
     </ul>
   </div>
+  <!-- Single button -->
+<div class="btn-group">
+  <button type="button" class="btn-xs btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Action <span class="caret"></span>
+  </button>
+  <ul class="dropdown-menu">
+    <li><a href="#">Action</a></li>
+    <li><a href="#">Another action</a></li>
+    <li><a href="#">Something else here</a></li>
+    <li role="separator" class="divider"></li>
+    <li><a href="#">Separated link</a></li>
+  </ul>
+</div>
   <div class="btn-group  btn-group-xs">
     <button type="button" class="btn btn-default">Left</button>
     <button type="button" class="btn btn-default">Middle</button>
@@ -41,7 +55,7 @@
   <button class="btn btn-danger btn-xs">Hello world</button>
   <div class="checkbox-inline">
     <label>
-      <input type="checkbox"> Check me out
+      <input type="checkbox">Check me out
     </label>
   </div>
 
@@ -50,7 +64,7 @@
       <button class="btn btn-info btn-xs">Hello world</button>
       <button class="btn btn-warning btn-xs">Hello world</button>
       <div class="btn-group  btn-group-xs pull-right">
-        <input type="text" class="btn-default btn-xs" style="border-width: 1px;">
+        <input type="text" placeholder="search text" class="btn-default btn-xs" style="border-width: 1px;">
         <button type="button" class="btn btn-default">Left</button>
         <button type="button" class="btn btn-default">Middle</button>
         <button type="button" class="btn btn-default">Right</button>
@@ -160,9 +174,6 @@
         </tbody>
       </table>
     </div>
-  </div>
-  <div style="display: inline-table">
-    <button class="btn btn-warning btn-xs" style="display: table-cell">Hello world</button>
   </div>
 </body>
 

@@ -1,7 +1,10 @@
 import { Component, OnInit } from "@angular/core";
-import { Control, DockContainer, Splitter, TabPanel } from "../../base/controls/control";
-import { DataTable, DataTableRow, DataTableColumn, SpreadViewer, SpreadViewerConfig } from "../../base/controls/data.component";
-import { ComboControl, MetaControl } from "../../base/controls/user.component";
+import {
+  Control, DockContainer, Splitter,
+  TabPanel, ComboControl, MetaControl, DataTable,
+  DataTableRow, DataTableColumn, SpreadViewer,
+  SpreadViewerConfig
+} from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
 
 declare var electron: Electron.ElectronMainAndRenderer;
@@ -45,10 +48,10 @@ export class AppComponent implements OnInit {
     let btn_dayview = new MetaControl("button");
     btn_dayview.Class = "sd-button prespace";
     btn_dayview.Name = "test";
-    btn_dayview.Value = "Change";
+    btn_dayview.Text = "Change";
 
     let lbl_min = new MetaControl("label");
-    lbl_min.Value = "Min:";
+    lbl_min.Text = "Min:";
 
     let txt_min = new MetaControl("textbox");
     txt_min.Class = "sd-input";
@@ -56,7 +59,7 @@ export class AppComponent implements OnInit {
     txt_min.ModelVal = "";
 
     let lbl_max = new MetaControl("label");
-    lbl_max.Value = "Max:";
+    lbl_max.Text = "Max:";
 
     let txt_max = new MetaControl("textbox");
     txt_max.Class = "sd-input";
@@ -64,7 +67,7 @@ export class AppComponent implements OnInit {
     txt_max.ModelVal = "";
 
     let lbl_tick = new MetaControl("label");
-    lbl_tick.Value = "Tick:";
+    lbl_tick.Text = "Tick:";
 
     let txt_tick = new MetaControl("textbox");
     txt_tick.Class = "sd-input";
@@ -72,7 +75,7 @@ export class AppComponent implements OnInit {
     txt_tick.ModelVal = "";
 
     let lbl_TimeRange = new MetaControl("label");
-    lbl_TimeRange.Value = "TimeRange:";
+    lbl_TimeRange.Text = "TimeRange:";
 
     let txt_TimeRange = new MetaControl("textbox");
     txt_TimeRange.Class = "sd-input";
@@ -80,7 +83,7 @@ export class AppComponent implements OnInit {
     txt_TimeRange.ModelVal = "";
 
     let lbl_Slippage = new MetaControl("label");
-    lbl_Slippage.Value = "Slippage:";
+    lbl_Slippage.Text = "Slippage:";
 
     let txt_Slippage = new MetaControl("textbox");
     txt_Slippage.Class = "sd-input";

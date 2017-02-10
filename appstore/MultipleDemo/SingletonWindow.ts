@@ -1,9 +1,12 @@
 "use strict";
 
 import { Component, OnInit } from "@angular/core";
-import { Control, DockContainer, Splitter, TabPanel } from "../../base/controls/control";
-import { DataTable, DataTableRow, DataTableColumn } from "../../base/controls/data.component";
-import { ComboControl, MetaControl } from "../../base/controls/user.component";
+import {
+  Control, DockContainer, Splitter, TabPanel,
+  MetaControl, ComboControl, DataTable,
+  DataTableRow, DataTableColumn
+}
+  from "../../base/controls/control";
 
 @Component({
   selector: "body",
@@ -45,8 +48,8 @@ export class SingletonWindowComponent implements OnInit {
     let row1: DockContainer = new DockContainer("h", null, 800);
 
     let leftPanel: TabPanel = new TabPanel();
-    leftPanel.addTab("Toolbox", "Toolbox");
-    leftPanel.addTab("Server", "Server");
+    leftPanel.addTab2("Toolbox", "Toolbox");
+    leftPanel.addTab2("Server", "Server");
     leftPanel.setActive("Toolbox");
     let row1col1 = new DockContainer("v").addChild(leftPanel);
     // col 1
@@ -56,38 +59,38 @@ export class SingletonWindowComponent implements OnInit {
     // col 2
     let btn_dayview = new MetaControl("button");
     btn_dayview.Name = "test";
-    btn_dayview.Value = "AllDayView";
+    btn_dayview.Text = "AllDayView";
 
     let lbl_min = new MetaControl("label");
-    lbl_min.Value = "Min:";
+    lbl_min.Text = "Min:";
 
     let txt_min = new MetaControl("textbox");
     txt_min.Name = "min";
     txt_min.ModelVal = "";
 
     let lbl_max = new MetaControl("label");
-    lbl_max.Value = "Max:";
+    lbl_max.Text = "Max:";
 
     let txt_max = new MetaControl("textbox");
     txt_max.Name = "max";
     txt_max.ModelVal = "";
 
     let lbl_tick = new MetaControl("label");
-    lbl_tick.Value = "Tick:";
+    lbl_tick.Text = "Tick:";
 
     let txt_tick = new MetaControl("textbox");
     txt_tick.Name = "Tick";
     txt_tick.ModelVal = "";
 
     let lbl_TimeRange = new MetaControl("label");
-    lbl_TimeRange.Value = "TimeRange:";
+    lbl_TimeRange.Text = "TimeRange:";
 
     let txt_TimeRange = new MetaControl("textbox");
     txt_TimeRange.Name = "TimeRange";
     txt_TimeRange.ModelVal = "";
 
     let lbl_Slippage = new MetaControl("label");
-    lbl_Slippage.Value = "Slippage:";
+    lbl_Slippage.Text = "Slippage:";
 
     let txt_Slippage = new MetaControl("textbox");
     txt_Slippage.Name = "Slippage";
@@ -114,10 +117,13 @@ export class SingletonWindowComponent implements OnInit {
     btn_dayview.onClick(() => {
       for (let i = 0; i < 100; ++i) {
         let row = table.newRow();
-        row.values[0] = "leige";
-        row.values[1] = "1212";
-        row.values[2] = "男";
-        row.values[3] = "100.1";
+        row.cells[0].Text = "leige";
+        row.cells[0].Type = "button";
+        row.cells[0].Class = "info";
+        row.cells[1].ModelVal = "18";
+        row.cells[1].ReadOnly = true;
+        row.cells[2].ModelVal = "男";
+        row.cells[3].ModelVal = "100.1";
       }
     });
 

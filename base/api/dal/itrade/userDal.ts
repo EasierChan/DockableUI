@@ -14,18 +14,22 @@ import { IApp, UserProfile } from "../../model/app.model";
  */
 export class UserDal extends EventEmitter {
     private static _db: Db;
+    private static _bConnected: boolean;
     constructor(url = "mongodb://172.24.13.5:27016/itrade", bReset = false) {
         super();
+        this.init();
     }
 
     init(url = "mongodb://172.24.13.5:27016/itrade", bReset = false): void {
         let self = this;
-        if (bReset === false && UserDal._db)
+        if (bReset === false && UserDal._db && UserDal._bConnected) {
+            this.emit("connect");
             return;
+        }
         // Use connect method to connect to the server
         MongoClient.connect(url, (err, db) => {
             if (err) {
-                DefaultLogger.error(err);
+                DefaultLogger.error(err.message);
                 self.emit("error", err);
                 return;
             }
@@ -38,41 +42,23 @@ export class UserDal extends EventEmitter {
                     return;
                 }
                 self.emit("connect");
+                UserDal._bConnected = true;
             });
         });
     }
 
-    authorize(username: string, password: string): void {
-        if (UserDal._db === null) {
-            this.emit("error", "need a db instance.");
-            return;
-        }
-
+    getUserProfile(username: string, password: string): void {
         let self = this;
-        const userprofiles: Collection = UserDal._db.collection("users");
-        userprofiles.count({ name: username, password: password }, (err, nRet) => {
-            if (err) {
-                DefaultLogger.error(err);
-                self.emit("error", err);
-                return;
-            }
-
-            if (nRet > 0)
-                self.emit("authorize", true);
-            else
-                self.emit("authorize", false);
+        this.on("connect", () => {
+            const userprofiles: Collection = UserDal._db.collection("users");
+            userprofiles.find({ name: username, password: password }, null, 0, 1, 1000).next((err, result) => {
+                if (err) {
+                    self.emit("error", err);
+                    return;
+                }
+                self.emit("userprofile", result);
+            });
         });
-    }
-
-    getUserProfile(username: string): void {
-        let self = this;
-        const userprofiles: Collection = UserDal._db.collection("users");
-        userprofiles.find({ name: username }, null, 0, 1, 1000).next((err, result) => {
-            if (err) {
-                self.emit("error", err);
-                return;
-            }
-            self.emit("userprofile", result);
-        });
+        this.init();
     }
 }

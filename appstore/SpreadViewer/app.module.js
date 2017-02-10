@@ -13,7 +13,6 @@ var platform_browser_1 = require("@angular/platform-browser");
 var forms_1 = require("@angular/forms");
 var common_1 = require("@angular/common");
 var app_component_1 = require("./app.component");
-var control_1 = require("../../base/controls/control");
 var data_component_1 = require("../../base/controls/data.component");
 var user_component_1 = require("../../base/controls/user.component");
 var AppModule = (function () {
@@ -28,7 +27,7 @@ var AppModule = (function () {
             ],
             declarations: [
                 app_component_1.AppComponent,
-                control_1.DockContainerComponent,
+                user_component_1.DockContainerComponent,
                 data_component_1.DataTableComponent,
                 data_component_1.EChartComponent,
                 user_component_1.UserControlComponent

@@ -7,7 +7,6 @@ var fs = require("fs");
 var path = require("path");
 var windows_1 = require("./windows");
 var logger_1 = require("../base/logger");
-var userDal_1 = require("../../dal/itrade/userDal");
 var AppStore = (function () {
     function AppStore() {
     }
@@ -48,40 +47,45 @@ var AppStore = (function () {
             event.returnValue = AppStore.startupAnApp(appname);
         });
         electron_1.ipcMain.on("appstore://login", function (event, loginInfo) {
-            if (AppStore._appInfo) {
-                event.returnValue = AppStore._appInfo;
-                return;
-            }
-            AppStore._userDal = AppStore._userDal || new userDal_1.UserDal();
-            AppStore._userDal.init();
-            AppStore._userDal.on("error", function (error) {
-                if (event !== null)
-                    event.returnValue = false;
-                AppStore._bAuthorized = false;
-            });
-            AppStore._userDal.on("connect", function () {
-                AppStore._userDal.authorize(loginInfo.username, loginInfo.password);
-            });
-            AppStore._userDal.on("authorize", function (bRet) {
-                AppStore._bAuthorized = bRet;
-                if (bRet === true) {
-                    AppStore._userDal.getUserProfile(loginInfo.username);
+            // begin test
+            var apps = [
+                {
+                    id: "DockDemo",
+                    name: "DockDemo",
+                    desc: "TradeMonitor",
+                    category: "Transanctional"
                 }
-                else {
-                    if (event !== null)
-                        event.returnValue = bRet;
-                }
+            ];
+            var appIds = [];
+            apps.forEach(function (item) {
+                appIds.push(item.id);
             });
-            AppStore._userDal.on("userprofile", function (res) {
-                var appIds = [];
-                res.apps.forEach(function (item) {
-                    appIds.push(item.id);
-                });
-                AppStore.initStore(appIds);
-                AppStore._appInfo = res.apps;
-                if (event !== null)
-                    event.returnValue = AppStore._appInfo;
-            });
+            AppStore.initStore(appIds);
+            AppStore._appInfo = apps;
+            event.returnValue = apps;
+            return;
+            // end test
+            // if (AppStore._appInfo) {
+            //     event.returnValue = AppStore._appInfo;
+            //     return;
+            // }
+            // AppStore._userDal = AppStore._userDal || new UserDal();
+            // AppStore._userDal.on("error", (error) => {
+            //     if (event !== null)
+            //         event.returnValue = false;
+            //     AppStore._bAuthorized = false;
+            // });
+            // AppStore._userDal.getUserProfile(loginInfo.username, loginInfo.password);
+            // AppStore._userDal.on("userprofile", (res) => {
+            //     let appIds = [];
+            //     res.apps.forEach((item) => {
+            //         appIds.push(item.id);
+            //     });
+            //     AppStore.initStore(appIds);
+            //     AppStore._appInfo = res.apps;
+            //     if (event !== null)
+            //         event.returnValue = AppStore._appInfo;
+            // });
         });
         // set tray icon
         AppStore._tray = new electron_1.Tray(path.join(__dirname, "..", "..", "..", "images", "AppStore.png"));
