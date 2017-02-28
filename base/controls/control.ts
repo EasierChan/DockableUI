@@ -2,6 +2,7 @@
  * created by chenlei
  */
 import { PriceService } from "../../base/api/services/priceService";
+const EventEmitter = require("@node/events");
 
 export interface CssStyle {
   type: string;
@@ -194,11 +195,11 @@ export class ComboControl extends Control {
     return this;
   }
 
-  set MinHeight(value: number){
+  set MinHeight(value: number) {
     this.styleObj.minHeight = value;
   }
 
-  set MinWidth(value: number){
+  set MinWidth(value: number) {
     this.styleObj.minWidth = value;
   }
 }
@@ -218,29 +219,29 @@ export class MetaControl extends Control {
     this.styleObj.top = 0;
   }
 
-  onClick(aaa: any): void {
-    this.dataSource.click = aaa;
+  set OnClick(value: Function) {
+    this.dataSource.click = value;
     // console.log(JSON.stringify(this.dataSource));
   }
 
-  set Class(classStr: string) {
-    this.className = classStr;
+  set Class(value: string) {
+    this.className = value;
   }
 
-  set Text(text: string) {
-    this.dataSource.text = text;
+  set Text(value: any) {
+    this.dataSource.text = value;
   }
 
-  set ModelVal(value: string) {
-    this.dataSource.modelVal = value;
+  get Text(): any {
+    return this.dataSource.text;
   }
 
-  get ModelVal(): string {
-    return this.dataSource.modelVal;
+  set Title(value: string) {
+    this.dataSource.title = value;
   }
 
-  set Name(name: string) {
-    this.dataSource.name = name;
+  set Name(value: string) {
+    this.dataSource.name = value;
   }
 
   set Left(value: number) {
@@ -250,6 +251,18 @@ export class MetaControl extends Control {
   set Top(value: number) {
     this.styleObj.top = value;
   }
+
+  set Width(value: number) {
+    this.styleObj.width = value;
+  }
+
+  set ReadOnly(value: boolean) {
+    this.styleObj.readonly = value;
+  }
+
+  set Disable(value: boolean) {
+    this.styleObj.disable = value;
+  }
 }
 
 export class DropDown extends MetaControl {
@@ -257,13 +270,19 @@ export class DropDown extends MetaControl {
     super("dropdown");
     this.dataSource.items = new Array<DropDownItem>();
     this.dataSource.selectedItem = null;
-    this.dataSource.dropdown = false;
+    this.styleObj.dropdown = false;
     this.dataSource.click = () => {
-      this.dataSource.dropdown = !this.dataSource.dropdown;
+      this.styleObj.dropdown = !this.styleObj.dropdown;
     };
-    this.dataSource.onselect = (item) => {
-      this.dataSource.selectedItem = item;
-      this.dataSource.dropdown = false;
+    this.dataSource.select = (item) => {
+      if (this.dataSource.selectedItem !== item) {
+        this.dataSource.selectedItem = item;
+        if (this.dataSource.selectchange) {
+          this.dataSource.selectchange(item);
+        }
+      }
+      this.styleObj.dropdown = false;
+
     };
   }
 
@@ -274,6 +293,18 @@ export class DropDown extends MetaControl {
 
   set SelectedItem(value: DropDownItem) {
     this.dataSource.selectedItem = value;
+  }
+
+  get SelectedItem(): DropDownItem {
+    return this.dataSource.selectedItem;
+  }
+
+  get Items(): DropDownItem[] {
+    return this.dataSource.items;
+  }
+
+  set SelectChange(value: Function) {
+    this.dataSource.selectchange = value;
   }
 }
 
@@ -721,17 +752,16 @@ export class SpreadViewer {
 export class DataTable extends Control {
   public columns: DataTableColumn[] = [];
   public rows: DataTableRow[] = [];
-  public enableFooter: boolean = false;
-  constructor() {
+  constructor(type: string = "table") {
     super();
     this.className = "table";
     this.dataSource = {
+      headerColumnCount: 0,
       columns: null,
       rows: null,
-      enableFooter: this.enableFooter,
-      bRowHeader: true
+      bRowIndex: true
     };
-    this.styleObj = { type: null, width: null, height: null };
+    this.styleObj = { type: type, width: null, height: null };
   }
 
   newRow(): DataTableRow {
@@ -741,8 +771,8 @@ export class DataTable extends Control {
     return row;
   }
 
-  set RowHeader(value: boolean) {
-    this.dataSource.bRowHeader = value;
+  set RowIndex(value: boolean) {
+    this.dataSource.bRowIndex = value;
   }
 
   addColumn(...columns: string[]): DataTable {
@@ -750,28 +780,54 @@ export class DataTable extends Control {
     this.dataSource.columns = this.columns;
     return this;
   }
+
+  set OnCellClick(value: Function) {
+    this.rows.forEach(row => row.OnCellClick = value);
+  }
+
+  set OnRowClick(value: Function) {
+    this.rows.forEach(row => row.OnRowClick = value);
+  }
 }
 
-export class DataTableRow {
+export class DataTableRow extends Control {
   cells: DataTableRowCell[] = [];
   constructor(private columns: number) {
+    super();
+    this.dataSource = {
+      cellclick: () => { },
+      rowclick: () => { }
+    };
+
     for (let i = 0; i < columns; ++i) {
       this.cells.push(new DataTableRowCell());
+      this.cells[i].OnClick = (cellIndex, rowIndex) => {
+        if (this.dataSource.cellclick) {
+          this.dataSource.cellclick(this.cells[cellIndex], cellIndex, rowIndex);
+        }
+        if (this.dataSource.rowclick) {
+          this.dataSource.rowclick(this, rowIndex);
+        }
+      };
     }
+  }
+
+  set OnCellClick(value: Function) {
+    this.dataSource.cellclick = value;
+  }
+
+  set OnRowClick(value: Function) {
+    this.dataSource.rowclick = value;
   }
 }
 
 export class DataTableRowCell extends MetaControl {
-  constructor(type: string = "textbox") {
+  constructor(type: string = "plaintext") {
     super(type);
   }
 
   set Type(value: string) {
     this.styleObj.type = value;
-  }
-
-  set ReadOnly(value: boolean) {
-    this.dataSource.readonly = value;
   }
 }
 

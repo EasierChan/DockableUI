@@ -48,7 +48,7 @@ export class AppStore {
 
     public static bootstrap(): void {
         AppStore.parseCommandArgs();
-        let contentWindow: ContentWindow = new ContentWindow({ state: { x: 200, y: 100, width: 1000, height: 600 } });
+        let contentWindow: ContentWindow = new ContentWindow({ state: { x: 0, y: 0, width: 1000, height: 800 } });
         contentWindow.loadURL(path.join(AppStore._appstoreHome, "..", "workbench", "index.html"));
         AppStore._apps[AppStore._workbench] = contentWindow;
 

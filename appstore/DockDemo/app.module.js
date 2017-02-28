@@ -29,6 +29,7 @@ var AppModule = (function () {
                 app_component_1.AppComponent,
                 user_component_1.DockContainerComponent,
                 data_component_1.DataTableComponent,
+                data_component_1.ScrollerBarTable,
                 data_component_1.EChartComponent,
                 user_component_1.UserControlComponent
             ],

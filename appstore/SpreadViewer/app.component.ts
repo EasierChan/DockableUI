@@ -56,7 +56,7 @@ export class AppComponent implements OnInit {
     let txt_min = new MetaControl("textbox");
     txt_min.Class = "sd-input";
     txt_min.Name = "min";
-    txt_min.ModelVal = "";
+    txt_min.Text = "";
 
     let lbl_max = new MetaControl("label");
     lbl_max.Text = "Max:";
@@ -64,7 +64,7 @@ export class AppComponent implements OnInit {
     let txt_max = new MetaControl("textbox");
     txt_max.Class = "sd-input";
     txt_max.Name = "max";
-    txt_max.ModelVal = "";
+    txt_max.Text = "";
 
     let lbl_tick = new MetaControl("label");
     lbl_tick.Text = "Tick:";
@@ -72,7 +72,7 @@ export class AppComponent implements OnInit {
     let txt_tick = new MetaControl("textbox");
     txt_tick.Class = "sd-input";
     txt_tick.Name = "Tick";
-    txt_tick.ModelVal = "";
+    txt_tick.Text = "";
 
     let lbl_TimeRange = new MetaControl("label");
     lbl_TimeRange.Text = "TimeRange:";
@@ -80,7 +80,7 @@ export class AppComponent implements OnInit {
     let txt_TimeRange = new MetaControl("textbox");
     txt_TimeRange.Class = "sd-input";
     txt_TimeRange.Name = "TimeRange";
-    txt_TimeRange.ModelVal = "";
+    txt_TimeRange.Text = "";
 
     let lbl_Slippage = new MetaControl("label");
     lbl_Slippage.Text = "Slippage:";
@@ -88,7 +88,7 @@ export class AppComponent implements OnInit {
     let txt_Slippage = new MetaControl("textbox");
     txt_Slippage.Class = "sd-input";
     txt_Slippage.Name = "Slippage";
-    txt_Slippage.ModelVal = "";
+    txt_Slippage.Text = "";
 
 
     let headControls = new ComboControl("row");
@@ -112,11 +112,11 @@ export class AppComponent implements OnInit {
       this.spreadviewers[index].hidden();
       body.addChild(this.spreadviewers[index].ControlRef);
     });
-    btn_dayview.onClick(() => {
+    btn_dayview.OnClick(() => {
       let yaxis: any = {};
-      if (txt_min.ModelVal.length > 0) yaxis.min = parseFloat(txt_min.ModelVal);
-      if (txt_max.ModelVal.length > 0) yaxis.max = parseFloat(txt_max.ModelVal);
-      if (txt_tick.ModelVal.length > 0) yaxis.interval = parseFloat(txt_tick.ModelVal);
+      if (txt_min.Text.length > 0) yaxis.min = parseFloat(txt_min.Text);
+      if (txt_max.Text.length > 0) yaxis.max = parseFloat(txt_max.Text);
+      if (txt_tick.Text.length > 0) yaxis.interval = parseFloat(txt_tick.Text);
 
       this.currentViewer.setEChartOption({ yAxis: yaxis });
 

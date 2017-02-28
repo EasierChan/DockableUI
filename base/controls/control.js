@@ -4,6 +4,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
+var EventEmitter = require("@node/events");
 var Control = (function () {
     function Control() {
     }
@@ -227,37 +228,41 @@ var MetaControl = (function (_super) {
         this.styleObj.left = 2;
         this.styleObj.top = 0;
     }
-    MetaControl.prototype.onClick = function (aaa) {
-        this.dataSource.click = aaa;
-        // console.log(JSON.stringify(this.dataSource));
-    };
+    Object.defineProperty(MetaControl.prototype, "OnClick", {
+        set: function (value) {
+            this.dataSource.click = value;
+            // console.log(JSON.stringify(this.dataSource));
+        },
+        enumerable: true,
+        configurable: true
+    });
     Object.defineProperty(MetaControl.prototype, "Class", {
-        set: function (classStr) {
-            this.className = classStr;
+        set: function (value) {
+            this.className = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MetaControl.prototype, "Text", {
-        set: function (text) {
-            this.dataSource.text = text;
+        get: function () {
+            return this.dataSource.text;
+        },
+        set: function (value) {
+            this.dataSource.text = value;
         },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(MetaControl.prototype, "ModelVal", {
-        get: function () {
-            return this.dataSource.modelVal;
-        },
+    Object.defineProperty(MetaControl.prototype, "Title", {
         set: function (value) {
-            this.dataSource.modelVal = value;
+            this.dataSource.title = value;
         },
         enumerable: true,
         configurable: true
     });
     Object.defineProperty(MetaControl.prototype, "Name", {
-        set: function (name) {
-            this.dataSource.name = name;
+        set: function (value) {
+            this.dataSource.name = value;
         },
         enumerable: true,
         configurable: true
@@ -276,6 +281,27 @@ var MetaControl = (function (_super) {
         enumerable: true,
         configurable: true
     });
+    Object.defineProperty(MetaControl.prototype, "Width", {
+        set: function (value) {
+            this.styleObj.width = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MetaControl.prototype, "ReadOnly", {
+        set: function (value) {
+            this.styleObj.readonly = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MetaControl.prototype, "Disable", {
+        set: function (value) {
+            this.styleObj.disable = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return MetaControl;
 }(Control));
 exports.MetaControl = MetaControl;
@@ -286,13 +312,18 @@ var DropDown = (function (_super) {
         _super.call(this, "dropdown");
         this.dataSource.items = new Array();
         this.dataSource.selectedItem = null;
-        this.dataSource.dropdown = false;
+        this.styleObj.dropdown = false;
         this.dataSource.click = function () {
-            _this.dataSource.dropdown = !_this.dataSource.dropdown;
+            _this.styleObj.dropdown = !_this.styleObj.dropdown;
         };
-        this.dataSource.onselect = function (item) {
-            _this.dataSource.selectedItem = item;
-            _this.dataSource.dropdown = false;
+        this.dataSource.select = function (item) {
+            if (_this.dataSource.selectedItem !== item) {
+                _this.dataSource.selectedItem = item;
+                if (_this.dataSource.selectchange) {
+                    _this.dataSource.selectchange(item);
+                }
+            }
+            _this.styleObj.dropdown = false;
         };
     }
     DropDown.prototype.addItem = function (item) {
@@ -300,8 +331,25 @@ var DropDown = (function (_super) {
         this.dataSource.selectedItem = this.dataSource.items[0];
     };
     Object.defineProperty(DropDown.prototype, "SelectedItem", {
+        get: function () {
+            return this.dataSource.selectedItem;
+        },
         set: function (value) {
             this.dataSource.selectedItem = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DropDown.prototype, "Items", {
+        get: function () {
+            return this.dataSource.items;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DropDown.prototype, "SelectChange", {
+        set: function (value) {
+            this.dataSource.selectchange = value;
         },
         enumerable: true,
         configurable: true
@@ -689,19 +737,19 @@ var SpreadViewer = (function () {
 exports.SpreadViewer = SpreadViewer;
 var DataTable = (function (_super) {
     __extends(DataTable, _super);
-    function DataTable() {
+    function DataTable(type) {
+        if (type === void 0) { type = "table"; }
         _super.call(this);
         this.columns = [];
         this.rows = [];
-        this.enableFooter = false;
         this.className = "table";
         this.dataSource = {
+            headerColumnCount: 0,
             columns: null,
             rows: null,
-            enableFooter: this.enableFooter,
-            bRowHeader: true
+            bRowIndex: true
         };
-        this.styleObj = { type: null, width: null, height: null };
+        this.styleObj = { type: type, width: null, height: null };
     }
     DataTable.prototype.newRow = function () {
         var row = new DataTableRow(this.columns.length);
@@ -709,9 +757,9 @@ var DataTable = (function (_super) {
         this.dataSource.rows = this.rows;
         return row;
     };
-    Object.defineProperty(DataTable.prototype, "RowHeader", {
+    Object.defineProperty(DataTable.prototype, "RowIndex", {
         set: function (value) {
-            this.dataSource.bRowHeader = value;
+            this.dataSource.bRowIndex = value;
         },
         enumerable: true,
         configurable: true
@@ -726,36 +774,72 @@ var DataTable = (function (_super) {
         this.dataSource.columns = this.columns;
         return this;
     };
+    Object.defineProperty(DataTable.prototype, "OnCellClick", {
+        set: function (value) {
+            this.rows.forEach(function (row) { return row.OnCellClick = value; });
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DataTable.prototype, "OnRowClick", {
+        set: function (value) {
+            this.rows.forEach(function (row) { return row.OnRowClick = value; });
+        },
+        enumerable: true,
+        configurable: true
+    });
     return DataTable;
 }(Control));
 exports.DataTable = DataTable;
-var DataTableRow = (function () {
+var DataTableRow = (function (_super) {
+    __extends(DataTableRow, _super);
     function DataTableRow(columns) {
+        var _this = this;
+        _super.call(this);
         this.columns = columns;
         this.cells = [];
+        this.dataSource = {
+            cellclick: function () { },
+            rowclick: function () { }
+        };
         for (var i = 0; i < columns; ++i) {
             this.cells.push(new DataTableRowCell());
+            this.cells[i].OnClick = function (cellIndex, rowIndex) {
+                if (_this.dataSource.cellclick) {
+                    _this.dataSource.cellclick(_this.cells[cellIndex], cellIndex, rowIndex);
+                }
+                if (_this.dataSource.rowclick) {
+                    _this.dataSource.rowclick(_this, rowIndex);
+                }
+            };
         }
     }
+    Object.defineProperty(DataTableRow.prototype, "OnCellClick", {
+        set: function (value) {
+            this.dataSource.cellclick = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DataTableRow.prototype, "OnRowClick", {
+        set: function (value) {
+            this.dataSource.rowclick = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
     return DataTableRow;
-}());
+}(Control));
 exports.DataTableRow = DataTableRow;
 var DataTableRowCell = (function (_super) {
     __extends(DataTableRowCell, _super);
     function DataTableRowCell(type) {
-        if (type === void 0) { type = "textbox"; }
+        if (type === void 0) { type = "plaintext"; }
         _super.call(this, type);
     }
     Object.defineProperty(DataTableRowCell.prototype, "Type", {
         set: function (value) {
             this.styleObj.type = value;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    Object.defineProperty(DataTableRowCell.prototype, "ReadOnly", {
-        set: function (value) {
-            this.dataSource.readonly = value;
         },
         enumerable: true,
         configurable: true

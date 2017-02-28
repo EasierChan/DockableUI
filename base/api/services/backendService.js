@@ -25,4 +25,43 @@ var AppStoreService = (function () {
     return AppStoreService;
 }());
 exports.AppStoreService = AppStoreService;
+var Menu = (function () {
+    function Menu() {
+        this._menu = new electron.remote.Menu();
+    }
+    Menu.prototype.addItem = function (menuItem, pos) {
+        if (pos) {
+            this._menu.insert(pos, menuItem);
+        }
+        else {
+            this._menu.append(menuItem);
+        }
+    };
+    Menu.prototype.popup = function (x, y) {
+        this._menu.popup();
+    };
+    Menu = __decorate([
+        core_1.Injectable(), 
+        __metadata('design:paramtypes', [])
+    ], Menu);
+    return Menu;
+}());
+exports.Menu = Menu;
+var MenuItem = (function () {
+    function MenuItem() {
+    }
+    Object.defineProperty(MenuItem.prototype, "submenu", {
+        set: function (value) {
+            this._submenu = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    MenuItem = __decorate([
+        core_1.Injectable(), 
+        __metadata('design:paramtypes', [])
+    ], MenuItem);
+    return MenuItem;
+}());
+exports.MenuItem = MenuItem;
 //# sourceMappingURL=backendService.js.map

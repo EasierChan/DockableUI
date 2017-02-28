@@ -3,7 +3,10 @@
  * author: chenlei
  * desc: components for acesss data, such as datatable, treeview, charts, 
  */
-import { Component, Input, OnInit, AfterViewInit, Directive, ElementRef, Renderer } from "@angular/core";
+import {
+  Component, ViewChild, ContentChild, Input, OnInit, AfterViewInit,
+  Directive, ElementRef, Renderer, HostListener
+} from "@angular/core";
 import { Control, MetaControl, CssStyle, DataTable } from "./control";
 
 const echarts: ECharts = require("../script/echart/echarts");
@@ -11,38 +14,13 @@ const echarts: ECharts = require("../script/echart/echarts");
 @Component({
   moduleId: module.id,
   selector: "dock-table",
-  template: `
-        <table class="table table-condensed table-hover">
-          <thead>
-            <tr>
-              <th *ngIf="dataSource.bRowHeader">#</th>
-              <th *ngFor="let col of dataSource.columns">
-                {{col.columnHeader}}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of curData.rows;let i = index;">
-              <td *ngIf="dataSource.bRowHeader">{{i + 1 + pageSize * curPage}}</td>
-              <td *ngFor="let cell of row.cells">
-                <button *ngIf="cell.styleObj.type=='button'" class="btn btn-default btn-{{cell.className}} btn-xs " [name]="cell.dataSource.name"
-                  (click)="cell.dataSource.click()">
-                    {{cell.dataSource.text}}
-                </button>
-                <input type="text" *ngIf="cell.styleObj.type=='textbox'" [(ngModel)]="cell.dataSource.modelVal"
-                 [readonly]="cell.dataSource.readonly" [name]="cell.dataSource.name"
-                  class="btn-default btn-{{cell.className}} btn-xs">
-              </td>
-            </tr>
-          </tbody>
-        </table>
-    `,
+  templateUrl: "data.table.html",
   inputs: ["className", "dataSource"]
 })
 export class DataTableComponent implements OnInit, AfterViewInit {
   className: string;
-  dataSource: DataTable;
-  curData: DataTable;
+  dataSource: any;
+  curData: any;
   pageSize: number;
   curPage: number;
 
@@ -54,8 +32,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
       // e.deltaY < 0  move up
       if (e.deltaY < 0 && this.curPage > 0) {
         --this.curPage;
-      }
-      else if (e.deltaY > 0 && this.dataSource.rows.length / this.pageSize - 1 > this.curPage) {
+      } else if (e.deltaY > 0 && this.dataSource.rows.length / this.pageSize - 1 > this.curPage) {
         ++this.curPage;
       }
       this.curData.rows = this.dataSource.rows.slice(this.curPage * this.pageSize);
@@ -64,6 +41,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     });
   }
 
+
   ngOnInit(): void {
     this.curPage = 0;
     this.pageSize = 10;
@@ -71,6 +49,121 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
+  }
+}
+
+
+@Directive({ selector: ".vscrollerbar .thumb" })
+export class VThumb {
+}
+
+@Directive({ selector: ".scroller-table" })
+export class TableDirective {
+}
+
+@Component({
+  moduleId: module.id,
+  selector: "dock-table2",
+  templateUrl: "data.scrollerbar-table.html",
+  inputs: ["className", "dataSource"]
+})
+export class ScrollerBarTable implements AfterViewInit {
+  className: string;
+  dataSource: any;
+  curData: any;
+  iFirstRow: number = 0;
+
+  scrollTop: number = 0;
+  bScrollStart: boolean = false;
+  startPositionY: number = 0;
+  thumbHeight: number = 0;
+  clientHeight: number = 0;
+  scrollHeight: number;
+
+  private rowHeight = 22;
+
+  @ViewChild("vthumb") vThumb: ElementRef;
+  @ViewChild("scollerTable") scollerTable: ElementRef;
+
+  constructor(private ele: ElementRef, private render: Renderer) { }
+
+  ngOnInit(): void {
+    this.curData = this.dataSource;
+  }
+
+  ngAfterViewInit(): void {
+    if (this.scollerTable.nativeElement === null)
+      console.error("not supported in webworker.");
+  }
+
+  @HostListener("mouseenter") onMouseEnter() {
+    this.scrollHeight = (this.dataSource.rows.length + 1) * this.rowHeight;
+    if (this.scrollHeight > this.scollerTable.nativeElement.clientHeight - this.rowHeight) {
+      this.clientHeight = this.scollerTable.nativeElement.clientHeight - this.rowHeight;
+      let scrollDiff = this.scrollHeight - this.clientHeight;
+      this.thumbHeight = this.clientHeight - scrollDiff;
+      this.render.setElementStyle(this.vThumb.nativeElement, "height", this.thumbHeight.toString());
+      this.render.setElementStyle(this.vThumb.nativeElement, "display", "block");
+    }
+  }
+
+  @HostListener("mouseleave") onMouseLeave() {
+    this.render.setElementStyle(this.vThumb.nativeElement, "display", "none");
+  }
+
+  onTrackClick(e: MouseEvent) {
+    if (e.target !== e.currentTarget)
+      return;
+    let moveY = e.offsetY - this.scrollTop; // relative distance.
+    if (this.scrollTop + moveY < 0) {
+      this.scrollTop = 0;
+    } else if (moveY + this.thumbHeight + this.scrollTop > this.clientHeight) {
+      this.scrollTop = this.clientHeight - this.thumbHeight;
+    } else {
+      this.scrollTop += moveY;
+    }
+    // console.log(this.scrollTop, this.thumbHeight, e.offsetY, moveY, this.clientHeight);
+    this.render.setElementStyle(this.vThumb.nativeElement, "margin-top", this.scrollTop.toString());
+    this.refreshDataTable();
+    moveY = null;
+  }
+
+  onScrollStart(type: string, e: MouseEvent) {
+    this.bScrollStart = true;
+    this.startPositionY = e.pageY;
+
+    document.onmouseup = (e) => {
+      if (!this.bScrollStart)
+        return;
+
+      this.bScrollStart = false;
+    };
+
+    document.onmousemove = (e) => {
+      if (!this.bScrollStart)
+        return;
+      let moveY = e.pageY - this.startPositionY;
+      if (this.scrollTop + moveY < 0) {
+        this.scrollTop = 0;
+      } else if (moveY + this.thumbHeight + this.scrollTop > this.clientHeight) {
+        this.scrollTop = this.clientHeight - this.thumbHeight;
+      } else {
+        this.scrollTop += moveY;
+      }
+      this.startPositionY = e.pageY;
+      this.render.setElementStyle(this.vThumb.nativeElement, "margin-top", this.scrollTop.toString());
+      this.refreshDataTable();
+      moveY = null;
+    };
+  }
+
+  refreshDataTable() {
+    this.iFirstRow = Math.floor(this.scrollTop / this.rowHeight);
+    this.curData = new DataTable();
+    if (!this.dataSource.rows || this.dataSource.rows.length === 0)
+      return;
+
+    this.curData.rows = this.dataSource.rows.slice(this.iFirstRow);
   }
 }
 

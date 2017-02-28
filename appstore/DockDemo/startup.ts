@@ -22,7 +22,7 @@ export class StartUp implements IApplication {
         // });
         // menuWindow.loadURL(__dirname + "/appstore/start/sample.html");
         // this._windowMgr.addMenuWindow(menuWindow);
-        let contentWindow: ContentWindow = new ContentWindow();
+        let contentWindow: ContentWindow = new ContentWindow({ state: { x: 0, y: 0, width: 1200, height: 800 } });
         contentWindow.loadURL(path.join(__dirname, "index.html"));
         contentWindow.setMenuBarVisibility(true);
         this._windowMgr.addContentWindow(contentWindow);

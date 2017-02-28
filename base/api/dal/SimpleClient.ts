@@ -1,6 +1,6 @@
-import {IResolver}  from "../common/base/resolver";
-import {TcpClient} from "../common/base/client";
-import {DefaultLogger} from "../common/base/logger";
+import { IResolver } from "../common/base/resolver";
+import { TcpClient } from "../common/base/client";
+import { DefaultLogger } from "../common/base/logger";
 
 /**
  * QtpMessageClient
@@ -29,7 +29,7 @@ export class SimpleClient extends TcpClient {
         header = null;
     }
 
-    onReceived(data: any): void{
+    onReceived(data: any): void {
         // TODO deal the json Object Data.
         DefaultLogger.info(data);
     }

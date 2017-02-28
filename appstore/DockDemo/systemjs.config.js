@@ -24,7 +24,7 @@
       //'@angular/router': 'npm:@angular/router/bundles/router.umd.js',
       '@angular/forms': 'npm:@angular/forms/bundles/forms.umd.js',
       //'@angular/upgrade': 'npm:@angular/upgrade/bundles/upgrade.umd.js',
-
+      
       // other libraries
       'controls/dockmanager': 'base:script/docklayout-core.js',
       'rxjs': 'npm:rxjs'

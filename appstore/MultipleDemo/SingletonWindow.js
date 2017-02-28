@@ -36,27 +36,27 @@ var SingletonWindowComponent = (function () {
         lbl_min.Text = "Min:";
         var txt_min = new control_1.MetaControl("textbox");
         txt_min.Name = "min";
-        txt_min.ModelVal = "";
+        txt_min.Text = "";
         var lbl_max = new control_1.MetaControl("label");
         lbl_max.Text = "Max:";
         var txt_max = new control_1.MetaControl("textbox");
         txt_max.Name = "max";
-        txt_max.ModelVal = "";
+        txt_max.Text = "";
         var lbl_tick = new control_1.MetaControl("label");
         lbl_tick.Text = "Tick:";
         var txt_tick = new control_1.MetaControl("textbox");
         txt_tick.Name = "Tick";
-        txt_tick.ModelVal = "";
+        txt_tick.Text = "";
         var lbl_TimeRange = new control_1.MetaControl("label");
         lbl_TimeRange.Text = "TimeRange:";
         var txt_TimeRange = new control_1.MetaControl("textbox");
         txt_TimeRange.Name = "TimeRange";
-        txt_TimeRange.ModelVal = "";
+        txt_TimeRange.Text = "";
         var lbl_Slippage = new control_1.MetaControl("label");
         lbl_Slippage.Text = "Slippage:";
         var txt_Slippage = new control_1.MetaControl("textbox");
         txt_Slippage.Name = "Slippage";
-        txt_Slippage.ModelVal = "";
+        txt_Slippage.Text = "";
         var headControls = new control_1.ComboControl("row");
         headControls.addChild(btn_dayview);
         headControls.addChild(lbl_min);
@@ -71,16 +71,16 @@ var SingletonWindowComponent = (function () {
         headControls.addChild(txt_Slippage);
         var table = new control_1.DataTable();
         table.addColumn("姓名").addColumn("年龄").addColumn("性别").addColumn("成绩");
-        btn_dayview.onClick(function () {
+        btn_dayview.OnClick(function () {
             for (var i = 0; i < 100; ++i) {
                 var row = table.newRow();
                 row.cells[0].Text = "leige";
                 row.cells[0].Type = "button";
                 row.cells[0].Class = "info";
-                row.cells[1].ModelVal = "18";
+                row.cells[1].Text = "18";
                 row.cells[1].ReadOnly = true;
-                row.cells[2].ModelVal = "男";
-                row.cells[3].ModelVal = "100.1";
+                row.cells[2].Text = "男";
+                row.cells[3].Text = "100.1";
             }
         });
         var body = new control_1.ComboControl("col");

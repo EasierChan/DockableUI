@@ -1,0 +1,40 @@
+<div #scollerTable class="scroller-table">
+  <table class="table table-condensed table-hover">
+    <thead>
+      <tr>
+        <th *ngIf="dataSource.bRowIndex">#</th>
+        <th *ngFor="let col of dataSource.columns">
+          {{col.columnHeader}}
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let row of curData.rows;let rowIdx = index;">
+        <td *ngIf="dataSource.bRowIndex">{{rowIdx + 1 + iFirstRow}}</td>
+          <td *ngFor="let cell of row.cells" (click)="cell.dataSource.click(cellIndex, rowIdx + pageSize * curPage)" [class]="cell.styleObj.type=='plaintext'? 'text-' + cell.className + ' bg-' + cell.className : null">
+            <button *ngIf="cell.styleObj.type=='button'" class="btn btn-default btn-{{cell.className}} btn-xs " [disabled]="cell.styleObj.disable"
+              [name]="cell.dataSource.name">
+              {{cell.dataSource.text}}
+            </button>
+            <input *ngIf="cell.styleObj.type=='textbox'" type="text" [(ngModel)]="cell.dataSource.text" [readonly]="cell.styleObj.readonly"
+              [name]="cell.dataSource.name" class="btn-default btn-{{cell.className}} btn-xs">
+            <span *ngIf="cell.styleObj.type=='plaintext'">{{cell.dataSource.text}}</span>
+          </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="vscrollerbar">
+    <div class="arrow-top"></div>
+    <div #vtrack class="tracker" (click)="onTrackClick($event)">
+      <div #vthumb class="thumb" (mousedown)="onScrollStart('v', $event)"></div>
+    </div>
+    <div class="arrow-bottom"></div>
+  </div>
+  <div class="hscrollerbar">
+    <div class="arrow-left"></div>
+    <div #htrack class="tracker" (click)="onTrackClick($event)">
+      <div #hthumb class="thumb" (mousedown)="onScrollStart('h', $event)"></div>
+    </div>
+    <div class="arrow-right"></div>
+  </div>
+</div>

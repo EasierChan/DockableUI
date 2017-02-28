@@ -9,7 +9,7 @@
 #workbench .title{
     flex: 0 0 30px;
     font-size: 20px;
-    line-height: 30px;
+    /*line-height: 30px;*/
     -webkit-user-select: none;
     user-select: none;
     -webkit-app-region: drag;
@@ -66,5 +66,50 @@
 #workbench > .body > .appstore{
     width: 100%;
     height: 100%;
+    position: relative;
     overflow-y: hidden;
+}
+
+.tile-area-controls {
+    position: fixed;
+    right: 40px;
+    top: 40px;
+}
+.pop-right {
+    height: 80%;
+    width: 600px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    display: flex;
+    flex-flow: column;
+}
+.pop-center {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-flow: column;
+}
+.pop-right > .header, .pop-center > .header {
+    flex: 0 0 auto;
+    padding: 5px;
+}
+.pop-right > .content, .pop-center > .content {
+    flex: auto;
+    padding: 5px 10px;
+    overflow-y: auto;
+}
+.pop-right > .footer, .pop-center > .footer {
+    flex: 0 0 auto;
+    padding: 10px 5px;
+}
+
+
+/* hack for metroui.css */
+.dropdown-toggle {
+    padding-left: 0.125rem;
+}
+
+.table td .input-control {
+    width: auto;
 }

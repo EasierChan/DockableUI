@@ -142,14 +142,79 @@ body,
 }
 
 /* table */
-dock-table{
+dock-table, dock-table2{
     min-width: 200px;
+    position: relative;
+    overflow-y: hidden;
+    flex: auto;
 }
+
 td {
     word-break: keep-all;
 }
 td input {
     width: 100%;
+}
+
+.scroller-table{
+    position: relative;
+    width: 100%;
+}
+.vscrollerbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.vscrollerbar .arrow-top,
+.vscrollerbar .arrow-bottom {
+    width: 100%;
+    flex: none;
+    background-color: transparent;
+}
+.vscrollerbar .arrow-top {
+    height: 22px;
+}
+.vscrollerbar .arrow-bottom {
+    height: 0px;
+}
+.vscrollerbar .tracker {
+    width: 100%;
+    flex: auto;
+    background-color: transparent;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+.vscrollerbar .thumb {
+    display: none;
+    width: 100%;
+    min-height: 10px;
+    background-color: rgba(120, 120, 120, 0.4);
+}
+.hscrollerbar{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    height: 8px;
+    display: flex;
+    flex-direction: column;
+}
+.hscrollerbar .arrow-left,
+.hscrollerbar .arrow-right {
+    display: none;
+    flex: none;
+}
+.hscrollerbar .tracker {
+    height: 100%;
+    flex: auto;
+    background-color: transparent;
+}
+.hscrollerbar .thumb {
+    display: none;
+    min-width: 10px;
+    height: 100%;
 }
 /*dock-nav*/
 
@@ -300,6 +365,38 @@ usercontrol.col{
 }
 span, th {
     white-space: nowrap;
+}
+
+input,
+button,
+label{
+    display: inline-flex;
+    margin: 0px;
+    line-height: 21px;
+    height: 21px;
+}
+button > pre, label > pre, pre {
+    display: inline-block;
+    padding: 0px;
+    margin: 0px;
+    background-color: transparent;
+    border: 0;
+    color: white;
+    line-height: 21px;
+}
+
+.dropdown-toggle, .dropdown-toggle > prev{
+    width: 100% !important;
+    text-align: left;
+}
+
+button > span.caret{
+    margin-top: 8px;
+    margin-left: 10px;
+}
+
+input[type="radio"], input[type="checkbox"]{
+    margin: 0;
 }
 /* echart */
 echart{

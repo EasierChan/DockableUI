@@ -18,7 +18,7 @@ var StartUp = (function () {
         // });
         // menuWindow.loadURL(__dirname + "/appstore/start/sample.html");
         // this._windowMgr.addMenuWindow(menuWindow);
-        var contentWindow = new backend_1.ContentWindow();
+        var contentWindow = new backend_1.ContentWindow({ state: { x: 0, y: 0, width: 1200, height: 800 } });
         contentWindow.loadURL(path.join(__dirname, "index.html"));
         contentWindow.setMenuBarVisibility(true);
         this._windowMgr.addContentWindow(contentWindow);

@@ -66,35 +66,35 @@ export class SingletonWindowComponent implements OnInit {
 
     let txt_min = new MetaControl("textbox");
     txt_min.Name = "min";
-    txt_min.ModelVal = "";
+    txt_min.Text = "";
 
     let lbl_max = new MetaControl("label");
     lbl_max.Text = "Max:";
 
     let txt_max = new MetaControl("textbox");
     txt_max.Name = "max";
-    txt_max.ModelVal = "";
+    txt_max.Text = "";
 
     let lbl_tick = new MetaControl("label");
     lbl_tick.Text = "Tick:";
 
     let txt_tick = new MetaControl("textbox");
     txt_tick.Name = "Tick";
-    txt_tick.ModelVal = "";
+    txt_tick.Text = "";
 
     let lbl_TimeRange = new MetaControl("label");
     lbl_TimeRange.Text = "TimeRange:";
 
     let txt_TimeRange = new MetaControl("textbox");
     txt_TimeRange.Name = "TimeRange";
-    txt_TimeRange.ModelVal = "";
+    txt_TimeRange.Text = "";
 
     let lbl_Slippage = new MetaControl("label");
     lbl_Slippage.Text = "Slippage:";
 
     let txt_Slippage = new MetaControl("textbox");
     txt_Slippage.Name = "Slippage";
-    txt_Slippage.ModelVal = "";
+    txt_Slippage.Text = "";
 
 
     let headControls = new ComboControl("row");
@@ -114,16 +114,16 @@ export class SingletonWindowComponent implements OnInit {
     table.addColumn("姓名").addColumn("年龄").addColumn("性别").addColumn("成绩");
 
 
-    btn_dayview.onClick(() => {
+    btn_dayview.OnClick(() => {
       for (let i = 0; i < 100; ++i) {
         let row = table.newRow();
         row.cells[0].Text = "leige";
         row.cells[0].Type = "button";
         row.cells[0].Class = "info";
-        row.cells[1].ModelVal = "18";
+        row.cells[1].Text = "18";
         row.cells[1].ReadOnly = true;
-        row.cells[2].ModelVal = "男";
-        row.cells[3].ModelVal = "100.1";
+        row.cells[2].Text = "男";
+        row.cells[3].Text = "100.1";
       }
     });
 

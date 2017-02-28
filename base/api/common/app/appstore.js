@@ -36,7 +36,7 @@ var AppStore = (function () {
     };
     AppStore.bootstrap = function () {
         AppStore.parseCommandArgs();
-        var contentWindow = new windows_1.ContentWindow({ state: { x: 200, y: 100, width: 1000, height: 600 } });
+        var contentWindow = new windows_1.ContentWindow({ state: { x: 0, y: 0, width: 1000, height: 800 } });
         contentWindow.loadURL(path.join(AppStore._appstoreHome, "..", "workbench", "index.html"));
         AppStore._apps[AppStore._workbench] = contentWindow;
         contentWindow.win.on("close", function (e) {

@@ -61,31 +61,6 @@ usercontrol.col{
     flex-flow: column nowrap;
     width: 100%;
 }
-input,
-button,
-label{
-    display: inline-flex;
-    margin: 0px;
-    line-height: 21px;
-    height: 21px;
-}
-button > pre, label > pre, pre {
-    display: inline-block;
-    padding: 0px;
-    margin: 0px;
-    background-color: transparent;
-    border: 0;
-    color: white;
-    line-height: 21px;
-}
-button > span.caret{
-    margin-top: 8px;
-    margin-left: 10px
-}
-
-input[type="radio"], input[type="checkbox"]{
-    margin: 0;
-}
 /* scroller */
 ::-webkit-scrollbar{
     width: 5px;

@@ -48,7 +48,7 @@ var DataTableComponent = (function () {
         core_1.Component({
             moduleId: module.id,
             selector: "dock-table",
-            template: "\n        <table class=\"table table-condensed table-hover\">\n          <thead>\n            <tr>\n              <th *ngIf=\"dataSource.bRowHeader\">#</th>\n              <th *ngFor=\"let col of dataSource.columns\">\n                {{col.columnHeader}}\n              </th>\n            </tr>\n          </thead>\n          <tbody>\n            <tr *ngFor=\"let row of curData.rows;let i = index;\">\n              <td *ngIf=\"dataSource.bRowHeader\">{{i + 1 + pageSize * curPage}}</td>\n              <td *ngFor=\"let cell of row.cells\">\n                <button *ngIf=\"cell.styleObj.type=='button'\" class=\"btn btn-default btn-{{cell.className}} btn-xs \" [name]=\"cell.dataSource.name\"\n                  (click)=\"cell.dataSource.click()\">\n                    {{cell.dataSource.text}}\n                </button>\n                <input type=\"text\" *ngIf=\"cell.styleObj.type=='textbox'\" [(ngModel)]=\"cell.dataSource.modelVal\"\n                 [readonly]=\"cell.dataSource.readonly\" [name]=\"cell.dataSource.name\"\n                  class=\"btn-default btn-{{cell.className}} btn-xs\">\n              </td>\n            </tr>\n          </tbody>\n        </table>\n    ",
+            templateUrl: "data.table.html",
             inputs: ["className", "dataSource"]
         }), 
         __metadata('design:paramtypes', [core_1.Renderer, core_1.ElementRef])
@@ -56,6 +56,143 @@ var DataTableComponent = (function () {
     return DataTableComponent;
 }());
 exports.DataTableComponent = DataTableComponent;
+var VThumb = (function () {
+    function VThumb() {
+    }
+    VThumb = __decorate([
+        core_1.Directive({ selector: ".vscrollerbar .thumb" }), 
+        __metadata('design:paramtypes', [])
+    ], VThumb);
+    return VThumb;
+}());
+exports.VThumb = VThumb;
+var TableDirective = (function () {
+    function TableDirective() {
+    }
+    TableDirective = __decorate([
+        core_1.Directive({ selector: ".scroller-table" }), 
+        __metadata('design:paramtypes', [])
+    ], TableDirective);
+    return TableDirective;
+}());
+exports.TableDirective = TableDirective;
+var ScrollerBarTable = (function () {
+    function ScrollerBarTable(ele, render) {
+        this.ele = ele;
+        this.render = render;
+        this.iFirstRow = 0;
+        this.scrollTop = 0;
+        this.bScrollStart = false;
+        this.startPositionY = 0;
+        this.thumbHeight = 0;
+        this.clientHeight = 0;
+        this.rowHeight = 22;
+    }
+    ScrollerBarTable.prototype.ngOnInit = function () {
+        this.curData = this.dataSource;
+    };
+    ScrollerBarTable.prototype.ngAfterViewInit = function () {
+        if (this.scollerTable.nativeElement === null)
+            console.error("not supported in webworker.");
+    };
+    ScrollerBarTable.prototype.onMouseEnter = function () {
+        this.scrollHeight = (this.dataSource.rows.length + 1) * this.rowHeight;
+        if (this.scrollHeight > this.scollerTable.nativeElement.clientHeight - this.rowHeight) {
+            this.clientHeight = this.scollerTable.nativeElement.clientHeight - this.rowHeight;
+            var scrollDiff = this.scrollHeight - this.clientHeight;
+            this.thumbHeight = this.clientHeight - scrollDiff;
+            this.render.setElementStyle(this.vThumb.nativeElement, "height", this.thumbHeight.toString());
+            this.render.setElementStyle(this.vThumb.nativeElement, "display", "block");
+        }
+    };
+    ScrollerBarTable.prototype.onMouseLeave = function () {
+        this.render.setElementStyle(this.vThumb.nativeElement, "display", "none");
+    };
+    ScrollerBarTable.prototype.onTrackClick = function (e) {
+        if (e.target !== e.currentTarget)
+            return;
+        var moveY = e.offsetY - this.scrollTop; // relative distance.
+        if (this.scrollTop + moveY < 0) {
+            this.scrollTop = 0;
+        }
+        else if (moveY + this.thumbHeight + this.scrollTop > this.clientHeight) {
+            this.scrollTop = this.clientHeight - this.thumbHeight;
+        }
+        else {
+            this.scrollTop += moveY;
+        }
+        // console.log(this.scrollTop, this.thumbHeight, e.offsetY, moveY, this.clientHeight);
+        this.render.setElementStyle(this.vThumb.nativeElement, "margin-top", this.scrollTop.toString());
+        this.refreshDataTable();
+        moveY = null;
+    };
+    ScrollerBarTable.prototype.onScrollStart = function (type, e) {
+        var _this = this;
+        this.bScrollStart = true;
+        this.startPositionY = e.pageY;
+        document.onmouseup = function (e) {
+            if (!_this.bScrollStart)
+                return;
+            _this.bScrollStart = false;
+        };
+        document.onmousemove = function (e) {
+            if (!_this.bScrollStart)
+                return;
+            var moveY = e.pageY - _this.startPositionY;
+            if (_this.scrollTop + moveY < 0) {
+                _this.scrollTop = 0;
+            }
+            else if (moveY + _this.thumbHeight + _this.scrollTop > _this.clientHeight) {
+                _this.scrollTop = _this.clientHeight - _this.thumbHeight;
+            }
+            else {
+                _this.scrollTop += moveY;
+            }
+            _this.startPositionY = e.pageY;
+            _this.render.setElementStyle(_this.vThumb.nativeElement, "margin-top", _this.scrollTop.toString());
+            _this.refreshDataTable();
+            moveY = null;
+        };
+    };
+    ScrollerBarTable.prototype.refreshDataTable = function () {
+        this.iFirstRow = Math.floor(this.scrollTop / this.rowHeight);
+        this.curData = new control_1.DataTable();
+        if (!this.dataSource.rows || this.dataSource.rows.length === 0)
+            return;
+        this.curData.rows = this.dataSource.rows.slice(this.iFirstRow);
+    };
+    __decorate([
+        core_1.ViewChild("vthumb"), 
+        __metadata('design:type', core_1.ElementRef)
+    ], ScrollerBarTable.prototype, "vThumb", void 0);
+    __decorate([
+        core_1.ViewChild("scollerTable"), 
+        __metadata('design:type', core_1.ElementRef)
+    ], ScrollerBarTable.prototype, "scollerTable", void 0);
+    __decorate([
+        core_1.HostListener("mouseenter"), 
+        __metadata('design:type', Function), 
+        __metadata('design:paramtypes', []), 
+        __metadata('design:returntype', void 0)
+    ], ScrollerBarTable.prototype, "onMouseEnter", null);
+    __decorate([
+        core_1.HostListener("mouseleave"), 
+        __metadata('design:type', Function), 
+        __metadata('design:paramtypes', []), 
+        __metadata('design:returntype', void 0)
+    ], ScrollerBarTable.prototype, "onMouseLeave", null);
+    ScrollerBarTable = __decorate([
+        core_1.Component({
+            moduleId: module.id,
+            selector: "dock-table2",
+            templateUrl: "data.scrollerbar-table.html",
+            inputs: ["className", "dataSource"]
+        }), 
+        __metadata('design:paramtypes', [core_1.ElementRef, core_1.Renderer])
+    ], ScrollerBarTable);
+    return ScrollerBarTable;
+}());
+exports.ScrollerBarTable = ScrollerBarTable;
 /**
  * chart components created by chenlei
  */

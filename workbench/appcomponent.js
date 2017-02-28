@@ -14,8 +14,57 @@ var AppComponent = (function () {
     function AppComponent(appService) {
         this.appService = appService;
         this.isAuthorized = false;
+        this.bPopPanel = false;
+        this.config = new WorkspaceConfig();
+        this.config.step = 1;
     }
-    AppComponent.prototype.OnLogin = function () {
+    AppComponent.prototype.next = function () {
+        this.config.step++;
+        console.info(this.config.step);
+    };
+    AppComponent.prototype.prev = function () {
+        this.config.step--;
+    };
+    AppComponent.prototype.finish = function () {
+        this.closePanel();
+    };
+    AppComponent.prototype.closePanel = function (e) {
+        if (e) {
+            if (e.target.className.startsWith("dialog-overlay"))
+                this.bPopPanel = false;
+        }
+        else
+            this.bPopPanel = false;
+        window.hideMetroDialog("#config");
+    };
+    AppComponent.prototype.onPopup = function () {
+        this.bPopPanel = true;
+        this.config.step = 1;
+        window.showMetroDialog("#config");
+        if (!this.config.name || this.config.name.trim() === "")
+            this.panelTitle = "New Config";
+        else
+            this.panelTitle = this.config.name;
+    };
+    AppComponent.prototype.addInstance = function () {
+        var newInstance = new StrategyInstance();
+        newInstance.id = this.newestInstanceName;
+        newInstance.params = {};
+        this.config.strategyInstances.push(newInstance);
+    };
+    AppComponent.prototype.removeInstance = function (e, index) {
+        console.info(index);
+        this.config.strategyInstances.splice(index, 1);
+        e.preventDefault();
+        e.stopPropagation();
+    };
+    AppComponent.prototype.onSelectServer = function (item) {
+        this.serverinfo = item;
+    };
+    AppComponent.prototype.selectStrategy = function (value) {
+        this.config.selectedStrategy = value;
+    };
+    AppComponent.prototype.onLogin = function () {
         // alert("hello")
         console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.
@@ -25,7 +74,7 @@ var AppComponent = (function () {
             roles: null,
             apps: null
         });
-        if (ret !== true && ret instanceof Array) {
+        if (ret !== false && ret instanceof Array) {
             this.isAuthorized = true;
             this.apps = ret;
             return true;
@@ -35,11 +84,11 @@ var AppComponent = (function () {
             return false;
         }
     };
-    AppComponent.prototype.OnReset = function () {
+    AppComponent.prototype.onReset = function () {
         this.username = "";
         this.password = "";
     };
-    AppComponent.prototype.OnStartApp = function (name) {
+    AppComponent.prototype.onStartApp = function (name) {
         // alert(name);
         if (name) {
             if (!this.appService.startApp(name))
@@ -50,13 +99,14 @@ var AppComponent = (function () {
         }
     };
     AppComponent.prototype.showError = function (caption, content, type) {
-        $.Notify({
+        window.$.Notify({
             caption: caption,
             content: content,
             type: type
         });
     };
     AppComponent = __decorate([
+        // hack by chenlei @ 2017/02/07
         core_1.Component({
             moduleId: module.id,
             selector: "body",
@@ -71,15 +121,58 @@ var AppComponent = (function () {
     return AppComponent;
 }());
 exports.AppComponent = AppComponent;
-/**
- * <div class="tile-square bg-orange fg-white" data-role="tile">
-                    <div class="tile-content iconic">
-                        <span class="icon mif-cloud"></span>
-                        <span class="tile-label">Dockable-Layout</span>
-                    </div>
-                </div>
-                <div class="title">
-                <span class="close">&times;</span>
-            </div>
- */
+var WorkspaceConfig = (function () {
+    function WorkspaceConfig() {
+        this._tradingUniverse = [];
+        this._strategyInstances = [];
+    }
+    Object.defineProperty(WorkspaceConfig.prototype, "name", {
+        get: function () {
+            return this._name;
+        },
+        set: function (value) {
+            this._name = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(WorkspaceConfig.prototype, "step", {
+        get: function () {
+            return this._curstep;
+        },
+        set: function (value) {
+            this._curstep = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(WorkspaceConfig.prototype, "selectedStrategy", {
+        get: function () {
+            return this._strategyCoreName;
+        },
+        set: function (value) {
+            this._strategyCoreName = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(WorkspaceConfig.prototype, "strategyInstances", {
+        get: function () {
+            return this._strategyInstances;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return WorkspaceConfig;
+}());
+var StrategyInstance = (function () {
+    function StrategyInstance() {
+    }
+    return StrategyInstance;
+}());
+var Channel = (function () {
+    function Channel() {
+    }
+    return Channel;
+}());
 //# sourceMappingURL=appcomponent.js.map
