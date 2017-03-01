@@ -41,9 +41,10 @@ var MenuWindow = (function (_super) {
         }
         // 修改最小高度
         window_1.UWindow.MIN_HEIGHT = 30;
-        _super.call(this, config);
-        this._defaultTemplate = config.menuTemplate;
-        this.build();
+        _this = _super.call(this, config) || this;
+        _this._defaultTemplate = config.menuTemplate;
+        _this.build();
+        return _this;
     }
     MenuWindow.prototype.insertMenu = function (pos, name, clickCallback) {
         if (pos.level1 >= this._defaultTemplate.length || pos.level1 < 0) {
@@ -76,8 +77,9 @@ exports.MenuWindow = MenuWindow;
 var MultiWindow = (function (_super) {
     __extends(MultiWindow, _super);
     function MultiWindow(config) {
-        _super.call(this, config);
-        this._windows = [];
+        var _this = _super.call(this, config) || this;
+        _this._windows = [];
+        return _this;
     }
     MultiWindow.prototype.show = function () {
         var newWin = new window_1.UWindow(this.options);
@@ -97,7 +99,7 @@ exports.MultiWindow = MultiWindow;
 var ContentWindow = (function (_super) {
     __extends(ContentWindow, _super);
     function ContentWindow(config) {
-        _super.call(this, config);
+        return _super.call(this, config) || this;
     }
     return ContentWindow;
 }(window_1.UWindow));
@@ -105,12 +107,12 @@ exports.ContentWindow = ContentWindow;
 var SingletonWindow = (function (_super) {
     __extends(SingletonWindow, _super);
     function SingletonWindow(config) {
-        var _this = this;
-        _super.call(this, config);
-        this.win.on("close", function (e) {
+        var _this = _super.call(this, config) || this;
+        _this.win.on("close", function (e) {
             e.preventDefault();
             _this.win.hide();
         });
+        return _this;
     }
     SingletonWindow.prototype.show = function () {
         this.win.show();

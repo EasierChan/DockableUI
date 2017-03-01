@@ -249,8 +249,8 @@ export class UWindow {
 		});
 
 		// Window Failed to load
-		this._win.webContents.on("did-fail-load", (event: Event, errorCode: string, errorDescription: string) => {
-			DefaultLogger.warn("[electron event]: fail to load, ", errorDescription);
+		this._win.webContents.on("did-fail-load", (event: Event, errorCode: string, errorDescription: string, surl: string, isMainFrame: boolean) => {
+			DefaultLogger.error("[electron event]: fail to load, ", errorCode, errorDescription, surl, isMainFrame);
 		});
 
 	}
@@ -264,13 +264,13 @@ export class UWindow {
 
 		if (this.options.state.wStyle === WindowStyle.Aqy) {
 			this.setMenuBarVisibility(false);
-			this.win.loadURL(__dirname + "/titlebar.tpl");
+			this.win.loadURL(`file://${__dirname}/titlebar.tpl`);
 			this.win.webContents.executeJavaScript("window.document.getElementById('fr_content').src = '" + contentUrl + "';");
 		} else {
 			if (this.options.menuTemplate) {
 				this.setMenuBarVisibility(true);
 			}
-			this.win.loadURL(contentUrl);
+			this.win.loadURL(`file://${contentUrl}`);
 		}
 		// this.win.webContents.reloadIgnoringCache();
 	}

@@ -138,11 +138,11 @@ var AppStore = (function () {
             }
         });
     };
-    AppStore._bAuthorized = false;
-    AppStore._appstoreHome = path.join(__dirname, "..", "..", "..", "..", "appstore");
-    AppStore._apps = {};
-    AppStore._workbench = "workbench";
     return AppStore;
 }());
+AppStore._bAuthorized = false;
+AppStore._appstoreHome = path.join(__dirname, "..", "..", "..", "..", "appstore");
+AppStore._apps = {};
+AppStore._workbench = "workbench";
 exports.AppStore = AppStore;
 //# sourceMappingURL=appstore.js.map

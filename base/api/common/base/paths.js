@@ -14,7 +14,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var fs = require("fs");
 var path = require("path");
 var decorator_1 = require("./decorator");
-var Paths = (function () {
+var Paths = Paths_1 = (function () {
     function Paths() {
         this.basedir_ = process.cwd();
         this.logdir_ = path.join(this.basedir_, "logs");
@@ -35,7 +35,7 @@ var Paths = (function () {
     }
     Object.defineProperty(Paths, "configration", {
         get: function () {
-            return Paths.configuration_ === null ? new Paths() : Paths.configuration_;
+            return Paths_1.configuration_ === null ? new Paths_1() : Paths_1.configuration_;
         },
         enumerable: true,
         configurable: true
@@ -74,12 +74,13 @@ var Paths = (function () {
         enumerable: true,
         configurable: true
     });
-    Paths.configuration_ = null;
-    Paths = __decorate([
-        decorator_1.sealed, 
-        __metadata('design:paramtypes', [])
-    ], Paths);
     return Paths;
 }());
+Paths.configuration_ = null;
+Paths = Paths_1 = __decorate([
+    decorator_1.sealed,
+    __metadata("design:paramtypes", [])
+], Paths);
 exports.Paths = Paths;
+var Paths_1;
 //# sourceMappingURL=paths.js.map

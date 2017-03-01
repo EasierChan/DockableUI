@@ -44,37 +44,35 @@ var DataTableComponent = (function () {
     };
     DataTableComponent.prototype.ngAfterViewInit = function () {
     };
-    DataTableComponent = __decorate([
-        core_1.Component({
-            moduleId: module.id,
-            selector: "dock-table",
-            templateUrl: "data.table.html",
-            inputs: ["className", "dataSource"]
-        }), 
-        __metadata('design:paramtypes', [core_1.Renderer, core_1.ElementRef])
-    ], DataTableComponent);
     return DataTableComponent;
 }());
+DataTableComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: "dock-table",
+        templateUrl: "data.table.html",
+        inputs: ["className", "dataSource"]
+    }),
+    __metadata("design:paramtypes", [core_1.Renderer, core_1.ElementRef])
+], DataTableComponent);
 exports.DataTableComponent = DataTableComponent;
 var VThumb = (function () {
     function VThumb() {
     }
-    VThumb = __decorate([
-        core_1.Directive({ selector: ".vscrollerbar .thumb" }), 
-        __metadata('design:paramtypes', [])
-    ], VThumb);
     return VThumb;
 }());
+VThumb = __decorate([
+    core_1.Directive({ selector: ".vscrollerbar .thumb" })
+], VThumb);
 exports.VThumb = VThumb;
 var TableDirective = (function () {
     function TableDirective() {
     }
-    TableDirective = __decorate([
-        core_1.Directive({ selector: ".scroller-table" }), 
-        __metadata('design:paramtypes', [])
-    ], TableDirective);
     return TableDirective;
 }());
+TableDirective = __decorate([
+    core_1.Directive({ selector: ".scroller-table" })
+], TableDirective);
 exports.TableDirective = TableDirective;
 var ScrollerBarTable = (function () {
     function ScrollerBarTable(ele, render) {
@@ -161,37 +159,37 @@ var ScrollerBarTable = (function () {
             return;
         this.curData.rows = this.dataSource.rows.slice(this.iFirstRow);
     };
-    __decorate([
-        core_1.ViewChild("vthumb"), 
-        __metadata('design:type', core_1.ElementRef)
-    ], ScrollerBarTable.prototype, "vThumb", void 0);
-    __decorate([
-        core_1.ViewChild("scollerTable"), 
-        __metadata('design:type', core_1.ElementRef)
-    ], ScrollerBarTable.prototype, "scollerTable", void 0);
-    __decorate([
-        core_1.HostListener("mouseenter"), 
-        __metadata('design:type', Function), 
-        __metadata('design:paramtypes', []), 
-        __metadata('design:returntype', void 0)
-    ], ScrollerBarTable.prototype, "onMouseEnter", null);
-    __decorate([
-        core_1.HostListener("mouseleave"), 
-        __metadata('design:type', Function), 
-        __metadata('design:paramtypes', []), 
-        __metadata('design:returntype', void 0)
-    ], ScrollerBarTable.prototype, "onMouseLeave", null);
-    ScrollerBarTable = __decorate([
-        core_1.Component({
-            moduleId: module.id,
-            selector: "dock-table2",
-            templateUrl: "data.scrollerbar-table.html",
-            inputs: ["className", "dataSource"]
-        }), 
-        __metadata('design:paramtypes', [core_1.ElementRef, core_1.Renderer])
-    ], ScrollerBarTable);
     return ScrollerBarTable;
 }());
+__decorate([
+    core_1.ViewChild("vthumb"),
+    __metadata("design:type", core_1.ElementRef)
+], ScrollerBarTable.prototype, "vThumb", void 0);
+__decorate([
+    core_1.ViewChild("scollerTable"),
+    __metadata("design:type", core_1.ElementRef)
+], ScrollerBarTable.prototype, "scollerTable", void 0);
+__decorate([
+    core_1.HostListener("mouseenter"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ScrollerBarTable.prototype, "onMouseEnter", null);
+__decorate([
+    core_1.HostListener("mouseleave"),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ScrollerBarTable.prototype, "onMouseLeave", null);
+ScrollerBarTable = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: "dock-table2",
+        templateUrl: "data.scrollerbar-table.html",
+        inputs: ["className", "dataSource"]
+    }),
+    __metadata("design:paramtypes", [core_1.ElementRef, core_1.Renderer])
+], ScrollerBarTable);
 exports.ScrollerBarTable = ScrollerBarTable;
 /**
  * chart components created by chenlei
@@ -228,18 +226,18 @@ var EChartComponent = (function () {
             }, 100);
         }
     };
-    EChartComponent = __decorate([
-        core_1.Component({
-            selector: "echart",
-            template: "",
-            inputs: [
-                "className",
-                "dataSource"
-            ]
-        }), 
-        __metadata('design:paramtypes', [core_1.ElementRef, core_1.Renderer])
-    ], EChartComponent);
     return EChartComponent;
 }());
+EChartComponent = __decorate([
+    core_1.Component({
+        selector: "echart",
+        template: "",
+        inputs: [
+            "className",
+            "dataSource"
+        ]
+    }),
+    __metadata("design:paramtypes", [core_1.ElementRef, core_1.Renderer])
+], EChartComponent);
 exports.EChartComponent = EChartComponent;
 //# sourceMappingURL=data.component.js.map

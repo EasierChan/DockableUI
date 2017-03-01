@@ -18,12 +18,12 @@ var AppStoreService = (function () {
     AppStoreService.prototype.getUserProfile = function (loginInfo) {
         return electron.ipcRenderer.sendSync("appstore://login", loginInfo);
     };
-    AppStoreService = __decorate([
-        core_1.Injectable(), 
-        __metadata('design:paramtypes', [])
-    ], AppStoreService);
     return AppStoreService;
 }());
+AppStoreService = __decorate([
+    core_1.Injectable(),
+    __metadata("design:paramtypes", [])
+], AppStoreService);
 exports.AppStoreService = AppStoreService;
 var Menu = (function () {
     function Menu() {
@@ -40,12 +40,12 @@ var Menu = (function () {
     Menu.prototype.popup = function (x, y) {
         this._menu.popup();
     };
-    Menu = __decorate([
-        core_1.Injectable(), 
-        __metadata('design:paramtypes', [])
-    ], Menu);
     return Menu;
 }());
+Menu = __decorate([
+    core_1.Injectable(),
+    __metadata("design:paramtypes", [])
+], Menu);
 exports.Menu = Menu;
 var MenuItem = (function () {
     function MenuItem() {
@@ -57,11 +57,11 @@ var MenuItem = (function () {
         enumerable: true,
         configurable: true
     });
-    MenuItem = __decorate([
-        core_1.Injectable(), 
-        __metadata('design:paramtypes', [])
-    ], MenuItem);
     return MenuItem;
 }());
+MenuItem = __decorate([
+    core_1.Injectable(),
+    __metadata("design:paramtypes", [])
+], MenuItem);
 exports.MenuItem = MenuItem;
 //# sourceMappingURL=backendService.js.map

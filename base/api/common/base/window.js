@@ -5,18 +5,18 @@
 var electron_1 = require("electron");
 var platform = require("./platform");
 var logger_1 = require("./logger");
+var WindowStyle;
 (function (WindowStyle) {
     WindowStyle[WindowStyle["System"] = 0] = "System";
     WindowStyle[WindowStyle["Aqy"] = 1] = "Aqy";
-})(exports.WindowStyle || (exports.WindowStyle = {}));
-var WindowStyle = exports.WindowStyle;
+})(WindowStyle = exports.WindowStyle || (exports.WindowStyle = {}));
+var WindowMode;
 (function (WindowMode) {
     WindowMode[WindowMode["Maximized"] = 0] = "Maximized";
     WindowMode[WindowMode["Normal"] = 1] = "Normal";
     WindowMode[WindowMode["Minimized"] = 2] = "Minimized";
     WindowMode[WindowMode["Fullscreen"] = 3] = "Fullscreen";
-})(exports.WindowMode || (exports.WindowMode = {}));
-var WindowMode = exports.WindowMode;
+})(WindowMode = exports.WindowMode || (exports.WindowMode = {}));
 exports.defaultWindowState = function (mode) {
     if (mode === void 0) { mode = WindowMode.Normal; }
     return {
@@ -26,6 +26,7 @@ exports.defaultWindowState = function (mode) {
         mode: mode
     };
 };
+var ReadyState;
 (function (ReadyState) {
     // This window has not loaded any HTML yet
     ReadyState[ReadyState["NONE"] = 0] = "NONE";
@@ -35,8 +36,7 @@ exports.defaultWindowState = function (mode) {
     ReadyState[ReadyState["NAVIGATING"] = 2] = "NAVIGATING";
     // This window is done loading HTML
     ReadyState[ReadyState["READY"] = 3] = "READY";
-})(exports.ReadyState || (exports.ReadyState = {}));
-var ReadyState = exports.ReadyState;
+})(ReadyState = exports.ReadyState || (exports.ReadyState = {}));
 var UWindow = (function () {
     function UWindow(config) {
         if (config) {
@@ -189,8 +189,8 @@ var UWindow = (function () {
             _this._lastFocusTime = Date.now();
         });
         // Window Failed to load
-        this._win.webContents.on("did-fail-load", function (event, errorCode, errorDescription) {
-            logger_1.DefaultLogger.warn("[electron event]: fail to load, ", errorDescription);
+        this._win.webContents.on("did-fail-load", function (event, errorCode, errorDescription, surl, isMainFrame) {
+            logger_1.DefaultLogger.error("[electron event]: fail to load, ", errorCode, errorDescription, surl, isMainFrame);
         });
     };
     UWindow.prototype.loadURL = function (contentUrl) {
@@ -200,14 +200,14 @@ var UWindow = (function () {
         this.registerListeners();
         if (this.options.state.wStyle === WindowStyle.Aqy) {
             this.setMenuBarVisibility(false);
-            this.win.loadURL(__dirname + "/titlebar.tpl");
+            this.win.loadURL("file://" + __dirname + "/titlebar.tpl");
             this.win.webContents.executeJavaScript("window.document.getElementById('fr_content').src = '" + contentUrl + "';");
         }
         else {
             if (this.options.menuTemplate) {
                 this.setMenuBarVisibility(true);
             }
-            this.win.loadURL(contentUrl);
+            this.win.loadURL("file://" + contentUrl);
         }
         // this.win.webContents.reloadIgnoringCache();
     };
@@ -386,11 +386,11 @@ var UWindow = (function () {
         }
         this._win = null; // Important to dereference the window object to allow for GC
     };
-    UWindow.menuBarHiddenKey = "menuBarHidden";
-    UWindow.colorThemeStorageKey = "theme";
-    UWindow.MIN_WIDTH = 300;
-    UWindow.MIN_HEIGHT = 120;
     return UWindow;
 }());
+UWindow.menuBarHiddenKey = "menuBarHidden";
+UWindow.colorThemeStorageKey = "theme";
+UWindow.MIN_WIDTH = 300;
+UWindow.MIN_HEIGHT = 120;
 exports.UWindow = UWindow;
 //# sourceMappingURL=window.js.map

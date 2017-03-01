@@ -1,11 +1,11 @@
 "use strict";
-var http = require('http');
-var https = require('https');
-var url_1 = require('url');
-var common_1 = require('./common');
-var lodash_1 = require('lodash');
-var fs_1 = require('fs');
-var zlib_1 = require('zlib');
+var http = require("http");
+var https = require("https");
+var url_1 = require("url");
+var common_1 = require("./common");
+var lodash_1 = require("lodash");
+var fs_1 = require("fs");
+var zlib_1 = require("zlib");
 function request(options) {
     var req;
     return new Promise(function (c, e) {

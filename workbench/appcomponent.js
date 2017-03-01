@@ -105,21 +105,20 @@ var AppComponent = (function () {
             type: type
         });
     };
-    AppComponent = __decorate([
-        // hack by chenlei @ 2017/02/07
-        core_1.Component({
-            moduleId: module.id,
-            selector: "body",
-            templateUrl: "workbench.html",
-            styleUrls: ["appcomponent.css"],
-            providers: [
-                backendService_1.AppStoreService
-            ]
-        }), 
-        __metadata('design:paramtypes', [backendService_1.AppStoreService])
-    ], AppComponent);
     return AppComponent;
 }());
+AppComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: "body",
+        templateUrl: "workbench.html",
+        styleUrls: ["appcomponent.css"],
+        providers: [
+            backendService_1.AppStoreService
+        ]
+    }),
+    __metadata("design:paramtypes", [backendService_1.AppStoreService])
+], AppComponent);
 exports.AppComponent = AppComponent;
 var WorkspaceConfig = (function () {
     function WorkspaceConfig() {

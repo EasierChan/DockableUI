@@ -19,8 +19,9 @@ var UserDal = (function (_super) {
     function UserDal(url, bReset) {
         if (url === void 0) { url = "mongodb://172.24.13.5:27016/itrade"; }
         if (bReset === void 0) { bReset = false; }
-        _super.call(this);
-        this.init();
+        var _this = _super.call(this) || this;
+        _this.init();
+        return _this;
     }
     UserDal.prototype.init = function (url, bReset) {
         if (url === void 0) { url = "mongodb://172.24.13.5:27016/itrade"; }

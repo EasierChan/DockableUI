@@ -14,24 +14,25 @@ exports.Control = Control;
 var DockContainer = (function (_super) {
     __extends(DockContainer, _super);
     function DockContainer(type, width, height) {
-        _super.call(this);
+        var _this = _super.call(this) || this;
         if (type === "v") {
-            this.className = "dock-container vertical";
-            this.styleObj = {
+            _this.className = "dock-container vertical";
+            _this.styleObj = {
                 type: "",
                 width: width === undefined ? 300 : width,
                 height: null
             };
         }
         else {
-            this.className = "dock-container horizental";
-            this.styleObj = {
+            _this.className = "dock-container horizental";
+            _this.styleObj = {
                 type: "",
                 width: null,
                 height: height === undefined ? 200 : height
             };
         }
-        this.children = [];
+        _this.children = [];
+        return _this;
     }
     DockContainer.prototype.addChild = function (containerRef) {
         this.children.push(containerRef);
@@ -43,8 +44,9 @@ exports.DockContainer = DockContainer;
 var Splitter = (function (_super) {
     __extends(Splitter, _super);
     function Splitter(type) {
-        _super.call(this);
-        this.className = type === "v" ? "splitter-bar vertical" : "splitter-bar horizental";
+        var _this = _super.call(this) || this;
+        _this.className = type === "v" ? "splitter-bar vertical" : "splitter-bar horizental";
+        return _this;
     }
     return Splitter;
 }(Control));
@@ -52,13 +54,14 @@ exports.Splitter = Splitter;
 var TabPanel = (function (_super) {
     __extends(TabPanel, _super);
     function TabPanel() {
-        _super.call(this);
-        this.pages = new TabPages();
-        this.headers = new TabHeaders();
-        this.className = "tab-panel";
-        this.children = [];
-        this.children.push(this.pages);
-        this.children.push(this.headers);
+        var _this = _super.call(this) || this;
+        _this.pages = new TabPages();
+        _this.headers = new TabHeaders();
+        _this.className = "tab-panel";
+        _this.children = [];
+        _this.children.push(_this.pages);
+        _this.children.push(_this.headers);
+        return _this;
     }
     /**
      * @param pageId connection between header and title
@@ -91,8 +94,9 @@ exports.TabPanel = TabPanel;
 var TabPages = (function (_super) {
     __extends(TabPages, _super);
     function TabPages() {
-        _super.call(this);
-        this.pages = [];
+        var _this = _super.call(this) || this;
+        _this.pages = [];
+        return _this;
     }
     TabPages.prototype.addPage = function (page) {
         this.pages.push(page);
@@ -107,8 +111,9 @@ exports.TabPages = TabPages;
 var TabHeaders = (function (_super) {
     __extends(TabHeaders, _super);
     function TabHeaders() {
-        _super.call(this);
-        this.headers = [];
+        var _this = _super.call(this) || this;
+        _this.headers = [];
+        return _this;
     }
     TabHeaders.prototype.addHeader = function (header) {
         this.headers.push(header);
@@ -123,10 +128,11 @@ exports.TabHeaders = TabHeaders;
 var TabPage = (function (_super) {
     __extends(TabPage, _super);
     function TabPage(_id, _title) {
-        _super.call(this);
-        this._id = _id;
-        this._title = _title;
-        this.className = "tab-page";
+        var _this = _super.call(this) || this;
+        _this._id = _id;
+        _this._title = _title;
+        _this.className = "tab-page";
+        return _this;
     }
     Object.defineProperty(TabPage.prototype, "id", {
         get: function () {
@@ -163,10 +169,11 @@ exports.TabPage = TabPage;
 var TabHeader = (function (_super) {
     __extends(TabHeader, _super);
     function TabHeader(targetId) {
-        _super.call(this);
-        this.targetId = "";
-        this.className = "tab";
-        this.targetId = targetId;
+        var _this = _super.call(this) || this;
+        _this.targetId = "";
+        _this.className = "tab";
+        _this.targetId = targetId;
+        return _this;
     }
     TabHeader.prototype.setTargetId = function (value) {
         this.targetId = value;
@@ -181,16 +188,17 @@ exports.TabHeader = TabHeader;
 var ComboControl = (function (_super) {
     __extends(ComboControl, _super);
     function ComboControl(type) {
-        _super.call(this);
-        this.className = "controls";
-        this.styleObj = {
+        var _this = _super.call(this) || this;
+        _this.className = "controls";
+        _this.styleObj = {
             type: type,
             width: null,
             height: null
         };
-        this.children = [];
-        this.styleObj.minWidth = null;
-        this.styleObj.minHeight = null;
+        _this.children = [];
+        _this.styleObj.minWidth = null;
+        _this.styleObj.minHeight = null;
+        return _this;
     }
     ComboControl.prototype.addChild = function (childControl) {
         this.children.push(childControl);
@@ -216,17 +224,18 @@ exports.ComboControl = ComboControl;
 var MetaControl = (function (_super) {
     __extends(MetaControl, _super);
     function MetaControl(type) {
-        _super.call(this);
-        this.styleObj = {
+        var _this = _super.call(this) || this;
+        _this.styleObj = {
             type: type,
             width: null,
             height: null
         };
-        this.className = "default";
-        this.dataSource = new Object();
-        this.dataSource.click = function () { };
-        this.styleObj.left = 2;
-        this.styleObj.top = 0;
+        _this.className = "default";
+        _this.dataSource = new Object();
+        _this.dataSource.click = function () { };
+        _this.styleObj.left = 2;
+        _this.styleObj.top = 0;
+        return _this;
     }
     Object.defineProperty(MetaControl.prototype, "OnClick", {
         set: function (value) {
@@ -308,15 +317,14 @@ exports.MetaControl = MetaControl;
 var DropDown = (function (_super) {
     __extends(DropDown, _super);
     function DropDown() {
-        var _this = this;
-        _super.call(this, "dropdown");
-        this.dataSource.items = new Array();
-        this.dataSource.selectedItem = null;
-        this.styleObj.dropdown = false;
-        this.dataSource.click = function () {
+        var _this = _super.call(this, "dropdown") || this;
+        _this.dataSource.items = new Array();
+        _this.dataSource.selectedItem = null;
+        _this.styleObj.dropdown = false;
+        _this.dataSource.click = function () {
             _this.styleObj.dropdown = !_this.styleObj.dropdown;
         };
-        this.dataSource.select = function (item) {
+        _this.dataSource.select = function (item) {
             if (_this.dataSource.selectedItem !== item) {
                 _this.dataSource.selectedItem = item;
                 if (_this.dataSource.selectchange) {
@@ -325,6 +333,7 @@ var DropDown = (function (_super) {
             }
             _this.styleObj.dropdown = false;
         };
+        return _this;
     }
     DropDown.prototype.addItem = function (item) {
         this.dataSource.items.push(item);
@@ -362,16 +371,17 @@ var EChart = (function (_super) {
     // private _option: Object = null;
     // private _events: Object = null;
     function EChart() {
-        _super.call(this);
-        this.styleObj = {
+        var _this = _super.call(this) || this;
+        _this.styleObj = {
             type: "echart",
             width: null,
             height: null
         };
-        this.dataSource = {
+        _this.dataSource = {
             option: {},
             events: {}
         };
+        return _this;
     }
     EChart.prototype.init = function () {
         if (this.dataSource.init)
@@ -729,27 +739,28 @@ var SpreadViewer = (function () {
             clearTimeout(this._timeoutHandler);
         }
     };
-    SpreadViewer.EPS = 1.0e-5;
-    SpreadViewer.YUAN_PER_UNIT = 10000;
-    SpreadViewer.xInternal = 1000; // ms
     return SpreadViewer;
 }());
+SpreadViewer.EPS = 1.0e-5;
+SpreadViewer.YUAN_PER_UNIT = 10000;
+SpreadViewer.xInternal = 1000; // ms
 exports.SpreadViewer = SpreadViewer;
 var DataTable = (function (_super) {
     __extends(DataTable, _super);
     function DataTable(type) {
         if (type === void 0) { type = "table"; }
-        _super.call(this);
-        this.columns = [];
-        this.rows = [];
-        this.className = "table";
-        this.dataSource = {
+        var _this = _super.call(this) || this;
+        _this.columns = [];
+        _this.rows = [];
+        _this.className = "table";
+        _this.dataSource = {
             headerColumnCount: 0,
             columns: null,
             rows: null,
             bRowIndex: true
         };
-        this.styleObj = { type: type, width: null, height: null };
+        _this.styleObj = { type: type, width: null, height: null };
+        return _this;
     }
     DataTable.prototype.newRow = function () {
         var row = new DataTableRow(this.columns.length);
@@ -768,7 +779,7 @@ var DataTable = (function (_super) {
         var _this = this;
         var columns = [];
         for (var _i = 0; _i < arguments.length; _i++) {
-            columns[_i - 0] = arguments[_i];
+            columns[_i] = arguments[_i];
         }
         columns.forEach(function (item) { return _this.columns.push(new DataTableColumn(item)); });
         this.dataSource.columns = this.columns;
@@ -794,17 +805,16 @@ exports.DataTable = DataTable;
 var DataTableRow = (function (_super) {
     __extends(DataTableRow, _super);
     function DataTableRow(columns) {
-        var _this = this;
-        _super.call(this);
-        this.columns = columns;
-        this.cells = [];
-        this.dataSource = {
+        var _this = _super.call(this) || this;
+        _this.columns = columns;
+        _this.cells = [];
+        _this.dataSource = {
             cellclick: function () { },
             rowclick: function () { }
         };
         for (var i = 0; i < columns; ++i) {
-            this.cells.push(new DataTableRowCell());
-            this.cells[i].OnClick = function (cellIndex, rowIndex) {
+            _this.cells.push(new DataTableRowCell());
+            _this.cells[i].OnClick = function (cellIndex, rowIndex) {
                 if (_this.dataSource.cellclick) {
                     _this.dataSource.cellclick(_this.cells[cellIndex], cellIndex, rowIndex);
                 }
@@ -813,6 +823,7 @@ var DataTableRow = (function (_super) {
                 }
             };
         }
+        return _this;
     }
     Object.defineProperty(DataTableRow.prototype, "OnCellClick", {
         set: function (value) {
@@ -835,7 +846,7 @@ var DataTableRowCell = (function (_super) {
     __extends(DataTableRowCell, _super);
     function DataTableRowCell(type) {
         if (type === void 0) { type = "plaintext"; }
-        _super.call(this, type);
+        return _super.call(this, type) || this;
     }
     Object.defineProperty(DataTableRowCell.prototype, "Type", {
         set: function (value) {

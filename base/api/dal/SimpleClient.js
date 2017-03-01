@@ -12,7 +12,7 @@ var logger_1 = require("../common/base/logger");
 var SimpleClient = (function (_super) {
     __extends(SimpleClient, _super);
     function SimpleClient(resolver) {
-        _super.call(this, resolver);
+        return _super.call(this, resolver) || this;
     }
     SimpleClient.prototype.send = function (data) {
         logger_1.DefaultLogger.debug(data);
