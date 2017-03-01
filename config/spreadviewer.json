@@ -1,0 +1,48 @@
+[
+    {
+        "symbolCode1": "IF1701",
+        "innerCode1": 2008296,
+        "coeff1": 1,
+        "symbolCode2": "IF1703",
+        "innerCode2": 2006912,
+        "coeff2": 1,
+        "durations": [
+            {
+                "start": {
+                    "hour": 12,
+                    "minute": 30
+                },
+                "end": {
+                    "hour": 18,
+                    "minute": 30
+                }
+            }
+        ],
+        "multiplier": 1,
+        "marketdataType1": "MARKETDATA",
+        "marketdataType2": "MARKETDATA"
+    },
+    {
+        "symbolCode1": "IF1702",
+        "innerCode1": 2008296,
+        "coeff1": 1,
+        "symbolCode2": "IF1704",
+        "innerCode2": 2006912,
+        "coeff2": 1,
+        "durations": [
+            {
+                "start": {
+                    "hour": 18,
+                    "minute": 30
+                },
+                "end": {
+                    "hour": 21,
+                    "minute": 30
+                }
+            }
+        ],
+        "multiplier": 1,
+        "marketdataType1": "MARKETDATA",
+        "marketdataType2": "MARKETDATA"
+    }
+]

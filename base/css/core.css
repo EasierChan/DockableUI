@@ -1,0 +1,425 @@
+/*
+* dockable-layout style created by chenlei.
+* 2016-11-25
+*/
+
+/*responsive and resizable layout*/
+* {
+    margin: 0;
+    border: 0;
+    padding: 0;
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    width: 100%;
+    font-size: 12px;
+    font-family: "Segoe UI", "Open Sans", sans-serif, serif;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.dock-container {
+    /*display: flex;*/
+    background-color: #000010;
+    color: #F0F0F0;
+    overflow: hidden;
+    position: relative;
+}
+
+.vertical {
+    float: left;
+    height: 100%;
+}
+
+.horizental {
+    width: 100%;
+}
+
+.splitter-bar {
+    /*flex: 0 0 5px;*/
+    /*float: left;*/
+    background-color: red;
+}
+
+.splitter-bar.vertical {
+    /*flex: 1 1 auto;*/
+    width: 5px;
+    cursor: col-resize;
+}
+
+.splitter-bar.horizental {
+    height: 5px;
+    cursor: row-resize;
+}
+
+.dock-container.horizental {
+    height: 200px;
+    /*display: flex;
+    flex-flow: row nowrap;*/
+}
+
+.dock-container.vertical {
+    width: 300px;
+    /*display: flex;
+    flex-flow: column nowrap;*/
+}
+
+.tab-panel {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+}
+
+.tab-pages {
+    flex: 1 1 auto;
+    display: flex;
+}
+
+.tab-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-user-drag: none;
+}
+
+.tab-page:not(.active) {
+    display: none;
+}
+
+.page-title {
+    flex: none;
+    height: 25px;
+    line-height: 25px;
+    padding-left: 5px;
+    background-color: rgba(45, 45, 45, 1);
+    overflow: hidden;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+.page-body {
+    background-color: #1e1e1e;
+    flex: 1 1 auto;
+    display: flex;
+    -webkit-user-drag: none;
+}
+
+.panel-header-list {
+    flex: 0 0 25px;
+    background-color: rgba(45, 45, 45, 1);
+    box-shadow: 0 -1px 0px #060606;
+    display: flex;
+    -webkit-user-drag: none;
+}
+
+.panel-header-list > .tab {
+    flex: none;
+    height: 23px;
+    line-height: 23px;
+    width: fit-content;
+    /*width: 60px;*/
+    padding: 0 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.panel-header-list > .tab.active {
+    background-color: #060606;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+/* table */
+dock-table, dock-table2{
+    min-width: 200px;
+    position: relative;
+    overflow-y: hidden;
+    flex: auto;
+}
+
+td {
+    word-break: keep-all;
+}
+td input {
+    width: 100%;
+}
+
+.scroller-table{
+    position: relative;
+    width: 100%;
+}
+.vscrollerbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.vscrollerbar .arrow-top,
+.vscrollerbar .arrow-bottom {
+    width: 100%;
+    flex: none;
+    background-color: transparent;
+}
+.vscrollerbar .arrow-top {
+    height: 22px;
+}
+.vscrollerbar .arrow-bottom {
+    height: 0px;
+}
+.vscrollerbar .tracker {
+    width: 100%;
+    flex: auto;
+    background-color: transparent;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+.vscrollerbar .thumb {
+    display: none;
+    width: 100%;
+    min-height: 10px;
+    background-color: rgba(120, 120, 120, 0.4);
+}
+.hscrollerbar{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    height: 8px;
+    display: flex;
+    flex-direction: column;
+}
+.hscrollerbar .arrow-left,
+.hscrollerbar .arrow-right {
+    display: none;
+    flex: none;
+}
+.hscrollerbar .tracker {
+    height: 100%;
+    flex: auto;
+    background-color: transparent;
+}
+.hscrollerbar .thumb {
+    display: none;
+    min-width: 10px;
+    height: 100%;
+}
+/*dock-nav*/
+
+.dock-sn,
+.dock-ew {
+    display: none;
+    position: absolute;
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.dock-sn {
+    height: 100%;
+    width: 30px;
+    align-items: center;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.dock-ew {
+    width: 100%;
+    height: 30px;
+    /*width: 100px;*/
+    justify-content: space-between;
+}
+
+.dock-center,
+.dock-west,
+.dock-east,
+.dock-north,
+.dock-south {
+    flex: none;
+    background-color: white;
+    border: 1px solid grey;
+    padding: 4px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.dock-center {
+    display: none;
+}
+
+.bar-block {
+    background-color: dodgerblue;
+}
+
+.bar-arrow {
+    width: 0px;
+    height: 0px;
+    border-color: transparent;
+}
+/* west and east*/
+
+.dock-west > .bar-block,
+.dock-east > .bar-block {
+    height: 100%;
+    width: 10px;
+}
+
+.dock-east .bar-arrow {
+    border-width: 10px 5px;
+    border-left-color: dodgerblue;
+    border-style: dashed dashed dashed solid;
+    order: -1;
+}
+
+.dock-west .bar-arrow {
+    border-width: 10px 5px;
+    border-right-color: dodgerblue;
+    border-style: dashed solid dashed dashed;
+}
+/* north and south*/
+
+.dock-north > .bar-block,
+.dock-south > .bar-block {
+    flex: none;
+    width: 100%;
+    height: 10px;
+}
+
+.dock-north > .bar-arrow {
+    flex: none;
+    border-width: 5px 10px;
+    border-bottom-color: dodgerblue;
+    border-style: dashed dashed solid dashed;
+}
+
+.dock-south > .bar-arrow {
+    flex: none;
+    border-width: 5px 10px;
+    border-top-color: dodgerblue;
+    border-style: solid dashed dashed dashed;
+    order: -1;
+}
+
+.dock-cover {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* end dockable layout style*/
+
+/* begin other */
+
+.loading {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/*user control*/
+.controls{
+    height: 100%;
+    width: 100%;
+    display: flex;
+}
+usercontrol{
+    display: flex;
+    position: relative;
+    /*overflow: hidden;*/
+}
+usercontrol.row{
+    flex-flow: row nowrap;
+    flex: none;
+    padding: 2px 0px;
+}
+
+usercontrol.row > * {
+    position: relative;
+    margin-left: 5px;
+    display: inherit;
+}
+usercontrol.col > * {
+    margin-top: 2px;
+    display: inherit;
+}
+usercontrol.col{
+    flex: 1;
+    flex-flow: column nowrap;
+    width: 100%;
+    padding: 0px 2px;
+}
+span, th {
+    white-space: nowrap;
+}
+
+input,
+button,
+label{
+    display: inline-flex;
+    margin: 0px;
+    line-height: 21px;
+    height: 21px;
+}
+button > pre, label > pre, pre {
+    display: inline-block;
+    padding: 0px;
+    margin: 0px;
+    background-color: transparent;
+    border: 0;
+    color: white;
+    line-height: 21px;
+}
+
+.dropdown-toggle, .dropdown-toggle > prev{
+    width: 100% !important;
+    text-align: left;
+}
+
+button > span.caret{
+    margin-top: 8px;
+    margin-left: 10px;
+}
+
+input[type="radio"], input[type="checkbox"]{
+    margin: 0;
+}
+/* echart */
+echart{
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.hidden{
+    display: none;
+}
+
+/* scroller */
+::-webkit-scrollbar{
+    width: 5px;
+    height: 5px;
+    background-color: rgb(62, 62, 66);
+}
+::-webkit-scrollbar-button{
+    display: none;
+}
+::-webkit-scrollbar-thumb{
+    background-color: rgb(104, 104, 104);
+}
+::-webkit-scrollbar-thumb:hover{
+    background-color: rgb(158,158,158);
+}

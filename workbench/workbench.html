@@ -1,0 +1,329 @@
+<div id="workbench">
+
+    <div class="body">
+        <form *ngIf="!isAuthorized" class="loginForm" #loginForm="ngForm" (ngSubmit)="onLogin()">
+            <div class="userImage">
+                <span class="mif-user mif-4x fg-blue"></span>
+            </div>
+            <div class="input-control text">
+                <input name="serverinfo" class="dropdown-toggle" type="text" required readonly placeholder="Server Name" [(ngModel)]="serverinfo"
+                    #server="ngModel">
+                    <ul class="d-menu" data-role="dropdown">
+                        <li><a href="#" (click)="onSelectServer('高薪南四道')">高薪南四道</a></li>
+                        <li><a href="#" (click)="onSelectServer('高薪南五道')">高薪南五道</a></li>
+                    </ul>
+            </div>
+            <div [hidden]="server.valid || server.pristine" class="bg-lightOrange fg-darkRed alert">
+                Server is required.
+            </div>
+            <div class="input-control text">
+                <input name="username" type="text" required placeholder="User Name" [(ngModel)]="username" #name="ngModel">
+            </div>
+            <div [hidden]="name.valid || name.pristine" class="bg-lightOrange fg-darkRed alert">
+                UserName is required.
+            </div>
+            <div class="input-control password">
+                <input name="password" type="Password" required placeholder="Password" [(ngModel)]="password" #passwd="ngModel">
+            </div>
+            <div [hidden]="passwd.valid || passwd.pristine" class="bg-lightOrange fg-darkRed alert">
+                Password is required.
+            </div>
+            <div class="accept-buttons">
+                <button type="submit" class="button primary" [disabled]="!loginForm.form.valid">
+                            登录
+                        </button>
+                <button class="button danger" (click)="onReset()">
+                            重置
+                        </button>
+            </div>
+        </form>
+        <div class="appstore" *ngIf="isAuthorized">
+            <!--<div class="fg-white" style="padding-left: 80px; position: fixed; width: 100%; box-shadow: 0 2px 2px black; background-color: #2c2c2c; z-index: 99">
+                <h3>Applications</h3>
+            </div>-->
+            <div class="tile-area fg-white tile-area-scheme-dark" style="min-width: 1000px">
+                <h1 class="tile-area-title">Start</h1>
+                <div class="tile-area-controls">
+                    <button class="square-button bg-transparent fg-white bg-blue no-border">
+                        <span class="mif-list"></span>
+                    </button>
+                    <button class="square-button bg-transparent fg-white bg-blue no-border" (click)="onPopup(e)">
+                        <span class="mif-plus"></span>
+                    </button>
+                </div>
+                <div class="tile-group double">
+                    <span class="tile-group-title">Transanctional</span>
+                    <div class="tile-container">
+                        <template ngFor let-app [ngForOf]="apps">
+                            <div *ngIf="app.category=='Transanctional'" class="tile-square bg-blue fg-white" data-role="tile" (click)="onStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-trademark"></span>
+                                </div>
+                                <span class="tile-label">{{ app.desc }}</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="tile-group double">
+                    <span class="tile-group-title">Analytical</span>
+                    <div class="tile-container">
+                        <template ngFor let-app [ngForOf]="apps">
+                            <div *ngIf="app.category=='Analytical'" class="tile-square bg-green fg-white" data-role="tile" (click)="OnStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-library"></span>
+                                </div>
+                                <span class="tile-label">{{ app.desc }}</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <!--<div class="dialog-overlay op-dark" *ngIf="bPopPanel" (click)="closePanel($event)">-->
+            <div class="block-shadow-info" data-role="dialog" id="config" data-overlay="true" data-close-button="true" data-width="800"
+                data-height="600">
+                <div class="pop-center bg-white">
+                    <div class="header fg-white bg-blue">
+                        <a href="#" class="icon mif-home fg-white"></a>
+                        <span class="title">{{panelTitle}}</span>
+                        <!--<span href="#" class="icon mif-minus place-right"></span>-->
+                        <!--<span class="bg-transparent fg-white place-right">Close</span>
+                        <span class="bg-transparent fg-white place-right">Save</span>-->
+                    </div>
+                    <div class="content">
+                        <div *ngIf="config.step==1" class="grid condensed">
+                            <div class="row">
+                                <label for="configName">Configuration Name: </label>
+                                <div class="input-control text">
+                                    <input type="text" id="configName" [(ngModel)]="config.name">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <h4>Trading Universe</h4>
+                                <hr>
+                            </div>
+                            <div class="row cells4">
+                                <div class="cell" style="padding-right: 2px">
+                                    <div class="input-control text full-size">
+                                        <input type="text" placeholder="类别">
+                                        <button class="button dropdown-toggle"></button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a href="#">期货</a></li>
+                                            <li><a href="#">A股</a></li>
+                                            <li><a href="#">基金</a></li>
+                                            <li><a href="#">期权</a></li>
+                                            <li><a href="#">港股</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="cell" style="padding-right: 2px">
+                                    <div class="input-control text full-size">
+                                        <input type="text" placeholder="行业">
+                                        <button class="button dropdown-toggle"></button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a href="#">电力</a></li>
+                                            <li><a href="#">煤炭</a></li>
+                                            <li><a href="#">石油</a></li>
+                                            <li><a href="#">钢铁</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="cell" style="padding-right: 2px">
+                                    <div class="input-control text full-size">
+                                        <input type="text" placeholder="类别">
+                                        <button class="button dropdown-toggle"></button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a href="#">期货</a></li>
+                                            <li><a href="#">A股</a></li>
+                                            <li><a href="#">基金</a></li>
+                                            <li><a href="#">期权</a></li>
+                                            <li><a href="#">港股</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="cell" style="padding-right: 2px">
+                                    <div class="input-control text full-size">
+                                        <input type="text" placeholder="行业">
+                                        <button class="button dropdown-toggle"></button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a href="#">电力</a></li>
+                                            <li><a href="#">煤炭</a></li>
+                                            <li><a href="#">石油</a></li>
+                                            <li><a href="#">钢铁</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row cells2">
+                                <div class="cell" style="padding-right: 2px">
+                                    <div class="input-control file full-size" data-role="input">
+                                        <input type="file" placeholder="import codes from file">
+                                        <button class="button"><span class="mif-folder"></span></button>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <div class="input-control text full-size" data-role="input">
+                                        <input type="text" placeholder="Symbol Code">
+                                        <button class="button"><span class="mif-search"></span></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row cells5" style="height: 290px">
+                                <div class="cell colspan2">
+                                    <table class="table condensed border">
+                                        <thead>
+                                            <tr>
+                                                <th>SymbolCode</th>
+                                                <th>SymbolName</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>000001</td>
+                                                <td>平安银行</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="cell" style="height: 100%">
+                                    <div style="display: flex; flex-flow: column; justify-content: center; height: 100%;align-items: center">
+                                        <button><span class="mif-chevron-thin-right"></span></button>
+                                    </div>
+                                </div>
+                                <div class="cell colspan2">
+                                    <table class="table border">
+                                        <thead>
+                                            <tr>
+                                                <th>SymbolCode</th>
+                                                <th>SymbolName</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>000001</td>
+                                                <td>平安银行</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid" *ngIf="config.step==2">
+                            <div class="row">
+                                <h4>Choose Strategy</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <div class="dropdown-button">
+                                        <button class="button dropdown-toggle" style="min-width: 150px">{{config.selectedStrategy}}</button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a (click)="selectStrategy('ManulTrade')" href="#">ManulTrade</a></li>
+                                            <li><a (click)="selectStrategy('PortfolioTrade')" href="#">PortfolioTrade</a></li>
+                                            <li><a (click)="selectStrategy('PairTrade')" href="#">PairTrade</a></li>
+                                        </ul>
+                                    </div>
+                                    <button class="button">Add Strategy</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid" *ngIf="config.step==3">
+                            <div class="row">
+                                <h4>Config Strategy Instances</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <label>Current Strategy: {{config.selectedStrategy}}</label>
+                                <br>
+                                <div class="input-control text full-size">
+                                    <input type="text" placeholder="Strategy ID" [(ngModel)]="newestInstanceName">
+                                    <button class="button" (click)="addInstance()">Add Instance</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <div *ngFor="let item of this.config.strategyInstances;let i = index" class="panel warning collapsible collapsed full-size condensed"
+                                        data-role="panel">
+                                        <div class="heading" (click)="removeInstance($event, 3)">
+                                            <span (click)="removeInstance($event, i)" class="icon mif-cancel bg-red"></span>
+                                            <span class="title">{{item.id}}</span>
+                                        </div>
+                                        <div class="content">
+                                            <table class="table condensed full-size">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Key</th>
+                                                        <th>Value</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Name</td>
+                                                        <td><input type="text" class="full-size"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>test</td>
+                                                        <td><input type="text" class="full-size"></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid" *ngIf="config.step==4">
+                            <div class="row">
+                                <h4>Choose Channels</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <table class="table condensed">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 30px"></th>
+                                                <th>Account</th>
+                                                <th>Type</th>
+                                                <th>Fund</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let channel of channels">
+                                                <td>
+                                                    <label class="input-control checkbox">
+                                                        <input type="checkbox" [(ngModel)]="channel.enable">
+                                                        <span class="check"></span>
+                                                        <span class="caption"></span>
+                                                    </label>
+                                                </td>
+                                                <td>666600000040</td>
+                                                <td>期货</td>
+                                                <td>10000000</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid" *ngIf="config.step==5">
+                            <div class="row">
+                                <h4>Are you Sure?</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <label for="maxordersize">Make sure whether you have done a correct setting, then click 'Finish' Or reset them.</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <div class="place-right">
+                            <button class="button" [disabled]="config.step==1" (click)="prev()">Prev</button>
+                            <button class="button" [disabled]="config.step==5" (click)="next()">Next</button>
+                            <button class="button" [disabled]="config.step!=5" (click)="finish()">Finish</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

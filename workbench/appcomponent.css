@@ -1,0 +1,115 @@
+#workbench{
+    width: 100%;
+    height: 100%;
+    background-color: rgb(50,50,50);
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+#workbench .title{
+    flex: 0 0 30px;
+    font-size: 20px;
+    /*line-height: 30px;*/
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-app-region: drag;
+}
+
+#workbench .title .close{
+    color: white;
+    padding: 0px 10px 2px 10px;
+    float: right;
+    cursor: pointer;
+}
+
+.close:hover{
+    background-color: red;
+}
+
+#workbench .body{
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column nowrap;
+    background-color: #1d1d1d;
+}
+
+#workbench .body .loginForm{
+    width: 200px;
+    height: auto;
+    display: flex;
+    flex-flow: column nowrap;
+}
+.ng-valid[required], .ng-valid.required{
+    border-left: 5px solid #42A948;
+}
+.ng-invalid:not(form){
+    border-left: 5px solid #a94442;
+}
+.alert{
+    height: 20px;
+}
+
+#workbench .body .loginForm > div{
+    width: 100%;
+}
+#workbench .body .loginForm .accept-buttons{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+}
+.userImage{
+    text-align: center;
+}
+
+#workbench > .body > .appstore{
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow-y: hidden;
+}
+
+.tile-area-controls {
+    position: fixed;
+    right: 40px;
+    top: 40px;
+}
+.pop-right {
+    height: 80%;
+    width: 600px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    display: flex;
+    flex-flow: column;
+}
+.pop-center {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-flow: column;
+}
+.pop-right > .header, .pop-center > .header {
+    flex: 0 0 auto;
+    padding: 5px;
+}
+.pop-right > .content, .pop-center > .content {
+    flex: auto;
+    padding: 5px 10px;
+    overflow-y: auto;
+}
+.pop-right > .footer, .pop-center > .footer {
+    flex: 0 0 auto;
+    padding: 10px 5px;
+}
+
+
+/* hack for metroui.css */
+.dropdown-toggle {
+    padding-left: 0.125rem;
+}
+
+.table td .input-control {
+    width: auto;
+}
