@@ -20,7 +20,7 @@ var Socket = require("@node/net").Socket;
 var PriceService = (function (_super) {
     __extends(PriceService, _super);
     function PriceService() {
-        _super.call(this);
+        return _super.call(this) || this;
     }
     /**
      * QTS::MSG::PS_MSG_TYPE_MARKETDATA
@@ -67,11 +67,11 @@ var PriceService = (function (_super) {
             console.error(err.message);
         });
     };
-    PriceService = __decorate([
-        core_1.Injectable(), 
-        __metadata('design:paramtypes', [])
-    ], PriceService);
     return PriceService;
 }(core_1.EventEmitter));
+PriceService = __decorate([
+    core_1.Injectable(),
+    __metadata("design:paramtypes", [])
+], PriceService);
 exports.PriceService = PriceService;
 //# sourceMappingURL=priceService.js.map

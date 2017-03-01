@@ -17,8 +17,9 @@ var TcpClient = (function (_super) {
      * resolver: Resolver的实例
      */
     function TcpClient(resolver) {
-        _super.call(this);
-        this._resolver = resolver;
+        var _this = _super.call(this) || this;
+        _this._resolver = resolver;
+        return _this;
     }
     /**
      * 连接

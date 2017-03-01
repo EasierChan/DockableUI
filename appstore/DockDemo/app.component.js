@@ -247,18 +247,18 @@ var AppComponent = (function () {
         });
         document.title = "hello";
     };
-    AppComponent = __decorate([
-        core_1.Component({
-            moduleId: module.id,
-            selector: "body",
-            templateUrl: "app.component.html",
-            providers: [
-                priceService_1.PriceService
-            ]
-        }), 
-        __metadata('design:paramtypes', [priceService_1.PriceService, core_1.ChangeDetectorRef])
-    ], AppComponent);
     return AppComponent;
 }());
+AppComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: "body",
+        templateUrl: "app.component.html",
+        providers: [
+            priceService_1.PriceService
+        ]
+    }),
+    __metadata("design:paramtypes", [priceService_1.PriceService, core_1.ChangeDetectorRef])
+], AppComponent);
 exports.AppComponent = AppComponent;
 //# sourceMappingURL=app.component.js.map

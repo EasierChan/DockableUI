@@ -4,26 +4,27 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var events = require('events');
-var logger_1 = require('../common/base/logger');
+var events = require("events");
+var logger_1 = require("../common/base/logger");
 /**
  * SimpleResover extends Resolver
  */
 var SimpleResolver = (function (_super) {
     __extends(SimpleResolver, _super);
     function SimpleResolver(bufLen) {
-        _super.call(this);
+        var _this = _super.call(this) || this;
         // 缓冲区长度下限 4K
-        this.bufMiniumLen = 1 << 12;
+        _this.bufMiniumLen = 1 << 12;
         // 缓冲区长度上限 1G
-        this.bufMaxiumLen = 1 << 30;
+        _this.bufMaxiumLen = 1 << 30;
         // 缓冲区初始大小 4M
-        this.bufLen = 1 << 22;
-        this.bufBeg = 0;
-        this.bufEnd = 0;
+        _this.bufLen = 1 << 22;
+        _this.bufBeg = 0;
+        _this.bufEnd = 0;
         // 消息格式
-        this.headLen = 12;
-        this.resetBuffer(bufLen);
+        _this.headLen = 12;
+        _this.resetBuffer(bufLen);
+        return _this;
     }
     SimpleResolver.prototype.resetBuffer = function (bufLen) {
         if (bufLen) {

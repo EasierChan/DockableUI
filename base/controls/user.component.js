@@ -19,39 +19,37 @@ var UserControlComponent = (function () {
     UserControlComponent.prototype.ngAfterContentInit = function () {
         // console.log(JSON.stringify(this.children));
     };
-    UserControlComponent = __decorate([
-        core_1.Component({
-            moduleId: module.id,
-            selector: "usercontrol",
-            templateUrl: "usercontrol.html",
-            inputs: ["children", "dataSource", "styleObj"]
-        }), 
-        __metadata('design:paramtypes', [])
-    ], UserControlComponent);
     return UserControlComponent;
 }());
+UserControlComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: "usercontrol",
+        templateUrl: "usercontrol.html",
+        inputs: ["children", "dataSource", "styleObj"]
+    })
+], UserControlComponent);
 exports.UserControlComponent = UserControlComponent;
 var DockContainerComponent = (function () {
     function DockContainerComponent() {
     }
-    __decorate([
-        core_1.Input(), 
-        __metadata('design:type', Object)
-    ], DockContainerComponent.prototype, "styleObj", void 0);
-    __decorate([
-        core_1.Input(), 
-        __metadata('design:type', Object)
-    ], DockContainerComponent.prototype, "dataSource", void 0);
-    DockContainerComponent = __decorate([
-        core_1.Component({
-            moduleId: module.id,
-            selector: "dock-control",
-            templateUrl: "controlTree.html",
-            inputs: ["className", "children"]
-        }), 
-        __metadata('design:paramtypes', [])
-    ], DockContainerComponent);
     return DockContainerComponent;
 }());
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], DockContainerComponent.prototype, "styleObj", void 0);
+__decorate([
+    core_1.Input(),
+    __metadata("design:type", Object)
+], DockContainerComponent.prototype, "dataSource", void 0);
+DockContainerComponent = __decorate([
+    core_1.Component({
+        moduleId: module.id,
+        selector: "dock-control",
+        templateUrl: "controlTree.html",
+        inputs: ["className", "children"]
+    })
+], DockContainerComponent);
 exports.DockContainerComponent = DockContainerComponent;
 //# sourceMappingURL=user.component.js.map

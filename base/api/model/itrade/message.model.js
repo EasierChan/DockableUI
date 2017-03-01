@@ -8,9 +8,9 @@ var UNIT_PER_YUAN = 10000.0;
 var MsgInnerCode = (function () {
     function MsgInnerCode() {
     }
-    MsgInnerCode.len = 4;
     return MsgInnerCode;
 }());
+MsgInnerCode.len = 4;
 exports.MsgInnerCode = MsgInnerCode;
 var Message = (function () {
     function Message() {
@@ -31,7 +31,7 @@ exports.Message = Message;
 var MsgUpdateDate = (function (_super) {
     __extends(MsgUpdateDate, _super);
     function MsgUpdateDate() {
-        _super.apply(this, arguments);
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     MsgUpdateDate.prototype.fromBuffer = function (buffer) {
         if (buffer.length < MsgUpdateDate.len) {
@@ -50,14 +50,14 @@ var MsgUpdateDate = (function (_super) {
         this.seqNum = buffer.readInt32LE(offset);
         offset += 4;
     };
-    MsgUpdateDate.len = 20;
     return MsgUpdateDate;
 }(Message));
+MsgUpdateDate.len = 20;
 exports.MsgUpdateDate = MsgUpdateDate;
 var MsgBidAskIOPV = (function (_super) {
     __extends(MsgBidAskIOPV, _super);
     function MsgBidAskIOPV() {
-        _super.apply(this, arguments);
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     MsgBidAskIOPV.prototype.fromBuffer = function (buffer) {
         if (buffer.length < MsgBidAskIOPV.len) {
@@ -78,14 +78,14 @@ var MsgBidAskIOPV = (function (_super) {
         this.seqNum = buffer.readInt32LE(offset);
         offset += 4;
     };
-    MsgBidAskIOPV.len = 32;
     return MsgBidAskIOPV;
 }(Message));
+MsgBidAskIOPV.len = 32;
 exports.MsgBidAskIOPV = MsgBidAskIOPV;
 var DepthMarketData = (function (_super) {
     __extends(DepthMarketData, _super);
     function DepthMarketData() {
-        _super.apply(this, arguments);
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     DepthMarketData.prototype.fromBuffer = function (buffer) {
         if (buffer.length < DepthMarketData.len) {
@@ -125,10 +125,11 @@ var DepthMarketData = (function (_super) {
         offset += 4;
         this.InstrumentID = buffer.toString("utf-8", offset);
     };
-    DepthMarketData.len = 128;
     return DepthMarketData;
 }(Message));
+DepthMarketData.len = 128;
 exports.DepthMarketData = DepthMarketData;
+var MsgType;
 (function (MsgType) {
     MsgType[MsgType["PS_MSG_TYPE_UNKNOWN"] = 0] = "PS_MSG_TYPE_UNKNOWN";
     MsgType[MsgType["PS_MSG_TYPE_TRANSACTION"] = 1] = "PS_MSG_TYPE_TRANSACTION";
@@ -154,6 +155,5 @@ exports.DepthMarketData = DepthMarketData;
     MsgType[MsgType["MSG_TYPE_MARKETDATA_FUTURES"] = 1106] = "MSG_TYPE_MARKETDATA_FUTURES";
     MsgType[MsgType["MSG_TYPE_UPDATE_DATE"] = 1118] = "MSG_TYPE_UPDATE_DATE";
     MsgType[MsgType["MSG_TYPE_FUTURES"] = 100] = "MSG_TYPE_FUTURES";
-})(exports.MsgType || (exports.MsgType = {}));
-var MsgType = exports.MsgType;
+})(MsgType = exports.MsgType || (exports.MsgType = {}));
 //# sourceMappingURL=message.model.js.map

@@ -11,7 +11,7 @@ var message_model_1 = require("../../model/itrade/message.model");
 var PriceClient = (function (_super) {
     __extends(PriceClient, _super);
     function PriceClient(resolver) {
-        _super.call(this, resolver);
+        return _super.call(this, resolver) || this;
     }
     PriceClient.prototype.send = function (data) {
         logger_1.DefaultLogger.debug(data);
@@ -60,18 +60,19 @@ exports.PriceClient = PriceClient;
 var PriceResolver = (function (_super) {
     __extends(PriceResolver, _super);
     function PriceResolver(bufLen) {
-        _super.call(this);
+        var _this = _super.call(this) || this;
         // 缓冲区长度下限 4K
-        this.bufMiniumLen = 1 << 12;
+        _this.bufMiniumLen = 1 << 12;
         // 缓冲区长度上限 1G
-        this.bufMaxiumLen = 1 << 30;
+        _this.bufMaxiumLen = 1 << 30;
         // 缓冲区初始大小 4M
-        this.bufLen = 1 << 22;
-        this.bufBeg = 0;
-        this.bufEnd = 0;
+        _this.bufLen = 1 << 22;
+        _this.bufBeg = 0;
+        _this.bufEnd = 0;
         // 消息格式
-        this.headLen = 8;
-        this.resetBuffer(bufLen);
+        _this.headLen = 8;
+        _this.resetBuffer(bufLen);
+        return _this;
     }
     PriceResolver.prototype.resetBuffer = function (bufLen) {
         if (bufLen) {
