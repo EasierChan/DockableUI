@@ -23,6 +23,7 @@ var PriceService = (function (_super) {
         var _this = _super.call(this) || this;
         _this._socket = new Socket();
         _this._state = 0;
+        _this._innercodes = [];
         return _this;
     }
     /**
@@ -76,16 +77,25 @@ var PriceService = (function (_super) {
         setInterval(function () {
             if (_this._port && _this._host && _this._state === 2) {
                 _this.setEndpoint(_this._port, _this._host);
+                _this.sendCodes();
             }
         }, this._interval);
     };
     PriceService.prototype.register = function (innercodes) {
+        var self = this;
+        innercodes.forEach(function (code) {
+            if (!self._innercodes.includes(code))
+                self._innercodes.push(code);
+        });
+        this.sendCodes();
+    };
+    PriceService.prototype.sendCodes = function () {
         var obj = {
             header: {
                 type: message_model_1.MsgType.PS_MSG_REGISTER, subtype: message_model_1.MsgType.PS_MSG_TYPE_MARKETDATA, msglen: 0
             },
             body: {
-                innerCodes: innercodes
+                innerCodes: this._innercodes
             }
         };
         // console.log(JSON.stringify(obj));

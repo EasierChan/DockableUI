@@ -15,6 +15,7 @@ export class PriceService extends EventEmitter<any> {
     private _host: string;
     private _interval: number;
     private _state: number = 0;
+    private _innercodes: number[] = [];
 
     constructor() {
         super();
@@ -70,23 +71,33 @@ export class PriceService extends EventEmitter<any> {
         setInterval(() => {
             if (this._port && this._host && this._state === 2) {
                 this.setEndpoint(this._port, this._host);
+                this.sendCodes();
             }
         }, this._interval);
     }
 
     register(innercodes: number[]): void {
+        let self = this;
+        innercodes.forEach(code => {
+            if (!self._innercodes.includes(code))
+                self._innercodes.push(code);
+        });
+        this.sendCodes();
+    }
+
+    private sendCodes() {
+
         let obj = {
             header: {
                 type: MsgType.PS_MSG_REGISTER, subtype: MsgType.PS_MSG_TYPE_MARKETDATA, msglen: 0
             },
             body: {
-                innerCodes: innercodes
+                innerCodes: this._innercodes
             }
         };
         // console.log(JSON.stringify(obj));
         this._socket.write(JSON.stringify(obj));
     }
-
 
 }
 
