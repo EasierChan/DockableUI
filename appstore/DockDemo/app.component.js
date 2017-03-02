@@ -231,6 +231,8 @@ var AppComponent = (function () {
         strategyPage.setContent(strategyContent);
         var row3 = new control_1.DockContainer("h").addChild(bottomPanel);
         this.children.push(row3);
+        this.psInstance.setEndpoint(20000);
+        this.psInstance.setHeartBeat(10000);
         this.psInstance.register([3, 6]);
         this.psInstance.subscribe(function (msg) {
             // console.info(msg);

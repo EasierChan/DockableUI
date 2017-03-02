@@ -20,7 +20,10 @@ var Socket = require("@node/net").Socket;
 var PriceService = (function (_super) {
     __extends(PriceService, _super);
     function PriceService() {
-        return _super.call(this) || this;
+        var _this = _super.call(this) || this;
+        _this._socket = new Socket();
+        _this._state = 0;
+        return _this;
     }
     /**
      * QTS::MSG::PS_MSG_TYPE_MARKETDATA
@@ -33,22 +36,17 @@ var PriceService = (function (_super) {
             }
         });
     };
-    PriceService.prototype.register = function (innercodes) {
+    PriceService.prototype.setEndpoint = function (port, host) {
+        var _this = this;
+        if (host === void 0) { host = "127.0.0.1"; }
+        this._port = port;
+        this._host = host;
         var self = this;
-        var socket = new Socket();
-        socket.connect(20000, "127.0.0.1", function () {
-            var obj = {
-                header: {
-                    type: message_model_1.MsgType.PS_MSG_REGISTER, subtype: message_model_1.MsgType.PS_MSG_TYPE_MARKETDATA, msglen: 0
-                },
-                body: {
-                    innerCodes: innercodes
-                }
-            };
-            // console.log(JSON.stringify(obj));
-            socket.write(JSON.stringify(obj));
+        this._socket.connect(this._port, this._host);
+        self._socket.on("connect", function () {
+            _this._state = 1;
         });
-        socket.on("data", function (data) {
+        self._socket.on("data", function (data) {
             try {
                 // console.info(data.toString());
                 data.toString().split("$").forEach(function (item) {
@@ -63,9 +61,35 @@ var PriceService = (function (_super) {
                 console.error(data.toString());
             }
         });
-        socket.on("error", function (err) {
+        self._socket.on("error", function (err) {
+            _this._state = 2;
             console.error(err.message);
         });
+        self._socket.on("end", function (err) {
+            _this._state = 2;
+            console.info("remote closed");
+        });
+    };
+    PriceService.prototype.setHeartBeat = function (interval) {
+        var _this = this;
+        this._interval = interval > 5000 ? interval : 5000;
+        setInterval(function () {
+            if (_this._port && _this._host && _this._state === 2) {
+                _this.setEndpoint(_this._port, _this._host);
+            }
+        }, this._interval);
+    };
+    PriceService.prototype.register = function (innercodes) {
+        var obj = {
+            header: {
+                type: message_model_1.MsgType.PS_MSG_REGISTER, subtype: message_model_1.MsgType.PS_MSG_TYPE_MARKETDATA, msglen: 0
+            },
+            body: {
+                innerCodes: innercodes
+            }
+        };
+        // console.log(JSON.stringify(obj));
+        this._socket.write(JSON.stringify(obj));
     };
     return PriceService;
 }(core_1.EventEmitter));

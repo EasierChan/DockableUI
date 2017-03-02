@@ -246,6 +246,8 @@ export class AppComponent implements OnInit {
     let row3 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row3);
 
+    this.psInstance.setEndpoint(20000);
+    this.psInstance.setHeartBeat(10000);
     this.psInstance.register([3, 6]);
     this.psInstance.subscribe((msg) => {
       // console.info(msg);
