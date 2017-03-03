@@ -1,9 +1,15 @@
 "use strict";
-var __extends = (this && this.__extends) || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-};
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
 var EventEmitter = require("@node/events");
 var Control = (function () {
     function Control() {
@@ -709,6 +715,12 @@ var SpreadViewer = (function () {
                     this._curIdx = idx;
                 }
                 else {
+                    // for (let i = this._lastIdx[this._innerCode2] + 1; i < idx; ++i) {
+                    //   if (!this._msgs[this._innerCode2][i])
+                    //     this._msgs[this._innerCode2][i] = {};
+                    //   this._msgs[this._innerCode2][i].askPrice1 = this._msgs[this._innerCode2][i - 1].askPrice1;
+                    //   this._msgs[this._innerCode2][i].bidPrice1 = this._msgs[this._innerCode2][i - 1].bidPrice1;
+                    // }
                 }
             }
             else {
@@ -726,6 +738,12 @@ var SpreadViewer = (function () {
                     this._curIdx = idx;
                 }
                 else {
+                    // for (let i = this._lastIdx[this._innerCode1] + 1; i < idx; ++i) {
+                    //   if (!this._msgs[this._innerCode1][i])
+                    //     this._msgs[this._innerCode1][i] = {};
+                    //   this._msgs[this._innerCode1][i].askPrice1 = this._msgs[this._innerCode1][i - 1].askPrice1;
+                    //   this._msgs[this._innerCode1][i].bidPrice1 = this._msgs[this._innerCode1][i - 1].bidPrice1;
+                    // }
                 }
             }
         }

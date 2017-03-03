@@ -293,9 +293,31 @@ export interface ComOrderRecord extends ComPoolIndex {
     od: ComOrderData;
 };
 
+export interface SecurityPosBase{
+    date : number; // 4              
+    account : number; // 8           
+    code: number; // 4                     
+    TotalVol: number; // 8    
+    AvlVol: number; // 8    
+    WorkingVol: number; // 8    
+    TotalCost: number; // 8    
+};
+
+export interface StockPos extends SecurityPosBase{
+    AvlCreRedempVol : number; // 8
+    CovedFrzVol : number; // 8
+};
+
 
 export interface ComEquitPos extends StockPos {
     type: number;  // 4
+};
+
+export interface FuturePos extends SecurityPosBase{
+    MarginAveragePrice : number; // 8
+    AveragePrice : number; // 8
+    type : number; // 4
+    TodayOpen : number; // 8
 };
 
 export interface ComFuturePos extends FuturePos {
@@ -314,8 +336,36 @@ export interface ComConOrderStatusPos {
     record: ComEquitPos | ComFuturePos;
 };
 
+export interface FundPos{
+    data : number; // 4
+    account : number; // 8
+    c : string;  // 1
+    TotalAmount : number; // 8
+    AvlAmount : number; // 8
+    FrzAmount : number; // 8
+};
 
 export interface ComFundPos extends FundPos {
+};
+
+export interface MarginPos{
+	date : number; // 4
+	account : number; // 8
+	c : string;  // 1
+	TotalAmount : number; // 8
+	AvlAmount : number; // 8
+	FrzAmount : number; // 8
+
+	BuyFrzAmt : number; // 8
+	SellFrzAmt : number; // 8
+	BuyMargin : number; // 8
+	SellMargin : number; // 8
+	TotalMargin : number; // 8
+	Fee : number; // 8
+	PositionPL : number; // 8
+	ClosePL : number; // 8
+	PreFee : number; // 8
+    PreFundVal : number; // 8 上日结存
 };
 
 export interface ComMarginPos extends MarginPos {

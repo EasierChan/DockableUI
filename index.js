@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
 var loader_1 = require("./base/api/common/base/loader");
 loader_1.ULoader.init();

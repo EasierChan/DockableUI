@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var EOrderAction;
 (function (EOrderAction) {
     EOrderAction[EOrderAction["ORDER_ACTION_BUY"] = 0] = "ORDER_ACTION_BUY";
@@ -173,6 +174,11 @@ var EValueType;
     EValueType[EValueType["VALUE_TYPE_STRING"] = 25] = "VALUE_TYPE_STRING";
     EValueType[EValueType["VALUE_TYPE_STRINGPTR"] = 26] = "VALUE_TYPE_STRINGPTR";
 })(EValueType = exports.EValueType || (exports.EValueType = {}));
+;
+;
+;
+;
+;
 ;
 ;
 ;
