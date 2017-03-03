@@ -1,5 +1,12 @@
 /.vscode/
+/logs/*
+/config/*
+/appstore/**/*.js
+/appstore/**/*.js.map
+/base/**/*.js
+/base/**/*.js.map
+/workbench/**/*.js
+/workbench/**/*.js.map
 /appstore/BootstrapDemo/
 /appstore/MultipleDemo/
 /appstore/SpreadViewer/
-
