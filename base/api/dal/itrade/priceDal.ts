@@ -5,7 +5,7 @@ import { IResolver } from "../../common/base/resolver";
 import { DefaultLogger } from "../../common/base/logger";
 import { EventEmitter } from "events";
 import {
-    MSGHEADER, MsgType, MsgInnerCode, MsgUpdateDate,
+    Header, MsgType, MsgUpdateDate,
     MsgBidAskIOPV, DepthMarketData
 } from "../../model/itrade/message.model";
 
@@ -143,7 +143,7 @@ export class PriceResolver extends EventEmitter implements IResolver {
         DefaultLogger.info("connection closed!");
     }
 
-    readHeader(): MSGHEADER {
+    readHeader(): Header {
         return {
             type: this.buffer.readUInt16LE(this.bufBeg),
             subtype: this.buffer.readUInt16LE((this.bufBeg + 2)),
@@ -261,7 +261,7 @@ export class PriceDal {
         }
 
         let offset = 0;
-        let data = new Buffer(4 + MsgInnerCode.len);
+        let data = new Buffer(4 + 4); // count + innercode
 
         data.writeInt32LE(1, 0);
         offset += 4;
