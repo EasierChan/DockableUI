@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 var __extends = (this && this.__extends) || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -29,8 +29,8 @@ var SimpleResolver = (function (_super) {
     SimpleResolver.prototype.resetBuffer = function (bufLen) {
         if (bufLen) {
             if (bufLen < this.bufMiniumLen) {
-                logger_1.DefaultLogger.error('buffer minium length can\'t less than ' + this.bufMiniumLen);
-                throw Error('buffer minium length can\'t less than ' + this.bufMiniumLen);
+                logger_1.DefaultLogger.error("buffer minium length can\"t less than " + this.bufMiniumLen);
+                throw Error("buffer minium length can\"t less than " + this.bufMiniumLen);
             }
             else {
                 this.bufLen = bufLen;
@@ -52,10 +52,10 @@ var SimpleResolver = (function (_super) {
         logger_1.DefaultLogger.trace("got data from server! datalen= %d", data.length);
         // auto grow buffer to store big data unless it greater than maxlimit.
         while (data.length + this.bufEnd > this.bufLen) {
-            logger_1.DefaultLogger.warn('more buffer length required.');
+            logger_1.DefaultLogger.warn("more buffer length required.");
             if ((this.bufLen << 1) > this.bufMaxiumLen) {
-                logger_1.DefaultLogger.fatal('too max buffer');
-                throw Error('too max buffer');
+                logger_1.DefaultLogger.fatal("too max buffer");
+                throw Error("too max buffer");
             }
             this.buffer = Buffer.concat([this.buffer, Buffer.alloc(this.bufLen)], this.bufLen << 1);
             this.bufLen <<= 1;
@@ -79,7 +79,7 @@ var SimpleResolver = (function (_super) {
         logger_1.DefaultLogger.info("connection closed!");
     };
     SimpleResolver.prototype.onResolved = function (callback) {
-        this.on('data', callback);
+        this.on("data", callback);
     };
     SimpleResolver.prototype.readHeader = function () {
         return {
@@ -98,8 +98,8 @@ var SimpleResolver = (function (_super) {
         }
         // read head
         var header = this.readHeader();
-        if (header.datalen == 0) {
-            logger_1.DefaultLogger.warn('empty message!(maybe a Heartbeat)');
+        if (header.datalen === 0) {
+            logger_1.DefaultLogger.warn("empty message!(maybe a Heartbeat)");
             return this.headLen;
         }
         // read content
@@ -108,10 +108,10 @@ var SimpleResolver = (function (_super) {
         }
         var content = JSON.stringify(this.buffer.slice((this.bufBeg + this.headLen), (this.bufBeg + this.headLen + header.datalen)));
         var temp = JSON.parse(content, function (k, v) {
-            return v && v.type === 'Buffer' ? new Buffer(v.data) : v;
+            return v && v.type === "Buffer" ? new Buffer(v.data) : v;
         });
         var msgObj = JSON.parse(temp.toString());
-        this.emit('data', msgObj);
+        this.emit("data", msgObj);
         return this.headLen + header.datalen;
     };
     return SimpleResolver;
