@@ -2,6 +2,7 @@
  * autoupdater
  */
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var path = require("path");
 var os = require("os");
 var common_1 = require("./common");

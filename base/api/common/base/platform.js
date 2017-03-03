@@ -2,6 +2,7 @@
  * cl 2016/09/08
  */
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var _isWindows = false;
 var _isMacintosh = false;
 var _isLinux = false;

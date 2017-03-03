@@ -1,4 +1,5 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var child_process_1 = require("child_process");
 var Process = (function () {
     function Process() {
