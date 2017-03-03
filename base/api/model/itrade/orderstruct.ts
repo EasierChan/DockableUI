@@ -365,7 +365,7 @@ export interface MarginPos{
 	PositionPL : number; // 8
 	ClosePL : number; // 8
 	PreFee : number; // 8
-    PreFundVal : number; // 8 上日结存
+    PreFundVal : number; //  8     上日结存
 };
 
 export interface ComMarginPos extends MarginPos {
