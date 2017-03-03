@@ -11,5 +11,6 @@ app.on("ready", () => {
     console.info(`node: ${process.version}`);
     console.info(`chrome: ${process.versions.chrome}`);
     console.info(`electron: ${process.versions.electron}`);
+    console.info(`electron: ${app.getLocale()}`);
     AppStore.bootstrap();
 });

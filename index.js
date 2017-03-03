@@ -8,6 +8,7 @@ electron_1.app.on("ready", function () {
     console.info("node: " + process.version);
     console.info("chrome: " + process.versions.chrome);
     console.info("electron: " + process.versions.electron);
+    console.info("electron: " + electron_1.app.getLocale());
     appstore_1.AppStore.bootstrap();
 });
 //# sourceMappingURL=index.js.map
