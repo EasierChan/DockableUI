@@ -238,7 +238,7 @@ var PriceDal = (function () {
                 break;
         }
         var offset = 0;
-        var data = new Buffer(4 + message_model_1.MsgInnerCode.len);
+        var data = new Buffer(4 + 4); // count + innercode
         data.writeInt32LE(1, 0);
         offset += 4;
         data.writeInt32LE(innercode, offset);
