@@ -2,7 +2,6 @@
  * App startup entry
  */
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var backend_1 = require("../../base/api/backend");
 var path = require("path");
 var StartUp = (function () {

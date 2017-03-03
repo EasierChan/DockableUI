@@ -2,7 +2,6 @@
  *
  */
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var logger_1 = require("./logger");
 var configurator_1 = require("./configurator");
 var ULoader = (function () {

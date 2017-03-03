@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var UWindwManager = (function () {
     function UWindwManager() {
         this._windows = [];

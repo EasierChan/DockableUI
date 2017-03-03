@@ -2,7 +2,6 @@
  * EasierChan 2016-08-31
  */
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var paths_1 = require("./paths");
 var log4js = require("log4js");
 var ULogger = (function () {

@@ -2,7 +2,6 @@
  * an app
  */
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var windows_1 = require("./windows");
 var windowmgr_1 = require("./windowmgr");
 var UApplication = (function () {

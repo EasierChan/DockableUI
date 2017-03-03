@@ -2,7 +2,6 @@
  * chenlei 2016/09/08
  */
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
 var platform = require("./platform");
 var logger_1 = require("./logger");
@@ -75,7 +74,6 @@ var UWindow = (function () {
             options.frame = false;
         }
         if (platform.isLinux) {
-            // options.icon = path.join(appRoot, "resources/linux/code.png"); // Windows and Mac are better off using the embedded icon(s)
         }
         // Create the browser window.
         this._win = new electron_1.BrowserWindow(options);

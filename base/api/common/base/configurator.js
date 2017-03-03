@@ -2,7 +2,6 @@
  * chenlei 20160901
  */
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var paths_1 = require("./paths");
 var fs = require("fs");
 var _ = require("lodash");

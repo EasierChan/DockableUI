@@ -1,5 +1,4 @@
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var EOrderAction;
 (function (EOrderAction) {
     EOrderAction[EOrderAction["ORDER_ACTION_BUY"] = 0] = "ORDER_ACTION_BUY";
@@ -54,7 +53,7 @@ var EOrderStatus;
     EOrderStatus[EOrderStatus["ORDER_STATUS_CANCELED"] = 7] = "ORDER_STATUS_CANCELED";
     EOrderStatus[EOrderStatus["ORDER_STATUS_PART_DEALED"] = 8] = "ORDER_STATUS_PART_DEALED";
     EOrderStatus[EOrderStatus["ORDER_STATUS_DEALED"] = 9] = "ORDER_STATUS_DEALED";
-    EOrderStatus[EOrderStatus["ORDER_STATUS_DISCARDED"] = 10] = "ORDER_STATUS_DISCARDED"; //10:废单            end status
+    EOrderStatus[EOrderStatus["ORDER_STATUS_DISCARDED"] = 10] = "ORDER_STATUS_DISCARDED"; // 10:废单            end status
 })(EOrderStatus = exports.EOrderStatus || (exports.EOrderStatus = {}));
 ;
 var EOrderStatusGW;
@@ -66,7 +65,7 @@ var EOrderStatusGW;
     EOrderStatusGW[EOrderStatusGW["ORDER_STATUS_GW_ALL_DEALED"] = 4] = "ORDER_STATUS_GW_ALL_DEALED";
     EOrderStatusGW[EOrderStatusGW["ORDER_STATUS_GW_PART_DEALED"] = 5] = "ORDER_STATUS_GW_PART_DEALED";
     EOrderStatusGW[EOrderStatusGW["ORDER_STATUS_GW_CANCEL_DEALED"] = 6] = "ORDER_STATUS_GW_CANCEL_DEALED";
-    EOrderStatusGW[EOrderStatusGW["ORDER_STATUS_GW_MATCH_DENLED"] = 7] = "ORDER_STATUS_GW_MATCH_DENLED"; //撮合被拒
+    EOrderStatusGW[EOrderStatusGW["ORDER_STATUS_GW_MATCH_DENLED"] = 7] = "ORDER_STATUS_GW_MATCH_DENLED"; // 撮合被拒
 })(EOrderStatusGW = exports.EOrderStatusGW || (exports.EOrderStatusGW = {}));
 ;
 var EOrderType;

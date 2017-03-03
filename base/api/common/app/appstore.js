@@ -2,7 +2,6 @@
  * app store manager the apps.
  */
 "use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
 var fs = require("fs");
 var path = require("path");
