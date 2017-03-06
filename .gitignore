@@ -3,10 +3,12 @@
 /config/*
 /appstore/**/*.js
 /appstore/**/*.js.map
+!/appstore/**/systemjs.config.js
 /base/**/*.js
 /base/**/*.js.map
 /workbench/**/*.js
 /workbench/**/*.js.map
+!/workbench/systemjs.config.js
 /appstore/BootstrapDemo/
 /appstore/MultipleDemo/
 /appstore/SpreadViewer/
