@@ -1,5 +1,7 @@
 "use strict";
 
+import { Message } from "./message.model";
+
 export enum EOrderAction {
     ORDER_ACTION_BUY,
     ORDER_ACTION_SELL,

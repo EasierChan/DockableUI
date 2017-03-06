@@ -4,10 +4,10 @@ import { TcpClient } from "../../common/base/client";
 import { IResolver } from "../../common/base/resolver";
 import { DefaultLogger } from "../../common/base/logger";
 import { EventEmitter } from "events";
+import { Header, MsgType } from "../../model/itrade/message.model";
 import {
-    Header, MsgType, MsgUpdateDate,
-    MsgBidAskIOPV, DepthMarketData
-} from "../../model/itrade/message.model";
+    MsgUpdateDate, MsgBidAskIOPV, DepthMarketData
+} from "../../model/itrade/price.model";
 
 
 export class PriceClient extends TcpClient {
@@ -103,7 +103,7 @@ export class PriceResolver extends EventEmitter implements IResolver {
 
     onError(err: any): void {
         // DefaultLogger.info(err);
-        this.emit("ps-error" , err);
+        this.emit("ps-error", err);
     }
 
     onData(data: Buffer): void {
