@@ -17,6 +17,7 @@ var AppComponent = (function () {
         this.bPopPanel = false;
         this.config = new WorkspaceConfig();
         this.config.step = 1;
+        this.bDetails = false;
     }
     AppComponent.prototype.next = function () {
         this.config.step++;
@@ -37,6 +38,13 @@ var AppComponent = (function () {
             this.bPopPanel = false;
         window.hideMetroDialog("#config");
     };
+    Object.defineProperty(AppComponent.prototype, "detailClass", {
+        get: function () {
+            return this.bDetails ? "tile-small bg-blue fg-white" : "tile-square bg-blue fg-white";
+        },
+        enumerable: true,
+        configurable: true
+    });
     AppComponent.prototype.onPopup = function () {
         this.bPopPanel = true;
         this.config.step = 1;

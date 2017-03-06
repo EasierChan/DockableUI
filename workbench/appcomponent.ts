@@ -2,7 +2,7 @@
 
 
 import { AppStoreService } from "../base/api/services/backendService";
-import { Component } from "@angular/core";
+import { Component, trigger, state, style, transition, animate } from "@angular/core";
 import { IApp } from "../base/api/model/app.model";
 declare var window: any; // hack by chenlei @ 2017/02/07
 
@@ -26,10 +26,12 @@ export class AppComponent {
     panelTitle: string;
     newestInstanceName: string;
     channels: Channel[];
+    bDetails: boolean;
 
     constructor(private appService: AppStoreService) {
         this.config = new WorkspaceConfig();
         this.config.step = 1;
+        this.bDetails = false;
     }
 
     next() {
@@ -53,6 +55,10 @@ export class AppComponent {
         else
             this.bPopPanel = false;
         window.hideMetroDialog("#config");
+    }
+
+    get detailClass() {
+        return this.bDetails ? "tile-small bg-blue fg-white" : "tile-square bg-blue fg-white";
     }
 
     onPopup() {

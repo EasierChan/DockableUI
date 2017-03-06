@@ -8,10 +8,10 @@
             <div class="input-control text">
                 <input name="serverinfo" class="dropdown-toggle" type="text" required readonly placeholder="Server Name" [(ngModel)]="serverinfo"
                     #server="ngModel">
-                    <ul class="d-menu" data-role="dropdown">
-                        <li><a href="#" (click)="onSelectServer('高薪南四道')">高薪南四道</a></li>
-                        <li><a href="#" (click)="onSelectServer('高薪南五道')">高薪南五道</a></li>
-                    </ul>
+                <ul class="d-menu" data-role="dropdown">
+                    <li><a href="#" (click)="onSelectServer('高薪南四道')">高薪南四道</a></li>
+                    <li><a href="#" (click)="onSelectServer('高薪南五道')">高薪南五道</a></li>
+                </ul>
             </div>
             <div [hidden]="server.valid || server.pristine" class="bg-lightOrange fg-darkRed alert">
                 Server is required.
@@ -29,11 +29,11 @@
                 Password is required.
             </div>
             <div class="accept-buttons">
-                <button type="submit" class="button primary" [disabled]="!loginForm.form.valid">
-                            登录
-                        </button>
                 <button class="button danger" (click)="onReset()">
                             重置
+                        </button>
+                <button type="submit" class="button primary" [disabled]="!loginForm.form.valid">
+                            登录
                         </button>
             </div>
         </form>
@@ -44,27 +44,57 @@
             <div class="tile-area fg-white tile-area-scheme-dark" style="min-width: 1000px">
                 <h1 class="tile-area-title">Start</h1>
                 <div class="tile-area-controls">
-                    <button class="square-button bg-transparent fg-white bg-blue no-border">
+                    <button class="square-button bg-transparent fg-white bg-blue no-border" (click)="bDetails=!bDetails;">
                         <span class="mif-list"></span>
                     </button>
                     <button class="square-button bg-transparent fg-white bg-blue no-border" (click)="onPopup(e)">
                         <span class="mif-plus"></span>
                     </button>
                 </div>
-                <div class="tile-group double">
+                <div class="tile-group">
                     <span class="tile-group-title">Transanctional</span>
                     <div class="tile-container">
                         <template ngFor let-app [ngForOf]="apps">
-                            <div *ngIf="app.category=='Transanctional'" class="tile-square bg-blue fg-white" data-role="tile" (click)="onStartApp(app.name)">
+                            <div *ngIf="app.category=='Transanctional'" [class]="detailClass" data-role="tile" (click)="onStartApp(app.name)">
                                 <div class="tile-content iconic">
                                     <span class="icon mif-trademark"></span>
+                                    <span class="tile-label">{{ app.desc }}</span>
                                 </div>
-                                <span class="tile-label">{{ app.desc }}</span>
+                            </div>
+                            <div *ngIf="app.category=='Transanctional'" [class]="detailClass" data-role="tile" (click)="onStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-trademark"></span>
+                                    <span class="tile-label">{{ app.desc }}</span>
+                                </div>
+                            </div>
+                            <div *ngIf="app.category=='Transanctional'" [class]="detailClass" data-role="tile" (click)="onStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-trademark"></span>
+                                    <span class="tile-label">{{ app.desc }}</span>
+                                </div>
+                            </div>
+                            <div *ngIf="app.category=='Transanctional'" [class]="detailClass" data-role="tile" (click)="onStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-trademark"></span>
+                                    <span class="tile-label">{{ app.desc }}</span>
+                                </div>
+                            </div>
+                            <div *ngIf="app.category=='Transanctional'" [class]="detailClass" data-role="tile" (click)="onStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-trademark"></span>
+                                    <span class="tile-label">{{ app.desc }}</span>
+                                </div>
+                            </div>
+                            <div *ngIf="app.category=='Transanctional'" [class]="detailClass" data-role="tile" (click)="onStartApp(app.name)">
+                                <div class="tile-content iconic">
+                                    <span class="icon mif-trademark"></span>
+                                    <span class="tile-label">{{ app.desc }}</span>
+                                </div>
                             </div>
                         </template>
                     </div>
                 </div>
-                <div class="tile-group double">
+                <!--<div class="tile-group double">
                     <span class="tile-group-title">Analytical</span>
                     <div class="tile-container">
                         <template ngFor let-app [ngForOf]="apps">
@@ -76,7 +106,7 @@
                             </div>
                         </template>
                     </div>
-                </div>
+                </div>-->
             </div>
             <!--<div class="dialog-overlay op-dark" *ngIf="bPopPanel" (click)="closePanel($event)">-->
             <div class="block-shadow-info" data-role="dialog" id="config" data-overlay="true" data-close-button="true" data-width="800"
