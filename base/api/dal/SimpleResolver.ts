@@ -1,8 +1,8 @@
-'use strict';
+"use strict";
 
-import {IResolver} from '../common/base/resolver';
-import events = require('events');
-import {DefaultLogger} from '../common/base/logger';
+import { IResolver } from "../common/base/resolver";
+import events = require("events");
+import { DefaultLogger } from "../common/base/logger";
 /**
  * SimpleResover extends Resolver
  */
@@ -20,11 +20,11 @@ export class SimpleResolver extends events.EventEmitter implements IResolver {
     // 消息格式
     private headLen: number = 12;
 
-    resetBuffer(bufLen ?: number): void {
+    resetBuffer(bufLen?: number): void {
         if (bufLen) {
             if (bufLen < this.bufMiniumLen) {
-                DefaultLogger.error('buffer minium length can\'t less than ' + this.bufMiniumLen);
-                throw Error('buffer minium length can\'t less than ' + this.bufMiniumLen);
+                DefaultLogger.error("buffer minium length can\"t less than " + this.bufMiniumLen);
+                throw Error("buffer minium length can\"t less than " + this.bufMiniumLen);
             } else {
                 this.bufLen = bufLen;
             }
@@ -54,10 +54,10 @@ export class SimpleResolver extends events.EventEmitter implements IResolver {
         DefaultLogger.trace("got data from server! datalen= %d", data.length);
         // auto grow buffer to store big data unless it greater than maxlimit.
         while (data.length + this.bufEnd > this.bufLen) {
-            DefaultLogger.warn('more buffer length required.');
+            DefaultLogger.warn("more buffer length required.");
             if ((this.bufLen << 1) > this.bufMaxiumLen) {
-                DefaultLogger.fatal('too max buffer');
-                throw Error('too max buffer');
+                DefaultLogger.fatal("too max buffer");
+                throw Error("too max buffer");
             }
             this.buffer = Buffer.concat([this.buffer, Buffer.alloc(this.bufLen)], this.bufLen << 1);
             this.bufLen <<= 1;
@@ -66,7 +66,7 @@ export class SimpleResolver extends events.EventEmitter implements IResolver {
         data.copy(this.buffer, this.bufEnd);
         this.bufEnd += data.length;
 
-        var readLen = this.readMsg();
+        let readLen = this.readMsg();
         while (readLen > 0) {
             this.bufBeg += readLen;
 
@@ -84,22 +84,22 @@ export class SimpleResolver extends events.EventEmitter implements IResolver {
     }
 
     onClose(arg: any): void {
-        DefaultLogger.info("connection closed!")
+        DefaultLogger.info("connection closed!");
     }
 
     onResolved(callback: ((data: Object) => void)): void {
-        this.on('data', callback);
+        this.on("data", callback);
     }
 
-    readHeader(): any{
+    readHeader(): any {
         return {
-            version : this.buffer.readUInt8(this.bufBeg),
-            service : this.buffer.readUInt8((this.bufBeg + 1)),
-            msgtype : this.buffer.readUInt16LE((this.bufBeg + 2)),
-            topic   : this.buffer.readUInt16LE((this.bufBeg + 4)),
-            optslen : this.buffer.readUInt16LE((this.bufBeg + 6)),
-            datalen : this.buffer.readUInt32LE((this.bufBeg + 8))
-        }
+            version: this.buffer.readUInt8(this.bufBeg),
+            service: this.buffer.readUInt8((this.bufBeg + 1)),
+            msgtype: this.buffer.readUInt16LE((this.bufBeg + 2)),
+            topic: this.buffer.readUInt16LE((this.bufBeg + 4)),
+            optslen: this.buffer.readUInt16LE((this.bufBeg + 6)),
+            datalen: this.buffer.readUInt32LE((this.bufBeg + 8))
+        };
     }
     // really unpack msg
     readMsg(): number {
@@ -107,10 +107,10 @@ export class SimpleResolver extends events.EventEmitter implements IResolver {
             return 0;
         }
         // read head
-        var header = this.readHeader();
+        let header = this.readHeader();
 
-        if(header.datalen == 0){
-            DefaultLogger.warn('empty message!(maybe a Heartbeat)');
+        if (header.datalen === 0) {
+            DefaultLogger.warn("empty message!(maybe a Heartbeat)");
             return this.headLen;
         }
         // read content
@@ -120,12 +120,12 @@ export class SimpleResolver extends events.EventEmitter implements IResolver {
 
         let content: string = JSON.stringify(this.buffer.slice((this.bufBeg + this.headLen), (this.bufBeg + this.headLen + header.datalen)));
 
-        var temp = JSON.parse(content, (k, v) => {
-            return v && v.type === 'Buffer' ? new Buffer(v.data) : v;
+        let temp = JSON.parse(content, (k, v) => {
+            return v && v.type === "Buffer" ? new Buffer(v.data) : v;
         });
 
-        var msgObj = JSON.parse(temp.toString());
-        this.emit('data', msgObj);
+        let msgObj = JSON.parse(temp.toString());
+        this.emit("data", msgObj);
 
         return this.headLen + header.datalen;
     }
