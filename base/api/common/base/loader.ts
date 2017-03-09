@@ -5,7 +5,7 @@
 "use strict";
 import { ULogger, DefaultLogger } from "./logger";
 import { UConfig } from "./configurator";
-import * from "../../dal/ipcManager";
+import * as initIPC from "../../dal/ipcManager";
 
 export class ULoader {
     static init(): void {
