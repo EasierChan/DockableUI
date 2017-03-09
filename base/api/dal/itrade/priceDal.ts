@@ -6,8 +6,7 @@ import { DefaultLogger } from "../../common/base/logger";
 import { EventEmitter } from "events";
 import { IPCManager } from "../ipcManager";
 import {
-    MSGHEADER, MsgType, MsgInnerCode, MsgUpdateDate,
-    MsgBidAskIOPV, DepthMarketData
+    MSGHEADER, MsgType, MsgUpdateDate, DepthMarketData, MsgBidAskIOPV, MsgInnerCode
 } from "../../model/itrade/message.model";
 
 
@@ -104,7 +103,7 @@ export class PriceResolver extends EventEmitter implements IResolver {
 
     onError(err: any): void {
         // DefaultLogger.info(err);
-        this.emit("ps-error" , err);
+        this.emit("ps-error", err);
     }
 
     onData(data: Buffer): void {
