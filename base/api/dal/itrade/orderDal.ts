@@ -10,9 +10,9 @@ import {
 
 
 // dal://itrade/data/order
-import { ipcMain } from "electron";
-ipcMain.on("dal://itrade/data/order", (e, param) => {
-    console.log("0101001")
+import { IPCManager } from "../ipcManager";
+IPCManager.register("dal://itrade/data/order", (e, param) => {
+    console.log("register...")
     OrderDal.sendMsg(param.type, param.subtype, param.buffer);
     OrderDal.addListener(param.type, (data) => {
         if (!e.sender.isDestroyed())
@@ -121,7 +121,7 @@ export class OrderDal {
 
     // register PriceServer msg
     static sendMsg(type: number, subtype: number, buffer: Buffer): void {
-        console.log("2222",type);
+        console.log("send Msg",type);
         OrderDal.start();
         OrderDal._client.sendWithHead(type, subtype, buffer);
     }

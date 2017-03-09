@@ -1,9 +1,11 @@
 /**
+ * date 2017/02/17 cl
  * 
  */
 "use strict";
-import {ULogger, DefaultLogger} from "./logger";
-import {UConfig} from "./configurator";
+import { ULogger, DefaultLogger } from "./logger";
+import { UConfig } from "./configurator";
+import * as initIPC from "../../dal/ipcManager";
 
 export class ULoader {
     static init(): void {

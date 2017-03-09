@@ -10,7 +10,7 @@ export class ManulTrader {
     }
 
     static submitOrder(...orders: ComConOrder[]): void {
-        console.log("111111111111111")
+        console.log("combine data & send out")
         let offset: number = 0;
         //handle with array
         let mem_size: number = 176;
