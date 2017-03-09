@@ -3,6 +3,7 @@
 import { DefaultLogger } from "../../common/base/logger";
 import { Header, MsgType } from "../../model/itrade/message.model";
 import { ItradeClient, ItradeResolver } from "./base";
+import { IPCManager } from "../ipcManager";
 import {
     MsgUpdateDate, MsgBidAskIOPV, DepthMarketData
 } from "../../model/itrade/price.model";
@@ -130,8 +131,7 @@ export class PriceDal {
     }
 }
 
-import { ipcMain } from "electron";
-ipcMain.on("dal://itrade/ps/marketdata", (e, param, cb) => {
+IPCManager.register("dal://itrade/ps/marketdata", (e, param, cb) => {
     PriceDal.registerQuoteMsg(param.type, param.code);
     PriceDal.addListener(param.type, (data) => {
         if (!e.sender.isDestroyed())

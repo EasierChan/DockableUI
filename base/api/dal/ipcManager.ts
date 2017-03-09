@@ -4,13 +4,17 @@
  * 
  */
 import { ipcMain } from "electron";
+import * as fs from "fs";
+import * as path from "path";
 
 export class IPCManager {
     private static _channelsMap: Object = new Object();
 
     static start() {
-        Object.entries(IPCManager._channelsMap).forEach(pair => {
-            ipcMain.on(pair[0], pair[1]);
+        fs.readdirSync(`${__dirname}/itrade`).forEach(modelName => {
+            if (modelName.endsWith("Dal.js")) {
+                require(`${__dirname}/itrade/${modelName}`);
+            }
         });
     }
 
