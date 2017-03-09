@@ -7,6 +7,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 var client_1 = require("../../common/base/client");
 var logger_1 = require("../../common/base/logger");
 var events_1 = require("events");
+var ipcManager_1 = require("../ipcManager");
 var message_model_1 = require("../../model/itrade/message.model");
 var PriceClient = (function (_super) {
     __extends(PriceClient, _super);
@@ -269,8 +270,7 @@ var PriceDal = (function () {
     return PriceDal;
 }());
 exports.PriceDal = PriceDal;
-var electron_1 = require("electron");
-electron_1.ipcMain.on("dal://itrade/ps/marketdata", function (e, param, cb) {
+ipcManager_1.IPCManager.register("dal://itrade/ps/marketdata", function (e, param, cb) {
     PriceDal.registerQuoteMsg(param.type, param.code);
     PriceDal.addListener(param.type, function (data) {
         if (!e.sender.isDestroyed())

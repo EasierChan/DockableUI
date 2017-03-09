@@ -7,6 +7,7 @@ var fs = require("fs");
 var path = require("path");
 var windows_1 = require("./windows");
 var logger_1 = require("../base/logger");
+var ipcManager_1 = require("../../dal/ipcManager");
 var AppStore = (function () {
     function AppStore() {
     }
@@ -43,10 +44,10 @@ var AppStore = (function () {
             e.preventDefault();
             contentWindow.win.hide();
         });
-        electron_1.ipcMain.on("appstore://startupAnApp", function (event, appname) {
+        ipcManager_1.IPCManager.register("appstore://startupAnApp", function (event, appname) {
             event.returnValue = AppStore.startupAnApp(appname);
         });
-        electron_1.ipcMain.on("appstore://login", function (event, loginInfo) {
+        ipcManager_1.IPCManager.register("appstore://login", function (event, loginInfo) {
             // begin test
             var apps = [
                 {
@@ -111,7 +112,7 @@ var AppStore = (function () {
         if (AppStore._env.startapps && AppStore._env.startapps.length > 0
             && AppStore._env.username && AppStore._env.password) {
             electron_1.ipcMain.emit("appstore://login", null, { username: AppStore._env.username, password: AppStore._env.password });
-            electron_1.ipcMain.on("appstore://ready", function () {
+            ipcManager_1.IPCManager.register("appstore://ready", function () {
                 AppStore._env.startapps.forEach(function (app) {
                     AppStore.startupAnApp(app);
                 });

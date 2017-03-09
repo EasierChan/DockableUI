@@ -4,6 +4,7 @@ import { TcpClient } from "../../common/base/client";
 import { IResolver } from "../../common/base/resolver";
 import { DefaultLogger } from "../../common/base/logger";
 import { EventEmitter } from "events";
+import { IPCManager } from "../ipcManager";
 import {
     MSGHEADER, MsgType, MsgInnerCode, MsgUpdateDate,
     MsgBidAskIOPV, DepthMarketData
@@ -294,8 +295,7 @@ export class PriceDal {
     }
 }
 
-import { ipcMain } from "electron";
-ipcMain.on("dal://itrade/ps/marketdata", (e, param, cb) => {
+IPCManager.register("dal://itrade/ps/marketdata", (e, param, cb) => {
     PriceDal.registerQuoteMsg(param.type, param.code);
     PriceDal.addListener(param.type, (data) => {
         if (!e.sender.isDestroyed())
