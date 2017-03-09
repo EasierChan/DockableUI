@@ -4,11 +4,8 @@
  * 
  */
 import { ipcMain } from "electron";
+import * as OrderDal from "./itrade/orderDal";
 
-<<<<<<< HEAD
-
-=======
->>>>>>> develop
 export class IPCManager {
     private static _channelsMap: Object = new Object();
 
