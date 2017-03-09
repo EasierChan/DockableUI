@@ -15,10 +15,9 @@ export class ItradeClient extends TcpClient {
     public constructor(resolver: IResolver) {
         super(resolver);
     }
-
+    
     send(data: any): void {
-        DefaultLogger.debug(data);
-        super.send(Buffer.from(JSON.stringify(data)));
+        super.send(data);
     }
 
     sendWithHead(type: number, subtype: number, data: Buffer): void {
@@ -45,6 +44,8 @@ export class ItradeClient extends TcpClient {
         total = null;
         header = null;
     }
+
+
 
     sendHeartBeat(interval: number = 30): void {
         this._timer = setInterval(() => {
@@ -97,6 +98,7 @@ export abstract class ItradeResolver extends EventEmitter implements IResolver {
     }
 
     onConnected(arg: any): void {
+        this.emit("dal://itrade/connected", null);
         DefaultLogger.info("connected!");
     }
 

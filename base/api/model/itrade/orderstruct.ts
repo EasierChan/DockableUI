@@ -213,7 +213,7 @@ export interface TimeVal {
 };
 
 export interface ComConOrder {
-    ordertype: number;        // EOrderType 4
+    ordertype: EOrderType;        // EOrderType 4
     con: ComContract; // 
     datetime: TimeVal;
     data: ComOrder | ComOrderCancel;

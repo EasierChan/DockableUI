@@ -98,6 +98,5 @@ export class PriceService extends EventEmitter<any> {
         // console.log(JSON.stringify(obj));
         this._socket.write(JSON.stringify(obj));
     }
-
 }
 
