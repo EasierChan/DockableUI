@@ -5,7 +5,10 @@
  */
 import { ipcMain } from "electron";
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> develop
 export class IPCManager {
     private static _channelsMap: Object = new Object();
 

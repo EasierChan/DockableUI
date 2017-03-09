@@ -9,8 +9,7 @@ electron_1.app.on("ready", function () {
     console.info("node: " + process.version);
     console.info("chrome: " + process.versions.chrome);
     console.info("electron: " + process.versions.electron);
-    // let win = new BrowserWindow();
-    // win.loadURL("file:///home/chenlei/projects/itradeui/workbench/index.html", );
+    console.info("locale: " + electron_1.app.getLocale());
     appstore_1.AppStore.bootstrap();
 });
 //# sourceMappingURL=index.js.map
