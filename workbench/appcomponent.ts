@@ -20,7 +20,7 @@ export class AppComponent {
     username: string;
     password: string;
     serverinfo: string;
-    bPopPanel: boolean = false;
+    // bPopPanel: boolean = false;
     apps: Array<IApp>;
     config: WorkspaceConfig;
     panelTitle: string;
@@ -48,21 +48,34 @@ export class AppComponent {
     }
 
     closePanel(e?: any) {
-        if (e) {
-            if (e.target.className.startsWith("dialog-overlay"))
-                this.bPopPanel = false;
-        }
-        else
-            this.bPopPanel = false;
+        // if (e) {
+        //     if (e.target.className.startsWith("dialog-overlay"))
+        //         this.bPopPanel = false;
+        // }
+        // else
+        //     this.bPopPanel = false;
         window.hideMetroDialog("#config");
     }
 
     get detailClass() {
-        return this.bDetails ? "tile-small bg-blue fg-white" : "tile-square bg-blue fg-white";
+        return this.bDetails
+            ? "tile-small bg-blue fg-white"
+            : "tile-square bg-blue fg-white";
+    }
+
+    toggleDetails(): void {
+        this.bDetails = !this.bDetails;
+        let self = this;
+        setTimeout(function () {
+            if (self.detailClass.startsWith("tile-small"))
+                window.showMetroCharm("#detailCharm");
+            else
+                window.hideMetroCharm("#detailCharm");
+        }, 0);
     }
 
     onPopup() {
-        this.bPopPanel = true;
+        // this.bPopPanel = true;
         this.config.step = 1;
         window.showMetroDialog("#config");
         if (!this.config.name || this.config.name.trim() === "")

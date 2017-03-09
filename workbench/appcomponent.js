@@ -14,7 +14,6 @@ var AppComponent = (function () {
     function AppComponent(appService) {
         this.appService = appService;
         this.isAuthorized = false;
-        this.bPopPanel = false;
         this.config = new WorkspaceConfig();
         this.config.step = 1;
         this.bDetails = false;
@@ -30,23 +29,35 @@ var AppComponent = (function () {
         this.closePanel();
     };
     AppComponent.prototype.closePanel = function (e) {
-        if (e) {
-            if (e.target.className.startsWith("dialog-overlay"))
-                this.bPopPanel = false;
-        }
-        else
-            this.bPopPanel = false;
+        // if (e) {
+        //     if (e.target.className.startsWith("dialog-overlay"))
+        //         this.bPopPanel = false;
+        // }
+        // else
+        //     this.bPopPanel = false;
         window.hideMetroDialog("#config");
     };
     Object.defineProperty(AppComponent.prototype, "detailClass", {
         get: function () {
-            return this.bDetails ? "tile-small bg-blue fg-white" : "tile-square bg-blue fg-white";
+            return this.bDetails
+                ? "tile-small bg-blue fg-white"
+                : "tile-square bg-blue fg-white";
         },
         enumerable: true,
         configurable: true
     });
+    AppComponent.prototype.toggleDetails = function () {
+        this.bDetails = !this.bDetails;
+        var self = this;
+        setTimeout(function () {
+            if (self.detailClass.startsWith("tile-small"))
+                window.showMetroCharm("#detailCharm");
+            else
+                window.hideMetroCharm("#detailCharm");
+        }, 0);
+    };
     AppComponent.prototype.onPopup = function () {
-        this.bPopPanel = true;
+        // this.bPopPanel = true;
         this.config.step = 1;
         window.showMetroDialog("#config");
         if (!this.config.name || this.config.name.trim() === "")
