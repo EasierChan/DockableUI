@@ -10,6 +10,8 @@ import {
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
+import { ManulTrader } from "./bll/sendorder";
+import { EOrderType,AlphaSignalInfo } from "../../base/api/model/itrade/orderstruct";
 
 @Component({
   moduleId: module.id,
@@ -152,6 +154,48 @@ export class AppComponent implements OnInit {
     rightPanel.setActive("ManulTrader");
     row1.addChild(new DockContainer("v", 100, null).addChild(rightPanel));
     this.children.push(row1);
+
+    btn_submit.OnClick = () => {
+      let account = dd_Account.Text;
+      let strategy = dd_Strategy.Text;
+      let symbol = txt_Symbol.Text;
+      let ukey = txt_UKey.Text;
+      let price = txt_Price.Text;
+      let volume = txt_Volume.Text;
+      let action = dd_Action.Text;
+
+      ManulTrader.submitOrder({
+
+        ordertype: EOrderType.ORDER_TYPE_ORDER,
+        con: {
+          contractid: 0,
+          account: account,
+          orderaccount: "",
+          tradeunit: "",
+          tradeproto: ""
+        },
+        datetime: {
+          tv_sec: 1,
+          tv_usec: 210
+        },
+        data: {
+          strategyid: parseInt(strategy),
+          algorid: 0,
+          orderid: 0,
+          algorindex:0,
+          innercode: ukey,
+          price: price,
+          quantity: volume,
+          action:parseInt(action),
+          property:0, 
+          currency: 0,
+          covered: 0,
+          signal: [{id:0,value:0},{id:0,value:0},{id:0,value:0},{id:0,value:0}]
+        }
+      });
+    };
+
+
     // splitter between row1 and row2
     this.children.push(new Splitter("h"));
     // row2
@@ -246,6 +290,8 @@ export class AppComponent implements OnInit {
     let row3 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row3);
 
+    this.psInstance.setEndpoint(20000,"172.24.51.6");
+    this.psInstance.setHeartBeat(10000);
     this.psInstance.register([3, 6]);
     this.psInstance.subscribe((msg) => {
       // console.info(msg);

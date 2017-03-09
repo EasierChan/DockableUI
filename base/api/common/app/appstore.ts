@@ -10,6 +10,7 @@ import { ContentWindow } from "./windows";
 import { UWindwManager } from "./windowmgr";
 import { DefaultLogger } from "../base/logger";
 import { UserDal } from "../../dal/itrade/userDal";
+import { IPCManager } from "../../dal/ipcManager";
 
 export class AppStore {
     private static _bAuthorized: boolean = false;
@@ -57,11 +58,11 @@ export class AppStore {
             contentWindow.win.hide();
         });
 
-        ipcMain.on("appstore://startupAnApp", (event, appname) => {
+        IPCManager.register("appstore://startupAnApp", (event, appname) => {
             event.returnValue = AppStore.startupAnApp(appname);
         });
 
-        ipcMain.on("appstore://login", (event, loginInfo) => {
+        IPCManager.register("appstore://login", (event, loginInfo) => {
             // begin test
             let apps = [
                 {
@@ -129,7 +130,7 @@ export class AppStore {
         if (AppStore._env.startapps && AppStore._env.startapps.length > 0
             && AppStore._env.username && AppStore._env.password) {
             ipcMain.emit("appstore://login", null, { username: AppStore._env.username, password: AppStore._env.password });
-            ipcMain.on("appstore://ready", () => {
+            IPCManager.register("appstore://ready", () => {
                 AppStore._env.startapps.forEach(app => {
                     AppStore.startupAnApp(app);
                 });
