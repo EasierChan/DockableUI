@@ -5,7 +5,7 @@
 "use strict";
 import { ULogger, DefaultLogger } from "./logger";
 import { UConfig } from "./configurator";
-import * as initIPC from "../../dal/ipcManager";
+import { IPCManager } from "../../dal/ipcManager";
 
 export class ULoader {
     static init(): void {
@@ -14,5 +14,7 @@ export class ULoader {
         DefaultLogger.info("Program environment initialize...");
         // init configuration
         UConfig.init();
+        // init IPCManager
+        IPCManager.start();
     }
 }
