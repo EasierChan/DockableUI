@@ -2,6 +2,7 @@
  * chenlei 2017/01/16
  */
 "use strict";
+
 import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
@@ -10,7 +11,7 @@ import { Injectable } from "@angular/core";
 
 const logger = console;
 
-class ItradeParser extends Parser {
+class IP20Parser extends Parser {
     private _curHeader: ISONPack2Header = null;
     constructor(_oPool: Pool<Buffer>) {
         super(_oPool);
@@ -84,8 +85,7 @@ class ItradeParser extends Parser {
     }
 }
 
-
-class ISONPackParser extends ItradeParser {
+class ISONPackParser extends IP20Parser {
     private _intervalRead: NodeJS.Timer;
     constructor(private _client: TcpClient) {
         super(_client.bufferQueue);
@@ -144,7 +144,7 @@ class ISONPackParser extends ItradeParser {
 
 class ISONPackClient extends TcpClient {
     private _intervalHeart: NodeJS.Timer;
-    private _parsers: ItradeParser[] = [];
+    private _parsers: IP20Parser[] = [];
     constructor() {
         super();
     }

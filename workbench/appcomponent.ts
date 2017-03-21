@@ -1,8 +1,10 @@
+/**
+ * created by cl, 2017/02/11
+ */
 "use strict";
 
-
-import { AppStoreService, Menu } from "../base/api/services/backendService";
-import { IP20Service } from "../base/api/services/ip20Service";
+import { AppStoreService, Menu } from "../base/api/services/backend.service";
+import { IP20Service } from "../base/api/services/ip20.service";
 import { Component, ChangeDetectorRef } from "@angular/core";
 import { IApp, WorkspaceConfig, Channel, StrategyInstance } from "../base/api/model/app.model";
 import { StrateServerBLL } from "./bll/strategy.server";

@@ -36,22 +36,6 @@ export enum MsgType {
     MSG_TYPE_SZ_SNAPSHOT = 201
 }
 
-const HeaderLen = 8;
-export interface Header {
-    type: number;
-    subtype: number;
-    msglen: number;
-}
-
-export let encodeHeader = (headr: Header): Buffer => {
-    let buf: Buffer = Buffer.alloc(HeaderLen);
-    let offset = 0;
-    buf.writeInt16LE(headr.type, offset); offset += 2;
-    buf.writeInt16LE(headr.subtype, offset); offset += 2;
-    buf.writeInt32LE(headr.msglen, offset); offset += 4;
-    return buf;
-};
-
 export abstract class Message {
     toString(): string {
         let props = Object.getOwnPropertyNames(this);
@@ -66,4 +50,33 @@ export abstract class Message {
 
     abstract fromBuffer(buffer: Buffer): void;
     abstract toBuffer(): Buffer;
+}
+
+export interface IHeader {
+    type: number;
+    subtype: number;
+    msglen: number;
+}
+
+export class Header extends Message {
+    static len = 8;
+    type: number;
+    subtype: number;
+    msglen: number;
+
+    toBuffer(): Buffer {
+        let buf: Buffer = Buffer.alloc(Header.len);
+        let offset = 0;
+        buf.writeInt16LE(this.type, offset); offset += 2;
+        buf.writeInt16LE(this.subtype, offset); offset += 2;
+        buf.writeInt32LE(this.msglen, offset); offset += 4;
+        return buf;
+    }
+
+    fromBuffer(buf: Buffer): void {
+        let offset = 0;
+        this.type = buf.readInt16LE(offset); offset += 2;
+        this.subtype = buf.readInt16LE(offset); offset += 2;
+        this.msglen = buf.readUInt32LE(offset); offset += 4;
+    }
 }

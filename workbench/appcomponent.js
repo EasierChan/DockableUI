@@ -1,3 +1,6 @@
+/**
+ * created by cl, 2017/02/11
+ */
 "use strict";
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
@@ -8,8 +11,8 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
-var backendService_1 = require("../base/api/services/backendService");
-var ip20Service_1 = require("../base/api/services/ip20Service");
+var backend_service_1 = require("../base/api/services/backend.service");
+var ip20_service_1 = require("../base/api/services/ip20.service");
 var core_1 = require("@angular/core");
 var app_model_1 = require("../base/api/model/app.model");
 var strategy_server_1 = require("./bll/strategy.server");
@@ -28,7 +31,7 @@ var AppComponent = (function () {
         this.bLeftSelectedAll = this.bRightSelectedAll = false;
         this.selectedList = [];
         this.queryList = [];
-        this.contextMenu = new backendService_1.Menu();
+        this.contextMenu = new backend_service_1.Menu();
         this.contextMenu.addItem("Open", function () {
             _this.onStartApp(_this.config.apptype);
         });
@@ -266,12 +269,12 @@ AppComponent = __decorate([
         templateUrl: "workbench.html",
         styleUrls: ["appcomponent.css"],
         providers: [
-            backendService_1.AppStoreService,
-            ip20Service_1.IP20Service,
-            backendService_1.Menu
+            backend_service_1.AppStoreService,
+            ip20_service_1.IP20Service,
+            backend_service_1.Menu
         ]
     }),
-    __metadata("design:paramtypes", [backendService_1.AppStoreService, ip20Service_1.IP20Service, core_1.ChangeDetectorRef])
+    __metadata("design:paramtypes", [backend_service_1.AppStoreService, ip20_service_1.IP20Service, core_1.ChangeDetectorRef])
 ], AppComponent);
 exports.AppComponent = AppComponent;
 //# sourceMappingURL=appcomponent.js.map
