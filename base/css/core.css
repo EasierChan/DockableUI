@@ -8,11 +8,13 @@
     margin: 0;
     border: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
 html,
-body,
-#root {
+body {
+    display: flex;
+    flex-direction: column;
     height: 100%;
     width: 100%;
     font-size: 12px;
@@ -20,6 +22,29 @@ body,
     -webkit-user-select: none;
     user-select: none;
     -webkit-user-drag: none;
+    background-color: rgba(45, 45, 45, 1);
+}
+
+body > .toolbar,
+body > .statusbar {
+    flex: none;
+    height: 25px;
+    display: flex;
+    flex-direction: row;
+    background-color: #3F3E3A;
+    padding: 0 10px;
+}
+body > .statusbar {
+    margin-top: 1px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+body > #root {
+    flex: auto;
+    width: 100%;
+    padding: 1px 5px;
+    background-color: transparent;
 }
 
 .dock-container {
@@ -42,7 +67,7 @@ body,
 .splitter-bar {
     /*flex: 0 0 5px;*/
     /*float: left;*/
-    background-color: red;
+    background-color: rgba(45, 45, 45, 1);
 }
 
 .splitter-bar.vertical {

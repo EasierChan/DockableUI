@@ -23,17 +23,24 @@ export class Menu {
     /**
      * @returns an array containing the menu’s items.
      */
-    private _items: MenuItem[];
+
     constructor() {
         this._menu = new electron.remote.Menu();
     }
 
-    addItem(menuItem: MenuItem, pos?: number): void {
+    addItem(menuItem: MenuItem | string, click: Function, pos?: number): void {
+        if (typeof menuItem === "string")
+            menuItem = MenuItem.create(menuItem, click);
+
         if (pos) {
             this._menu.insert(pos, menuItem);
         } else {
             this._menu.append(menuItem);
         }
+    }
+
+    get items() {
+        return this._menu.items;
     }
 
     popup(x?: number, y?: number): void {
@@ -43,11 +50,10 @@ export class Menu {
 
 @Injectable()
 export class MenuItem {
-    private _submenu: Menu;
     constructor() {
     }
 
-    set submenu(value: Menu) {
-        this._submenu = value;
+    static create(lable: string, click?: any, type: "normal" | "separator" | "submenu" | "checkbox" | "radio" = "normal"): any {
+        return new electron.remote.MenuItem({ label: lable, type: type, click: click });
     }
 }
