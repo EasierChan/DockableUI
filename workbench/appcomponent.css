@@ -57,7 +57,10 @@
 #workbench .body .loginForm .accept-buttons{
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+}
+#workbench .body .loginForm .accept-buttons > button {
+    flex: auto;
 }
 .userImage{
     text-align: center;

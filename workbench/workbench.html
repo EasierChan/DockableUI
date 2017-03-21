@@ -1,7 +1,7 @@
 <div id="workbench">
 
     <div class="body">
-        <form *ngIf="!isAuthorized" class="loginForm" #loginForm="ngForm" (ngSubmit)="onLogin()">
+        <form *ngIf="!isAuthorized" class="loginForm" #loginForm="ngForm">
             <div class="userImage">
                 <span class="mif-user mif-4x fg-blue"></span>
             </div>
@@ -29,11 +29,11 @@
                 Password is required.
             </div>
             <div class="accept-buttons">
-                <button class="button danger" (click)="onReset()">
-                            重置
-                        </button>
-                <button type="submit" class="button primary" [disabled]="!loginForm.form.valid">
+                <button type="submit" class="button primary" (click)="onLogin()" [disabled]="!loginForm.form.valid">
                             登录
+                        </button>
+                <button type="reset" class="button danger" (click)="onReset()">
+                            重置
                         </button>
             </div>
         </form>
