@@ -776,7 +776,7 @@ export class DataTable extends Control {
   }
 
   addColumn(...columns: string[]): DataTable {
-    columns.forEach(item => this.columns.push(new DataTableColumn(item)));
+    columns.forEach(item => this.columns.push(new DataTableColumn(item, this.columns.length)));
     this.dataSource.columns = this.columns;
     return this;
   }
@@ -832,6 +832,11 @@ export class DataTableRowCell extends MetaControl {
 }
 
 export class DataTableColumn {
-  constructor(private columnHeader: string) {
+  private bHidden: boolean = false;
+  constructor(private columnHeader: string, private columnIndex: number) {
+  }
+
+  set hidden(value: boolean) {
+    this.bHidden = value;
   }
 }
