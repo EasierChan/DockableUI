@@ -22,7 +22,7 @@ export class IPCManager {
         if (!(IPCManager._channelsMap.hasOwnProperty(channel) && IPCManager._channelsMap[channel] === cb)) {
             IPCManager._channelsMap[channel] = cb;
             ipcMain.on(channel, cb);
-            // console.info(`add channel ${channel}`);
+             console.info(`add channel ${channel}`);
         }
     }
 

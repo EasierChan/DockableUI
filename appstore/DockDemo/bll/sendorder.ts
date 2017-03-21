@@ -2,15 +2,12 @@
 
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
+import { AppComponent } from "../app.component";
 
 export class ManulTrader {
     private static orderService = new OrderService();
-    registerStrategy(): void {      
-
-    }
 
     static submitOrder(...orders: ComConOrder[]): void {
-        console.log("combine data & send out")
         let offset: number = 0;
         //handle with array
         let mem_size: number = 176;
@@ -23,7 +20,7 @@ export class ManulTrader {
         offset += 4;
 
         for (let i = 0; i < length; ++i) {
-            buffer[offset] = orders[i].ordertype;
+            buffer.writeUInt32LE(orders[i].ordertype, offset);
             offset += 8;
 
             buffer.writeUInt32LE(orders[i].con.contractid, offset);
@@ -36,12 +33,12 @@ export class ManulTrader {
             buffer.write(orders[i].con.tradeunit, offset, 10);
             offset += 10;
             buffer.write(orders[i].con.tradeproto, offset, 10);
-            offset == 10;
+            offset += 10;
 
             //datetime timeval
-            ManulTrader.writeUInt64LE(buffer, orders[i].datetime.tv_sec, offset);
+            buffer.writeUIntLE(0, offset, 8);
             offset += 8;
-            ManulTrader.writeUInt64LE(buffer, orders[i].datetime.tv_usec, offset);
+            buffer.writeUIntLE(0, offset, 8);
             offset += 8;
 
             //data ComOrder
@@ -62,13 +59,13 @@ export class ManulTrader {
             buffer.writeUInt32LE(comorder_data.quantity, offset);
             offset += 4;
 
-            buffer[offset] = comorder_data.action;
+            buffer.writeIntLE(comorder_data.action, offset, 1);
             offset += 1;
-            buffer[offset] = comorder_data.property;
+            buffer.writeIntLE(comorder_data.property, offset, 1);
             offset += 1;
-            buffer[offset] = comorder_data.currency;
+            buffer.writeIntLE(comorder_data.currency, offset, 1);
             offset += 1;
-            buffer[offset] = comorder_data.covered;
+            buffer.writeIntLE(comorder_data.covered, offset, 1);
             offset += 1;
 
             for (let j = 0; j < 4; ++j) {
@@ -79,9 +76,12 @@ export class ManulTrader {
             }
             offset += mem_size;
         }
-        ManulTrader.orderService.sendOrder(2020, 0, buffer, (data)=>{
-            
-        });
+        ManulTrader.orderService.sendOrder(2020, 0, buffer);
+    }
+
+    static getProfitInfo(): void {
+        ManulTrader.orderService.sendOrder(2047,0,null);
+        ManulTrader.orderService.sendOrder(2044,0,null);
     }
 
     static writeUInt64LE(buffer: Buffer, time: number, offset: number): void {
@@ -92,6 +92,14 @@ export class ManulTrader {
         buffer.writeUInt32LE(low, offset);
         offset += 4;
         buffer.writeUInt32LE(big, offset);
+    }
+
+    static addSlot(type: number, cb: Function) {
+        ManulTrader.orderService.addSlot(type, cb);
+    }
+
+    static init() {
+        ManulTrader.orderService.registerServices();  // send register info
     }
 
 }
