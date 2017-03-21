@@ -79,7 +79,7 @@ export class AppComponent {
         this.tgw.send(17, 41, loginObj);
         setTimeout(() => {
             this.tgw.send(270, 194, { "head": { "realActor": "getTemplate", "pkgId": 4 }, "page": { "page": 1, "pagesize": 2 } });
-        }, 2000);
+        }, 500);
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {

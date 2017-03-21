@@ -52,7 +52,7 @@ var AppComponent = (function () {
         this.tgw.send(17, 41, loginObj);
         setTimeout(function () {
             _this.tgw.send(270, 194, { "head": { "realActor": "getTemplate", "pkgId": 4 }, "page": { "page": 1, "pagesize": 2 } });
-        }, 2000);
+        }, 500);
     }
     AppComponent.prototype.onClick = function (e, item) {
         this.curItem = item;
