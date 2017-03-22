@@ -261,6 +261,7 @@ export class AppComponent implements OnInit {
     dd_symbol.Title = "Symbol: ";
     dd_symbol.addItem({ Text: "平安银行", Value: "3,000001" });
     dd_symbol.addItem({ Text: "万科A", Value: "6,000002" });
+    dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
     let self = this;
     dd_symbol.SelectChange = () => {
       this.bookViewTable.rows.forEach(row => {
@@ -393,19 +394,25 @@ export class AppComponent implements OnInit {
 
     this.psInstance.setEndpoint(20000, "172.24.51.6");
     this.psInstance.setHeartBeat(1000000);
-    this.psInstance.register([3, 6]);
+    this.psInstance.register([3, 6, 2007741]);
     this.psInstance.subscribe((msg) => {
-      // console.info(msg);
-      if (msg.type === 201 && msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
-        for (let i = 0; i < 10; ++i) {
-          // console.info(i);
-          this.bookViewTable.rows[i + 10].cells[0].Text = msg.bidvols[i] + "";
-          this.bookViewTable.rows[i + 10].cells[1].Text = msg.bidprices[i] / 10000 + "";
-          this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
-          this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
+      if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
+        if (msg.type === 201) {
+          for (let i = 0; i < 10; ++i) {
+            // console.info(i);
+            this.bookViewTable.rows[i + 10].cells[0].Text = msg.bidvols[i] + "";
+            this.bookViewTable.rows[i + 10].cells[1].Text = msg.bidprices[i] / 10000 + "";
+            this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
+            this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
+          }
+        } else if (msg.type === 100) {
+          this.bookViewTable.rows[10].cells[0].Text = msg.bidvolume;
+          this.bookViewTable.rows[10].cells[1].Text = msg.bidprice / 10000;
+          this.bookViewTable.rows[9].cells[1].Text = msg.askprice / 10000;
+          this.bookViewTable.rows[9].cells[2].Text = msg.askvolume;
         }
 
-        this.bookViewTable.detectChanges();
+        AppComponent.self.ref.detectChanges();
       }
     });
     document.title = "hello";
