@@ -30,8 +30,8 @@ IPCManager.register("dal://itrade/data/order", (e, param) => {
 // it is a eventemitter
 export class OrderResolver extends ItradeResolver {
     readContent(header: Header, content: Buffer): void {
-        //resolve  msg  & send out
-      //  console.log("receive msg:head:", header);
+        // resolve  msg  & send out
+        //  console.log("receive msg:head:", header);
         this.emit("data", { header, content });
     }
 }
@@ -47,7 +47,7 @@ export class OrderDal {
             OrderDal._client = new ItradeClient(OrderDal._resolver);
             OrderDal._client.connect(9080, "172.24.51.4");
             OrderDal._resolver.on("dal://itrade/connected", () => {
-                //register
+                // register
                 let offset: number = 0;
                 let connectBuffer = new Buffer(196);
 
@@ -61,7 +61,7 @@ export class OrderDal {
                 orderdal.write2buffer(connectBuffer, 2011, 0, 0, offset += 8);
                 orderdal.write2buffer(connectBuffer, 2029, 0, 0, offset += 8);
 
-                //order  register
+                // order  register
                 orderdal.write2buffer(connectBuffer, 2013, 0, 0, offset += 8);
                 orderdal.write2buffer(connectBuffer, 2013, 1, 0, offset += 8);
                 orderdal.write2buffer(connectBuffer, 2013, 2, 0, offset += 8);
@@ -125,7 +125,7 @@ export class OrderDal {
         OrderDal._client.sendWithHead(type, subtype, buffer);
     }
 
-    //send msg to client
+    // send msg to client
     static addListener(name: string, cb: Function): void {
         OrderDal.start();
         if (!OrderDal._listeners.hasOwnProperty(name)) {

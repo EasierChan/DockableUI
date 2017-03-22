@@ -9,13 +9,13 @@ export class ManulTrader {
 
     static submitOrder(...orders: ComConOrder[]): void {
         let offset: number = 0;
-        //handle with array
+        // handle with array
         let mem_size: number = 176;
         let length = orders.length;
         let msg_length = 4 + length * mem_size;
 
         let buffer = new Buffer(msg_length);
-        //orders's length 
+        // orders's length
         buffer.writeInt32LE(length, offset);
         offset += 4;
 
@@ -35,13 +35,13 @@ export class ManulTrader {
             buffer.write(orders[i].con.tradeproto, offset, 10);
             offset += 10;
 
-            //datetime timeval
+            // datetime timeval
             buffer.writeUIntLE(0, offset, 8);
             offset += 8;
             buffer.writeUIntLE(0, offset, 8);
             offset += 8;
 
-            //data ComOrder
+            // data ComOrder
             let comorder_data = orders[i].data as ComOrder;
 
             buffer.writeUInt32LE(comorder_data.strategyid, offset);
@@ -80,8 +80,8 @@ export class ManulTrader {
     }
 
     static getProfitInfo(): void {
-        ManulTrader.orderService.sendOrder(2047,0,null);
-        ManulTrader.orderService.sendOrder(2044,0,null);
+        ManulTrader.orderService.sendOrder(2047, 0, null);
+        ManulTrader.orderService.sendOrder(2044, 0, null);
     }
 
     static writeUInt64LE(buffer: Buffer, time: number, offset: number): void {

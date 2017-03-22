@@ -213,7 +213,7 @@ export class ComOrderCancel {
     algorindex: number; // 4
     innercode: number; // 4
     price: number; // 4
-    quantity: number;  // 4         
+    quantity: number;  // 4
     action: number;     // EOrderAction 1
 };
 
@@ -226,7 +226,7 @@ export class TimeVal {
 
 export class ComConOrder {
     ordertype: EOrderType;        // EOrderType 1
-    con: ComContract; // 
+    con: ComContract;
     datetime: TimeVal;
     data: ComOrder | ComOrderCancel;
 };
@@ -249,7 +249,7 @@ export class ComOrderStatus {
     datetime: TimeVal;
     ordertype: number;        // EOrderPriceType 1
     tradetype: number;         // EOrderTradeType 1
-    //status: EOrderStatusGW | EOrderStatus;
+    // status: EOrderStatusGW | EOrderStatus;
     status: EOrderStatus;
 };
 
@@ -309,13 +309,13 @@ export class ComOrderRecord extends ComPoolIndex {
 };
 
 export class SecurityPosBase {
-    date: number; // 4              
-    account: number; // 8           
-    code: number; // 4                     
-    TotalVol: number; // 8    
-    AvlVol: number; // 8    
-    WorkingVol: number; // 8    
-    TotalCost: number; // 8    
+    date: number; // 4
+    account: number; // 8
+    code: number; // 4
+    TotalVol: number; // 8
+    AvlVol: number; // 8
+    WorkingVol: number; // 8
+    TotalCost: number; // 8
 };
 
 export class StockPos extends SecurityPosBase {
@@ -444,7 +444,7 @@ export class ComStrategyInfo {
     minorderid: number = 0; // 4
     orderidstep: number = 0; // 4
     currorderid: number = 0; // 4
-    ismanualtrader: boolean = true;   //1
+    ismanualtrader: boolean = true;   // 1
 };
 
 
