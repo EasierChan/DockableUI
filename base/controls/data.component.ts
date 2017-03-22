@@ -43,14 +43,11 @@ export class DataTableComponent implements OnInit, AfterViewInit {
 
 
   ngOnInit(): void {
-    console.info(this.dataSource.columns);
+    // console.info(this.dataSource.columns);
     this.curPage = 0;
     this.pageSize = 10;
     this.curData = this.dataSource;
-  }
-
-  detectChanges(): void {
-    this.ref.detectChanges();
+    this.dataSource.detectChanges = () => this.ref.detectChanges;
   }
 
   ngAfterViewInit(): void {
