@@ -11,7 +11,7 @@ import {
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
 import { ManulTrader } from "./bll/sendorder";
-import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus } from "../../base/api/model/itrade/orderstruct";
+import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 
 @Component({
   moduleId: module.id,
@@ -329,10 +329,10 @@ export class AppComponent implements OnInit {
     watchall.Text = "Watch All";
     // startall.Class = pauseall.Class = stopall.Class = watchall.Class = "primary";
     strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall);
+    bottomPanel.setActive(this.strategyPage.id);
 
     this.profitPage = new TabPage("Profit", "Profit");
     bottomPanel.addTab(this.profitPage);
-    bottomPanel.setActive(this.profitPage.id);
     let profitleftAlign = 20;
     let profitrowSep = 5;
     let profitHeader = new ComboControl("row");
@@ -383,14 +383,16 @@ export class AppComponent implements OnInit {
     this.strategyTable.RowIndex = false;
     this.strategyTable.addColumn("StrategyID", "Sym1", "Sym2", "Start", "Pause",
       "Stop", "Watch", "Status", "PosPnl(K)", "TraPnl(K)");
-    let strategyRow1 = this.strategyTable.newRow();
-    strategyRow1.cells[0].Type = "button";
     let strategyContent = new ComboControl("col");
     strategyContent.addChild(strategyHeader);
     strategyContent.addChild(this.strategyTable);
     this.strategyPage.setContent(strategyContent);
     let row3 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row3);
+    this.strategyTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+
+    };
+
 
     this.psInstance.setEndpoint(20000, "172.24.51.6");
     this.psInstance.setHeartBeat(1000000);
@@ -453,43 +455,166 @@ export class AppComponent implements OnInit {
   }
 
   showStrategyInfo(data: any) {
-    // console.log("alarm info,pass", data)
-  }
-  showComConOrder(data: any) {
-    console.log("showComConOrder:", data);
-  }
-  showComOrderRecord(data: any) {
-    console.log("showComOrderRecord", data);
-    for (let i = 0; i < data.length; ++i) {
-      let orderStatus = data[i].od.orderstatus;
-      if (orderStatus === 9 || orderStatus === 8) {
-        AppComponent.self.handleDoneOrder(data[i]);
-      } else {
-        AppComponent.self.handleUndoneOrder(data[i]);
+    console.log("alarm info,pass", data);
+    let len = data.length;
+    for (let i = 0; i < len; ++i) {
+      let getStraId = data[i].key;
+      let strategyTableRows: number = AppComponent.self.strategyTable.rows.length;
+      if (strategyTableRows === 0) {
+        AppComponent.self.addStrategyInfo(data[i]);
       }
     }
   }
-
-  handleDoneOrder(data: any) {
-
+  addStrategyInfo(obj: any) {
+    let row = this.strategyTable.newRow();
+    row.cells[0].Text = obj.key;
+    row.cells[3].Type = "button";
+    row.cells[3].Text = "start";
+    row.cells[4].Type = "button";
+    row.cells[4].Text = "pause";
+    row.cells[5].Type = "button";
+    row.cells[5].Text = "stop";
+    row.cells[6].Type = "button";
+    row.cells[6].Text = "watch";
+    row.cells[7].Text = AppComponent.self.transFormStrategyStatus(obj.status);
   }
-  handleUndoneOrder(data: any) {
+  transFormStrategyStatus(data: any): String {
+    let rtn: String = "";
+    if (data === EStrategyStatus.STRATEGY_STATUS_INIT)
+      return "INIT";
+    else if (data === EStrategyStatus.STRATEGY_STATUS_CREATE)
+      return "CREATE";
+    else if (data === EStrategyStatus.STRATEGY_STATUS_RUN)
+      return "RUN";
+    else if (data === EStrategyStatus.STRATEGY_STATUS_PAUSE)
+      return "PAUSE";
+    else if (data === EStrategyStatus.STRATEGY_STATUS_STOP)
+      return "STOP";
+    else if (data === EStrategyStatus.STRATEGY_STATUS_WATCH)
+      return "WATCH";
+    else if (data === EStrategyStatus.STRATEGY_STATUS_ERROR)
+      return "ERROR";
+    else
+      return "ERROR";
+  }
+  showComConOrder(data: any) {
+    console.log("showComConOrder: 2020 ,UNKNOWN ,????", data);
+  }
+  showComOrderRecord(data: any) {
     for (let i = 0; i < data.length; ++i) {
-      let orderStatusTableRows: number = AppComponent.self.orderstatusTable.rows.length;
+      let orderStatus = data[i].od.status;
+      if (orderStatus === 9 || orderStatus === 8) {
+        AppComponent.self.deleteUndoneOrder(data[i].od.orderid);
+        AppComponent.self.handleDoneOrder(data);
+      } else {
+        AppComponent.self.handleUndoneOrder(data);
+      }
+    }
+  }
+  deleteUndoneOrder(data: any) {
+    let rows = this.orderstatusTable.rows.length;
+    for (let i = 0; i < rows; ++i) {
+      let getOrderId = this.orderstatusTable.rows[i].cells[2].Text;
+      if (data === getOrderId) {
+        this.orderstatusTable.rows.splice(i);
+        break;
+      }
+    }
+  }
+  handleDoneOrder(data: any) {
+    for (let i = 0; i < data.length; ++i) {
+      let doneorderTablRows: number = this.doneOrdersTable.rows.length;
       let orderId: number = data[i].od.orderid;
-      if (orderStatusTableRows === 0) { // add
-        AppComponent.self.addUndoneOrderInfo(data[i]);
+      if (doneorderTablRows === 0) { // add
+        this.addDoneOrderInfo(data[i]);
       } else {
         let checkFlag: boolean = false;
-        for (let j = 0; j < orderStatusTableRows; ++j) {
-          let getOrderId = AppComponent.self.orderstatusTable.rows[j].cells[2].Text;
-          if (orderId === getOrderId) {  // refresh
+        for (let j = 0; j < doneorderTablRows; ++j) {
+          let getOrderId = this.doneOrdersTable.rows[j].cells[2].Text;
+          if (orderId === getOrderId) { // refresh
             checkFlag = true;
-            AppComponent.self.refreshUndoneOrderInfo(data[i], j);
+            this.refreshDoneOrderInfo(data[i], j);
           }
         }
         if (!checkFlag) {
-          AppComponent.self.addUndoneOrderInfo(data[i]);
+          this.addDoneOrderInfo(data[i]);
+        }
+        checkFlag = false;
+      }
+    }
+  }
+  addDoneOrderInfo(obj: any) {
+    let row = this.doneOrdersTable.newRow();
+    row.cells[0].Text = obj.od.innercode;
+    row.cells[1].Text = "";
+    row.cells[2].Text = obj.od.orderid;
+    row.cells[3].Text = obj.od.strategyid;
+    let action: number = obj.od.action;
+    if (action === 0)
+      row.cells[4].Text = "Buy";
+    else if (action === 1)
+      row.cells[4].Text = "Sell";
+    else
+      row.cells[4].Text = "";
+    row.cells[5].Text = obj.od.oprice / 10000;
+    row.cells[6].Text = obj.od.ivolume;
+    row.cells[7].Text = this.parseOrderStatus(obj.od.status);
+    row.cells[8].Text = this.formatTime(obj.od.odatetime.tv_sec);
+    row.cells[9].Text = obj.od.ovolume;
+    let orderPriceType = obj.donetype;
+    if (orderPriceType === 1)
+      row.cells[10].Text = "Active";
+    else if (orderPriceType === 2)
+      row.cells[10].Text = "Passive";
+    else
+      row.cells[10].Text = "UNKNOWN";
+    row.cells[11].Text = obj.con.account;
+    row.cells[12].Text = this.formatTime(obj.od.idatetime.tv_sec);
+    row.cells[13].Text = obj.od.iprice / 10000;
+    row.cells[14].Text = "";
+    AppComponent.self.ref.detectChanges();
+  }
+  refreshDoneOrderInfo(obj: any, idx: number) {
+    let action: number = obj.od.action;
+    if (action === 0)
+      this.doneOrdersTable.rows[idx].cells[4].Text = "Buy";
+    else if (action === 1)
+      this.doneOrdersTable.rows[idx].cells[4].Text = "Sell";
+    else
+      this.doneOrdersTable.rows[idx].cells[4].Text = "";
+    this.doneOrdersTable.rows[idx].cells[5].Text = obj.od.oprice / 10000;
+    this.doneOrdersTable.rows[idx].cells[6].Text = obj.od.ivolume;
+    this.doneOrdersTable.rows[idx].cells[7].Text = this.parseOrderStatus(obj.od.status);
+    this.doneOrdersTable.rows[idx].cells[8].Text = this.formatTime(obj.od.odatetime.tv_sec);
+    this.doneOrdersTable.rows[idx].cells[9].Text = obj.od.ovolume;
+    let orderPriceType = obj.donetype;
+    if (orderPriceType === 1)
+      this.doneOrdersTable.rows[idx].cells[10].Text = "Active";
+    else if (orderPriceType === 2)
+      this.doneOrdersTable.rows[idx].cells[10].Text = "Passive";
+    else
+      this.doneOrdersTable.rows[idx].cells[10].Text = "UNKNOWN";
+    this.doneOrdersTable.rows[idx].cells[12].Text = this.formatTime(obj.od.idatetime.tv_sec);
+    this.doneOrdersTable.rows[idx].cells[13].Text = obj.od.iprice / 10000;
+    AppComponent.self.ref.detectChanges();
+  }
+  handleUndoneOrder(data: any) {
+    for (let i = 0; i < data.length; ++i) {
+      let orderStatusTableRows: number = this.orderstatusTable.rows.length;
+      let orderId: number = data[i].od.orderid;
+      if (orderStatusTableRows === 0) { // add
+        this.addUndoneOrderInfo(data[i]);
+      } else {
+        let checkFlag: boolean = false;
+        for (let j = 0; j < orderStatusTableRows; ++j) {
+          let getOrderId = this.orderstatusTable.rows[j].cells[2].Text;
+          if (orderId === getOrderId) {  // refresh
+            checkFlag = true;
+            this.refreshUndoneOrderInfo(data[i], j);
+          }
+        }
+        if (!checkFlag) {
+          this.addUndoneOrderInfo(data[i]);
         }
         checkFlag = false;
       }
@@ -514,12 +639,13 @@ export class AppComponent implements OnInit {
     row.cells[8].Text = obj.od.ivolume;
     row.cells[9].Text = this.parseOrderStatus(obj.od.status);
     row.cells[10].Text = obj.con.account;
+    AppComponent.self.ref.detectChanges();
   }
   formatTime(time: any): String {
     let rtnStr: String = "";
     let newDate = new Date();
     newDate.setTime(time * 1000);
-    rtnStr = newDate.toLocaleTimeString();
+    rtnStr = newDate.getHours() + ":" + newDate.getMinutes() + ":" + newDate.getSeconds();
     return rtnStr;
   }
   parseOrderStatus(status: any): String {
@@ -559,6 +685,7 @@ export class AppComponent implements OnInit {
     this.orderstatusTable.rows[idx].cells[7].Text = obj.od.ovolume;
     this.orderstatusTable.rows[idx].cells[8].Text = obj.od.ivolume;
     this.orderstatusTable.rows[idx].cells[9].Text = this.parseOrderStatus(obj.od.status);
+    AppComponent.self.ref.detectChanges();
   }
 
   showComRecordPos(data: any) {
@@ -860,7 +987,41 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showStrategyCfg(data: any) {
-    // console.log("333333333333", data);
+    console.log("333333333333", data);
+    let commentIdx: number = this.strategyTable.columns.length;
+    let commandIdx: number = this.strategyTable.columns.length;
+    let parameterIdx: number = this.strategyTable.columns.length + 1;
+
+    for (let i = 0; i < data[i].length; ++i) {
+      let level = data[i].level;
+      let type = data[i].type;
+      let strategyId = data[i].strategyid;
+      let name = data[i].name;
+      if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {  // show
+        let paraIdx = AppComponent.self.checkTableIndex(commandIdx, parameterIdx, strategyId, name);
+        if (paraIdx === -1) { // add
+
+        }
+        else { // refresh
+
+        }
+      }
+      if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level > 0) {  // show
+
+      }
+      if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {
+
+      }
+      if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) { // show
+
+      }
+
+    }
+  }
+  checkTableIndex(startIdx: number, endIdx: number, strategyid: number, name: String): number {
+
+    return -1;
+
   }
   positionDealer(data: any) {
     // console.log("444444444444444444", data);

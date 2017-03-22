@@ -38,7 +38,7 @@ export class OrderService {
                 case 2030:
                 case 2029:
                 case 2032:
-                    this.readStrategyCfg(data.content, msgtype, msgsubtype, msglen);
+                    msgObj = this.readStrategyCfg(data.content, msgtype, msgsubtype, msglen);
                     break;
                 // GuiCmdAck
                 case 2001:
@@ -386,7 +386,7 @@ export class OrderService {
                 comOrderRecord.od.signal[j].value = buffer.readUIntLE(offset, 8); offset += 8;
             }
             res.push(comOrderRecord);
-            console.log("comOrderRecord....:", comOrderRecord);
+            // console.log("comOrderRecord....:", comOrderRecord);
         }
         return res;
     }
@@ -496,9 +496,10 @@ export class OrderService {
         }
         return res;
     }
-    readStrategyCfg(buffer: Buffer, msgtype: number, msgsubtype: number, msglen: number): void {
+    readStrategyCfg(buffer: Buffer, msgtype: number, msgsubtype: number, msglen: number): Array<Object> {
         let count: number = 0;
         let offset: number = 0;
+        let res = [];
         count = buffer.readUInt32LE(offset); offset += 4;
         for (let i = 0; i < count; ++i) {
             let comStrategyCfg = new ComStrategyCfg();
@@ -516,7 +517,8 @@ export class OrderService {
             comStrategyCfg.dirty = buffer.readUInt8(offset); offset += 1;
             offset += 2;
             // console.log("comStrategyCfg:",comStrategyCfg);
-
+            res.push(comStrategyCfg);
         }
+        return res;
     }
 }
