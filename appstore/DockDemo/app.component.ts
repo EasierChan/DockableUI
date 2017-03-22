@@ -404,7 +404,7 @@ export class AppComponent implements OnInit {
           this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
           this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
         }
-        console.info(this.bookViewTable);
+
         this.bookViewTable.detectChanges();
       }
     });
