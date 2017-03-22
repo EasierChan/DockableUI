@@ -125,7 +125,7 @@ export class AppComponent implements OnInit {
 
     this.PositionPage = new TabPage("Position", "Position");
     let positionContent = new ComboControl("col");
-    this.PositionTable = new DataTable("table")
+    this.PositionTable = new DataTable("table");
     this.PositionTable.addColumn("Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
       "TotalCost", "TodayOpen", "AvgPirce", "StrategyId", "Type");
     positionContent.addChild(this.PositionTable);
@@ -283,7 +283,7 @@ export class AppComponent implements OnInit {
     }
     let bHead = false;
     this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
-      //console.info(cellIndex, rowIndex);
+      // console.info(cellIndex, rowIndex);
     };
     this.bookViewTable.OnRowClick = (rowItem, rowIndex) => {
       [txt_UKey.Text, txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
@@ -375,7 +375,7 @@ export class AppComponent implements OnInit {
     this.profitPage.setContent(profitContent);
     reqbtn.OnClick = () => {
       ManulTrader.getProfitInfo();
-    }
+    };
 
 
     this.strategyTable = new DataTable();
@@ -404,7 +404,8 @@ export class AppComponent implements OnInit {
           this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
           this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
         }
-        self.ref.detectChanges();
+
+        this.bookViewTable.detectChanges();
       }
     });
     document.title = "hello";
@@ -495,13 +496,13 @@ export class AppComponent implements OnInit {
   }
 
   showComRecordPos(data: any) {
-    //console.log("000000000000", data);
+    // console.log("000000000000", data);
     for (let i = 0; i < data.length; ++i) {
       let equityPosTableRows: number = AppComponent.self.PositionTable.rows.length;
       let equityposSec: number = data[i].secucategory;
       let ukey: number = data[i].record.code;
       if (equityPosTableRows === 0) {
-        if (equityposSec === 1) //equity
+        if (equityposSec === 1) // equity
           AppComponent.self.addEquityPosInfo(data[i]);
         else if (equityposSec === 2) {
           AppComponent.self.addFuturePosInfo(data[i]);
@@ -512,7 +513,7 @@ export class AppComponent implements OnInit {
         for (let j = 0; j < equityPosTableRows; ++j) {
           let getUkey = AppComponent.self.PositionTable.rows[j].cells[2].Text;
           let getSec = AppComponent.self.PositionTable.rows[j].cells[1].Text;
-          if (getUkey === ukey) { //refresh
+          if (getUkey === ukey) { // refresh
             checkFlag = true;
             if (getSec === 1) {
               AppComponent.self.refreshEquitPosInfo(data[i], j);
@@ -649,7 +650,7 @@ export class AppComponent implements OnInit {
     row.cells[16].Text = obj.lastclose / 10000;
     row.cells[17].Text = obj.marketprice / 10000;
     row.cells[18].Text = obj.iopv;
-    AppComponent.self.ref.detectChanges();
+    AppComponent.self.profitTable.detectChanges();
   }
   refreshProfitInfo(obj: any, idx: number) {
     AppComponent.self.profitTable.rows[idx].cells[4].Text = obj.avgpriceforbuy;
@@ -676,7 +677,7 @@ export class AppComponent implements OnInit {
       let accTableRows: number = AppComponent.self.accountTable.rows.length;
       let accData: number = data[i].record.account;
       let accSec: number = data[i].secucategory;
-      if (accTableRows === 0) {  //add
+      if (accTableRows === 0) {  // add
         if (accSec === 1) {
           AppComponent.self.addAccountEquitInfo(data[i]);
         }
@@ -689,7 +690,7 @@ export class AppComponent implements OnInit {
         for (let j = 0; j < accTableRows; ++j) {
           let getAcc = AppComponent.self.accountTable.rows[j].cells[0].Text;
           let getSec = AppComponent.self.accountTable.rows[j].cells[1].Text;
-          if (getAcc === accData && getSec === accSec) {  //refresh
+          if (getAcc === accData && getSec === accSec) {  // refresh
             checkFlag = true;
             if (getSec === 1) {
               AppComponent.self.refreshAccountEquiteInfo(data[i], j);
@@ -699,7 +700,7 @@ export class AppComponent implements OnInit {
             }
           }
         }
-        if (!checkFlag) {   //add 
+        if (!checkFlag) {   // add 
           if (accSec === 1) {
             AppComponent.self.addAccountEquitInfo(data[i]);
           }
@@ -723,11 +724,11 @@ export class AppComponent implements OnInit {
     row.cells[4].Text = obj.record.FrzAmount;
     row.cells[5].Text = obj.record.date;
     row.cells[6].Text = obj.record.c;
-    if (obj.market != 0 && obj.market === SECU_MARKET.SM_SH)
+    if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SH)
       row.cells[7].Text = obj.record.AvlAmount;
     else
       row.cells[7].Text = 0;
-    if (obj.market != 0 && obj.market === SECU_MARKET.SM_SZ)
+    if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SZ)
       row.cells[8].Text = obj.record.AvlAmount;
     else
       row.cells[8].Text = 0;
@@ -756,7 +757,7 @@ export class AppComponent implements OnInit {
     row.cells[10].Text = obj.record.SellFrzAmt;
     row.cells[11].Text = obj.record.Buymargin;
     row.cells[12].Text = obj.record.SellMargin;
-    row.cells[13].Text = obj.record.TotalMargin
+    row.cells[13].Text = obj.record.TotalMargin;
     row.cells[14].Text = obj.record.Fee;
     row.cells[15].Text = obj.record.PositionPL;
     row.cells[16].Text = obj.record.ClosePL;
@@ -793,7 +794,7 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showStrategyCfg(data: any) {
-    //console.log("333333333333", data);
+    // console.log("333333333333", data);
   }
   positionDealer(data: any) {
     // console.log("444444444444444444", data);

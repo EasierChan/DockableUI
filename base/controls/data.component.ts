@@ -5,7 +5,7 @@
  */
 import {
   Component, ViewChild, ContentChild, Input, OnInit, AfterViewInit,
-  Directive, ElementRef, Renderer, HostListener
+  Directive, ElementRef, Renderer, HostListener, ChangeDetectorRef
 } from "@angular/core";
 import { Control, MetaControl, CssStyle, DataTable } from "./control";
 
@@ -24,7 +24,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   pageSize: number;
   curPage: number;
 
-  constructor(private render: Renderer, private ele: ElementRef) {
+  constructor(private render: Renderer, private ele: ElementRef, private ref: ChangeDetectorRef) {
     this.render.listen(this.ele.nativeElement, "mousewheel", (e) => {
       this.curData = new DataTable();
       if (!this.dataSource.rows || this.dataSource.rows.length === 0)
@@ -43,10 +43,11 @@ export class DataTableComponent implements OnInit, AfterViewInit {
 
 
   ngOnInit(): void {
-    console.info(this.dataSource.columns);
+    // console.info(this.dataSource.columns);
     this.curPage = 0;
     this.pageSize = 10;
     this.curData = this.dataSource;
+    this.dataSource.detectChanges = () => this.ref.detectChanges;
   }
 
   ngAfterViewInit(): void {

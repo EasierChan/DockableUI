@@ -759,7 +759,8 @@ export class DataTable extends Control {
       headerColumnCount: 0,
       columns: null,
       rows: null,
-      bRowIndex: true
+      bRowIndex: true,
+      detectChanges: null
     };
     this.styleObj = { type: type, width: null, height: null };
   }
@@ -787,6 +788,10 @@ export class DataTable extends Control {
 
   set OnRowClick(value: Function) {
     this.rows.forEach(row => row.OnRowClick = value);
+  }
+
+  detectChanges(): void {
+    this.dataSource.detectChanges();
   }
 }
 
