@@ -777,8 +777,22 @@ export class DataTable extends Control {
   }
 
   addColumn(...columns: string[]): DataTable {
-    columns.forEach(item => this.columns.push(new DataTableColumn(item, this.columns.length)));
+    columns.forEach(item => {
+      this.columns.push(new DataTableColumn(item));
+      this.rows.forEach(item => item.cells.splice(this.columns.length, 0, new DataTableRowCell()));
+    });
     this.dataSource.columns = this.columns;
+    return this;
+  }
+
+  /**
+   * insert a column to specified index.
+   * @param column columnHeader string
+   * @param index  insert before index (note: zero-based location)
+   */
+  insertColumn(column: string, index: number): DataTable {
+    this.columns.splice(index, 0, new DataTableColumn(column));
+    this.rows.forEach(item => item.cells.splice(index, 0, new DataTableRowCell()));
     return this;
   }
 
@@ -838,7 +852,7 @@ export class DataTableRowCell extends MetaControl {
 
 export class DataTableColumn {
   private bHidden: boolean = false;
-  constructor(private columnHeader: string, private columnIndex: number) {
+  constructor(private columnHeader: string) {
   }
 
   set hidden(value: boolean) {
