@@ -13,7 +13,7 @@ declare var electron: Electron.ElectronMainAndRenderer;
 
 export class OrderService {
     private _messageMap: any;
-    //strategyinfo 
+    // strategyinfo
     constructor() {
         this._messageMap = new Object();
         let msgObj = new Array<Object>();
@@ -25,12 +25,12 @@ export class OrderService {
             let msgsubtype = data.header.subtype;
             let msglen = data.header.msglen;
             switch (msgtype) {
-                //'StrategyInfo'
+                // 'StrategyInfo'
                 case 2011:
                 case 2033:
                     msgObj = this.readStrategyInfo(data.content, msgtype, msgsubtype, msglen);
                     break;
-                //StrategyCfg
+                // StrategyCfg
                 case 2000:
                 case 2002:
                 case 2004:
@@ -40,18 +40,18 @@ export class OrderService {
                 case 2032:
                     this.readStrategyCfg(data.content, msgtype, msgsubtype, msglen);
                     break;
-                //GuiCmdAck
+                // GuiCmdAck
                 case 2001:
                 case 2003:
                 case 2005:
                 case 2050:
                 case 2031:
                     break;
-                //ComTotalProfitInfo
+                // ComTotalProfitInfo
                 case 2048:
                     msgObj = this.readComTotalProfitInfo(data.content, msgtype, msgsubtype, msglen);
                     break;
-                //order
+                // order
                 case 2020:
                     msgObj = this.readComConOrder(data.content, msgtype, msgsubtype, msglen);
                     break;
@@ -215,7 +215,7 @@ export class OrderService {
             strategyInfo.currorderid = buffer.readUInt32LE(offset); offset += 4;
             strategyInfo.ismanualtrader = buffer.readUInt8(offset) === 1 ? true : false;
             if (msgtype === 2011) {
-                //send  2028 & get strategy parameter
+                // send  2028 & get strategy parameter
                 let comGuiAskStrateg = new ComGuiAskStrategy();
                 comGuiAskStrateg.strategyid = strategyInfo.key;
                 let getParaOffset: number = 0;
@@ -226,7 +226,7 @@ export class OrderService {
                 });
                 this.sendOrder(2028, 0, getParabuffer, (data) => {
                     console.log("receive ...2028...msg:", data);
-                })
+                });
 
             }
             res.push(strategyInfo);
@@ -447,7 +447,7 @@ export class OrderService {
             comConOrderErrorInfo.os.datetime = new TimeVal();
             comConOrderErrorInfo.os.datetime.tv_sec = buffer.readUIntLE(offset, 8); offset += 8;
             comConOrderErrorInfo.os.datetime.tv_usec = buffer.readUIntLE(offset, 8); offset += 8;
-            //console.log("comConOrderErrorInfo:", comConOrderErrorInfo);
+            // console.log("comConOrderErrorInfo:", comConOrderErrorInfo);
         }
     }
 
@@ -515,7 +515,7 @@ export class OrderService {
             comStrategyCfg.modify = buffer.readUInt8(offset); offset += 1;
             comStrategyCfg.dirty = buffer.readUInt8(offset); offset += 1;
             offset += 2;
-            //console.log("comStrategyCfg:",comStrategyCfg);
+            // console.log("comStrategyCfg:",comStrategyCfg);
 
         }
     }

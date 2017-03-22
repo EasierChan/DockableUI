@@ -1,7 +1,7 @@
 /**
  * created by cl, 2017/02/28
  * update: [date]
- * desc: 
+ * desc:
  */
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
@@ -11,7 +11,7 @@ import {
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
 import { ManulTrader } from "./bll/sendorder";
-import { EOrderType, AlphaSignalInfo, SECU_MARKET } from "../../base/api/model/itrade/orderstruct";
+import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus } from "../../base/api/model/itrade/orderstruct";
 
 @Component({
   moduleId: module.id,
@@ -474,7 +474,91 @@ export class AppComponent implements OnInit {
 
   }
   handleUndoneOrder(data: any) {
-
+    for (let i = 0; i < data.length; ++i) {
+      let orderStatusTableRows: number = AppComponent.self.orderstatusTable.rows.length;
+      let orderId: number = data[i].od.orderid;
+      if (orderStatusTableRows === 0) { // add
+        AppComponent.self.addUndoneOrderInfo(data[i]);
+      } else {
+        let checkFlag: boolean = false;
+        for (let j = 0; j < orderStatusTableRows; ++j) {
+          let getOrderId = AppComponent.self.orderstatusTable.rows[j].cells[2].Text;
+          if (orderId === getOrderId) {  // refresh
+            checkFlag = true;
+            AppComponent.self.refreshUndoneOrderInfo(data[i], j);
+          }
+        }
+        if (!checkFlag) {
+          AppComponent.self.addUndoneOrderInfo(data[i]);
+        }
+        checkFlag = false;
+      }
+    }
+  }
+  addUndoneOrderInfo(obj: any) {
+    let row = this.orderstatusTable.newRow();
+    row.cells[0].Text = obj.od.innercode;
+    row.cells[1].Text = "";
+    row.cells[2].Text = obj.od.orderid;
+    row.cells[3].Text = this.formatTime(obj.od.odatetime.tv_sec);
+    row.cells[4].Text = obj.od.strategyid;
+    let action: number = obj.od.action;
+    if (action === 0)
+      row.cells[5].Text = "Buy";
+    else if (action === 1)
+      row.cells[5].Text = "Sell";
+    else
+      row.cells[5].Text = "";
+    row.cells[6].Text = obj.od.oprice / 10000;
+    row.cells[7].Text = obj.od.ovolume;
+    row.cells[8].Text = obj.od.ivolume;
+    row.cells[9].Text = this.parseOrderStatus(obj.od.status);
+    row.cells[10].Text = obj.con.account;
+  }
+  formatTime(time: any): String {
+    let rtnStr: String = "";
+    let newDate = new Date();
+    newDate.setTime(time * 1000);
+    rtnStr = newDate.toLocaleTimeString();
+    return rtnStr;
+  }
+  parseOrderStatus(status: any): String {
+    if (status === EOrderStatus.ORDER_STATUS_INVALID)
+      return "0.无效";
+    else if (status === EOrderStatus.ORDER_STATUS_INIT)
+      return "1.未报";
+    else if (status === EOrderStatus.ORDER_STATUS_WAIT_SEND)
+      return "2.待报";
+    else if (status === EOrderStatus.ORDER_STATUS_SEND)
+      return "3.已报";
+    else if (status === EOrderStatus.ORDER_STATUS_SEND_WAIT_CANCEL)
+      return "4.已报待撤";
+    else if (status === EOrderStatus.ORDER_STATUS_PART_WAIT_CANCEL)
+      return "5.部成待撤";
+    else if (status === EOrderStatus.ORDER_STATUS_PART_CANCELED)
+      return "6.部撤";
+    else if (status === EOrderStatus.ORDER_STATUS_CANCELED)
+      return "7.已撤";
+    else if (status === EOrderStatus.ORDER_STATUS_PART_DEALED)
+      return "8.部成";
+    else if (status === EOrderStatus.ORDER_STATUS_DEALED)
+      return "9.已成";
+    else
+      return "10.废单";
+  }
+  refreshUndoneOrderInfo(obj: any, idx: number) {
+    this.orderstatusTable.rows[idx].cells[3].Text = this.formatTime(obj.od.odatetime.tv_sec);
+    let action: number = obj.od.action;
+    if (action === 0)
+      this.orderstatusTable.rows[idx].cells[5].Text = "Buy";
+    else if (action === 1)
+      this.orderstatusTable.rows[idx].cells[5].Text = "Sell";
+    else
+      this.orderstatusTable.rows[idx].cells[5].Text = "";
+    this.orderstatusTable.rows[idx].cells[6].Text = obj.od.oprice / 10000;
+    this.orderstatusTable.rows[idx].cells[7].Text = obj.od.ovolume;
+    this.orderstatusTable.rows[idx].cells[8].Text = obj.od.ivolume;
+    this.orderstatusTable.rows[idx].cells[9].Text = this.parseOrderStatus(obj.od.status);
   }
 
   showComRecordPos(data: any) {
@@ -505,7 +589,7 @@ export class AppComponent implements OnInit {
             }
           }
         }
-        if (!checkFlag) {  // add 
+        if (!checkFlag) {  // add
           if (equityposSec === 1) {
             AppComponent.self.addEquityPosInfo(data[i]);
           }
@@ -553,20 +637,20 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   refreshEquitPosInfo(obj: any, idx: number) {
-    AppComponent.self.PositionTable.rows[idx].cells[4] = obj.record.TotalVol;
-    AppComponent.self.PositionTable.rows[idx].cells[5] = obj.record.AvlVol;
-    AppComponent.self.PositionTable.rows[idx].cells[6] = obj.record.AvlCreRedempVol;
-    AppComponent.self.PositionTable.rows[idx].cells[7] = obj.record.WorkingVol;
-    AppComponent.self.PositionTable.rows[idx].cells[8] = obj.record.TotalCost;
+    AppComponent.self.PositionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
+    AppComponent.self.PositionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
+    AppComponent.self.PositionTable.rows[idx].cells[6].Text = obj.record.AvlCreRedempVol;
+    AppComponent.self.PositionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
+    AppComponent.self.PositionTable.rows[idx].cells[8].Text = obj.record.TotalCost;
     AppComponent.self.ref.detectChanges();
   }
   refreshFuturePosInfo(obj: any, idx: number) {
-    AppComponent.self.PositionTable.rows[idx].cells[4] = obj.record.TotalVol;
-    AppComponent.self.PositionTable.rows[idx].cells[5] = obj.record.AvlVol;
-    AppComponent.self.PositionTable.rows[idx].cells[7] = obj.record.WorkingVol;
-    AppComponent.self.PositionTable.rows[idx].cells[8] = obj.record.TotalCost;
-    AppComponent.self.PositionTable.rows[idx].cells[9] = obj.record.TodayOpen;
-    AppComponent.self.PositionTable.rows[idx].cells[10] = obj.record.AveragePrice;
+    AppComponent.self.PositionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
+    AppComponent.self.PositionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
+    AppComponent.self.PositionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
+    AppComponent.self.PositionTable.rows[idx].cells[8].Text = obj.record.TotalCost;
+    AppComponent.self.PositionTable.rows[idx].cells[9].Text = obj.record.TodayOpen;
+    AppComponent.self.PositionTable.rows[idx].cells[10].Text = obj.record.AveragePrice;
     AppComponent.self.ref.detectChanges();
   }
   showComGWNetGuiInfo(data: any) {
@@ -682,7 +766,7 @@ export class AppComponent implements OnInit {
             }
           }
         }
-        if (!checkFlag) {   // add 
+        if (!checkFlag) {   // add
           if (accSec === 1) {
             AppComponent.self.addAccountEquitInfo(data[i]);
           }
