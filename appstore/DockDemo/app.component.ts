@@ -28,7 +28,7 @@ export class AppComponent implements OnInit {
   private orderstatusPage: TabPage;
   private tradePage: TabPage;
   private doneOrdersPage: TabPage;
-  private bookviewPage: TabPage
+  private bookviewPage: TabPage;
   private logPage: TabPage;
   private strategyPage: TabPage;
   private accountPage: TabPage;
@@ -466,6 +466,31 @@ export class AppComponent implements OnInit {
 
   }
   handleUndoneOrder(data: any) {
+    for (let i = 0; i < data.length; ++i) {
+      let orderStatusTableRows : number = AppComponent.self.orderstatusTable.rows.length;
+      let orderId : number = data[i].od.orderid;
+      if(orderStatusTableRows === 0){ // add
+        AppComponent.self.addUndoneOrderInfo(data[i]);
+      } else {
+         let checkFlag: boolean = false;
+         for(let j = 0; j < orderStatusTableRows;++j){
+           let getOrderId = AppComponent.self.orderstatusTable.rows[j].cells[2].Text;
+           if(orderId === getOrderId){  // refresh
+             checkFlag = true; 
+             AppComponent.self.refreshUndoneOrderInfo(data[i],j);
+           }
+         }
+         if(!checkFlag){
+           AppComponent.self.addUndoneOrderInfo(data[i]);
+         }
+         checkFlag = false;
+      }
+    }
+  }
+  addUndoneOrderInfo(obj:any){
+
+  }
+  refreshUndoneOrderInfo(obj:any,idx:number){
 
   }
 
