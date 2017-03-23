@@ -6,7 +6,7 @@
     <label *ngIf="child.styleObj.type=='textbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <pre>{{child.dataSource.title}}</pre>
                 <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" 
-                class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable">
+                class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
              </label>
     <div *ngIf="child.styleObj.type=='dropdown'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
       <pre>{{child.dataSource.title}}</pre>
