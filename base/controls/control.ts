@@ -759,7 +759,8 @@ export class DataTable extends Control {
       headerColumnCount: 0,
       columns: null,
       rows: null,
-      bRowIndex: true
+      bRowIndex: true,
+      detectChanges: null
     };
     this.styleObj = { type: type, width: null, height: null };
   }
@@ -776,8 +777,22 @@ export class DataTable extends Control {
   }
 
   addColumn(...columns: string[]): DataTable {
-    columns.forEach(item => this.columns.push(new DataTableColumn(item)));
+    columns.forEach(item => {
+      this.columns.push(new DataTableColumn(item));
+      this.rows.forEach(item => item.cells.splice(this.columns.length, 0, new DataTableRowCell()));
+    });
     this.dataSource.columns = this.columns;
+    return this;
+  }
+
+  /**
+   * insert a column to specified index.
+   * @param column columnHeader string
+   * @param index  insert before index (note: zero-based location)
+   */
+  insertColumn(column: string, index: number): DataTable {
+    this.columns.splice(index, 0, new DataTableColumn(column));
+    this.rows.forEach(item => item.cells.splice(index, 0, new DataTableRowCell()));
     return this;
   }
 
@@ -787,6 +802,10 @@ export class DataTable extends Control {
 
   set OnRowClick(value: Function) {
     this.rows.forEach(row => row.OnRowClick = value);
+  }
+
+  detectChanges(): void {
+    this.dataSource.detectChanges();
   }
 }
 
@@ -832,6 +851,11 @@ export class DataTableRowCell extends MetaControl {
 }
 
 export class DataTableColumn {
+  private bHidden: boolean = false;
   constructor(private columnHeader: string) {
+  }
+
+  set hidden(value: boolean) {
+    this.bHidden = value;
   }
 }
