@@ -998,32 +998,71 @@ export class AppComponent implements OnInit {
       let strategyId = data[i].strategyid;
       let name = data[i].name;
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {  // show
-        let paraIdx = AppComponent.self.checkTableIndex(commandIdx, parameterIdx, strategyId, name);
-        if (paraIdx === -1) { // add
-
+        let paraObj: Object = AppComponent.self.checkTableIndex(commandIdx, parameterIdx, strategyId, name);
+        if (paraObj.row === -1 || paraObj.col === -1) { // add
+          AppComponent.self.addStrategyTableCol(paraObj, data[i], type);
+          parameterIdx++;
         }
         else { // refresh
-
+          AppComponent.self.refreshStrategyInfo(paraObj, data[i], type);
         }
       }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level > 0) {  // show
-
+        let commentObj: Object = AppComponent.self.checkTableIndex(commentIdx, commandIdx, strategyId, name);
+        if (commentObj.row === -1 || commentObj.col === -1) { // add
+          AppComponent.self.addStrategyTableCol(commentObj, data[i], type);
+          commentIdx++;
+          commandIdx++;
+          parameterIdx++;
+        }
+        else { // refresh
+          AppComponent.self.refreshStrategyInfo(commentObj, data[i], type);
+        }
       }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {
 
       }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) { // show
+        let commandObj: Object = AppComponent.self.checkTableIndex(commandIdx, parameterIdx, strategyId, name);
+        if (commandObj.row === -1 || commandObj.col === -1) {  // add
+          AppComponent.self.addStrategyTableCol(commandObj, data[i], type);
+          commandIdx++;
+          parameterIdx++;
+        } else {  // refresh
+          AppComponent.self.refreshStrategyInfo(commandObj, data[i], type);
 
+        }
       }
 
     }
   }
-  checkTableIndex(startIdx: number, endIdx: number, strategyid: number, name: String): number {
-
-    return -1;
+  checkTableIndex(startIdx: number, endIdx: number, strategyid: number, name: String): Object {
+    let checkIdFlag: boolean = false;
+    let checkcolFlag: boolean = false;
+    for (let i = 0; i < this.strategyTable.rows.length; ++i) {
+      let getId = this.strategyTable.rows[i].cells[0].Text;
+      if (getId === strategyid) {
+        checkIdFlag = true;
+        for (let j = startIdx; j < endIdx; ++j) {
+          let getName = this.strategyTable.columns[j];
+          if (name === getName) {
+            checkcolFlag = true;
+            return { row: i, col: j };
+          }
+        }
+      }
+    }
+    if (!checkIdFlag || !checkcolFlag)
+      return { row: -1, col: -1 };
+  }
+  addStrategyTableCol(paraObj: any, data: any, type: number) {
 
   }
-  positionDealer(data: any) {
+  refreshStrategyInfo(paraObj: any, data: any, type: number) {
+
+  }
+
+  positionDealer(paraObj: any, data: any) {
     // console.log("444444444444444444", data);
   }
 }
