@@ -508,7 +508,7 @@ export class OrderService {
             let str_end = buffer.indexOf(0, offset);
             comStrategyCfg.name = buffer.slice(offset, str_end).toString("utf-8");
             offset += 56;
-            comStrategyCfg.value = buffer.readUIntLE(offset, 8); offset += 8;
+            comStrategyCfg.value = buffer.readIntLE(offset, 8); offset += 8;
             comStrategyCfg.decimal = buffer.readUInt8(offset); offset += 1;
             comStrategyCfg.type = buffer.readUInt8(offset); offset += 1;
             comStrategyCfg.level = buffer.readUInt8(offset); offset += 1;

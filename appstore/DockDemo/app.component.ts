@@ -52,6 +52,13 @@ export class AppComponent implements OnInit {
   private pospnlt: MetaControl;
   private totalpnlt: MetaControl;
 
+  // strategy index flag
+  private commentIdx: number = 10;
+  private commandIdx: number = 10;
+  private parameterIdx: number = 11;
+  private commentNum: number = 0;
+  private commandNum: number = 0;
+  private parameterNum: number = 0;
 
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef) {
     AppComponent.self = this;
@@ -987,79 +994,153 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showStrategyCfg(data: any) {
-    console.log("333333333333", data);
-    let commentIdx: number = this.strategyTable.columns.length;
-    let commandIdx: number = this.strategyTable.columns.length;
-    let parameterIdx: number = this.strategyTable.columns.length + 1;
+    //  console.log("333333333333", data);
+    if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
+      return;
+    let addSubCOmFlag: boolean = false;
 
-    for (let i = 0; i < data[i].length; ++i) {
+    for (let i = 0; i < data.length; ++i) {
       let level = data[i].level;
       let type = data[i].type;
       let strategyId = data[i].strategyid;
       let name = data[i].name;
+
+      if (!addSubCOmFlag && data.length > 50) {   // add submit & comment btn
+        for (let i = 0; i < AppComponent.self.strategyTable.rows.length; ++i) {   // find row in strategy table
+          let getId = AppComponent.self.strategyTable.rows[i].cells[0].Text;
+          if (getId === strategyId) {
+            AppComponent.self.strategyTable.insertColumn("Submit", AppComponent.self.commandIdx);
+            AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Type = "button";
+            AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Text = "submit";
+            AppComponent.self.strategyTable.insertColumn("Comment", AppComponent.self.parameterIdx);
+            AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Type = "button";
+            AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Text = "comment";
+            addSubCOmFlag = true;
+            break;
+          }
+        }
+      }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {  // show
-        let paraObj: Object = AppComponent.self.checkTableIndex(commandIdx, parameterIdx, strategyId, name);
-        if (paraObj.row === -1 || paraObj.col === -1) { // add
-          AppComponent.self.addStrategyTableCol(paraObj, data[i], type);
-          parameterIdx++;
+        let paraObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commandIdx, AppComponent.self.parameterIdx);
+        if (paraObj.col === -1) { // add
+          AppComponent.self.addStrategyTableCol({ row: paraObj.row, col: AppComponent.self.parameterIdx }, data[i], type);
+          if (!(data.length < 50))
+            AppComponent.self.parameterIdx++;
         }
         else { // refresh
           AppComponent.self.refreshStrategyInfo(paraObj, data[i], type);
         }
       }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level > 0) {  // show
-        let commentObj: Object = AppComponent.self.checkTableIndex(commentIdx, commandIdx, strategyId, name);
-        if (commentObj.row === -1 || commentObj.col === -1) { // add
-          AppComponent.self.addStrategyTableCol(commentObj, data[i], type);
-          commentIdx++;
-          commandIdx++;
-          parameterIdx++;
+        let commentObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, 10, AppComponent.self.commentIdx);
+        if (commentObj.col === -1) { // add
+          AppComponent.self.addStrategyTableCol({ row: commentObj.row, col: AppComponent.self.commentIdx }, data[i], type);
+          if (!(data.length < 50)) {
+            AppComponent.self.commentIdx++;
+            AppComponent.self.commandIdx++;
+            AppComponent.self.parameterIdx++;
+          }
+
         }
         else { // refresh
           AppComponent.self.refreshStrategyInfo(commentObj, data[i], type);
         }
+      } else {
+
       }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {
 
       }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) { // show
-        let commandObj: Object = AppComponent.self.checkTableIndex(commandIdx, parameterIdx, strategyId, name);
-        if (commandObj.row === -1 || commandObj.col === -1) {  // add
-          AppComponent.self.addStrategyTableCol(commandObj, data[i], type);
-          commandIdx++;
-          parameterIdx++;
+        let commandObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commentIdx, AppComponent.self.commandIdx);
+        if (commandObj.col === -1) {  // add
+          AppComponent.self.addStrategyTableCol({ row: commandObj.row, col: AppComponent.self.commandIdx }, data[i], type);
+          if (!(data.length < 50)) {
+            AppComponent.self.commandIdx++;
+            AppComponent.self.parameterIdx++;
+          }
         } else {  // refresh
           AppComponent.self.refreshStrategyInfo(commandObj, data[i], type);
-
         }
       }
-
     }
+
   }
-  checkTableIndex(startIdx: number, endIdx: number, strategyid: number, name: String): Object {
-    let checkIdFlag: boolean = false;
+  checkTableIndex(strategyid: number, name: String, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
+    let initLen: number = 10; // init talble column lengths
     let checkcolFlag: boolean = false;
-    for (let i = 0; i < this.strategyTable.rows.length; ++i) {
+    let rowFlagIdx: number = -1;
+
+    for (let i = 0; i < this.strategyTable.rows.length; ++i) {   // find row in strategy table
       let getId = this.strategyTable.rows[i].cells[0].Text;
       if (getId === strategyid) {
-        checkIdFlag = true;
-        for (let j = startIdx; j < endIdx; ++j) {
-          let getName = this.strategyTable.columns[j];
-          if (name === getName) {
-            checkcolFlag = true;
-            return { row: i, col: j };
-          }
-        }
+        rowFlagIdx = i;
       }
     }
-    if (!checkIdFlag || !checkcolFlag)
-      return { row: -1, col: -1 };
+    // special judge
+    if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT)
+      if ((rearIdx - preIdx) === 0)
+        return { row: rowFlagIdx, col: -1 };
+    if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND)
+      if ((rearIdx - preIdx) === 0)
+        return { row: rowFlagIdx, col: -1 };
+    if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER)
+      if ((rearIdx - preIdx) === 1)
+        return { row: rowFlagIdx, col: -1 };
+
+    for (let j = preIdx; j < rearIdx; ++j) {
+      // console.log("0.0.0.0.0.0.;", rowFlagIdx, j, startIdx, endIdx, AppComponent.self.strategyTable.columns.length);
+      let getName = AppComponent.self.strategyTable.columns[j].Name;
+      if (name === getName) {
+        checkcolFlag = true;
+        return { row: rowFlagIdx, col: j };
+      }
+    }
+    if ((rowFlagIdx === -1) || !checkcolFlag)
+      return { row: rowFlagIdx, col: -1 };
   }
   addStrategyTableCol(paraObj: any, data: any, type: number) {
+    let colIdx = paraObj.col;
+    let rowIdx = paraObj.row;
+    let title = data.name;
+    let decimal = data.decimal;
+    if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
+      AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "info";
+    } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
+      AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
+      // add button
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "button";
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = title;
+    } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
+      AppComponent.self.strategyTable.insertColumn(title, colIdx);
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "textbox";
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
+    } else {
 
+    }
+    AppComponent.self.ref.detectChanges();
   }
   refreshStrategyInfo(paraObj: any, data: any, type: number) {
+    let colIdx = paraObj.col;
+    let rowIdx = paraObj.row;
+    let value = data.value;
+    let decimal = data.decimal;
+    if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
+    }
+    else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
 
+    }
+    else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
+    }
+    else {
+
+    }
+    AppComponent.self.ref.detectChanges();
   }
 
   positionDealer(paraObj: any, data: any) {
