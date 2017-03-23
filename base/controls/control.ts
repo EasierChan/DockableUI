@@ -858,4 +858,11 @@ export class DataTableColumn {
   set hidden(value: boolean) {
     this.bHidden = value;
   }
+<<<<<<< HEAD
+=======
+
+  get Name(){
+    return this.columnHeader;
+  }
+>>>>>>> develop
 }
