@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { AppStoreService, Menu } from "../base/api/services/backend.service";
+import { AppStoreService, Menu, MessageBox } from "../base/api/services/backend.service";
 import { IP20Service } from "../base/api/services/ip20.service";
 import { Component, ChangeDetectorRef } from "@angular/core";
 import { IApp, WorkspaceConfig, Channel, StrategyInstance } from "../base/api/model/app.model";
@@ -255,6 +255,7 @@ export class AppComponent {
     }
 
     onLogin(): boolean {
+        // MessageBox.show("none", "Hello World", "Would give me a banana?\n Hello \n World");
         // alert("hello")
         // console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.

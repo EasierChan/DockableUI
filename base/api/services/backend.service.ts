@@ -57,3 +57,21 @@ export class MenuItem {
         return new electron.remote.MenuItem({ label: lable, type: type, click: click });
     }
 }
+
+/**
+ * 
+ */
+export class MessageBox {
+
+    static show(type: "none" | "info" | "error" | "question" | "warning", title: string, message: string, callback?: (response: number) => void,
+        buttons?: string[], defaultId?: number, cancelId?: number) {
+        electron.remote.dialog.showMessageBox(electron.remote.BrowserWindow.getFocusedWindow(), {
+            type: type,
+            buttons: (buttons ? buttons : ["OK"]),
+            title: title,
+            message: message,
+            defaultId: defaultId ? defaultId : null,
+            cancelId: cancelId ? cancelId : null
+        }, callback);
+    }
+}
