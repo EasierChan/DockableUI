@@ -37,7 +37,7 @@ class IP20Parser extends Parser {
         for (; bufCount < this._oPool.length; ++bufCount) {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= ISONPack2Header.len) {
-                this._curHeader = new ISONPack2Header()
+                this._curHeader = new ISONPack2Header();
                 let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
                 this._curHeader.fromBuffer(tempBuffer);
                 tempBuffer = null;
@@ -103,13 +103,11 @@ class ISONPackParser extends IP20Parser {
     processLoginMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
         let all = args[1];
-        console.info(header);
         switch (header.packid) {
             case 43: // Login
                 let msg = new ISONPack2();
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);
-                // logger.info("updatedate data: ", msg.newDate);
                 break;
             default:
                 logger.info(`appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
@@ -120,7 +118,7 @@ class ISONPackParser extends IP20Parser {
     processTemplateMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
         let all = args[1];
-        console.info(header);
+
         switch (header.packid) {
             case 194: // Login
                 let msg = new ISONPack2();
@@ -186,22 +184,47 @@ class ISONPackClient extends TcpClient {
 
 @Injectable()
 export class IP20Service {
-    private client: ISONPackClient;
+    private _client: ISONPackClient;
+    private _messageMap: Object;
     constructor() {
-        this.client = new ISONPackClient();
-        this.client.addParser(new ISONPackParser(this.client));
+        this._messageMap = new Object();
+        this._client = new ISONPackClient();
+        this._client.addParser(new ISONPackParser(this._client));
     };
 
     connect(port, host = "127.0.0.1") {
-        this.client.on("data", msg => {
-            logger.info(msg[0]);
+        let self = this;
+        this._client.on("data", msg => {
+            msg = msg[0];
+            if (self._messageMap.hasOwnProperty(msg.head.appid) && self._messageMap[msg.head.appid].hasOwnProperty(msg.head.packid)) {
+                self._messageMap[msg.head.appid][msg.head.packid](msg);
+            }
+            else
+                console.warn(`unknown message appid = ${msg.head.appid}, packid = ${msg.head.packid}`);
         });
-        this.client.connect(port, host);
+        this._client.connect(port, host);
     }
 
     send(appid: number, packid, jsonstr: Object) {
-        this.client.sendMessage(appid, packid, jsonstr);
+        this._client.sendMessage(appid, packid, jsonstr);
     }
+
+    /**
+     * 
+     */
+    addSlot(...slots: Slot[]) {
+        slots.forEach(slot => {
+            if (!this._messageMap.hasOwnProperty(slot.appid))
+                this._messageMap[slot.appid] = new Object();
+            this._messageMap[slot.appid][slot.packid] = slot.callback;
+        });
+    }
+}
+
+export interface Slot {
+    appid: number;
+    packid: number;
+    callback: Function;
 }
 
 

@@ -86,7 +86,9 @@ class ItradeParser extends Parser {
     }
 }
 
-
+/**
+ * 
+ */
 class StrategyParser extends ItradeParser {
     private _intervalRead: NodeJS.Timer;
     constructor(private _client: TcpClient) {
@@ -95,7 +97,7 @@ class StrategyParser extends ItradeParser {
     }
 
     init(): void {
-        // this.registerMsgFunction("17", this, this.processLoginMsg);
+        this.registerMsgFunction("17", this, this.processLoginMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -126,6 +128,9 @@ class StrategyParser extends ItradeParser {
     }
 }
 
+/**
+ * 
+ */
 class ItradeClient extends TcpClient {
     private _intervalHeart: NodeJS.Timer;
     private _parsers: ItradeParser[] = [];
@@ -137,14 +142,23 @@ class ItradeClient extends TcpClient {
         this._parsers.push(parser);
     }
 
-    sendMessage(type: number, subtype: number, body: Message): void {
+    sendMessage(type: number, subtype: number, body: Message | Buffer): void {
+        console.info(body);
         let head = new Header();
         head.type = type;
         head.subtype = subtype;
 
-        let buf = body.toBuffer();
-        head.msglen = buf.length;
-        this.send(Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
+        if (body === undefined || body === null) {
+            this.send(head.toBuffer());
+        } else if (body instanceof Buffer) {
+            head.msglen = body.length;
+            this.send(Buffer.concat([head.toBuffer(), body], Header.len + head.msglen));
+        } else {
+            let buf = body.toBuffer();
+            head.msglen = buf.length;
+            this.send(Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
+        }
+        head = null;
     }
 
     sendHeartBeat(interval = 10): void {
@@ -172,20 +186,44 @@ class ItradeClient extends TcpClient {
 
 @Injectable()
 export class ItradeService {
-    private client: ItradeClient;
+    private _client: ItradeClient;
+    private _messageMap: Object;
     constructor() {
-        this.client = new ItradeClient();
-        this.client.addParser(new StrategyParser(this.client));
+        this._messageMap = {};
+        this._client = new ItradeClient();
+        this._client.addParser(new StrategyParser(this._client));
     };
 
     connect(port, host = "127.0.0.1") {
-        this.client.on("data", msg => {
-            logger.info(msg[0]);
-        });
-        this.client.connect(port, host);
+        this.start();
+        this._client.connect(port, host);
     }
 
-    get send(): (type: number, subtype: number, body: Message) => void {
-        return this.client.sendMessage;
+    start(): void {
+        // self message
+        // this._messageMap[0]
+        // server message
+        this._client.on("data", (header, msg) => {
+            logger.info(msg[0]);
+        });
+
+        this._client.on("connect", () => {
+            if (this._messageMap.hasOwnProperty(0)) {
+                if (this._messageMap[0].context !== undefined)
+                    this._messageMap[0].callback.call(this._messageMap[0].context);
+                else
+                    this._messageMap[0].callback();
+            }
+        });
+    }
+
+    get send(): (type: number, subtype: number, body: any) => void {
+        return this._client.sendMessage;
+    }
+
+    addSlot(type: number, cb: Function, context?: any): void {
+        if (this._messageMap.hasOwnProperty(type))
+            return;
+        this._messageMap[type] = { callback: cb, context: context };
     }
 }

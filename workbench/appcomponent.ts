@@ -7,7 +7,7 @@ import { AppStoreService, Menu, MessageBox } from "../base/api/services/backend.
 import { IP20Service } from "../base/api/services/ip20.service";
 import { Component, ChangeDetectorRef } from "@angular/core";
 import { IApp, WorkspaceConfig, Channel, StrategyInstance } from "../base/api/model/app.model";
-import { StrateServerBLL } from "./bll/strategy.server";
+import { ConfigurationBLL, StrategyBLL } from "./bll/strategy.server";
 
 declare var window: any; // hack by chenlei @ 2017/02/07
 
@@ -23,7 +23,8 @@ declare var window: any; // hack by chenlei @ 2017/02/07
     ]
 })
 export class AppComponent {
-    private ssBll = new StrateServerBLL();
+    private configBLL = new ConfigurationBLL();
+    private strategyBLL = new StrategyBLL(this);
 
     isAuthorized: boolean = false;
     username: string;
@@ -47,7 +48,8 @@ export class AppComponent {
     contextMenu: Menu;
     curItem: WorkspaceConfig;
 
-    constructor(private appService: AppStoreService, private tgw: IP20Service, private ref: ChangeDetectorRef) {
+    constructor(private appService: AppStoreService, private tgw: IP20Service,
+        private ref: ChangeDetectorRef) {
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
         this.bDetails = false;
@@ -70,18 +72,6 @@ export class AppComponent {
                 }
             });
         });
-
-        let timestamp: any = new Date();
-        timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
-        timestamp = timestamp.substr(0, timestamp.length - 1);
-
-        this.tgw.connect(6114, "172.24.51.9");
-        let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 10, "clientdisksn": "", "clientnetip": "172.24.51.6", "clientnetmac": "f48e38bb77ce", "clientesn": "9693a58a65e2e97fe42a41c10616ae29223fb6364b04e0d9336252fba9ed339b030d4592f987fa526edca6cca021721db6f42eeae0bdf750febd9b938526d0a9", "clienttgwapi": "tgwapi253", "clientapp": "", "clientwip": "0.0.0.0", "clienttm": timestamp, "clientcpuid": "BFEBFBFF000506E3" };
-        console.info(loginObj);
-        this.tgw.send(17, 41, loginObj);
-        setTimeout(() => {
-            this.tgw.send(270, 194, { "head": { "realActor": "getTemplate", "pkgId": 4 }, "page": { "page": 1, "pagesize": 2 } });
-        }, 500);
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {
@@ -133,7 +123,7 @@ export class AppComponent {
     onPopup(type: number = 0) {
         this.config = null;
         // this.bPopPanel = true;
-        this.strategyCores = this.ssBll.getTemplates();
+        this.strategyCores = this.configBLL.getTemplates();
         if (type === 0) {
             this.config = new WorkspaceConfig();
             this.panelTitle = "New Config";
@@ -141,7 +131,7 @@ export class AppComponent {
             // getTheConfig by this.curItem on click
             this.config = this.curItem;
             this.panelTitle = this.config.name;
-            let templateObj: Object = this.ssBll.getTemplateByName(this.config.strategyCoreName);
+            let templateObj: Object = this.configBLL.getTemplateByName(this.config.strategyCoreName);
             if (templateObj === null) {
                 this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
                 return;
@@ -205,6 +195,7 @@ export class AppComponent {
             item.bChecked = this.bLeftSelectedAll;
         });
     }
+
     rightSelectAll(): void {
         this.bRightSelectedAll = !this.bRightSelectedAll;
         this.selectedList.forEach(item => {
@@ -236,7 +227,7 @@ export class AppComponent {
     onSelectStrategy(value: string) {
         this.config.strategyCoreName = value;
 
-        let templateObj: Object = this.ssBll.getTemplateByName(this.config.strategyCoreName);
+        let templateObj: Object = this.configBLL.getTemplateByName(this.config.strategyCoreName);
         if (templateObj === null) {
             this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
             return;
@@ -254,7 +245,7 @@ export class AppComponent {
         });
     }
 
-    onLogin(): boolean {
+    onLogin(): void {
         // MessageBox.show("none", "Hello World", "Would give me a banana?\n Hello \n World");
         // alert("hello")
         // console.log(this.username, this.password);
@@ -265,15 +256,41 @@ export class AppComponent {
             roles: null,
             apps: null
         });
-        this.isAuthorized = true;
+        this.loginTGW();
+    }
 
-        if (this.isAuthorized) {
-            this.configs = this.ssBll.getAllConfigs();
-            return true;
-        } else {
-            this.showError("Error", "Username or password wrong.", "alert");
-            return false;
-        }
+    loginTGW(): void {
+        let self = this;
+        // tgw login
+        let timestamp: any = new Date();
+        timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
+        timestamp = timestamp.substr(0, timestamp.length - 1);
+        this.tgw.connect(6114, "172.24.51.9");
+        this.tgw.addSlot({
+            appid: 17,
+            packid: 43,
+            callback: msg => {
+                if (msg.content.msret.msgcode === "00") {
+                    self.tgw.send(270, 194, { "head": { "realActor": "getTemplate", "pkgId": 4 }, "page": { "page": 1, "pagesize": 2 } });
+                    self.isAuthorized = true;
+                    if (self.isAuthorized) {
+                        self.configs = self.configBLL.getAllConfigs();
+                    } else {
+                        self.showError("Error", "Username or password wrong.", "alert");
+                    }
+                }
+            }
+        });
+        // process templates
+        this.tgw.addSlot({
+            appid: 270,
+            packid: 194,
+            callback: msg => {
+                self.strategyBLL.start();
+            }
+        });
+        let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 10, "clientdisksn": "", "clientnetip": "172.24.51.6", "clientnetmac": "f48e38bb77ce", "clientesn": "9693a58a65e2e97fe42a41c10616ae29223fb6364b04e0d9336252fba9ed339b030d4592f987fa526edca6cca021721db6f42eeae0bdf750febd9b938526d0a9", "clienttgwapi": "tgwapi253", "clientapp": "", "clientwip": "0.0.0.0", "clienttm": timestamp, "clientcpuid": "BFEBFBFF000506E3" };
+        this.tgw.send(17, 41, loginObj);
     }
 
     onReset(): void {

@@ -1,11 +1,13 @@
 "use strict";
 
 import { WorkspaceConfig, Channel, StrategyInstance } from "../../base/api/model/app.model";
+import { Header } from "../../base/api/model/itrade/message.model";
+import { ItradeService } from "../../base/api/services/itrade.service";
 const os = require("@node/os");
 const path = require("@node/path");
 const fs = require("@node/fs");
 
-export class StrateServerBLL {
+export class ConfigurationBLL {
     private readonly kTemplateExt: string = ".json";
 
     constructor() {
@@ -61,5 +63,50 @@ export class StrateServerBLL {
 
     getAllConfigs(): WorkspaceConfig[] {
         return this._configs;
+    }
+}
+
+export class StrategyBLL {
+    private itrade: ItradeService = new ItradeService();
+    constructor(private context: any) {
+    }
+
+    start(): void {
+        this.itrade.addSlot(0, () => {
+            let offset = 0;
+            let body = Buffer.alloc(4 + 6 * Header.len);
+            body.writeUInt32LE(6, offset); offset += 4;
+            let header = new Header();
+            header.type = 2048;
+            header.subtype = 1;
+            header.msglen = 0;
+            offset += header.toBuffer().copy(body, offset);
+            header.type = 2001;
+            header.subtype = 0;
+            offset += header.toBuffer().copy(body, offset);
+            header.type = 2032;
+            header.subtype = 0;
+            offset += header.toBuffer().copy(body, offset);
+            header.type = 2033;
+            header.subtype = 0;
+            offset += header.toBuffer().copy(body, offset);
+            header.type = 2011;
+            header.subtype = 0;
+            offset += header.toBuffer().copy(body, offset);
+            header.type = 2029;
+            header.subtype = 0;
+            offset += header.toBuffer().copy(body, offset);
+
+            this.itrade.send(2998, 0, body);
+            this.itrade.send(2010, 0, null);
+            header = null;
+            body = null;
+            offset = null;
+        }, this);
+        this.itrade.connect(9080, "172.24.51.4");
+    }
+
+    get addSlot(): (type: number, callback: Function, context?: any) => void {
+        return this.itrade.addSlot;
     }
 }
