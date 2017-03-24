@@ -752,6 +752,9 @@ export class SpreadViewer {
 export class DataTable extends Control {
   public columns: DataTableColumn[] = [];
   public rows: DataTableRow[] = [];
+  private _cellclick: Function;
+  private _rowclick: Function;
+
   constructor(type: string = "table") {
     super();
     this.className = "table";
@@ -768,6 +771,10 @@ export class DataTable extends Control {
   newRow(): DataTableRow {
     let row = new DataTableRow(this.columns.length);
     this.rows.push(row);
+    this.rows.forEach(row => {
+      row.OnCellClick = this._cellclick;
+      row.OnRowClick = this._rowclick;
+    });
     this.dataSource.rows = this.rows;
     return row;
   }
@@ -797,11 +804,11 @@ export class DataTable extends Control {
   }
 
   set OnCellClick(value: Function) {
-    this.rows.forEach(row => row.OnCellClick = value);
+    this._cellclick = value;
   }
 
   set OnRowClick(value: Function) {
-    this.rows.forEach(row => row.OnRowClick = value);
+    this._rowclick = value;
   }
 
   detectChanges(): void {
@@ -859,7 +866,7 @@ export class DataTableColumn {
     this.bHidden = value;
   }
 
-  get Name(){
+  get Name() {
     return this.columnHeader;
   }
 }
