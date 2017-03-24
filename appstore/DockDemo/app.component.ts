@@ -338,6 +338,20 @@ export class AppComponent implements OnInit {
     strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall);
     bottomPanel.setActive(this.strategyPage.id);
 
+    startall.OnClick = () => {
+      this.controlBtnClick(0);
+    };
+    pauseall.OnClick = () => {
+      this.controlBtnClick(1);
+    };
+    stopall.OnClick = () => {
+      this.controlBtnClick(2);
+    };
+    watchall.OnClick = () => {
+      this.controlBtnClick(3);
+    };
+
+
     this.profitPage = new TabPage("Profit", "Profit");
     bottomPanel.addTab(this.profitPage);
     let profitleftAlign = 20;
@@ -396,9 +410,6 @@ export class AppComponent implements OnInit {
     this.strategyPage.setContent(strategyContent);
     let row3 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row3);
-    this.strategyTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
-
-    };
 
 
     this.psInstance.setEndpoint(20000, "172.24.51.6");
@@ -1144,7 +1155,14 @@ export class AppComponent implements OnInit {
   }
 
   positionDealer(paraObj: any, data: any) {
-    // console.log("444444444444444444", data);
+    console.log("444444444444444444", data);
+  }
+
+  controlBtnClick(type: any) {
+
+  }
+  strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
+
   }
 }
 
