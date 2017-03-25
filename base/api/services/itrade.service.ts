@@ -8,6 +8,7 @@ import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
 import { Header, MsgType, Message } from "../model/itrade/message.model";
+import { ComStrategyInfo } from "../model/itrade/strategy.model";
 import { Injectable } from "@angular/core";
 
 const logger = console;
@@ -97,25 +98,28 @@ class StrategyParser extends ItradeParser {
     }
 
     init(): void {
-        this.registerMsgFunction("17", this, this.processLoginMsg);
+        this.registerMsgFunction("2011", this, this.processStrategyMsg);
+        this.registerMsgFunction("2032", this, this.processStrategyMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
     }
 
-    processLoginMsg(args: any[]): void {
+    processStrategyMsg(args: any[]): void {
         let header: Header = args[0];
-        let content = args[1];
-        console.info(header);
+        let content = args[1] as Buffer;
+        let count = content.readUInt32LE(0);
         switch (header.type) {
-            // case 43: // Login
-            // let msg = new ISONPack2();
-            // msg.fromBuffer(all);
-            // this._client.emit("data", msg);
-            // logger.info("updatedate data: ", msg.newDate);
-            // break;
+            case 2011: // Login
+                let offset = 4;
+                let msg = new ComStrategyInfo();
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
             default:
-                logger.info(`type=${header.type}, subtype=${header.subtype}, msglen=${header.msglen}`);
+                logger.warn(`unhandle msg=> type=${header.type}, subtype=${header.subtype}, msglen=${header.msglen}`);
                 break;
         }
     }
@@ -143,10 +147,10 @@ class ItradeClient extends TcpClient {
     }
 
     sendMessage(type: number, subtype: number, body: Message | Buffer): void {
-        console.info(body);
         let head = new Header();
         head.type = type;
         head.subtype = subtype;
+        head.msglen = 0;
 
         if (body === undefined || body === null) {
             this.send(head.toBuffer());
@@ -188,11 +192,22 @@ class ItradeClient extends TcpClient {
 export class ItradeService {
     private _client: ItradeClient;
     private _messageMap: Object;
+    private _sessionid: number;
     constructor() {
+        this._sessionid = 0;
         this._messageMap = {};
         this._client = new ItradeClient();
+        this._client.useSelfBuffer = true;
         this._client.addParser(new StrategyParser(this._client));
     };
+
+    set sessionID(value: number) {
+        this._sessionid = value;
+    }
+
+    get sessionID(): number{
+        return this._sessionid;
+    }
 
     connect(port, host = "127.0.0.1") {
         this.start();
@@ -203,22 +218,27 @@ export class ItradeService {
         // self message
         // this._messageMap[0]
         // server message
-        this._client.on("data", (header, msg) => {
-            logger.info(msg[0]);
+        this._client.on("data", msg => {
+            if (this._messageMap.hasOwnProperty(msg[0].type)) {
+                if (this._messageMap[msg[0].type].context !== undefined)
+                    this._messageMap[msg[0].type].callback.call(this._messageMap[msg[0].type].context, msg[1], this._sessionid);
+                else
+                    this._messageMap[msg[0].type].callback(msg[1], this._sessionid);
+            }
         });
 
         this._client.on("connect", () => {
             if (this._messageMap.hasOwnProperty(0)) {
                 if (this._messageMap[0].context !== undefined)
-                    this._messageMap[0].callback.call(this._messageMap[0].context);
+                    this._messageMap[0].callback.call(this._messageMap[0].context, this._sessionid);
                 else
-                    this._messageMap[0].callback();
+                    this._messageMap[0].callback(this._sessionid);
             }
         });
     }
 
-    get send(): (type: number, subtype: number, body: any) => void {
-        return this._client.sendMessage;
+    send(type: number, subtype: number, body: any): void {
+        return this._client.sendMessage(type, subtype, body);
     }
 
     addSlot(type: number, cb: Function, context?: any): void {

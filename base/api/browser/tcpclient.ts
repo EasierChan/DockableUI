@@ -43,14 +43,13 @@ export class TcpClient {
     connect(port: number, ip?: string): void {
         this._clientSock.connect(port, ip);
         this._clientSock.on("data", (data: any) => {
-            if (data instanceof Buffer)
+            if (data instanceof Buffer) {
                 this.bufferQueue.append(data);
-            else if (data instanceof Array) {
+            } else if (data instanceof Array) {
                 data.forEach(item => {
-                    this.bufferQueue.append(Buffer.from(item));
+                    this.bufferQueue.append(new Buffer(item.buffer));
                 });
             }
-
         });
         this._clientSock.on("connect", () => {
             this.emit("connect");

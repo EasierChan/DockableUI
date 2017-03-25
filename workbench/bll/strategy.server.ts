@@ -2,6 +2,7 @@
 
 import { WorkspaceConfig, Channel, StrategyInstance } from "../../base/api/model/app.model";
 import { Header } from "../../base/api/model/itrade/message.model";
+import { ComStrategyInfo } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
 const os = require("@node/os");
 const path = require("@node/path");
@@ -68,7 +69,14 @@ export class ConfigurationBLL {
 
 export class StrategyBLL {
     private itrade: ItradeService = new ItradeService();
-    constructor(private context: any) {
+    static sessionId = 1;
+    constructor() {
+        this.itrade.sessionID = StrategyBLL.sessionId;
+        StrategyBLL.sessionId += 1;
+    }
+
+    get sessionid(): number {
+        return this.itrade.sessionID;
     }
 
     start(): void {
@@ -106,7 +114,34 @@ export class StrategyBLL {
         this.itrade.connect(9080, "172.24.51.4");
     }
 
-    get addSlot(): (type: number, callback: Function, context?: any) => void {
-        return this.itrade.addSlot;
+    addSlot(type: number, callback: Function, context?: any): void {
+        return this.itrade.addSlot(type, callback, context);
+    }
+}
+
+export interface StrategyServerItem {
+    name: string;
+    config: WorkspaceConfig;
+    conn: StrategyBLL;
+}
+
+export class StrategyServerContainer {
+    private _items: StrategyServerItem[] = [];
+
+    addItem(...configs: WorkspaceConfig[]): void {
+        configs.forEach(config => {
+            let bll = new StrategyBLL();
+            bll.addSlot(2011, this.handleStrategyInfo, this);
+            this._items.push({ name: config.name, config: config, conn: bll });
+            bll.start();
+        });
+    }
+
+    handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
+        this._items.forEach(item => {
+            if (item.conn.sessionid === sessionid) {
+                console.info(msg);
+            }
+        });
     }
 }

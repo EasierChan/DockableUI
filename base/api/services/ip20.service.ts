@@ -35,12 +35,16 @@ class IP20Parser extends Parser {
         let buflen = 0;
         let restLen = 0;
         for (; bufCount < this._oPool.length; ++bufCount) {
-            buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
+            buflen += this._oPool.peek(bufCount + 1)[bufCount].byteLength;
             if (buflen >= ISONPack2Header.len) {
                 this._curHeader = new ISONPack2Header();
-                let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
-                this._curHeader.fromBuffer(tempBuffer);
-                tempBuffer = null;
+                if (bufCount > 1) {
+                    let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
+                    this._curHeader.fromBuffer(tempBuffer);
+                    tempBuffer = null;
+                } else {
+                    this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0]);
+                }
                 ret = true;
                 break;
             }
@@ -189,6 +193,7 @@ export class IP20Service {
     constructor() {
         this._messageMap = new Object();
         this._client = new ISONPackClient();
+        this._client.useSelfBuffer = true;
         this._client.addParser(new ISONPackParser(this._client));
     };
 

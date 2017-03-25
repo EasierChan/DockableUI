@@ -48,7 +48,7 @@ export abstract class Message {
         return rets;
     }
 
-    abstract fromBuffer(buffer: Buffer): void;
+    abstract fromBuffer(buffer: Buffer, offset: number): void;
     abstract toBuffer(): Buffer;
 }
 
