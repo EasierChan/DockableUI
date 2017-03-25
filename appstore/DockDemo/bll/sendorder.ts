@@ -84,6 +84,23 @@ export class ManulTrader {
         ManulTrader.orderService.sendOrder(2044, 0, null);
     }
 
+    static strategyControl(type: number, strategyid: number) {
+        let msgLen = 8;
+        let offset: number = 0;
+        let buffer = new Buffer(msgLen);
+        buffer.writeInt32LE(length, offset); offset += 4;
+        buffer.writeInt32LE(strategyid, offset);
+        if (type === 0) {
+            ManulTrader.orderService.sendOrder(2000, 0, buffer);
+        } else if (type === 1) {
+            ManulTrader.orderService.sendOrder(2004, 0, buffer);
+        } else if (type === 2) {
+            ManulTrader.orderService.sendOrder(2002, 0, buffer);
+        } else if (type === 3) {
+            ManulTrader.orderService.sendOrder(2049, 0, buffer);
+        }
+    }
+
     static writeUInt64LE(buffer: Buffer, time: number, offset: number): void {
         let max_uint32: number = 0xFFFFFFFF;
         let big: number = ~~(time / max_uint32);
