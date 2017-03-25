@@ -149,7 +149,8 @@ dock-table, dock-table2{
     flex: auto;
 }
 
-td {
+.table > tbody > tr > td {
+    vertical-align: middle;
     word-break: keep-all;
 }
 td input {

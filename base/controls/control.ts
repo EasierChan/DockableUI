@@ -770,11 +770,9 @@ export class DataTable extends Control {
 
   newRow(): DataTableRow {
     let row = new DataTableRow(this.columns.length);
+    row.OnCellClick = this._cellclick;
+    row.OnRowClick = this._rowclick;
     this.rows.push(row);
-    this.rows.forEach(row => {
-      row.OnCellClick = this._cellclick;
-      row.OnRowClick = this._rowclick;
-    });
     this.dataSource.rows = this.rows;
     return row;
   }
@@ -805,10 +803,16 @@ export class DataTable extends Control {
 
   set OnCellClick(value: Function) {
     this._cellclick = value;
+    this.rows.forEach(item => {
+      item.OnCellClick = value;
+    });
   }
 
   set OnRowClick(value: Function) {
     this._rowclick = value;
+    this.rows.forEach(item => {
+      item.OnRowClick = value;
+    });
   }
 
   detectChanges(): void {
@@ -818,6 +822,7 @@ export class DataTable extends Control {
 
 export class DataTableRow extends Control {
   cells: DataTableRowCell[] = [];
+  parent: DataTable;
   constructor(private columns: number) {
     super();
     this.dataSource = {
