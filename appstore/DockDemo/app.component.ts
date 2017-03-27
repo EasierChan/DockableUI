@@ -34,6 +34,7 @@ export class AppComponent implements OnInit {
   private accountPage: TabPage;
   private PositionPage: TabPage;
   private profitPage: TabPage;
+  private statarbPage: TabPage;
 
   private orderstatusTable: DataTable;
   private doneOrdersTable: DataTable;
@@ -44,6 +45,7 @@ export class AppComponent implements OnInit {
   private static self: AppComponent;
   private PositionTable: DataTable;
   private profitTable: DataTable;
+  private statarbTable: DataTable;
 
   // profittable textbox
   private totalpnLabel: MetaControl;
@@ -51,6 +53,8 @@ export class AppComponent implements OnInit {
   private trapnlt: MetaControl;
   private pospnlt: MetaControl;
   private totalpnlt: MetaControl;
+  private buyamountLabel: MetaControl;
+  private sellamountLabel: MetaControl;
 
   // strategy index flag
   private commentIdx: number = 10;
@@ -293,7 +297,6 @@ export class AppComponent implements OnInit {
       // console.info(cellIndex, rowIndex);
     };
     this.bookViewTable.OnRowClick = (rowItem, rowIndex) => {
-      console.log(rowItem, rowIndex);
       [txt_UKey.Text, txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
       txt_Price.Text = rowItem.cells[1].Text;
       dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? dd_Action.Items[1] : dd_Action.Items[0];
@@ -314,10 +317,34 @@ export class AppComponent implements OnInit {
     logContent.addChild(this.logTable);
     this.logPage.setContent(logContent);
     logPanel.addTab(this.logPage);
-    logPanel.setActive("LOG");
+    // logPanel.setActive("LOG");
     row2.addChild(new DockContainer("v", 800, null).addChild(logPanel));
     this.children.push(row2);
     this.children.push(new Splitter("h"));
+
+    this.statarbPage = new TabPage("StatArb", "StatArb");
+    logPanel.addTab(this.statarbPage);
+    let statarbLeftAlign = 20;
+    let statarbHeader = new ComboControl("row");
+    this.buyamountLabel = new MetaControl("textbox");
+    this.buyamountLabel.Left = statarbLeftAlign;
+    this.buyamountLabel.Width = 50;
+    this.buyamountLabel.Title = "BUY.AMOUNT: ";
+    this.buyamountLabel.Disable = true;
+    this.sellamountLabel = new MetaControl("textbox");
+    this.sellamountLabel.Left = statarbLeftAlign;
+    this.sellamountLabel.Width = 50;
+    this.sellamountLabel.Title = "SELL.AMOUNT: ";
+    this.sellamountLabel.Disable = true;
+    statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
+    this.statarbTable = new DataTable();
+    this.statarbTable.addColumn("Number", "Symbol", "InnerCode", "Change(%)", "Position",
+      "Trade", "Amount", "StrategyId", "DiffQty", "SymbolCode");
+    let statarbContent = new ComboControl("col");
+    statarbContent.addChild(statarbHeader);
+    statarbContent.addChild(this.statarbTable);
+    this.statarbPage.setContent(statarbContent);
+    logPanel.setActive("StatArb");
 
     // row 3    strategyinfo
     let bottomPanel: TabPanel = new TabPanel();
@@ -355,7 +382,6 @@ export class AppComponent implements OnInit {
     this.profitPage = new TabPage("Profit", "Profit");
     bottomPanel.addTab(this.profitPage);
     let profitleftAlign = 20;
-    let profitrowSep = 5;
     let profitHeader = new ComboControl("row");
     this.totalpnLabel = new MetaControl("textbox");
     this.totalpnLabel.Left = profitleftAlign;
@@ -411,7 +437,7 @@ export class AppComponent implements OnInit {
     let row3 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row3);
     this.strategyTable.OnCellClick = (cellItem, cellIdx, rowIdx) => {
-      // console.log("0000", cellItem, cellIdx, rowIdx);
+      console.log("0000", cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
 
@@ -860,10 +886,20 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showComProfitInfo(data: any) {
-    // console.log("1111111111111111", data);
     for (let i = 0; i < data.length; ++i) {
       let profitTableRows: number = AppComponent.self.profitTable.rows.length;
       let profitUkey: number = data[i].innercode;
+      let strategyid = data[i].strategyid;
+      let row = AppComponent.self.findRowByStrategyId(strategyid);
+      let totalpnl = (data[i].totalpositionpnl / 10000 / 1000).toFixed(0);
+      let tradingpnl = (data[i].totaltradingpnl / 10000 / 1000).toFixed(0);
+      AppComponent.self.strategyTable.rows[row].cells[8].Text = totalpnl;
+      if (parseInt(totalpnl) > 0)
+        AppComponent.self.strategyTable.rows[row].cells[8].Class = "info";
+      else
+        AppComponent.self.strategyTable.rows[row].cells[8].Class = "primary";
+      AppComponent.self.strategyTable.rows[row].cells[9].Text = tradingpnl;
+
       if (profitTableRows === 0) {  // add
         AppComponent.self.addProfitInfo(data[i]);
       } else {
@@ -888,16 +924,16 @@ export class AppComponent implements OnInit {
     row.cells[1].Text = "";
     row.cells[2].Text = obj.account;
     row.cells[3].Text = obj.strategyid;
-    row.cells[4].Text = obj.avgpriceforbuy;
-    row.cells[5].Text = obj.avgpriceforsell;
+    row.cells[4].Text = obj.avgpriceforbuy / 10000;
+    row.cells[5].Text = obj.avgpriceforsell / 10000;
     row.cells[6].Text = obj.positionpnl / 10000;
-    row.cells[7].Text = obj.tradingpnl;
-    row.cells[8].Text = obj.intradaytradingfee;
-    row.cells[9].Text = obj.totaltradingfee;
+    row.cells[7].Text = obj.tradingpnl / 10000;
+    row.cells[8].Text = obj.intradaytradingfee / 10000;
+    row.cells[9].Text = obj.tradingfee / 10000;
     row.cells[10].Text = obj.lasttradingfee;
     row.cells[11].Text = obj.lastpositionpnl / 10000;
-    row.cells[12].Text = obj.todaypositionpnl;
-    row.cells[13].Text = obj.totalpnl / 10000;
+    row.cells[12].Text = obj.todaypositionpnl / 10000;
+    row.cells[13].Text = obj.pnl / 10000;
     row.cells[14].Text = obj.lastposition;
     row.cells[15].Text = obj.todayposition;
     row.cells[16].Text = obj.lastclose / 10000;
@@ -906,21 +942,22 @@ export class AppComponent implements OnInit {
     AppComponent.self.profitTable.detectChanges();
   }
   refreshProfitInfo(obj: any, idx: number) {
-    AppComponent.self.profitTable.rows[idx].cells[4].Text = obj.avgpriceforbuy;
-    AppComponent.self.profitTable.rows[idx].cells[5].Text = obj.avgpriceforsell;
+    AppComponent.self.profitTable.rows[idx].cells[4].Text = obj.avgpriceforbuy / 10000;
+    AppComponent.self.profitTable.rows[idx].cells[5].Text = obj.avgpriceforsell / 10000;
     AppComponent.self.profitTable.rows[idx].cells[6].Text = obj.positionpnl / 10000;
-    AppComponent.self.profitTable.rows[idx].cells[7].Text = obj.tradingpnl;
-    AppComponent.self.profitTable.rows[idx].cells[8].Text = obj.intradaytradingfee;
-    AppComponent.self.profitTable.rows[idx].cells[9].Text = obj.totaltradingfee;
-    AppComponent.self.profitTable.rows[idx].cells[10].Text = obj.lasttradingfee;
+    AppComponent.self.profitTable.rows[idx].cells[7].Text = obj.tradingpnl / 10000;
+    AppComponent.self.profitTable.rows[idx].cells[8].Text = obj.intradaytradingfee / 10000;
+    AppComponent.self.profitTable.rows[idx].cells[9].Text = obj.tradingfee / 10000;
+    AppComponent.self.profitTable.rows[idx].cells[10].Text = obj.lasttradingfee / 10000;
     AppComponent.self.profitTable.rows[idx].cells[11].Text = obj.lastpositionpnl / 10000;
-    AppComponent.self.profitTable.rows[idx].cells[12].Text = obj.todaypositionpnl;
-    AppComponent.self.profitTable.rows[idx].cells[13].Text = obj.totalpnl / 10000;
+    AppComponent.self.profitTable.rows[idx].cells[12].Text = obj.todaypositionpnl / 10000;
+    AppComponent.self.profitTable.rows[idx].cells[13].Text = obj.pnl / 10000;
     AppComponent.self.profitTable.rows[idx].cells[14].Text = obj.lastposition;
     AppComponent.self.profitTable.rows[idx].cells[15].Text = obj.todayposition;
     AppComponent.self.profitTable.rows[idx].cells[16].Text = obj.lastclose / 10000;
     AppComponent.self.profitTable.rows[idx].cells[17].Text = obj.marketprice / 10000;
     AppComponent.self.profitTable.rows[idx].cells[18].Text = obj.iopv;
+
     AppComponent.self.ref.detectChanges();
   }
 
@@ -1056,7 +1093,6 @@ export class AppComponent implements OnInit {
       let type = data[i].type;
       let strategyId = data[i].strategyid;
       let name = data[i].name;
-
       if (!addSubCOmFlag && data.length > 50) {   // add submit & comment btn
         for (let i = 0; i < AppComponent.self.strategyTable.rows.length; ++i) {   // find row in strategy table
           let getId = AppComponent.self.strategyTable.rows[i].cells[0].Text;
@@ -1092,16 +1128,14 @@ export class AppComponent implements OnInit {
             AppComponent.self.commandIdx++;
             AppComponent.self.parameterIdx++;
           }
-
         }
         else { // refresh
           AppComponent.self.refreshStrategyInfo(commentObj, data[i], type);
         }
-      } else {
-
       }
-      if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {
 
+      if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {  // this msg insert into comment dialog ,but now, pause!
+        // console.log("COMMENT level == 0:", data[i]);
       }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) { // show
         let commandObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commentIdx, AppComponent.self.commandIdx);
@@ -1171,11 +1205,11 @@ export class AppComponent implements OnInit {
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
     } else {
-
     }
     AppComponent.self.ref.detectChanges();
   }
   refreshStrategyInfo(paraObj: any, data: any, type: number) {
+    console.log("strategyrefresh:", data);
     let colIdx = paraObj.col;
     let rowIdx = paraObj.row;
     let value = data.value;
