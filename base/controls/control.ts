@@ -20,7 +20,7 @@ export class Control {
 
 export class DockContainer extends Control {
 
-  constructor(type: string, width?: number, height?: number) {
+  constructor(type: "v" | "h", width?: number, height?: number) {
     super();
     if (type === "v") {
       this.className = "dock-container vertical";
@@ -67,6 +67,7 @@ export class TabPanel extends Control {
     this.children.push(this.headers);
   }
   /**
+   * pageId connection between header and title
    * @param pageId connection between header and title
    * @param pageTitle show the tab desc
    */
@@ -206,7 +207,7 @@ export class ComboControl extends Control {
 
 export class MetaControl extends Control {
   protected _dataObj: any;
-  constructor(type: string) {
+  constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range") {
     super();
     this.styleObj = {
       type: type,
@@ -831,9 +832,11 @@ export class DataTable extends Control {
 
 export class DataTableRow extends Control {
   cells: DataTableRowCell[] = [];
-  parent: DataTable;
+  private parent: DataTable;
+  private bHidden: boolean;
   constructor(private columns: number) {
     super();
+    this.bHidden = false;
     this.dataSource = {
       cellclick: () => { },
       rowclick: () => { }
@@ -859,10 +862,14 @@ export class DataTableRow extends Control {
   set OnRowClick(value: Function) {
     this.dataSource.rowclick = value;
   }
+
+  set hidden(value: boolean) {
+    this.bHidden = value;
+  }
 }
 
 export class DataTableRowCell extends MetaControl {
-  constructor(type: string = "plaintext") {
+  constructor(type: "textbox" | "button" | "plaintext" = "plaintext") {
     super(type);
   }
 
