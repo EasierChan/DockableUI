@@ -104,6 +104,10 @@ export class AppComponent implements OnInit {
       dd_status.Disable = cb_selectAll.Disable = btn_cancel.Disable =
         btn_resupply.Disable = cb_handle.Text;
     };
+    dd_status.SelectChange = (item) => {
+      console.log("orderstatus select change:", item, dd_status.SelectedItem.Text, dd_status.SelectedItem.Value);
+      // this.orderstatusTable.rows.
+    };
 
     this.orderstatusTable = new DataTable();
     this.orderstatusTable.addColumn("U-Key", "Symbol", "OrderId", "Time", "Strategy",
@@ -734,6 +738,15 @@ export class AppComponent implements OnInit {
     rtnStr = newDate.getHours() + ":" + newDate.getMinutes() + ":" + newDate.getSeconds();
     return rtnStr;
   }
+  getCurrentTime(): String {
+    let str: String = "";
+    let timeData: Date = new Date();
+    str = timeData.getHours() + "";
+    str = timeData.getMinutes() + ":" + str;
+    str = timeData.getSeconds() + ":" + str;
+    str = timeData.getMilliseconds() + ":" + str;
+    return str;
+  }
   parseOrderStatus(status: any): String {
     if (status === EOrderStatus.ORDER_STATUS_INVALID)
       return "0.无效";
@@ -1108,6 +1121,12 @@ export class AppComponent implements OnInit {
           }
         }
       }
+      if (type === StrategyCfgType.STRATEGY_CFG_TYPE_INSTRUMENT) {  // sym1 sym2   in source code,this need a array,calculate the sum of value
+        let datalen = data[i].length;
+        let getValue = data[i].value;
+        let getRow = AppComponent.self.findRowByStrategyId(strategyId);
+        AppComponent.self.strategyTable.rows[getRow].cells[1].Text = getValue;
+      }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {  // show
         let paraObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commandIdx, AppComponent.self.parameterIdx);
         if (paraObj.col === -1) { // add
@@ -1190,6 +1209,10 @@ export class AppComponent implements OnInit {
     let rowIdx = paraObj.row;
     let title = data.name;
     let decimal = data.decimal;
+    let dataKey = data.key;
+    let strategyId = data.strategyid;
+    let value = data.value;
+    let level = data.level;
     if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
       AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
@@ -1206,6 +1229,7 @@ export class AppComponent implements OnInit {
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
     } else {
     }
+    AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type };
     AppComponent.self.ref.detectChanges();
   }
   refreshStrategyInfo(paraObj: any, data: any, type: number) {
@@ -1214,6 +1238,10 @@ export class AppComponent implements OnInit {
     let rowIdx = paraObj.row;
     let value = data.value;
     let decimal = data.decimal;
+    let title = data.name;
+    let dataKey = data.key;
+    let strategyId = data.strategyid;
+    let level = data.level;
     if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
     }
@@ -1226,6 +1254,7 @@ export class AppComponent implements OnInit {
     else {
 
     }
+    AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type };
     AppComponent.self.ref.detectChanges();
   }
 
