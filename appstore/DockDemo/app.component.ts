@@ -11,7 +11,7 @@ import {
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
 import { ManulTrader } from "./bll/sendorder";
-import { EOrderType,AlphaSignalInfo } from "../../base/api/model/itrade/orderstruct";
+import { EOrderType, AlphaSignalInfo } from "../../base/api/model/itrade/orderstruct";
 
 @Component({
   moduleId: module.id,
@@ -182,15 +182,15 @@ export class AppComponent implements OnInit {
           strategyid: parseInt(strategy),
           algorid: 0,
           orderid: 0,
-          algorindex:0,
+          algorindex: 0,
           innercode: ukey,
           price: price,
           quantity: volume,
-          action:parseInt(action),
-          property:0, 
+          action: parseInt(action),
+          property: 0,
           currency: 0,
           covered: 0,
-          signal: [{id:0,value:0},{id:0,value:0},{id:0,value:0},{id:0,value:0}]
+          signal: [{ id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }]
         }
       });
     };
@@ -290,7 +290,7 @@ export class AppComponent implements OnInit {
     let row3 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row3);
 
-    this.psInstance.setEndpoint(20000,"172.24.51.6");
+    this.psInstance.setEndpoint(20000, "172.24.51.6");
     this.psInstance.setHeartBeat(10000);
     this.psInstance.register([3, 6]);
     this.psInstance.subscribe((msg) => {
