@@ -205,6 +205,7 @@ export class ComboControl extends Control {
 }
 
 export class MetaControl extends Control {
+  protected _dataObj: any;
   constructor(type: string) {
     super();
     this.styleObj = {
@@ -262,6 +263,14 @@ export class MetaControl extends Control {
 
   set Disable(value: boolean) {
     this.styleObj.disable = value;
+  }
+
+  set Data(value: any) {
+    this._dataObj = value;
+  }
+
+  get Data() {
+    return this._dataObj;
   }
 }
 
