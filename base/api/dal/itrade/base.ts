@@ -7,7 +7,7 @@ import { EventEmitter } from "events";
 import { TcpClient } from "../../common/base/client";
 import { IResolver } from "../../common/base/resolver";
 import { DefaultLogger } from "../../common/base/logger";
-import { Header, MsgType } from "../../model/itrade/message.model";
+import { IHeader, MsgType } from "../../model/itrade/message.model";
 
 
 export class ItradeClient extends TcpClient {
@@ -15,7 +15,7 @@ export class ItradeClient extends TcpClient {
     public constructor(resolver: IResolver) {
         super(resolver);
     }
-    
+
     send(data: any): void {
         super.send(data);
     }
@@ -144,7 +144,7 @@ export abstract class ItradeResolver extends EventEmitter implements IResolver {
         DefaultLogger.info("connection closed!");
     }
 
-    readHeader(): Header {
+    readHeader(): IHeader {
         return {
             type: this.buffer.readUInt16LE(this.bufBeg),
             subtype: this.buffer.readUInt16LE((this.bufBeg + 2)),
@@ -152,7 +152,7 @@ export abstract class ItradeResolver extends EventEmitter implements IResolver {
         };
     }
     // child realize this method.
-    abstract readContent(header: Header, content: Buffer): void;
+    abstract readContent(header: IHeader, content: Buffer): void;
     // really unpack msg
     readMsg(): number {
         if (this.bufEnd < this.bufBeg + this.headLen) {
