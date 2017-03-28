@@ -1,7 +1,7 @@
 "use strict";
 
 import { DefaultLogger } from "../../common/base/logger";
-import { Header, MsgType } from "../../model/itrade/message.model";
+import { IHeader, MsgType } from "../../model/itrade/message.model";
 import { ItradeClient, ItradeResolver } from "./base";
 import {
     MsgUpdateDate, MsgBidAskIOPV, DepthMarketData

@@ -57,7 +57,10 @@
 #workbench .body .loginForm .accept-buttons{
     width: 100%;
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+}
+#workbench .body .loginForm .accept-buttons > button {
+    flex: auto;
 }
 .userImage{
     text-align: center;
@@ -95,15 +98,45 @@
     padding: 5px;
 }
 .pop-right > .content, .pop-center > .content {
+    height: 100%;
     flex: auto;
-    padding: 5px 10px;
-    overflow-y: auto;
+    padding: 5px;
+    overflow-y: hidden;
 }
 .pop-right > .footer, .pop-center > .footer {
     flex: 0 0 auto;
-    padding: 10px 5px;
+    padding: 5px;
+}
+.pop-center > .content > .page {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.pop-center > .content > .page  > .row {
+    flex: none;
+    display: flex;
+    flex-direction: row; 
+}
+.pop-center > .content > .page  > .row.fill{
+    flex: auto
+}
+.pop-center > .content > .page  > .row > .cell {
+    flex: 1 1 auto;
+    line-height: 1.5;
 }
 
+.pop-center > .content > .page  > .row > .cell2 {
+    flex: 2 1 auto;
+}
+.scroller {
+    border: 1px solid;
+    overflow-y: auto;
+}
+.page .row label {
+    line-height: 3;
+    white-space: nowrap;
+}
 
 /* hack for metroui.css */
 .dropdown-toggle {
@@ -112,4 +145,14 @@
 
 .table td .input-control {
     width: auto;
+}
+.table thead {
+    border-bottom: none;
+}
+.table th, .table td {
+    padding: 0.125rem;
+}
+.accordion .heading > .cell {
+    display: inline-block;
+    min-width: 100px;
 }
