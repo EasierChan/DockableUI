@@ -71,6 +71,18 @@ export enum EOrderType {
     ORDER_TYPE_UNKNOWN = 255
 };
 
+export enum SECU_MARKET {
+    SM_EMPTY = 0,
+    SM_SHFE = 10,
+    SM_DCE = 13,
+    SM_CZCE = 15,
+    SM_CFFEX = 20,
+    SM_NEEQ = 81,
+    SM_SH = 83,
+    SM_SZ = 90,
+    SM_HKFE = 255,
+};
+
 export enum EStrategyStatus {
     STRATEGY_STATUS_INIT,
     STRATEGY_STATUS_CREATE,
@@ -161,12 +173,12 @@ export enum EValueType {
 };
 
 
-export interface ComPoolIndex {
-    poolindex: number;
-    poolpri: number;
+export class ComPoolIndex {
+    poolindex: number;  // 4
+    poolpri: number;  // 4
 };
 
-export interface ComContract {
+export class ComContract {
     contractid: number; // 4
     account: number; // 8
     orderaccount: string; // 20
@@ -174,12 +186,12 @@ export interface ComContract {
     tradeproto: string; // 10
 };
 
-export interface AlphaSignalInfo {
+export class AlphaSignalInfo {
     id: number; // 4
     value: number; // 8
 };
 
-export interface ComOrder {
+export class ComOrder {
     strategyid: number; // 4
     algorid: number;  // 4
     orderid: number;  // 4
@@ -194,38 +206,38 @@ export interface ComOrder {
     signal: AlphaSignalInfo[]; // 4
 };
 
-export interface ComOrderCancel {
+export class ComOrderCancel {
     strategyid: number; // 4
     algorid: number; // 4
     orderid: number; // 4
     algorindex: number; // 4
     innercode: number; // 4
     price: number; // 4
-    quantity: number;  // 4         
+    quantity: number;  // 4
     action: number;     // EOrderAction 1
 };
 
 // //ASK  2020
 
-export interface TimeVal {
+export class TimeVal {
     tv_sec: number;
     tv_usec: number;
 };
 
-export interface ComConOrder {
-    ordertype: EOrderType;        // EOrderType 4
-    con: ComContract; // 
+export class ComConOrder {
+    ordertype: EOrderType;        // EOrderType 1
+    con: ComContract;
     datetime: TimeVal;
     data: ComOrder | ComOrderCancel;
 };
 
-export interface ComAlgoOrder extends ComConOrder {
+export class ComAlgoOrder extends ComConOrder {
     starttime: number; // 8
     endtime: number; // 8
 };
 
 
-export interface ComOrderStatus {
+export class ComOrderStatus {
     strategyid: number; // 4
     algorid: number; // 4
     orderid: number; // 4
@@ -237,17 +249,18 @@ export interface ComOrderStatus {
     datetime: TimeVal;
     ordertype: number;        // EOrderPriceType 1
     tradetype: number;         // EOrderTradeType 1
-    status: EOrderStatusGW | EOrderStatus;
+    // status: EOrderStatusGW | EOrderStatus;
+    status: EOrderStatus;
 };
 
 // //ACK  2021 0
-export interface ComConOrderStatus {
+export class ComConOrderStatus {
     valid: number;  // 1
     con: ComContract;
     os: ComOrderStatus;
 };
 
-export interface ComOrderErrorInfo {
+export class ComOrderErrorInfo {
     strategyid: number;  // 4
     algorid: number;  // 4
     orderid: number;  // 4
@@ -260,12 +273,12 @@ export interface ComOrderErrorInfo {
 };
 
 // //ACK  2021 1
-export interface ComConOrderErrorInfo {
+export class ComConOrderErrorInfo {
     con: ComContract;
     os: ComOrderErrorInfo;
 };
 
-export interface ComOrderData {
+export class ComOrderData {
     strategyid: number;  // 4
     algorid: number;  // 4
     orderid: number;  // 4
@@ -286,7 +299,7 @@ export interface ComOrderData {
 };
 
 // //ACK  2022
-export interface ComOrderRecord extends ComPoolIndex {
+export class ComOrderRecord extends ComPoolIndex {
     datatype: number;        // EOrderDataType
     secucategory: number;    // SECU_CATEGORY 4
     donetype: EOrderPriceType;
@@ -295,38 +308,38 @@ export interface ComOrderRecord extends ComPoolIndex {
     od: ComOrderData;
 };
 
-export interface SecurityPosBase {
-    date: number; // 4              
-    account: number; // 8           
-    code: number; // 4                     
-    TotalVol: number; // 8    
-    AvlVol: number; // 8    
-    WorkingVol: number; // 8    
-    TotalCost: number; // 8    
+export class SecurityPosBase {
+    date: number; // 4
+    account: number; // 8
+    code: number; // 4
+    TotalVol: number; // 8
+    AvlVol: number; // 8
+    WorkingVol: number; // 8
+    TotalCost: number; // 8
 };
 
-export interface StockPos extends SecurityPosBase {
+export class StockPos extends SecurityPosBase {
     AvlCreRedempVol: number; // 8
     CovedFrzVol: number; // 8
 };
 
 
-export interface ComEquitPos extends StockPos {
+export class ComEquitPos extends StockPos {
     type: number;  // 4
 };
 
-export interface FuturePos extends SecurityPosBase {
+export class FuturePos extends SecurityPosBase {
     MarginAveragePrice: number; // 8
     AveragePrice: number; // 8
     type: number; // 4
     TodayOpen: number; // 8
 };
 
-export interface ComFuturePos extends FuturePos {
+export class ComFuturePos extends FuturePos {
 };
 
 // //ACK  3502 3504
-export interface ComRecordPos extends ComPoolIndex {
+export class ComRecordPos extends ComPoolIndex {
     secucategory: number;  // 1
     strategyid: number;  // 4
     initpos: number; // 8
@@ -338,8 +351,8 @@ export interface ComConOrderStatusPos {
     record: ComEquitPos | ComFuturePos;
 };
 
-export interface FundPos {
-    data: number; // 4
+export class FundPos {
+    date: number; // 4
     account: number; // 8
     c: string;  // 1
     TotalAmount: number; // 8
@@ -347,10 +360,10 @@ export interface FundPos {
     FrzAmount: number; // 8
 };
 
-export interface ComFundPos extends FundPos {
+export class ComFundPos extends FundPos {
 };
 
-export interface MarginPos {
+export class MarginPos {
     date: number; // 4
     account: number; // 8
     c: string;  // 1
@@ -370,20 +383,20 @@ export interface MarginPos {
     PreFundVal: number; //  8     上日结存
 };
 
-export interface ComMarginPos extends MarginPos {
+export class ComMarginPos extends MarginPos {
 };
 
 // //ACK  3502 3504
-export interface ComAccountPos {
+export class ComAccountPos {
     market: number;  // 4
     secucategory: number;  // 1
     strategyid: number; // 4
-    record: ComEquitPos | ComFuturePos;
+    record: ComFundPos | ComMarginPos;
 };
 
 
 // //ASK  2047  ACK 2048
-export interface ComTotalProfitInfo {
+export class ComTotalProfitInfo {
     strategyid: number;  // 4
     account: number; // 8
     totalpositionpnl: number; // 8
@@ -400,7 +413,7 @@ export interface ComTotalProfitInfo {
 };
 
 // //ACK  2023
-export interface ComProfitInfo extends ComTotalProfitInfo {
+export class ComProfitInfo extends ComTotalProfitInfo {
     innercode: number;  // 4
     avgpriceforbuy: number; // 8
     avgpriceforsell: number; // 8
@@ -421,22 +434,22 @@ export interface ComProfitInfo extends ComTotalProfitInfo {
 
 
 // //ACK  2011
-export interface ComStrategyInfo {
-    key: number;  // 4
-    name: string;  // 50
-    status: number;  // 4
-    category: number; // 4
-    parent: number;  // 4
-    maxorderid: number; // 4
-    minorderid: number; // 4
-    orderidstep: number; // 4
-    currorderid: number; // 4
-    ismanualtrader: boolean;
+export class ComStrategyInfo {
+    key: number = 0;  // 4
+    name: string = "";  // 50
+    status: number = 0;  // 1
+    category: number = 0; // 4
+    parent: number = 0;  // 4
+    maxorderid: number = 0; // 4
+    minorderid: number = 0; // 4
+    orderidstep: number = 0; // 4
+    currorderid: number = 0; // 4
+    ismanualtrader: boolean = true;   // 1
 };
 
 
 // //ACK  2015
-export interface ComGWNetGuiInfo {
+export class ComGWNetGuiInfo {
     key: number; // 4
     name: string; // 50
     connected: boolean;
@@ -450,7 +463,7 @@ export interface ComAccountStrategyInfo extends FundPos {
 
 
 // //ASK  2012
-export interface ComGuiAskStrategy {
+export class ComGuiAskStrategy {
     strategyid: number; // 4
 };
 
@@ -490,7 +503,7 @@ export interface ComQPNetInfo {
 
 
 // //ASK 2028 ACK 2029
-export interface ComStrategyCfg {
+export class ComStrategyCfg {
     strategyid: number; // 4
     key: number;  // 4
     name: string; // 50

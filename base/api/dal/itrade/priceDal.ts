@@ -58,7 +58,7 @@ export class PriceDal {
         if (!PriceDal._client) {
             PriceDal._resolver = new PriceResolver();
             PriceDal._client = new ItradeClient(PriceDal._resolver);
-            PriceDal._client.connect(10000, "172.24.13.5");
+            PriceDal._client.connect(10000, "172.24.51.4");
             PriceDal._client.sendHeartBeat(10);
         }
         // PriceDal.registerQuoteMsg("MARKETDATA", [2006622]);
