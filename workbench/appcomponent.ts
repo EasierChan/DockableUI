@@ -256,7 +256,15 @@ export class AppComponent {
             roles: null,
             apps: null
         });
-        this.loginTGW();
+        this.isAuthorized = true;
+        if (this.isAuthorized) {
+            this.configs = this.configBLL.getAllConfigs();
+            // 
+            // this.strategyContainer.addItem(self.configs);
+        } else {
+            this.showError("Error", "Username or password wrong.", "alert");
+        }
+        // this.loginTGW();
     }
 
     loginTGW(): void {

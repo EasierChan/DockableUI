@@ -941,9 +941,9 @@ export class AppComponent implements OnInit {
       let tradingpnl = (data[i].totaltradingpnl / 10000 / 1000).toFixed(0);
       AppComponent.self.strategyTable.rows[row].cells[8].Text = totalpnl;
       if (parseInt(totalpnl) > 0)
-        AppComponent.self.strategyTable.rows[row].cells[8].Class = "info";
+        AppComponent.self.strategyTable.rows[row].cells[8].Class = "default";
       else
-        AppComponent.self.strategyTable.rows[row].cells[8].Class = "primary";
+        AppComponent.self.strategyTable.rows[row].cells[8].Class = "danger";
       AppComponent.self.strategyTable.rows[row].cells[9].Text = tradingpnl;
 
       if (profitTableRows === 0) {  // add
@@ -1249,17 +1249,18 @@ export class AppComponent implements OnInit {
     if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
       AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
-      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "info";
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "default";
     } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
       AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
       // add button
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "button";
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = title;
     } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
       AppComponent.self.strategyTable.insertColumn(title, colIdx);
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "textbox";
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
-      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
+      AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "success";
     } else {
     }
     AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type };
