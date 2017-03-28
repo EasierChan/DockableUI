@@ -128,7 +128,7 @@ export interface StrategyServerItem {
 export class StrategyServerContainer {
     private _items: StrategyServerItem[] = [];
 
-    addItem(...configs: WorkspaceConfig[]): void {
+    addItem(configs: WorkspaceConfig[]): void {
         configs.forEach(config => {
             let bll = new StrategyBLL();
             bll.addSlot(2011, this.handleStrategyInfo, this);
