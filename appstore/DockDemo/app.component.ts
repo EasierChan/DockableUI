@@ -373,7 +373,7 @@ export class AppComponent implements OnInit {
     this.sellamountLabel.Disable = true;
     statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
     this.statarbTable = new DataTable();
-    this.statarbTable.addColumn("Number", "Symbol", "InnerCode", "Change(%)", "Position",
+    this.statarbTable.addColumn("Symbol", "InnerCode", "Change(%)", "Position",
       "Trade", "Amount", "StrategyId", "DiffQty", "SymbolCode");
     let statarbContent = new ComboControl("col");
     statarbContent.addChild(statarbHeader);
@@ -472,7 +472,7 @@ export class AppComponent implements OnInit {
     let row3 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row3);
     this.strategyTable.OnCellClick = (cellItem, cellIdx, rowIdx) => {
-      console.log("0000", cellItem, cellIdx, rowIdx);
+      console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
 
@@ -527,15 +527,29 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(2015, this.showComGWNetGuiInfo);
     ManulTrader.addSlot(2017, this.showComGWNetGuiInfo);
     ManulTrader.addSlot(2023, this.showComProfitInfo);
-    ManulTrader.addSlot(2025, this.positionDealer);
-    ManulTrader.addSlot(2021, this.positionDealer);
+    ManulTrader.addSlot(2025, this.showStatArbOrder);
+    ManulTrader.addSlot(2021, this.showComorderstatusAndErrorInfo);
     ManulTrader.addSlot(2022, this.showComOrderRecord);
     ManulTrader.addSlot(3011, this.showComOrderRecord);
     ManulTrader.addSlot(3510, this.showComOrderRecord);
-    ManulTrader.addSlot(2040, this.positionDealer);
+    ManulTrader.addSlot(2040, this.showLog);
     ManulTrader.init();
   }
 
+  showStatArbOrder(data: any) {
+
+  }
+  showComorderstatusAndErrorInfo(data: any) {
+    // add log
+  }
+  showLog(data: any) {
+    let logStr = data[0];
+    let time = AppComponent.self.getCurrentTime();
+    let row = AppComponent.self.logTable.newRow();
+    row.cells[0].Text = time;
+    row.cells[1].Text = logStr;
+    AppComponent.self.ref.detectChanges();
+  }
   showStrategyInfo(data: any) {
     console.log("alarm info,pass", data);
     let len = data.length;
@@ -556,6 +570,13 @@ export class AppComponent implements OnInit {
       if (strategyTableRows === 0) {
         AppComponent.self.addStrategyInfo(data[i]);
       }
+    }
+    if (len > 0) {
+      let time = AppComponent.self.getCurrentTime();
+      let row = AppComponent.self.logTable.newRow();
+      row.cells[0].Text = time;
+      row.cells[1].Text = "StrategyServer Connected";
+      AppComponent.self.ref.detectChanges();
     }
   }
   rtnStraCtrlBtnType(status: number): { type: number, cellIdx: number } {
@@ -601,6 +622,7 @@ export class AppComponent implements OnInit {
       AppComponent.self.showStraContrlDisable(btnDisableType, 5, 0);
     else if (obj.status === 5)
       AppComponent.self.showStraContrlDisable(btnDisableType, 6, 0);
+    AppComponent.self.ref.detectChanges();
   }
   transFormStrategyStatus(data: any): String {
     let rtn: String = "";
@@ -913,7 +935,7 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showComGWNetGuiInfo(data: any) {
-
+    // add log
   }
   showComTotalProfitInfo(data: any) {
     let subtype = data[0].subtype;
@@ -1146,9 +1168,11 @@ export class AppComponent implements OnInit {
             AppComponent.self.strategyTable.insertColumn("Submit", AppComponent.self.commandIdx);
             AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Type = "button";
             AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Text = "submit";
+          //  AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Data = { key: data.dataKey, value: data.value, level: level, strategyid: strategyId, name: name, type: type };
             AppComponent.self.strategyTable.insertColumn("Comment", AppComponent.self.parameterIdx);
             AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Type = "button";
             AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Text = "comment";
+          //  AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Data = { key: data.dataKey, value: data.value, level: level, strategyid: strategyId, name: name, type: type };
             addSubCOmFlag = true;
             break;
           }
@@ -1299,6 +1323,9 @@ export class AppComponent implements OnInit {
   }
   strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
     // get strategy id
+    let clickType = data.Data.type;
+    let clickname = data.Data.name;
+    let clicklevel = data.Data.level;
     let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
     if (data.dataSource.text === "start") {
       AppComponent.self.showStraContrlDisable(0, cellIdx, rowIdx);
@@ -1312,6 +1339,16 @@ export class AppComponent implements OnInit {
     } else if (data.dataSource.text === "watch") {
       AppComponent.self.showStraContrlDisable(3, cellIdx, rowIdx);
       ManulTrader.strategyControl(3, strategyId);
+    }
+
+    if (clickType === 3) {   // command btn
+      let ret: Boolean = true;
+      if (clicklevel > 9) {
+        // messagebox  and return ret;
+      }
+      if (ret) {
+
+      }
     }
   }
 
