@@ -891,3 +891,37 @@ export class DataTableColumn {
     return this.columnHeader;
   }
 }
+
+export class Dialog {
+  public content: ComboControl;
+  private bshow: boolean;
+  private title: string;
+  private static _instance: Dialog;
+
+  private constructor() {
+    this.bshow = false;
+  }
+
+  private static get instance() {
+    return Dialog._instance || (Dialog._instance = new Dialog());
+  }
+
+  show(): void {
+    this.bshow = true;
+  }
+
+  hide(): void {
+    this.bshow = false;
+  }
+
+  static popup(owner: any, content: ComboControl, title?: string): void {
+    Dialog.instance.content = content;
+    Dialog.instance.title = title;
+    owner.dialog = Dialog.instance;
+    Dialog.instance.show();
+  }
+
+  static close(): void {
+    Dialog.instance.hide();
+  }
+}
