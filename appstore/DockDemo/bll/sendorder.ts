@@ -79,6 +79,32 @@ export class ManulTrader {
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
 
+    static cancelorder(data: any) {
+        let order: ComConOrder = new ComConOrder();
+        let offset: number = 0;
+        let buffer = new Buffer(176 + 4);
+        buffer.writeInt32LE(1, offset); offset += 4;
+        buffer.writeInt32LE(EOrderType.ORDER_TYPE_CANCEL, offset); offset += 8;
+        buffer.writeUInt32LE(order.con.contractid, offset); offset += 8;
+        ManulTrader.writeUInt64LE(buffer, order.con.account, offset); offset += 8;
+        buffer.write(order.con.orderaccount, offset, 20); offset += 20;
+        buffer.write(order.con.tradeunit, offset, 10); offset += 10;
+        buffer.write(order.con.tradeproto, offset, 10); offset += 10;
+        // datetime timeval
+        buffer.writeUIntLE(0, offset, 8); offset += 8;
+        buffer.writeUIntLE(0, offset, 8); offset += 8;
+        // data ComOrder
+        let comorder_data = order.data as ComOrderCancel;
+        buffer.writeUInt32LE(data.strategyid, offset); offset += 4;
+        buffer.writeUInt32LE(comorder_data.algorid, offset); offset += 4;
+        buffer.writeUInt32LE(data.orderid, offset); offset += 4;
+        buffer.writeUInt32LE(comorder_data.algorindex, offset); offset += 4;
+        buffer.writeUInt32LE(data.ukey, offset); offset += 4;
+        buffer.writeUInt32LE(comorder_data.price, offset); offset += 4;
+        buffer.writeUInt32LE(comorder_data.quantity, offset); offset += 4;
+        offset += 68;
+        ManulTrader.orderService.sendOrder(2020, 0, buffer);
+    }
     static getProfitInfo(): void {
         ManulTrader.orderService.sendOrder(2047, 0, null);
         ManulTrader.orderService.sendOrder(2044, 0, null);

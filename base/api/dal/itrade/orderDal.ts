@@ -120,7 +120,7 @@ export class OrderDal {
     // register PriceServer msg
     static sendMsg(type: number, subtype: number, buffer: Buffer): void {
         DefaultLogger.error(type, subtype);
-        //  console.log("send Msg:type:", type, ",subtype:", subtype, ",msglen:", (buffer === null ? 0 : buffer.length));
+        console.log("send Msg:type:", type, ",subtype:", subtype, ",msglen:", (buffer === null ? 0 : buffer.length));
         OrderDal.start();
         OrderDal._client.sendWithHead(type, subtype, buffer);
     }

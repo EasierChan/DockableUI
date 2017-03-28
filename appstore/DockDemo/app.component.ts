@@ -88,25 +88,56 @@ export class AppComponent implements OnInit {
     dd_status.addItem({ Text: "2.待报", Value: "2" });
     dd_status.addItem({ Text: "3.已报", Value: "3" });
     dd_status.addItem({ Text: "4.已报待撤", Value: "4" });
+    dd_status.addItem({ Text: "5.部成待撤", Value: "5" });
+    dd_status.addItem({ Text: "6.部撤", Value: "6" });
+    dd_status.addItem({ Text: "7.已撤", Value: "7" });
+    dd_status.addItem({ Text: "8.部成", Value: "8" });
+    dd_status.addItem({ Text: "9.已成", Value: "9" });
+    dd_status.addItem({ Text: "10.废单", Value: "10" });
+
     orderstatusHeader.addChild(dd_status);
-    let cb_selectAll = new MetaControl("checkbox");
-    cb_selectAll.Title = "Select All";
-    cb_selectAll.Text = true;
-    orderstatusHeader.addChild(cb_selectAll);
+    // let cb_selectAll = new MetaControl("checkbox");
+    // cb_selectAll.Title = "Select All";
+    // cb_selectAll.Text = true;
+    // orderstatusHeader.addChild(cb_selectAll);
     let btn_cancel = new MetaControl("button");
     btn_cancel.Text = "Cancel Selected";
     orderstatusHeader.addChild(btn_cancel);
-    let btn_resupply = new MetaControl("button");
-    btn_resupply.Text = "Resupply";
-    orderstatusHeader.addChild(btn_resupply);
+    // let btn_resupply = new MetaControl("button");
+    // btn_resupply.Text = "Resupply";
+    // orderstatusHeader.addChild(btn_resupply);
     orderstatusContent.addChild(orderstatusHeader);
     cb_handle.OnClick = () => {
-      dd_status.Disable = cb_selectAll.Disable = btn_cancel.Disable =
-        btn_resupply.Disable = cb_handle.Text;
+      dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
+      // cb_selectAll.Disable = btn_resupply.Disable =
     };
     dd_status.SelectChange = (item) => {
-      console.log("orderstatus select change:", item, dd_status.SelectedItem.Text, dd_status.SelectedItem.Value);
-      // this.orderstatusTable.rows.
+      for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
+        if (dd_status.SelectedItem.Value === "-1") {   // all
+          AppComponent.self.orderstatusTable.rows[i].hidden = false;
+        }
+        else {
+          if (AppComponent.self.orderstatusTable.rows[i].cells[9].Text === dd_status.SelectedItem.Text) {
+            AppComponent.self.orderstatusTable.rows[i].hidden = false;
+          }
+          else
+            AppComponent.self.orderstatusTable.rows[i].hidden = true;
+        }
+      }
+    };
+
+    btn_cancel.OnClick = () => {
+      for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
+        let getStatus = parseInt(this.orderstatusTable.rows[i].cells[9].Data);
+        let strategyid = this.orderstatusTable.rows[i].cells[4].Text;
+        let ukey = this.orderstatusTable.rows[i].cells[0].Text;
+        let orderid = this.orderstatusTable.rows[i].cells[2].Text;
+        if (getStatus === 0 || getStatus === 6 || getStatus === 7 || getStatus === 9 || getStatus === 10)
+          continue;
+        else {   // no test
+          ManulTrader.cancelorder({ type: 1, strategyid: strategyid, ukey: ukey, orderid: orderid });
+        }
+      }
     };
 
     this.orderstatusTable = new DataTable();
@@ -728,6 +759,7 @@ export class AppComponent implements OnInit {
     row.cells[7].Text = obj.od.ovolume;
     row.cells[8].Text = obj.od.ivolume;
     row.cells[9].Text = this.parseOrderStatus(obj.od.status);
+    row.cells[9].Data = obj.od.status;
     row.cells[10].Text = obj.con.account;
     AppComponent.self.ref.detectChanges();
   }
@@ -784,6 +816,7 @@ export class AppComponent implements OnInit {
     this.orderstatusTable.rows[idx].cells[7].Text = obj.od.ovolume;
     this.orderstatusTable.rows[idx].cells[8].Text = obj.od.ivolume;
     this.orderstatusTable.rows[idx].cells[9].Text = this.parseOrderStatus(obj.od.status);
+    this.orderstatusTable.rows[idx].cells[9].Data = obj.od.status;
     AppComponent.self.ref.detectChanges();
   }
 
@@ -1233,7 +1266,6 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   refreshStrategyInfo(paraObj: any, data: any, type: number) {
-    console.log("strategyrefresh:", data);
     let colIdx = paraObj.col;
     let rowIdx = paraObj.row;
     let value = data.value;
