@@ -50,6 +50,10 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     this.dataSource.detectChanges = () => this.ref.detectChanges;
   }
 
+  detectChanges(): void {
+    this.ref.detectChanges();
+  }
+
   ngAfterViewInit(): void {
   }
 }
