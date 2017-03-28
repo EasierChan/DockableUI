@@ -794,7 +794,7 @@ export class DataTable extends Control {
   addColumn(...columns: string[]): DataTable {
     columns.forEach(item => {
       this.columns.push(new DataTableColumn(item));
-      this.rows.forEach(item => item.cells.splice(this.columns.length, 0, new DataTableRowCell()));
+      this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length));
     });
     this.dataSource.columns = this.columns;
     return this;
@@ -807,7 +807,7 @@ export class DataTable extends Control {
    */
   insertColumn(column: string, index: number): DataTable {
     this.columns.splice(index, 0, new DataTableColumn(column));
-    this.rows.forEach(item => item.cells.splice(index, 0, new DataTableRowCell()));
+    this.rows.forEach(item => item.insertCell(new DataTableRowCell(), index));
     return this;
   }
 
@@ -853,6 +853,18 @@ export class DataTableRow extends Control {
         }
       };
     }
+  }
+
+  insertCell(cell: DataTableRowCell, index: number): void {
+    this.cells.splice(index, 0, new DataTableRowCell());
+    this.cells[index].OnClick = (cellIndex, rowIndex) => {
+      if (this.dataSource.cellclick) {
+        this.dataSource.cellclick(this.cells[cellIndex], cellIndex, rowIndex);
+      }
+      if (this.dataSource.rowclick) {
+        this.dataSource.rowclick(this, rowIndex);
+      }
+    };
   }
 
   set OnCellClick(value: Function) {
