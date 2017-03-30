@@ -79,6 +79,31 @@ export class ManulTrader {
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
 
+    static submitPara(data: any) {
+      //  console.log("+++++++", data);
+        let offset: number = 0;
+        let mem_size: number = 80;
+        let length = data.length;
+        let msg_length = 4 + length * mem_size;
+        let buffer = new Buffer(msg_length);
+        buffer.writeInt32LE(length, offset); offset += 4;
+
+        for (let i = 0; i < length; ++i) {
+            buffer.writeUInt32LE(data[i].strategyid, offset); offset += 4;
+            buffer.writeUInt32LE(data[i].key, offset); offset += 4;
+            buffer.write("", offset, 50); offset += 56;
+            buffer.writeIntLE(data[i].value, offset, 8); offset += 8;
+            buffer.writeIntLE(0, offset, 1); offset += 1;
+            buffer.writeIntLE(data[i].type, offset, 1); offset += 1;
+            buffer.writeIntLE(0, offset, 1); offset += 1;
+            buffer.writeIntLE(0, offset, 1); offset += 1;
+            buffer.writeIntLE(0, offset, 1); offset += 1;
+            buffer.writeIntLE(0, offset, 1); offset += 1;
+            offset += 2;
+        }
+        ManulTrader.orderService.sendOrder(2030, 0, buffer);
+    }
+
     static cancelorder(data: any) {
         let order: ComConOrder = new ComConOrder();
         let offset: number = 0;

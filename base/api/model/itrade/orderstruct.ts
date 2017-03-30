@@ -172,6 +172,15 @@ export enum EValueType {
     VALUE_TYPE_STRINGPTR
 };
 
+export class StatArbOrder {
+    strategyid: number;   // UINT 4
+    code: number; // UINT 4
+    pricerate: number;  // INT 4
+    position: number; // INT64 8
+    quantity: number; // INT64 8
+    amount: number; // INT64 8
+    diffQty: number; // INT64 8
+}
 
 export class ComPoolIndex {
     poolindex: number;  // 4
@@ -469,7 +478,7 @@ export class ComGuiAskStrategy {
 
 
 // //AcK
-export interface ComGuiAckStrategy {
+export class ComGuiAckStrategy {
     strategyid: number; // 4
     key: number; // 4
     value: number; // 8

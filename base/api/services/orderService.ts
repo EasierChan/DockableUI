@@ -7,7 +7,7 @@ import {
     ComFuturePos, ComGWNetGuiInfo, ComProfitInfo, ComOrderRecord, ComContract, TimeVal,
     ComConOrderStatus, ComConOrderErrorInfo, ComOrderErrorInfo, ComOrderStatus, ComGuiAskStrategy,
     ComAccountPos, ComStrategyCfg, ComFundPos, ComMarginPos, MarginPos, ComTotalProfitInfo,
-    ComConOrder, EOrderType, ComOrder, ComOrderCancel
+    ComConOrder, EOrderType, ComOrder, ComOrderCancel, StatArbOrder, ComGuiAckStrategy
 } from "../model/itrade/orderstruct";
 declare var electron: Electron.ElectronMainAndRenderer;
 
@@ -46,6 +46,7 @@ export class OrderService {
                 case 2005:
                 case 2050:
                 case 2031:
+                    msgObj = this.readGuiCmdAck(data.content, msgtype, msgsubtype, msglen);
                     break;
                 // ComTotalProfitInfo
                 case 2048:
@@ -64,19 +65,20 @@ export class OrderService {
                     break;
                 case 2015:
                 case 2017:
-                    this.readComGWNetGuiInfo(data.content, msgtype, msgsubtype, msglen);
+                    msgObj = this.readComGWNetGuiInfo(data.content, msgtype, msgsubtype, msglen);
                     break;
                 case 2023:
                     msgObj = this.readComProfitInfo(data.content, msgtype, msgsubtype, msglen);
                     break;
                 case 2025:
+                    msgObj = this.readStatArbOrder(data.content, msgtype, msgsubtype, msglen);
                     break;
                 case 2021:
                     if (msgsubtype === 0) {
-                        this.readComConOrderStatus(data.content, msgtype, msglen);
+                        msgObj = this.readComConOrderStatus(data.content, msgtype, msglen);
                     }
                     else if (msgsubtype === 1) {
-                        this.readComConOrderErrorInfo(data.content, msgtype, msglen);
+                        msgObj = this.readComConOrderErrorInfo(data.content, msgtype, msglen);
                     }
                     break;
                 // orderDone
@@ -86,6 +88,7 @@ export class OrderService {
                     msgObj = this.readComOrderRecord(data.content, msgtype, msgsubtype, msglen);
                     break;
                 case 2040:
+                    msgObj = this.readLog(data.content, msgtype, msgsubtype, msglen);
                     break;
                 default:
                     break;
@@ -117,6 +120,49 @@ export class OrderService {
             subtype: subtype,
             buffer: buffer
         });
+    }
+
+    readGuiCmdAck(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
+        let res = [];
+        let count: number = 0;
+        let offset: number = 0;
+        let comGuiAckStrategy = new ComGuiAckStrategy();
+        count = buffer.readUInt32LE(offset); offset += 4;
+        comGuiAckStrategy.strategyid = buffer.readUInt32LE(offset); offset += 4;
+        comGuiAckStrategy.key = buffer.readUInt32LE(offset); offset += 4;
+        comGuiAckStrategy.value = buffer.readIntLE(offset, 8); offset += 8;
+        comGuiAckStrategy.success = buffer.readUInt8(offset) === 1 ? true : false; offset += 4;
+        comGuiAckStrategy.error = buffer.readUInt32LE(offset); offset += 4;
+        res.push(comGuiAckStrategy);
+        console.log(comGuiAckStrategy);
+        return res;
+
+    }
+    readLog(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
+        let res = [];
+        let offset: number = 0;
+        let logStr = buffer.slice(offset, offset += 1024).toString("utf-8");
+        res.push(logStr);
+        return res;
+    }
+
+    readStatArbOrder(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
+        let count: number = 0;
+        let offset: number = 0;
+        count = buffer.readUInt32LE(offset); offset += 4;
+        let res = [];
+        for (let i = 0; i < count; ++i) {
+            let statArbOrder = new StatArbOrder();
+            statArbOrder.strategyid = buffer.readUInt32LE(offset); offset += 4;
+            statArbOrder.code = buffer.readUInt32LE(offset); offset += 4;
+            statArbOrder.pricerate = buffer.readInt32LE(offset); offset += 8;
+            statArbOrder.position = buffer.readIntLE(offset, 8); offset += 8;
+            statArbOrder.quantity = buffer.readIntLE(offset, 8); offset += 8;
+            statArbOrder.amount = buffer.readIntLE(offset, 8); offset += 8;
+            statArbOrder.diffQty = buffer.readIntLE(offset, 8); offset += 8;
+            res.push(statArbOrder);
+        }
+        return [{ subtype: subtype, content: res }];
     }
     readComConOrder(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
         let count: number = 0;
@@ -281,9 +327,10 @@ export class OrderService {
         return res;
     }
 
-    readComGWNetGuiInfo(buffer: Buffer, msgtype: number, subtype: number, msglen: number): void {
+    readComGWNetGuiInfo(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
         let count: number = 0;
         let offset: number = 0;
+        let res = [];
         count = buffer.readUInt32LE(offset); offset += 4;
         for (let i = 0; i < count; ++i) {
             let comStrategyInfo = new ComGWNetGuiInfo();
@@ -291,7 +338,9 @@ export class OrderService {
             comStrategyInfo.name = buffer.slice(offset, offset += 50).toString("utf-8");
             comStrategyInfo.connected = buffer.readUInt8(offset) === 0 ? false : true;
             console.log("comStrategyInfo:", comStrategyInfo);
+            res.push(comStrategyInfo);
         }
+        return res;
     }
     readComProfitInfo(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
         let count: number = 0;
@@ -390,9 +439,10 @@ export class OrderService {
         }
         return res;
     }
-    readComConOrderStatus(buffer: Buffer, msgtype: number, msglen: number): void {
+    readComConOrderStatus(buffer: Buffer, msgtype: number, msglen: number): Array<Object> {
         let count: number = 0;
         let offset: number = 0;
+        let res = [];
         count = buffer.readUInt32LE(offset); offset += 4;
         for (let i = 0; i < count; ++i) {
             let comConOrderStatus = new ComConOrderStatus();
@@ -418,13 +468,15 @@ export class OrderService {
             comConOrderStatus.os.ordertype = buffer.readUInt8(offset); offset += 1;
             comConOrderStatus.os.tradetype = buffer.readUInt8(offset); offset += 1;
             comConOrderStatus.os.status = buffer.readUInt8(offset); offset += 1;
-
+            res.push(comConOrderStatus);
             // console.log("comConOrderStatus:", comConOrderStatus);
         }
+        return [{ subytpe: 0, content: res }];
     }
-    readComConOrderErrorInfo(buffer: Buffer, msgtype: number, msglen: number): void {
+    readComConOrderErrorInfo(buffer: Buffer, msgtype: number, msglen: number): Array<Object> {
         let count: number = 0;
         let offset: number = 0;
+        let res = [];
         count = buffer.readUInt32LE(offset); offset += 4;
         for (let i = 0; i < count; ++i) {
             let comConOrderErrorInfo = new ComConOrderErrorInfo();
@@ -447,8 +499,10 @@ export class OrderService {
             comConOrderErrorInfo.os.datetime = new TimeVal();
             comConOrderErrorInfo.os.datetime.tv_sec = buffer.readUIntLE(offset, 8); offset += 8;
             comConOrderErrorInfo.os.datetime.tv_usec = buffer.readUIntLE(offset, 8); offset += 8;
+            res.push(comConOrderErrorInfo);
             // console.log("comConOrderErrorInfo:", comConOrderErrorInfo);
         }
+        return [{ subytpe: 1, content: res }];
     }
 
     readComAccountPos(buffer: Buffer, msgtype: number, msgsubtype: number, msglen: number): Array<Object> {
