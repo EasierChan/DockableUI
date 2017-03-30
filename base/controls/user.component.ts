@@ -4,7 +4,7 @@
  */
 import { Component, AfterContentInit, Input } from "@angular/core";
 import { NgForm } from "@angular/forms";
-import { CssStyle, Control, ComboControl, Dialog } from "./control";
+import { CssStyle, Control, ComboControl, Dialog, StatusBar } from "./control";
 
 @Component({
     moduleId: module.id,
@@ -44,6 +44,15 @@ export class DockContainerComponent {
 })
 export class DialogComponent {
     dialog: Dialog;
-    constructor() {
-    }
+}
+
+
+@Component({
+    moduleId: module.id,
+    selector: ".statusbar",
+    templateUrl: "statusbar.html",
+    inputs: ["statusbar"]
+})
+export class StatusBarComponent {
+    statusbar: StatusBar;
 }
