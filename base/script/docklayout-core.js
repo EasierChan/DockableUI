@@ -2,6 +2,9 @@ window.jQuery = window.$ = require("./jquery");
 /**
  * created by chenlei 2016/11/11
  */
+var ev_resize = document.createEvent("CustomEvent");
+ev_resize.initCustomEvent("resize", false, false, null);
+
 function init() {
     if (typeof jQuery === 'undefined') {
         console.error("jQuery runtime needed.");
@@ -129,6 +132,13 @@ function init() {
             $currentSplitter.next().outerHeight($currentSplitter.next().outerHeight() - gap);
             reallocChildSize($currentSplitter.next(), ".dock-container.vertical");
         }
+        // dispatch resize event
+        $currentSplitter.prev().find("dock-table2").each((index,item)=>{
+            item.dispatchEvent(ev_resize);
+        });
+        $currentSplitter.next().find("dock-table2").each(item=>{
+            item.dispatchEvent(ev_resize);
+        });
         gap = null;
         $currentSplitter = null;
     }

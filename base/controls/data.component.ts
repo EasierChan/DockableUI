@@ -5,7 +5,8 @@
  */
 import {
   Component, ViewChild, ContentChild, Input, OnInit, AfterViewInit,
-  Directive, ElementRef, Renderer, HostListener, ChangeDetectorRef
+  Directive, ElementRef, Renderer, HostListener, ChangeDetectorRef,
+  OnChanges, SimpleChanges
 } from "@angular/core";
 import { Control, MetaControl, CssStyle, DataTable } from "./control";
 
@@ -50,21 +51,8 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     this.dataSource.detectChanges = () => this.ref.detectChanges;
   }
 
-  detectChanges(): void {
-    this.ref.detectChanges();
-  }
-
   ngAfterViewInit(): void {
   }
-}
-
-
-@Directive({ selector: ".vscrollerbar .thumb" })
-export class VThumb {
-}
-
-@Directive({ selector: ".scroller-table" })
-export class TableDirective {
 }
 
 @Component({
@@ -73,103 +61,48 @@ export class TableDirective {
   templateUrl: "data.scrollerbar-table.html",
   inputs: ["className", "dataSource"]
 })
-export class ScrollerBarTable implements AfterViewInit {
+export class ScrollerBarTable implements AfterViewInit, OnChanges {
   className: string;
   dataSource: any;
-  curData: any;
-  iFirstRow: number = 0;
 
-  scrollTop: number = 0;
-  bScrollStart: boolean = false;
-  startPositionY: number = 0;
-  thumbHeight: number = 0;
-  clientHeight: number = 0;
-  scrollHeight: number;
+  @ViewChild("content") content: ElementRef;
+  @ViewChild("head") head: ElementRef;
 
-  private rowHeight = 22;
-
-  @ViewChild("vthumb") vThumb: ElementRef;
-  @ViewChild("scollerTable") scollerTable: ElementRef;
-
-  constructor(private ele: ElementRef, private render: Renderer) { }
-
-  ngOnInit(): void {
-    this.curData = this.dataSource;
+  constructor(private ele: ElementRef, private render: Renderer,
+    private ref: ChangeDetectorRef) {
   }
 
-  ngAfterViewInit(): void {
-    if (this.scollerTable.nativeElement === null)
-      console.error("not supported in webworker.");
+  ngOnChanges(changes: SimpleChanges) {
+    this.resizeHeader();
   }
 
-  @HostListener("mouseenter") onMouseEnter() {
-    this.scrollHeight = (this.dataSource.rows.length + 1) * this.rowHeight;
-    if (this.scrollHeight > this.scollerTable.nativeElement.clientHeight - this.rowHeight) {
-      this.clientHeight = this.scollerTable.nativeElement.clientHeight - this.rowHeight;
-      let scrollDiff = this.scrollHeight - this.clientHeight;
-      this.thumbHeight = this.clientHeight - scrollDiff;
-      this.render.setElementStyle(this.vThumb.nativeElement, "height", this.thumbHeight.toString());
-      this.render.setElementStyle(this.vThumb.nativeElement, "display", "block");
-    }
-  }
-
-  @HostListener("mouseleave") onMouseLeave() {
-    this.render.setElementStyle(this.vThumb.nativeElement, "display", "none");
-  }
-
-  onTrackClick(e: MouseEvent) {
-    if (e.target !== e.currentTarget)
-      return;
-    let moveY = e.offsetY - this.scrollTop; // relative distance.
-    if (this.scrollTop + moveY < 0) {
-      this.scrollTop = 0;
-    } else if (moveY + this.thumbHeight + this.scrollTop > this.clientHeight) {
-      this.scrollTop = this.clientHeight - this.thumbHeight;
-    } else {
-      this.scrollTop += moveY;
-    }
-    // console.log(this.scrollTop, this.thumbHeight, e.offsetY, moveY, this.clientHeight);
-    this.render.setElementStyle(this.vThumb.nativeElement, "margin-top", this.scrollTop.toString());
-    this.refreshDataTable();
-    moveY = null;
-  }
-
-  onScrollStart(type: string, e: MouseEvent) {
-    this.bScrollStart = true;
-    this.startPositionY = e.pageY;
-
-    document.onmouseup = (e) => {
-      if (!this.bScrollStart)
-        return;
-
-      this.bScrollStart = false;
-    };
-
-    document.onmousemove = (e) => {
-      if (!this.bScrollStart)
-        return;
-      let moveY = e.pageY - this.startPositionY;
-      if (this.scrollTop + moveY < 0) {
-        this.scrollTop = 0;
-      } else if (moveY + this.thumbHeight + this.scrollTop > this.clientHeight) {
-        this.scrollTop = this.clientHeight - this.thumbHeight;
-      } else {
-        this.scrollTop += moveY;
-      }
-      this.startPositionY = e.pageY;
-      this.render.setElementStyle(this.vThumb.nativeElement, "margin-top", this.scrollTop.toString());
-      this.refreshDataTable();
-      moveY = null;
+  ngOnInit() {
+    this.dataSource.detectChanges = () => {
+      this.ref.detectChanges;
+      this.resizeHeader();
     };
   }
 
-  refreshDataTable() {
-    this.iFirstRow = Math.floor(this.scrollTop / this.rowHeight);
-    this.curData = new DataTable();
-    if (!this.dataSource.rows || this.dataSource.rows.length === 0)
-      return;
+  ngAfterViewInit() {
+    this.resizeHeader();
+  }
 
-    this.curData.rows = this.dataSource.rows.slice(this.iFirstRow);
+  @HostListener("scroll")
+  onScroll() {
+    this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
+  }
+
+  @HostListener("resize")
+  onResize() {
+    this.resizeHeader();
+  }
+
+  resizeHeader() {
+    let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
+    this.content.nativeElement.querySelectorAll("thead > tr:first-child > th").forEach((th, index) => {
+      console.info(th.clientWidth);
+      headCells[index].style.width = th.clientWidth + "px";
+    });
   }
 }
 
