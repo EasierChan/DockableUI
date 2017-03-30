@@ -29,8 +29,7 @@ body > .toolbar,
 body > .statusbar {
     flex: none;
     height: 25px;
-    display: flex;
-    flex-direction: row;
+    line-height: 1.5;
     background-color: #3F3E3A;
     padding: 0 10px;
 }
@@ -38,6 +37,28 @@ body > .statusbar {
     margin-top: 1px;
     border-bottom-left-radius: 5px;
     border-bottom-right-radius: 5px;
+}
+body > .statusbar > .left {
+    float: left;
+}
+body > .statusbar > .right {
+    float: right;
+}
+body > .statusbar > * {
+    padding: 3px 5px;
+}
+body > .statusbar > div:hover {
+    background-color: rgba(222, 222, 222, 0.2);
+    cursor: pointer;
+}
+body > .statusbar > .white {
+    color: #eee;
+}
+body > .statusbar > .red {
+    color: red;
+}
+body > .statusbar > .white {
+    color: green;
 }
 
 body > #root {
@@ -174,6 +195,14 @@ dock-table, dock-table2{
     flex: auto;
 }
 
+dock-table2 {
+    overflow-y: auto;
+}
+
+.table > thead > tr > th {
+    padding: 0;
+}
+
 .table > tbody > tr > td {
     vertical-align: middle;
     word-break: keep-all;
@@ -182,10 +211,10 @@ td input {
     width: 100%;
 }
 
-.scroller-table{
+/*.scroller-table{
     position: relative;
     width: 100%;
-}
+}*/
 .vscrollerbar {
     position: absolute;
     top: 0;
@@ -387,7 +416,7 @@ usercontrol.col{
     flex: 1;
     flex-flow: column nowrap;
     width: 100%;
-    padding: 0px 2px;
+    /*padding: 0px 2px;*/
 }
 span, th {
     white-space: nowrap;
@@ -444,6 +473,7 @@ echart{
     display: none;
 }
 ::-webkit-scrollbar-thumb{
+    border-radius: 5px;
     background-color: rgb(104, 104, 104);
 }
 ::-webkit-scrollbar-thumb:hover{

@@ -765,7 +765,7 @@ export class DataTable extends Control {
   private _cellclick: Function;
   private _rowclick: Function;
 
-  constructor(type: string = "table") {
+  constructor(type: "table" | "table2" = "table") {
     super();
     this.className = "table";
     this.dataSource = {
@@ -935,5 +935,26 @@ export class Dialog {
 
   static close(): void {
     Dialog.instance.hide();
+  }
+}
+
+
+export class StatusBar {
+  items: StatusBarItem[];
+  constructor() {
+    this.items = [];
+  }
+}
+
+export class StatusBarItem {
+  text: string = "";
+  section: "left" | "right" = "right";
+  click: Function = () => { };
+  color: "white" | "red" | "green" = "white";
+  data: any;
+  width: number;
+
+  constructor(text: string) {
+    this.text = text;
   }
 }
