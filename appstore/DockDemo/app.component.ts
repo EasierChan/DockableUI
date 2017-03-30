@@ -472,10 +472,9 @@ export class AppComponent implements OnInit {
     let row3 = new DockContainer("h").addChild(bottomPanel);
     this.children.push(row3);
     this.strategyTable.OnCellClick = (cellItem, cellIdx, rowIdx) => {
-      console.log(cellItem, cellIdx, rowIdx);
+      // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-
 
     this.psInstance.setEndpoint(20000, "172.24.51.6");
     this.psInstance.setHeartBeat(1000000);
@@ -514,11 +513,11 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(2030, this.showStrategyCfg);
     ManulTrader.addSlot(2029, this.showStrategyCfg);
     ManulTrader.addSlot(2032, this.showStrategyCfg);
-    ManulTrader.addSlot(2001, this.positionDealer);
-    ManulTrader.addSlot(2003, this.positionDealer);
-    ManulTrader.addSlot(2005, this.positionDealer);
-    ManulTrader.addSlot(2050, this.positionDealer);
-    ManulTrader.addSlot(2031, this.positionDealer);
+    ManulTrader.addSlot(2001, this.showGuiCmdAck);
+    ManulTrader.addSlot(2003, this.showGuiCmdAck);
+    ManulTrader.addSlot(2005, this.showGuiCmdAck);
+    ManulTrader.addSlot(2050, this.showGuiCmdAck);
+    ManulTrader.addSlot(2031, this.showGuiCmdAck);
     ManulTrader.addSlot(2048, this.showComTotalProfitInfo);
     ManulTrader.addSlot(2020, this.showComConOrder);
     ManulTrader.addSlot(2013, this.showComAccountPos);
@@ -537,10 +536,57 @@ export class AppComponent implements OnInit {
   }
 
   showStatArbOrder(data: any) {
-
+   // console.log("statarb....", data);
+    for (let i = 0; i < data.length; ++i) {
+      let subtype = data[i].subtype;
+      let dataArr = data[i].content;
+      if (subtype === 1001) {  // add
+        let row = AppComponent.self.statarbTable.newRow();
+        row.cells[0].Text = "";
+        row.cells[1].Text = dataArr[0].code;
+        row.cells[2].Text = dataArr[0].pricerate / 100;
+        row.cells[3].Text = dataArr[0].position;
+        row.cells[4].Text = dataArr[0].quantity;
+        row.cells[5].Text = dataArr[0].amount / 10000;
+        row.cells[6].Text = dataArr[0].strategyid;
+        row.cells[7].Text = dataArr[0].diffQty;
+        row.cells[8].Text = "";
+        if (dataArr[0].amount > 0)
+          AppComponent.self.buyamountLabel.Text -= dataArr[0].amount / 10000;
+        else if (dataArr[0].amount < 0)
+          AppComponent.self.sellamountLabel.Text += dataArr[0].amount / 10000;
+      } else if (subtype === 1002) { // hide
+        for (let hideIdx = 0; hideIdx < AppComponent.self.statarbTable.rows.length; ++hideIdx) {
+          let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
+          let getStrategyid = AppComponent.self.statarbTable.rows[hideIdx].cells[6].Text;
+          if (getUkey === dataArr[hideIdx].code && getStrategyid === dataArr[hideIdx].strategyid) {
+            AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
+            if (dataArr[hideIdx].amount > 0) {
+              AppComponent.self.buyamountLabel.Text -= dataArr[hideIdx].amount / 10000;
+            } else if (dataArr[hideIdx].amount < 0) {
+              AppComponent.self.sellamountLabel.Text += dataArr[hideIdx].amount / 10000;
+            }
+          }
+        }
+      }
+    }
   }
   showComorderstatusAndErrorInfo(data: any) {
     // add log
+
+  }
+  showGuiCmdAck(data: any) {
+    let strategyid = data[0].strategyid;
+    let ret = data[0].success ? "successfully!" : "unsuccessfully!";
+    let row = AppComponent.self.findRowByStrategyId(strategyid);
+    for (let i = AppComponent.self.commandIdx + 1; i < AppComponent.self.parameterIdx; ++i) {
+      if (AppComponent.self.strategyTable.rows[row].cells[i].Data.key === data[0].key) {
+        alert("operator: " + AppComponent.self.strategyTable.rows[row].cells[i].Data.name + " " + ret);
+        if (data[0].success) {  // modify success
+          AppComponent.self.strategyTable.rows[row].cells[i].Data.value = data[0].value;
+        }
+      }
+    }
   }
   showLog(data: any) {
     let logStr = data[0];
@@ -796,9 +842,9 @@ export class AppComponent implements OnInit {
     let str: String = "";
     let timeData: Date = new Date();
     str = timeData.getHours() + "";
-    str = timeData.getMinutes() + ":" + str;
-    str = timeData.getSeconds() + ":" + str;
-    str = timeData.getMilliseconds() + ":" + str;
+    str = str + ":" + timeData.getMinutes();
+    str = str + ":" + timeData.getSeconds();
+    str = str + ":" + timeData.getMilliseconds();
     return str;
   }
   parseOrderStatus(status: any): String {
@@ -1168,11 +1214,9 @@ export class AppComponent implements OnInit {
             AppComponent.self.strategyTable.insertColumn("Submit", AppComponent.self.commandIdx);
             AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Type = "button";
             AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Text = "submit";
-          //  AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Data = { key: data.dataKey, value: data.value, level: level, strategyid: strategyId, name: name, type: type };
             AppComponent.self.strategyTable.insertColumn("Comment", AppComponent.self.parameterIdx);
             AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Type = "button";
             AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Text = "comment";
-          //  AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Data = { key: data.dataKey, value: data.value, level: level, strategyid: strategyId, name: name, type: type };
             addSubCOmFlag = true;
             break;
           }
@@ -1280,6 +1324,8 @@ export class AppComponent implements OnInit {
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "button";
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = title;
+      if (value === 0)
+        AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
     } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
       AppComponent.self.strategyTable.insertColumn(title, colIdx);
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "textbox";
@@ -1287,7 +1333,7 @@ export class AppComponent implements OnInit {
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "success";
     } else {
     }
-    AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type };
+    AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type, decimal: decimal };
     AppComponent.self.ref.detectChanges();
   }
   refreshStrategyInfo(paraObj: any, data: any, type: number) {
@@ -1303,52 +1349,80 @@ export class AppComponent implements OnInit {
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
     }
     else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
-
+      if (value === 0)
+        AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
     }
     else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
+      if (value === 0)
+        AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
     }
     else {
 
     }
-    AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type };
+    AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type, decimal: decimal };
     AppComponent.self.ref.detectChanges();
-  }
-
-  positionDealer(paraObj: any, data: any) {
-    console.log("444444444444444444", data);
   }
 
   controlBtnClick(type: any) {
 
   }
   strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
-    // get strategy id
-    let clickType = data.Data.type;
-    let clickname = data.Data.name;
-    let clicklevel = data.Data.level;
-    let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
-    if (data.dataSource.text === "start") {
-      AppComponent.self.showStraContrlDisable(0, cellIdx, rowIdx);
-      ManulTrader.strategyControl(0, strategyId);
-    } else if (data.dataSource.text === "pause") {
-      AppComponent.self.showStraContrlDisable(1, cellIdx, rowIdx);
-      ManulTrader.strategyControl(1, strategyId);
-    } else if (data.dataSource.text === "stop") {
-      AppComponent.self.showStraContrlDisable(2, cellIdx, rowIdx);
-      ManulTrader.strategyControl(2, strategyId);
-    } else if (data.dataSource.text === "watch") {
-      AppComponent.self.showStraContrlDisable(3, cellIdx, rowIdx);
-      ManulTrader.strategyControl(3, strategyId);
-    }
-
-    if (clickType === 3) {   // command btn
-      let ret: Boolean = true;
-      if (clicklevel > 9) {
-        // messagebox  and return ret;
+    console.log(data);
+    if (data.dataSource.text === "submit") {  // submit
+      let sendArray = [];
+      let dvalue = 0;
+      let alertFlag: Boolean = false;
+      for (let i = AppComponent.self.commandIdx + 1; i < AppComponent.self.parameterIdx; ++i) {
+        let bindData = AppComponent.self.strategyTable.rows[rowIdx].cells[i].Data;
+        let decimal = bindData.decimal;
+        let base = Math.pow(10, decimal);
+        let originValue = bindData.value;
+        dvalue = parseFloat(AppComponent.self.strategyTable.rows[rowIdx].cells[i].Text);
+        if (dvalue > 0) {
+          dvalue = parseInt((dvalue * base + 5 / (10 * base)) + "");
+        } else if (dvalue < 0) {
+          dvalue = parseInt((dvalue * base - 5 / (10 * base)) + "");
+        }
+        if (dvalue !== parseInt(originValue)) {
+          alertFlag = true;
+          sendArray.push({ idx: i, strategyid: bindData.strategyid, key: bindData.key, value: dvalue, type: 2 });
+        }
       }
-      if (ret) {
+      if (alertFlag)
+        ManulTrader.submitPara(sendArray);
+      else
+        alert("no changes!");
+    } else if (data.dataSource.text === "comment") {
 
+    } else {
+      let clickType = data.Data.type;
+      let clickname = data.Data.name;
+      let clicklevel = data.Data.level;
+      let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
+      if (data.dataSource.text === "start") {
+        AppComponent.self.showStraContrlDisable(0, cellIdx, rowIdx);
+        ManulTrader.strategyControl(0, strategyId);
+      } else if (data.dataSource.text === "pause") {
+        AppComponent.self.showStraContrlDisable(1, cellIdx, rowIdx);
+        ManulTrader.strategyControl(1, strategyId);
+      } else if (data.dataSource.text === "stop") {
+        AppComponent.self.showStraContrlDisable(2, cellIdx, rowIdx);
+        ManulTrader.strategyControl(2, strategyId);
+      } else if (data.dataSource.text === "watch") {
+        AppComponent.self.showStraContrlDisable(3, cellIdx, rowIdx);
+        ManulTrader.strategyControl(3, strategyId);
+      }
+
+      if (clickType === 3) {   // command btn
+        let ret: Boolean = true;
+        if (clicklevel > 9) {
+          // messagebox  and return ret;
+          ret = confirm("extute " + clickname + " ?");
+        }
+        if (ret) {
+          ManulTrader.submitPara([data.Data]);
+        }
       }
     }
   }

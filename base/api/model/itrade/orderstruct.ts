@@ -478,7 +478,7 @@ export class ComGuiAskStrategy {
 
 
 // //AcK
-export interface ComGuiAckStrategy {
+export class ComGuiAckStrategy {
     strategyid: number; // 4
     key: number; // 4
     value: number; // 8

@@ -7,7 +7,7 @@ import {
     ComFuturePos, ComGWNetGuiInfo, ComProfitInfo, ComOrderRecord, ComContract, TimeVal,
     ComConOrderStatus, ComConOrderErrorInfo, ComOrderErrorInfo, ComOrderStatus, ComGuiAskStrategy,
     ComAccountPos, ComStrategyCfg, ComFundPos, ComMarginPos, MarginPos, ComTotalProfitInfo,
-    ComConOrder, EOrderType, ComOrder, ComOrderCancel, StatArbOrder
+    ComConOrder, EOrderType, ComOrder, ComOrderCancel, StatArbOrder, ComGuiAckStrategy
 } from "../model/itrade/orderstruct";
 declare var electron: Electron.ElectronMainAndRenderer;
 
@@ -46,6 +46,7 @@ export class OrderService {
                 case 2005:
                 case 2050:
                 case 2031:
+                    msgObj = this.readGuiCmdAck(data.content, msgtype, msgsubtype, msglen);
                     break;
                 // ComTotalProfitInfo
                 case 2048:
@@ -119,6 +120,23 @@ export class OrderService {
             subtype: subtype,
             buffer: buffer
         });
+    }
+
+    readGuiCmdAck(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
+        let res = [];
+        let count: number = 0;
+        let offset: number = 0;
+        let comGuiAckStrategy = new ComGuiAckStrategy();
+        count = buffer.readUInt32LE(offset); offset += 4;
+        comGuiAckStrategy.strategyid = buffer.readUInt32LE(offset); offset += 4;
+        comGuiAckStrategy.key = buffer.readUInt32LE(offset); offset += 4;
+        comGuiAckStrategy.value = buffer.readIntLE(offset, 8); offset += 8;
+        comGuiAckStrategy.success = buffer.readUInt8(offset) === 1 ? true : false; offset += 4;
+        comGuiAckStrategy.error = buffer.readUInt32LE(offset); offset += 4;
+        res.push(comGuiAckStrategy);
+        console.log(comGuiAckStrategy);
+        return res;
+
     }
     readLog(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
         let res = [];
