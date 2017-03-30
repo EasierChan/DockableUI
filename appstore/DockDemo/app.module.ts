@@ -5,7 +5,7 @@ import { CommonModule } from "@angular/common";
 
 import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
-import { UserControlComponent, DockContainerComponent, StatusBarComponent } from "../../base/controls/user.component";
+import { UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent } from "../../base/controls/user.component";
 
 @NgModule({
   imports: [
@@ -20,7 +20,8 @@ import { UserControlComponent, DockContainerComponent, StatusBarComponent } from
     ScrollerBarTable,
     EChartComponent,
     UserControlComponent,
-    StatusBarComponent
+    StatusBarComponent,
+    DialogComponent
   ],
   bootstrap: [AppComponent]
 })
