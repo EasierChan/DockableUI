@@ -29,7 +29,7 @@ IPCManager.register("dal://itrade/data/order", (e, param) => {
 
 // it is a eventemitter
 export class OrderResolver extends ItradeResolver {
-    readContent(header: Header, content: Buffer): void {
+    readContent(header: IHeader, content: Buffer): void {
         // resolve  msg  & send out
         //  console.log("receive msg:head:", header);
         this.emit("data", { header, content });
