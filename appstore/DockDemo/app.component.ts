@@ -10,6 +10,7 @@ import {
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
+import { MessageBox } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 
@@ -72,6 +73,7 @@ export class AppComponent implements OnInit {
   private commandIdx: number = 10;
   private parameterIdx: number = 11;
   private strategyStatus: number = 0;
+  private filename: String = "";
 
   private statusbar: StatusBar;
 
@@ -398,7 +400,7 @@ export class AppComponent implements OnInit {
     let accountHead = new ComboControl("row");
     this.portfolioAccLabel = new MetaControl("textbox");
     this.portfolioAccLabel.Left = statarbLeftAlign;
-    this.portfolioAccLabel.Width = 60;
+    this.portfolioAccLabel.Width = 100;
     this.portfolioAccLabel.Title = "Account: ";
     this.portfolioAccLabel.Disable = true;
     accountHead.addChild(this.portfolioAccLabel);
@@ -494,9 +496,9 @@ export class AppComponent implements OnInit {
     let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30; allsellChk.Title = " All-Sell"; allsellChk.Left = 20;
     let shiftChk = new MetaControl("checkbox"); shiftChk.Width = 30; shiftChk.Title = " Shift-Select"; shiftChk.Left = 20;
 
-    let range = new URange(); range.Width = 150; range.Left = 20; range.Title = "Order Rate:";
-    let rateText = new MetaControl("textbox"); rateText.Width = 15; rateText.Title = ""; rateText.Left = 10;
-    let percentText = new MetaControl("plaintext"); percentText.Title = "%"; percentText.Width = 5;
+    let range = new URange(); range.Width = 150; range.Left = 30; range.Title = "Order Rate:";
+    let rateText = new MetaControl("textbox"); rateText.Width = 30; rateText.Title = ""; rateText.Left = 5;
+    let percentText = new MetaControl("plaintext"); percentText.Title = "%"; percentText.Width = 15;
 
     let btn_sendSel = new MetaControl("button"); btn_sendSel.Text = "Send Selected"; btn_sendSel.Left = 20; btn_sendSel.Class = "primary";
     let btn_cancelSel = new MetaControl("button"); btn_cancelSel.Text = "Cancel Selected"; btn_cancelSel.Left = 20; btn_cancelSel.Class = "primary";
@@ -510,7 +512,10 @@ export class AppComponent implements OnInit {
 
 
     btn_load.OnClick = () => {
-
+      MessageBox.openFileDialog("Select CSV", function (filenames) {
+           //console.log(filenames);
+          
+      }, [{ name: "CSV", extensions: ["csv"] }]);
     };
     btn_sendSel.OnClick = () => {
 
