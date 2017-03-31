@@ -5,7 +5,7 @@
     </button>
     <label *ngIf="child.styleObj.type=='textbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <pre>{{child.dataSource.title}}</pre>
-                <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" 
+                <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" [style.width.px]="child.styleObj?.width"
                 class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
              </label>
     <div *ngIf="child.styleObj.type=='dropdown'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
@@ -20,7 +20,7 @@
       </div>
     </div>
     <label *ngIf="child.styleObj.type=='radio'">
-                {{child.dataSource.title}}
+                <pre>{{child.dataSource.title}}</pre>
                 <input [name]="child.dataSource.name" type="radio" [(ngModel)]="child.dataSource.text" [disabled]="child.styleObj?.disable"> 
              </label>
     <label *ngIf="child.styleObj.type=='checkbox'">
@@ -29,9 +29,13 @@
                 <span style="white-space: nowrap">{{child.dataSource.title}}</span>
             </label>
     <label *ngIf="child.styleObj.type=='range'">
-                {{child.dataSource.title}} 
+                <pre>{{child.dataSource.title}}</pre>
                 <input type="range" [class]="child.className" [min]="child.dataSource.min" [max]="child.dataSource.max" [(ngModel)]="child.dataSource.text"
                 [style.width.px]="child.styleObj?.width" (change)="child.dataSource.click()" [disabled]="child.styleObj?.disable">
+             </label>
+    <label *ngIf="child.styleObj.type=='plaintext'" [style.width.px]="child.styleObj?.width">
+                <pre>{{child.dataSource.title}}</pre>
+                <pre [class]="child.className">{{child.dataSource.text}}</pre>
              </label>
     <dock-table *ngIf="child.styleObj.type=='table'" [className]="child.className" [dataSource]="child.dataSource"></dock-table>
     <dock-table2 *ngIf="child.styleObj.type=='table2'" [className]="child.className" [dataSource]="child.dataSource"></dock-table2>
