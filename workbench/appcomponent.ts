@@ -256,7 +256,15 @@ export class AppComponent {
             roles: null,
             apps: null
         });
-        this.loginTGW();
+        this.isAuthorized = true;
+        if (this.isAuthorized) {
+            this.configs = this.configBLL.getAllConfigs();
+            // 
+            // this.strategyContainer.addItem(self.configs);
+        } else {
+            this.showError("Error", "Username or password wrong.", "alert");
+        }
+        // this.loginTGW();
     }
 
     loginTGW(): void {
@@ -301,7 +309,7 @@ export class AppComponent {
 
     onStartApp(name: string): void {
         if (name) {
-            if (!this.appService.startApp(name))
+            if (!this.appService.startApp(name, name))
                 this.showError("Error", `start ${name} app error!`, "alert");
         } else {
             this.showError("Error", "App is unvalid!", "alert");

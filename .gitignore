@@ -13,5 +13,5 @@
 /appstore/BootstrapDemo/
 /appstore/MultipleDemo/
 /appstore/SpreadViewer/
-/index.js
-/index.js.map
+/index.j*
+

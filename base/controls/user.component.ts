@@ -4,7 +4,7 @@
  */
 import { Component, AfterContentInit, Input } from "@angular/core";
 import { NgForm } from "@angular/forms";
-import { CssStyle, Control } from "./control";
+import { CssStyle, Control, ComboControl, Dialog, StatusBar } from "./control";
 
 @Component({
     moduleId: module.id,
@@ -33,4 +33,26 @@ export class DockContainerComponent {
     children: Control[];
     @Input() styleObj: any;
     @Input() dataSource: any;
+}
+
+@Component({
+    moduleId: module.id,
+    selector: ".dialog",
+    templateUrl: "dialog.component.html",
+    styleUrls: ["../css/easier-icons.css"],
+    inputs: ["dialog"]
+})
+export class DialogComponent {
+    dialog: Dialog;
+}
+
+
+@Component({
+    moduleId: module.id,
+    selector: ".statusbar",
+    templateUrl: "statusbar.html",
+    inputs: ["statusbar"]
+})
+export class StatusBarComponent {
+    statusbar: StatusBar;
 }

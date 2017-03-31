@@ -8,12 +8,12 @@ import { UserProfile } from "../model/app.model";
 export class AppStoreService {
     constructor() { }
 
-    startApp(name: string): boolean {
-        return electron.ipcRenderer.sendSync("appstore://startupAnApp", name);
+    startApp(name: string, type: string): boolean {
+        return electron.ipcRenderer.sendSync("appstore://startupAnApp", name, type);
     }
 
     closeApp(name: string): boolean {
-        return;
+        return electron.ipcRenderer.sendSync("appstore://hideApp", name);
     }
 
     getUserProfile(loginInfo: UserProfile): any {
