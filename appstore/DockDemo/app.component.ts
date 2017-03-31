@@ -6,7 +6,7 @@
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
   Control, DockContainer, Splitter, TabPanel, TabPage,
-  DataTable, DataTableRow, DataTableColumn, DropDown
+  DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
@@ -35,6 +35,7 @@ export class AppComponent implements OnInit {
   private PositionPage: TabPage;
   private profitPage: TabPage;
   private statarbPage: TabPage;
+  private portfolioPage: TabPage;
 
   private orderstatusTable: DataTable;
   private doneOrdersTable: DataTable;
@@ -46,6 +47,7 @@ export class AppComponent implements OnInit {
   private PositionTable: DataTable;
   private profitTable: DataTable;
   private statarbTable: DataTable;
+  private portfolioTable: DataTable;
 
   // profittable textbox
   private totalpnLabel: MetaControl;
@@ -55,6 +57,15 @@ export class AppComponent implements OnInit {
   private totalpnlt: MetaControl;
   private buyamountLabel: MetaControl;
   private sellamountLabel: MetaControl;
+  private portfolioAccLabel: MetaControl;
+  private reserveCheckBox: MetaControl;
+  private portfolioLabel: MetaControl;
+  private portfoliopnl: MetaControl;
+  private portfolioDaypnl: MetaControl;
+  private portfolioonpnl: MetaControl;
+  private portfolioCount: MetaControl;
+  private portfolioBuyCom: DropDown;
+  private portfolioSellCom: DropDown;
 
   // strategy index flag
   private commentIdx: number = 10;
@@ -62,12 +73,14 @@ export class AppComponent implements OnInit {
   private parameterIdx: number = 11;
   private strategyStatus: number = 0;
 
+  private statusbar: StatusBar;
 
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef) {
     AppComponent.self = this;
   }
 
   ngOnInit(): void {
+    this.statusbar = new StatusBar();
     // this.className = "dock-container vertical";
     // row 1
     let row1: DockContainer = new DockContainer("h", null, 400);
@@ -379,7 +392,113 @@ export class AppComponent implements OnInit {
     statarbContent.addChild(statarbHeader);
     statarbContent.addChild(this.statarbTable);
     this.statarbPage.setContent(statarbContent);
-    logPanel.setActive("StatArb");
+
+    this.portfolioPage = new TabPage("Portfolio", "Portfolio");
+    logPanel.addTab(this.portfolioPage);
+    let accountHead = new ComboControl("row");
+    this.portfolioAccLabel = new MetaControl("textbox");
+    this.portfolioAccLabel.Left = statarbLeftAlign;
+    this.portfolioAccLabel.Width = 60;
+    this.portfolioAccLabel.Title = "Account: ";
+    this.portfolioAccLabel.Disable = true;
+    accountHead.addChild(this.portfolioAccLabel);
+    let loadItem = new ComboControl("row");
+    let btn_load = new MetaControl("button");
+    btn_load.Text = "Load csv";
+    btn_load.Left = 20;
+    btn_load.Class = "primary";
+    this.reserveCheckBox = new MetaControl("checkbox");
+    this.reserveCheckBox.Width = 40;
+    this.reserveCheckBox.Title = "reserve ";
+    this.reserveCheckBox.Left = 30;
+
+    this.portfolioLabel = new MetaControl("textbox");
+    this.portfolioLabel.Width = 50;
+    this.portfolioLabel.Title = "PORTFOLIO Value:";
+    this.portfolioLabel.Left = 20;
+
+    this.portfolioDaypnl = new MetaControl("textbox");
+    this.portfolioDaypnl.Width = 50;
+    this.portfolioDaypnl.Title = "PORTFOLIO Day pnl:";
+    this.portfolioDaypnl.Left = 20;
+
+    this.portfolioonpnl = new MetaControl("textbox");
+    this.portfolioonpnl.Width = 50;
+    this.portfolioonpnl.Title = "PORTFOLIO O/N Pnl:";
+    this.portfolioonpnl.Left = 20;
+
+    this.portfolioCount = new MetaControl("textbox");
+    this.portfolioCount.Width = 50;
+    this.portfolioCount.Title = "Count:";
+    this.portfolioCount.Left = 20;
+    loadItem.addChild(btn_load).addChild(this.reserveCheckBox).addChild(this.portfolioLabel)
+      .addChild(this.portfolioDaypnl).addChild(this.portfolioonpnl).addChild(this.portfolioCount);
+
+    let tradeitem = new ComboControl("row");
+    this.portfolioBuyCom = new DropDown();
+    this.portfolioBuyCom.Width = 50;
+    this.portfolioBuyCom.Left = 20;
+    this.portfolioBuyCom.Title = "Buy: ";
+    this.portfolioBuyCom.addItem({ Text: "B10", Value: "-10" });
+    this.portfolioBuyCom.addItem({ Text: "B9", Value: "-9" });
+    this.portfolioBuyCom.addItem({ Text: "B8", Value: "-8" });
+    this.portfolioBuyCom.addItem({ Text: "B7", Value: "-7" });
+    this.portfolioBuyCom.addItem({ Text: "B6", Value: "-6" });
+    this.portfolioBuyCom.addItem({ Text: "B5", Value: "-5" });
+    this.portfolioBuyCom.addItem({ Text: "B4", Value: "-4" });
+    this.portfolioBuyCom.addItem({ Text: "B3", Value: "-3" });
+    this.portfolioBuyCom.addItem({ Text: "B2", Value: "-2" });
+    this.portfolioBuyCom.addItem({ Text: "B1", Value: "-1" });
+    this.portfolioBuyCom.addItem({ Text: "A1", Value: "1" });
+    this.portfolioBuyCom.addItem({ Text: "A2", Value: "2" });
+    this.portfolioBuyCom.addItem({ Text: "A3", Value: "3" });
+    this.portfolioBuyCom.addItem({ Text: "A4", Value: "4" });
+    this.portfolioBuyCom.addItem({ Text: "A5", Value: "5" });
+    this.portfolioBuyCom.addItem({ Text: "A6", Value: "6" });
+    this.portfolioBuyCom.addItem({ Text: "A7", Value: "7" });
+    this.portfolioBuyCom.addItem({ Text: "A8", Value: "8" });
+    this.portfolioBuyCom.addItem({ Text: "A9", Value: "9" });
+    this.portfolioBuyCom.addItem({ Text: "A10", Value: "10" });
+
+    this.portfolioSellCom = new DropDown();
+    this.portfolioSellCom.Width = 50;
+    this.portfolioSellCom.Left = 20;
+    this.portfolioSellCom.Title = "Sell:";
+    this.portfolioSellCom.addItem({ Text: "B10", Value: "-10" });
+    this.portfolioSellCom.addItem({ Text: "B9", Value: "-9" });
+    this.portfolioSellCom.addItem({ Text: "B8", Value: "-8" });
+    this.portfolioSellCom.addItem({ Text: "B7", Value: "-7" });
+    this.portfolioSellCom.addItem({ Text: "B6", Value: "-6" });
+    this.portfolioSellCom.addItem({ Text: "B5", Value: "-5" });
+    this.portfolioSellCom.addItem({ Text: "B4", Value: "-4" });
+    this.portfolioSellCom.addItem({ Text: "B3", Value: "-3" });
+    this.portfolioSellCom.addItem({ Text: "B2", Value: "-2" });
+    this.portfolioSellCom.addItem({ Text: "B1", Value: "-1" });
+    this.portfolioSellCom.addItem({ Text: "A1", Value: "1" });
+    this.portfolioSellCom.addItem({ Text: "A2", Value: "2" });
+    this.portfolioSellCom.addItem({ Text: "A3", Value: "3" });
+    this.portfolioSellCom.addItem({ Text: "A4", Value: "4" });
+    this.portfolioSellCom.addItem({ Text: "A5", Value: "5" });
+    this.portfolioSellCom.addItem({ Text: "A6", Value: "6" });
+    this.portfolioSellCom.addItem({ Text: "A7", Value: "7" });
+    this.portfolioSellCom.addItem({ Text: "A8", Value: "8" });
+    this.portfolioSellCom.addItem({ Text: "A9", Value: "9" });
+    this.portfolioSellCom.addItem({ Text: "A10", Value: "10" });
+    tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioSellCom);
+
+
+    this.portfolioTable = new DataTable();
+    this.portfolioTable.addColumn("Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+      "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize", "AskPrice", "AvgBuyPrice");
+
+
+    btn_load.OnClick = () => {
+
+    };
+    let portfolioContent = new ComboControl("col");
+    portfolioContent.addChild(accountHead).addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
+    this.portfolioPage.setContent(portfolioContent);
+    logPanel.setActive("Portfolio");
 
     // row 3    strategyinfo
     let bottomPanel: TabPanel = new TabPanel();
@@ -536,7 +655,7 @@ export class AppComponent implements OnInit {
   }
 
   showStatArbOrder(data: any) {
-   // console.log("statarb....", data);
+    // console.log("statarb....", data);
     for (let i = 0; i < data.length; ++i) {
       let subtype = data[i].subtype;
       let dataArr = data[i].content;
@@ -981,7 +1100,33 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showComGWNetGuiInfo(data: any) {
-    // add log
+    let markLen = AppComponent.self.statusbar.items.length;
+    if (markLen === 0) { // add
+      AppComponent.self.addStatusBarMark(data[0]);
+    } else {
+      let markFlag: Boolean = false;
+      for (let i = 0; i < markLen; ++i) {
+        let text = AppComponent.self.statusbar.items[i].text;
+        if (text === data[0].name) {
+          AppComponent.self.statusbar.items[i].color = data[0].connected ? "green" : "red";
+          markFlag = true;
+        }
+      }
+      if (!markFlag)
+        AppComponent.self.addStatusBarMark(data[0]);
+    }
+  }
+  addStatusBarMark(data: any) {
+    console.log(data);
+    let name = data.name;
+    let tempmark = new StatusBarItem(name);
+    tempmark.section = "right";
+    tempmark.color = data.connected ? "green" : "red";
+    tempmark.width = 50;
+    AppComponent.self.statusbar.items.push(tempmark);
+    let row = AppComponent.self.logTable.newRow();
+    row.cells[0].Text = AppComponent.self.getCurrentTime();
+    row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
   }
   showComTotalProfitInfo(data: any) {
     let subtype = data[0].subtype;

@@ -142,6 +142,7 @@ export class OrderService {
         let res = [];
         let offset: number = 0;
         let logStr = buffer.slice(offset, offset += 1024).toString("utf-8");
+        logStr = String(logStr).slice(0, logStr.indexOf("\u0000"));
         res.push(logStr);
         return res;
     }
@@ -335,9 +336,10 @@ export class OrderService {
         for (let i = 0; i < count; ++i) {
             let comStrategyInfo = new ComGWNetGuiInfo();
             comStrategyInfo.key = buffer.readUInt32LE(offset); offset += 4;
-            comStrategyInfo.name = buffer.slice(offset, offset += 50).toString("utf-8");
+            let tempname = buffer.slice(offset, offset += 50).toString("utf-8");
+            comStrategyInfo.name = String(tempname).slice(0, tempname.indexOf("\u0000"));
             comStrategyInfo.connected = buffer.readUInt8(offset) === 0 ? false : true;
-            console.log("comStrategyInfo:", comStrategyInfo);
+            // console.log("comStrategyInfo:", comStrategyInfo);
             res.push(comStrategyInfo);
         }
         return res;
