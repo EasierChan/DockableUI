@@ -5,7 +5,7 @@
  */
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
-  Control, DockContainer, Splitter, TabPanel, TabPage,
+  Control, DockContainer, Splitter, TabPanel, TabPage, URange,
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
@@ -416,21 +416,25 @@ export class AppComponent implements OnInit {
     this.portfolioLabel.Width = 50;
     this.portfolioLabel.Title = "PORTFOLIO Value:";
     this.portfolioLabel.Left = 20;
+    this.portfolioLabel.Disable = true;
 
     this.portfolioDaypnl = new MetaControl("textbox");
     this.portfolioDaypnl.Width = 50;
     this.portfolioDaypnl.Title = "PORTFOLIO Day pnl:";
     this.portfolioDaypnl.Left = 20;
+    this.portfolioDaypnl.Disable = true;
 
     this.portfolioonpnl = new MetaControl("textbox");
     this.portfolioonpnl.Width = 50;
     this.portfolioonpnl.Title = "PORTFOLIO O/N Pnl:";
     this.portfolioonpnl.Left = 20;
+    this.portfolioonpnl.Disable = true;
 
     this.portfolioCount = new MetaControl("textbox");
     this.portfolioCount.Width = 50;
     this.portfolioCount.Title = "Count:";
     this.portfolioCount.Left = 20;
+    this.portfolioCount.Disable = true;
     loadItem.addChild(btn_load).addChild(this.reserveCheckBox).addChild(this.portfolioLabel)
       .addChild(this.portfolioDaypnl).addChild(this.portfolioonpnl).addChild(this.portfolioCount);
 
@@ -484,8 +488,21 @@ export class AppComponent implements OnInit {
     this.portfolioSellCom.addItem({ Text: "A8", Value: "8" });
     this.portfolioSellCom.addItem({ Text: "A9", Value: "9" });
     this.portfolioSellCom.addItem({ Text: "A10", Value: "10" });
-    tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioSellCom);
 
+    let allChk = new MetaControl("checkbox"); allChk.Width = 30; allChk.Title = " All"; allChk.Left = 20;
+    let allbuyChk = new MetaControl("checkbox"); allbuyChk.Width = 30; allbuyChk.Title = " All-Buy"; allbuyChk.Left = 20;
+    let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30; allsellChk.Title = " All-Sell"; allsellChk.Left = 20;
+    let shiftChk = new MetaControl("checkbox"); shiftChk.Width = 30; shiftChk.Title = " Shift-Select"; shiftChk.Left = 20;
+
+    let range = new URange(); range.Width = 150; range.Left = 20; range.Title = "Order Rate:";
+    let rateText = new MetaControl("textbox"); rateText.Width = 15; rateText.Title = ""; rateText.Left = 10;
+    let percentText = new MetaControl("plaintext"); percentText.Title = "%"; percentText.Width = 5;
+
+    let btn_sendSel = new MetaControl("button"); btn_sendSel.Text = "Send Selected"; btn_sendSel.Left = 20; btn_sendSel.Class = "primary";
+    let btn_cancelSel = new MetaControl("button"); btn_cancelSel.Text = "Cancel Selected"; btn_cancelSel.Left = 20; btn_cancelSel.Class = "primary";
+
+    tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioSellCom).addChild(allChk).addChild(allbuyChk)
+      .addChild(allsellChk).addChild(shiftChk).addChild(range).addChild(rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
 
     this.portfolioTable = new DataTable();
     this.portfolioTable.addColumn("Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
@@ -493,6 +510,12 @@ export class AppComponent implements OnInit {
 
 
     btn_load.OnClick = () => {
+
+    };
+    btn_sendSel.OnClick = () => {
+
+    };
+    btn_cancelSel.OnClick = () => {
 
     };
     let portfolioContent = new ComboControl("col");
