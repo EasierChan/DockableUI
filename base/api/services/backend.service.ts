@@ -4,6 +4,10 @@ declare var electron: Electron.ElectronMainAndRenderer;
 import { Injectable } from "@angular/core";
 import { UserProfile } from "../model/app.model";
 
+export const os = require("@node/os");
+export const path = require("@node/path");
+export const fs = require("@node/fs");
+
 @Injectable()
 export class AppStoreService {
     constructor() { }
