@@ -10,7 +10,7 @@ import {
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
-import { MessageBox } from "../../base/api/services/backend.service";
+import { MessageBox, fs } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 
@@ -513,8 +513,14 @@ export class AppComponent implements OnInit {
 
     btn_load.OnClick = () => {
       MessageBox.openFileDialog("Select CSV", function (filenames) {
-           //console.log(filenames);
-          
+        console.log(filenames);
+        fs.readFile(filenames[0], function (err, content) {
+          if (err === null)
+            console.log(content.toString());
+          else
+            console.log(err);
+        });
+
       }, [{ name: "CSV", extensions: ["csv"] }]);
     };
     btn_sendSel.OnClick = () => {
