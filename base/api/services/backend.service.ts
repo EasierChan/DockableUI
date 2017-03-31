@@ -78,4 +78,12 @@ export class MessageBox {
             cancelId: cancelId ? cancelId : null
         }, callback);
     }
+
+    static openFileDialog(title: string, cb: (filenames: string[]) => void, filters?: { name: string, extensions: string[] }[]) {
+        electron.remote.dialog.showOpenDialog(electron.remote.BrowserWindow.getFocusedWindow(), {
+            title: title,
+            filters: filters,
+            properties: ["openFile"]
+        }, cb);
+    }
 }
