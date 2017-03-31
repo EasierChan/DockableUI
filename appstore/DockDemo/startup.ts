@@ -8,6 +8,8 @@ const path = require("path");
 
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
+    _mainWindow: ContentWindow;
+    static _instance: StartUp;
 
     constructor() {
         this._windowMgr = new UWindwManager();
@@ -16,17 +18,14 @@ export class StartUp implements IApplication {
      * bootstrap
      */
     bootstrap(): any {
-        // let menuWindow: MenuWindow = new MenuWindow({ state: { width: 300, height: 60 } });
-        // menuWindow.ready().then(function () {
-        //     console.log("when MenuWindow ready say: hello");
-        // });
-        // menuWindow.loadURL(__dirname + "/appstore/start/sample.html");
-        // this._windowMgr.addMenuWindow(menuWindow);
-        let contentWindow: ContentWindow = new ContentWindow({ state: { x: 0, y: 0, width: 1200, height: 800 } });
-        contentWindow.loadURL(path.join(__dirname, "index.html"));
-        contentWindow.setMenuBarVisibility(true);
-        this._windowMgr.addContentWindow(contentWindow);
-        contentWindow.show();
+        if (!this._mainWindow || !this._mainWindow.win) {
+            this._mainWindow = null;
+            this._mainWindow = new ContentWindow({ state: { x: 0, y: 0, width: 1200, height: 800 } });
+            this._mainWindow.loadURL(path.join(__dirname, "index.html"));
+            this._mainWindow.setMenuBarVisibility(true);
+            this._windowMgr.addContentWindow(this._mainWindow);
+        }
+        this._mainWindow.show();
     }
     /**
      * quit
@@ -40,6 +39,11 @@ export class StartUp implements IApplication {
     restart(): void {
         this.quit();
         this.bootstrap();
+    }
+
+    hide() {
+        if (this._mainWindow)
+            this._mainWindow.win.hide();
     }
 
     static instance(): StartUp {
