@@ -19,6 +19,7 @@ export class AppStore {
     private static _tray: Electron.Tray;
     private static _appstoreHome: string = path.join(__dirname, "..", "..", "..", "..", "appstore");
     private static _apps: Object = {};
+    private static _instances: Object = {};
     private static _appInfo: any;
     private static readonly _workbench: string = "workbench";
 
@@ -38,28 +39,33 @@ export class AppStore {
         });
     }
 
-    public static startupAnApp(name: string): boolean {
-        if (AppStore._apps.hasOwnProperty(name)) {
-            AppStore._apps[name].StartUp.instance().bootstrap();
+    public static startupAnApp(name: string, type: string): boolean {
+        if (AppStore._instances.hasOwnProperty(name)) {
+            AppStore._instances[name].bootstrap();
             return true;
-        } else {
-            return false;
+        } else if (AppStore._apps.hasOwnProperty(type)) {
+            AppStore._instances[name] = AppStore._apps[type].StartUp.instance();
+            AppStore._instances[name].bootstrap();
+            return true;
         }
+
+        DefaultLogger.error(`unknown appname: ${name}, apptype: ${type}`);
+        return false;
     }
 
     public static bootstrap(): void {
         AppStore.parseCommandArgs();
         let contentWindow: ContentWindow = new ContentWindow({ state: { x: 0, y: 0, width: 1000, height: 800 } });
         contentWindow.loadURL(path.join(AppStore._appstoreHome, "..", "workbench", "index.html"));
-        AppStore._apps[AppStore._workbench] = contentWindow;
+        AppStore._instances[AppStore._workbench] = contentWindow;
 
         contentWindow.win.on("close", (e) => {
             e.preventDefault();
             contentWindow.win.hide();
         });
 
-        IPCManager.register("appstore://startupAnApp", (event, appname) => {
-            event.returnValue = AppStore.startupAnApp(appname);
+        IPCManager.register("appstore://startupAnApp", (event, appname, apptype) => {
+            event.returnValue = AppStore.startupAnApp(appname, apptype);
         });
 
         IPCManager.register("appstore://login", (event, loginInfo) => {
@@ -132,14 +138,14 @@ export class AppStore {
             ipcMain.emit("appstore://login", null, { username: AppStore._env.username, password: AppStore._env.password });
             IPCManager.register("appstore://ready", () => {
                 AppStore._env.startapps.forEach(app => {
-                    AppStore.startupAnApp(app);
+                    AppStore.startupAnApp(app, "");
                 });
             });
         }
     }
 
     public static quit(): void {
-        AppStore._apps[AppStore._workbench].close();
+        AppStore._instances[AppStore._workbench].close();
     }
 
     public static parseCommandArgs(): void {

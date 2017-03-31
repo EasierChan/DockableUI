@@ -309,7 +309,7 @@ export class AppComponent {
 
     onStartApp(name: string): void {
         if (name) {
-            if (!this.appService.startApp(name))
+            if (!this.appService.startApp(name, name))
                 this.showError("Error", `start ${name} app error!`, "alert");
         } else {
             this.showError("Error", "App is unvalid!", "alert");
