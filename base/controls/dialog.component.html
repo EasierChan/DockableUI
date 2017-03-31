@@ -1,4 +1,4 @@
-<div class="holder">
+<div class="holder" [style.width.px]="dialog?.width" [style.height.px]="dialog?.height">
     <div class="head">
         <span class="title">{{dialog?.title}}</span>
         <span class="close close-round pull-right" (click)="dialog.hide()"></span>
