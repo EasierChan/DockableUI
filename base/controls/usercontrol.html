@@ -19,21 +19,21 @@
         </ul>
       </div>
     </div>
-    <label *ngIf="child.styleObj.type=='radio'">
+    <label *ngIf="child.styleObj.type=='radio'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <pre>{{child.dataSource.title}}</pre>
                 <input [name]="child.dataSource.name" type="radio" [(ngModel)]="child.dataSource.text" [disabled]="child.styleObj?.disable"> 
              </label>
-    <label *ngIf="child.styleObj.type=='checkbox'">
+    <label *ngIf="child.styleObj.type=='checkbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <input [name]="child.dataSource.name" type="checkbox" [(ngModel)]="child.dataSource.text"
                  [disabled]="child.styleObj?.disable" (click)="child.dataSource.click()"> 
                 <span style="white-space: nowrap">{{child.dataSource.title}}</span>
             </label>
-    <label *ngIf="child.styleObj.type=='range'">
+    <label *ngIf="child.styleObj.type=='range'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <pre>{{child.dataSource.title}}</pre>
                 <input type="range" [class]="child.className" [min]="child.dataSource.min" [max]="child.dataSource.max" [(ngModel)]="child.dataSource.text"
                 [style.width.px]="child.styleObj?.width" (change)="child.dataSource.click()" [disabled]="child.styleObj?.disable">
              </label>
-    <label *ngIf="child.styleObj.type=='plaintext'" [style.width.px]="child.styleObj?.width">
+    <label *ngIf="child.styleObj.type=='plaintext'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <pre>{{child.dataSource.title}}</pre>
                 <pre [class]="child.className">{{child.dataSource.text}}</pre>
              </label>
