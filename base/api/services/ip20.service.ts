@@ -107,14 +107,17 @@ class ISONPackParser extends IP20Parser {
     processLoginMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
         let all = args[1];
+        let msg = new ISONPack2();
         switch (header.packid) {
             case 43: // Login
-                let msg = new ISONPack2();
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);
                 break;
+            case 120: // login error
+                msg.fromBuffer(all);
+                this._client.emit("data", msg);
             default:
-                logger.info(`appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
+                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
                 break;
         }
     }
