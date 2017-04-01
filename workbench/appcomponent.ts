@@ -273,14 +273,14 @@ export class AppComponent {
         let timestamp: any = new Date();
         timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
         timestamp = timestamp.substr(0, timestamp.length - 1);
-        this.tgw.connect(6114, "172.24.51.3");
-        this.tgw.addSlot({
+        this.tgw.connect(6114, "172.24.51.9");
+        this.tgw.addSlot({ // login success
             appid: 17,
             packid: 43,
             callback: msg => {
                 console.info(msg);
                 if (msg.content.msret.msgcode === "00") {
-                    self.tgw.send(107, 2000, { "head": { "realActor": "getTemplate" }, "page": { "page": 1, "pagesize": 2 } });
+                    self.tgw.send(270, 194, { "head": { "realActor": "getTemplate" }, "page": { "page": 1, "pagesize": 2 } });
                     self.isAuthorized = true;
                     if (self.isAuthorized) {
                         self.configs = self.configBLL.getAllConfigs();
@@ -292,18 +292,24 @@ export class AppComponent {
                 }
             }
         });
+        this.tgw.addSlot({ // login failed
+            appid: 17,
+            packid: 120,
+            callback: msg => {
+                console.info(msg, msg.content.msg);
+            }
+        });
         // process templates
         this.tgw.addSlot({
-            appid: 107,
-            packid: 2000,
+            appid: 270,
+            packid: 194,
             callback: msg => {
                 console.info(msg);
             }
         });
         let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 10, "clientdisksn": "", "clientnetip": "172.24.51.6", "clientnetmac": "f48e38bb77ce", "clientesn": "9693a58a65e2e97fe42a41c10616ae29223fb6364b04e0d9336252fba9ed339b030d4592f987fa526edca6cca021721db6f42eeae0bdf750febd9b938526d0a9", "clienttgwapi": "tgwapi253", "clientapp": "", "clientwip": "0.0.0.0", "clienttm": timestamp, "clientcpuid": "BFEBFBFF000506E3" };
-        setTimeout(() => {
-            this.tgw.send(17, 41, loginObj);
-        }, 10000);
+
+        this.tgw.send(17, 41, loginObj); // login
     }
 
     onReset(): void {

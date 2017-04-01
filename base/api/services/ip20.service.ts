@@ -116,6 +116,7 @@ class ISONPackParser extends IP20Parser {
             case 120: // login error
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);
+                break;
             default:
                 logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
                 break;
@@ -134,7 +135,7 @@ class ISONPackParser extends IP20Parser {
                 // logger.info("updatedate data: ", msg.newDate);
                 break;
             default:
-                logger.info(`appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
+                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
                 break;
         }
     }
