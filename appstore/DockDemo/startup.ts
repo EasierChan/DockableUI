@@ -3,12 +3,14 @@
  */
 "use strict";
 
-import { IApplication, MenuWindow, ContentWindow, UWindwManager } from "../../base/api/backend";
+import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound } from "../../base/api/backend";
 const path = require("path");
 
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
     _mainWindow: ContentWindow;
+    _bound: Bound;
+    _name: string;
     static _instance: StartUp;
 
     constructor() {
@@ -17,10 +19,15 @@ export class StartUp implements IApplication {
     /**
      * bootstrap
      */
-    bootstrap(): any {
+    bootstrap(name = "DockDemo"): any {
+        let self = this;
         if (!this._mainWindow || !this._mainWindow.win) {
+            this._name = name;
             this._mainWindow = null;
             this._mainWindow = new ContentWindow({ state: { x: 0, y: 0, width: 1200, height: 800 } });
+            // this._mainWindow.onclosing = bound => {
+            //     self.emit("close", bound);
+            // };
             this._mainWindow.loadURL(path.join(__dirname, "index.html"));
             this._mainWindow.setMenuBarVisibility(true);
             this._windowMgr.addContentWindow(this._mainWindow);
@@ -38,7 +45,7 @@ export class StartUp implements IApplication {
      */
     restart(): void {
         this.quit();
-        this.bootstrap();
+        this.bootstrap(this._name);
     }
 
     hide() {
