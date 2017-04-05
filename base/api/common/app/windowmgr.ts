@@ -23,7 +23,7 @@ export class UWindwManager {
     addMenuWindow(menuWindow: MenuWindow): void {
         if (!this._menuWindow) {
             this._menuWindow = menuWindow;
-            this._menuWindow.onClosed = () => {
+            this._menuWindow.onclosing = () => {
                 this.closeAll();
             };
             this._windows.push(this._menuWindow);

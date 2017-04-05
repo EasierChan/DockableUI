@@ -4,6 +4,10 @@ declare var electron: Electron.ElectronMainAndRenderer;
 import { Injectable } from "@angular/core";
 import { UserProfile } from "../model/app.model";
 
+export const os = require("@node/os");
+export const path = require("@node/path");
+export const fs = require("@node/fs");
+
 @Injectable()
 export class AppStoreService {
     constructor() { }
@@ -77,5 +81,13 @@ export class MessageBox {
             defaultId: defaultId ? defaultId : null,
             cancelId: cancelId ? cancelId : null
         }, callback);
+    }
+
+    static openFileDialog(title: string, cb: (filenames: string[]) => void, filters?: { name: string, extensions: string[] }[]) {
+        electron.remote.dialog.showOpenDialog(electron.remote.BrowserWindow.getFocusedWindow(), {
+            title: title,
+            filters: filters,
+            properties: ["openFile"]
+        }, cb);
     }
 }

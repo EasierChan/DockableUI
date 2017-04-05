@@ -41,7 +41,7 @@ export class AppStore {
 
     public static startupAnApp(name: string, type: string): boolean {
         if (AppStore._instances.hasOwnProperty(name)) {
-            AppStore._instances[name].bootstrap();
+            AppStore._instances[name].bootstrap(name);
             return true;
         } else if (AppStore._apps.hasOwnProperty(type)) {
             AppStore._instances[name] = AppStore._apps[type].StartUp.instance();

@@ -13,7 +13,7 @@ export class ULoader {
         ULogger.init();
         DefaultLogger.info("Program environment initialize...");
         // init configuration
-        UConfig.init();
+        // UConfig.init();
         // init IPCManager
         IPCManager.start();
     }
