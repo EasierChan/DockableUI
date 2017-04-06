@@ -273,14 +273,14 @@ export class AppComponent {
         let timestamp: any = new Date();
         timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
         timestamp = timestamp.substr(0, timestamp.length - 1);
-        this.tgw.connect(6114, "172.24.51.9");
+        this.tgw.connect(6114, "172.24.51.3");
         this.tgw.addSlot({ // login success
             appid: 17,
             packid: 43,
             callback: msg => {
                 console.info(msg);
                 if (msg.content.msret.msgcode === "00") {
-                    self.tgw.send(270, 194, { "head": { "realActor": "getTemplate" }, "page": { "page": 1, "pagesize": 2 } });
+                    self.tgw.send(107, 2000, { "head": { "realActor": "getTemplate" }, "page": { "page": 1, "pagesize": 2 } });
                     self.isAuthorized = true;
                     if (self.isAuthorized) {
                         self.configs = self.configBLL.getAllConfigs();
@@ -301,8 +301,8 @@ export class AppComponent {
         });
         // process templates
         this.tgw.addSlot({
-            appid: 270,
-            packid: 194,
+            appid: 107,
+            packid: 2000,
             callback: msg => {
                 console.info(msg);
             }
