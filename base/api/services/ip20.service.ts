@@ -99,6 +99,7 @@ class ISONPackParser extends IP20Parser {
     init(): void {
         this.registerMsgFunction("17", this, this.processLoginMsg);
         this.registerMsgFunction("270", this, this.processTemplateMsg);
+        this.registerMsgFunction("107", this, this.processTemplateMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -126,13 +127,19 @@ class ISONPackParser extends IP20Parser {
     processTemplateMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
         let all = args[1];
+        let msg;
 
         switch (header.packid) {
             case 194: // Login
-                let msg = new ISONPack2();
+                msg = new ISONPack2();
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);
                 // logger.info("updatedate data: ", msg.newDate);
+                break;
+            case 2001: // login
+                msg = new ISONPack2();
+                msg.fromBuffer(all);
+                this._client.emit("data", msg);
                 break;
             default:
                 logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
