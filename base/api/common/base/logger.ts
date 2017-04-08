@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { Paths } from "./paths";
+import { Path } from "./paths";
 let log4js = require("log4js");
 
 export let DefaultLogger: any;
@@ -11,13 +11,13 @@ export class ULogger {
     static init(): void {
         log4js.configure({
             appenders: [
-                { type: "console", maxLogSize: 20480 },
-                {
-                    type: "file",
-                    filename: Paths.configration.logDir + "/alert.log",
-                    pattern: "-yyyy-MM-dd",
-                    category: "alert", maxLogSize: 20480
-                }
+                { type: "console", maxLogSize: 20480 }// ,
+                // {
+                //     type: "file",
+                //     filename: Paths.configration.logDir + "/alert.log",
+                //     pattern: "-yyyy-MM-dd",
+                //     category: "alert", maxLogSize: 20480
+                // }
             ]
         });
         DefaultLogger = ULogger.console();

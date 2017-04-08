@@ -1,5 +1,5 @@
 {
-  "name": "dockable-ui",
+  "name": "chronos-ui",
   "version": "0.0.1",
   "description": "make the controls to be dockable",
   "main": "index.js",

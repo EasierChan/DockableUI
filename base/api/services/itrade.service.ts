@@ -191,6 +191,7 @@ class ItradeClient extends TcpClient {
 @Injectable()
 export class ItradeService {
     private _client: ItradeClient;
+    private _parser: ItradeParser;
     private _messageMap: Object;
     private _sessionid: number;
     constructor() {
@@ -198,7 +199,8 @@ export class ItradeService {
         this._messageMap = {};
         this._client = new ItradeClient();
         this._client.useSelfBuffer = true;
-        this._client.addParser(new StrategyParser(this._client));
+        this._parser = new StrategyParser(this._client);
+        this._client.addParser(this._parser);
     };
 
     set sessionID(value: number) {

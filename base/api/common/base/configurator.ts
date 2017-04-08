@@ -3,8 +3,9 @@
  */
 "use strict";
 
-import { Paths } from "./paths";
+import { Path } from "./paths";
 import fs = require("fs");
+import path = require("path");
 import _ = require("lodash");
 
 interface UAppSetting {
@@ -41,26 +42,32 @@ function stripComments(content) {
 }
 
 export class UConfig {
-	private static default: UAppSetting;
-	private static user: UAppSetting;
-	static all: UAppSetting;
+	private static default: Object;
+	// private static user: Object;
+	// static all: UAppSetting;
 
-	static init(): void {
+	static init(name: string): void {
 		try {
-			UConfig.default = JSON.parse(stripComments(fs.readFileSync(Paths.configration.settings.default, "utf-8")));
-			// DefaultLogger.trace(JSON.stringify(UConfig.default));
-			if (Paths.configration.settings.user !== null) {
-				UConfig.user = JSON.parse(stripComments(fs.readFileSync(Paths.configration.settings.user, "utf-8")));
-				UConfig.all = _.cloneDeep(UConfig.default);
-				_.assign(UConfig.all, UConfig.user);
-			}
+			let appdir = path.join(Path.baseDir, name);
+			if (!fs.existsSync(appdir))
+				fs.mkdirSync(appdir);
+
+			if (!fs.existsSync(path.join(appdir, "default.json")))
+				fs.writeFileSync(path.join(appdir, "default.json"), "", { encoding: "utf-8" });
+
+			UConfig.default = JSON.parse(stripComments(fs.readFileSync(path.join(appdir, "default.json"), "utf-8")));
+			// // DefaultLogger.trace(JSON.stringify(UConfig.default));
+			// if (Paths.configration.settings.user !== null) {
+			// 	UConfig.user = JSON.parse(stripComments(fs.readFileSync(Paths.configration.settings.user, "utf-8")));
+			// 	UConfig.all = _.cloneDeep(UConfig.default);
+			// 	_.assign(UConfig.all, UConfig.user);
+			// }
 		} catch (err) {
-			console.error("app settings load error!");
 			throw Error("app settings load error!");
 		}
 	}
 
-	static reload(): void {
-		UConfig.init();
+	static reload(name: string): void {
+		UConfig.init(name);
 	}
 }

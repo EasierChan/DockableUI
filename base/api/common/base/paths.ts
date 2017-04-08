@@ -5,14 +5,15 @@
 
 import fs = require("fs");
 import path = require("path");
-import {sealed} from "./decorator";
+import { app } from "electron";
+import { sealed } from "./decorator";
 
 @sealed
-export class Paths {
+class Paths {
 
     private static configuration_: Paths = null;
 
-    static get configration(): Paths {
+    static get instance(): Paths {
         return Paths.configuration_ === null ? new Paths() : Paths.configuration_;
     }
 
@@ -21,45 +22,51 @@ export class Paths {
     private backupdir_: string;
     private settings_: { default: string, user: string };
     constructor() {
-        this.basedir_ = process.cwd();
-        this.logdir_ = path.join(this.basedir_, "logs");
-        this.backupdir_ = path.join(this.basedir_, "backup");
-        this.settings_ = {
-            default: "default-setting.json",
-            user: "user-setting.json"
-        };
+        this.basedir_ = path.join(app.getPath("appData"), "ChronosApps");
+        // this.logdir_ = path.join(this.basedir_, "logs");
+        // this.backupdir_ = path.join(this.basedir_, "backup");
+        // this.settings_ = {
+        //     default: "default-setting.json",
+        //     user: "user-setting.json"
+        // };
 
-        if (!fs.existsSync(this.logdir_)) {
-            fs.mkdir(this.logdir_);
+        if (!fs.existsSync(this.basedir_)) {
+            fs.mkdir(this.basedir_);
         }
 
-        if (!fs.existsSync(this.backupdir_)) {
-            fs.mkdir(this.backupdir_);
-        }
+        // if (!fs.existsSync(this.logdir_)) {
+        //     fs.mkdir(this.logdir_);
+        // }
 
-        if (!fs.existsSync(path.join(this.basedir_, this.settings_.default))) {
-            throw Error(this.settings_.default + " can not be found!");
-        }
+        // if (!fs.existsSync(this.backupdir_)) {
+        //     fs.mkdir(this.backupdir_);
+        // }
+
+        // if (!fs.existsSync(path.join(this.basedir_, this.settings_.default))) {
+        //     // throw Error(this.settings_.default + " can not be found!");
+        // }
     }
 
     get baseDir() {
         return this.basedir_;
     }
 
-    get logDir() {
-        return this.logdir_;
-    }
+    // get logDir() {
+    //     return this.logdir_;
+    // }
 
-    get backupDir() {
-        return this.backupdir_;
-    }
+    // get backupDir() {
+    //     return this.backupdir_;
+    // }
 
-    get settings() {
-        let puser: string = path.join(this.basedir_, this.settings_.user);
-        if (fs.existsSync(path.join(this.basedir_, this.settings_.user))) {
-            return { default: path.join(this.basedir_, this.settings_.default), user: puser };
-        } else {
-            return { default: path.join(this.basedir_, this.settings_.default), user: null };
-        }
-    }
+    // get settings() {
+    //     let puser: string = path.join(this.basedir_, this.settings_.user);
+    //     if (fs.existsSync(path.join(this.basedir_, this.settings_.user))) {
+    //         return { default: path.join(this.basedir_, this.settings_.default), user: puser };
+    //     } else {
+    //         return { default: path.join(this.basedir_, this.settings_.default), user: null };
+    //     }
+    // }
 }
+
+export let Path: Paths = Paths.instance;
