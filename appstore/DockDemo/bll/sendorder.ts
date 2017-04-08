@@ -80,7 +80,7 @@ export class ManulTrader {
     }
 
     static submitPara(data: any) {
-      //  console.log("+++++++", data);
+        //  console.log("+++++++", data);
         let offset: number = 0;
         let mem_size: number = 80;
         let length = data.length;
@@ -104,6 +104,25 @@ export class ManulTrader {
         ManulTrader.orderService.sendOrder(2030, 0, buffer);
     }
 
+    static submitBasket(type: number, indexSymbol: number, divideNum: number, account: number, initPos: any) {
+        let offset: number = 0;
+        console.log(initPos, initPos.length);
+        let bufferLen = 12 + 4 + 4 + initPos.length * 12; // head+fphead+indexSymbol+divideNum+count*initposLen
+        let buffer = new Buffer(bufferLen);
+        let initPosLen = initPos.length;
+
+        ManulTrader.writeUInt64LE(buffer, account, offset); offset += 8;
+        buffer.writeUInt32LE(initPos.length, offset); offset += 4;
+
+        buffer.writeUInt32LE(indexSymbol, offset); offset += 4;
+        buffer.writeUInt32LE(divideNum, offset); offset += 4;
+        initPos.forEach(function (item) {
+            buffer.writeUInt32LE(item.ukey, offset); offset += 4;
+            buffer.writeInt32LE(item.currPos, offset); offset += 4;
+            buffer.writeInt32LE(item.targetPos, offset); offset += 4;
+        });
+        ManulTrader.orderService.sendOrder(5001, 0, buffer);
+    }
     static cancelorder(data: any) {
         let order: ComConOrder = new ComConOrder();
         let offset: number = 0;
@@ -133,6 +152,20 @@ export class ManulTrader {
     static getProfitInfo(): void {
         ManulTrader.orderService.sendOrder(2047, 0, null);
         ManulTrader.orderService.sendOrder(2044, 0, null);
+    }
+    static registerAccPos(data: any) {
+        let offset: number = 0;
+        let buffer = new Buffer(12);
+        // fetch position
+        let account: number = 666600000040;
+        ManulTrader.writeUInt64LE(buffer, account, offset); offset += 8;
+        buffer.writeUInt32LE(0, offset); offset += 4;
+        ManulTrader.orderService.sendOrder(5002, 0, buffer);
+    }
+    static write2buffer(buffer: Buffer, type: number, subtype: number, msglen: number, offset: number): void {
+        buffer.writeInt16LE(type, offset);
+        buffer.writeInt16LE(subtype, offset += 2);
+        buffer.writeUInt32LE(msglen, offset += 2);
     }
 
     static strategyControl(type: number, strategyid: number) {
