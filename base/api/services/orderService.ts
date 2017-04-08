@@ -7,7 +7,7 @@ import {
     ComFuturePos, ComGWNetGuiInfo, ComProfitInfo, ComOrderRecord, ComContract, TimeVal,
     ComConOrderStatus, ComConOrderErrorInfo, ComOrderErrorInfo, ComOrderStatus, ComGuiAskStrategy,
     ComAccountPos, ComStrategyCfg, ComFundPos, ComMarginPos, MarginPos, ComTotalProfitInfo,
-    ComConOrder, EOrderType, ComOrder, ComOrderCancel, StatArbOrder, ComGuiAckStrategy
+    ComConOrder, EOrderType, ComOrder, ComOrderCancel, StatArbOrder, ComGuiAckStrategy, FpPosUpdate
 } from "../model/itrade/orderstruct";
 declare var electron: Electron.ElectronMainAndRenderer;
 
@@ -90,6 +90,9 @@ export class OrderService {
                 case 2040:
                     msgObj = this.readLog(data.content, msgtype, msgsubtype, msglen);
                     break;
+                case 5021:
+                    msgObj = this.readBasketBack(data.content, msgtype, msgsubtype, msglen);
+                    break;
                 default:
                     break;
             }
@@ -120,6 +123,47 @@ export class OrderService {
             subtype: subtype,
             buffer: buffer
         });
+    }
+    readBasketBack(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
+        let res = [];
+        let tableArr = [];
+        let count: number = 0;
+        let offset: number = 0;
+        let unknowncount = buffer.readUInt32LE(offset); offset += 4;
+        let account = buffer.readUIntLE(offset, 8); offset += 8;
+        count = buffer.readUInt32LE(offset); offset += 4;
+        if (count === 0) {
+            return [{ account: account, data: tableArr }];
+        } else {
+            for (let i = 0; i < count; ++i) {
+                let fpPosUpdate = new FpPosUpdate();
+                fpPosUpdate.UKey = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.LastPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.PreClose = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.BidSize = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.BidPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.AskPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.AskSize = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.InitPos = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.TgtPos = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.CurrPos = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.WorkingVol = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.Diff = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.Traded = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.AvgBuyPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.AvgSellPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.Percentage = buffer.readUInt16LE(offset); offset += 2;
+                fpPosUpdate.DayPnLCon = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.ONPnLCon = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.ValueCon = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.PreValue = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.Flag = buffer.readInt32LE(offset); offset += 4;
+                if (fpPosUpdate.UKey !== 0)
+                    tableArr.push(fpPosUpdate);
+            }
+        }
+        // console.log(tableArr);
+        return [{ account: account, data: tableArr, count: count }];
     }
 
     readGuiCmdAck(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {

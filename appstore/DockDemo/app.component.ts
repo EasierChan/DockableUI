@@ -12,6 +12,7 @@ import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
 import { MessageBox, fs } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
+import { LoadSecuMain } from "./load/loadSecumain";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 
 @Component({
@@ -23,6 +24,7 @@ import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus
   ]
 })
 export class AppComponent implements OnInit {
+  private static secu = new LoadSecuMain();
   className: string = "dock-container vertical";
   children: Control[] = [];
 
@@ -67,6 +69,9 @@ export class AppComponent implements OnInit {
   private portfolioCount: MetaControl;
   private portfolioBuyCom: DropDown;
   private portfolioSellCom: DropDown;
+  private allChk: MetaControl;
+  private range: URange;
+  private rateText: MetaControl;
 
   // strategy index flag
   private commentIdx: number = 10;
@@ -492,38 +497,73 @@ export class AppComponent implements OnInit {
     this.portfolioSellCom.addItem({ Text: "A9", Value: "9" });
     this.portfolioSellCom.addItem({ Text: "A10", Value: "10" });
 
-    let allChk = new MetaControl("checkbox"); allChk.Width = 30; allChk.Title = " All"; allChk.Left = 20;
+    this.allChk = new MetaControl("checkbox"); this.allChk.Width = 30; this.allChk.Title = " All"; this.allChk.Left = 20;
     let allbuyChk = new MetaControl("checkbox"); allbuyChk.Width = 30; allbuyChk.Title = " All-Buy"; allbuyChk.Left = 20;
     let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30; allsellChk.Title = " All-Sell"; allsellChk.Left = 20;
     let shiftChk = new MetaControl("checkbox"); shiftChk.Width = 30; shiftChk.Title = " Shift-Select"; shiftChk.Left = 20;
 
-    let range = new URange(); range.Width = 150; range.Left = 30; range.Title = "Order Rate:";
-    let rateText = new MetaControl("textbox"); rateText.Width = 30; rateText.Title = ""; rateText.Left = 5;
+    this.range = new URange(); this.range.Width = 150; this.range.Left = 30; this.range.Title = "Order Rate:";
+    this.rateText = new MetaControl("textbox"); this.rateText.Width = 30; this.rateText.Title = ""; this.rateText.Left = 5;
     let percentText = new MetaControl("plaintext"); percentText.Title = "%"; percentText.Width = 15;
 
     let btn_sendSel = new MetaControl("button"); btn_sendSel.Text = "Send Selected"; btn_sendSel.Left = 20; btn_sendSel.Class = "primary";
     let btn_cancelSel = new MetaControl("button"); btn_cancelSel.Text = "Cancel Selected"; btn_cancelSel.Left = 20; btn_cancelSel.Class = "primary";
 
-    tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioSellCom).addChild(allChk).addChild(allbuyChk)
-      .addChild(allsellChk).addChild(shiftChk).addChild(range).addChild(rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
+    tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioSellCom).addChild(this.allChk).addChild(allbuyChk)
+      .addChild(allsellChk).addChild(shiftChk).addChild(this.range).addChild(this.rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
 
     this.portfolioTable = new DataTable();
     this.portfolioTable.addColumn("Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
-      "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize", "AskPrice", "AvgBuyPrice");
-
+      "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
+      "AskPrice", "AvgBuyPrice", "AvgSellPirce", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl");
 
     btn_load.OnClick = () => {
+      let readself = this;
+      let account: number = 666600000040;
+      ManulTrader.registerAccPos(account);
       MessageBox.openFileDialog("Select CSV", function (filenames) {
         console.log(filenames);
-        fs.readFile(filenames[0], function (err, content) {
-          if (err === null)
-            console.log(content.toString());
-          else
-            console.log(err);
-        });
+        if (filenames !== undefined)
+          fs.readFile(filenames[0], function (err, content) {
+            if (err === null) {
+              readself.portfolioCount.Text = "0";
+              readself.allChk.Text = false;
+              // judege by future or security and whether security == 0;
 
+              // console.log(content.toString());
+              let codeStr = content.toString();
+              let splitStr = codeStr.split("\n");
+              let initPos = [];
+              splitStr.forEach(function (item) {
+                let arr = item.split(",");
+                if (arr[0]) {
+                  let obj = AppComponent.secu.getUkeyAndSymbol(arr[0]);
+                  let sendObj = { currPos: 0, ukey: 0, targetPos: 0 };
+                  sendObj.currPos = 0;
+                  sendObj.ukey = obj.InnerCode;
+                  sendObj.targetPos = arr[1];
+                  initPos.push(sendObj);
+                }
+              });
+              ManulTrader.submitBasket(5001, 8016930, 300, account, initPos);
+            }
+            else
+              console.log(err);
+          });
       }, [{ name: "CSV", extensions: ["csv"] }]);
     };
+
+    this.range.OnClick = () => {
+      let rateVal = this.range.Text;
+      this.rateText.Text = rateVal;
+      let len = AppComponent.self.portfolioTable.rows.length;
+      for (let i = 0; i < len; ++i) {
+        let targetVal = AppComponent.self.portfolioTable.rows[i].cells[3].Text;
+        let singleVal = (targetVal / 100 * rateVal).toFixed(0);
+        AppComponent.self.portfolioTable.rows[i].cells[9].Text = singleVal;
+      }
+    };
+
     btn_sendSel.OnClick = () => {
 
     };
@@ -686,6 +726,9 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(3011, this.showComOrderRecord);
     ManulTrader.addSlot(3510, this.showComOrderRecord);
     ManulTrader.addSlot(2040, this.showLog);
+
+    ManulTrader.addSlot(5021, this.showBasketBackInfo);
+
     ManulTrader.init();
   }
 
@@ -847,7 +890,7 @@ export class AppComponent implements OnInit {
     console.log("showComConOrder: 2020 ,UNKNOWN ,????", data);
   }
   showComOrderRecord(data: any) {
-    console.log("showComOrderRecord", data);
+    // console.log("showComOrderRecord", data);
     for (let i = 0; i < data.length; ++i) {
       let orderStatus = data[i].od.status;
       if (orderStatus === 9 || orderStatus === 8) {
@@ -1152,7 +1195,6 @@ export class AppComponent implements OnInit {
     }
   }
   addStatusBarMark(data: any) {
-    console.log(data);
     let name = data.name;
     let tempmark = new StatusBarItem(name);
     tempmark.section = "right";
@@ -1631,6 +1673,86 @@ export class AppComponent implements OnInit {
       AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 1].Disable = false;
     }
     AppComponent.self.ref.detectChanges();
+  }
+
+  showBasketBackInfo(data: any) {
+    console.log(data);
+    let account = data[0].account;
+    AppComponent.self.portfolioAccLabel.Text = account;
+    let dataLen = data[0].data.length;
+    let count = data[0].count;
+    AppComponent.self.portfolioCount.Text = count;
+    let tableData = data[0].data;
+    if (dataLen === 0) {
+      // *****
+    } else {
+      AppComponent.self.portfolioTable.rows.length = 0;
+      AppComponent.self.range.Text = 0;
+      AppComponent.self.rateText.Text = 0;
+      for (let i = 0; i < dataLen; ++i) {
+        let row = AppComponent.self.portfolioTable.newRow();
+        let ukey = tableData[i].UKey;
+        let codeInfo = AppComponent.secu.getSymbolAndName(ukey);
+        // console.log(codeInfo);
+        if (codeInfo) {
+          let symbol = (codeInfo.SecuCode + "").split(".")[0];
+          console.log(symbol);
+          row.cells[0].Type = "checkbox";
+          row.cells[0].Title = symbol;
+          row.cells[1].Text = codeInfo.SecuAbbr;
+          row.cells[2].Text = tableData[i].InitPos;
+          row.cells[2].Data = ukey;
+          row.cells[3].Text = tableData[i].TgtPos;
+          row.cells[4].Text = tableData[i].CurrPos;
+          row.cells[5].Text = tableData[i].Diff;
+          row.cells[6].Text = tableData[i].Traded;
+          row.cells[7].Text = tableData[i].Percentage + "%";
+          row.cells[8].Text = tableData[i].WorkingVol;
+          row.cells[9].Type = "textbox";
+          row.cells[9].Text = 0;
+          row.cells[10].Type = "button";
+          row.cells[10].Text = "Send";
+          row.cells[11].Type = "button";
+          row.cells[11].Text = "Cancel";
+          let flag = tableData[i].Flag;
+          // 0 check value ,10,11 disable,12 value, row backcolor
+          if (flag === 1) {
+            row.cells[10].Disable = true;
+            row.cells[11].Disable = true;
+            row.cells[12].Text = "SUspended";
+          } else if (flag === 2) {
+            row.cells[10].Disable = true;
+            row.cells[11].Disable = true;
+            row.cells[12].Text = "Restrict";
+          } else if (flag === 3) {
+            row.cells[10].Disable = false;
+            row.cells[11].Disable = false;
+            row.cells[12].Text = "LimitUp";
+          } else if (flag === 4) {
+            row.cells[10].Disable = false;
+            row.cells[11].Disable = false;
+            row.cells[12].Text = "LimitDown";
+          } else {
+            row.cells[10].Disable = false;
+            row.cells[11].Disable = false;
+            row.cells[12].Text = "Normal";
+          }
+          row.cells[13].Text = tableData[i].PreClose / 10000;
+          row.cells[14].Text = tableData[i].LastPrice / 10000;
+          row.cells[15].Text = tableData[i].BidSize;
+          row.cells[16].Text = tableData[i].BidPrice / 10000;
+          row.cells[17].Text = tableData[i].AskSize;
+          row.cells[18].Text = tableData[i].AskPrice / 10000;
+          row.cells[19].Text = tableData[i].AvgBuyPrice / 10000;
+          row.cells[20].Text = tableData[i].AvgSellPrice / 10000;
+          row.cells[21].Text = tableData[i].PreValue;
+          row.cells[22].Text = tableData[i].ValueCon;
+          row.cells[23].Text = tableData[i].DayPnLCon;
+          row.cells[24].Text = tableData[i].ONPnLCon;
+        }
+      }
+      AppComponent.self.ref.detectChanges();
+    }
   }
 
 }
