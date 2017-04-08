@@ -100,6 +100,7 @@ export class File {
             obj = JSON.parse(fs.readFileSync(fpath, { encoding: "utf8" }));
         } catch (e) {
             console.error(`file: ${fpath} failed to parse to JSON！`);
+            return null;
         }
         return obj;
     }
@@ -127,4 +128,8 @@ export class File {
         else
             fs.writeFile(fpath, JSON.stringify(content), { encoding: "utf8" });
     }
+}
+
+export class Environment {
+    public static appDataDir: string = electron.remote.app.getPath("appData");
 }

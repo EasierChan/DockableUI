@@ -64,7 +64,7 @@ class ItradeParser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.msglen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-
+                logger.info(`processMsg:: type=${this._curHeader.type}, subtype=${this._curHeader.subtype}, msglen=${this._curHeader.msglen}`);
                 this.emit(this._curHeader.type.toString(), this._curHeader, tempBuffer.slice(Header.len));
 
                 restLen = buflen - this._curHeader.msglen - Header.len;

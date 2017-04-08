@@ -4,9 +4,7 @@ import { WorkspaceConfig, Channel, StrategyInstance } from "../../base/api/model
 import { Header } from "../../base/api/model/itrade/message.model";
 import { ComStrategyInfo } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
-const os = require("@node/os");
-const path = require("@node/path");
-const fs = require("@node/fs");
+import { File, Environment, path } from "../../base/api/services/backend.service";
 
 export class ConfigurationBLL {
     private readonly kTemplateExt: string = ".json";
@@ -14,31 +12,27 @@ export class ConfigurationBLL {
     constructor() {
         this._names = [];
         this._templates = {};
-        this._basedir = path.join(os.homedir(), ".itradeui");
-        this._templatedir = path.join(this._basedir, "templates");
-        fs.readdir(this._templatedir, (err, files) => {
-            files.forEach(name => {
-                fs.readFile(path.join(this._templatedir, name), (e, data) => {
-                    this._names.push(path.basename(name, this.kTemplateExt));
-                    this._templates[this._names[this._names.length - 1]] = JSON.parse(data);
-                    console.info(this._templates);
-                });
-            });
-        });
+        this._basedir = path.join(Environment.appDataDir, "workbench");
+        this._templatepath = path.join(this._basedir, "templates.json");
+        this._templates = File.parseJSON(this._templatepath) || {};
 
-        fs.readFile(path.join(this._basedir, "configs", "ss-instances.json"), (e, data) => {
-            this._configs = WorkspaceConfig.setObject(JSON.parse(data));
-        });
+        for (let prop in this._templates) {
+            this._names.push(prop);
+        }
+
+        this._configpath = path.join(this._basedir, "instances.json");
+        this._configs = WorkspaceConfig.setObject(File.parseJSON(this._configpath) || []);
     }
 
     private _basedir: string;
-    private _templatedir: string;
     /**
      * store templates.
      */
     private _templates: Object;
+    private _templatepath: string;
 
     private _configs: WorkspaceConfig[];
+    private _configpath: string;
 
     private _names: string[];
     /**
@@ -49,8 +43,11 @@ export class ConfigurationBLL {
     }
 
     getTemplateByName(name: string): any {
-        console.info(this._templates[name]);
-        return this._templates[name];
+        if (this._templates.hasOwnProperty(name)) {
+            return this._templates[name];
+        }
+
+        return null;
     }
 
     getConfigByName(name: string): WorkspaceConfig {
@@ -65,11 +62,21 @@ export class ConfigurationBLL {
     getAllConfigs(): WorkspaceConfig[] {
         return this._configs;
     }
+
+    updateConfig(config: WorkspaceConfig) {
+        this._configs.push(config);
+        File.writeAsync(this._configpath, JSON.stringify(this._configs, null, 2));
+    }
+
+    updateTemplate(name: string, template: any) {
+        this._templates[name] = template;
+        File.writeAsync(this._templatepath, JSON.stringify(this._templates, null, 2));
+    }
 }
 
 export class StrategyBLL {
     private itrade: ItradeService = new ItradeService();
-    static sessionId = 1;
+    static sessionId = 101;
     constructor() {
         this.itrade.sessionID = StrategyBLL.sessionId;
         StrategyBLL.sessionId += 1;
@@ -128,7 +135,16 @@ export interface StrategyServerItem {
 export class StrategyServerContainer {
     private _items: StrategyServerItem[] = [];
 
-    addItem(configs: WorkspaceConfig[]): void {
+    addItem(...configs: WorkspaceConfig[]): void {
+        configs.forEach(config => {
+            let bll = new StrategyBLL();
+            bll.addSlot(2011, this.handleStrategyInfo, this);
+            this._items.push({ name: config.name, config: config, conn: bll });
+            bll.start();
+        });
+    }
+
+    addItems(configs: WorkspaceConfig[]): void {
         configs.forEach(config => {
             let bll = new StrategyBLL();
             bll.addSlot(2011, this.handleStrategyInfo, this);
