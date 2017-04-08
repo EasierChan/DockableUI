@@ -72,10 +72,6 @@ export class ScrollerBarTable implements AfterViewInit, OnChanges {
     private ref: ChangeDetectorRef) {
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    this.resizeHeader();
-  }
-
   ngOnInit() {
     this.dataSource.detectChanges = () => {
       this.ref.detectChanges;
@@ -98,9 +94,9 @@ export class ScrollerBarTable implements AfterViewInit, OnChanges {
   }
 
   resizeHeader() {
+    this.head.nativeElement.style.width = this.content.nativeElement.clientWidth + "px";
     let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
     this.content.nativeElement.querySelectorAll("thead > tr:first-child > th").forEach((th, index) => {
-      console.info(th.clientWidth);
       headCells[index].style.width = th.clientWidth + "px";
     });
   }
