@@ -7,6 +7,7 @@ import { UserProfile } from "../model/app.model";
 export const os = require("@node/os");
 export const path = require("@node/path");
 export const fs = require("@node/fs");
+export const readline = require("@node/readline");
 
 @Injectable()
 export class AppStoreService {
@@ -89,5 +90,41 @@ export class MessageBox {
             filters: filters,
             properties: ["openFile"]
         }, cb);
+    }
+}
+
+export class File {
+    public static parseJSON(fpath: string): Object {
+        let obj;
+        try {
+            obj = JSON.parse(fs.readFileSync(fpath, { encoding: "utf8" }));
+        } catch (e) {
+            console.error(`file: ${fpath} failed to parse to JSON！`);
+        }
+        return obj;
+    }
+
+    public static readLineByLine(fpath: string, cb: (linestr) => void) {
+        const rl = readline.createInterface({
+            input: fs.createReadStream(fpath)
+        });
+
+        rl.on("line", line => {
+            cb(line);
+        });
+    }
+
+    public static writeSync(fpath: string, content: string | Object) {
+        if (typeof (content) === "string")
+            fs.writeFileSync(fpath, content, { encoding: "utf8" });
+        else
+            fs.writeFileSync(fpath, JSON.stringify(content), { encoding: "utf8" });
+    }
+
+    public static writeAsync(fpath: string, content: string | Object) {
+        if (typeof (content) === "string")
+            fs.writeFile(fpath, content, { encoding: "utf8" });
+        else
+            fs.writeFile(fpath, JSON.stringify(content), { encoding: "utf8" });
     }
 }

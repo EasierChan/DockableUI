@@ -67,7 +67,6 @@ export class UWindow {
 
 	public static menuBarHiddenKey = "menuBarHidden";
 	public static colorThemeStorageKey = "theme";
-	public onClosed: () => void;
 
 	protected static MIN_WIDTH = 300;
 	protected static MIN_HEIGHT = 120;
@@ -171,6 +170,13 @@ export class UWindow {
 
 	public get win(): Electron.BrowserWindow {
 		return this._win;
+	}
+
+	public set onclosing(value: Function) {
+		let self = this;
+		this.win.on("close", () => {
+			value(self.getBounds());
+		});
 	}
 
 	public focus(): void {
@@ -282,8 +288,9 @@ export class UWindow {
 	}
 
 	public close(): void {
-		if (this.win !== null && !this.win.isDestroyed())
+		if (this.win !== null && !this.win.isDestroyed()) {
 			this.win.close();
+		}
 	}
 
 	public serializeWindowState(): IWindowState {
@@ -461,11 +468,9 @@ export class UWindow {
 
 
 	public build(): void {
+		let self = this;
 		this._win.on("closed", () => {
-			this.dispose();
-			if (this.onClosed) {
-				this.onClosed();
-			}
+			self.dispose();
 		});
 	}
 

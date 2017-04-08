@@ -217,6 +217,7 @@ export class MetaControl extends Control {
         this.className = "default";
         this.dataSource = new Object();
         this.dataSource.click = () => { };
+        this.dataSource.input = null;
         this.styleObj.left = 2;
         this.styleObj.top = 0;
     }
@@ -224,6 +225,10 @@ export class MetaControl extends Control {
     set OnClick(value: Function) {
         this.dataSource.click = value;
         // console.log(JSON.stringify(this.dataSource));
+    }
+
+    set OnInput(value: Function) {
+        this.dataSource.input = value;
     }
 
     set Class(value: string) {
@@ -905,7 +910,7 @@ export class DataTableRow extends Control {
 }
 
 export class DataTableRowCell extends MetaControl {
-    constructor(type: "textbox" | "button" | "plaintext" = "plaintext") {
+    constructor(type: "textbox" | "button" | "plaintext" | "checkbox" = "plaintext") {
         super(type);
     }
 

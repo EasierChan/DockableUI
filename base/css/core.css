@@ -200,7 +200,7 @@ dock-table2 {
 }
 
 .table > thead > tr > th {
-    padding: 0;
+    padding: 2px;
 }
 
 .table > tbody > tr > td {
