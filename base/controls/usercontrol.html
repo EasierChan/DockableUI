@@ -3,44 +3,45 @@
     [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top" [disabled]="child.styleObj?.disable">
     {{child.dataSource.text}}
     </button>
-    <label *ngIf="child.styleObj.type=='textbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top" (input)="child.styleObj?.input">
+  <label *ngIf="child.styleObj.type=='textbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top"
+    (input)="child.dataSource.input ? child.dataSource.input() : null">
                 <pre>{{child.dataSource.title}}</pre>
                 <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" [style.width.px]="child.styleObj?.width"
                 class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
              </label>
-    <div *ngIf="child.styleObj.type=='dropdown'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
-      <pre>{{child.dataSource.title}}</pre>
-      <div class="btn-group" [style.width.px]="child.styleObj?.width">
-        <button type="button" class="btn-xs btn-default dropdown-toggle" (click)="child.dataSource.click()" [disabled]="child.styleObj?.disable">
+  <div *ngIf="child.styleObj.type=='dropdown'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
+    <pre>{{child.dataSource.title}}</pre>
+    <div class="btn-group" [style.width.px]="child.styleObj?.width">
+      <button type="button" class="btn-xs btn-default dropdown-toggle" (click)="child.dataSource.click()" [disabled]="child.styleObj?.disable">
                         <pre style="width:100%">{{child.dataSource.selectedItem.Text}}</pre> <span class="caret"></span>
                     </button>
-        <ul class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'">
-          <li *ngFor="let item of child.dataSource.items" (click)="child.dataSource?.select(item)"><a href="#">{{item.Text}}</a></li>
-        </ul>
-      </div>
+      <ul class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'">
+        <li *ngFor="let item of child.dataSource.items" (click)="child.dataSource?.select(item)"><a href="#">{{item.Text}}</a></li>
+      </ul>
     </div>
-    <label *ngIf="child.styleObj.type=='radio'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
+  </div>
+  <label *ngIf="child.styleObj.type=='radio'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <pre>{{child.dataSource.title}}</pre>
                 <input [name]="child.dataSource.name" type="radio" [(ngModel)]="child.dataSource.text" [disabled]="child.styleObj?.disable"> 
              </label>
-    <label *ngIf="child.styleObj.type=='checkbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
+  <label *ngIf="child.styleObj.type=='checkbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <input [name]="child.dataSource.name" type="checkbox" [(ngModel)]="child.dataSource.text"
                  [disabled]="child.styleObj?.disable" (click)="child.dataSource.click()"> 
                 <span style="white-space: nowrap">{{child.dataSource.title}}</span>
             </label>
-    <label *ngIf="child.styleObj.type=='range'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
+  <label *ngIf="child.styleObj.type=='range'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <pre>{{child.dataSource.title}}</pre>
                 <input type="range" [class]="child.className" [min]="child.dataSource.min" [max]="child.dataSource.max" [(ngModel)]="child.dataSource.text"
                 [style.width.px]="child.styleObj?.width" (change)="child.dataSource.click()" [disabled]="child.styleObj?.disable">
              </label>
-    <label *ngIf="child.styleObj.type=='plaintext'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
+  <label *ngIf="child.styleObj.type=='plaintext'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
                 <pre>{{child.dataSource.title}}</pre>
                 <pre [class]="child.className">{{child.dataSource.text}}</pre>
              </label>
-    <dock-table *ngIf="child.styleObj.type=='table'" [className]="child.className" [dataSource]="child.dataSource"></dock-table>
-    <dock-table2 *ngIf="child.styleObj.type=='table2'" [className]="child.className" [dataSource]="child.dataSource"></dock-table2>
-    <echart *ngIf="child.styleObj.type=='echart'" [dataSource]="child.dataSource" [class]="child.className"></echart>
-    <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource" [class]="child.styleObj.type"
-      [style.min-width.px]="child.styleObj?.minWidth" [style.min-height.px]="child.styleObj?.minHeight">
-      </usercontrol>
+  <dock-table *ngIf="child.styleObj.type=='table'" [className]="child.className" [dataSource]="child.dataSource"></dock-table>
+  <dock-table2 *ngIf="child.styleObj.type=='table2'" [className]="child.className" [dataSource]="child.dataSource"></dock-table2>
+  <echart *ngIf="child.styleObj.type=='echart'" [dataSource]="child.dataSource" [class]="child.className"></echart>
+  <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource" [class]="child.styleObj.type"
+    [style.min-width.px]="child.styleObj?.minWidth" [style.min-height.px]="child.styleObj?.minHeight">
+  </usercontrol>
 </template>

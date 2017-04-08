@@ -142,7 +142,7 @@ export class AppComponent implements OnInit {
 
     this.orderstatusTable = new DataTable();
     this.orderstatusTable.addColumn("U-Key", "Symbol", "OrderId", "Time", "Strategy",
-      "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account", "All");
+      "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account");
     orderstatusContent.addChild(this.orderstatusTable);
     this.orderstatusPage.setContent(orderstatusContent);
     leftPanel.addTab(this.orderstatusPage);
@@ -536,7 +536,7 @@ export class AppComponent implements OnInit {
   }
 
   showStatArbOrder(data: any) {
-   // console.log("statarb....", data);
+    // console.log("statarb....", data);
     for (let i = 0; i < data.length; ++i) {
       let subtype = data[i].subtype;
       let dataArr = data[i].content;
@@ -829,9 +829,6 @@ export class AppComponent implements OnInit {
     row.cells[9].Text = this.parseOrderStatus(obj.od.status);
     row.cells[9].Data = obj.od.status;
     row.cells[10].Text = obj.con.account;
-    row.cells[11].Type = "checkbox";
-    row.cells[11].Title = "ddd";
-    row.cells[11].Width = 50;
     AppComponent.self.ref.detectChanges();
   }
   formatTime(time: any): String {
