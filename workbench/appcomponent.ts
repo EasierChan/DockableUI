@@ -316,7 +316,7 @@ export class AppComponent {
                 // this.configBLL.updateTemplate(name, template);
             }
         });
-        let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 10, "clientdisksn": "", "clientnetip": "172.24.51.6", "clientnetmac": "f48e38bb77ce", "clientesn": "9693a58a65e2e97fe42a41c10616ae29223fb6364b04e0d9336252fba9ed339b030d4592f987fa526edca6cca021721db6f42eeae0bdf750febd9b938526d0a9", "clienttgwapi": "tgwapi253", "clientapp": "", "clientwip": "0.0.0.0", "clienttm": timestamp, "clientcpuid": "BFEBFBFF000506E3" };
+        let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientdisksn": "", "clientnetip": "172.24.51.6", "clientnetmac": "f48e38bb77ce", "clientesn": "9693a58a65e2e97fe42a41c10616ae29223fb6364b04e0d9336252fba9ed339b030d4592f987fa526edca6cca021721db6f42eeae0bdf750febd9b938526d0a9", "clienttgwapi": "tgwapi253", "clientapp": "", "clientwip": "0.0.0.0", "clienttm": timestamp, "clientcpuid": "BFEBFBFF000506E3" };
 
         this.tgw.send(17, 41, loginObj); // login
     }
