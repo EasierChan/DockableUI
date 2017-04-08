@@ -905,7 +905,7 @@ export class DataTableRow extends Control {
 }
 
 export class DataTableRowCell extends MetaControl {
-    constructor(type: "textbox" | "button" | "plaintext" = "plaintext") {
+    constructor(type: "textbox" | "button" | "plaintext" | "checkbox" = "plaintext") {
         super(type);
     }
 
