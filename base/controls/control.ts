@@ -235,6 +235,10 @@ export class MetaControl extends Control {
         this.className = value;
     }
 
+    get Class() {
+        return this.className;
+    }
+
     set Text(value: any) {
         this.dataSource.text = value;
     }
@@ -247,28 +251,56 @@ export class MetaControl extends Control {
         this.dataSource.title = value;
     }
 
+    get Title() {
+        return this.dataSource.title;
+    }
+
     set Name(value: string) {
         this.dataSource.name = value;
+    }
+
+    get Name() {
+        return this.dataSource.name;
     }
 
     set Left(value: number) {
         this.styleObj.left = value;
     }
 
+    get Left() {
+        return this.styleObj.left;
+    }
+
     set Top(value: number) {
         this.styleObj.top = value;
+    }
+
+    get Top() {
+        return this.styleObj.top;
     }
 
     set Width(value: number) {
         this.styleObj.width = value;
     }
 
+    get Width() {
+        return this.styleObj.width;
+    }
+
     set ReadOnly(value: boolean) {
         this.styleObj.readonly = value;
     }
 
+    get ReadOnly() {
+        return this.styleObj.readonly;
+    }
+
     set Disable(value: boolean) {
         this.styleObj.disable = value;
+    }
+
+    get Disable() {
+        return this.styleObj.disable;
     }
 
     set Data(value: any) {
@@ -574,7 +606,7 @@ export class SpreadViewer {
                         }
                     },
                     tooltip: {
-                        formatter: function(param) {
+                        formatter: function (param) {
                             return JSON.stringify(param);
                         }
                     }
@@ -802,7 +834,8 @@ export class DataTable extends Control {
             columns: null,
             rows: null,
             bRowIndex: true,
-            detectChanges: null
+            detectChanges: null,
+            cellpadding: null
         };
         this.styleObj = { type: type, width: null, height: null };
     }
@@ -854,6 +887,10 @@ export class DataTable extends Control {
         });
     }
 
+    set cellPadding(value: number) {
+        this.dataSource.cellpadding = value;
+    }
+
     detectChanges(): void {
         this.dataSource.detectChanges();
     }
@@ -863,6 +900,7 @@ export class DataTableRow extends Control {
     cells: DataTableRowCell[] = [];
     private parent: DataTable;
     private bHidden: boolean;
+    private bgcolor: string;
     constructor(private columns: number) {
         super();
         this.bHidden = false;
@@ -907,6 +945,10 @@ export class DataTableRow extends Control {
     set hidden(value: boolean) {
         this.bHidden = value;
     }
+
+    set backgroundColor(value: string) {
+        this.bgcolor = value;
+    }
 }
 
 export class DataTableRowCell extends MetaControl {
@@ -917,6 +959,10 @@ export class DataTableRowCell extends MetaControl {
     set Type(value: string) {
         this.styleObj.type = value;
     }
+
+    get Type() {
+        return this.styleObj.type;
+    }
 }
 
 export class DataTableColumn {
@@ -926,6 +972,10 @@ export class DataTableColumn {
 
     set hidden(value: boolean) {
         this.bHidden = value;
+    }
+
+    get hidden(){
+        return this.bHidden;
     }
 
     get Name() {

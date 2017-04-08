@@ -11,14 +11,15 @@
   </thead>
   <tbody>
     <template ngFor let-row [ngForOf]="curData.rows" let-i="index">
-      <tr *ngIf="!row.bHidden">
-        <td *ngIf="dataSource.bRowIndex">{{i + 1 + pageSize * curPage}}</td>
+      <tr *ngIf="!row.bHidden" [style.background-color]="row?.bgcolor">
+        <td *ngIf="dataSource.bRowIndex" [style.padding.px]="dataSource.cellpadding">{{i + 1 + pageSize * curPage}}</td>
         <template ngFor let-cell [ngForOf]="row.cells" let-cellIndex="index">
-          <td *ngIf="!dataSource.columns[cellIndex].bHidden" (click)="cell.dataSource.click(cellIndex, i + pageSize * curPage)" [class]="cell.styleObj.type=='plaintext'? 'text-' + cell.className + ' bg-' + cell.className : null">
+          <td *ngIf="!dataSource.columns[cellIndex].bHidden" (click)="cell.dataSource.click(cellIndex, i + pageSize * curPage)"
+              [class]="cell.styleObj.type=='plaintext'? 'text-' + cell.className + ' bg-' + cell.className : null" [style.padding.px]="dataSource.cellpadding">
             <button *ngIf="cell.styleObj.type=='button'" class="btn btn-default btn-{{cell.className}} btn-xs " [disabled]="cell.styleObj.disable"
-                [name]="cell.dataSource.name">
+              [name]="cell.dataSource.name">
             {{cell.dataSource.text}}
-          </button>
+            </button>
             <input *ngIf="cell.styleObj.type=='textbox'" type="text" [(ngModel)]="cell.dataSource.text" [readonly]="cell.styleObj.readonly"
               [name]="cell.dataSource.name" class="btn-default btn-{{cell.className}} btn-xs">
             <span *ngIf="cell.styleObj.type=='plaintext'">{{cell.dataSource.text}}</span>
