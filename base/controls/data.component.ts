@@ -61,7 +61,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   templateUrl: "data.scrollerbar-table.html",
   inputs: ["className", "dataSource"]
 })
-export class ScrollerBarTable implements AfterViewInit, OnChanges {
+export class ScrollerBarTable implements AfterViewInit {
   className: string;
   dataSource: any;
 
