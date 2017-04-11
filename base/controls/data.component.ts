@@ -1,7 +1,7 @@
 // data Component
 /**
  * author: chenlei
- * desc: components for acesss data, such as datatable, treeview, charts, 
+ * desc: components for acesss data, such as datatable, treeview, charts
  */
 import {
   Component, ViewChild, ContentChild, Input, OnInit, AfterViewInit,
@@ -87,6 +87,7 @@ export class ScrollerBarTable implements OnInit, AfterViewInit {
   onScroll() {
     this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
     this.head.nativeElement.style.display = "table";
+    this.resizeHeader();
   }
 
   @HostListener("resize")
