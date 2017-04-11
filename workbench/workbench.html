@@ -349,7 +349,7 @@
                     <div *ngFor="let item of strategyContainer.items" class="frame">
                         <div class="heading bg-grayLight">
                             <div class="cell">{{item.name}}</div>
-                            <div class="cell">{{item.connState}}</div>
+                            <div class="cell">{{item.conn.connState}}</div>
                         </div>
                         <div class="content bg-darker">
                             <table class="table condensed">
@@ -370,10 +370,18 @@
                                         <td>{{strategy.status}}</td>
                                         <td>
                                             <div data-role="group" data-group-type="one-state">
-                                                <button class="button small-button" [disabled]="strategy.status=='RUN'">start</button>
-                                                <button class="button small-button" [disabled]="strategy.status=='STOP'">stop</button>
-                                                <button class="button small-button" [disabled]="strategy.status=='WATCH'">watch</button>
-                                                <button class="button small-button" [disabled]="strategy.status=='PAUSE'">pause</button>
+                                                <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 2)" [disabled]="strategy.status=='RUN'||strategy.status=='STOP'">
+                                                    start
+                                                </button>
+                                                <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 3)" [disabled]="strategy.status=='PAUSE'||strategy.status=='STOP'">
+                                                    pause
+                                                </button>
+                                                <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 4)" [disabled]="strategy.status=='STOP'">
+                                                    stop
+                                                </button>
+                                                <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 5)" [disabled]="strategy.status=='WATCH'">
+                                                    watch
+                                                </button>
                                             </div>
                                         </td>
                                         <td>{{strategy?.totalpnl}}</td>

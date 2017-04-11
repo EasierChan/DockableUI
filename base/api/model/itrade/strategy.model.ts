@@ -92,3 +92,56 @@ export class ComTotalProfitInfo extends Message {
         return BufferUtil.format(buf, offset, "1i4p1l11L", this);
     }
 };
+
+export class ComGuiAckStrategy extends Message {
+    static readonly len = 24;
+
+    strategyid: number = 0; // 4
+    key: number = 0; // 4
+    value: number = 0; // 8
+    success: boolean = false;
+    error: number = 0; // 4
+
+    toBuffer(): Buffer {
+        return null;
+    }
+
+    fromBuffer(buf: Buffer, offset = 0): number {
+        return BufferUtil.format(buf, offset, "2i1L1B3p1I", this);
+    }
+}
+
+export class ComStrategyCfg extends Message {
+    static readonly len = 80;
+
+    strategyid: number = 0; // 4
+    key: number = 0;  // 4
+    name: string = ""; // 50
+    value: number = 0; // 8
+    decimal: number = 0; // 1
+    type: number = 0; // 1
+    level: number = 0; // 1
+    save: number = 0; // 1
+    modify: number = 0; // 1
+    dirty: number = 0; // 1
+
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(ComStrategyCfg.len, 0);
+        buf.writeUInt32LE(this.strategyid, offset); offset += 4;
+        buf.writeUInt32LE(this.key, offset); offset += 4;
+        buf.write(this.name, offset, this.name.length, "utf-8"); offset += 56;
+        buf.writeIntLE(this.value, offset, 8); offset += 8;
+        buf.writeInt8(this.decimal, offset); offset += 1;
+        buf.writeInt8(this.type, offset); offset += 1;
+        buf.writeInt8(this.level, offset); offset += 1;
+        buf.writeInt8(this.save, offset); offset += 1;
+        buf.writeInt8(this.modify, offset); offset += 1;
+        buf.writeInt8(this.dirty, offset); offset += 1;
+        return buf;
+    }
+
+    fromBuffer(buf: Buffer, offset = 0): number {
+        return BufferUtil.format(buf, offset, "2i50s6p1L6B2p", this);
+    }
+};

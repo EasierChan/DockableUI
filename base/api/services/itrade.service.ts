@@ -8,7 +8,7 @@ import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
 import { Header, MsgType, Message } from "../model/itrade/message.model";
-import { ComStrategyInfo, ComTotalProfitInfo } from "../model/itrade/strategy.model";
+import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy } from "../model/itrade/strategy.model";
 import { Injectable } from "@angular/core";
 
 const logger = console;
@@ -98,6 +98,10 @@ class StrategyParser extends ItradeParser {
     }
 
     init(): void {
+        this.registerMsgFunction("2001", this, this.processStrategyMsg);
+        this.registerMsgFunction("2003", this, this.processStrategyMsg);
+        this.registerMsgFunction("2005", this, this.processStrategyMsg);
+        this.registerMsgFunction("2050", this, this.processStrategyMsg);
         this.registerMsgFunction("2011", this, this.processStrategyMsg);
         this.registerMsgFunction("2048", this, this.processStrategyMsg);
         this._intervalRead = setInterval(() => {
@@ -112,6 +116,17 @@ class StrategyParser extends ItradeParser {
         let offset = 4;
         let msg;
         switch (header.type) {
+            case 2001: // ComGuiAckStrategy
+            case 2003: // ComGuiAckStrategy
+            case 2005: // ComGuiAckStrategy
+            case 2050: // ComGuiAckStrategy
+                msg = new ComGuiAckStrategy();
+
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
             case 2011: // ComStrategyInfo
                 msg = new ComStrategyInfo();
 

@@ -1,7 +1,7 @@
 "use strict";
 
 import { Header } from "../../base/api/model/itrade/message.model";
-import { ComStrategyInfo, ComTotalProfitInfo } from "../../base/api/model/itrade/strategy.model";
+import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy, ComStrategyCfg } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
 import { File, Environment, path } from "../../base/api/services/backend.service";
 
@@ -92,16 +92,16 @@ export class StrategyBLL {
     start(port: number, host: string): void {
         this.itrade.addSlot(0, () => {
             let offset = 0;
-            let body = Buffer.alloc(4 + 6 * Header.len);
-            body.writeUInt32LE(6, offset); offset += 4;
+            let body = Buffer.alloc(4 + 4 * Header.len);
+            body.writeUInt32LE(4, offset); offset += 4;
             let header = new Header();
             header.type = 2048;
             header.subtype = 1;
             header.msglen = 0;
             offset += header.toBuffer().copy(body, offset);
-            // header.type = 2001;
-            // header.subtype = 0;
-            // offset += header.toBuffer().copy(body, offset);
+            header.type = 2001;
+            header.subtype = 0;
+            offset += header.toBuffer().copy(body, offset);
             // header.type = 2032;
             // header.subtype = 0;
             // offset += header.toBuffer().copy(body, offset);
@@ -122,6 +122,10 @@ export class StrategyBLL {
             offset = null;
             this.connState = "CONNECTED";
         }, this);
+        this.itrade.addSlot(2001, this.handleStartCommand, this);
+        this.itrade.addSlot(2005, this.handlePauseCommand, this);
+        this.itrade.addSlot(2003, this.handleStopCommand, this);
+        this.itrade.addSlot(2050, this.handleWatchCommand, this);
         this.itrade.addSlot(2011, this.handleStrategyInfo, this);
         this.itrade.addSlot(2048, this.handleStrategyProfitInfo, this);
         this.itrade.connect(port, host);
@@ -136,8 +140,6 @@ export class StrategyBLL {
     }
 
     handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
-        // console.info(msg);
-
         this.strategies.push({
             id: msg.key,
             name: msg.name,
@@ -151,14 +153,66 @@ export class StrategyBLL {
     }
 
     handleStrategyProfitInfo(msg: ComTotalProfitInfo, sessionId: number): void {
-        // console.info(msg);
-
         this.strategies.forEach(item => {
             if (item.id === msg.strategyid) {
-                item.totalpnl = msg.totalpnl;
-                item.totalposition = msg.totalposition;
+                item.totalpnl = msg.totalpnl / 10000;
+                item.totalposition = msg.totalposition / 10000;
             }
         });
+    }
+
+    handleStartCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.status = "RUN";
+            }
+        });
+    }
+
+    handlePauseCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.status = "PAUSE";
+            }
+        });
+    }
+
+    handleStopCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.status = "STOP";
+            }
+        });
+    }
+
+    handleWatchCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.status = "WATCH";
+            }
+        });
+    }
+
+    changeStatus(strategyid: number, status: number) {
+        let buf = Buffer.alloc(4 + ComStrategyCfg.len, 0);
+        buf.writeUInt32LE(4, 1);
+        let cfg = new ComStrategyCfg();
+        cfg.strategyid = strategyid;
+        cfg.toBuffer().copy(buf, 4, 0);
+        switch (status) {
+            case 2:
+                this.itrade.send(2000, 0, buf);
+                break;
+            case 3:
+                this.itrade.send(2004, 0, buf);
+                break;
+            case 4:
+                this.itrade.send(2002, 0, buf);
+                break;
+            case 5:
+                this.itrade.send(2049, 0, buf);
+                break;
+        }
     }
 }
 
