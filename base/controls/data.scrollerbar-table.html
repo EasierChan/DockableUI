@@ -4,7 +4,7 @@
     <tr>
       <th *ngIf="dataSource.bRowIndex">#</th>
       <template ngFor let-col [ngForOf]="dataSource.columns">
-        <th *ngIf="!col.bHidden" (resize)="onResize()">
+        <th *ngIf="!col.bHidden">
           {{col.columnHeader}}
         </th>
       </template>
@@ -15,8 +15,8 @@
       <tr *ngIf="!row.bHidden" [style.background-color]="row?.bgcolor">
         <td *ngIf="dataSource.bRowIndex" [style.padding.px]="dataSource.cellpadding">{{i + 1}}</td>
         <template ngFor let-cell [ngForOf]="row.cells" let-cellIndex="index">
-          <td *ngIf="!dataSource.columns[cellIndex].bHidden" (click)="cell.dataSource.click(cellIndex, i + pageSize * curPage)"
-             [class]="cell.styleObj.type=='plaintext'? 'text-' + cell.className + ' bg-' + cell.className : null" [style.padding.px]="dataSource.cellpadding">
+          <td *ngIf="!dataSource.columns[cellIndex].bHidden" (click)="cell.dataSource.click(cellIndex, i + pageSize * curPage)" [class]="cell.styleObj.type=='plaintext'? 'text-' + cell.className + ' bg-' + cell.className : null"
+            [style.padding.px]="dataSource.cellpadding">
             <button *ngIf="cell.styleObj.type=='button'" class="btn btn-default btn-{{cell.className}} btn-xs " [disabled]="cell.styleObj.disable"
               [name]="cell.dataSource.name">
             {{cell.dataSource.text}}
@@ -35,7 +35,7 @@
     </template>
   </tbody>
 </table>
-<table #head class="table table-condensed" cellspacing="0" style="position:absolute;top:0;">
+<table #head class="table table-condensed" cellspacing="0" style="position:absolute;top:0;display:none;">
   <thead>
     <tr>
       <th *ngIf="dataSource.bRowIndex">#</th>
