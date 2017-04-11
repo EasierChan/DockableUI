@@ -1,8 +1,7 @@
 "use strict";
 
-import { WorkspaceConfig, Channel, StrategyInstance } from "../../base/api/model/app.model";
 import { Header } from "../../base/api/model/itrade/message.model";
-import { ComStrategyInfo } from "../../base/api/model/itrade/strategy.model";
+import { ComStrategyInfo, ComTotalProfitInfo } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
 import { File, Environment, path } from "../../base/api/services/backend.service";
 
@@ -75,18 +74,22 @@ export class ConfigurationBLL {
 }
 
 export class StrategyBLL {
-    private itrade: ItradeService = new ItradeService();
     static sessionId = 101;
+    private itrade: ItradeService = new ItradeService();
+    strategies: StrategyItem[] = [];
+    connState: string;
+
     constructor() {
         this.itrade.sessionID = StrategyBLL.sessionId;
         StrategyBLL.sessionId += 1;
+        this.connState = "INIT";
     }
 
     get sessionid(): number {
         return this.itrade.sessionID;
     }
 
-    start(): void {
+    start(port: number, host: string): void {
         this.itrade.addSlot(0, () => {
             let offset = 0;
             let body = Buffer.alloc(4 + 6 * Header.len);
@@ -96,15 +99,15 @@ export class StrategyBLL {
             header.subtype = 1;
             header.msglen = 0;
             offset += header.toBuffer().copy(body, offset);
-            header.type = 2001;
-            header.subtype = 0;
-            offset += header.toBuffer().copy(body, offset);
-            header.type = 2032;
-            header.subtype = 0;
-            offset += header.toBuffer().copy(body, offset);
-            header.type = 2033;
-            header.subtype = 0;
-            offset += header.toBuffer().copy(body, offset);
+            // header.type = 2001;
+            // header.subtype = 0;
+            // offset += header.toBuffer().copy(body, offset);
+            // header.type = 2032;
+            // header.subtype = 0;
+            // offset += header.toBuffer().copy(body, offset);
+            // header.type = 2033;
+            // header.subtype = 0;
+            // offset += header.toBuffer().copy(body, offset);
             header.type = 2011;
             header.subtype = 0;
             offset += header.toBuffer().copy(body, offset);
@@ -117,47 +120,177 @@ export class StrategyBLL {
             header = null;
             body = null;
             offset = null;
+            this.connState = "CONNECTED";
         }, this);
-        this.itrade.connect(9080, "172.24.51.4");
+        this.itrade.addSlot(2011, this.handleStrategyInfo, this);
+        this.itrade.addSlot(2048, this.handleStrategyProfitInfo, this);
+        this.itrade.connect(port, host);
+    }
+
+    stop() {
+        this.itrade.stop();
     }
 
     addSlot(type: number, callback: Function, context?: any): void {
         return this.itrade.addSlot(type, callback, context);
     }
+
+    handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
+        // console.info(msg);
+
+        this.strategies.push({
+            id: msg.key,
+            name: msg.name,
+            status: msg.status === 0 ? "INIT" :
+                msg.status === 1 ? "CREAT" :
+                    msg.status === 2 ? "RUN" :
+                        msg.status === 3 ? "PAUSE" :
+                            msg.status === 4 ? "STOP" :
+                                msg.status === 5 ? "WATCH" : "ERROR"
+        });
+    }
+
+    handleStrategyProfitInfo(msg: ComTotalProfitInfo, sessionId: number): void {
+        // console.info(msg);
+
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.totalpnl = msg.totalpnl;
+                item.totalposition = msg.totalposition;
+            }
+        });
+    }
+}
+
+interface StrategyItem {
+    id: number;
+    name: string;
+    status: string;
+    totalpnl?: number; // 8
+    totalposition?: number; // 8
 }
 
 export interface StrategyServerItem {
     name: string;
-    config: WorkspaceConfig;
     conn: StrategyBLL;
 }
 
 export class StrategyServerContainer {
-    private _items: StrategyServerItem[] = [];
+    items: StrategyServerItem[] = [];
 
     addItem(...configs: WorkspaceConfig[]): void {
         configs.forEach(config => {
             let bll = new StrategyBLL();
-            bll.addSlot(2011, this.handleStrategyInfo, this);
-            this._items.push({ name: config.name, config: config, conn: bll });
-            bll.start();
+            this.items.push({ name: config.name, conn: bll });
+            bll.start(config.port, config.host);
         });
     }
 
     addItems(configs: WorkspaceConfig[]): void {
         configs.forEach(config => {
             let bll = new StrategyBLL();
-            bll.addSlot(2011, this.handleStrategyInfo, this);
-            this._items.push({ name: config.name, config: config, conn: bll });
-            bll.start();
+            this.items.push({ name: config.name, conn: bll });
+            bll.start(config.port, config.host);
         });
     }
 
-    handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
-        this._items.forEach(item => {
-            if (item.conn.sessionid === sessionid) {
-                console.info(msg);
+    removeItem(configName: string): void {
+        let i = this.items.length - 1;
+        for (; i >= 0; --i) {
+            if (this.items[i].name === configName) {
+                this.items[i].conn.stop();
+                this.items.splice(i, 1);
+                break;
             }
-        });
+        }
     }
+
+}
+
+
+
+export class WorkspaceConfig {
+    name: string;
+    tradingUniverse: number[];
+    strategyCoreName: string;
+    curstep: number;
+    strategyInstances: StrategyInstance[];
+    channels: string[];
+    apptype: string = "DockDemo";
+    port: number;
+    host: string;
+
+    constructor() {
+        this.curstep = 1;
+        this.tradingUniverse = [];
+        this.strategyInstances = [];
+        this.channels = [];
+        this.port = 9080;
+        this.host = "172.24.51.4";
+    }
+
+    static setObject(obj: any): WorkspaceConfig[] {
+        let configs: WorkspaceConfig[] = [];
+
+        obj.forEach(item => {
+            let config = new WorkspaceConfig();
+            for (let prop in item) {
+                config[prop] = item[prop];
+            }
+            configs.push(config);
+        });
+
+        return configs;
+    }
+
+    // get name() {
+    //     return this._name;
+    // }
+
+    // set name(value: string) {
+    //     this._name = value;
+    // }
+
+    // get step() {
+    //     return this._curstep;
+    // }
+
+    // set step(value: number) {
+    //     this._curstep = value;
+    // }
+
+    // get selectedStrategy() {
+    //     return this._strategyCoreName;
+    // }
+
+    // set selectedStrategy(value: string) {
+    //     this._strategyCoreName = value;
+    // }
+
+    // get strategyInstances() {
+    //     return this._strategyInstances;
+    // }
+
+    // get codes() {
+    //     return this._tradingUniverse;
+    // }
+
+    // set codes(value: number[]) {
+    //     this._tradingUniverse = value;
+    // }
+}
+
+
+export class StrategyInstance {
+    id: string;
+    params: Object;
+}
+
+export class Channel {
+    enable: boolean;
+    name: string;
+    type: number;
+    account: number;
+    addr: string;
+    port: number;
 }

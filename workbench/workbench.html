@@ -6,7 +6,7 @@
                 <span class="mif-user mif-4x fg-blue"></span>
             </div>
             <div class="input-control text">
-                <input name="serverinfo" class="dropdown-toggle" type="text" required readonly placeholder="Server Name" [(ngModel)]="serverinfo"
+                <input name="serverinfo" class="dropdown-toggle" type="text" required readonly placeholder="Server Name" [(ngModel)]="selectedServer"
                     #server="ngModel">
                 <ul class="d-menu" data-role="dropdown">
                     <li><a href="#" (click)="onSelectServer('高薪南四道')">高薪南四道</a></li>
@@ -346,50 +346,44 @@
                 <h5>Strategy Moniter</h5>
 
                 <div class="accordion" data-role="accordion" data-close-any="true">
-                    <div class="frame active">
+                    <div *ngFor="let item of strategyContainer.items" class="frame">
                         <div class="heading bg-grayLight">
-                            <div class="cell">ManulTrade</div>
-                            <div class="cell">Connected</div>
+                            <div class="cell">{{item.name}}</div>
+                            <div class="cell">{{item.connState}}</div>
                         </div>
                         <div class="content bg-darker">
                             <table class="table condensed">
                                 <thead>
                                     <tr>
                                         <th>StrategyID</th>
+                                        <th>Name</th>
                                         <th>Status</th>
                                         <th>Operations</th>
+                                        <th>TotalPnl</th>
+                                        <th>TotalPosition</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>110</td>
-                                        <td>running</td>
+                                    <tr *ngFor="let strategy of item.conn.strategies">
+                                        <td>{{strategy.id}}</td>
+                                        <td>{{strategy.name}}</td>
+                                        <td>{{strategy.status}}</td>
                                         <td>
                                             <div data-role="group" data-group-type="one-state">
-                                                <button class="button small-button">start</button>
-                                                <button class="button small-button">stop</button>
-                                                <button class="button small-button">watch</button>
-                                                <button class="button small-button">pause</button>
+                                                <button class="button small-button" [disabled]="strategy.status=='RUN'">start</button>
+                                                <button class="button small-button" [disabled]="strategy.status=='STOP'">stop</button>
+                                                <button class="button small-button" [disabled]="strategy.status=='WATCH'">watch</button>
+                                                <button class="button small-button" [disabled]="strategy.status=='PAUSE'">pause</button>
                                             </div>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td>110</td>
-                                        <td>running</td>
-                                        <td>
-                                            <div data-role="group" data-group-type="one-state">
-                                                <button class="button small-button">start</button>
-                                                <button class="button small-button">stop</button>
-                                                <button class="button small-button">watch</button>
-                                                <button class="button small-button">pause</button>
-                                            </div>
-                                        </td>
+                                        <td>{{strategy?.totalpnl}}</td>
+                                        <td>{{strategy?.totalposition}}</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                    <div class="frame">
+                    <!--<div class="frame">
                         <div class="heading bg-grayLight">
                             <div class="cell">ManulTrade</div>
                             <div class="cell">Connected</div>
@@ -417,7 +411,7 @@
                                 </tbody>
                             </table>
                         </div>
-                    </div>
+                    </div>-->
                 </div>
             </div>
         </div>

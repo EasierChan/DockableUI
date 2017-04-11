@@ -8,7 +8,7 @@ import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
 import { Header, MsgType, Message } from "../model/itrade/message.model";
-import { ComStrategyInfo } from "../model/itrade/strategy.model";
+import { ComStrategyInfo, ComTotalProfitInfo } from "../model/itrade/strategy.model";
 import { Injectable } from "@angular/core";
 
 const logger = console;
@@ -99,7 +99,7 @@ class StrategyParser extends ItradeParser {
 
     init(): void {
         this.registerMsgFunction("2011", this, this.processStrategyMsg);
-        this.registerMsgFunction("2032", this, this.processStrategyMsg);
+        this.registerMsgFunction("2048", this, this.processStrategyMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -109,10 +109,20 @@ class StrategyParser extends ItradeParser {
         let header: Header = args[0];
         let content = args[1] as Buffer;
         let count = content.readUInt32LE(0);
+        let offset = 4;
+        let msg;
         switch (header.type) {
-            case 2011: // Login
-                let offset = 4;
-                let msg = new ComStrategyInfo();
+            case 2011: // ComStrategyInfo
+                msg = new ComStrategyInfo();
+
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 2048: // ComTotalProfitInfo
+                msg = new ComTotalProfitInfo();
+
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
                     this._client.emit("data", header, msg);
@@ -194,6 +204,8 @@ export class ItradeService {
     private _parser: ItradeParser;
     private _messageMap: Object;
     private _sessionid: number;
+    private _port: number;
+    private _host: string;
     constructor() {
         this._sessionid = 0;
         this._messageMap = {};
@@ -207,19 +219,22 @@ export class ItradeService {
         this._sessionid = value;
     }
 
-    get sessionID(): number{
+    get sessionID(): number {
         return this._sessionid;
     }
 
     connect(port, host = "127.0.0.1") {
         this.start();
         this._client.connect(port, host);
+        this._port = port;
+        this._host = host;
     }
 
     start(): void {
         // self message
         // this._messageMap[0]
         // server message
+        let interval = null;
         this._client.on("data", msg => {
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
                 if (this._messageMap[msg[0].type].context !== undefined)
@@ -230,6 +245,11 @@ export class ItradeService {
         });
 
         this._client.on("connect", () => {
+            if (interval !== null) {
+                clearInterval(interval);
+                interval = null;
+            }
+
             if (this._messageMap.hasOwnProperty(0)) {
                 if (this._messageMap[0].context !== undefined)
                     this._messageMap[0].callback.call(this._messageMap[0].context, this._sessionid);
@@ -237,6 +257,16 @@ export class ItradeService {
                     this._messageMap[0].callback(this._sessionid);
             }
         });
+
+        this._client.on("error", () => {
+            interval = setInterval(() => {
+                this._client.connect(this._port, this._host);
+            }, 10000);
+        });
+    }
+
+    stop(): void {
+        this._client.dispose();
     }
 
     send(type: number, subtype: number, body: any): void {

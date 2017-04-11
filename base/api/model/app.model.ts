@@ -32,88 +32,101 @@ export abstract class Message {
     abstract toBuffer(): Buffer;
 }
 
+export class BufferUtil {
+    /**
+     * @desc
+     * according to fmt string, parse the buffer into Message.
+     * i - integer
+     * c - string
+     * u - unsigned
+     * f - float
+     * d - double
+     * p - padding
+     * @param buf  source buffer.
+     * @param fmt a format string.
+     */
+    static format(buf: Buffer, offset: number, fmt: string, msg: any): number {
+        let props = Object.getOwnPropertyNames(msg);
+        let marr = fmt.match(/\d+[bBwWiIlLspfd]/g);
+        let len = 0;
+        let iprop = 0;
+        marr.forEach(item => {
+            len = parseInt(item.substr(0, item.length - 1));
 
-export class WorkspaceConfig {
-    name: string;
-    tradingUniverse: number[];
-    strategyCoreName: string;
-    curstep: number;
-    strategyInstances: StrategyInstance[];
-    channels: string[];
-
-    constructor() {
-        this.curstep = 1;
-        this.tradingUniverse = [];
-        this.strategyInstances = [];
-        this.channels = [];
-    }
-
-    static setObject(obj: any): WorkspaceConfig[] {
-        let configs: WorkspaceConfig[] = [];
-
-        obj.forEach(item => {
-            let config = new WorkspaceConfig();
-            for (let prop in item) {
-                config[prop] = item[prop];
+            switch (item[item.length - 1]) {
+                case "b":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readUInt8(offset);
+                        offset += 1;
+                    }
+                    break;
+                case "w":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readUInt16LE(offset);
+                        offset += 2;
+                    }
+                    break;
+                case "i":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readUInt32LE(offset);
+                        offset += 4;
+                    }
+                    break;
+                case "l":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readUIntLE(offset, 8);
+                        offset += 8;
+                    }
+                    break;
+                case "B":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readInt8(offset);
+                        offset += 1;
+                    }
+                    break;
+                case "W":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readInt16LE(offset);
+                        offset += 2;
+                    }
+                    break;
+                case "I":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readInt32LE(offset);
+                        offset += 4;
+                    }
+                    break;
+                case "L":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readIntLE(offset, 8);
+                        offset += 8;
+                    }
+                    break;
+                case "s":
+                    msg[props[iprop++]] = buf.toString("utf-8", offset, buf.indexOf(0, offset));
+                    offset += len;
+                    break;
+                case "p":
+                    offset += len;
+                    break;
+                case "f":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readFloatLE(offset);
+                        offset += 4;
+                    }
+                    break;
+                case "d":
+                    for (; len > 0; --len) {
+                        msg[props[iprop++]] = buf.readDoubleLE(offset);
+                        offset += 8;
+                    }
+                    break;
+                default:
+                    console.error(`unknown format identifier ${item}`);
+                    return -1;
             }
-            configs.push(config);
         });
 
-        return configs;
+        return offset;
     }
-
-    get apptype(): string {
-        return "DockDemo";
-    }
-
-    // get name() {
-    //     return this._name;
-    // }
-
-    // set name(value: string) {
-    //     this._name = value;
-    // }
-
-    // get step() {
-    //     return this._curstep;
-    // }
-
-    // set step(value: number) {
-    //     this._curstep = value;
-    // }
-
-    // get selectedStrategy() {
-    //     return this._strategyCoreName;
-    // }
-
-    // set selectedStrategy(value: string) {
-    //     this._strategyCoreName = value;
-    // }
-
-    // get strategyInstances() {
-    //     return this._strategyInstances;
-    // }
-
-    // get codes() {
-    //     return this._tradingUniverse;
-    // }
-
-    // set codes(value: number[]) {
-    //     this._tradingUniverse = value;
-    // }
-}
-
-
-export class StrategyInstance {
-    id: string;
-    params: Object;
-}
-
-export class Channel {
-    enable: boolean;
-    name: string;
-    type: number;
-    account: number;
-    addr: string;
-    port: number;
 }

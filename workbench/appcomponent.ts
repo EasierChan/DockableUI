@@ -5,9 +5,9 @@
 
 import { AppStoreService, Menu, MessageBox } from "../base/api/services/backend.service";
 import { IP20Service } from "../base/api/services/ip20.service";
-import { Component, ChangeDetectorRef } from "@angular/core";
-import { IApp, WorkspaceConfig, Channel, StrategyInstance } from "../base/api/model/app.model";
-import { ConfigurationBLL, StrategyServerContainer } from "./bll/strategy.server";
+import { Component, ChangeDetectorRef, OnDestroy } from "@angular/core";
+import { IApp } from "../base/api/model/app.model";
+import { ConfigurationBLL, StrategyServerContainer, WorkspaceConfig, Channel, StrategyInstance } from "./bll/strategy.server";
 
 declare var window: any; // hack by chenlei @ 2017/02/07
 
@@ -22,14 +22,14 @@ declare var window: any; // hack by chenlei @ 2017/02/07
         Menu
     ]
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
     private configBLL = new ConfigurationBLL();
     private strategyContainer = new StrategyServerContainer();
 
     isAuthorized: boolean = false;
     username: string;
     password: string;
-    serverinfo: string;
+    selectedServer: string;
     // bPopPanel: boolean = false;
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
@@ -59,7 +59,7 @@ export class AppComponent {
 
         this.contextMenu = new Menu();
         this.contextMenu.addItem("Open", () => {
-            this.onStartApp(this.config.apptype);
+            this.onStartApp(this.config.name, this.config.apptype);
         });
         this.contextMenu.addItem("Modify", () => {
             this.onPopup(1);
@@ -81,7 +81,7 @@ export class AppComponent {
             this.contextMenu.popup();
         } else {
             console.info(this.config.name);
-            this.onStartApp(this.config.apptype);
+            this.onStartApp(this.config.name, this.config.apptype);
         }
     }
 
@@ -96,6 +96,7 @@ export class AppComponent {
     finish() {
         console.info(this.config);
         this.configs.push(this.config);
+        this.strategyContainer.addItem(this.config);
         this.closePanel();
     }
 
@@ -223,7 +224,7 @@ export class AppComponent {
     }
 
     onSelectServer(item): void {
-        this.serverinfo = item;
+        this.selectedServer = item;
     }
 
     onSelectStrategy(value: string) {
@@ -292,6 +293,7 @@ export class AppComponent {
                 }
             }
         });
+
         this.tgw.addSlot({ // login failed
             appid: 17,
             packid: 120,
@@ -299,6 +301,8 @@ export class AppComponent {
                 console.info(msg, msg.content.msg);
             }
         });
+
+        // listener
         this.tgw.addSlot({ // login failed
             appid: 107,
             packid: 2001,
@@ -306,6 +310,7 @@ export class AppComponent {
                 console.info(msg);
             }
         });
+
         // process templates
         this.tgw.addSlot({
             appid: 270,
@@ -313,11 +318,10 @@ export class AppComponent {
             callback: msg => {
                 this.tgw.send(107, 2000, { routerid: 0, templateid: 0, body: { name: "ss-Lhhj1", config: "test" } });
                 console.info(msg);
-                // this.configBLL.updateTemplate(name, template);
             }
         });
-        let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1,  "clientesn": "",  "clienttm": timestamp };
 
+        let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": timestamp };
         this.tgw.send(17, 41, loginObj); // login
     }
 
@@ -326,13 +330,9 @@ export class AppComponent {
         this.password = "";
     }
 
-    onStartApp(name: string): void {
-        if (name) {
-            if (!this.appService.startApp(name, name))
-                this.showError("Error", `start ${name} app error!`, "alert");
-        } else {
-            this.showError("Error", "App is unvalid!", "alert");
-        }
+    onStartApp(name: string, type: string): void {
+        if (!this.appService.startApp(name, type))
+            this.showError("Error", `start ${name} app error!`, "alert");
     }
 
     showError(caption: string, content: string, type: string): void {
@@ -342,13 +342,21 @@ export class AppComponent {
             type: type
         });
     }
+
+    ngOnDestroy() {
+        // clear
+    }
 }
-
-
 
 interface CodeItem {
     bChecked: boolean;
     ukey: number;
     name: string;
     code: string;
+}
+
+interface ServerInfo {
+    name: string;
+    port: number;
+    host: string;
 }

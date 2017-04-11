@@ -54,6 +54,16 @@ export class TcpClient {
         this._clientSock.on("connect", () => {
             this.emit("connect");
         });
+
+        this._clientSock.on("error", (err) => {
+            this.emit("error");
+        });
+        this._clientSock.on("end", (err) => {
+            this.emit("end");
+        });
+        this._clientSock.on("close", (err) => {
+            this.emit("close");
+        });
     }
 
     send(buf: Buffer | string): void {
