@@ -49,72 +49,72 @@ export class OrderDal {
             OrderDal._resolver.on("dal://itrade/connected", () => {
                 // register
                 let offset: number = 0;
-                // let connectBuffer = new Buffer(196);
+                let connectBuffer = new Buffer(196);
 
                 let orderdal: OrderDal = new OrderDal();
-                // orderdal.write2buffer(connectBuffer, 2998, 0, 188, offset);
-                // connectBuffer.writeUInt32LE(23, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2048, 1, 0, offset += 4);
-                // orderdal.write2buffer(connectBuffer, 2001, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2032, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2033, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2011, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2029, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2998, 0, 188, offset);
+                connectBuffer.writeUInt32LE(23, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2048, 1, 0, offset += 4);
+                orderdal.write2buffer(connectBuffer, 2001, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2032, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2033, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2011, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2029, 0, 0, offset += 8);
 
-                // // order  register
-                // orderdal.write2buffer(connectBuffer, 2013, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2013, 1, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2013, 2, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2021, 1, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2022, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2023, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2017, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 3510, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 3502, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2040, 1, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2040, 2, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2040, 3, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2040, 4, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2048, 0, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2025, 1000, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2025, 1001, 0, offset += 8);
-                // orderdal.write2buffer(connectBuffer, 2025, 1002, 0, offset += 8);
-                // OrderDal._client.send(connectBuffer);
-                // connectBuffer = null;
-                // offset = 0;
+                // order  register
+                orderdal.write2buffer(connectBuffer, 2013, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2013, 1, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2013, 2, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2021, 1, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2022, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2023, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2017, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 3510, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 3502, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2040, 1, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2040, 2, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2040, 3, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2040, 4, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2048, 0, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2025, 1000, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2025, 1001, 0, offset += 8);
+                orderdal.write2buffer(connectBuffer, 2025, 1002, 0, offset += 8);
+                OrderDal._client.send(connectBuffer);
+                connectBuffer = null;
+                offset = 0;
 
-                // connectBuffer = new Buffer(8);
-                // orderdal.write2buffer(connectBuffer, 2010, 0, 0, 0);
-                // OrderDal._client.send(connectBuffer);
-                // connectBuffer = null;
+                connectBuffer = new Buffer(8);
+                orderdal.write2buffer(connectBuffer, 2010, 0, 0, 0);
+                OrderDal._client.send(connectBuffer);
+                connectBuffer = null;
 
-                // connectBuffer = new Buffer(8);
-                // orderdal.write2buffer(connectBuffer, 3503, 0, 0, 0);
-                // OrderDal._client.send(connectBuffer);
-                // connectBuffer = null;
+                connectBuffer = new Buffer(8);
+                orderdal.write2buffer(connectBuffer, 3503, 0, 0, 0);
+                OrderDal._client.send(connectBuffer);
+                connectBuffer = null;
 
-                // connectBuffer = new Buffer(8);
-                // orderdal.write2buffer(connectBuffer, 3010, 0, 0, 0);
-                // OrderDal._client.send(connectBuffer);
-                // connectBuffer = null;
+                connectBuffer = new Buffer(8);
+                orderdal.write2buffer(connectBuffer, 3010, 0, 0, 0);
+                OrderDal._client.send(connectBuffer);
+                connectBuffer = null;
 
-                // connectBuffer = new Buffer(8);
-                // orderdal.write2buffer(connectBuffer, 3509, 0, 0, 0);
-                // OrderDal._client.send(connectBuffer);
-                // connectBuffer = null;
+                connectBuffer = new Buffer(8);
+                orderdal.write2buffer(connectBuffer, 3509, 0, 0, 0);
+                OrderDal._client.send(connectBuffer);
+                connectBuffer = null;
 
-                // connectBuffer = new Buffer(8);
-                // orderdal.write2buffer(connectBuffer, 2016, 0, 0, 0);
-                // OrderDal._client.send(connectBuffer);
-                // connectBuffer = null;
+                connectBuffer = new Buffer(8);
+                orderdal.write2buffer(connectBuffer, 2016, 0, 0, 0);
+                OrderDal._client.send(connectBuffer);
+                connectBuffer = null;
 
-                // connectBuffer = new Buffer(8);
-                // orderdal.write2buffer(connectBuffer, 2044, 0, 0, 0);
-                // OrderDal._client.send(connectBuffer);
-                // connectBuffer = null;
+                connectBuffer = new Buffer(8);
+                orderdal.write2buffer(connectBuffer, 2044, 0, 0, 0);
+                OrderDal._client.send(connectBuffer);
+                connectBuffer = null;
 
                 offset = 0;
-                let connectBuffer = new Buffer(52);
+                connectBuffer = new Buffer(52);
                 orderdal.write2buffer(connectBuffer, 2998, 0, 44, offset); offset += 8;
                 connectBuffer.writeUInt32LE(5, offset); offset += 4;
                 orderdal.write2buffer(connectBuffer, 5001, 0, 0, offset); offset += 8;

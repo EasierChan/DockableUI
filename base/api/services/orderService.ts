@@ -93,6 +93,12 @@ export class OrderService {
                 case 5021:
                     msgObj = this.readBasketBack(data.content, msgtype, msgsubtype, msglen);
                     break;
+                case 5024:
+                    msgObj = this.readPortfolioSummary(data.content, msgtype, msgsubtype, msglen);
+                    break;
+                case 5022:
+                    msgObj = this.readPortfolioMsgError(data.content, msgtype, msgsubtype, msglen);
+                    break;
                 default:
                     break;
             }
@@ -123,6 +129,31 @@ export class OrderService {
             subtype: subtype,
             buffer: buffer
         });
+    }
+    readPortfolioMsgError(buffer: Buffer, msgtype: number, subtype: number, msglen: number) {
+        let offset: number = 0;
+        let unknowncount = buffer.readUInt32LE(offset); offset += 4;
+        let account = buffer.readUIntLE(offset, 8); offset += 8;
+        let count = buffer.readUInt32LE(offset); offset += 4;
+        let ukey = buffer.readUInt32LE(offset); offset += 4;
+        let logStr = buffer.slice(offset, offset += 256).toString("utf-8");
+        logStr = String(logStr).slice(0, logStr.indexOf("\u0000"));
+        // console.log(unknowncount, account, count, ukey, logStr);
+        return [{ type: msgtype, logStr: logStr }];
+    }
+    readPortfolioSummary(buffer: Buffer, msgtype: number, subtype: number, msglen: number) {
+        let res = [];
+        let offset: number = 0;
+        let unknowncount = buffer.readUInt32LE(offset); offset += 4;
+        let account = buffer.readUIntLE(offset, 8); offset += 8;
+        let count = buffer.readUInt32LE(offset); offset += 4;
+        let ukey = buffer.readUInt32LE(offset); offset += 4;
+        let indexLots = buffer.readUInt32LE(offset); offset += 4;
+        let dayPnl = buffer.readIntLE(offset, 8); offset += 8;
+        let onPnl = buffer.readIntLE(offset, 8); offset += 8;
+        let value = buffer.readIntLE(offset, 8); offset += 8;
+        // console.log(unknowncount, account, count, ukey, indexLots, dayPnl, onPnl, value);
+        return [{ unknowncount: unknowncount, account: account, count: count, ukey: ukey, dayPnl: dayPnl, onPnl: onPnl, value: value }];
     }
     readBasketBack(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
         let res = [];
@@ -523,6 +554,7 @@ export class OrderService {
         let count: number = 0;
         let offset: number = 0;
         let res = [];
+        let rtnStr: String = "";
         count = buffer.readUInt32LE(offset); offset += 4;
         for (let i = 0; i < count; ++i) {
             let comConOrderErrorInfo = new ComConOrderErrorInfo();
@@ -539,8 +571,10 @@ export class OrderService {
             comConOrderErrorInfo.os.algorindex = buffer.readUInt32LE(offset); offset += 4;
             comConOrderErrorInfo.os.innercode = buffer.readUInt32LE(offset); offset += 4;
             comConOrderErrorInfo.os.action = buffer.readUInt8(offset); offset += 4;
-            comConOrderErrorInfo.os.errorid = buffer.readUInt32LE(offset); offset += 4;
-            comConOrderErrorInfo.os.errormsg = buffer.slice(offset, offset += 1024).toString("utf-8");
+            comConOrderErrorInfo.os.errorid = buffer.readInt32LE(offset); offset += 4;
+            let logStr = buffer.slice(offset, offset += 1024).toString("utf-8");
+            comConOrderErrorInfo.os.errormsg = String(logStr).slice(0, logStr.indexOf("\u0000"));
+            rtnStr = "errorid:" + comConOrderErrorInfo.os.errorid + ";errorMsg:" + comConOrderErrorInfo.os.errormsg;
             offset += 4;
             comConOrderErrorInfo.os.datetime = new TimeVal();
             comConOrderErrorInfo.os.datetime.tv_sec = buffer.readUIntLE(offset, 8); offset += 8;
@@ -548,7 +582,7 @@ export class OrderService {
             res.push(comConOrderErrorInfo);
             // console.log("comConOrderErrorInfo:", comConOrderErrorInfo);
         }
-        return [{ subytpe: 1, content: res }];
+        return [{ type: 2021, subytpe: 1, logStr: rtnStr }];
     }
 
     readComAccountPos(buffer: Buffer, msgtype: number, msgsubtype: number, msglen: number): Array<Object> {
