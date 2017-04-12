@@ -133,15 +133,16 @@ function init() {
             reallocChildSize($currentSplitter.next(), ".dock-container.vertical");
         }
         // dispatch resize event
-        $currentSplitter.prev().find("dock-table2").each((index,item)=>{
+        $currentSplitter.prev().find("dock-table2").each((index, item) => {
             item.dispatchEvent(ev_resize);
         });
-        $currentSplitter.next().find("dock-table2").each(item=>{
+        $currentSplitter.next().find("dock-table2").each(item => {
             item.dispatchEvent(ev_resize);
         });
         gap = null;
         $currentSplitter = null;
     }
+
     function initSplitBar() {
         $(".splitter-bar").off("mousedown");
         $(".splitter-bar").on("mousedown", function (e) {
@@ -440,8 +441,37 @@ function init() {
         $('#' + id).addClass('active');
     });
 
+    var _rootLayout = {};
+    function getLayout() {
+        function getChildrenLayout($parentRef, _parentLayout) {
+            if ($parentRef.is(".dock-container.vertical")) {
+                _parentLayout["type"] = "v";
+                _parentLayout["width"] = $parentRef.width();
+            } else {
+                _parentLayout["type"] = "h";
+                _parentLayout["height"] = $parentRef.height();
+            }
+
+            if ($parentRef.children(".dock-container").length > 0) {
+                _parentLayout["children"] = [];
+                $parentRef.children(".dock-container").each((index, child) => {
+                    var childLayout = {};
+                    getChildrenLayout($(child), childLayout);
+                    _parentLayout["children"].push(childLayout);
+                });
+            } else {
+                _parentLayout["modules"] = [];
+                $parentRef.find(".tab-page").each((index, child) => {
+                    _parentLayout["modules"].push(child.id);
+                });
+            }
+        }
+
+        getChildrenLayout($("#root"), _rootLayout);
+    }
     // start app
     reallocChildSize($("#root"), ".dock-container.horizental");
+    window.getLayout = getLayout;
 };
 // })(jQuery);
 function initDocklayout() {

@@ -516,3 +516,12 @@ echart{
 .dialog > .holder > .body {
     flex: auto;
 }
+
+/* cover bootstrap */
+.dropdown-menu{
+    max-height: 150px;
+    overflow-y: auto;
+}
+.dropdown-menu > li > a {
+    padding: 1px 10px;
+}

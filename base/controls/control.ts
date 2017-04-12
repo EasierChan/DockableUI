@@ -45,6 +45,13 @@ export class DockContainer extends Control {
         return this;
     }
 
+    get Width() {
+        return this.styleObj.getWidth();
+    }
+
+    get Height() {
+        return this.styleObj.getHeight();
+    }
 }
 
 export class Splitter extends Control {
@@ -353,7 +360,10 @@ export class DropDown extends MetaControl {
                 }
             }
             this.styleObj.dropdown = false;
+        };
 
+        this.dataSource.blur = () => {
+            this.styleObj.dropdown = false;
         };
     }
 
@@ -974,7 +984,7 @@ export class DataTableColumn {
         this.bHidden = value;
     }
 
-    get hidden(){
+    get hidden() {
         return this.bHidden;
     }
 
