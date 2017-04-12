@@ -103,6 +103,7 @@ class StrategyParser extends ItradeParser {
         this.registerMsgFunction("2005", this, this.processStrategyMsg);
         this.registerMsgFunction("2050", this, this.processStrategyMsg);
         this.registerMsgFunction("2011", this, this.processStrategyMsg);
+        this.registerMsgFunction("2033", this, this.processStrategyMsg);
         this.registerMsgFunction("2048", this, this.processStrategyMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
@@ -127,6 +128,7 @@ class StrategyParser extends ItradeParser {
                     this._client.emit("data", header, msg);
                 }
                 break;
+            case 2033:
             case 2011: // ComStrategyInfo
                 msg = new ComStrategyInfo();
 

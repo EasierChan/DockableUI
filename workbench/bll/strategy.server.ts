@@ -92,8 +92,8 @@ export class StrategyBLL {
     start(port: number, host: string): void {
         this.itrade.addSlot(0, () => {
             let offset = 0;
-            let body = Buffer.alloc(4 + 4 * Header.len);
-            body.writeUInt32LE(4, offset); offset += 4;
+            let body = Buffer.alloc(4 + 5 * Header.len);
+            body.writeUInt32LE(5, offset); offset += 4;
             let header = new Header();
             header.type = 2048;
             header.subtype = 1;
@@ -105,9 +105,9 @@ export class StrategyBLL {
             // header.type = 2032;
             // header.subtype = 0;
             // offset += header.toBuffer().copy(body, offset);
-            // header.type = 2033;
-            // header.subtype = 0;
-            // offset += header.toBuffer().copy(body, offset);
+            header.type = 2033;
+            header.subtype = 0;
+            offset += header.toBuffer().copy(body, offset);
             header.type = 2011;
             header.subtype = 0;
             offset += header.toBuffer().copy(body, offset);
@@ -127,6 +127,7 @@ export class StrategyBLL {
         this.itrade.addSlot(2003, this.handleStopCommand, this);
         this.itrade.addSlot(2050, this.handleWatchCommand, this);
         this.itrade.addSlot(2011, this.handleStrategyInfo, this);
+        this.itrade.addSlot(2033, this.handleStrategyInfo, this);
         this.itrade.addSlot(2048, this.handleStrategyProfitInfo, this);
         this.itrade.connect(port, host);
     }
@@ -140,16 +141,31 @@ export class StrategyBLL {
     }
 
     handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
-        this.strategies.push({
-            id: msg.key,
-            name: msg.name,
-            status: msg.status === 0 ? "INIT" :
-                msg.status === 1 ? "CREAT" :
-                    msg.status === 2 ? "RUN" :
-                        msg.status === 3 ? "PAUSE" :
-                            msg.status === 4 ? "STOP" :
-                                msg.status === 5 ? "WATCH" : "ERROR"
-        });
+        let i = 0;
+        for (; i < this.strategies.length; ++i) {
+            if (this.strategies[i].id === msg.key) {
+                this.strategies[i].status = msg.status === 0 ? "INIT" :
+                    msg.status === 1 ? "CREAT" :
+                        msg.status === 2 ? "RUN" :
+                            msg.status === 3 ? "PAUSE" :
+                                msg.status === 4 ? "STOP" :
+                                    msg.status === 5 ? "WATCH" : "ERROR";
+                break;
+            }
+        }
+
+        if (i === this.strategies.length) {
+            this.strategies.push({
+                id: msg.key,
+                name: msg.name,
+                status: msg.status === 0 ? "INIT" :
+                    msg.status === 1 ? "CREAT" :
+                        msg.status === 2 ? "RUN" :
+                            msg.status === 3 ? "PAUSE" :
+                                msg.status === 4 ? "STOP" :
+                                    msg.status === 5 ? "WATCH" : "ERROR"
+            });
+        }
     }
 
     handleStrategyProfitInfo(msg: ComTotalProfitInfo, sessionId: number): void {
