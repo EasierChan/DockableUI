@@ -500,6 +500,7 @@ echart{
     flex: none;
     height: 25px;
     padding: 2px 5px;
+    border-bottom: 1px solid;
 }
 .dialog > .holder > .head > .title {
     font-weight: bold;
