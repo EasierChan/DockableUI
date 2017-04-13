@@ -1039,6 +1039,7 @@ export interface DialogOption {
 
 export class StatusBar {
     items: StatusBarItem[];
+    backgroundColor: string;
     constructor() {
         this.items = [];
     }
@@ -1048,7 +1049,7 @@ export class StatusBarItem {
     text: string = "";
     section: "left" | "right" = "right";
     click: Function = () => { };
-    color: "white" | "red" | "green" = "white";
+    color: string;
     data: any;
     width: number;
 
