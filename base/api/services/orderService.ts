@@ -209,7 +209,7 @@ export class OrderService {
         comGuiAckStrategy.success = buffer.readUInt8(offset) === 1 ? true : false; offset += 4;
         comGuiAckStrategy.error = buffer.readUInt32LE(offset); offset += 4;
         res.push(comGuiAckStrategy);
-        console.log(comGuiAckStrategy);
+        // console.log(comGuiAckStrategy);
         return res;
 
     }
@@ -352,7 +352,7 @@ export class OrderService {
 
             }
             res.push(strategyInfo);
-            console.log("strategyInfo:", strategyInfo);
+            // console.log("strategyInfo:", strategyInfo);
 
         }
         return res;

@@ -103,21 +103,30 @@ export class ManulTrader {
         }
         ManulTrader.orderService.sendOrder(2030, 0, buffer);
     }
-    static singleBuy() {
+    static singleBuy(account: number, askPriceLevel: number, bidPriceLevel: number, askOffset: number, bidOffset: number, ukey: number, qty: number) {
         let offset: number = 0;
         let bufferLen = 12 + 4 + 4 + 4;
         let buffer = new Buffer(bufferLen);
-        ManulTrader.writeUInt64LE(buffer, 666600000040, offset); offset += 8;
+        ManulTrader.writeUInt64LE(buffer, account, offset); offset += 8;
         buffer.writeUInt32LE(1, offset); offset += 4;
-        buffer.writeUInt32LE(3, offset); offset += 4;
-        buffer.writeUInt8(1, offset); offset += 1;
-        buffer.writeUInt8(1, offset); offset += 1;
-        buffer.writeInt8(0, offset); offset += 1;
-        buffer.writeInt8(0, offset); offset += 1;
-        buffer.writeUInt32LE(100, offset); offset += 4;
+        buffer.writeUInt32LE(ukey, offset); offset += 4;
+        buffer.writeUInt8(askPriceLevel, offset); offset += 1;
+        buffer.writeUInt8(bidPriceLevel, offset); offset += 1;
+        buffer.writeInt8(askOffset, offset); offset += 1;
+        buffer.writeInt8(bidOffset, offset); offset += 1;
+        buffer.writeUInt32LE(qty, offset); offset += 4;
         ManulTrader.orderService.sendOrder(5004, 0, buffer);
     }
+    static singleCancel(account: number, ukey: number) {
+        let offset: number = 0;
+        let bufferLen = 12 + 4;
+        let buffer = new Buffer(bufferLen);
+        buffer.writeUIntLE(account, offset, 8); offset += 8;
+        buffer.writeUInt32LE(1, offset); offset += 4;
+        buffer.writeUInt32LE(ukey, offset); offset += 4;
+    }
     static sendAllSel(account: number, count: number, askPriceLevel: number, bidPriceLevel: number, askOffset: number, bidOffset: number, sendArr: any) {
+        // console.log(account, count, askPriceLevel, bidPriceLevel, askOffset, bidOffset, sendArr);
         let offset: number = 0;
         let bufferLen = 12 + (4 + 4 + 4) * count;
         let buffer = new Buffer(bufferLen);
@@ -132,6 +141,17 @@ export class ManulTrader {
             buffer.writeUInt32LE(sendArr[i].qty, offset); offset += 4;
         }
         ManulTrader.orderService.sendOrder(5004, 0, buffer);
+    }
+    static cancelAllSel(account: number, count: number, sendArr: any) {
+        let offset: number = 0;
+        let bufferLen = 12 + 4 * count;
+        let buffer = new Buffer(bufferLen);
+        buffer.writeUIntLE(account, offset, 8); offset += 8;
+        buffer.writeUInt32LE(count, offset); offset += 4;
+        for (let i = 0; i < count; ++i) {
+            buffer.writeUInt32LE(sendArr[i], offset); offset += 4;
+        }
+        ManulTrader.orderService.sendOrder(5005, 0, buffer);
     }
     static submitBasket(type: number, indexSymbol: number, divideNum: number, account: number, initPos: any) {
         let offset: number = 0;

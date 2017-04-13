@@ -418,25 +418,21 @@ export class AppComponent implements OnInit {
     btn_load.Text = "Load csv";
     btn_load.Left = 20;
     btn_load.Class = "primary";
-    this.reserveCheckBox = new MetaControl("checkbox");
-    this.reserveCheckBox.Width = 40;
-    this.reserveCheckBox.Title = "reserve ";
-    this.reserveCheckBox.Left = 30;
 
     this.portfolioLabel = new MetaControl("textbox");
-    this.portfolioLabel.Width = 50;
+    this.portfolioLabel.Width = 60;
     this.portfolioLabel.Title = "PORTFOLIO Value:";
     this.portfolioLabel.Left = 20;
     this.portfolioLabel.Disable = true;
 
     this.portfolioDaypnl = new MetaControl("textbox");
-    this.portfolioDaypnl.Width = 50;
+    this.portfolioDaypnl.Width = 60;
     this.portfolioDaypnl.Title = "PORTFOLIO Day pnl:";
     this.portfolioDaypnl.Left = 20;
     this.portfolioDaypnl.Disable = true;
 
     this.portfolioonpnl = new MetaControl("textbox");
-    this.portfolioonpnl.Width = 50;
+    this.portfolioonpnl.Width = 60;
     this.portfolioonpnl.Title = "PORTFOLIO O/N Pnl:";
     this.portfolioonpnl.Left = 20;
     this.portfolioonpnl.Disable = true;
@@ -446,7 +442,7 @@ export class AppComponent implements OnInit {
     this.portfolioCount.Title = "Count:";
     this.portfolioCount.Left = 20;
     this.portfolioCount.Disable = true;
-    loadItem.addChild(btn_load).addChild(this.reserveCheckBox).addChild(this.portfolioLabel)
+    loadItem.addChild(btn_load).addChild(this.portfolioLabel)
       .addChild(this.portfolioDaypnl).addChild(this.portfolioonpnl).addChild(this.portfolioCount);
 
     let tradeitem = new ComboControl("row");
@@ -532,13 +528,15 @@ export class AppComponent implements OnInit {
     this.portfolioSellOffset.addItem({ Text: "-9", Value: "-9" });
     this.portfolioSellOffset.addItem({ Text: "-10", Value: "-10" });
 
-    this.allChk = new MetaControl("checkbox"); this.allChk.Width = 30; this.allChk.Title = " All"; this.allChk.Left = 20;
-    let allbuyChk = new MetaControl("checkbox"); allbuyChk.Width = 30; allbuyChk.Title = " All-Buy"; allbuyChk.Left = 20;
-    let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30; allsellChk.Title = " All-Sell"; allsellChk.Left = 20;
+    this.allChk = new MetaControl("checkbox"); this.allChk.Width = 30; this.allChk.Title = " All"; this.allChk.Text = false; this.allChk.Left = 20;
+    let allbuyChk = new MetaControl("checkbox"); allbuyChk.Width = 30; allbuyChk.Title = " All-Buy"; allbuyChk.Text = false; allbuyChk.Left = 20;
+    let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30; allsellChk.Title = " All-Sell"; allsellChk.Text = false; allsellChk.Left = 20;
 
     this.range = new URange(); this.range.Width = 150; this.range.Left = 30; this.range.Title = "Order Rate:";
     this.rateText = new MetaControl("textbox"); this.rateText.Width = 30; this.rateText.Title = ""; this.rateText.Left = 5;
     let percentText = new MetaControl("plaintext"); percentText.Title = "%"; percentText.Width = 15;
+
+    this.range.Text = 0; this.rateText.Text = 0;
 
     let btn_sendSel = new MetaControl("button"); btn_sendSel.Text = "Send Selected"; btn_sendSel.Left = 20; btn_sendSel.Class = "primary";
     let btn_cancelSel = new MetaControl("button"); btn_cancelSel.Text = "Cancel Selected"; btn_cancelSel.Left = 20; btn_cancelSel.Class = "primary";
@@ -552,10 +550,24 @@ export class AppComponent implements OnInit {
       "AskPrice", "AvgBuyPrice", "AvgSellPirce", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl");
 
     this.portfolioTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+      let ukey = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Data.ukey;
+      let account = AppComponent.self.portfolioAccLabel.Text;
       if (cellIndex === 10) {
-        ManulTrader.singleBuy();
+        let value = AppComponent.self.portfolioTable.rows[rowIndex].cells[9].Text + "";
+        let rtn = AppComponent.self.TestingInput(value);
+        if (!rtn) {
+          let msg = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Title + " singleOrderQty input illegal!";
+          MessageBox.show("warning", "Input Error!", msg);
+          return;
+        }
+        let qty = parseInt(value);
+        let askPriceLevel = AppComponent.self.portfolioBuyCom.SelectedItem.Value;
+        let bidPriceLevel = AppComponent.self.portfolioSellCom.SelectedItem.Value;
+        let askOffset = AppComponent.self.portfolioBUyOffset.SelectedItem.Value;
+        let bidOffset = AppComponent.self.portfolioSellOffset.SelectedItem.Value;
+        ManulTrader.singleBuy(account, askPriceLevel, bidPriceLevel, askOffset, bidOffset, ukey, qty);
       } else if (cellIndex === 11) {
-
+        ManulTrader.singleCancel(account, ukey);
       }
     };
 
@@ -596,35 +608,38 @@ export class AppComponent implements OnInit {
     };
 
     this.allChk.OnClick = () => {
-      let bcheck = this.allChk.Text;
-      let len = AppComponent.self.portfolioTable.rows.length;
-      for (let i = 0; i < len; ++i) {
-        if (!AppComponent.self.portfolioTable.rows[i].cells[0].Data.chk) {
-          AppComponent.self.portfolioTable.rows[i].cells[0].Text = !bcheck;
-          AppComponent.self.selectArr.push(AppComponent.self.portfolioTable.rows[i].cells[0].Data.ukey);
-        }
-      }
+      let bcheck = AppComponent.self.allChk.Text;
+      AppComponent.self.returnSelArr(0, bcheck);
     };
     allbuyChk.OnClick = () => {
       let bcheck = allbuyChk.Text;
-      let len = AppComponent.self.portfolioTable.rows.length;
-      for (let i = 0; i < len; ++i) {
-        if (!AppComponent.self.portfolioTable.rows[i].cells[0].Data.chk)
-          AppComponent.self.portfolioTable.rows[i].cells[0].Text = !bcheck;
-      }
+      AppComponent.self.returnSelArr(1, bcheck);
+    };
+    allsellChk.OnClick = () => {
+      let bcheck = allsellChk.Text;
+      AppComponent.self.returnSelArr(2, bcheck);
     };
     this.range.OnClick = () => {
       let rateVal = this.range.Text;
       this.rateText.Text = rateVal;
-      let len = AppComponent.self.portfolioTable.rows.length;
-      for (let i = 0; i < len; ++i) {
-        let targetVal = AppComponent.self.portfolioTable.rows[i].cells[3].Text;
-        let singleVal = (targetVal / 100 * rateVal).toFixed(0);
-        AppComponent.self.portfolioTable.rows[i].cells[9].Text = singleVal;
-      }
+      AppComponent.self.changeSingleQty(rateVal);
     };
     this.rateText.OnInput = () => {
-      console.log(this.rateText.Text);
+      let getrateText = this.range.Text = this.rateText.Text;
+      let rtn = AppComponent.self.TestingInput(getrateText + "");
+      if (!rtn) {
+        this.range.Text = this.rateText.Text = 0;
+        AppComponent.self.changeSingleQty(0);
+        return;
+      }
+      if (parseInt(getrateText) > 100) {
+        MessageBox.show("warning", "Input Error!", "input value shold be less than 100");
+        this.range.Text = this.rateText.Text = 100;
+        AppComponent.self.changeSingleQty(100);
+        return;
+      } else {
+        AppComponent.self.changeSingleQty(parseInt(this.rateText.Text));
+      }
     };
     btn_sendSel.OnClick = () => {
       let selArrLen = AppComponent.self.selectArr.length;
@@ -643,7 +658,14 @@ export class AppComponent implements OnInit {
           let getukey = AppComponent.self.portfolioTable.rows[i].cells[0].Data.ukey;
           if (getukey === tempUkey) {
             let obj = { ukey: 0, qty: 0 };
-            let qty = parseInt(AppComponent.self.portfolioTable.rows[i].cells[9].Text + "");
+            let getQty = AppComponent.self.portfolioTable.rows[i].cells[9].Text;
+            let rtn = AppComponent.self.TestingInput(getQty + "");
+            if (!rtn) {
+              let msg = AppComponent.self.portfolioTable.rows[i].cells[0].Title + " singleOrderQty input illegal!";
+              MessageBox.show("warning", "Input Error!", msg);
+              return;
+            }
+            let qty = parseInt(getQty);
             obj.ukey = getukey; obj.qty = qty;
             sendArr.push(obj);
           }
@@ -652,8 +674,11 @@ export class AppComponent implements OnInit {
       ManulTrader.sendAllSel(AppComponent.self.portfolioAccLabel.Text, sendArr.length, askPriceLevel,
         bidPriceLevel, askOffset, bidOffset, sendArr);
     };
-    btn_cancelSel.OnClick = () => {
-
+    btn_cancelSel.OnClick = () => { // 5005
+      let selArrLen = AppComponent.self.selectArr.length;
+      if (selArrLen === 0)
+        return;
+      ManulTrader.cancelAllSel(AppComponent.self.portfolioAccLabel.Text, selArrLen, AppComponent.self.selectArr);
     };
     let portfolioContent = new ComboControl("col");
     portfolioContent.addChild(accountHead).addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
@@ -818,6 +843,20 @@ export class AppComponent implements OnInit {
 
     ManulTrader.init();
   }
+  TestingInput(data: any) {
+    let reg = /^[\d]+$/;
+    let rtn = reg.test(data);
+    return rtn;
+  }
+
+  changeSingleQty(rateVal: number) {
+    let len = AppComponent.self.portfolioTable.rows.length;
+    for (let i = 0; i < len; ++i) {
+      let targetVal = AppComponent.self.portfolioTable.rows[i].cells[3].Text;
+      let singleVal = (targetVal / 100 * rateVal).toFixed(0);
+      AppComponent.self.portfolioTable.rows[i].cells[9].Text = Math.abs(parseInt(singleVal));
+    }
+  }
 
   showStatArbOrder(data: any) {
     // console.log("statarb....", data);
@@ -886,7 +925,7 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showStrategyInfo(data: any) {
-    console.log("alarm info,pass", data);
+    // console.log("alarm info,pass", data);
     let len = data.length;
     for (let i = 0; i < len; ++i) {
       let getStraId = data[i].key;
@@ -1026,7 +1065,14 @@ export class AppComponent implements OnInit {
   addDoneOrderInfo(obj: any) {
     let row = this.doneOrdersTable.newRow();
     row.cells[0].Text = obj.od.innercode;
-    row.cells[1].Text = "";
+    let codeInfo = AppComponent.secu.getSymbolAndName(obj.od.innercode);
+    if (codeInfo) {
+      row.cells[1].Text = (codeInfo.SecuCode + "").split(".")[0];
+      row.cells[14].Text = codeInfo.SecuAbbr;
+    } else {
+      row.cells[1].Text = "";
+      row.cells[14].Text = "";
+    }
     row.cells[2].Text = obj.od.orderid;
     row.cells[3].Text = obj.od.strategyid;
     let action: number = obj.od.action;
@@ -1051,7 +1097,7 @@ export class AppComponent implements OnInit {
     row.cells[11].Text = obj.con.account;
     row.cells[12].Text = this.formatTime(obj.od.idatetime.tv_sec);
     row.cells[13].Text = obj.od.iprice / 10000;
-    row.cells[14].Text = "";
+
     AppComponent.self.ref.detectChanges();
   }
   refreshDoneOrderInfo(obj: any, idx: number) {
@@ -1101,7 +1147,11 @@ export class AppComponent implements OnInit {
   addUndoneOrderInfo(obj: any) {
     let row = this.orderstatusTable.newRow();
     row.cells[0].Text = obj.od.innercode;
-    row.cells[1].Text = "";
+    let codeInfo = AppComponent.secu.getSymbolAndName(obj.od.innercode);
+    if (codeInfo)
+      row.cells[1].Text = (codeInfo.SecuCode + "").split(".")[0];
+    else
+      row.cells[1].Text = "";
     row.cells[2].Text = obj.od.orderid;
     row.cells[3].Text = this.formatTime(obj.od.odatetime.tv_sec);
     row.cells[4].Text = obj.od.strategyid;
@@ -1122,9 +1172,15 @@ export class AppComponent implements OnInit {
   }
   formatTime(time: any): String {
     let rtnStr: String = "";
-    let newDate = new Date();
-    newDate.setTime(time * 1000);
-    rtnStr = newDate.getHours() + ":" + newDate.getMinutes() + ":" + newDate.getSeconds();
+    let newDate = new Date(time * 1000);
+    let hour = newDate.getHours() + "";
+    let min = newDate.getMinutes() + "";
+    if (min.length === 1)
+      min = "0" + min;
+    let sec = newDate.getSeconds() + "";
+    if (sec.length === 1)
+      sec = "0" + sec;
+    rtnStr = hour + ":" + min + ":" + sec;
     return rtnStr;
   }
   getCurrentTime(): String {
@@ -1223,7 +1279,11 @@ export class AppComponent implements OnInit {
     row.cells[0].Text = obj.record.account;
     row.cells[1].Text = obj.secucategory;
     row.cells[2].Text = obj.record.code;
-    row.cells[3].Text = "";
+    let codeInfo = AppComponent.secu.getSymbolAndName(obj.record.code);
+    if (codeInfo)
+      row.cells[3].Text = (codeInfo.SecuCode + "").split(".")[0];
+    else
+      row.cells[3].Text = "";
     row.cells[4].Text = obj.record.TotalVol;
     row.cells[5].Text = obj.record.AvlVol;
     row.cells[6].Text = obj.record.AvlCreRedempVol;
@@ -1314,6 +1374,7 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showComProfitInfo(data: any) {
+    // console.log("**************", data);
     for (let i = 0; i < data.length; ++i) {
       let profitTableRows: number = AppComponent.self.profitTable.rows.length;
       let profitUkey: number = data[i].innercode;
@@ -1349,7 +1410,11 @@ export class AppComponent implements OnInit {
   addProfitInfo(obj: any) {
     let row = AppComponent.self.profitTable.newRow();
     row.cells[0].Text = obj.innercode;
-    row.cells[1].Text = "";
+    let codeInfo = AppComponent.secu.getSymbolAndName(obj.innercode);
+    if (codeInfo)
+      row.cells[1].Text = (codeInfo.SecuCode + "").split(".")[0];
+    else
+      row.cells[1].Text = "";
     row.cells[2].Text = obj.account;
     row.cells[3].Text = obj.strategyid;
     row.cells[4].Text = obj.avgpriceforbuy / 10000;
@@ -1678,8 +1743,20 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
 
-  controlBtnClick(type: any) {
-
+  controlBtnClick(idx: number) {
+    let len = AppComponent.self.strategyTable.rows.length;
+    for (let i = 0; i < len; ++i) {
+      let strategyid = AppComponent.self.strategyTable.rows[i].cells[0].Text;
+      if (idx === 0) {
+        AppComponent.self.operateSteategy(strategyid, 3, i, 0);
+      } else if (idx === 1) {
+        AppComponent.self.operateSteategy(strategyid, 4, i, 1);
+      } else if (idx === 2) {
+        AppComponent.self.operateSteategy(strategyid, 5, i, 2);
+      } else if (idx === 3) {
+        AppComponent.self.operateSteategy(strategyid, 6, i, 3);
+      }
+    }
   }
   strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
     console.log(data);
@@ -1710,35 +1787,37 @@ export class AppComponent implements OnInit {
     } else if (data.dataSource.text === "comment") {
 
     } else {
-      let clickType = data.Data.type;
-      let clickname = data.Data.name;
-      let clicklevel = data.Data.level;
       let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
       if (data.dataSource.text === "start") {
-        AppComponent.self.showStraContrlDisable(0, cellIdx, rowIdx);
-        ManulTrader.strategyControl(0, strategyId);
+        AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 0);
       } else if (data.dataSource.text === "pause") {
-        AppComponent.self.showStraContrlDisable(1, cellIdx, rowIdx);
-        ManulTrader.strategyControl(1, strategyId);
+        AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 1);
       } else if (data.dataSource.text === "stop") {
-        AppComponent.self.showStraContrlDisable(2, cellIdx, rowIdx);
-        ManulTrader.strategyControl(2, strategyId);
+        AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 2);
       } else if (data.dataSource.text === "watch") {
-        AppComponent.self.showStraContrlDisable(3, cellIdx, rowIdx);
-        ManulTrader.strategyControl(3, strategyId);
+        AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 3);
+      } else {
+        let clickType = data.Data.type;
+        let clickname = data.Data.name;
+        let clicklevel = data.Data.level;
+        if (clickType === 3) {   // command btn
+          let ret: Boolean = true;
+          if (clicklevel > 9) {
+            // messagebox  and return ret;
+            ret = confirm("extute " + clickname + " ?");
+          }
+          if (ret) {
+            ManulTrader.submitPara([data.Data]);
+          }
+        }
       }
 
-      if (clickType === 3) {   // command btn
-        let ret: Boolean = true;
-        if (clicklevel > 9) {
-          // messagebox  and return ret;
-          ret = confirm("extute " + clickname + " ?");
-        }
-        if (ret) {
-          ManulTrader.submitPara([data.Data]);
-        }
-      }
     }
+  }
+
+  operateSteategy(strategyid: number, cellidx: number, rowIdx: number, tip: number) {
+    AppComponent.self.showStraContrlDisable(tip, cellidx, rowIdx);
+    ManulTrader.strategyControl(tip, strategyid);
   }
 
   showStraContrlDisable(Ctrltype: number, cellIdx: number, rowIdx: number) {
@@ -1777,8 +1856,6 @@ export class AppComponent implements OnInit {
     if (dataLen === 0) {
       // *****
     } else {
-      AppComponent.self.range.Text = 0;
-      AppComponent.self.rateText.Text = 0;
       for (let i = 0; i < dataLen; ++i) {
         let portfolioRows = AppComponent.self.portfolioTable.rows.length;
         let ukey = tableData[i].UKey;
@@ -1806,7 +1883,6 @@ export class AppComponent implements OnInit {
     let row = AppComponent.self.portfolioTable.newRow();
     let ukey = tableData.UKey;
     let codeInfo = AppComponent.secu.getSymbolAndName(ukey);
-    // console.log(codeInfo);
     if (codeInfo) {
       let symbol = (codeInfo.SecuCode + "").split(".")[0];
       row.cells[0].Type = "checkbox";
@@ -1878,7 +1954,6 @@ export class AppComponent implements OnInit {
   }
   refreshPortfolioTable(idx: number, tableData: any) {
     let ukey = tableData.UKey;
-    let codeInfo = AppComponent.secu.getSymbolAndName(ukey);
     AppComponent.self.portfolioTable.rows[idx].cells[2].Text = tableData.InitPos;
     AppComponent.self.portfolioTable.rows[idx].cells[3].Text = tableData.TgtPos;
     AppComponent.self.portfolioTable.rows[idx].cells[4].Text = tableData.CurrPos;
@@ -1894,30 +1969,35 @@ export class AppComponent implements OnInit {
       AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "SUspended";
+      AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#2A9FD6";
     } else if (flag === 2) {
       AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[0].Data.chk = true;
       AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "Restrict";
+      AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#2A9FD6";
     } else if (flag === 3) {
       AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[0].Data.chk = false;
       AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "LimitUp";
+      AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#00FF00";
     } else if (flag === 4) {
       AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[0].Data.chk = false;
       AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "LimitDown";
+      AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#FF0000";
     } else {
       AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[0].Data.chk = false;
       AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "Normal";
+      AppComponent.self.portfolioTable.rows[idx].backgroundColor = null;
     }
     AppComponent.self.portfolioTable.rows[idx].cells[13].Text = tableData.PreClose / 10000;
     AppComponent.self.portfolioTable.rows[idx].cells[14].Text = tableData.LastPrice / 10000;
@@ -1943,6 +2023,56 @@ export class AppComponent implements OnInit {
     AppComponent.self.portfolioDaypnl.Text = data[0].dayPnl / 10000;
     AppComponent.self.portfolioonpnl.Text = data[0].onPnl / 10000;
   }
+  returnSelArr(data: any, check: any) {    // check if opposite
+    let type = data;
+    let len = AppComponent.self.portfolioTable.rows.length;
+    AppComponent.self.selectArr.splice(0, AppComponent.self.selectArr.length);
+
+    for (let i = 0; i < len; ++i) {
+      if (type === 0) {
+        if (!AppComponent.self.portfolioTable.rows[i].cells[0].Data.chk) {
+          AppComponent.self.portfolioTable.rows[i].cells[0].Text = !check;
+          if (!check) {
+            AppComponent.self.selectArr.push(AppComponent.self.portfolioTable.rows[i].cells[0].Data.ukey);
+          }
+        } else {
+          AppComponent.self.portfolioTable.rows[i].cells[0].Text = false;
+        }
+      }
+
+      if (type === 1) {
+        if (!AppComponent.self.portfolioTable.rows[i].cells[0].Data.chk) {
+          if (AppComponent.self.portfolioTable.rows[i].cells[3].Text > 0) {
+            if (!check) {
+              AppComponent.self.portfolioTable.rows[i].cells[0].Text = !check;
+              AppComponent.self.selectArr.push(AppComponent.self.portfolioTable.rows[i].cells[0].Data.ukey);
+            } else {
+              AppComponent.self.portfolioTable.rows[i].cells[0].Text = false;
+            }
+          }
+        } else {
+          AppComponent.self.portfolioTable.rows[i].cells[0].Text = false;
+        }
+      }
+
+      if (type === 2) {
+        if (!AppComponent.self.portfolioTable.rows[i].cells[0].Data.chk) {
+          if (AppComponent.self.portfolioTable.rows[i].cells[3].Text < 0) {
+            if (!check) {
+              AppComponent.self.portfolioTable.rows[i].cells[0].Text = !check;
+              AppComponent.self.selectArr.push(AppComponent.self.portfolioTable.rows[i].cells[0].Data.ukey);
+            } else {
+              AppComponent.self.portfolioTable.rows[i].cells[0].Text = false;
+            }
+          }
+        } else {
+          AppComponent.self.portfolioTable.rows[i].cells[0].Text = false;
+        }
+      }
+
+    }
+  }
+
 }
 
 

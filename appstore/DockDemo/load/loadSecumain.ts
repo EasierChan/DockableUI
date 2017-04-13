@@ -7,7 +7,6 @@ export class LoadSecuMain {
     private static secuMainObj = new Object();
     private static symbolObj = new Object();
     constructor() {
-        console.log("loadsecumain constructor");
         let str = "/home/xinkui/itrade-ui/secumaincopy.csv";
         let content: String = new String();
         try {

@@ -68,7 +68,7 @@ export class MenuItem {
 }
 
 /**
- * 
+ *
  */
 export class MessageBox {
 
