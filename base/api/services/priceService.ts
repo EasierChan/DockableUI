@@ -49,7 +49,7 @@ export class PriceService extends EventEmitter<any> {
             try {
                 // console.info(data.toString());
                 data.toString().split("$").forEach(item => {
-                    if (item !== "") {
+                    if (item && item !== "") {
                         let obj = JSON.parse(item);
                         self.emit(obj);
                     }

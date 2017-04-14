@@ -2,7 +2,7 @@
  * created by chenlei
  */
 import { PriceService } from "../../base/api/services/priceService";
-const EventEmitter = require("@node/events");
+import { Menu, MenuItem } from "../api/services/backend.service";
 
 export interface CssStyle {
     type: string;
@@ -45,6 +45,13 @@ export class DockContainer extends Control {
         return this;
     }
 
+    get Width() {
+        return this.styleObj.getWidth();
+    }
+
+    get Height() {
+        return this.styleObj.getHeight();
+    }
 }
 
 export class Splitter extends Control {
@@ -312,6 +319,30 @@ export class MetaControl extends Control {
     }
 }
 
+export class CompleteListItem {
+    constructor(private value = "", private label = "") {
+    }
+}
+
+export class ComboBox extends MetaControl {
+    constructor() {
+        super("textbox");
+        this.dataSource.completelist = null;
+        this.styleObj.dropdown = false;
+        this.dataSource.input = () => {
+            this.styleObj.dropdown = true;
+        };
+    }
+
+    set Completelist(value: CompleteListItem[]) {
+        this.dataSource.completelist = value;
+    }
+
+    get Completelist() {
+        return this.dataSource.completelist;
+    }
+}
+
 export class URange extends MetaControl {
     constructor() {
         super("range");
@@ -337,28 +368,67 @@ export class URange extends MetaControl {
 }
 
 export class DropDown extends MetaControl {
+    private completelistCount: number;
+
     constructor() {
         super("dropdown");
         this.dataSource.items = new Array<DropDownItem>();
+        this.dataSource.completelist = new Array<DropDownItem>();
         this.dataSource.selectedItem = null;
         this.styleObj.dropdown = false;
+        this.styleObj.acceptInput = false;
+        this.completelistCount = 10;
+
         this.dataSource.click = () => {
             this.styleObj.dropdown = !this.styleObj.dropdown;
         };
+
+        this.dataSource.input = () => {
+            setTimeout(() => {
+                if (this.styleObj.acceptInput) {
+                    this.dataSource.completelist = [];
+                    if (this.dataSource.text && this.dataSource.text.length > 0) {
+                        for (let i = 0; i < this.dataSource.items.length; ++i) {
+                            if (this.dataSource.items[i].Text.startsWith(this.dataSource.text)) {
+                                if (this.dataSource.completelist.push(this.dataSource.items[i]) === this.completelistCount)
+                                    break;
+                            }
+                        }
+                    }
+                    console.info(this.dataSource.completelist, this.Text);
+                    this.styleObj.dropdown = true;
+                }
+            }, 500);
+        };
+
         this.dataSource.select = (item) => {
+            console.info(this.Text);
             if (this.dataSource.selectedItem !== item) {
                 this.dataSource.selectedItem = item;
                 if (this.dataSource.selectchange) {
                     this.dataSource.selectchange(item);
                 }
             }
+            this.dataSource.text = item.Text;
             this.styleObj.dropdown = false;
+        };
 
+        this.dataSource.blur = (e: Event) => {
+            e.preventDefault();
+            setTimeout(() => {
+                this.styleObj.dropdown = false;
+            }, 500);
         };
     }
 
     addItem(item: DropDownItem) {
         this.dataSource.items.push(item);
+        this.dataSource.selectedItem = this.dataSource.items[0];
+    }
+
+    resetItems(items: DropDownItem[]) {
+        this.dataSource.items = null;
+        this.dataSource.items = items;
         this.dataSource.selectedItem = this.dataSource.items[0];
     }
 
@@ -376,6 +446,10 @@ export class DropDown extends MetaControl {
 
     set SelectChange(value: Function) {
         this.dataSource.selectchange = value;
+    }
+
+    set AcceptInput(value: boolean) {
+        this.styleObj.acceptInput = value;
     }
 }
 
@@ -606,7 +680,7 @@ export class SpreadViewer {
                         }
                     },
                     tooltip: {
-                        formatter: function (param) {
+                        formatter: function(param) {
                             return JSON.stringify(param);
                         }
                     }
@@ -825,6 +899,7 @@ export class DataTable extends Control {
     public rows: DataTableRow[] = [];
     private _cellclick: Function;
     private _rowclick: Function;
+    private _menu: Menu = new Menu();
 
     constructor(type: "table" | "table2" = "table") {
         super();
@@ -835,8 +910,10 @@ export class DataTable extends Control {
             rows: null,
             bRowIndex: true,
             detectChanges: null,
-            cellpadding: null
+            cellpadding: null,
+            tableHeaderClick: () => { }
         };
+
         this.styleObj = { type: type, width: null, height: null };
     }
 
@@ -858,7 +935,17 @@ export class DataTable extends Control {
             this.columns.push(new DataTableColumn(item));
             this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length));
         });
+
         this.dataSource.columns = this.columns;
+        this.columns.forEach(col => {
+            this._menu.addItem(MenuItem.create(col.Name, (self) => {
+                if (col.Name === self.label) {
+                    col.hidden = !self.checked;
+                    this.detectChanges();
+                }
+            }, "checkbox", { visible: !col.hidden, checked: true }), null);
+        });
+
         return this;
     }
 
@@ -889,6 +976,20 @@ export class DataTable extends Control {
 
     set cellPadding(value: number) {
         this.dataSource.cellpadding = value;
+    }
+
+    set columnConfigurable(value: boolean) {
+        if (value) {
+            this.dataSource.tableHeaderClick = (e: MouseEvent) => {
+                e.preventDefault();
+
+                if (e.button === 2) { // right click
+                    this._menu.popup();
+                }
+            };
+        } else {
+            this.dataSource.tableHeaderClick = () => { };
+        }
     }
 
     detectChanges(): void {
@@ -974,7 +1075,7 @@ export class DataTableColumn {
         this.bHidden = value;
     }
 
-    get hidden(){
+    get hidden() {
         return this.bHidden;
     }
 
@@ -1029,6 +1130,7 @@ export interface DialogOption {
 
 export class StatusBar {
     items: StatusBarItem[];
+    backgroundColor: string;
     constructor() {
         this.items = [];
     }
@@ -1038,7 +1140,7 @@ export class StatusBarItem {
     text: string = "";
     section: "left" | "right" = "right";
     click: Function = () => { };
-    color: "white" | "red" | "green" = "white";
+    color: string;
     data: any;
     width: number;
 

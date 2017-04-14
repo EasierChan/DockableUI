@@ -115,7 +115,8 @@ export class UWindow {
 			// title: this.envService.product.nameLong,
 			webPreferences: {
 				backgroundThrottling: false, // by default if Code is in the background, intervals and timeouts get throttled
-				nodeIntegration: true
+				nodeIntegration: true,
+				experimentalFeatures: true
 			}
 		};
 
