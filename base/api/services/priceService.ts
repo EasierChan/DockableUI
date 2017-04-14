@@ -19,6 +19,7 @@ export class PriceService extends EventEmitter<any> {
     private _interval: number;
     private _state: number = 0;
     private _innercodes: number[] = [];
+    private onClose: Function;
 
     constructor() {
         super();
@@ -61,10 +62,23 @@ export class PriceService extends EventEmitter<any> {
         });
         self._socket.on("error", (err) => {
             this._state = 2;
+            if (this.onClose) {
+                this.onClose();
+            }
             console.error(err.message);
+        });
+        self._socket.on("close", err => {
+            this._state = 2;
+            if (this.onClose) {
+                this.onClose();
+            }
+            console.info("remote closed");
         });
         self._socket.on("end", err => {
             this._state = 2;
+            if (this.onClose) {
+                this.onClose();
+            }
             console.info("remote closed");
         });
     }
