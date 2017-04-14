@@ -2,20 +2,27 @@
   <button *ngIf="child.styleObj.type=='button'" class="btn btn-{{child.className}} btn-xs" [name]="child.dataSource.name" (click)="child.dataSource.click()"
     [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top" [disabled]="child.styleObj?.disable">
     {{child.dataSource.text}}
-    </button>
+  </button>
   <label *ngIf="child.styleObj.type=='textbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top"
     (input)="child.dataSource.input ? child.dataSource.input() : null">
-                <pre>{{child.dataSource.title}}</pre>
-                <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" [style.width.px]="child.styleObj?.width"
-                class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
-             </label>
+      <pre>{{child.dataSource.title}}</pre>
+        <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" [style.width.px]="child.styleObj?.width"
+        class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
+  </label>
   <div *ngIf="child.styleObj.type=='dropdown'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
     <pre>{{child.dataSource.title}}</pre>
     <div class="btn-group" [style.width.px]="child.styleObj?.width">
-      <button type="button" class="btn-xs btn-default dropdown-toggle" (click)="child.dataSource.click()" [disabled]="child.styleObj?.disable">
-                        <pre style="width:100%">{{child.dataSource.selectedItem.Text}}</pre> <span class="caret"></span>
-                    </button>
-      <ul class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'">
+      <input *ngIf="child.styleObj.acceptInput" type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" [style.width.px]="child.styleObj?.width"
+        class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly" (input)="child.dataSource.input()"
+         (blur)="child.dataSource.blur($event)">
+      <ul *ngIf="child.styleObj.acceptInput" class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'">
+        <li *ngFor="let item of child.dataSource.completelist" (click)="child.dataSource?.select(item)"><a href="#">{{item.Text}}</a></li>
+      </ul>
+      <button *ngIf="!child.styleObj.acceptInput" type="button" class="btn-xs btn-default dropdown-toggle" (click)="child.dataSource.click()"
+       (blur)="child.dataSource.blur($event)" [disabled]="child.styleObj?.disable">
+          <pre style="width:100%">{{child.dataSource.selectedItem.Text}}</pre> <span class="caret"></span>
+      </button>
+      <ul *ngIf="!child.styleObj.acceptInput" class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'">
         <li *ngFor="let item of child.dataSource.items" (click)="child.dataSource?.select(item)"><a href="#">{{item.Text}}</a></li>
       </ul>
     </div>
