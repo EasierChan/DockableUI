@@ -5,7 +5,7 @@
  */
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
-  Control, DockContainer, Splitter, TabPanel, TabPage, URange,
+  Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
@@ -24,10 +24,11 @@ import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus
   ]
 })
 export class AppComponent implements OnInit {
+
   private static secu = new LoadSecuMain();
   className: string = "dock-container vertical";
   children: Control[] = [];
-
+  private dialog: Dialog;
   private orderstatusPage: TabPage;
   private tradePage: TabPage;
   private doneOrdersPage: TabPage;
@@ -117,7 +118,6 @@ export class AppComponent implements OnInit {
     dd_status.addItem({ Text: "8.部成", Value: "8" });
     dd_status.addItem({ Text: "9.已成", Value: "9" });
     dd_status.addItem({ Text: "10.废单", Value: "10" });
-
     orderstatusHeader.addChild(dd_status);
     // let cb_selectAll = new MetaControl("checkbox");
     // cb_selectAll.Title = "Select All";
@@ -270,7 +270,7 @@ export class AppComponent implements OnInit {
     this.tradePage.setContent(tradeContent);
     rightPanel.addTab(this.tradePage);
     rightPanel.setActive("ManulTrader");
-    row1.addChild(new DockContainer("v", 100, null).addChild(rightPanel));
+    // row1.addChild(new DockContainer("v", 100, null).addChild(rightPanel));
     this.children.push(row1);
 
     btn_submit.OnClick = () => {
@@ -359,6 +359,7 @@ export class AppComponent implements OnInit {
       [txt_UKey.Text, txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
       txt_Price.Text = rowItem.cells[1].Text;
       dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? dd_Action.Items[1] : dd_Action.Items[0];
+      Dialog.popup(this, tradeContent, { title: "Trade" });
     };
     let bookViewContent = new ComboControl("col");
     bookViewContent.addChild(bookviewHeader);
@@ -979,12 +980,16 @@ export class AppComponent implements OnInit {
     row.cells[0].Text = obj.key;
     row.cells[3].Type = "button";
     row.cells[3].Text = "start";
+    row.cells[3].Class = "primary";
     row.cells[4].Type = "button";
     row.cells[4].Text = "pause";
+    row.cells[4].Class = "primary";
     row.cells[5].Type = "button";
     row.cells[5].Text = "stop";
+    row.cells[5].Class = "primary";
     row.cells[6].Type = "button";
     row.cells[6].Text = "watch";
+    row.cells[6].Class = "primary";
     row.cells[7].Text = AppComponent.self.transFormStrategyStatus(obj.status);
     AppComponent.self.strategyStatus = obj.status;
     let btnDisableType: number = 0;
@@ -1380,8 +1385,8 @@ export class AppComponent implements OnInit {
       let profitUkey: number = data[i].innercode;
       let strategyid = data[i].strategyid;
       let row = AppComponent.self.findRowByStrategyId(strategyid);
-      let totalpnl = (data[i].totalpositionpnl / 10000 / 1000).toFixed(0);
-      let tradingpnl = (data[i].totaltradingpnl / 10000 / 1000).toFixed(0);
+      let totalpnl = Math.fround(data[i].totalpositionpnl / 10000 / 1000) + "";
+      let tradingpnl = Math.fround(data[i].totaltradingpnl / 10000 / 1000) + "";
       AppComponent.self.strategyTable.rows[row].cells[8].Text = totalpnl;
       if (parseInt(totalpnl) > 0)
         AppComponent.self.strategyTable.rows[row].cells[8].Class = "default";
@@ -1969,14 +1974,14 @@ export class AppComponent implements OnInit {
       AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "SUspended";
-      AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#2A9FD6";
+      AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#FF8800";
     } else if (flag === 2) {
       AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[0].Data.chk = true;
       AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = true;
       AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "Restrict";
-      AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#2A9FD6";
+      AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#FF8800";
     } else if (flag === 3) {
       AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = false;
       AppComponent.self.portfolioTable.rows[idx].cells[0].Data.chk = false;
