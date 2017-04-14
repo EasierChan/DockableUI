@@ -5,7 +5,7 @@
  */
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
-  Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog
+  Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog,
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
@@ -780,7 +780,6 @@ export class AppComponent implements OnInit {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-
     this.psInstance.setEndpoint(20000, "172.24.51.6");
     this.psInstance.setHeartBeat(1000000);
     this.psInstance.register([3, 6, 2007741]);
@@ -1335,6 +1334,7 @@ export class AppComponent implements OnInit {
     AppComponent.self.ref.detectChanges();
   }
   showComGWNetGuiInfo(data: any) {
+    console.log("+++++++++++", data);
     let markLen = AppComponent.self.statusbar.items.length;
     if (markLen === 0) { // add
       AppComponent.self.addStatusBarMark(data[0]);
@@ -1385,8 +1385,8 @@ export class AppComponent implements OnInit {
       let profitUkey: number = data[i].innercode;
       let strategyid = data[i].strategyid;
       let row = AppComponent.self.findRowByStrategyId(strategyid);
-      let totalpnl = Math.fround(data[i].totalpositionpnl / 10000 / 1000) + "";
-      let tradingpnl = Math.fround(data[i].totaltradingpnl / 10000 / 1000) + "";
+      let totalpnl = Math.fround(data[i].totalpositionpnl / 10000 / 1000).toFixed(0) + "";
+      let tradingpnl = Math.fround(data[i].totaltradingpnl / 10000 / 1000).toFixed(0) + "";
       AppComponent.self.strategyTable.rows[row].cells[8].Text = totalpnl;
       if (parseInt(totalpnl) > 0)
         AppComponent.self.strategyTable.rows[row].cells[8].Class = "default";
