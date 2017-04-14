@@ -468,6 +468,7 @@ function init() {
         }
 
         getChildrenLayout($("#root"), _rootLayout);
+        return _rootLayout;
     }
     // start app
     reallocChildSize($("#root"), ".dock-container.horizental");

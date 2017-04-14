@@ -207,7 +207,7 @@ export class ItradeService {
         this._sessionid = value;
     }
 
-    get sessionID(): number{
+    get sessionID(): number {
         return this._sessionid;
     }
 
@@ -235,6 +235,15 @@ export class ItradeService {
                     this._messageMap[0].callback.call(this._messageMap[0].context, this._sessionid);
                 else
                     this._messageMap[0].callback(this._sessionid);
+            }
+        });
+
+        this._client.on("disconnect", () => {
+            if (this._messageMap.hasOwnProperty(-1)) {
+                if (this._messageMap[-1].context !== undefined)
+                    this._messageMap[-1].callback.call(this._messageMap[0].context, this._sessionid);
+                else
+                    this._messageMap[-1].callback(this._sessionid);
             }
         });
     }
