@@ -54,6 +54,12 @@ var AppStore = (function () {
                     name: "DockDemo",
                     desc: "TradeMonitor",
                     category: "Transanctional"
+                },
+                {
+                    id: "SpreadViewer",
+                    name: "ViewerTest",
+                    desc: "show spread viewer",
+                    category: "Transanctional"
                 }
             ];
             var appIds = [];
