@@ -1,2 +1,10 @@
 /.vscode/
-/node_modules/
+/logs/*
+/config/*
+/appstore/**/*.js*
+!/appstore/**/system.config.js
+/base/**/*.js*
+!/base/script/**/*.js
+/workbench/**/*.js*
+!/workbench/system.config.js
+/index.j*
