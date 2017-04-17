@@ -1,9 +1,9 @@
 /.vscode/
 /logs/*
 /config/*
-/appstore/**/*.js*
+/appstore/**/*.j*
 !/appstore/**/system.config.js
-/base/**/*.js*
+/base/**/*.j*
 !/base/script/**/*.js
 /workbench/**/*.js*
 !/workbench/system.config.js
