@@ -88,7 +88,7 @@ class ItradeParser extends Parser {
 }
 
 /**
- * 
+ *
  */
 class StrategyParser extends ItradeParser {
     private _intervalRead: NodeJS.Timer;
@@ -133,7 +133,7 @@ class StrategyParser extends ItradeParser {
 }
 
 /**
- * 
+ *
  */
 class ItradeClient extends TcpClient {
     private _intervalHeart: NodeJS.Timer;

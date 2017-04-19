@@ -80,7 +80,7 @@ export class TcpClient {
         TcpClient._s_bufferQueue = null;
     }
     /**
-     * 
+     *
      */
     get bufferQueue(): Pool<Buffer> {
         if (this._buffer_Queue)

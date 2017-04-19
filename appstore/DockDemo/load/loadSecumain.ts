@@ -1,6 +1,6 @@
 "use strict";
 
-import { fs, path, os } from "../../../base/api/services/backend.service";
+import { fs, path } from "../../../base/api/services/backend.service";
 
 
 export class LoadSecuMain {
@@ -34,7 +34,7 @@ export class LoadSecuMain {
     getSymbolAndName(data: any) {
         data = data + "";
         for (let o in LoadSecuMain.symbolObj) {
-          //  console.log(o, data);
+            //  console.log(o, data);
             if (o === data) {
                 return LoadSecuMain.symbolObj[o];
             }

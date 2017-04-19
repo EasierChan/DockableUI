@@ -4,14 +4,14 @@
 "use strict";
 
 import { ipcRenderer } from "electron";
-
+declare var electron: Electron.ElectronMainAndRenderer;
 export class SecuMasterService {
     // TODO
-    static getSecuinfoByCode(...code: string[]) {
-        return ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", {});
+    static getSecuinfoByCode(type: number, ...code: string[]) {
+        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: type, data: code });
     }
 
-    static getSecuinfoByUKey(...ukey: number[]) {
-        return ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", {});
+    static getSecuinfoByUKey(type: number, ...ukey: number[]) {
+        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: type, data: ukey });
     }
 }

@@ -108,7 +108,6 @@ export class OrderService {
                 console.error(data.header.type + " not regist!");
             }
         });
-
     }
 
     registerServices(): void {
@@ -130,6 +129,8 @@ export class OrderService {
             buffer: buffer
         });
     }
+
+
     readPortfolioMsgError(buffer: Buffer, msgtype: number, subtype: number, msglen: number) {
         let offset: number = 0;
         let unknowncount = buffer.readUInt32LE(offset); offset += 4;

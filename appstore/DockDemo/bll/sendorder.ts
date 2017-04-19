@@ -2,11 +2,12 @@
 
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
+import { SecuMasterService } from "../../../base/api/services/secumaster.service";
 import { AppComponent } from "../app.component";
 
 export class ManulTrader {
     private static orderService = new OrderService();
-
+    // private static secumaster = new SecuMasterService();
     static submitOrder(...orders: ComConOrder[]): void {
         let offset: number = 0;
         // handle with array
@@ -79,6 +80,16 @@ export class ManulTrader {
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
 
+    static getSecuinfoByCode(type: number, ...code: string[]) {
+        // return ManulTrader.orderService.getsecuInfobycode(type, ...code);
+        return SecuMasterService.getSecuinfoByCode(type, ...code);
+    }
+
+    static getSecuinfoByukey(type: number, ...ukey: number[]) {
+        // return ManulTrader.orderService.getsecuInfobyukey(type, ...ukey);
+        return SecuMasterService.getSecuinfoByUKey(type, ...ukey);
+    }
+
     static submitPara(data: any) {
         //  console.log("+++++++", data);
         let offset: number = 0;
@@ -126,7 +137,6 @@ export class ManulTrader {
         buffer.writeUInt32LE(ukey, offset); offset += 4;
     }
     static sendAllSel(account: number, count: number, askPriceLevel: number, bidPriceLevel: number, askOffset: number, bidOffset: number, sendArr: any) {
-        // console.log(account, count, askPriceLevel, bidPriceLevel, askOffset, bidOffset, sendArr);
         let offset: number = 0;
         let bufferLen = 12 + (4 + 4 + 4) * count;
         let buffer = new Buffer(bufferLen);
@@ -165,9 +175,9 @@ export class ManulTrader {
         buffer.writeUInt32LE(indexSymbol, offset); offset += 4;
         buffer.writeUInt32LE(divideNum, offset); offset += 4;
         initPos.forEach(function (item) {
-            buffer.writeUInt32LE(item.ukey, offset); offset += 4;
-            buffer.writeInt32LE(item.currPos, offset); offset += 4;
-            buffer.writeInt32LE(item.targetPos, offset); offset += 4;
+            buffer.writeUInt32LE(parseInt(item.ukey + ""), offset); offset += 4;
+            buffer.writeInt32LE(parseInt(item.currPos + ""), offset); offset += 4;
+            buffer.writeInt32LE(parseInt(item.targetPos + ""), offset); offset += 4;
         });
         ManulTrader.orderService.sendOrder(5001, 0, buffer);
     }
@@ -237,7 +247,6 @@ export class ManulTrader {
         let max_uint32: number = 0xFFFFFFFF;
         let big: number = ~~(time / max_uint32);
         let low: number = (time % max_uint32) - big;
-
         buffer.writeUInt32LE(low, offset);
         offset += 4;
         buffer.writeUInt32LE(big, offset);
