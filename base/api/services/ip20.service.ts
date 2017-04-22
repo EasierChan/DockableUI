@@ -66,7 +66,7 @@ class IP20Parser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.packlen) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-
+                console.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
                 this.emit(this._curHeader.appid.toString(), this._curHeader, tempBuffer);
 
                 restLen = buflen - this._curHeader.packlen;
@@ -99,6 +99,7 @@ class ISONPackParser extends IP20Parser {
     init(): void {
         this.registerMsgFunction("17", this, this.processLoginMsg);
         this.registerMsgFunction("270", this, this.processTemplateMsg);
+        this.registerMsgFunction("107", this, this.processTemplateMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -107,14 +108,18 @@ class ISONPackParser extends IP20Parser {
     processLoginMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
         let all = args[1];
+        let msg = new ISONPack2();
         switch (header.packid) {
             case 43: // Login
-                let msg = new ISONPack2();
+                msg.fromBuffer(all);
+                this._client.emit("data", msg);
+                break;
+            case 120: // login error
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);
                 break;
             default:
-                logger.info(`appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
+                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
                 break;
         }
     }
@@ -122,16 +127,18 @@ class ISONPackParser extends IP20Parser {
     processTemplateMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
         let all = args[1];
+        let msg;
 
         switch (header.packid) {
-            case 194: // Login
-                let msg = new ISONPack2();
+            case 194:
+            case 2001:
+            case 2003:
+                msg = new ISONPack2();
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);
-                // logger.info("updatedate data: ", msg.newDate);
                 break;
             default:
-                logger.info(`appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
+                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
                 break;
         }
     }
