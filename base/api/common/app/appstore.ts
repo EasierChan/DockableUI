@@ -184,7 +184,7 @@ export class AppStore {
     }
 
     static saveConfig() {
-        fs.writeFile(AppStore._cfgFile, JSON.stringify(AppStore._config, null, 2));
+        fs.writeFileSync(AppStore._cfgFile, JSON.stringify(AppStore._config, null, 2));
     }
 }
 

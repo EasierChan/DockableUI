@@ -11,7 +11,7 @@ export class ConfigurationBLL {
     constructor() {
         this._names = [];
         this._templates = {};
-        this._basedir = path.join(Environment.appDataDir, "workbench");
+        this._basedir = path.join(Environment.appDataDir, "ChronosApps/workbench");
         this._templatepath = path.join(this._basedir, "templates.json");
         this._templates = File.parseJSON(this._templatepath) || {};
 
@@ -64,12 +64,12 @@ export class ConfigurationBLL {
 
     updateConfig(config: WorkspaceConfig) {
         this._configs.push(config);
-        File.writeAsync(this._configpath, JSON.stringify(this._configs, null, 2));
+        File.writeAsync(this._configpath, JSON.stringify(this._configs));
     }
 
     updateTemplate(name: string, template: any) {
         this._templates[name] = template;
-        File.writeAsync(this._templatepath, JSON.stringify(this._templates, null, 2));
+        File.writeAsync(this._templatepath, JSON.stringify(this._templates));
     }
 }
 
@@ -141,6 +141,7 @@ export class StrategyBLL {
     }
 
     handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
+        console.info(msg);
         let i = 0;
         for (; i < this.strategies.length; ++i) {
             if (this.strategies[i].id === msg.key) {
@@ -274,10 +275,7 @@ export class StrategyServerContainer {
             }
         }
     }
-
 }
-
-
 
 export class WorkspaceConfig {
     name: string;
@@ -285,17 +283,17 @@ export class WorkspaceConfig {
     strategyCoreName: string;
     curstep: number;
     strategyInstances: StrategyInstance[];
-    channels: string[];
+    channels: { gateway: any, feedhandler: any };
     apptype: string = "DockDemo";
-    port: number;
+    private _port: string;
     host: string;
 
     constructor() {
         this.curstep = 1;
         this.tradingUniverse = [];
         this.strategyInstances = [];
-        this.channels = [];
-        this.port = 9080;
+        this.channels = { gateway: null, feedhandler: null };
+        this._port = "9000";
         this.host = "172.24.51.4";
     }
 
@@ -313,14 +311,13 @@ export class WorkspaceConfig {
         return configs;
     }
 
-    // get name() {
-    //     return this._name;
-    // }
+    get port(): number {
+        return parseInt(this._port);
+    }
 
-    // set name(value: string) {
-    //     this._name = value;
-    // }
-
+    set port(value: number) {
+        this._port = value.toString();
+    }
     // get step() {
     //     return this._curstep;
     // }
@@ -352,8 +349,16 @@ export class WorkspaceConfig {
 
 
 export class StrategyInstance {
-    id: string;
-    params: Object;
+    key: string;
+    name: string;
+    accounts: number[] = [];
+    algoes: number[] = [];
+    checks: number[] = [];
+    sendChecks?: Object[];
+    parameters: Object[];
+    comments: Object[];
+    commands: Object[];
+    instruments: Object[];
 }
 
 export class Channel {

@@ -223,6 +223,7 @@ export class ItradeService {
     private _sessionid: number;
     private _port: number;
     private _host: string;
+    private _time: any;
     constructor() {
         this._sessionid = 0;
         this._messageMap = {};
@@ -251,7 +252,7 @@ export class ItradeService {
         // self message
         // this._messageMap[0]
         // server message
-        let interval = null;
+        this._time = null;
         this._client.on("data", msg => {
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
                 if (this._messageMap[msg[0].type].context !== undefined)
@@ -262,11 +263,6 @@ export class ItradeService {
         });
 
         this._client.on("connect", () => {
-            if (interval !== null) {
-                clearInterval(interval);
-                interval = null;
-            }
-
             if (this._messageMap.hasOwnProperty(0)) {
                 if (this._messageMap[0].context !== undefined)
                     this._messageMap[0].callback.call(this._messageMap[0].context, this._sessionid);
@@ -276,9 +272,12 @@ export class ItradeService {
         });
 
         this._client.on("error", () => {
-            interval = setInterval(() => {
-                this._client.connect(this._port, this._host);
-            }, 10000);
+            if (this._time === null) {
+                this._time = setTimeout(() => {
+                    this._time = null;
+                    this._client.reconnect(this._port, this._host);
+                }, 10000);
+            }
         });
     }
 
@@ -294,5 +293,48 @@ export class ItradeService {
         if (this._messageMap.hasOwnProperty(type))
             return;
         this._messageMap[type] = { callback: cb, context: context };
+    }
+
+    get client() {
+        return this._client;
+    }
+}
+
+/**
+ * interface for single pro.
+ */
+process.on("message", (m: WSItrade, sock) => {
+    switch (m.command) {
+        case "start":
+            ItradeFactory.instance.client.on("data", msg => {
+                process.send({ event: "data", content: msg });
+            });
+            ItradeFactory.instance.client.on("connect", () => {
+                process.send({ event: "connect" });
+            });
+            ItradeFactory.instance.client.on("error", () => {
+                process.send({ event: "disconnect" });
+            });
+            ItradeFactory.instance.connect(m.params.port, m.params.host);
+            break;
+        case "stop":
+            ItradeFactory.instance.stop();
+            break;
+        default:
+            console.error(`unvalid command => ${m.command}`);
+            break;
+    }
+});
+
+interface WSItrade {
+    command: string;
+    params: any;
+}
+
+class ItradeFactory {
+    private static itrade;
+    static get instance() {
+        if (!ItradeFactory.itrade)
+            return ItradeFactory.itrade;
     }
 }

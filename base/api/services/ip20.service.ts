@@ -66,7 +66,7 @@ class IP20Parser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.packlen) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-
+                console.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
                 this.emit(this._curHeader.appid.toString(), this._curHeader, tempBuffer);
 
                 restLen = buflen - this._curHeader.packlen;
@@ -130,13 +130,9 @@ class ISONPackParser extends IP20Parser {
         let msg;
 
         switch (header.packid) {
-            case 194: // Login
-                msg = new ISONPack2();
-                msg.fromBuffer(all);
-                this._client.emit("data", msg);
-                // logger.info("updatedate data: ", msg.newDate);
-                break;
-            case 2001: // login
+            case 194:
+            case 2001:
+            case 2003:
                 msg = new ISONPack2();
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);

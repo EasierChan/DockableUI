@@ -10,6 +10,7 @@ import { IApp } from "../base/api/model/app.model";
 import { ConfigurationBLL, StrategyServerContainer, WorkspaceConfig, Channel, StrategyInstance } from "./bll/strategy.server";
 
 declare var window: any; // hack by chenlei @ 2017/02/07
+let ip20strs = {};
 
 @Component({
     moduleId: module.id,
@@ -23,9 +24,9 @@ declare var window: any; // hack by chenlei @ 2017/02/07
     ]
 })
 export class AppComponent implements OnDestroy {
+    private templates: any = {};
     private configBLL = new ConfigurationBLL();
     private strategyContainer = new StrategyServerContainer();
-
     isAuthorized: boolean = false;
     username: string;
     password: string;
@@ -42,11 +43,14 @@ export class AppComponent implements OnDestroy {
     selectedList: Array<CodeItem>;
 
     strategyCores: string[];
-    newestInstanceName: string;
     channels: Channel[] = [];
 
+    strategyName: string;
+    strategyId: string;
+
     contextMenu: Menu;
-    curItem: WorkspaceConfig;
+    curConfig: WorkspaceConfig;
+    curTemplate: any;
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
         private ref: ChangeDetectorRef) {
@@ -75,7 +79,7 @@ export class AppComponent implements OnDestroy {
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {
-        this.curItem = item;
+        this.curConfig = item;
         if (e.button === 2) { // right click
             // TODO Show Menu
             this.contextMenu.popup();
@@ -86,18 +90,98 @@ export class AppComponent implements OnDestroy {
     }
 
     next() {
-        this.config.curstep++;
+        ++this.config.curstep;
     }
 
     prev() {
-        this.config.curstep--;
+        --this.config.curstep;
     }
 
     finish() {
-        console.info(this.config);
-        this.configs.push(this.config);
-        this.strategyContainer.addItem(this.config);
+        // console.info(this.config);
+        if (this.configs.find(item => { return item.name === this.config.name; }) === undefined) {
+            this.configs.push(this.config);
+        }
+        // this.strategyContainer.addItem(this.config);
+        // listener
+        this.tgw.addSlot({ // create config ack
+            appid: 107,
+            packid: 2001,
+            callback: msg => {
+                console.info(msg.content.body);
+                this.config.name = msg.content.body.name;
+                this.config.host = msg.content.body.address;
+                this.strategyContainer.removeItem(this.config.name);
+                this.strategyContainer.addItem(this.config);
+                this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: this.config.name, action: 1 } });
+            }
+        });
+
+        this.tgw.addSlot({
+            appid: 107,
+            packid: 2003,
+            callback: msg => {
+                console.info(msg);
+            }
+        });
+        // create and modify config.
+
+        // this.channels.forEach((item, index) => {
+        //     if (!item.enable) {
+        //         this.curTemplate.body.data["SSGW"].splice(index, 1);
+        //     }
+        //     else
+        //         this.config.channels.push(item.name);
+        // });
+        this.config.channels.gateway.forEach(gw => {
+            gw.port = parseInt(gw.port);
+        });
+        this.config.channels.feedhandler.port = parseInt(this.config.channels.feedhandler.port);
+
+        this.curTemplate.body.data["SSNet"]["TSServer.port"] = this.config.port;
+        this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;
+        let sobj = Object.assign({}, this.curTemplate.body.data["Strategy"][0]);
+        this.curTemplate.body.data["Strategy"].length = 0;
+        delete this.curTemplate.body.data["PairTrades"]["PairTrade"];
+        this.config.strategyInstances.forEach(item => {
+            let obj = JSON.parse(JSON.stringify(sobj));
+            // obj.account = item.accounts;
+            obj.algoes = item.algoes;
+            obj.checks = item.checks;
+            obj.cfg = obj.field = obj.name = obj.log = item.name;
+            obj.key = parseInt(item.key);
+            // obj.maxorderid = 0; 
+            // obj.minorderid
+            // obj.orderstep
+            this.curTemplate.body.data["Strategy"].push(obj);
+            this.curTemplate.body.data["PairTrades"][item.name] = {
+                Command: item.commands,
+                Comment: item.comments,
+                Instrument: item.instruments,
+                Parameter: item.parameters
+            };
+
+            if (item.sendChecks) {
+                this.curTemplate.body.data["PairTrades"][item.name]["SendCheck"] = item.sendChecks;
+            }
+        });
+        console.info(this.curTemplate);
+
+        this.tgw.send(107, 2000, { routerid: 0, templateid: this.curTemplate.id, body: { name: this.config.name, config: JSON.stringify(this.curTemplate.body.data) } });
         this.closePanel();
+    }
+
+    pickConfigItem() {
+        switch (this.config.curstep) {
+            case 1: // universe code config.
+                break;
+            case 2: // strategy core.
+                break;
+            case 3: // strategy params.
+                break;
+            case 4: // channel and feed
+                break;
+        }
     }
 
     closePanel(e?: any) {
@@ -131,27 +215,16 @@ export class AppComponent implements OnDestroy {
             this.config = new WorkspaceConfig();
             this.panelTitle = "New Config";
         } else {
-            // getTheConfig by this.curItem on click
-            this.config = this.curItem;
+            // getTheConfig by this.curConfig on click
+            console.info(this.curConfig);
+            this.config = this.curConfig;
+            this.config.curstep = 1;
             this.panelTitle = this.config.name;
-            let templateObj: Object = this.configBLL.getTemplateByName(this.config.strategyCoreName);
-            if (templateObj === null) {
-                this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
-                return;
-            }
-
-            this.channels = [];
-            templateObj["SSGWs"].forEach(channelName => {
-                let channel: Channel = new Channel();
-                channel.enable = this.config.channels.includes(channelName);  // default
-                channel.name = templateObj["SSGW"]["name"][channelName];
-                channel.type = templateObj["SSGW"]["type"][channelName];
-                channel.addr = templateObj["SSGW"]["addr"][channelName];
-                channel.port = templateObj["SSGW"]["port"][channelName];
-                this.channels.push(channel);
-            });
+            this.curTemplate = null;
+            this.curTemplate = JSON.parse(JSON.stringify(this.configBLL.getTemplateByName(this.config.strategyCoreName)));
         }
-        this.ref.detectChanges();
+
+        // this.ref.detectChanges();
         window.showMetroDialog("#config");
     }
 
@@ -212,8 +285,12 @@ export class AppComponent implements OnDestroy {
             return;
         }
         let newInstance: StrategyInstance = new StrategyInstance();
-        newInstance.id = this.newestInstanceName;
-        newInstance.params = {};
+        newInstance.key = this.strategyId;
+        newInstance.name = this.strategyName;
+        newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
+        newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
+        newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
+        newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
         this.config.strategyInstances.push(newInstance);
     }
 
@@ -223,29 +300,58 @@ export class AppComponent implements OnDestroy {
         e.stopPropagation();
     }
 
+    // select endpoint of tgw 
     onSelectServer(item): void {
         this.selectedServer = item;
     }
 
     onSelectStrategy(value: string) {
         this.config.strategyCoreName = value;
+        delete this.curTemplate;
+        this.curTemplate = null;
+        this.curTemplate = JSON.parse(JSON.stringify(this.configBLL.getTemplateByName(this.config.strategyCoreName)));
 
-        let templateObj: Object = this.configBLL.getTemplateByName(this.config.strategyCoreName);
-        if (templateObj === null) {
+        if (this.curTemplate === null) {
             this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
             return;
         }
 
-        this.channels = [];
-        templateObj["SSGWs"].forEach(channelName => {
-            let channel: Channel = new Channel();
-            channel.enable = this.config.channels.includes(channelName);  // default
-            channel.name = templateObj["SSGW"]["name"][channelName];
-            channel.type = templateObj["SSGW"]["type"][channelName];
-            channel.addr = templateObj["SSGW"]["addr"][channelName];
-            channel.port = templateObj["SSGW"]["port"][channelName];
-            this.channels.push(channel);
-        });
+        // this.channels = [];
+        // this.curTemplate.body.data["SSGW"].forEach(item => {
+        //     let channel: Channel = new Channel();
+        //     channel.enable = this.config.channels.includes(item.name);  // default
+        //     channel.name = item.name;
+        //     channel.type = item.type;
+        //     channel.addr = item.addr;
+        //     channel.port = item.port;
+        //     this.channels.push(channel);
+        // });
+        this.config.channels.gateway = this.curTemplate.body.data.SSGW;
+        this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+        this.strategyName = "";
+        this.strategyId = "";
+    }
+
+    updateCheck(e, item, instance: StrategyInstance) {
+        if (e.target.checked) {
+            if (item.name === "SendCheck") instance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
+            instance.checks.push(item.key);
+        } else {
+            if (item.name === "SendCheck") instance.sendChecks = null;
+            let i = instance.checks.indexOf(item.key);
+            if (i >= 0)
+                instance.checks.splice(i, 1);
+        }
+    }
+
+    updateAlgo(e, item, instance: StrategyInstance) {
+        if (e.target.checked) {
+            instance.algoes.push(item.key);
+        } else {
+            let i = instance.algoes.indexOf(item.key);
+            if (i >= 0)
+                instance.algoes.splice(i, 1);
+        }
     }
 
     onLogin(): void {
@@ -302,22 +408,32 @@ export class AppComponent implements OnDestroy {
             }
         });
 
-        // listener
-        this.tgw.addSlot({ // login failed
-            appid: 107,
-            packid: 2001,
-            callback: msg => {
-                console.info(msg);
-            }
-        });
-
         // process templates
         this.tgw.addSlot({
             appid: 270,
             packid: 194,
             callback: msg => {
-                this.tgw.send(107, 2000, { routerid: 0, templateid: 0, body: { name: "ss-Lhhj1", config: "test" } });
-                console.info(msg);
+                if (msg.content.head.pkgCnt > 1) {
+                    if (ip20strs[msg.content.head.pkgId] === undefined)
+                        ip20strs[msg.content.head.pkgId] = "";
+
+                    if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
+                        let templatelist = JSON.parse(ip20strs[msg.content.head.pkgId].concat(msg.content.body));
+                        templatelist.body.forEach(template => {
+                            this.configBLL.updateTemplate(template.templatename, { id: templatelist.body[0].id, body: JSON.parse(templatelist.body[0].templatetext) });
+                        });
+
+                        delete ip20strs[msg.content.head.pkgId];
+                    } else {
+                        ip20strs[msg.content.head.pkgId] = ip20strs[msg.content.head.pkgId].concat(msg.content.body);
+                    }
+                } else {
+                    let templatelist = JSON.parse(ip20strs[msg.content.head.pkgId].concat(msg.content.body));
+
+                    templatelist.body.forEach(template => {
+                        this.configBLL.updateTemplate(template.templatename, { id: templatelist.body[0].id, body: JSON.parse(templatelist.body[0].templatetext) });
+                    });
+                }
             }
         });
 
