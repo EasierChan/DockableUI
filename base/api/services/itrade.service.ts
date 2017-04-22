@@ -271,7 +271,7 @@ export class ItradeService {
             }
         });
 
-        this._client.on("disconnect", () => {
+        this._client.on("close", () => {
             if (this._messageMap.hasOwnProperty(-1)) {
                 if (this._messageMap[-1].context !== undefined)
                     this._messageMap[-1].callback.call(this._messageMap[0].context, this._sessionid);

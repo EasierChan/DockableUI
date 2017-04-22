@@ -59,15 +59,15 @@ export class TcpClient {
         });
 
         this._clientSock.on("error", () => {
-            this.emit("diconnect");
+            this.emit("error");
         });
 
         this._clientSock.on("close", () => {
-            this.emit("diconnect");
+            this.emit("close");
         });
 
         this._clientSock.on("end", () => {
-            this.emit("diconnect");
+            this.emit("end");
         });
     }
 
