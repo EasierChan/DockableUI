@@ -47,6 +47,9 @@ export class DockContainerComponent implements AfterViewInit {
     }
 }
 
+/**
+ * Dialog
+ */
 @Component({
     moduleId: module.id,
     selector: ".dialog",
@@ -58,7 +61,9 @@ export class DialogComponent {
     dialog: Dialog;
 }
 
-
+/**
+ * StatusBar
+ */
 @Component({
     moduleId: module.id,
     selector: ".statusbar",

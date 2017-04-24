@@ -76,7 +76,7 @@ export class StartUp implements IApplication {
     }
 
     saveConfig() {
-        fs.writeFile(this._cfgFile, JSON.stringify(this._config, null, 2));
+        fs.writeFileSync(this._cfgFile, JSON.stringify(this._config, null, 2));
     }
 
 

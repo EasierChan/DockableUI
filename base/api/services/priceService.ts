@@ -18,7 +18,7 @@ export class PriceService extends EventEmitter<any> {
     private _host: string;
     private _interval: number;
     private _state: number = 0;
-    private _innercodes: number[] = [];
+    private _innercodesMap: any = {};
     private onClose: Function;
 
     constructor() {
@@ -88,28 +88,31 @@ export class PriceService extends EventEmitter<any> {
         setInterval(() => {
             if (this._port && this._host && this._state === 2) {
                 this.setEndpoint(this._port, this._host);
-                this.sendCodes();
+                for (let prop in this._innercodesMap)
+                    this.sendCodes(parseInt(prop));
             }
         }, this._interval);
     }
 
-    register(innercodes: number[]): void {
-        let self = this;
+    register(innercodes: number[], subtype: number = MsgType.PS_MSG_TYPE_MARKETDATA): void {
+        if (!this._innercodesMap.hasOwnProperty(subtype))
+            this._innercodesMap[subtype] = [];
+
         innercodes.forEach(code => {
-            if (!self._innercodes.includes(code))
-                self._innercodes.push(code);
+            if (!this._innercodesMap[subtype].includes(code))
+                this._innercodesMap[subtype].push(code);
         });
-        this.sendCodes();
+        this.sendCodes(subtype);
     }
 
-    private sendCodes() {
+    private sendCodes(subtype: number) {
 
         let obj = {
             header: {
-                type: MsgType.PS_MSG_REGISTER, subtype: MsgType.PS_MSG_TYPE_MARKETDATA, msglen: 0
+                type: MsgType.PS_MSG_REGISTER, subtype: subtype, msglen: 0
             },
             body: {
-                innerCodes: this._innercodes
+                innerCodes: this._innercodesMap[subtype]
             }
         };
         // console.log(JSON.stringify(obj));

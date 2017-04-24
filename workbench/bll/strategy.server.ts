@@ -1,12 +1,9 @@
 "use strict";
 
-import { WorkspaceConfig, Channel, StrategyInstance } from "../../base/api/model/app.model";
 import { Header } from "../../base/api/model/itrade/message.model";
-import { ComStrategyInfo } from "../../base/api/model/itrade/strategy.model";
+import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy, ComStrategyCfg } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
-const os = require("@node/os");
-const path = require("@node/path");
-const fs = require("@node/fs");
+import { File, Environment, path } from "../../base/api/services/backend.service";
 
 export class ConfigurationBLL {
     private readonly kTemplateExt: string = ".json";
@@ -14,31 +11,27 @@ export class ConfigurationBLL {
     constructor() {
         this._names = [];
         this._templates = {};
-        this._basedir = path.join(os.homedir(), ".itradeui");
-        this._templatedir = path.join(this._basedir, "templates");
-        fs.readdir(this._templatedir, (err, files) => {
-            files.forEach(name => {
-                fs.readFile(path.join(this._templatedir, name), (e, data) => {
-                    this._names.push(path.basename(name, this.kTemplateExt));
-                    this._templates[this._names[this._names.length - 1]] = JSON.parse(data);
-                    console.info(this._templates);
-                });
-            });
-        });
+        this._basedir = path.join(Environment.appDataDir, "ChronosApps/workbench");
+        this._templatepath = path.join(this._basedir, "templates.json");
+        this._templates = File.parseJSON(this._templatepath) || {};
 
-        fs.readFile(path.join(this._basedir, "configs", "ss-instances.json"), (e, data) => {
-            this._configs = WorkspaceConfig.setObject(JSON.parse(data));
-        });
+        for (let prop in this._templates) {
+            this._names.push(prop);
+        }
+
+        this._configpath = path.join(this._basedir, "instances.json");
+        this._configs = WorkspaceConfig.setObject(File.parseJSON(this._configpath) || []);
     }
 
     private _basedir: string;
-    private _templatedir: string;
     /**
      * store templates.
      */
     private _templates: Object;
+    private _templatepath: string;
 
     private _configs: WorkspaceConfig[];
+    private _configpath: string;
 
     private _names: string[];
     /**
@@ -49,8 +42,11 @@ export class ConfigurationBLL {
     }
 
     getTemplateByName(name: string): any {
-        console.info(this._templates[name]);
-        return this._templates[name];
+        if (this._templates.hasOwnProperty(name)) {
+            return this._templates[name];
+        }
+
+        return null;
     }
 
     getConfigByName(name: string): WorkspaceConfig {
@@ -65,25 +61,39 @@ export class ConfigurationBLL {
     getAllConfigs(): WorkspaceConfig[] {
         return this._configs;
     }
+
+    updateConfig(config: WorkspaceConfig) {
+        this._configs.push(config);
+        File.writeAsync(this._configpath, JSON.stringify(this._configs));
+    }
+
+    updateTemplate(name: string, template: any) {
+        this._templates[name] = template;
+        File.writeAsync(this._templatepath, JSON.stringify(this._templates));
+    }
 }
 
 export class StrategyBLL {
+    static sessionId = 101;
     private itrade: ItradeService = new ItradeService();
-    static sessionId = 1;
+    strategies: StrategyItem[] = [];
+    connState: string;
+
     constructor() {
         this.itrade.sessionID = StrategyBLL.sessionId;
         StrategyBLL.sessionId += 1;
+        this.connState = "INIT";
     }
 
     get sessionid(): number {
         return this.itrade.sessionID;
     }
 
-    start(): void {
+    start(port: number, host: string): void {
         this.itrade.addSlot(0, () => {
             let offset = 0;
-            let body = Buffer.alloc(4 + 6 * Header.len);
-            body.writeUInt32LE(6, offset); offset += 4;
+            let body = Buffer.alloc(4 + 5 * Header.len);
+            body.writeUInt32LE(5, offset); offset += 4;
             let header = new Header();
             header.type = 2048;
             header.subtype = 1;
@@ -92,9 +102,9 @@ export class StrategyBLL {
             header.type = 2001;
             header.subtype = 0;
             offset += header.toBuffer().copy(body, offset);
-            header.type = 2032;
-            header.subtype = 0;
-            offset += header.toBuffer().copy(body, offset);
+            // header.type = 2032;
+            // header.subtype = 0;
+            // offset += header.toBuffer().copy(body, offset);
             header.type = 2033;
             header.subtype = 0;
             offset += header.toBuffer().copy(body, offset);
@@ -110,38 +120,252 @@ export class StrategyBLL {
             header = null;
             body = null;
             offset = null;
+            this.connState = "CONNECTED";
         }, this);
-        this.itrade.connect(9080, "172.24.51.4");
+        this.itrade.addSlot(2001, this.handleStartCommand, this);
+        this.itrade.addSlot(2005, this.handlePauseCommand, this);
+        this.itrade.addSlot(2003, this.handleStopCommand, this);
+        this.itrade.addSlot(2050, this.handleWatchCommand, this);
+        this.itrade.addSlot(2011, this.handleStrategyInfo, this);
+        this.itrade.addSlot(2033, this.handleStrategyInfo, this);
+        this.itrade.addSlot(2048, this.handleStrategyProfitInfo, this);
+        this.itrade.connect(port, host);
+    }
+
+    stop() {
+        this.itrade.stop();
     }
 
     addSlot(type: number, callback: Function, context?: any): void {
         return this.itrade.addSlot(type, callback, context);
     }
+
+    handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
+        console.info(msg);
+        let i = 0;
+        for (; i < this.strategies.length; ++i) {
+            if (this.strategies[i].id === msg.key) {
+                this.strategies[i].status = msg.status === 0 ? "INIT" :
+                    msg.status === 1 ? "CREAT" :
+                        msg.status === 2 ? "RUN" :
+                            msg.status === 3 ? "PAUSE" :
+                                msg.status === 4 ? "STOP" :
+                                    msg.status === 5 ? "WATCH" : "ERROR";
+                break;
+            }
+        }
+
+        if (i === this.strategies.length) {
+            this.strategies.push({
+                id: msg.key,
+                name: msg.name,
+                status: msg.status === 0 ? "INIT" :
+                    msg.status === 1 ? "CREAT" :
+                        msg.status === 2 ? "RUN" :
+                            msg.status === 3 ? "PAUSE" :
+                                msg.status === 4 ? "STOP" :
+                                    msg.status === 5 ? "WATCH" : "ERROR"
+            });
+        }
+    }
+
+    handleStrategyProfitInfo(msg: ComTotalProfitInfo, sessionId: number): void {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.totalpnl = msg.totalpnl / 10000;
+                item.totalposition = msg.totalposition / 10000;
+            }
+        });
+    }
+
+    handleStartCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.status = "RUN";
+            }
+        });
+    }
+
+    handlePauseCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.status = "PAUSE";
+            }
+        });
+    }
+
+    handleStopCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.status = "STOP";
+            }
+        });
+    }
+
+    handleWatchCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        this.strategies.forEach(item => {
+            if (item.id === msg.strategyid) {
+                item.status = "WATCH";
+            }
+        });
+    }
+
+    changeStatus(strategyid: number, status: number) {
+        let buf = Buffer.alloc(4 + ComStrategyCfg.len, 0);
+        buf.writeUInt32LE(4, 1);
+        let cfg = new ComStrategyCfg();
+        cfg.strategyid = strategyid;
+        cfg.toBuffer().copy(buf, 4, 0);
+        switch (status) {
+            case 2:
+                this.itrade.send(2000, 0, buf);
+                break;
+            case 3:
+                this.itrade.send(2004, 0, buf);
+                break;
+            case 4:
+                this.itrade.send(2002, 0, buf);
+                break;
+            case 5:
+                this.itrade.send(2049, 0, buf);
+                break;
+        }
+    }
+}
+
+interface StrategyItem {
+    id: number;
+    name: string;
+    status: string;
+    totalpnl?: number; // 8
+    totalposition?: number; // 8
 }
 
 export interface StrategyServerItem {
     name: string;
-    config: WorkspaceConfig;
     conn: StrategyBLL;
 }
 
 export class StrategyServerContainer {
-    private _items: StrategyServerItem[] = [];
+    items: StrategyServerItem[] = [];
 
-    addItem(configs: WorkspaceConfig[]): void {
+    addItem(...configs: WorkspaceConfig[]): void {
         configs.forEach(config => {
             let bll = new StrategyBLL();
-            bll.addSlot(2011, this.handleStrategyInfo, this);
-            this._items.push({ name: config.name, config: config, conn: bll });
-            bll.start();
+            this.items.push({ name: config.name, conn: bll });
+            bll.start(config.port, config.host);
         });
     }
 
-    handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
-        this._items.forEach(item => {
-            if (item.conn.sessionid === sessionid) {
-                console.info(msg);
-            }
+    addItems(configs: WorkspaceConfig[]): void {
+        configs.forEach(config => {
+            let bll = new StrategyBLL();
+            this.items.push({ name: config.name, conn: bll });
+            bll.start(config.port, config.host);
         });
     }
+
+    removeItem(configName: string): void {
+        let i = this.items.length - 1;
+        for (; i >= 0; --i) {
+            if (this.items[i].name === configName) {
+                this.items[i].conn.stop();
+                this.items.splice(i, 1);
+                break;
+            }
+        }
+    }
+}
+
+export class WorkspaceConfig {
+    name: string;
+    tradingUniverse: number[];
+    strategyCoreName: string;
+    curstep: number;
+    strategyInstances: StrategyInstance[];
+    channels: { gateway: any, feedhandler: any };
+    apptype: string = "DockDemo";
+    private _port: string;
+    host: string;
+
+    constructor() {
+        this.curstep = 1;
+        this.tradingUniverse = [];
+        this.strategyInstances = [];
+        this.channels = { gateway: null, feedhandler: null };
+        this._port = "9000";
+        this.host = "172.24.51.4";
+    }
+
+    static setObject(obj: any): WorkspaceConfig[] {
+        let configs: WorkspaceConfig[] = [];
+
+        obj.forEach(item => {
+            let config = new WorkspaceConfig();
+            for (let prop in item) {
+                config[prop] = item[prop];
+            }
+            configs.push(config);
+        });
+
+        return configs;
+    }
+
+    get port(): number {
+        return parseInt(this._port);
+    }
+
+    set port(value: number) {
+        this._port = value.toString();
+    }
+    // get step() {
+    //     return this._curstep;
+    // }
+
+    // set step(value: number) {
+    //     this._curstep = value;
+    // }
+
+    // get selectedStrategy() {
+    //     return this._strategyCoreName;
+    // }
+
+    // set selectedStrategy(value: string) {
+    //     this._strategyCoreName = value;
+    // }
+
+    // get strategyInstances() {
+    //     return this._strategyInstances;
+    // }
+
+    // get codes() {
+    //     return this._tradingUniverse;
+    // }
+
+    // set codes(value: number[]) {
+    //     this._tradingUniverse = value;
+    // }
+}
+
+
+export class StrategyInstance {
+    key: string;
+    name: string;
+    accounts: number[] = [];
+    algoes: number[] = [];
+    checks: number[] = [];
+    sendChecks?: Object[];
+    parameters: Object[];
+    comments: Object[];
+    commands: Object[];
+    instruments: Object[];
+}
+
+export class Channel {
+    enable: boolean;
+    name: string;
+    type: number;
+    account: number;
+    addr: string;
+    port: number;
 }

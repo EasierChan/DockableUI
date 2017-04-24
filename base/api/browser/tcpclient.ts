@@ -12,6 +12,7 @@ const { EventEmitter } = require("@node/events");
  */
 export class TcpClient {
     private _emitter: NodeJS.EventEmitter = new EventEmitter();
+    private _clientSock: TcpSocket;
 
     on(event: string | symbol, listener: Function) {
         return this._emitter.on(event, listener);
@@ -33,7 +34,7 @@ export class TcpClient {
      * @param _clientSock
      * @param _bUseSelfBuffer use its own buffer queue or global.
      */
-    constructor(private _clientSock: TcpSocket = new TcpSocket(), private _bUseSelfBuffer = false) {
+    constructor(private _bUseSelfBuffer = false) {
     }
 
     set useSelfBuffer(val: boolean) {
@@ -41,6 +42,8 @@ export class TcpClient {
     }
 
     connect(port: number, ip?: string): void {
+        this._clientSock = null;
+        this._clientSock = new TcpSocket();
         this._clientSock.connect(port, ip);
         this._clientSock.on("data", (data: any) => {
             if (data instanceof Buffer) {
@@ -56,16 +59,21 @@ export class TcpClient {
         });
 
         this._clientSock.on("error", () => {
-            this.emit("diconnect");
+            this.emit("error");
         });
 
         this._clientSock.on("close", () => {
-            this.emit("diconnect");
+            this.emit("close");
         });
 
         this._clientSock.on("end", () => {
-            this.emit("diconnect");
+            this.emit("end");
         });
+    }
+
+    reconnect(port: number, ip?: string) {
+        if (this._clientSock)
+            this._clientSock.connect(port, ip);
     }
 
     send(buf: Buffer | string): void {

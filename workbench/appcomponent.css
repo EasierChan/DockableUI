@@ -123,7 +123,7 @@
 }
 .pop-center > .content > .page  > .row > .cell {
     flex: 1 1 auto;
-    line-height: 1.5;
+    line-height: 1;
 }
 
 .pop-center > .content > .page  > .row > .cell2 {
@@ -136,6 +136,27 @@
 .page .row label {
     line-height: 3;
     white-space: nowrap;
+}
+
+.frame > .content > .col3 input {
+    width: 150px;
+}
+.frame > .content > .col input {
+    width: 500px;
+}
+.frame > .content > .col2 input {
+    width: 300px;
+}
+.frame > .content  label {
+    user-select: none;
+    padding: 0 5px;
+}
+.frame > .content  input {
+    user-select: none;
+    padding: 2px;
+}
+.frame > .content fieldset {
+    overflow-x: auto;
 }
 
 /* hack for metroui.css */

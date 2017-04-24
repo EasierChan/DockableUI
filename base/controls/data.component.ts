@@ -127,33 +127,25 @@ export class EChartComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    // this.dataSource.init = () => {
-    //   this._echart = echarts.init(this.el.nativeElement);
-    //   this._echart.setOption(this.dataSource.option, true);
-    //   window.addEventListener("resize", () => {
-    //     this._echart.resize();
-    //   });
-    //   this.dataSource.setOption = (option) => {
-    //     this._echart.setOption(option);
-    //   };
-    // };
-  }
-
-  ngAfterViewInit(): void {
+    // console.info(this.dataSource.option);
     if (this.dataSource.option) {
-      setTimeout(() => {
-        let myChart: EChartsInstance = echarts.init(this.el.nativeElement);
-        myChart.setOption(this.dataSource.option, true);
+      let self = this;
+      this.dataSource.init = () => {
+        let myChart: EChartsInstance = echarts.init(self.el.nativeElement);
+        myChart.setOption(self.dataSource.option, true);
 
         window.addEventListener("resize", () => {
           myChart.resize();
         });
 
-        this.dataSource.setOption = (option, notMerge) => {
+        self.dataSource.setOption = (option, notMerge) => {
           myChart.setOption(option, notMerge);
         };
-      }, 100);
+      };
     }
+  }
+
+  ngAfterViewInit(): void {
   }
 }
 
