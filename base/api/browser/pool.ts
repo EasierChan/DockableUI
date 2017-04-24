@@ -4,7 +4,7 @@
 "use strict";
 
 /**
- * a generic pool 
+ * a generic pool
  */
 export class Pool<T>{
     constructor(private _pool: Array<T> = []) {
@@ -27,7 +27,7 @@ export class Pool<T>{
     }
     /**
      * peek elements
-     * @param 
+     * @param
      */
     peek(n = 1): T[] {
         return this._pool.slice(0, n);

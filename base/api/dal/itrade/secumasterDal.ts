@@ -14,13 +14,14 @@ class SecuMaster {
     static init() {
         // TODO load secuinfo, future info
         console.log("load secumain.csv file......");
-        let str = "/home/xinkui/itrade-ui/secumain0417.csv";
+        let str = "/home/xinkui/secumain0417.csv";
         let content: String = new String();
         try {
             content = fs.readFileSync(path.join(str), { encoding: "utf-8" });
         }
         catch (e) {
-            alert("can not open secumain.csv");
+            console.info(e);
+            // alert("can not open secumain.csv");
         }
         let lines = content.split("\n");
         lines.forEach(function (linestr) {

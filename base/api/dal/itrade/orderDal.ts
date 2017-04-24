@@ -20,7 +20,7 @@ IPCManager.register("dal://itrade/data/order", (e, param) => {
             OrderDal.sendMsg(param.type, param.subtype, param.buffer);
             break;
     }
-    OrderDal.addListener("order", (data) => {
+    OrderDal.addListener("order", (data) =>     {
         if (!e.sender.isDestroyed()) {
             e.sender.send("dal://itrade/data/order-reply", data);
         }

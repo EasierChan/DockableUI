@@ -125,7 +125,11 @@ export class AppComponent implements OnInit {
     cb_handle.OnClick = () => {
       console.info(window.getLayout());
       dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
-      // cb_selectAll.Disable = btn_resupply.Disable =
+
+      fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
+        if (err) throw err;
+        console.log("it saved");
+      });
     };
     dd_status.SelectChange = (item) => {
       for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
@@ -806,6 +810,22 @@ export class AppComponent implements OnInit {
     });
     document.title = "hello";
 
+    fs.readFile("xklayout.json", function (err, data) {
+      if (err) {
+        alert(" cann't read xklayout");
+      }
+      let layoutObj = JSON.parse(data);
+      // console.log(layoutObj);
+      let type = layoutObj.type;
+      let width = layoutObj.width;
+      let children = layoutObj.children;
+      let childrenLen = children.length;
+      for (let i = 0; i < childrenLen; ++i) {  // traverse
+        let tempObj = children[i];
+        AppComponent.self.traverse(tempObj);
+      }
+    });
+
     this.init();
   }
 
@@ -845,6 +865,32 @@ export class AppComponent implements OnInit {
 
     ManulTrader.init();
   }
+
+  traverse(obj: any) {
+    for (let o in obj) {
+      if (o === "type") {
+        let typeVal = obj[o];
+        if (typeVal === "v") {
+
+        } else if (typeVal === "h") {
+
+        }
+      } else if (o === "width" || o === "height") {
+        if (o === "width") {
+
+        } else if (o === "height") {
+
+        }
+      } else {  // children or modules
+        if (o === "children") {
+
+        } else if (o === "modules") {
+
+        }
+      }
+    }
+  }
+
   TestingInput(data: any) {
     let reg = /^[\d]+$/;
     let rtn = reg.test(data);

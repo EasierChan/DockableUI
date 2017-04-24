@@ -135,7 +135,7 @@ class StrategyParser extends ItradeParser {
 /**
  *
  */
-class ItradeClient extends TcpClient {
+ class ItradeClient extends TcpClient {
     private _intervalHeart: NodeJS.Timer;
     private _parsers: ItradeParser[] = [];
     constructor() {
