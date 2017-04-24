@@ -813,6 +813,7 @@ export class AppComponent implements OnInit {
     fs.readFile("xklayout.json", function (err, data) {
       if (err) {
         alert(" cann't read xklayout");
+        return;
       }
       let layoutObj = JSON.parse(data);
       // console.log(layoutObj);
