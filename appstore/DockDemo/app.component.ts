@@ -10,6 +10,7 @@ import {
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
+import { AppStateCheckerRef } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 
@@ -18,7 +19,8 @@ import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus
   selector: "body",
   templateUrl: "app.component.html",
   providers: [
-    PriceService
+    PriceService,
+    AppStateCheckerRef
   ]
 })
 export class AppComponent implements OnInit {
@@ -63,8 +65,13 @@ export class AppComponent implements OnInit {
   private strategyStatus: number = 0;
 
 
-  constructor(private psInstance: PriceService, private ref: ChangeDetectorRef) {
+  constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
+    this.statechecker.onInit(this, this.onReady);
+  }
+
+  onReady(option: any) {
+     // option.port and option host;
   }
 
   ngOnInit(): void {
@@ -499,7 +506,6 @@ export class AppComponent implements OnInit {
         AppComponent.self.ref.detectChanges();
       }
     });
-    document.title = "hello";
 
     this.init();
   }

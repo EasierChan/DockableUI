@@ -13,8 +13,8 @@ export const readline = require("@node/readline");
 export class AppStoreService {
     constructor() { }
 
-    startApp(name: string, type: string): boolean {
-        return electron.ipcRenderer.sendSync("appstore://startupAnApp", name, type);
+    startApp(name: string, type: string, option: any): boolean {
+        return electron.ipcRenderer.sendSync("appstore://startupAnApp", name, type, option);
     }
 
     closeApp(name: string): boolean {
@@ -23,6 +23,18 @@ export class AppStoreService {
 
     getUserProfile(loginInfo: UserProfile): any {
         return electron.ipcRenderer.sendSync("appstore://login", loginInfo);
+    }
+}
+
+@Injectable()
+export class AppStateCheckerRef {
+    private option: any;
+    constructor() {
+        let option = electron.ipcRenderer.sendSync("get-init-param");
+    }
+
+    onInit(appref: any, afterInit: (...params) => void) {
+        afterInit.call(appref, this.option);
     }
 }
 

@@ -62,8 +62,10 @@ export class ConfigurationBLL {
         return this._configs;
     }
 
-    updateConfig(config: WorkspaceConfig) {
-        this._configs.push(config);
+    updateConfig(config?: WorkspaceConfig) {
+        if (config) {
+            this._configs.push(config);
+        }
         File.writeAsync(this._configpath, JSON.stringify(this._configs));
     }
 
@@ -318,33 +320,6 @@ export class WorkspaceConfig {
     set port(value: number) {
         this._port = value.toString();
     }
-    // get step() {
-    //     return this._curstep;
-    // }
-
-    // set step(value: number) {
-    //     this._curstep = value;
-    // }
-
-    // get selectedStrategy() {
-    //     return this._strategyCoreName;
-    // }
-
-    // set selectedStrategy(value: string) {
-    //     this._strategyCoreName = value;
-    // }
-
-    // get strategyInstances() {
-    //     return this._strategyInstances;
-    // }
-
-    // get codes() {
-    //     return this._tradingUniverse;
-    // }
-
-    // set codes(value: number[]) {
-    //     this._tradingUniverse = value;
-    // }
 }
 
 
