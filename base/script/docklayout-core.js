@@ -136,7 +136,7 @@ function init() {
         $currentSplitter.prev().find("dock-table2").each((index, item) => {
             item.dispatchEvent(ev_resize);
         });
-        $currentSplitter.next().find("dock-table2").each(item => {
+        $currentSplitter.next().find("dock-table2").each((index, item) => {
             item.dispatchEvent(ev_resize);
         });
         gap = null;

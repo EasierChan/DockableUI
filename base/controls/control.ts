@@ -212,6 +212,18 @@ export class ComboControl extends Control {
     }
 }
 
+export class VBox extends ComboControl {
+    constructor() {
+        super("col");
+    }
+}
+
+export class HBox extends ComboControl {
+    constructor() {
+        super("row");
+    }
+}
+
 export class MetaControl extends Control {
     protected _dataObj: any;
     constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range") {
@@ -319,6 +331,30 @@ export class MetaControl extends Control {
     }
 }
 
+export class Button extends MetaControl {
+    constructor() {
+        super("button");
+    }
+}
+
+export class TextBox extends MetaControl {
+    constructor() {
+        super("textbox");
+    }
+}
+
+export class Label extends MetaControl {
+    constructor() {
+        super("plaintext");
+    }
+}
+
+export class CheckBox extends MetaControl {
+    constructor() {
+        super("checkbox");
+    }
+}
+
 export class CompleteListItem {
     constructor(private value = "", private label = "") {
     }
@@ -369,6 +405,8 @@ export class URange extends MetaControl {
 
 export class DropDown extends MetaControl {
     private completelistCount: number;
+    private matchmethod: (inputtext: string) => DropDownItem[];
+    private curidx = -1;
 
     constructor() {
         super("dropdown");
@@ -378,31 +416,42 @@ export class DropDown extends MetaControl {
         this.styleObj.dropdown = false;
         this.styleObj.acceptInput = false;
         this.completelistCount = 10;
-
+        this.dataSource.blur = () => { };
+        this.dataSource.keyup = () => { };
         this.dataSource.click = () => {
             this.styleObj.dropdown = !this.styleObj.dropdown;
         };
 
-        this.dataSource.input = () => {
-            setTimeout(() => {
-                if (this.styleObj.acceptInput) {
-                    this.dataSource.completelist = [];
-                    if (this.dataSource.text && this.dataSource.text.length > 0) {
-                        for (let i = 0; i < this.dataSource.items.length; ++i) {
-                            if (this.dataSource.items[i].Text.startsWith(this.dataSource.text)) {
-                                if (this.dataSource.completelist.push(this.dataSource.items[i]) === this.completelistCount)
+        this.dataSource.input = (e) => {
+            if (this.styleObj.acceptInput) {
+                this.dataSource.completelist = [];
+                if (e.srcElement.value && e.srcElement.value.length > 0) { // have input text
+                    let value = e.srcElement.value;
+                    if (this.matchMethod) {
+                        this.dataSource.completelist = this.matchMethod(value);
+                    } else {
+                        let uvalue = value.toUpperCase();
+                        for (let i = 0; i < this.Items.length; ++i) {
+                            if (this.Items[i].Text.startsWith(uvalue)) {
+                                if (this.dataSource.completelist.push(this.Items[i]) === this.completelistCount)
                                     break;
                             }
                         }
+                        uvalue = null;
                     }
-                    console.info(this.dataSource.completelist, this.Text);
-                    this.styleObj.dropdown = true;
+
+                    value = null;
+                    if (this.dataSource.completelist.length > 0)
+                        this.showDropdown();
+                    else
+                        this.hideDropdown();
+                } else { // no input text
+                    this.hideDropdown();
                 }
-            }, 500);
+            }
         };
 
         this.dataSource.select = (item) => {
-            console.info(this.Text);
             if (this.dataSource.selectedItem !== item) {
                 this.dataSource.selectedItem = item;
                 if (this.dataSource.selectchange) {
@@ -410,15 +459,55 @@ export class DropDown extends MetaControl {
                 }
             }
             this.dataSource.text = item.Text;
-            this.styleObj.dropdown = false;
+            this.hideDropdown();
         };
 
-        this.dataSource.blur = (e: Event) => {
-            e.preventDefault();
-            setTimeout(() => {
-                this.styleObj.dropdown = false;
-            }, 500);
+        this.dataSource.mouseleave = () => {
+            this.dataSource.blur = () => {
+                this.hideDropdown();
+            };
         };
+
+        this.dataSource.mouseover = () => {
+            this.dataSource.blur = () => { };
+        };
+    }
+
+    /**
+     * a user interface to match with custom rule.
+     * @param value a function to do matching with input text.
+     */
+    set matchMethod(value: (inputtext: string) => DropDownItem[]) {
+        this.matchmethod = value;
+    }
+
+    get matchMethod() {
+        return this.matchmethod;
+    }
+
+    showDropdown() {
+        this.dataSource.keyup = (event: KeyboardEvent) => {
+            if (event.code !== "ArrowDown" && event.code !== "ArrowUp" && event.code !== "Enter")
+                return;
+
+            if (event.code === "ArrowDown") {
+                this.curidx = this.curidx < 0 ? 0 : (this.curidx + 1 + this.dataSource.completelist.length) % this.dataSource.completelist.length;
+            } else if (event.code === "ArrowUp") { // ArrowUp
+                this.curidx = this.curidx < 0 ? (this.dataSource.completelist.length - 1)
+                    : ((this.curidx - 1 + this.dataSource.completelist.length) % this.dataSource.completelist.length);
+            } else { // Enter
+                if (this.curidx < 0)
+                    return;
+                this.dataSource.select(this.dataSource.completelist[this.curidx]);
+            }
+        };
+        this.styleObj.dropdown = true;
+    }
+
+    hideDropdown() {
+        this.dataSource.keyup = () => { };
+        this.styleObj.dropdown = false;
+        this.curidx = -1;
     }
 
     addItem(item: DropDownItem) {
@@ -505,8 +594,6 @@ export class EChart extends Control {
 
 
 export interface SpreadViewerConfig {
-    width: number;
-    height: number;
     symbolCode1: string;
     innerCode1: number;
     coeff1: number;
@@ -525,6 +612,10 @@ interface DatePoint {
     minute: number;
 }
 
+/**
+ * note: first=>setConfig(), second=>init(), third=>start()
+ * 
+ */
 export class SpreadViewer {
     static readonly EPS: number = 1.0e-5;
     static readonly YUAN_PER_UNIT = 10000;
@@ -552,34 +643,38 @@ export class SpreadViewer {
 
     private _echart: EChart;
     private _bReset: boolean;
-    private _width: number;
-    private _height: number;
+    private _state = 0;
 
     constructor(private priceServ: PriceService) {
         this._echart = new EChart();
+        this.hidden();
     }
 
     init(): void {
         this._echart.init();
+        this._state = 2;
     }
 
     hidden(): void {
+        this._state = 0;
         this._echart.setClassName("hidden");
     }
 
     show(): void {
-        this._echart.setClassName("");
+        this._state = 1;
+        this._echart.setClassName("none");
+    }
+
+    get state() {
+        return this._state;
     }
 
     start(): void {
-        this.priceServ.subscribeMarketData(this._innerCode1, this._marketdataType1, msg => {
+        this.priceServ.register([this._innerCode1, this._innerCode2]);
+        this.priceServ.subscribe(msg => {
+            console.info(msg);
             this.setMarketData(msg);
         });
-
-        this.priceServ.subscribeMarketData(this._innerCode2, this._marketdataType2, msg => {
-            this.setMarketData(msg);
-        });
-
 
         this._timeoutHandler = setInterval(() => {
             if (this._lastIdx[this._innerCode1] === -1 || this._lastIdx[this._innerCode2] === -1) // both have one at least
@@ -613,8 +708,6 @@ export class SpreadViewer {
     }
     // only can change the names
     setConfig(config: SpreadViewerConfig, bReset: boolean = false): void {
-        // this._width = config.width;
-        // this._height = config.height;
         this._bReset = bReset;
         this._symbolCode1 = config.symbolCode1;
         this._innerCode1 = config.innerCode1;
@@ -680,7 +773,7 @@ export class SpreadViewer {
                         }
                     },
                     tooltip: {
-                        formatter: function(param) {
+                        formatter: function (param) {
                             return JSON.stringify(param);
                         }
                     }
@@ -705,14 +798,6 @@ export class SpreadViewer {
             this._echart.resetOption(echartOption, false);
         echartOption = null;
     }
-
-    // get width(){
-    //   return this._width;
-    // }
-
-    // get height(){
-    //   return this._height;
-    // }
 
     setEChartOption(option: any): void {
         this._echart.resetOption(option);
