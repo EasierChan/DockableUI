@@ -148,7 +148,6 @@ export class OrderService {
     }
 
     start() {
-        let interval = null;
         this._client.on("connect", () => {
             // regist
             this.regist();
@@ -163,7 +162,7 @@ export class OrderService {
             }
         });
         this._client.on("error", () => {
-            interval = setInterval(() => {
+            setTimeout(() => {
                 this._client.connect(this._port, this._host);
             }, 10000);
         });
