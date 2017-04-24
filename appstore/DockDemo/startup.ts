@@ -6,6 +6,7 @@
 import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path } from "../../base/api/backend";
 const path = require("path");
 const fs = require("fs");
+const electron = require("electron");
 
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
@@ -24,7 +25,7 @@ export class StartUp implements IApplication {
     /**
      * bootstrap
      */
-    bootstrap(name = "DockDemo"): any {
+    bootstrap(name = "Untitled", option?: any): any {
         let self = this;
         if (!this._mainWindow || !this._mainWindow.win) {
             this._name = name;
@@ -36,7 +37,12 @@ export class StartUp implements IApplication {
                 self._config.state = bound;
                 self.saveConfig();
             };
+
+            electron.ipcMain.on("get-init-param", (e, param) => {
+                e.returnValue = option;
+            });
             this._mainWindow.loadURL(path.join(__dirname, "index.html"));
+            this._mainWindow.win.setTitle(name);
             this._mainWindow.setMenuBarVisibility(true);
             this._windowMgr.addContentWindow(this._mainWindow);
         }
@@ -72,7 +78,7 @@ export class StartUp implements IApplication {
             fs.writeFileSync(this._cfgFile, JSON.stringify(this._config), { encoding: "utf8" });
         }
 
-        Object.assign(this._config, JSON.parse(fs.readFileSync(this._cfgFile, "utf8")));
+        this._config = JSON.parse(fs.readFileSync(this._cfgFile, "utf8"));
     }
 
     saveConfig() {

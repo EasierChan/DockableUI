@@ -42,13 +42,13 @@ export class AppStore {
         });
     }
 
-    public static startupAnApp(name: string, type: string): boolean {
+    public static startupAnApp(name: string, type: string, option: any): boolean {
         if (AppStore._instances.hasOwnProperty(name)) {
-            AppStore._instances[name].bootstrap(name);
+            AppStore._instances[name].bootstrap(name, option);
             return true;
         } else if (AppStore._apps.hasOwnProperty(type)) {
             AppStore._instances[name] = AppStore._apps[type].StartUp.instance();
-            AppStore._instances[name].bootstrap();
+            AppStore._instances[name].bootstrap(name, option);
             return true;
         }
 
@@ -68,8 +68,8 @@ export class AppStore {
             contentWindow.win.hide();
         });
 
-        IPCManager.register("appstore://startupAnApp", (event, appname, apptype) => {
-            event.returnValue = AppStore.startupAnApp(appname, apptype);
+        IPCManager.register("appstore://startupAnApp", (event, appname, apptype, option) => {
+            event.returnValue = AppStore.startupAnApp(appname, apptype, option);
         });
 
         IPCManager.register("appstore://login", (event, loginInfo) => {
@@ -144,7 +144,7 @@ export class AppStore {
             ipcMain.emit("appstore://login", null, { username: AppStore._env.username, password: AppStore._env.password });
             IPCManager.register("appstore://ready", () => {
                 AppStore._env.startapps.forEach(app => {
-                    AppStore.startupAnApp(app, "");
+                    AppStore.startupAnApp(app, "", null);
                 });
             });
         }
