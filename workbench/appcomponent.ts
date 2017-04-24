@@ -49,7 +49,6 @@ export class AppComponent implements OnDestroy {
     strategyId: string;
 
     contextMenu: Menu;
-    curConfig: WorkspaceConfig;
     curTemplate: any;
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
@@ -204,8 +203,6 @@ export class AppComponent implements OnDestroy {
             this.config = new WorkspaceConfig();
             this.panelTitle = "New Config";
         } else {
-            // getTheConfig by this.curConfig on click
-            this.config = this.curConfig;
             this.config.curstep = 1;
             this.panelTitle = this.config.name;
             this.curTemplate = null;
