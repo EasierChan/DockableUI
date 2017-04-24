@@ -197,7 +197,6 @@ export class AppComponent implements OnDestroy {
      * @param type 0 is new config, 1 is modify config.
      */
     onPopup(type: number = 0) {
-        this.config = null;
         // this.bPopPanel = true;
         this.strategyCores = this.configBLL.getTemplates();
         if (type === 0) {
