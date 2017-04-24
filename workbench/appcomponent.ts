@@ -63,7 +63,7 @@ export class AppComponent implements OnDestroy {
 
         this.contextMenu = new Menu();
         this.contextMenu.addItem("Open", () => {
-            this.onStartApp(this.config.name, this.config.apptype);
+            this.onStartApp();
         });
         this.contextMenu.addItem("Modify", () => {
             this.onPopup(1);
@@ -72,6 +72,7 @@ export class AppComponent implements OnDestroy {
             this.configs.forEach((config, index) => {
                 if (config.name === this.config.name) {
                     this.configs.splice(index);
+                    this.configBLL.updateConfig();
                     this.ref.detectChanges();
                 }
             });
@@ -79,13 +80,12 @@ export class AppComponent implements OnDestroy {
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {
-        this.curConfig = item;
+        this.config = item;
         if (e.button === 2) { // right click
             // TODO Show Menu
             this.contextMenu.popup();
         } else {
-            console.info(this.config.name);
-            this.onStartApp(this.config.name, this.config.apptype);
+            this.onStartApp();
         }
     }
 
@@ -98,11 +98,6 @@ export class AppComponent implements OnDestroy {
     }
 
     finish() {
-        // console.info(this.config);
-        if (this.configs.find(item => { return item.name === this.config.name; }) === undefined) {
-            this.configs.push(this.config);
-        }
-        // this.strategyContainer.addItem(this.config);
         // listener
         this.tgw.addSlot({ // create config ack
             appid: 107,
@@ -113,6 +108,9 @@ export class AppComponent implements OnDestroy {
                 this.config.host = msg.content.body.address;
                 this.strategyContainer.removeItem(this.config.name);
                 this.strategyContainer.addItem(this.config);
+                if (this.configs.find(item => { return item.name === this.config.name; }) === undefined) {
+                    this.configBLL.updateConfig(this.config);
+                }
                 this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: this.config.name, action: 1 } });
             }
         });
@@ -125,14 +123,6 @@ export class AppComponent implements OnDestroy {
             }
         });
         // create and modify config.
-
-        // this.channels.forEach((item, index) => {
-        //     if (!item.enable) {
-        //         this.curTemplate.body.data["SSGW"].splice(index, 1);
-        //     }
-        //     else
-        //         this.config.channels.push(item.name);
-        // });
         this.config.channels.gateway.forEach(gw => {
             gw.port = parseInt(gw.port);
         });
@@ -165,7 +155,6 @@ export class AppComponent implements OnDestroy {
                 this.curTemplate.body.data["PairTrades"][item.name]["SendCheck"] = item.sendChecks;
             }
         });
-        console.info(this.curTemplate);
 
         this.tgw.send(107, 2000, { routerid: 0, templateid: this.curTemplate.id, body: { name: this.config.name, config: JSON.stringify(this.curTemplate.body.data) } });
         this.closePanel();
@@ -216,7 +205,6 @@ export class AppComponent implements OnDestroy {
             this.panelTitle = "New Config";
         } else {
             // getTheConfig by this.curConfig on click
-            console.info(this.curConfig);
             this.config = this.curConfig;
             this.config.curstep = 1;
             this.panelTitle = this.config.name;
@@ -316,16 +304,6 @@ export class AppComponent implements OnDestroy {
             return;
         }
 
-        // this.channels = [];
-        // this.curTemplate.body.data["SSGW"].forEach(item => {
-        //     let channel: Channel = new Channel();
-        //     channel.enable = this.config.channels.includes(item.name);  // default
-        //     channel.name = item.name;
-        //     channel.type = item.type;
-        //     channel.addr = item.addr;
-        //     channel.port = item.port;
-        //     this.channels.push(channel);
-        // });
         this.config.channels.gateway = this.curTemplate.body.data.SSGW;
         this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
         this.strategyName = "";
@@ -355,8 +333,6 @@ export class AppComponent implements OnDestroy {
     }
 
     onLogin(): void {
-        // MessageBox.show("none", "Hello World", "Would give me a banana?\n Hello \n World");
-        // alert("hello")
         // console.log(this.username, this.password);
         // send username and password to server. get user profile to determine which apps user can access.
         let ret = this.appService.getUserProfile({
@@ -367,13 +343,13 @@ export class AppComponent implements OnDestroy {
         });
         this.isAuthorized = true;
         if (this.isAuthorized) {
-            this.configs = this.configBLL.getAllConfigs();
+            this.configs = ret; // this.configBLL.getAllConfigs();
             // 
             // this.strategyContainer.addItem(self.configs);
         } else {
             this.showError("Error", "Username or password wrong.", "alert");
         }
-        this.loginTGW();
+        // this.loginTGW();
     }
 
     loginTGW(): void {
@@ -387,7 +363,7 @@ export class AppComponent implements OnDestroy {
             appid: 17,
             packid: 43,
             callback: msg => {
-                console.info(msg);
+                console.info(`tgw::login ans=>${msg.toString()}`);
                 self.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
                 self.isAuthorized = true;
                 if (self.isAuthorized) {
@@ -404,7 +380,7 @@ export class AppComponent implements OnDestroy {
             appid: 17,
             packid: 120,
             callback: msg => {
-                console.info(msg, msg.content.msg);
+                console.error(`tgw::login ans=>${msg}`);
             }
         });
 
@@ -446,8 +422,9 @@ export class AppComponent implements OnDestroy {
         this.password = "";
     }
 
-    onStartApp(name: string, type: string): void {
-        if (!this.appService.startApp(name, type))
+    onStartApp(): void {
+        console.info(this.config);
+        if (!this.appService.startApp(this.config.name, this.config.name, { port: this.config.port, host: this.config.host }))
             this.showError("Error", `start ${name} app error!`, "alert");
     }
 
