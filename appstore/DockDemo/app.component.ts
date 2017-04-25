@@ -3,7 +3,8 @@
  * update: [date]
  * desc:
  */
-import { Component, OnInit, ChangeDetectorRef, HostListener } from "@angular/core";
+
+import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
   Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog,
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
@@ -12,8 +13,6 @@ import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
 import { MessageBox, fs, AppStateCheckerRef, File, Environment } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
-import { LoadSecuMain } from "./load/loadSecumain";
-import { SecuMasterService } from "../../base/api/services/secumaster.service";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 declare let window: any;
 @Component({
@@ -833,11 +832,12 @@ export class AppComponent implements OnInit {
       this.children.push(this.traversefunc(children[i]));
       this.children.push(new Splitter("h"));
     }
+
     this.children.push(this.traversefunc(children[childrenLen - 1]));
-    this.init();
+    this.init(9611, "172.24.51.4");
   }
 
-  init() {
+  init(port: number, host: string) {
     ManulTrader.addSlot(2011, this.showStrategyInfo);
     ManulTrader.addSlot(2033, this.showStrategyInfo);
     ManulTrader.addSlot(2000, this.showStrategyCfg);
@@ -871,7 +871,7 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(5021, this.showBasketBackInfo);
     ManulTrader.addSlot(5024, this.showPortfolioSummary);
 
-    ManulTrader.init(9611, "172.24.51.4");
+    ManulTrader.init(port, host);
   }
 
 
@@ -886,7 +886,7 @@ export class AppComponent implements OnInit {
     } else if (obj.modules && obj.modules.length > 0) {
       let panel = new TabPanel();
       obj.modules.forEach(page => {
-        console.log(AppComponent.self.pageObj[page]);
+        // console.log(AppComponent.self.pageObj[page]);
         panel.addTab(AppComponent.self.pageObj[page]);
       });
       dock.addChild(panel);
@@ -2175,7 +2175,7 @@ export class AppComponent implements OnInit {
 
     }
   }
-
+  
   onDestroy() {
     File.writeSync(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json", window.getLayout());
   }

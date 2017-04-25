@@ -13,7 +13,6 @@ class SecuMaster {
     private static secuUkeyObj = new Object();
     static init() {
         // TODO load secuinfo, future info
-        console.log("load secumain.csv file......");
         let str = "/home/xinkui/secumain0417.csv";
         let content: String = new String();
         try {
