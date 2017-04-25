@@ -49,8 +49,8 @@ export class AppComponent implements OnDestroy {
     strategyId: string;
 
     contextMenu: Menu;
-    curConfig: WorkspaceConfig;
     curTemplate: any;
+    bModify: boolean;
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
         private ref: ChangeDetectorRef) {
@@ -60,6 +60,7 @@ export class AppComponent implements OnDestroy {
         this.bLeftSelectedAll = this.bRightSelectedAll = false;
         this.selectedList = [];
         this.queryList = [];
+        this.bModify = false;
 
         this.contextMenu = new Menu();
         this.contextMenu.addItem("Open", () => {
@@ -98,6 +99,15 @@ export class AppComponent implements OnDestroy {
     }
 
     finish() {
+        // validation
+        if (!this.config.name || this.config.name.length === 0 || !this.config.strategyCoreName || this.config.strategyCoreName.length === 0 ||
+            !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
+                this.showError("Configration Error", "check those items:<br>\
+                1. Name is not empty.<br>\
+                2. Have selected a strategy.<br>\
+                3. Add one strategy instance at least.", "alert");
+                return;
+        }
         // listener
         this.tgw.addSlot({ // create config ack
             appid: 107,
@@ -200,11 +210,11 @@ export class AppComponent implements OnDestroy {
         // this.bPopPanel = true;
         this.strategyCores = this.configBLL.getTemplates();
         if (type === 0) {
+            this.bModify = false;
             this.config = new WorkspaceConfig();
             this.panelTitle = "New Config";
         } else {
-            // getTheConfig by this.curConfig on click
-            this.config = this.curConfig;
+            this.bModify = true;
             this.config.curstep = 1;
             this.panelTitle = this.config.name;
             this.curTemplate = null;
