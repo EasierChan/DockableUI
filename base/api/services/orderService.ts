@@ -134,7 +134,7 @@ export class OrderService {
         return this._sessionid;
     }
     registerServices(): void {
-        this.connect(9611, "172.24.51.4");
+        this.connect(9611, "172.24.51.4");  // 9611 51.4
         // electron.ipcRenderer.send("dal://itrade/data/order", {
         //     type: -1,
         //     subtype: -1,

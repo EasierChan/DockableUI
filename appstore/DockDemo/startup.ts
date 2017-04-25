@@ -6,7 +6,7 @@
 import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path } from "../../base/api/backend";
 const path = require("path");
 const fs = require("fs");
-
+declare let window: any;
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
     _mainWindow: ContentWindow;
@@ -33,6 +33,12 @@ export class StartUp implements IApplication {
             this._mainWindow = null;
             this._mainWindow = new ContentWindow({ state: this._config.state });
             this._mainWindow.onclosing = bound => {
+                console.log(window.getLayout());
+                alert("11111");
+                fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
+                    if (err) throw err;
+                    alert("it saved");
+                });
                 self._config.state = bound;
                 self.saveConfig();
             };
@@ -47,6 +53,12 @@ export class StartUp implements IApplication {
      * @param none
      */
     quit(): void {
+        console.log(window.getLayout());
+        alert("0000000");
+        fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
+            if (err) throw err;
+            alert("it saved");
+        });
         this._windowMgr.closeAll();
     }
     /**

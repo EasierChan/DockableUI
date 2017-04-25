@@ -27,6 +27,7 @@ declare let window: any;
 export class AppComponent implements OnInit {
   className: string = "dock-container vertical";
   children: Control[] = [];
+  private pageObj: Object = new Object();
   private dialog: Dialog;
   private orderstatusPage: TabPage;
   private tradePage: TabPage;
@@ -93,10 +94,11 @@ export class AppComponent implements OnInit {
     this.statusbar = new StatusBar();
     // this.className = "dock-container vertical";
     // row 1
-    let row1: DockContainer = new DockContainer("h", null, 400);
+    // let row1: DockContainer = new DockContainer("h", null, 400);
 
-    let leftPanel: TabPanel = new TabPanel();
+    // let leftPanel: TabPanel = new TabPanel();
     this.orderstatusPage = new TabPage("OrderStatus", "OrderStatus");
+    this.pageObj["OrderStatus"] = this.orderstatusPage;
     let orderstatusContent = new ComboControl("col");
 
     let orderstatusHeader = new ComboControl("row");
@@ -124,12 +126,11 @@ export class AppComponent implements OnInit {
     orderstatusContent.addChild(orderstatusHeader);
     cb_handle.OnClick = () => {
       console.info(window.getLayout());
-      dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
-
       fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
         if (err) throw err;
-        console.log("it saved");
+        alert("it saved");
       });
+      dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
     };
     dd_status.SelectChange = (item) => {
       for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
@@ -166,9 +167,10 @@ export class AppComponent implements OnInit {
     this.orderstatusTable.columnConfigurable = true;
     orderstatusContent.addChild(this.orderstatusTable);
     this.orderstatusPage.setContent(orderstatusContent);
-    leftPanel.addTab(this.orderstatusPage);
+    // leftPanel.addTab(this.orderstatusPage);
 
     this.doneOrdersPage = new TabPage("DoneOrders", "DoneOrders");
+    this.pageObj["DoneOrders"] = this.doneOrdersPage;
     let doneOrdersContent = new ComboControl("col");
     this.doneOrdersTable = new DataTable("table");
     this.doneOrdersTable.addColumn("U-Key", "Symbol", "OrderId", "Strategy",
@@ -177,10 +179,11 @@ export class AppComponent implements OnInit {
     this.doneOrdersTable.columnConfigurable = true;
     doneOrdersContent.addChild(this.doneOrdersTable);
     this.doneOrdersPage.setContent(doneOrdersContent);
-    leftPanel.addTab(this.doneOrdersPage);
+    // leftPanel.addTab(this.doneOrdersPage);
 
 
     this.accountPage = new TabPage("Account", "Account");
+    this.pageObj["Account"] = this.accountPage;
     let accountContent = new ComboControl("col");
     this.accountTable = new DataTable("table");
     this.accountTable.addColumn("Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Status",
@@ -189,9 +192,10 @@ export class AppComponent implements OnInit {
     this.accountTable.columnConfigurable = true;
     accountContent.addChild(this.accountTable);
     this.accountPage.setContent(accountContent);
-    leftPanel.addTab(this.accountPage);
+    // leftPanel.addTab(this.accountPage);
 
     this.PositionPage = new TabPage("Position", "Position");
+    this.pageObj["Position"] = this.PositionPage;
     let positionContent = new ComboControl("col");
     this.PositionTable = new DataTable("table");
     this.PositionTable.addColumn("Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
@@ -199,18 +203,18 @@ export class AppComponent implements OnInit {
     this.PositionTable.columnConfigurable = true;
     positionContent.addChild(this.PositionTable);
     this.PositionPage.setContent(positionContent);
-    leftPanel.addTab(this.PositionPage);
-    leftPanel.setActive("Position");
+    // leftPanel.addTab(this.PositionPage);
+    // leftPanel.setActive("Position");
 
     // let row1col1 = new DockContainer("v", 500, null).addChild(leftPanel);
     // col 1
-    row1.addChild(leftPanel);
+    // row1.addChild(leftPanel);
     // Splitter
     // row1.addChild(new Splitter("v"));
     // col 2
     let leftAlign = 20;
     let rowSep = 5;
-    let rightPanel: TabPanel = new TabPanel();
+    // let rightPanel: TabPanel = new TabPanel();
     this.tradePage = new TabPage("ManulTrader", "ManulTrader");
     let tradeContent = new ComboControl("col");
     tradeContent.MinHeight = 500;
@@ -269,10 +273,10 @@ export class AppComponent implements OnInit {
     btn_row.addChild(btn_submit);
     tradeContent.addChild(btn_row);
     this.tradePage.setContent(tradeContent);
-    rightPanel.addTab(this.tradePage);
-    rightPanel.setActive("ManulTrader");
+    // rightPanel.addTab(this.tradePage);
+    // rightPanel.setActive("ManulTrader");
     // row1.addChild(new DockContainer("v", 100, null).addChild(rightPanel));
-    this.children.push(row1);
+    // this.children.push(row1);
 
     btn_submit.OnClick = () => {
       let account = dd_Account.SelectedItem.Text;
@@ -316,14 +320,15 @@ export class AppComponent implements OnInit {
 
 
     // splitter between row1 and row2
-    this.children.push(new Splitter("h"));
+    // this.children.push(new Splitter("h"));
     // row2
-    let row2 = new DockContainer("h", null, 700);
+    // let row2 = new DockContainer("h", null, 700);
     // bookview
-    let bookViewPanel: TabPanel = new TabPanel();
+    // let bookViewPanel: TabPanel = new TabPanel();
     this.bookviewPage = new TabPage("BookView", "BookView");
-    bookViewPanel.addTab(this.bookviewPage);
-    bookViewPanel.setActive(this.bookviewPage.id);
+    this.pageObj["BookView"] = this.bookviewPage;
+    // bookViewPanel.addTab(this.bookviewPage);
+    // bookViewPanel.setActive(this.bookviewPage.id);
 
     let bookviewHeader = new ComboControl("row");
     let dd_symbol = new DropDown();
@@ -367,25 +372,27 @@ export class AppComponent implements OnInit {
     bookViewContent.addChild(bookviewHeader);
     bookViewContent.addChild(this.bookViewTable);
     this.bookviewPage.setContent(bookViewContent);
-    row2.addChild(new DockContainer("v", 200, null).addChild(bookViewPanel));
+    // row2.addChild(new DockContainer("v", 200, null).addChild(bookViewPanel));
     // Splitter
-    row2.addChild(new Splitter("v"));
+    // row2.addChild(new Splitter("v"));
     // log
-    let logPanel = new TabPanel();
+    // let logPanel = new TabPanel();
     this.logPage = new TabPage("LOG", "LOG");
+    this.pageObj["LOG"] = this.logPage;
     let logContent = new ComboControl("col");
     this.logTable = new DataTable();
     this.logTable.addColumn("Time", "Content");
     logContent.addChild(this.logTable);
     this.logPage.setContent(logContent);
-    logPanel.addTab(this.logPage);
+    // logPanel.addTab(this.logPage);
     // logPanel.setActive("LOG");
-    row2.addChild(new DockContainer("v", 800, null).addChild(logPanel));
-    this.children.push(row2);
-    this.children.push(new Splitter("h"));
+    // row2.addChild(new DockContainer("v", 800, null).addChild(logPanel));
+    // this.children.push(row2);
+    // this.children.push(new Splitter("h"));
 
     this.statarbPage = new TabPage("StatArb", "StatArb");
-    logPanel.addTab(this.statarbPage);
+    this.pageObj["StatArb"] = this.statarbPage;
+    // logPanel.addTab(this.statarbPage);
     let statarbLeftAlign = 20;
     let statarbHeader = new ComboControl("row");
     this.buyamountLabel = new MetaControl("textbox");
@@ -409,7 +416,8 @@ export class AppComponent implements OnInit {
     this.statarbPage.setContent(statarbContent);
 
     this.portfolioPage = new TabPage("Portfolio", "Portfolio");
-    logPanel.addTab(this.portfolioPage);
+    this.pageObj["Portfolio"] = this.portfolioPage;
+    // logPanel.addTab(this.portfolioPage);
     let loadItem = new ComboControl("row");
 
     this.portfolioAccLabel = new MetaControl("textbox");
@@ -690,12 +698,13 @@ export class AppComponent implements OnInit {
     let portfolioContent = new ComboControl("col");
     portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
     this.portfolioPage.setContent(portfolioContent);
-    logPanel.setActive("Portfolio");
+    // logPanel.setActive("Portfolio");
 
     // row 3    strategyinfo
-    let bottomPanel: TabPanel = new TabPanel();
-    this.strategyPage = new TabPage("StrategyMonitor", "StrategyMonitor workbench");
-    bottomPanel.addTab(this.strategyPage);
+    // let bottomPanel: TabPanel = new TabPanel();
+    this.strategyPage = new TabPage("StrategyMonitor", "StrategyMonitor");
+    this.pageObj["StrategyMonitor"] = this.strategyPage;
+    // bottomPanel.addTab(this.strategyPage);
     // bottomPanel.setActive(this.strategyPage.id);
 
     let strategyHeader = new ComboControl("row");
@@ -709,7 +718,7 @@ export class AppComponent implements OnInit {
     watchall.Text = "Watch All";
     // startall.Class = pauseall.Class = stopall.Class = watchall.Class = "primary";
     strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall);
-    bottomPanel.setActive(this.strategyPage.id);
+    // bottomPanel.setActive(this.strategyPage.id);
 
     startall.OnClick = () => {
       this.controlBtnClick(0);
@@ -725,7 +734,8 @@ export class AppComponent implements OnInit {
     };
 
     this.profitPage = new TabPage("Profit", "Profit");
-    bottomPanel.addTab(this.profitPage);
+    this.pageObj["Profit"] = this.profitPage;
+    // bottomPanel.addTab(this.profitPage);
     let profitleftAlign = 20;
     let profitHeader = new ComboControl("row");
     this.totalpnLabel = new MetaControl("textbox");
@@ -780,8 +790,8 @@ export class AppComponent implements OnInit {
     strategyContent.addChild(strategyHeader);
     strategyContent.addChild(this.strategyTable);
     this.strategyPage.setContent(strategyContent);
-    let row3 = new DockContainer("h").addChild(bottomPanel);
-    this.children.push(row3);
+    // let row3 = new DockContainer("h").addChild(bottomPanel);
+    // this.children.push(row3);
     this.strategyTable.OnCellClick = (cellItem, cellIdx, rowIdx) => {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
@@ -810,23 +820,16 @@ export class AppComponent implements OnInit {
     });
     document.title = "hello";
 
-    fs.readFile("xklayout.json", function (err, data) {
-      if (err) {
-        alert(" cann't read xklayout");
-        return;
-      }
-      let layoutObj = JSON.parse(data);
-      // console.log(layoutObj);
-      let type = layoutObj.type;
-      let width = layoutObj.width;
-      let children = layoutObj.children;
-      let childrenLen = children.length;
-      for (let i = 0; i < childrenLen; ++i) {  // traverse
-        let tempObj = children[i];
-        AppComponent.self.traverse(tempObj);
-      }
-    });
+    let data = fs.readFileSync("xklayout.json");
 
+    let layoutObj = JSON.parse(data);
+    let children = layoutObj.children;
+    let childrenLen = children.length;
+    for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
+      AppComponent.self.children.push(AppComponent.self.traversefunc(children[i]));
+      AppComponent.self.children.push(new Splitter("h"));
+    }
+    AppComponent.self.children.push(AppComponent.self.traversefunc(children[childrenLen - 1]));
     this.init();
   }
 
@@ -867,29 +870,27 @@ export class AppComponent implements OnInit {
     ManulTrader.init();
   }
 
-  traverse(obj: any) {
-    for (let o in obj) {
-      if (o === "type") {
-        let typeVal = obj[o];
-        if (typeVal === "v") {
 
-        } else if (typeVal === "h") {
-
-        }
-      } else if (o === "width" || o === "height") {
-        if (o === "width") {
-
-        } else if (o === "height") {
-
-        }
-      } else {  // children or modules
-        if (o === "children") {
-
-        } else if (o === "modules") {
-
-        }
-      }
+  traversefunc(obj) {
+    let dock = new DockContainer(obj.type, obj.width, obj.height);
+    if (obj.children && obj.children.length > 0) {
+      obj.children.forEach((child, index) => {
+        dock.addChild(AppComponent.self.traversefunc(child));
+        if (index < obj.children.length - 1)
+          dock.addChild(new Splitter(child.type));
+      });
+    } else if (obj.modules && obj.modules.length > 0) {
+      let panel = new TabPanel();
+      obj.modules.forEach(page => {
+        console.log(AppComponent.self.pageObj[page]);
+        panel.addTab(AppComponent.self.pageObj[page]);
+        dock.addChild(panel);
+      });
+      panel.setActive(obj.modules[0]);
+    } else {
+      console.error("traverse layout error");
     }
+    return dock;
   }
 
   TestingInput(data: any) {
