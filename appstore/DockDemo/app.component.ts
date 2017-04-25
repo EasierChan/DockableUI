@@ -3,14 +3,14 @@
  * update: [date]
  * desc:
  */
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, HostListener } from "@angular/core";
 import {
   Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog,
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
-import { MessageBox, fs, AppStateCheckerRef } from "../../base/api/services/backend.service";
+import { MessageBox, fs, AppStateCheckerRef, File, Environment } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { LoadSecuMain } from "./load/loadSecumain";
 import { SecuMasterService } from "../../base/api/services/secumaster.service";
@@ -90,10 +90,11 @@ export class AppComponent implements OnInit {
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
     this.statechecker.onInit(this, this.onReady);
+    window.onbeforeunload = this.onDestroy;
   }
 
   onReady(option: any) {
-     // option.port and option host;
+    // option.port and option.host and option.name ;
   }
 
   ngOnInit(): void {
@@ -825,16 +826,14 @@ export class AppComponent implements OnInit {
       }
     });
 
-    let data = fs.readFileSync("xklayout.json");
-
-    let layoutObj = JSON.parse(data);
-    let children = layoutObj.children;
+    let layout: any = File.parseJSON(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json");
+    let children = layout.children;
     let childrenLen = children.length;
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
-      AppComponent.self.children.push(AppComponent.self.traversefunc(children[i]));
-      AppComponent.self.children.push(new Splitter("h"));
+      this.children.push(this.traversefunc(children[i]));
+      this.children.push(new Splitter("h"));
     }
-    AppComponent.self.children.push(AppComponent.self.traversefunc(children[childrenLen - 1]));
+    this.children.push(this.traversefunc(children[childrenLen - 1]));
     this.init();
   }
 
@@ -889,8 +888,8 @@ export class AppComponent implements OnInit {
       obj.modules.forEach(page => {
         console.log(AppComponent.self.pageObj[page]);
         panel.addTab(AppComponent.self.pageObj[page]);
-        dock.addChild(panel);
       });
+      dock.addChild(panel);
       panel.setActive(obj.modules[0]);
     } else {
       console.error("traverse layout error");
@@ -1758,6 +1757,7 @@ export class AppComponent implements OnInit {
     if ((rowFlagIdx === -1) || !checkcolFlag)
       return { row: rowFlagIdx, col: -1 };
   }
+
   addStrategyTableCol(paraObj: any, data: any, type: number) {
     let colIdx = paraObj.col;
     let rowIdx = paraObj.row;
@@ -1789,6 +1789,7 @@ export class AppComponent implements OnInit {
     AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type, decimal: decimal };
     // AppComponent.self.ref.detectChanges();
   }
+
   refreshStrategyInfo(paraObj: any, data: any, type: number) {
     let colIdx = paraObj.col;
     let rowIdx = paraObj.row;
@@ -1832,6 +1833,7 @@ export class AppComponent implements OnInit {
       }
     }
   }
+
   strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
     console.log(data);
     if (data.dataSource.text === "submit") {  // submit
@@ -1955,6 +1957,7 @@ export class AppComponent implements OnInit {
       //  AppComponent.self.portfolioTable.detectChanges();
     }
   }
+
   addPortfolioTableInfo(tableData: any, len: number, idx: number) {
     let row = AppComponent.self.portfolioTable.newRow();
     let ukey = tableData.UKey;
@@ -2033,6 +2036,7 @@ export class AppComponent implements OnInit {
     }
     AppComponent.self.showPortfolioTableCount();
   }
+
   refreshPortfolioTable(idx: number, tableData: any) {
     let ukey = tableData.UKey;
     AppComponent.self.portfolioTable.rows[idx].cells[2].Text = tableData.InitPos;
@@ -2172,6 +2176,9 @@ export class AppComponent implements OnInit {
     }
   }
 
+  onDestroy() {
+    File.writeSync(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json", window.getLayout());
+  }
 }
 
 

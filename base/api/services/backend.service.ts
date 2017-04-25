@@ -118,6 +118,7 @@ export class File {
             obj = JSON.parse(fs.readFileSync(fpath, { encoding: "utf8" }));
         } catch (e) {
             console.error(`file: ${fpath} failed to parse to JSON！`);
+            console.error(e);
             return null;
         }
         return obj;

@@ -53,16 +53,6 @@ export class ComStrategyInfo extends Message {
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        // this.key = buf.readUInt32LE(offset); offset += 4;
-        // this.name = buf.slice(offset, buf.indexOf(0, offset)).toString("utf-8"); offset += 50;
-        // this.status = buf.readUInt8(offset); offset += 2;
-        // this.category = buf.readUInt32LE(offset); offset += 4;
-        // this.parent = buf.readUInt32LE(offset); offset += 4;
-        // this.maxorderid = buf.readUInt32LE(offset); offset += 4;
-        // this.minorderid = buf.readUInt32LE(offset); offset += 4;
-        // this.orderidstep = buf.readUInt32LE(offset); offset += 4;
-        // this.currorderid = buf.readUInt32LE(offset); offset += 4;
-        // this.ismanualtrader = buf.readUInt8(offset) === 1 ? true : false;
         return BufferUtil.format(buf, offset, "1i50s1b1p6i1b3p", this);
     }
 };

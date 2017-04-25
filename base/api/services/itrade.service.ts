@@ -8,7 +8,10 @@ import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
 import { Header, MsgType, Message } from "../model/itrade/message.model";
-import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy } from "../model/itrade/strategy.model";
+import {
+    ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy,
+    ComStrategyCfg
+} from "../model/itrade/strategy.model";
 import { Injectable } from "@angular/core";
 
 const logger = console;
@@ -145,6 +148,20 @@ class StrategyParser extends ItradeParser {
                     this._client.emit("data", header, msg);
                 }
                 break;
+            case 2000:
+            case 2002:
+            case 2004:
+            case 2049:
+            case 2030:
+            case 2029:
+            case 2032: // ComStrategyCfg
+                msg = new ComStrategyCfg();
+
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
             default:
                 logger.warn(`unhandle msg=> type=${header.type}, subtype=${header.subtype}, msglen=${header.msglen}`);
                 break;
@@ -162,7 +179,7 @@ class StrategyParser extends ItradeParser {
 /**
  *
  */
- class ItradeClient extends TcpClient {
+class ItradeClient extends TcpClient {
     private _intervalHeart: NodeJS.Timer;
     private _parsers: ItradeParser[] = [];
     constructor() {
@@ -249,9 +266,6 @@ export class ItradeService {
     }
 
     start(): void {
-        // self message
-        // this._messageMap[0]
-        // server message
         this._time = null;
         this._client.on("data", msg => {
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
@@ -259,6 +273,8 @@ export class ItradeService {
                     this._messageMap[msg[0].type].callback.call(this._messageMap[msg[0].type].context, msg[1], this._sessionid);
                 else
                     this._messageMap[msg[0].type].callback(msg[1], this._sessionid);
+            } else {
+                console.warn(`unhandle message type=${msg[0].type}`);
             }
         });
 
