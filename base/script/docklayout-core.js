@@ -7,8 +7,8 @@ ev_resize.initCustomEvent("resize", false, false, null);
 
 function init() {
     if (typeof jQuery === 'undefined') {
-        console.error("jQuery runtime needed.");
-        // return;
+        alert("jQuery runtime needed.");
+        return;
     }
 
     var splitterbarWH = 5;
@@ -80,7 +80,7 @@ function init() {
             if (originContainer.prev().length > 0) {
                 originContainer.prev().remove(); //remove bar
                 if (originContainer.siblings().length == 1) { // if only a sibling
-                    console.log("clear unnecessary container");
+                    // console.log("clear unnecessary container");
                     originContainer.parent().append(originContainer.prev().children());
                     originContainer.prev().remove();
                 } else {
@@ -94,7 +94,7 @@ function init() {
             } else if (originContainer.next().length > 0) {
                 originContainer.next().remove();
                 if (originContainer.siblings().length == 1) {
-                    console.log("clear unnecessary container");
+                    // console.log("clear unnecessary container");
                     originContainer.parent().append(originContainer.next().children());
                     originContainer.next().remove();
                 } else {
@@ -106,7 +106,7 @@ function init() {
                             originContainer.outerHeight() + splitterbarWH);
                 }
             } else {
-                console.warn("originContainer is the only child of its parent");
+                // console.warn("originContainer is the only child of its parent");
             }
 
             originContainer.remove();
@@ -136,7 +136,7 @@ function init() {
         $currentSplitter.prev().find("dock-table2").each((index, item) => {
             item.dispatchEvent(ev_resize);
         });
-        $currentSplitter.next().find("dock-table2").each(item => {
+        $currentSplitter.next().find("dock-table2").each((index, item) => {
             item.dispatchEvent(ev_resize);
         });
         gap = null;
@@ -204,7 +204,7 @@ function init() {
         $(".dock-sn, .dock-ew, .dock-cover").css("display", "none");
         $(".page-title").attr("draggable", "true");
         $(".page-title").on("dragstart", function (e) {
-            console.log(e.target.parentNode.id, " tabpage drag start");
+            // console.log(e.target.parentNode.id, " tabpage drag start");
             $(document).data("drag-src-id", e.target.parentNode.id);
         });
         $(".page-title").on("dragend", function (e) {
@@ -271,14 +271,14 @@ function init() {
 
         if ($(this).is(".dock-center")) {
             if ($parent.find("#" + id).length > 0) {
-                console.log("#", id, $parent.find("#" + id).length);
+                // console.log("#", id, $parent.find("#" + id).length);
                 return;
             }
-            console.log("direct put into $parent");
+            // console.log("direct put into $parent");
             moveTabPage($src, $parent);
         } else if ($(this).is(".dock-west,.dock-east")) {
             if ($parent.is(".vertical")) {
-                console.log("to create a brother on $parent's left or right");
+                // console.log("to create a brother on $parent's left or right");
                 $newEle = createDockContainer("vbox"); // to put page into it.
                 $newEle.outerWidth($parent.outerWidth() / 2 - splitterbarWH);
                 $parent.outerWidth($parent.outerWidth() - $parent.outerWidth() / 2);
@@ -293,7 +293,7 @@ function init() {
                 reallocChildSize($parent, ".dock-container.horizental");
             } else { // horizental
                 if ($parent.children(".vertical").length > 0) { //big container
-                    console.log("dragsrc to be most left or right child of $parent");
+                    // console.log("dragsrc to be most left or right child of $parent");
                     $newEle = createDockContainer("vbox");
                     var closestChild;
                     if ($(this).is(".dock-west")) {
@@ -310,7 +310,7 @@ function init() {
                     closestChild.outerWidth(closestChild.outerWidth() - closestChild.outerWidth() / 2);
                     reallocChildSize($parent, ".dock-container.vertical");
                 } else { //small container
-                    console.log("create a horizental container, put dragsrc and parent into it, dragsrc on left or right");
+                    // console.log("create a horizental container, put dragsrc and parent into it, dragsrc on left or right");
                     var $oldEle = createDockContainer("vbox");
                     $oldEle.append($parent.children());
                     $oldEle.outerWidth($parent.outerWidth() - $parent.outerWidth() / 2);
@@ -345,7 +345,7 @@ function init() {
                 reallocChildSize($parent, ".dock-container.vertical");
             } else { // vertical
                 if ($parent.children(".horizental").length > 0) { //big container
-                    console.log("dragsrc to be most top or bottom child of $parent");
+                    // console.log("dragsrc to be most top or bottom child of $parent");
                     var $newEle = createDockContainer("hbox");
                     var closestChild;
                     if ($(this).is(".dock-north")) {
@@ -360,7 +360,7 @@ function init() {
                     closestChild.outerHeight(closestChild.outerHeight() - closestChild.outerHeight() / 2);
                     reallocChildSize($parent, ".dock-container.horizental");
                 } else { //small container
-                    console.log("create a vertical container, put dragsrc and parent into it, dragsrc on top or bottom");
+                    // console.log("create a vertical container, put dragsrc and parent into it, dragsrc on top or bottom");
                     var $oldEle = createDockContainer("hbox");
                     $oldEle.append($parent.children());
                     $oldEle.outerHeight($parent.outerHeight() - $parent.outerHeight() / 2);
@@ -394,7 +394,7 @@ function init() {
         //parents.each(function (i) {
         //&& $(parents[i]).children(".tab-panel").length > 0
         //if (i === 0) { // first parent; and have tab-panel
-        console.log("drag over dockcontainer");
+        // console.log("drag over dockcontainer");
         //$parent = $(parents[i]);
         $(".dock-sn").css({
             display: "flex",

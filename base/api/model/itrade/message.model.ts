@@ -41,7 +41,7 @@ export abstract class Message {
         let props = Object.getOwnPropertyNames(this);
         let rets = "|";
         for (let i in props) {
-            if (typeof this[props[i]] === "function" || props[i] === "len")
+            if ((typeof this[props[i]] === "function") || (typeof this[props[i]] === "undefined") || props[i] === "len")
                 continue;
             rets = rets.concat(props[i], "=", this[props[i]], "|");
         }

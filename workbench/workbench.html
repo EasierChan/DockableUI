@@ -6,7 +6,7 @@
                 <span class="mif-user mif-4x fg-blue"></span>
             </div>
             <div class="input-control text">
-                <input name="serverinfo" class="dropdown-toggle" type="text" required readonly placeholder="Server Name" [(ngModel)]="serverinfo"
+                <input name="serverinfo" class="dropdown-toggle" type="text" required readonly placeholder="Server Name" [(ngModel)]="selectedServer"
                     #server="ngModel">
                 <ul class="d-menu" data-role="dropdown">
                     <li><a href="#" (click)="onSelectServer('高薪南四道')">高薪南四道</a></li>
@@ -228,10 +228,19 @@
                                     <div class="dropdown-button">
                                         <button class="button dropdown-toggle" style="min-width: 150px">{{config.strategyCoreName}}</button>
                                         <ul class="split-content d-menu" data-role="dropdown">
-                                            <li *ngFor="let name of this.strategyCores"><a (click)="onSelectStrategy(name)" href="#">{{name}}</a></li>
+                                            <li *ngFor="let name of strategyCores"><a (click)="onSelectStrategy(name)" href="#">{{name}}</a></li>
                                         </ul>
                                     </div>
                                     <button class="button">Add Strategy</button>
+                                    <br><br>
+                                    <fieldset>
+                                        <legend>StrategyServer Info</legend>
+                                        <label>Port: <input type="text" placeholder="server port" [(ngModel)]="config._port"></label>
+                                    </fieldset>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
                                 </div>
                             </div>
                         </div>
@@ -244,35 +253,76 @@
                                 <label>Current Strategy: {{config.strategyCoreName}}</label>
                             </div>
                             <div class="row">
-                                <div class="input-control text full-size">
-                                    <input type="text" placeholder="Strategy ID" [(ngModel)]="newestInstanceName">
+                                <div>
+                                    <input class="button" type="text" style="text-align: left; cursor: default;" placeholder="Strategy ID" [(ngModel)]="strategyId">
+                                    <input class="button" type="text" style="text-align: left; cursor: default;" placeholder="Strategy Name" [(ngModel)]="strategyName">
                                     <button class="button" (click)="addInstance()">Add Instance</button>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="cell">
+                                <div class="cell" style="max-height: 375px; overflow-y: auto;">
                                     <div class="accordion" data-role="accordion" data-close-any="true">
-                                        <div *ngFor="let item of this.config.strategyInstances;let i = index" class="frame">
+                                        <div *ngFor="let instance of config.strategyInstances;let i = index" class="frame">
                                             <div class="heading bg-grayLight">
-                                                <div class="cell">strategyid: {{item.id}}</div>
+                                                <div class="cell">strategyid: {{instance.key}}</div>
                                                 <div class="cell"><span class="mif-cancel" (click)="removeInstance($event, i)"></span></div>
                                             </div>
-                                            <div class="content bg-darker">
+                                            <div class="content bg-gray">
                                                 <div class="accordion" data-role="accordion" data-close-any="true">
                                                     <div class="frame">
                                                         <div class="heading bg-grayLight">
                                                             <div class="cell">BaseInfo</div>
                                                         </div>
-                                                        <div class="content">
-                                                            <div> Name: <input type="text"> Port: <input type="text"></div>
+                                                        <div class="content bg-gray">
+                                                            <label class="col2">Accounts:<input type="text"></label>
+                                                            <fieldset>
+                                                                <legend>Algoes</legend>
+                                                                <label *ngFor="let algo of curTemplate.body.data.Order"><input type="checkbox" (change)="updateAlgo($event, algo, instance)">{{algo.name}}</label>
+                                                            </fieldset>
+                                                            <fieldset>
+                                                                <legend>Checks</legend>
+                                                                <label *ngFor="let check of curTemplate.body.data.Check"><input type="checkbox" (change)="updateCheck($event, check, instance)">{{check.name}}</label>
+                                                            </fieldset>
+                                                            <fieldset *ngIf="instance.sendChecks">
+                                                                <legend>SendChecks</legend>
+                                                                <div style="max-width: 700px; overflow-x: auto;">
+                                                                    <!--<label *ngFor="let icheck of instance.sendChecks"><input type="text" [placeholder]="icheck.name" [(ngModel)]="icheck.value"></label>-->
+                                                                    <table>
+                                                                        <tr>
+                                                                            <th *ngFor="let icheck of instance.sendChecks">{{icheck.name}}</th>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td *ngFor="let icheck of instance.sendChecks"><label><input type="text" [placeholder]="icheck.name" [(ngModel)]="icheck.value"></label></td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                            <div class="col3">
+                                                                <label>MinOrderid:<input type="text"></label>
+                                                                <label>MaxOrderid:<input type="text"></label>
+                                                                <label>OrderStep:<input type="text"></label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <div class="frame">
                                                         <div class="heading bg-grayLight">
                                                             <div class="cell">OtherInfo</div>
                                                         </div>
-                                                        <div class="content">
-
+                                                        <div class="content bg-gray">
+                                                            <fieldset>
+                                                                <legend>Params</legend>
+                                                                <div style="max-width: 700px; overflow-x: auto;">
+                                                                    <!--<label *ngFor="let param of instance.parameters"><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label>-->
+                                                                    <table>
+                                                                        <tr>
+                                                                            <th *ngFor="let param of instance.parameters">{{param.name}}</th>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td *ngFor="let param of instance.parameters"><label><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label></td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -284,41 +334,63 @@
                         </div>
                         <div *ngIf="config.curstep==4" class="page">
                             <div>
-                                <h4>Choose Channels</h4>
+                                <h4>Channels Info</h4>
                                 <hr>
                             </div>
                             <div class="row">
                                 <div class="cell">
-                                    <div class="accordion" data-role="accordion" data-close-any="true">
+                                    <!--<div class="accordion" data-role="accordion" data-close-any="true">
                                         <div class="frame">
                                             <div class="heading bg-grayLight">
                                                 <div class="cell">666600000040</div>
                                                 <div class="cell">Stock</div>
-                                            </div>
-                                            <div class="content bg-darker">
-                                                <table class="table condensed">
-                                                    <thead>
-                                                        <tr>
-                                                            <th><input type="checkbox"></th>
-                                                            <th>name</th>
-                                                            <th>type</th>
-                                                            <th>host</th>
-                                                            <th>port</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr *ngFor="let channel of channels">
-                                                            <td><input type="checkbox" [(ngModel)]="channel.enable"></td>
-                                                            <td>{{channel.name}}</td>
-                                                            <td>{{channel.type === 1 ? "Stock": "Future"}}</td>
-                                                            <td>{{channel.addr}}</td>
-                                                            <td>{{channel.port}}</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                            </div>-->
+                                    <!--<div class="content bg-darker">-->
+                                    <fieldset *ngIf="config.channels.gateway">
+                                        <legend>Trade Channel</legend>
+                                        <table class="table condensed">
+                                            <thead>
+                                                <tr>
+                                                    <!--<th><input type="checkbox"></th>-->
+                                                    <th>name</th>
+                                                    <th>type</th>
+                                                    <th>host</th>
+                                                    <th>port</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr *ngFor="let channel of config.channels.gateway">
+                                                    <!--<td><input type="checkbox" [(ngModel)]="channel.enable"></td>-->
+                                                    <td>{{channel.name}}</td>
+                                                    <td>{{channel.type === 1 ? "Stock": "Future"}}</td>
+                                                    <td><input type="text" [(ngModel)]="channel.addr"></td>
+                                                    <td><input type="text" [(ngModel)]="channel.port"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </fieldset>
+                                    <fieldset *ngIf="config.channels.feedhandler">
+                                        <legend>MarketData Channel</legend>
+                                        <table class="table condensed">
+                                            <thead>
+                                                <tr>
+                                                    <th>name</th>
+                                                    <th>host</th>
+                                                    <th>port</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>{{config.channels.feedhandler.name}}</td>
+                                                    <td><input type="text" [(ngModel)]="config.channels.feedhandler.addr"></td>
+                                                    <td><input type="text" [(ngModel)]="config.channels.feedhandler.port"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </fieldset>
+                                    <!--</div>
                                         </div>
-                                    </div>
+                                    </div>-->
                                 </div>
                             </div>
                         </div>
@@ -346,73 +418,46 @@
                 <h5>Strategy Moniter</h5>
 
                 <div class="accordion" data-role="accordion" data-close-any="true">
-                    <div class="frame active">
+                    <div *ngFor="let item of strategyContainer.items" class="frame">
                         <div class="heading bg-grayLight">
-                            <div class="cell">ManulTrade</div>
-                            <div class="cell">Connected</div>
+                            <div class="cell">{{item.name}}</div>
+                            <div class="cell">{{item.conn.connState}}</div>
                         </div>
                         <div class="content bg-darker">
                             <table class="table condensed">
                                 <thead>
                                     <tr>
                                         <th>StrategyID</th>
+                                        <th>Name</th>
                                         <th>Status</th>
                                         <th>Operations</th>
+                                        <th>TotalPnl</th>
+                                        <th>TotalPosition</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>110</td>
-                                        <td>running</td>
+                                    <tr *ngFor="let strategy of item.conn.strategies">
+                                        <td>{{strategy.id}}</td>
+                                        <td>{{strategy.name}}</td>
+                                        <td>{{strategy.status}}</td>
                                         <td>
                                             <div data-role="group" data-group-type="one-state">
-                                                <button class="button small-button">start</button>
-                                                <button class="button small-button">stop</button>
-                                                <button class="button small-button">watch</button>
-                                                <button class="button small-button">pause</button>
+                                                <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 2)" [disabled]="strategy.status=='RUN'||strategy.status=='STOP'">
+                                                    start
+                                                </button>
+                                                <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 3)" [disabled]="strategy.status=='PAUSE'||strategy.status=='STOP'">
+                                                    pause
+                                                </button>
+                                                <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 4)" [disabled]="strategy.status=='STOP'">
+                                                    stop
+                                                </button>
+                                                <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 5)" [disabled]="strategy.status=='WATCH'">
+                                                    watch
+                                                </button>
                                             </div>
                                         </td>
-                                    </tr>
-                                    <tr>
-                                        <td>110</td>
-                                        <td>running</td>
-                                        <td>
-                                            <div data-role="group" data-group-type="one-state">
-                                                <button class="button small-button">start</button>
-                                                <button class="button small-button">stop</button>
-                                                <button class="button small-button">watch</button>
-                                                <button class="button small-button">pause</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="frame">
-                        <div class="heading bg-grayLight">
-                            <div class="cell">ManulTrade</div>
-                            <div class="cell">Connected</div>
-                        </div>
-                        <div class="content bg-darker">
-                            <table class="table">
-                                <thead>
-                                    <tr class="info">
-                                        <th>StrategyID</th>
-                                        <th>Status</th>
-                                        <th>Operations</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>110</td>
-                                        <td>running</td>
-                                        <td>
-                                            <button class="button small-button">start</button>
-                                            <button class="button small-button">stop</button>
-                                            <button class="button small-button">watch</button>
-                                            <button class="button small-button">pause</button>
-                                        </td>
+                                        <td>{{strategy?.totalpnl}}</td>
+                                        <td>{{strategy?.totalposition}}</td>
                                     </tr>
                                 </tbody>
                             </table>

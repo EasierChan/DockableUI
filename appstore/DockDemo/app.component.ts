@@ -10,7 +10,7 @@ import {
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
-import { MessageBox, fs } from "../../base/api/services/backend.service";
+import { MessageBox, fs, AppStateCheckerRef } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { LoadSecuMain } from "./load/loadSecumain";
 import { SecuMasterService } from "../../base/api/services/secumaster.service";
@@ -21,7 +21,8 @@ declare let window: any;
   selector: "body",
   templateUrl: "app.component.html",
   providers: [
-    PriceService
+    PriceService,
+    AppStateCheckerRef
   ]
 })
 export class AppComponent implements OnInit {
@@ -86,8 +87,13 @@ export class AppComponent implements OnInit {
 
   private statusbar: StatusBar;
 
-  constructor(private psInstance: PriceService, private ref: ChangeDetectorRef) {
+  constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
+    this.statechecker.onInit(this, this.onReady);
+  }
+
+  onReady(option: any) {
+     // option.port and option host;
   }
 
   ngOnInit(): void {
@@ -818,7 +824,6 @@ export class AppComponent implements OnInit {
         AppComponent.self.bookViewTable.detectChanges();
       }
     });
-    document.title = "hello";
 
     let data = fs.readFileSync("xklayout.json");
 
@@ -867,7 +872,7 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(5021, this.showBasketBackInfo);
     ManulTrader.addSlot(5024, this.showPortfolioSummary);
 
-    ManulTrader.init();
+    ManulTrader.init(9611, "172.24.51.4");
   }
 
 

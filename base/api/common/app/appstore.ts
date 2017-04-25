@@ -6,14 +6,17 @@
 import { ipcMain, Menu, Tray, app } from "electron";
 import * as fs from "fs";
 import path = require("path");
-import { ContentWindow } from "./windows";
+import { ContentWindow, Bound } from "./windows";
 import { UWindwManager } from "./windowmgr";
 import { DefaultLogger } from "../base/logger";
 import { UserDal } from "../../dal/itrade/userDal";
 import { IPCManager } from "../../dal/ipcManager";
+import { Path } from "../base/paths";
 
 export class AppStore {
     private static _bAuthorized: boolean = false;
+    private static _cfgFile: string;
+    private static _config: AppStoreConfig;
     private static _env: any;
     private static _userDal: UserDal;
     private static _tray: Electron.Tray;
@@ -39,13 +42,13 @@ export class AppStore {
         });
     }
 
-    public static startupAnApp(name: string, type: string): boolean {
+    public static startupAnApp(name: string, type: string, option: any): boolean {
         if (AppStore._instances.hasOwnProperty(name)) {
-            AppStore._instances[name].bootstrap(name);
+            AppStore._instances[name].bootstrap(name, option);
             return true;
         } else if (AppStore._apps.hasOwnProperty(type)) {
             AppStore._instances[name] = AppStore._apps[type].StartUp.instance();
-            AppStore._instances[name].bootstrap();
+            AppStore._instances[name].bootstrap(name, option);
             return true;
         }
 
@@ -55,7 +58,8 @@ export class AppStore {
 
     public static bootstrap(): void {
         AppStore.parseCommandArgs();
-        let contentWindow: ContentWindow = new ContentWindow({ state: { x: 0, y: 0, width: 1000, height: 800 } });
+        AppStore.loadConfig();
+        let contentWindow: ContentWindow = new ContentWindow({ state: AppStore._config.state });
         contentWindow.loadURL(path.join(AppStore._appstoreHome, "..", "workbench", "index.html"));
         AppStore._instances[AppStore._workbench] = contentWindow;
 
@@ -64,8 +68,8 @@ export class AppStore {
             contentWindow.win.hide();
         });
 
-        IPCManager.register("appstore://startupAnApp", (event, appname, apptype) => {
-            event.returnValue = AppStore.startupAnApp(appname, apptype);
+        IPCManager.register("appstore://startupAnApp", (event, appname, apptype, option) => {
+            event.returnValue = AppStore.startupAnApp(appname, apptype, option);
         });
 
         IPCManager.register("appstore://login", (event, loginInfo) => {
@@ -123,6 +127,8 @@ export class AppStore {
             {
                 label: "Exit", click() {
                     contentWindow.win.removeAllListeners();
+                    AppStore._config.state = contentWindow.getBounds();
+                    AppStore.saveConfig();
                     app.quit();
                 }
             }
@@ -138,7 +144,7 @@ export class AppStore {
             ipcMain.emit("appstore://login", null, { username: AppStore._env.username, password: AppStore._env.password });
             IPCManager.register("appstore://ready", () => {
                 AppStore._env.startapps.forEach(app => {
-                    AppStore.startupAnApp(app, "");
+                    AppStore.startupAnApp(app, "", null);
                 });
             });
         }
@@ -162,4 +168,30 @@ export class AppStore {
             }
         });
     }
+
+    static loadConfig() {
+        let appdir = path.join(Path.baseDir, AppStore._workbench);
+        if (!fs.existsSync(appdir))
+            fs.mkdirSync(appdir);
+
+        AppStore._cfgFile = path.join(appdir, "default.json");
+        AppStore._config = { name: AppStore._workbench, state: { x: 0, y: 0, width: 1000, height: 800 } };
+        if (!fs.existsSync(AppStore._cfgFile)) {
+            fs.writeFileSync(AppStore._cfgFile, JSON.stringify(AppStore._config), { encoding: "utf8" });
+        }
+
+        Object.assign(AppStore._config, JSON.parse(fs.readFileSync(AppStore._cfgFile, "utf8")));
+    }
+
+    static saveConfig() {
+        fs.writeFileSync(AppStore._cfgFile, JSON.stringify(AppStore._config, null, 2));
+    }
+}
+
+
+interface AppStoreConfig {
+    name: string;
+    state: Bound;
+    layout?: Object;
+    data?: Object;
 }

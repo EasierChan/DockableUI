@@ -8,7 +8,7 @@ import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
 import { Header, MsgType, Message } from "../model/itrade/message.model";
-import { ComStrategyInfo } from "../model/itrade/strategy.model";
+import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy } from "../model/itrade/strategy.model";
 import { Injectable } from "@angular/core";
 
 const logger = console;
@@ -64,7 +64,7 @@ class ItradeParser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.msglen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-
+                logger.info(`processMsg:: type=${this._curHeader.type}, subtype=${this._curHeader.subtype}, msglen=${this._curHeader.msglen}`);
                 this.emit(this._curHeader.type.toString(), this._curHeader, tempBuffer.slice(Header.len));
 
                 restLen = buflen - this._curHeader.msglen - Header.len;
@@ -98,8 +98,13 @@ class StrategyParser extends ItradeParser {
     }
 
     init(): void {
+        this.registerMsgFunction("2001", this, this.processStrategyMsg);
+        this.registerMsgFunction("2003", this, this.processStrategyMsg);
+        this.registerMsgFunction("2005", this, this.processStrategyMsg);
+        this.registerMsgFunction("2050", this, this.processStrategyMsg);
         this.registerMsgFunction("2011", this, this.processStrategyMsg);
-        this.registerMsgFunction("2032", this, this.processStrategyMsg);
+        this.registerMsgFunction("2033", this, this.processStrategyMsg);
+        this.registerMsgFunction("2048", this, this.processStrategyMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -109,10 +114,32 @@ class StrategyParser extends ItradeParser {
         let header: Header = args[0];
         let content = args[1] as Buffer;
         let count = content.readUInt32LE(0);
+        let offset = 4;
+        let msg;
         switch (header.type) {
-            case 2011: // Login
-                let offset = 4;
-                let msg = new ComStrategyInfo();
+            case 2001: // ComGuiAckStrategy
+            case 2003: // ComGuiAckStrategy
+            case 2005: // ComGuiAckStrategy
+            case 2050: // ComGuiAckStrategy
+                msg = new ComGuiAckStrategy();
+
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 2033:
+            case 2011: // ComStrategyInfo
+                msg = new ComStrategyInfo();
+
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 2048: // ComTotalProfitInfo
+                msg = new ComTotalProfitInfo();
+
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
                     this._client.emit("data", header, msg);
@@ -194,6 +221,9 @@ export class ItradeService {
     private _parser: ItradeParser;
     private _messageMap: Object;
     private _sessionid: number;
+    private _port: number;
+    private _host: string;
+    private _time: any;
     constructor() {
         this._sessionid = 0;
         this._messageMap = {};
@@ -214,12 +244,15 @@ export class ItradeService {
     connect(port, host = "127.0.0.1") {
         this.start();
         this._client.connect(port, host);
+        this._port = port;
+        this._host = host;
     }
 
     start(): void {
         // self message
         // this._messageMap[0]
         // server message
+        this._time = null;
         this._client.on("data", msg => {
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
                 if (this._messageMap[msg[0].type].context !== undefined)
@@ -238,7 +271,7 @@ export class ItradeService {
             }
         });
 
-        this._client.on("disconnect", () => {
+        this._client.on("close", () => {
             if (this._messageMap.hasOwnProperty(-1)) {
                 if (this._messageMap[-1].context !== undefined)
                     this._messageMap[-1].callback.call(this._messageMap[0].context, this._sessionid);
@@ -246,6 +279,19 @@ export class ItradeService {
                     this._messageMap[-1].callback(this._sessionid);
             }
         });
+
+        this._client.on("error", () => {
+            if (this._time === null) {
+                this._time = setTimeout(() => {
+                    this._time = null;
+                    this._client.reconnect(this._port, this._host);
+                }, 10000);
+            }
+        });
+    }
+
+    stop(): void {
+        this._client.dispose();
     }
 
     send(type: number, subtype: number, body: any): void {
@@ -256,5 +302,48 @@ export class ItradeService {
         if (this._messageMap.hasOwnProperty(type))
             return;
         this._messageMap[type] = { callback: cb, context: context };
+    }
+
+    get client() {
+        return this._client;
+    }
+}
+
+/**
+ * interface for single pro.
+ */
+process.on("message", (m: WSItrade, sock) => {
+    switch (m.command) {
+        case "start":
+            ItradeFactory.instance.client.on("data", msg => {
+                process.send({ event: "data", content: msg });
+            });
+            ItradeFactory.instance.client.on("connect", () => {
+                process.send({ event: "connect" });
+            });
+            ItradeFactory.instance.client.on("error", () => {
+                process.send({ event: "disconnect" });
+            });
+            ItradeFactory.instance.connect(m.params.port, m.params.host);
+            break;
+        case "stop":
+            ItradeFactory.instance.stop();
+            break;
+        default:
+            console.error(`unvalid command => ${m.command}`);
+            break;
+    }
+});
+
+interface WSItrade {
+    command: string;
+    params: any;
+}
+
+class ItradeFactory {
+    private static itrade;
+    static get instance() {
+        if (!ItradeFactory.itrade)
+            return ItradeFactory.itrade;
     }
 }

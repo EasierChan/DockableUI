@@ -133,8 +133,8 @@ export class OrderService {
     get sessionID(): number {
         return this._sessionid;
     }
-    registerServices(): void {
-        this.connect(9611, "172.24.51.4");  // 9611 51.4
+    registerServices(port: number, host: string): void {
+        this.connect(port, host);  // 9611 51.4
         // electron.ipcRenderer.send("dal://itrade/data/order", {
         //     type: -1,
         //     subtype: -1,
@@ -148,7 +148,6 @@ export class OrderService {
     }
 
     start() {
-        let interval = null;
         this._client.on("connect", () => {
             // regist
             this.regist();
@@ -163,7 +162,7 @@ export class OrderService {
             }
         });
         this._client.on("error", () => {
-            interval = setInterval(() => {
+            setTimeout(() => {
                 this._client.connect(this._port, this._host);
             }, 10000);
         });

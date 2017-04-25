@@ -7,6 +7,7 @@ import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path } f
 const path = require("path");
 const fs = require("fs");
 declare let window: any;
+const electron = require("electron");
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
     _mainWindow: ContentWindow;
@@ -24,7 +25,7 @@ export class StartUp implements IApplication {
     /**
      * bootstrap
      */
-    bootstrap(name = "DockDemo"): any {
+    bootstrap(name = "Untitled", option?: any): any {
         let self = this;
         if (!this._mainWindow || !this._mainWindow.win) {
             this._name = name;
@@ -33,16 +34,21 @@ export class StartUp implements IApplication {
             this._mainWindow = null;
             this._mainWindow = new ContentWindow({ state: this._config.state });
             this._mainWindow.onclosing = bound => {
-                console.log(window.getLayout());
-                alert("11111");
-                fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
-                    if (err) throw err;
-                    alert("it saved");
-                });
+                // console.log(window.getLayout());
+                // alert("11111");
+                // fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
+                //     if (err) throw err;
+                //     alert("it saved");
+                // });
                 self._config.state = bound;
                 self.saveConfig();
             };
+
+            electron.ipcMain.on("get-init-param", (e, param) => {
+                e.returnValue = option;
+            });
             this._mainWindow.loadURL(path.join(__dirname, "index.html"));
+            this._mainWindow.win.setTitle(name);
             this._mainWindow.setMenuBarVisibility(true);
             this._windowMgr.addContentWindow(this._mainWindow);
         }
@@ -53,12 +59,12 @@ export class StartUp implements IApplication {
      * @param none
      */
     quit(): void {
-        console.log(window.getLayout());
-        alert("0000000");
-        fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
-            if (err) throw err;
-            alert("it saved");
-        });
+        // console.log(window.getLayout());
+        // alert("0000000");
+        // fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
+        //     if (err) throw err;
+        //     alert("it saved");
+        // });
         this._windowMgr.closeAll();
     }
     /**
@@ -84,11 +90,11 @@ export class StartUp implements IApplication {
             fs.writeFileSync(this._cfgFile, JSON.stringify(this._config), { encoding: "utf8" });
         }
 
-        Object.assign(this._config, JSON.parse(fs.readFileSync(this._cfgFile, "utf8")));
+        this._config = JSON.parse(fs.readFileSync(this._cfgFile, "utf8"));
     }
 
     saveConfig() {
-        fs.writeFile(this._cfgFile, JSON.stringify(this._config, null, 2));
+        fs.writeFileSync(this._cfgFile, JSON.stringify(this._config, null, 2));
     }
 
 

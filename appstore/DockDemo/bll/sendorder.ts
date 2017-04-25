@@ -256,8 +256,8 @@ export class ManulTrader {
         ManulTrader.orderService.addSlot(type, cb);
     }
 
-    static init() {
-        ManulTrader.orderService.registerServices();  // send register info
+    static init(port: number, host: string) {
+        ManulTrader.orderService.registerServices(port, host);  // send register info
     }
 
 }
