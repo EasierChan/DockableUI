@@ -3,7 +3,7 @@
  * update: [date]
  * desc:
  */
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import {
   Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog,
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
@@ -12,8 +12,6 @@ import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
 import { MessageBox, fs, AppStateCheckerRef } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
-import { LoadSecuMain } from "./load/loadSecumain";
-import { SecuMasterService } from "../../base/api/services/secumaster.service";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 declare let window: any;
 @Component({
@@ -25,7 +23,7 @@ declare let window: any;
     AppStateCheckerRef
   ]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   className: string = "dock-container vertical";
   children: Control[] = [];
   private pageObj: Object = new Object();
@@ -93,7 +91,7 @@ export class AppComponent implements OnInit {
   }
 
   onReady(option: any) {
-     // option.port and option host;
+    // option.port and option host;
   }
 
   ngOnInit(): void {
@@ -826,7 +824,6 @@ export class AppComponent implements OnInit {
     });
 
     let data = fs.readFileSync("xklayout.json");
-
     let layoutObj = JSON.parse(data);
     let children = layoutObj.children;
     let childrenLen = children.length;
@@ -835,10 +832,10 @@ export class AppComponent implements OnInit {
       AppComponent.self.children.push(new Splitter("h"));
     }
     AppComponent.self.children.push(AppComponent.self.traversefunc(children[childrenLen - 1]));
-    this.init();
+    this.init(9611, "172.24.51.4");
   }
 
-  init() {
+  init(port: number, host: string) {
     ManulTrader.addSlot(2011, this.showStrategyInfo);
     ManulTrader.addSlot(2033, this.showStrategyInfo);
     ManulTrader.addSlot(2000, this.showStrategyCfg);
@@ -872,7 +869,7 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(5021, this.showBasketBackInfo);
     ManulTrader.addSlot(5024, this.showPortfolioSummary);
 
-    ManulTrader.init(9611, "172.24.51.4");
+    ManulTrader.init(port, host);
   }
 
 
@@ -887,7 +884,7 @@ export class AppComponent implements OnInit {
     } else if (obj.modules && obj.modules.length > 0) {
       let panel = new TabPanel();
       obj.modules.forEach(page => {
-        console.log(AppComponent.self.pageObj[page]);
+        // console.log(AppComponent.self.pageObj[page]);
         panel.addTab(AppComponent.self.pageObj[page]);
         dock.addChild(panel);
       });
@@ -2172,6 +2169,9 @@ export class AppComponent implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+      fs.writeFileSync(__dirname + "/xklayout.json", "");
+  }
 }
 
 

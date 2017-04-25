@@ -25,7 +25,7 @@ export class OrderService {
     private _port: number;
     private _host: string;
     private _parser: ItradeParser;
-    // strategyinfo
+
     constructor() {
         this._sessionid = 0;
         this._client = new ItradeClient();
@@ -34,96 +34,6 @@ export class OrderService {
         this._client.addParser(this._parser);
         let msgObj = new Array<Object>();
         let self = this;
-        // electron.ipcRenderer.on("dal://itrade/data/order-reply", (e, data) => {
-        //     // whether function
-        //     // console.log("print order-reply info ,type:", data);
-        //     let msgtype = data.header.type;
-        //     let msgsubtype = data.header.subtype;
-        //     let msglen = data.header.msglen;
-        //     switch (msgtype) {
-        //         // 'StrategyInfo'
-        //         case 2011:
-        //         case 2033:
-        //             msgObj = this.readStrategyInfo(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         // StrategyCfg
-        //         case 2000:
-        //         case 2002:
-        //         case 2004:
-        //         case 2049:
-        //         case 2030:
-        //         case 2029:
-        //         case 2032:
-        //             msgObj = this.readStrategyCfg(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         // GuiCmdAck
-        //         case 2001:
-        //         case 2003:
-        //         case 2005:
-        //         case 2050:
-        //         case 2031:
-        //             msgObj = this.readGuiCmdAck(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         // ComTotalProfitInfo
-        //         case 2048:
-        //             msgObj = this.readComTotalProfitInfo(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         // order
-        //         case 2020:
-        //             msgObj = this.readComConOrder(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 2013:
-        //             msgObj = this.readComAccountPos(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 3502:
-        //         case 3504:
-        //             msgObj = this.readComRecordPos(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 2015:
-        //         case 2017:
-        //             msgObj = this.readComGWNetGuiInfo(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 2023:
-        //             msgObj = this.readComProfitInfo(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 2025:
-        //             msgObj = this.readStatArbOrder(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 2021:
-        //             if (msgsubtype === 0) {
-        //                 msgObj = this.readComConOrderStatus(data.content, msgtype, msglen);
-        //             }
-        //             else if (msgsubtype === 1) {
-        //                 msgObj = this.readComConOrderErrorInfo(data.content, msgtype, msglen);
-        //             }
-        //             break;
-        //         // orderDone
-        //         case 2022:
-        //         case 3011:
-        //         case 3510:
-        //             msgObj = this.readComOrderRecord(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 2040:
-        //             msgObj = this.readLog(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 5021:
-        //             msgObj = this.readBasketBack(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 5024:
-        //             msgObj = this.readPortfolioSummary(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         case 5022:
-        //             msgObj = this.readPortfolioMsgError(data.content, msgtype, msgsubtype, msglen);
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        //     if (typeof (self._messageMap[data.header.type]) === "function") {
-        //         self._messageMap[data.header.type](msgObj);
-        //     } else {
-        //         console.error(data.header.type + " not regist!");
-        //     }
-        // });
     }
 
     set sessionID(value: number) {
@@ -135,11 +45,6 @@ export class OrderService {
     }
     registerServices(port: number, host: string): void {
         this.connect(port, host);  // 9611 51.4
-        // electron.ipcRenderer.send("dal://itrade/data/order", {
-        //     type: -1,
-        //     subtype: -1,
-        //     buffer: 0
-        // });
     }
 
     connect(port: number, host: string) {
