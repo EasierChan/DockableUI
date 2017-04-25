@@ -33,7 +33,6 @@ export class OrderService {
         this._parser = new StrategyParser(this._client);
         this._client.addParser(this._parser);
         let msgObj = new Array<Object>();
-        let self = this;
     }
 
     set sessionID(value: number) {
@@ -58,7 +57,6 @@ export class OrderService {
             this.regist();
         });
         this._client.on("data", msg => {
-            // console.log(msg);
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
                 if (this._messageMap[msg[0].type].context !== undefined)
                     this._messageMap[msg[0].type].callback.call(this._messageMap[msg[0].type].context, msg[1], this._sessionid);
@@ -813,7 +811,7 @@ class ItradeParser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.msglen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                // logger.info(`processMsg:: type=${this._curHeader.type}, subtype=${this._curHeader.subtype}, msglen=${this._curHeader.msglen}`);
+                logger.info(`processMsg:: type=${this._curHeader.type}, subtype=${this._curHeader.subtype}, msglen=${this._curHeader.msglen}`);
                 this.emit(this._curHeader.type.toString(), this._curHeader, tempBuffer.slice(Header.len));
 
                 restLen = buflen - this._curHeader.msglen - Header.len;
@@ -838,11 +836,9 @@ class ItradeParser extends Parser {
 
 class StrategyParser extends ItradeParser {
     private _intervalRead: NodeJS.Timer;
-    private orderClient: ItradeClient;
-    constructor(private _client: TcpClient) {
+    constructor(private _client: ItradeClient) {
         super(_client.bufferQueue);
         this.init();
-        this.orderClient = new ItradeClient();
     }
 
     init(): void {
@@ -1185,14 +1181,15 @@ class StrategyParser extends ItradeParser {
             strategyInfo.currorderid = buffer.readUInt32LE(offset); offset += 4;
             strategyInfo.ismanualtrader = buffer.readUInt8(offset) === 1 ? true : false;
             if (msgtype === 2011) {
+                console.info("hello");
                 // send  2028 & get strategy parameter
                 let comGuiAskStrateg = new ComGuiAskStrategy();
                 comGuiAskStrateg.strategyid = strategyInfo.key;
                 let getParaOffset: number = 0;
                 getParabuffer.writeInt32LE(1, getParaOffset); getParaOffset += 4;
                 getParabuffer.writeInt32LE(strategyInfo.key, getParaOffset); getParaOffset += 4;
-                this.orderClient.sendMessage(2012, 0, getParabuffer);
-                this.orderClient.sendMessage(2028, 0, getParabuffer);
+                this._client.sendMessage(2012, 0, getParabuffer);
+                this._client.sendMessage(2028, 0, getParabuffer);
             }
             res.push(strategyInfo);
             // console.log("strategyInfo:", strategyInfo);
