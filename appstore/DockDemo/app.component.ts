@@ -779,12 +779,7 @@ export class AppComponent implements OnInit {
     }
 
     this.children.push(this.traversefunc(children[childrenLen - 1]));
-<<<<<<< HEAD
-    this.init(9611, "172.24.51.4"); // 9611 51.4   pairtrade 9082
-=======
-
     this.init(this.option.port, this.option.host);
->>>>>>> abcf9e7c95ba40c719b6e14fca68f30194a7419e
   }
 
   init(port: number, host: string) {
