@@ -538,7 +538,7 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(3011, this.showComOrderRecord);
     ManulTrader.addSlot(3510, this.showComOrderRecord);
     ManulTrader.addSlot(2040, this.showLog);
-    ManulTrader.init();
+    ManulTrader.init(9611, "172.24.51.4");
   }
 
   showStatArbOrder(data: any) {
