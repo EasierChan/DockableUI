@@ -98,11 +98,6 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.statusbar = new StatusBar();
-    // this.className = "dock-container vertical";
-    // row 1
-    // let row1: DockContainer = new DockContainer("h", null, 400);
-
-    // let leftPanel: TabPanel = new TabPanel();
     this.orderstatusPage = new TabPage("OrderStatus", "OrderStatus");
     this.pageObj["OrderStatus"] = this.orderstatusPage;
     let orderstatusContent = new ComboControl("col");
@@ -131,11 +126,6 @@ export class AppComponent implements OnInit {
     orderstatusHeader.addChild(btn_cancel);
     orderstatusContent.addChild(orderstatusHeader);
     cb_handle.OnClick = () => {
-      console.info(window.getLayout());
-      fs.writeFile("xklayout.json", JSON.stringify(window.getLayout()), "utf8", (err) => {
-        if (err) throw err;
-        alert("it saved");
-      });
       dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
     };
     dd_status.SelectChange = (item) => {
@@ -173,7 +163,6 @@ export class AppComponent implements OnInit {
     this.orderstatusTable.columnConfigurable = true;
     orderstatusContent.addChild(this.orderstatusTable);
     this.orderstatusPage.setContent(orderstatusContent);
-    // leftPanel.addTab(this.orderstatusPage);
 
     this.doneOrdersPage = new TabPage("DoneOrders", "DoneOrders");
     this.pageObj["DoneOrders"] = this.doneOrdersPage;
@@ -185,7 +174,6 @@ export class AppComponent implements OnInit {
     this.doneOrdersTable.columnConfigurable = true;
     doneOrdersContent.addChild(this.doneOrdersTable);
     this.doneOrdersPage.setContent(doneOrdersContent);
-    // leftPanel.addTab(this.doneOrdersPage);
 
 
     this.accountPage = new TabPage("Account", "Account");
@@ -198,7 +186,6 @@ export class AppComponent implements OnInit {
     this.accountTable.columnConfigurable = true;
     accountContent.addChild(this.accountTable);
     this.accountPage.setContent(accountContent);
-    // leftPanel.addTab(this.accountPage);
 
     this.PositionPage = new TabPage("Position", "Position");
     this.pageObj["Position"] = this.PositionPage;
@@ -209,18 +196,9 @@ export class AppComponent implements OnInit {
     this.PositionTable.columnConfigurable = true;
     positionContent.addChild(this.PositionTable);
     this.PositionPage.setContent(positionContent);
-    // leftPanel.addTab(this.PositionPage);
-    // leftPanel.setActive("Position");
 
-    // let row1col1 = new DockContainer("v", 500, null).addChild(leftPanel);
-    // col 1
-    // row1.addChild(leftPanel);
-    // Splitter
-    // row1.addChild(new Splitter("v"));
-    // col 2
     let leftAlign = 20;
     let rowSep = 5;
-    // let rightPanel: TabPanel = new TabPanel();
     this.tradePage = new TabPage("ManulTrader", "ManulTrader");
     let tradeContent = new ComboControl("col");
     tradeContent.MinHeight = 500;
@@ -279,10 +257,6 @@ export class AppComponent implements OnInit {
     btn_row.addChild(btn_submit);
     tradeContent.addChild(btn_row);
     this.tradePage.setContent(tradeContent);
-    // rightPanel.addTab(this.tradePage);
-    // rightPanel.setActive("ManulTrader");
-    // row1.addChild(new DockContainer("v", 100, null).addChild(rightPanel));
-    // this.children.push(row1);
 
     btn_submit.OnClick = () => {
       let account = dd_Account.SelectedItem.Text;
@@ -324,17 +298,8 @@ export class AppComponent implements OnInit {
       });
     };
 
-
-    // splitter between row1 and row2
-    // this.children.push(new Splitter("h"));
-    // row2
-    // let row2 = new DockContainer("h", null, 700);
-    // bookview
-    // let bookViewPanel: TabPanel = new TabPanel();
     this.bookviewPage = new TabPage("BookView", "BookView");
     this.pageObj["BookView"] = this.bookviewPage;
-    // bookViewPanel.addTab(this.bookviewPage);
-    // bookViewPanel.setActive(this.bookviewPage.id);
 
     let bookviewHeader = new ComboControl("row");
     let dd_symbol = new DropDown();
@@ -378,11 +343,7 @@ export class AppComponent implements OnInit {
     bookViewContent.addChild(bookviewHeader);
     bookViewContent.addChild(this.bookViewTable);
     this.bookviewPage.setContent(bookViewContent);
-    // row2.addChild(new DockContainer("v", 200, null).addChild(bookViewPanel));
-    // Splitter
-    // row2.addChild(new Splitter("v"));
-    // log
-    // let logPanel = new TabPanel();
+
     this.logPage = new TabPage("LOG", "LOG");
     this.pageObj["LOG"] = this.logPage;
     let logContent = new ComboControl("col");
@@ -390,15 +351,9 @@ export class AppComponent implements OnInit {
     this.logTable.addColumn("Time", "Content");
     logContent.addChild(this.logTable);
     this.logPage.setContent(logContent);
-    // logPanel.addTab(this.logPage);
-    // logPanel.setActive("LOG");
-    // row2.addChild(new DockContainer("v", 800, null).addChild(logPanel));
-    // this.children.push(row2);
-    // this.children.push(new Splitter("h"));
 
     this.statarbPage = new TabPage("StatArb", "StatArb");
     this.pageObj["StatArb"] = this.statarbPage;
-    // logPanel.addTab(this.statarbPage);
     let statarbLeftAlign = 20;
     let statarbHeader = new ComboControl("row");
     this.buyamountLabel = new MetaControl("textbox");
@@ -423,7 +378,6 @@ export class AppComponent implements OnInit {
 
     this.portfolioPage = new TabPage("Portfolio", "Portfolio");
     this.pageObj["Portfolio"] = this.portfolioPage;
-    // logPanel.addTab(this.portfolioPage);
     let loadItem = new ComboControl("row");
 
     this.portfolioAccLabel = new MetaControl("textbox");
@@ -619,7 +573,6 @@ export class AppComponent implements OnInit {
                   }
                 }
               });
-              //  console.log(initPos);
               ManulTrader.submitBasket(5001, 8016930, 300, account, initPos);
             }
             else
@@ -704,14 +657,9 @@ export class AppComponent implements OnInit {
     let portfolioContent = new ComboControl("col");
     portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
     this.portfolioPage.setContent(portfolioContent);
-    // logPanel.setActive("Portfolio");
 
-    // row 3    strategyinfo
-    // let bottomPanel: TabPanel = new TabPanel();
     this.strategyPage = new TabPage("StrategyMonitor", "StrategyMonitor");
     this.pageObj["StrategyMonitor"] = this.strategyPage;
-    // bottomPanel.addTab(this.strategyPage);
-    // bottomPanel.setActive(this.strategyPage.id);
 
     let strategyHeader = new ComboControl("row");
     let startall = new MetaControl("button");
@@ -724,7 +672,6 @@ export class AppComponent implements OnInit {
     watchall.Text = "Watch All";
     // startall.Class = pauseall.Class = stopall.Class = watchall.Class = "primary";
     strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall);
-    // bottomPanel.setActive(this.strategyPage.id);
 
     startall.OnClick = () => {
       this.controlBtnClick(0);
@@ -741,7 +688,6 @@ export class AppComponent implements OnInit {
 
     this.profitPage = new TabPage("Profit", "Profit");
     this.pageObj["Profit"] = this.profitPage;
-    // bottomPanel.addTab(this.profitPage);
     let profitleftAlign = 20;
     let profitHeader = new ComboControl("row");
     this.totalpnLabel = new MetaControl("textbox");
@@ -796,8 +742,6 @@ export class AppComponent implements OnInit {
     strategyContent.addChild(strategyHeader);
     strategyContent.addChild(this.strategyTable);
     this.strategyPage.setContent(strategyContent);
-    // let row3 = new DockContainer("h").addChild(bottomPanel);
-    // this.children.push(row3);
     this.strategyTable.OnCellClick = (cellItem, cellIdx, rowIdx) => {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
@@ -825,7 +769,7 @@ export class AppComponent implements OnInit {
       }
     });
 
-    let layout: any = File.parseJSON(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json");
+    let layout: any = File.parseJSON(Environment.appDataDir + "/ChronosApps/DockDemo/xklayout.json");
     let children = layout.children;
     let childrenLen = children.length;
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
@@ -1398,7 +1342,7 @@ export class AppComponent implements OnInit {
     AppComponent.self.PositionTable.detectChanges();
   }
   showComGWNetGuiInfo(data: any) {
-    console.log("+++++++++++", data);
+    // console.log("+++++++++++", data);
     let markLen = AppComponent.self.statusbar.items.length;
     if (markLen === 0) { // add
       AppComponent.self.addStatusBarMark(data[0]);
@@ -1425,6 +1369,7 @@ export class AppComponent implements OnInit {
     let row = AppComponent.self.logTable.newRow();
     row.cells[0].Text = AppComponent.self.getCurrentTime();
     row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
+    AppComponent.self.ref.detectChanges();
   }
   showComTotalProfitInfo(data: any) {
     let subtype = data[0].subtype;
@@ -1658,19 +1603,26 @@ export class AppComponent implements OnInit {
       let type = data[i].type;
       let strategyId = data[i].strategyid;
       let name = data[i].name;
-      if (!addSubCOmFlag && data.length > 50) {   // add submit & comment btn
-        for (let i = 0; i < AppComponent.self.strategyTable.rows.length; ++i) {   // find row in strategy table
-          let getId = AppComponent.self.strategyTable.rows[i].cells[0].Text;
-          if (getId === strategyId) {
-            AppComponent.self.strategyTable.insertColumn("Submit", AppComponent.self.commandIdx);
-            AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Type = "button";
-            AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Text = "submit";
-            AppComponent.self.strategyTable.insertColumn("Comment", AppComponent.self.parameterIdx);
-            AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Type = "button";
-            AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Text = "comment";
-            addSubCOmFlag = true;
-            break;
+      // check submit and comment
+      for (let i = 0; i < AppComponent.self.strategyTable.rows.length; ++i) {   // find row in strategy table
+        let getId = AppComponent.self.strategyTable.rows[i].cells[0].Text;
+        let findFlag: boolean = true;
+        for (let j = 0; j < AppComponent.self.strategyTable.rows[i].cells.length; ++j) {
+          let checkText = AppComponent.self.strategyTable.rows[i].cells[j].Text;
+          if (checkText === "submit") {
+            findFlag = false;
+            continue;
           }
+        }
+        if (getId === strategyId && findFlag) {
+          AppComponent.self.strategyTable.insertColumn("Submit", AppComponent.self.commandIdx);
+          AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Type = "button";
+          AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Text = "submit";
+          AppComponent.self.strategyTable.insertColumn("Comment", AppComponent.self.parameterIdx);
+          AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Type = "button";
+          AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Text = "comment";
+          addSubCOmFlag = true;
+          break;
         }
       }
       if (type === StrategyCfgType.STRATEGY_CFG_TYPE_INSTRUMENT) {  // sym1 sym2   in source code,this need a array,calculate the sum of value
@@ -2172,12 +2124,11 @@ export class AppComponent implements OnInit {
           AppComponent.self.portfolioTable.rows[i].cells[0].Text = false;
         }
       }
-
     }
   }
-  
+
   onDestroy() {
-    File.writeSync(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json", window.getLayout());
+    File.writeSync(Environment.appDataDir + "/ChronosApps/DockDemo/xklayout.json", window.getLayout());
   }
 }
 
