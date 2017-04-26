@@ -216,7 +216,6 @@ export class AppComponent implements OnInit {
     this.dd_Strategy.Left = leftAlign;
     this.dd_Strategy.Top = rowSep;
     this.dd_Strategy.Title = "Strategy:  ";
-    this.dd_Strategy.addItem({ Text: "111", Value: "0" });
     tradeContent.addChild(this.dd_Strategy);
     let txt_Symbol = new MetaControl("textbox");
     txt_Symbol.Left = leftAlign;
@@ -999,6 +998,11 @@ export class AppComponent implements OnInit {
       AppComponent.self.showStraContrlDisable(btnDisableType, 5, 0);
     else if (obj.status === 5)
       AppComponent.self.showStraContrlDisable(btnDisableType, 6, 0);
+    // in manultrader frame ,set strategy id in
+    let checkFlag: boolean = true;
+    let dd_strategy_len = AppComponent.self.dd_Strategy.Items.length;
+    AppComponent.self.dd_Strategy.addItem({ Text: obj.key + "", Value: dd_strategy_len + "" });
+    // ---------------------------
     AppComponent.self.strategyTable.detectChanges();
   }
   transFormStrategyStatus(data: any): String {
@@ -1473,7 +1477,7 @@ export class AppComponent implements OnInit {
   }
 
   showComAccountPos(data: any) {
-    console.log("***********", data);
+    // console.log("***********", data);
     for (let i = 0; i < data.length; ++i) {
       let accTableRows: number = AppComponent.self.accountTable.rows.length;
       let accData: number = data[i].record.account;
