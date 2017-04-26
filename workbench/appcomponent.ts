@@ -130,7 +130,7 @@ export class AppComponent implements OnDestroy {
                 this.curTemplate.body.data["PairTrades"][item.name]["SendCheck"] = item.sendChecks;
             }
         });
-
+        this.configBLL.updateConfig();
         this.tgw.send(107, 2000, { routerid: 0, templateid: this.curTemplate.id, body: { name: this.config.name, config: JSON.stringify(this.curTemplate.body.data) } });
         this.closePanel();
     }
