@@ -58,16 +58,14 @@ export class TcpClient {
             this.emit("connect");
         });
 
-        this._clientSock.on("error", () => {
+        this._clientSock.on("error", (err) => {
             this.emit("error");
         });
-
-        this._clientSock.on("close", () => {
-            this.emit("close");
-        });
-
-        this._clientSock.on("end", () => {
+        this._clientSock.on("end", (err) => {
             this.emit("end");
+        });
+        this._clientSock.on("close", (err) => {
+            this.emit("close");
         });
     }
 

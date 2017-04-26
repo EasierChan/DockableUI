@@ -87,15 +87,17 @@ export class AppComponent implements OnInit {
   private selectArr = [];
 
   private statusbar: StatusBar;
+  private option: any;
 
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
-    this.statechecker.onInit(this, this.onReady);
     window.onbeforeunload = this.onDestroy;
+    this.statechecker.onInit(this, this.onReady);
   }
 
   onReady(option: any) {
     // option.port and option.host and option.name ;
+    this.option = option;
   }
 
   ngOnInit(): void {
@@ -159,7 +161,7 @@ export class AppComponent implements OnInit {
       }
     };
 
-    this.orderstatusTable = new DataTable("table2");
+    this.orderstatusTable = new DataTable();
     this.orderstatusTable.addColumn("U-Key", "Symbol", "OrderId", "Time", "Strategy",
       "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account");
     this.orderstatusTable.columnConfigurable = true;
@@ -328,7 +330,6 @@ export class AppComponent implements OnInit {
       row.cells[2].Class = "danger";
       row.cells[3].Class = "default";
     }
-    this.bookViewTable.cellPadding = 0;
     let bHead = false;
     this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
       // console.info(cellIndex, rowIndex);
@@ -746,7 +747,7 @@ export class AppComponent implements OnInit {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-    this.psInstance.setEndpoint(20000, "172.24.51.6");
+    this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
     this.psInstance.setHeartBeat(1000000);
     this.psInstance.register([3, 6, 2007741]);
     this.psInstance.subscribe((msg) => {
@@ -778,7 +779,12 @@ export class AppComponent implements OnInit {
     }
 
     this.children.push(this.traversefunc(children[childrenLen - 1]));
+<<<<<<< HEAD
     this.init(9611, "172.24.51.4"); // 9611 51.4   pairtrade 9082
+=======
+
+    this.init(this.option.port, this.option.host);
+>>>>>>> abcf9e7c95ba40c719b6e14fca68f30194a7419e
   }
 
   init(port: number, host: string) {
@@ -811,7 +817,6 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(3011, this.showComOrderRecord);
     ManulTrader.addSlot(3510, this.showComOrderRecord);
     ManulTrader.addSlot(2040, this.showLog);
-
     ManulTrader.addSlot(5021, this.showBasketBackInfo);
     ManulTrader.addSlot(5024, this.showPortfolioSummary);
 

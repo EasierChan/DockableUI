@@ -30,7 +30,7 @@ export class AppStoreService {
 export class AppStateCheckerRef {
     private option: any;
     constructor() {
-        let option = electron.ipcRenderer.sendSync("get-init-param");
+        this.option = electron.ipcRenderer.sendSync("get-init-param");
     }
 
     onInit(appref: any, afterInit: (...params) => void) {
