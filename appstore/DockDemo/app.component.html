@@ -2,7 +2,7 @@
     <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj">
     </dock-control>
 </div>
-<div *ngIf="statusbar" class="statusbar" [statusbar]="statusbar" [style.background-color]="statusbar?.backgroundColor">
+<div *ngIf="statusbar" class="statusbar" [statusbar]="statusbar">
 </div>
 <div *ngIf="dialog && dialog.bshow" class="dialog" [dialog]="dialog">
 </div>

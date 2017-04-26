@@ -10,7 +10,8 @@ import { Pool } from "../browser/pool";
 import { Header, MsgType, Message } from "../model/itrade/message.model";
 import {
     ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy,
-    ComStrategyCfg
+    ComStrategyCfg, ComOrderRecord, ComAccountPos, ComRecordPos,
+    ComGWNetGuiInfo, StatArbOrder, ComConOrderStatus, ComConOrderErrorInfo
 } from "../model/itrade/strategy.model";
 import { Injectable } from "@angular/core";
 
@@ -108,6 +109,26 @@ class StrategyParser extends ItradeParser {
         this.registerMsgFunction("2011", this, this.processStrategyMsg);
         this.registerMsgFunction("2033", this, this.processStrategyMsg);
         this.registerMsgFunction("2048", this, this.processStrategyMsg);
+        // StrategyCfg
+        this.registerMsgFunction("2000", this, this.processStrategyMsg);
+        this.registerMsgFunction("2002", this, this.processStrategyMsg);
+        this.registerMsgFunction("2004", this, this.processStrategyMsg);
+        this.registerMsgFunction("2049", this, this.processStrategyMsg);
+        this.registerMsgFunction("2030", this, this.processStrategyMsg);
+        this.registerMsgFunction("2029", this, this.processStrategyMsg);
+        this.registerMsgFunction("2032", this, this.processStrategyMsg);
+        // ComOrderRecord
+        this.registerMsgFunction("2022", this, this.processStrategyMsg);
+        this.registerMsgFunction("3011", this, this.processStrategyMsg);
+        this.registerMsgFunction("3510", this, this.processStrategyMsg);
+        // ComAccountPos
+        this.registerMsgFunction("2013", this, this.processStrategyMsg);
+        // ComRecordPos
+        this.registerMsgFunction("3502", this, this.processStrategyMsg);
+        this.registerMsgFunction("3504", this, this.processStrategyMsg);
+        // ComGWNetGuiInfo
+        this.registerMsgFunction("2015", this, this.processStrategyMsg);
+        this.registerMsgFunction("2017", this, this.processStrategyMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -116,14 +137,17 @@ class StrategyParser extends ItradeParser {
     processStrategyMsg(args: any[]): void {
         let header: Header = args[0];
         let content = args[1] as Buffer;
-        let count = content.readUInt32LE(0);
-        let offset = 4;
+        let count = 0;
+        let offset = 0;
         let msg;
         switch (header.type) {
-            case 2001: // ComGuiAckStrategy
-            case 2003: // ComGuiAckStrategy
-            case 2005: // ComGuiAckStrategy
-            case 2050: // ComGuiAckStrategy
+            case 2001: // ComGuiAckStrategy start
+            case 2003: // ComGuiAckStrategy stop
+            case 2005: // ComGuiAckStrategy pause
+            case 2050: // ComGuiAckStrategy watch
+            case 2031: // ComGuiAckStrategy submit
+                count = content.readUInt32LE(offset);
+                offset += 4;
                 msg = new ComGuiAckStrategy();
 
                 for (let i = 0; i < count; ++i) {
@@ -133,6 +157,8 @@ class StrategyParser extends ItradeParser {
                 break;
             case 2033:
             case 2011: // ComStrategyInfo
+                count = content.readUInt32LE(offset);
+                offset += 4;
                 msg = new ComStrategyInfo();
 
                 for (let i = 0; i < count; ++i) {
@@ -141,6 +167,8 @@ class StrategyParser extends ItradeParser {
                 }
                 break;
             case 2048: // ComTotalProfitInfo
+                count = content.readUInt32LE(offset);
+                offset += 4;
                 msg = new ComTotalProfitInfo();
 
                 for (let i = 0; i < count; ++i) {
@@ -154,13 +182,74 @@ class StrategyParser extends ItradeParser {
             case 2049:
             case 2030:
             case 2029:
-            case 2032: // ComStrategyCfg
+            case 2032:
+                count = content.readUInt32LE(offset);
+                offset += 4;
                 msg = new ComStrategyCfg();
-
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
                     this._client.emit("data", header, msg);
                 }
+                break;
+            case 2022:
+                count = content.readUInt32LE(offset);
+                offset += 4;
+                msg = new ComOrderRecord();
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 2013:
+                count = content.readUInt32LE(offset);
+                offset += 4;
+                msg = new ComAccountPos();
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 3502:
+            case 3504:
+                count = content.readUInt32LE(offset);
+                offset += 4;
+                msg = new ComRecordPos();
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 2015:
+            case 2017:
+                count = content.readUInt32LE(offset);
+                offset += 4;
+                msg = new ComGWNetGuiInfo();
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 2025:
+                count = content.readUInt32LE(offset);
+                offset += 4;
+                msg = new StatArbOrder();
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 2021:
+                count = content.readUInt32LE(offset);
+                offset += 4;
+                msg = header.subtype === 0 ? new ComConOrderStatus() : new ComConOrderErrorInfo();
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    this._client.emit("data", header, msg);
+                }
+                break;
+            case 2040:
+                msg = content.slice(offset, content.indexOf(0, offset));
+                this._client.emit("data", header, msg);
                 break;
             default:
                 logger.warn(`unhandle msg=> type=${header.type}, subtype=${header.subtype}, msglen=${header.msglen}`);
@@ -284,15 +373,6 @@ export class ItradeService {
                     this._messageMap[0].callback.call(this._messageMap[0].context, this._sessionid);
                 else
                     this._messageMap[0].callback(this._sessionid);
-            }
-        });
-
-        this._client.on("close", () => {
-            if (this._messageMap.hasOwnProperty(-1)) {
-                if (this._messageMap[-1].context !== undefined)
-                    this._messageMap[-1].callback.call(this._messageMap[0].context, this._sessionid);
-                else
-                    this._messageMap[-1].callback(this._sessionid);
             }
         });
 

@@ -614,7 +614,7 @@ interface DatePoint {
 
 /**
  * note: first=>setConfig(), second=>init(), third=>start()
- *
+ * 
  */
 export class SpreadViewer {
     static readonly EPS: number = 1.0e-5;
@@ -672,8 +672,26 @@ export class SpreadViewer {
     start(): void {
         this.priceServ.register([this._innerCode1, this._innerCode2]);
         this.priceServ.subscribe(msg => {
-            console.info(msg);
-            this.setMarketData(msg);
+            if (!msg.ukey || !this.hasInstrumentID(msg.ukey)) {
+                console.info(msg);
+                return;
+            }
+
+            switch (msg.type) {
+                case 201: // Snapshot
+                    this.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprices[0], BidPrice: msg.bidprices[0] });
+                    break;
+                case 100: // Futures
+                    this.setMarketData(msg);
+                    break;
+                case 1001:
+                case 1002:
+                case 1003:
+                case 1004:
+                default: // IOPV
+                    this.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
+                    break;
+            }
         });
 
         this._timeoutHandler = setInterval(() => {
@@ -697,7 +715,7 @@ export class SpreadViewer {
                     data: this.values[1]
                 }]
             };
-            console.info(newOption);
+            // console.info(newOption);
             this.setEChartOption(newOption);
             ++this._curIdx;
         }, SpreadViewer.xInternal);
@@ -800,7 +818,7 @@ export class SpreadViewer {
     }
 
     setEChartOption(option: any): void {
-        this._echart.resetOption(option);
+        this._echart.resetOption(option, false);
     }
 
     get names() {
@@ -871,9 +889,7 @@ export class SpreadViewer {
     }
 
     setMarketData(msg: any): void {
-        console.log(msg.Time, msg.UKey);
-        if (!msg.InstrumentID || !this.hasInstrumentID(msg.InstrumentID))
-            return;
+        // console.log(msg.Time, msg.UKey);
 
         let idx = this.index(msg.Time);
         if (idx > this.timePoints.length || idx < 0) {
@@ -920,55 +936,25 @@ export class SpreadViewer {
         } else if (this._lastIdx[this._innerCode1] === -1 && this._lastIdx[this._innerCode2] === -1) { // first quote data
             this._firstIdx = idx;
         } else { // only one is -1
-            if (this._lastIdx[this._innerCode1] === -1) { // innerCode1 none of marketdata.
-                if (msg.UKey === this._innerCode1) { // it's marketdata of innercode1
-                    // for (let i = this._lastIdx[this._innerCode2] + 1; i <= idx; ++i) {
-                    //   if (!this._msgs[this._innerCode2][i])
-                    //     this._msgs[this._innerCode2][i] = {};
-                    //   this._msgs[this._innerCode2][i].askPrice1 = this._msgs[this._innerCode2][i - 1].askPrice1;
-                    //   this._msgs[this._innerCode2][i].bidPrice1 = this._msgs[this._innerCode2][i - 1].bidPrice1;
-                    // }
-                    if (!this._msgs[this._innerCode2][idx])
-                        this._msgs[this._innerCode2][idx] = {};
-                    this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].askPrice1;
-                    this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].bidPrice1;
-                    this._curIdx = idx;
-                } else {
-                    // for (let i = this._lastIdx[this._innerCode2] + 1; i < idx; ++i) {
-                    //   if (!this._msgs[this._innerCode2][i])
-                    //     this._msgs[this._innerCode2][i] = {};
-                    //   this._msgs[this._innerCode2][i].askPrice1 = this._msgs[this._innerCode2][i - 1].askPrice1;
-                    //   this._msgs[this._innerCode2][i].bidPrice1 = this._msgs[this._innerCode2][i - 1].bidPrice1;
-                    // }
-                }
-            } else { // innerCode2 none of marketdata
-                if (msg.UKey === this._innerCode2) {
-                    // for (let i = this._lastIdx[this._innerCode1] + 1; i <= idx; ++i) {
-                    //   if (!this._msgs[this._innerCode1][i])
-                    //     this._msgs[this._innerCode1][i] = {};
-                    //   this._msgs[this._innerCode1][i].askPrice1 = this._msgs[this._innerCode1][i - 1].askPrice1;
-                    //   this._msgs[this._innerCode1][i].bidPrice1 = this._msgs[this._innerCode1][i - 1].bidPrice1;
-                    // }
-                    if (!this._msgs[this._innerCode1][idx])
-                        this._msgs[this._innerCode1][idx] = {};
-                    this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].askPrice1;
-                    this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].bidPrice1;
-                    this._curIdx = idx;
-                } else {
-                    // for (let i = this._lastIdx[this._innerCode1] + 1; i < idx; ++i) {
-                    //   if (!this._msgs[this._innerCode1][i])
-                    //     this._msgs[this._innerCode1][i] = {};
-                    //   this._msgs[this._innerCode1][i].askPrice1 = this._msgs[this._innerCode1][i - 1].askPrice1;
-                    //   this._msgs[this._innerCode1][i].bidPrice1 = this._msgs[this._innerCode1][i - 1].bidPrice1;
-                    // }
-                }
+            if (msg.UKey === this._innerCode1) {
+                if (!this._msgs[this._innerCode2][idx])
+                    this._msgs[this._innerCode2][idx] = {};
+                this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].askPrice1;
+                this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].bidPrice1;
+                this._curIdx = idx;
+            } else {// if (msg.UKey === this._innerCode2)
+                if (!this._msgs[this._innerCode1][idx])
+                    this._msgs[this._innerCode1][idx] = {};
+                this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].askPrice1;
+                this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].bidPrice1;
+                this._curIdx = idx;
             }
         }
         this._lastIdx[msg.UKey] = idx;
     }
 
-    hasInstrumentID(instrumentID: string): boolean {
-        return this._symbolCode1.startsWith(instrumentID.substr(0, 6)) || this._symbolCode2.startsWith(instrumentID.substr(0, 6));
+    hasInstrumentID(ukey: number): boolean {
+        return this._innerCode1 === ukey || this._innerCode2 === ukey;
     }
 
     dispose(): void {

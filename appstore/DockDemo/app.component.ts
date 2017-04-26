@@ -161,7 +161,7 @@ export class AppComponent implements OnInit {
       }
     };
 
-    this.orderstatusTable = new DataTable("table2");
+    this.orderstatusTable = new DataTable();
     this.orderstatusTable.addColumn("U-Key", "Symbol", "OrderId", "Time", "Strategy",
       "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account");
     this.orderstatusTable.columnConfigurable = true;
@@ -330,7 +330,6 @@ export class AppComponent implements OnInit {
       row.cells[2].Class = "danger";
       row.cells[3].Class = "default";
     }
-    this.bookViewTable.cellPadding = 0;
     let bHead = false;
     this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
       // console.info(cellIndex, rowIndex);
@@ -814,7 +813,6 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(3011, this.showComOrderRecord);
     ManulTrader.addSlot(3510, this.showComOrderRecord);
     ManulTrader.addSlot(2040, this.showLog);
-
     ManulTrader.addSlot(5021, this.showBasketBackInfo);
     ManulTrader.addSlot(5024, this.showPortfolioSummary);
 

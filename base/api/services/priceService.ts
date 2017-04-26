@@ -66,9 +66,6 @@ export class PriceService extends EventEmitter<any> {
         });
         self._client.on("error", (err) => {
             this._state = 2;
-            if (this.onClose) {
-                this.onClose();
-            }
             console.error(err.message);
         });
         self._client.on("close", err => {
@@ -80,9 +77,6 @@ export class PriceService extends EventEmitter<any> {
         });
         self._client.on("end", err => {
             this._state = 2;
-            if (this.onClose) {
-                this.onClose();
-            }
             console.info("remote closed");
         });
     }
@@ -92,13 +86,12 @@ export class PriceService extends EventEmitter<any> {
         setInterval(() => {
             if (this._port && this._host && this._state === 2) {
                 this.setEndpoint(this._port, this._host);
-                for (let prop in this._innercodesMap)
-                    this.sendCodes(parseInt(prop));
+                this.sendCodes();
             }
         }, this._interval);
     }
 
-    register(innercodes: number[], subtype: number = MsgType.PS_MSG_TYPE_MARKETDATA): void {
+    register(innercodes: number[], subtype = MsgType.PS_MSG_TYPE_MARKETDATA): void {
         if (!this._innercodesMap.hasOwnProperty(subtype))
             this._innercodesMap[subtype] = [];
 
@@ -106,19 +99,18 @@ export class PriceService extends EventEmitter<any> {
             if (!this._innercodesMap[subtype].includes(code))
                 this._innercodesMap[subtype].push(code);
         });
-        this.sendCodes(subtype);
+        this.sendCodes();
     }
 
-    private sendCodes(subtype: number) {
-
+    private sendCodes(subtype = MsgType.PS_MSG_TYPE_MARKETDATA) {
         let header: Header = new Header();
         header.type = MsgType.PS_MSG_REGISTER;
         header.subtype = subtype;
         header.msglen = 0;
         // console.log(JSON.stringify(obj));
         this._client.sendMessage(header, {
-                innerCodes: this._innercodesMap[subtype]
-            });
+            innerCodes: this._innercodesMap[subtype]
+        });
     }
 }
 

@@ -97,30 +97,6 @@ export class AppComponent implements OnDestroy {
     }
 
     finish() {
-        // listener
-        this.tgw.addSlot({ // create config ack
-            appid: 107,
-            packid: 2001,
-            callback: msg => {
-                console.info(msg.content.body);
-                this.config.name = msg.content.body.name;
-                this.config.host = msg.content.body.address;
-                this.strategyContainer.removeItem(this.config.name);
-                this.strategyContainer.addItem(this.config);
-                if (this.configs.find(item => { return item.name === this.config.name; }) === undefined) {
-                    this.configBLL.updateConfig(this.config);
-                }
-                this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: this.config.name, action: 1 } });
-            }
-        });
-
-        this.tgw.addSlot({
-            appid: 107,
-            packid: 2003,
-            callback: msg => {
-                console.info(msg);
-            }
-        });
         // create and modify config.
         this.config.channels.gateway.forEach(gw => {
             gw.port = parseInt(gw.port);
@@ -154,10 +130,11 @@ export class AppComponent implements OnDestroy {
                 this.curTemplate.body.data["PairTrades"][item.name]["SendCheck"] = item.sendChecks;
             }
         });
-
+        this.configBLL.updateConfig();
         this.tgw.send(107, 2000, { routerid: 0, templateid: this.curTemplate.id, body: { name: this.config.name, config: JSON.stringify(this.curTemplate.body.data) } });
         this.closePanel();
     }
+
 
     pickConfigItem() {
         switch (this.config.curstep) {
@@ -339,7 +316,6 @@ export class AppComponent implements OnDestroy {
         });
         this.isAuthorized = true;
         if (this.isAuthorized) {
-            // this.configs = ret; // this.configBLL.getAllConfigs();
             // 
             // this.strategyContainer.addItem(self.configs);
         } else {
@@ -355,6 +331,30 @@ export class AppComponent implements OnDestroy {
         timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
         timestamp = timestamp.substr(0, timestamp.length - 1);
         this.tgw.connect(6114, "172.24.51.9");
+        // listener
+        this.tgw.addSlot({ // create config ack
+            appid: 107,
+            packid: 2001,
+            callback: msg => {
+                console.info(msg.content.body);
+                this.config.name = msg.content.body.name;
+                this.config.host = msg.content.body.address;
+                this.strategyContainer.removeItem(this.config.name);
+                this.strategyContainer.addItem(this.config);
+                if (this.configs.find(item => { return item.name === this.config.name; }) === undefined) {
+                    this.configBLL.updateConfig(this.config);
+                }
+                this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: this.config.name, action: 1 } });
+            }
+        });
+
+        this.tgw.addSlot({
+            appid: 107,
+            packid: 2003,
+            callback: msg => {
+                console.info(msg);
+            }
+        });
         this.tgw.addSlot({ // login success
             appid: 17,
             packid: 43,
@@ -364,6 +364,12 @@ export class AppComponent implements OnDestroy {
                 self.isAuthorized = true;
                 if (self.isAuthorized) {
                     self.configs = self.configBLL.getAllConfigs();
+                    self.configs.forEach(item => {
+                        this.config = item;
+                        this.curTemplate = null;
+                        this.curTemplate = JSON.parse(JSON.stringify(this.configBLL.getTemplateByName(this.config.strategyCoreName)));
+                        this.finish();
+                    });
                     // 
                     this.strategyContainer.addItems(self.configs);
                 } else {
