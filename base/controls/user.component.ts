@@ -2,7 +2,7 @@
  * created by chenlei
  * used to created custom user control based on className and dataSource.
  */
-import { Component, AfterContentInit, Input } from "@angular/core";
+import { Component, AfterContentInit, Input, ElementRef, AfterViewInit, ViewChild } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import { CssStyle, Control, ComboControl, Dialog, StatusBar } from "./control";
 
@@ -28,13 +28,28 @@ export class UserControlComponent implements AfterContentInit {
     templateUrl: "controlTree.html",
     inputs: ["className", "children"]
 })
-export class DockContainerComponent {
+export class DockContainerComponent implements AfterViewInit {
     className: string;
     children: Control[];
     @Input() styleObj: any;
     @Input() dataSource: any;
+    @ViewChild("container") container: ElementRef;
+
+    ngAfterViewInit() {
+        if (this.className.startsWith("dock-container")) {
+            this.styleObj.getWidth = () => {
+                return this.container.nativeElement.clientWidth;
+            };
+            this.styleObj.getHeight = () => {
+                return this.container.nativeElement.clientHeight;
+            };
+        }
+    }
 }
 
+/**
+ * Dialog
+ */
 @Component({
     moduleId: module.id,
     selector: ".dialog",
@@ -46,7 +61,9 @@ export class DialogComponent {
     dialog: Dialog;
 }
 
-
+/**
+ * StatusBar
+ */
 @Component({
     moduleId: module.id,
     selector: ".statusbar",
