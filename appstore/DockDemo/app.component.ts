@@ -778,7 +778,7 @@ export class AppComponent implements OnInit {
     }
 
     this.children.push(this.traversefunc(children[childrenLen - 1]));
-    this.init(9611, "172.24.51.4"); // 9611 51.4
+    this.init(9611, "172.24.51.4"); // 9611 51.4   pairtrade 9082
   }
 
   init(port: number, host: string) {
@@ -1610,7 +1610,7 @@ export class AppComponent implements OnInit {
     // AppComponent.self.ref.detectChanges();
   }
   showStrategyCfg(data: any) {
-    // console.log("333333333333", data);
+    //  console.log("333333333333", data);
     if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
       return;
     let addSubCOmFlag: boolean = false;
@@ -1634,9 +1634,11 @@ export class AppComponent implements OnInit {
           AppComponent.self.strategyTable.insertColumn("Submit", AppComponent.self.commandIdx);
           AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Type = "button";
           AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Text = "submit";
+          AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Class = "primary";
           AppComponent.self.strategyTable.insertColumn("Comment", AppComponent.self.parameterIdx);
           AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Type = "button";
           AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Text = "comment";
+          AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Class = "primary";
           addSubCOmFlag = true;
           break;
         }
@@ -1714,7 +1716,7 @@ export class AppComponent implements OnInit {
       if ((rearIdx - preIdx) === 1)
         return { row: rowFlagIdx, col: -1 };
 
-    for (let j = preIdx; j < rearIdx; ++j) {
+    for (let j = preIdx; j <= rearIdx; ++j) {
       // console.log("0.0.0.0.0.0.;", rowFlagIdx, j, startIdx, endIdx, AppComponent.self.strategyTable.columns.length);
       let getName = AppComponent.self.strategyTable.columns[j].Name;
       if (name === getName) {

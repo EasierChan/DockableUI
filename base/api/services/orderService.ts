@@ -653,7 +653,6 @@ class StrategyParser extends ItradeParser {
             strategyInfo.currorderid = buffer.readUInt32LE(offset); offset += 4;
             strategyInfo.ismanualtrader = buffer.readUInt8(offset) === 1 ? true : false;
             if (msgtype === 2011) {
-                console.info("hello");
                 // send  2028 & get strategy parameter
                 let comGuiAskStrateg = new ComGuiAskStrategy();
                 comGuiAskStrateg.strategyid = strategyInfo.key;
