@@ -87,15 +87,17 @@ export class AppComponent implements OnInit {
   private selectArr = [];
 
   private statusbar: StatusBar;
+  private option: any;
 
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
-    this.statechecker.onInit(this, this.onReady);
     window.onbeforeunload = this.onDestroy;
+    this.statechecker.onInit(this, this.onReady);
   }
 
   onReady(option: any) {
     // option.port and option.host and option.name ;
+    this.option = option;
   }
 
   ngOnInit(): void {
@@ -746,7 +748,7 @@ export class AppComponent implements OnInit {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-    this.psInstance.setEndpoint(20000, "172.24.51.6");
+    this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
     this.psInstance.setHeartBeat(1000000);
     this.psInstance.register([3, 6, 2007741]);
     this.psInstance.subscribe((msg) => {
@@ -778,7 +780,8 @@ export class AppComponent implements OnInit {
     }
 
     this.children.push(this.traversefunc(children[childrenLen - 1]));
-    this.init(9611, "172.24.51.4"); // 9611 51.4
+
+    this.init(this.option.port, this.option.host);
   }
 
   init(port: number, host: string) {
