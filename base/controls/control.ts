@@ -414,6 +414,10 @@ interface DatePoint {
     minute: number;
 }
 
+/**
+ * note: first=>setConfig(), second=>init(), third=>start()
+ *
+ */
 export class SpreadViewer {
     static readonly EPS: number = 1.0e-5;
     static readonly YUAN_PER_UNIT = 10000;

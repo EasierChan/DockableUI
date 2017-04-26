@@ -222,7 +222,7 @@ export class IP20Service {
     }
 
     /**
-     * 
+     *
      */
     addSlot(...slots: Slot[]) {
         slots.forEach(slot => {

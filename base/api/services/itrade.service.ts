@@ -92,7 +92,7 @@ class ItradeParser extends Parser {
 }
 
 /**
- * 
+ *
  */
 class StrategyParser extends ItradeParser {
     private _intervalRead: NodeJS.Timer;
@@ -266,7 +266,7 @@ class StrategyParser extends ItradeParser {
 }
 
 /**
- * 
+ *
  */
 class ItradeClient extends TcpClient {
     private _intervalHeart: NodeJS.Timer;
@@ -355,9 +355,6 @@ export class ItradeService {
     }
 
     start(): void {
-        // self message
-        // this._messageMap[0]
-        // server message
         this._time = null;
         this._client.on("data", msg => {
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
@@ -365,6 +362,8 @@ export class ItradeService {
                     this._messageMap[msg[0].type].callback.call(this._messageMap[msg[0].type].context, msg[1], this._sessionid);
                 else
                     this._messageMap[msg[0].type].callback(msg[1], this._sessionid);
+            } else {
+                console.warn(`unhandle message type=${msg[0].type}`);
             }
         });
 

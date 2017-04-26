@@ -16,11 +16,11 @@ IPCManager.register("dal://itrade/data/order", (e, param) => {
             OrderDal.start();
             break;
         default:
-            DefaultLogger.error("0.0.0.0.0.0.");
+            DefaultLogger.error("send without");
             OrderDal.sendMsg(param.type, param.subtype, param.buffer);
             break;
     }
-    OrderDal.addListener("order", (data) => {
+    OrderDal.addListener("order", (data) =>     {
         if (!e.sender.isDestroyed()) {
             e.sender.send("dal://itrade/data/order-reply", data);
         }
@@ -31,7 +31,7 @@ IPCManager.register("dal://itrade/data/order", (e, param) => {
 export class OrderResolver extends ItradeResolver {
     readContent(header: IHeader, content: Buffer): void {
         // resolve  msg  & send out
-        //  console.log("receive msg:head:", header);
+        // console.log("receive msg:head:", header);
         this.emit("data", { header, content });
     }
 }
@@ -45,7 +45,7 @@ export class OrderDal {
         if (!OrderDal._client) {
             OrderDal._resolver = new OrderResolver();
             OrderDal._client = new ItradeClient(OrderDal._resolver);
-            OrderDal._client.connect(9080, "172.24.51.4");
+            OrderDal._client.connect(9611, "172.24.51.4"); // 9080
             OrderDal._resolver.on("dal://itrade/connected", () => {
                 // register
                 let offset: number = 0;
@@ -112,6 +112,19 @@ export class OrderDal {
                 orderdal.write2buffer(connectBuffer, 2044, 0, 0, 0);
                 OrderDal._client.send(connectBuffer);
                 connectBuffer = null;
+
+                offset = 0;
+                connectBuffer = new Buffer(52);
+                orderdal.write2buffer(connectBuffer, 2998, 0, 44, offset); offset += 8;
+                connectBuffer.writeUInt32LE(5, offset); offset += 4;
+                orderdal.write2buffer(connectBuffer, 5001, 0, 0, offset); offset += 8;
+                orderdal.write2buffer(connectBuffer, 5021, 0, 0, offset); offset += 8;
+                orderdal.write2buffer(connectBuffer, 5002, 0, 0, offset); offset += 8;
+                orderdal.write2buffer(connectBuffer, 5005, 0, 0, offset); offset += 8;
+                orderdal.write2buffer(connectBuffer, 5006, 0, 0, offset);
+                OrderDal._client.send(connectBuffer);
+                connectBuffer = null;
+                offset = 0;
             });
             OrderDal._client.sendHeartBeat(10);
         }
@@ -119,7 +132,7 @@ export class OrderDal {
 
     // register PriceServer msg
     static sendMsg(type: number, subtype: number, buffer: Buffer): void {
-        DefaultLogger.error(type, subtype);
+        // DefaultLogger.error(type, subtype);
         console.log("send Msg:type:", type, ",subtype:", subtype, ",msglen:", (buffer === null ? 0 : buffer.length));
         OrderDal.start();
         OrderDal._client.sendWithHead(type, subtype, buffer);

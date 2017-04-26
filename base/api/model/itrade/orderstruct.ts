@@ -456,6 +456,38 @@ export class ComStrategyInfo {
     ismanualtrader: boolean = true;   // 1
 };
 
+export class FpPosUpdate {
+    UKey: number = 0; // uint32_t
+    LastPrice: number = 0;  // uint32_t
+    PreClose: number = 0;  // uint32_t
+    BidSize: number = 0;  // uint32_t
+    BidPrice: number = 0;  // uint32_t
+    AskPrice: number = 0;  // uint32_t
+    AskSize: number = 0;  // uint32_t
+    InitPos: number = 0; // int32_t
+    TgtPos: number = 0; // int32_t
+    CurrPos: number = 0; // int32_t
+    WorkingVol: number = 0; // uint32_t
+    Diff: number = 0; // int32_t
+    Traded: number = 0; // int32_t
+    AvgBuyPrice: number = 0; // uint32_t
+    AvgSellPrice: number = 0; // uint32_t
+    Percentage: number = 0; // uint16_t
+    DayPnLCon: number = 0;     // int64_t
+    ONPnLCon: number = 0; // int64_t
+    ValueCon: number = 0; // int64_t
+    PreValue: number = 0; // int64_t
+    Flag: number = 0;  // int32_t  0 for normal status, 1 for suspend, 2 for forbidden, 3 for hit ceiling, 4 for hit floor
+};
+
+export class FpQtyOrder {
+    UKey: number = 0;  // uint32
+    AskPriceLevel: number = 0; // uint8
+    BidPriceLevel: number = 0; // uint8
+    AskOffset: number = 0; // int8
+    BidOffset: number = 0; // int8
+    Qty: number = 0; // uint32
+}
 
 // //ACK  2015
 export class ComGWNetGuiInfo {

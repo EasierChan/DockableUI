@@ -6,8 +6,8 @@
 import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path } from "../../base/api/backend";
 const path = require("path");
 const fs = require("fs");
+declare let window: any;
 const electron = require("electron");
-
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
     _mainWindow: ContentWindow;

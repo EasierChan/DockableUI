@@ -316,7 +316,6 @@ export class AppComponent implements OnDestroy {
         });
         this.isAuthorized = true;
         if (this.isAuthorized) {
-            // this.configs = this.configBLL.getAllConfigs();
             // 
             // this.strategyContainer.addItem(self.configs);
         } else {
@@ -427,8 +426,17 @@ export class AppComponent implements OnDestroy {
 
     onStartApp(): void {
         console.info(this.config);
-        if (!this.appService.startApp(this.config.name, this.config.apptype, { port: this.config.port, host: this.config.host }))
+        if (!this.appService.startApp(this.config.name, this.config.apptype, {
+            port: this.config.port,
+            host: this.config.host,
+            name: this.config.name,
+            feedhandler: {
+                port: this.config.channels.feedhandler.port,
+                host: this.config.channels.feedhandler.addr
+            }
+        })) {
             this.showError("Error", `start ${name} app error!`, "alert");
+        }
     }
 
     showError(caption: string, content: string, type: string): void {
