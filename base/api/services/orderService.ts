@@ -34,7 +34,6 @@ export class OrderService {
         this._parser = new StrategyParser(this._client);
         this._client.addParser(this._parser);
         let msgObj = new Array<Object>();
-        let self = this;
     }
 
     set sessionID(value: number) {
@@ -45,6 +44,8 @@ export class OrderService {
         return this._sessionid;
     }
     registerServices(port: number, host: string): void {
+        this._port = port;
+        this._host = host;
         this.connect(port, host);  // 9611 51.4
     }
 
@@ -58,7 +59,6 @@ export class OrderService {
             this.regist();
         });
         this._client.on("data", msg => {
-            //  console.log(msg);
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
                 if (this._messageMap[msg[0].type].context !== undefined)
                     this._messageMap[msg[0].type].callback.call(this._messageMap[msg[0].type].context, msg[1], this._sessionid);
@@ -283,7 +283,7 @@ class ItradeParser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.msglen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                // logger.info(`processMsg:: type=${this._curHeader.type}, subtype=${this._curHeader.subtype}, msglen=${this._curHeader.msglen}`);
+                logger.info(`processMsg:: type=${this._curHeader.type}, subtype=${this._curHeader.subtype}, msglen=${this._curHeader.msglen}`);
                 this.emit(this._curHeader.type.toString(), this._curHeader, tempBuffer.slice(Header.len));
 
                 restLen = buflen - this._curHeader.msglen - Header.len;
@@ -653,6 +653,7 @@ class StrategyParser extends ItradeParser {
             strategyInfo.currorderid = buffer.readUInt32LE(offset); offset += 4;
             strategyInfo.ismanualtrader = buffer.readUInt8(offset) === 1 ? true : false;
             if (msgtype === 2011) {
+                console.info("hello");
                 // send  2028 & get strategy parameter
                 let comGuiAskStrateg = new ComGuiAskStrategy();
                 comGuiAskStrateg.strategyid = strategyInfo.key;
