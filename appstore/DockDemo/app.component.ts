@@ -769,7 +769,7 @@ export class AppComponent implements OnInit {
       }
     });
 
-    let layout: any = File.parseJSON(Environment.appDataDir + "/ChronosApps/DockDemo/xklayout.json");
+    let layout: any = File.parseJSON(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json");
     let children = layout.children;
     let childrenLen = children.length;
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
@@ -999,7 +999,6 @@ export class AppComponent implements OnInit {
     else if (obj.status === 5)
       AppComponent.self.showStraContrlDisable(btnDisableType, 6, 0);
     // in manultrader frame ,set strategy id in
-    let checkFlag: boolean = true;
     let dd_strategy_len = AppComponent.self.dd_Strategy.Items.length;
     AppComponent.self.dd_Strategy.addItem({ Text: obj.key + "", Value: dd_strategy_len + "" });
     // ---------------------------
@@ -2145,7 +2144,7 @@ export class AppComponent implements OnInit {
   }
 
   onDestroy() {
-    File.writeSync(Environment.appDataDir + "/ChronosApps/DockDemo/xklayout.json", window.getLayout());
+    File.writeSync(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json", window.getLayout());
   }
 }
 
