@@ -1,4 +1,4 @@
-<div #container [ngSwitch]="className" [class]="className" [style.width.px]="styleObj?.width != null ? styleObj?.width : null" [style.height.px]="styleObj?.height != null ? styleObj?.height : null">
+<div [ngSwitch]="className" [class]="className" [style.width.px]="styleObj?.width != null ? styleObj?.width : null" [style.height.px]="styleObj?.height != null ? styleObj?.height : null">
     <template [ngSwitchCase]="'tab-panel'">
         <!-- tab pages-->
         <div class="tab-pages">

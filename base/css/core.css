@@ -46,11 +46,19 @@ body > .statusbar > .right {
 }
 body > .statusbar > * {
     padding: 3px 5px;
-    font-weight: bolder;
 }
 body > .statusbar > div:hover {
     background-color: rgba(222, 222, 222, 0.2);
     cursor: pointer;
+}
+body > .statusbar > .white {
+    color: #eee;
+}
+body > .statusbar > .red {
+    color: red;
+}
+body > .statusbar > .green {
+    color: green;
 }
 
 body > #root {
@@ -192,7 +200,7 @@ dock-table2 {
 }
 
 .table > thead > tr > th {
-    padding: 2px;
+    padding: 0;
 }
 
 .table > tbody > tr > td {
@@ -500,7 +508,6 @@ echart{
     flex: none;
     height: 25px;
     padding: 2px 5px;
-    border-bottom: 1px solid;
 }
 .dialog > .holder > .head > .title {
     font-weight: bold;
@@ -508,13 +515,4 @@ echart{
 }
 .dialog > .holder > .body {
     flex: auto;
-}
-
-/* cover bootstrap */
-.dropdown-menu{
-    max-height: 150px;
-    overflow-y: auto;
-}
-.dropdown-menu > li > a {
-    padding: 1px 10px;
 }

@@ -147,7 +147,7 @@ export class AppComponent implements OnInit {
       }
     };
 
-    this.orderstatusTable = new DataTable("table2");
+    this.orderstatusTable = new DataTable();
     this.orderstatusTable.addColumn("U-Key", "Symbol", "OrderId", "Time", "Strategy",
       "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account");
     orderstatusContent.addChild(this.orderstatusTable);
@@ -334,7 +334,6 @@ export class AppComponent implements OnInit {
       row.cells[2].Class = "danger";
       row.cells[3].Class = "default";
     }
-    this.bookViewTable.cellPadding = 0;
     let bHead = false;
     this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
       // console.info(cellIndex, rowIndex);
