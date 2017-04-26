@@ -75,6 +75,8 @@ export class AppComponent implements OnInit {
   private allChk: MetaControl;
   private range: URange;
   private rateText: MetaControl;
+  private dd_Account: DropDown;
+  private dd_Strategy: DropDown;
 
   // strategy index flag
   private commentIdx: number = 10;
@@ -203,20 +205,19 @@ export class AppComponent implements OnInit {
     let tradeContent = new ComboControl("col");
     tradeContent.MinHeight = 500;
     tradeContent.MinWidth = 500;
-    let dd_Account = new DropDown();
-    dd_Account.Width = 120;
-    dd_Account.Title = "Account:   ";
-    dd_Account.addItem({ Text: "666600000010", Value: "0" });
-    dd_Account.Left = leftAlign;
-    dd_Account.Top = 20;
-    tradeContent.addChild(dd_Account);
-    let dd_Strategy = new DropDown();
-    dd_Strategy.Width = 120;
-    dd_Strategy.Left = leftAlign;
-    dd_Strategy.Top = rowSep;
-    dd_Strategy.Title = "Strategy:  ";
-    dd_Strategy.addItem({ Text: "110", Value: "0" });
-    tradeContent.addChild(dd_Strategy);
+    this.dd_Account = new DropDown();
+    this.dd_Account.Width = 120;
+    this.dd_Account.Title = "Account:   ";
+    this.dd_Account.Left = leftAlign;
+    this.dd_Account.Top = 20;
+    tradeContent.addChild(this.dd_Account);
+    this.dd_Strategy = new DropDown();
+    this.dd_Strategy.Width = 120;
+    this.dd_Strategy.Left = leftAlign;
+    this.dd_Strategy.Top = rowSep;
+    this.dd_Strategy.Title = "Strategy:  ";
+    this.dd_Strategy.addItem({ Text: "111", Value: "0" });
+    tradeContent.addChild(this.dd_Strategy);
     let txt_Symbol = new MetaControl("textbox");
     txt_Symbol.Left = leftAlign;
     txt_Symbol.Top = rowSep;
@@ -259,8 +260,8 @@ export class AppComponent implements OnInit {
     this.tradePage.setContent(tradeContent);
 
     btn_submit.OnClick = () => {
-      let account = dd_Account.SelectedItem.Text;
-      let getstrategy = dd_Strategy.SelectedItem.Text;
+      let account = this.dd_Account.SelectedItem.Text;
+      let getstrategy = this.dd_Strategy.SelectedItem.Text;
       let symbol = txt_Symbol.Text;
       let ukey = txt_UKey.Text;
       let price = txt_Price.Text;
@@ -778,7 +779,7 @@ export class AppComponent implements OnInit {
     }
 
     this.children.push(this.traversefunc(children[childrenLen - 1]));
-    this.init(9611, "172.24.51.4");
+    this.init(9611, "172.24.51.4"); // 9611 51.4
   }
 
   init(port: number, host: string) {
@@ -1472,10 +1473,22 @@ export class AppComponent implements OnInit {
   }
 
   showComAccountPos(data: any) {
-    //  console.log("***********", data)
+    console.log("***********", data);
     for (let i = 0; i < data.length; ++i) {
       let accTableRows: number = AppComponent.self.accountTable.rows.length;
       let accData: number = data[i].record.account;
+      // -------in manultrader frame,set account info
+      let checkFlag: boolean = true;
+      let dd_account_len = AppComponent.self.dd_Account.Items.length;
+      for (let idx = 0; idx < dd_account_len; ++idx) {
+        let gettext = AppComponent.self.dd_Account.Items[idx].Text;
+        if (accData + "" === gettext)
+          checkFlag = false;
+      }
+      if (checkFlag) {
+        AppComponent.self.dd_Account.addItem({ Text: accData + "", Value: dd_account_len + "" });
+      }
+      // ----------------------
       let accSec: number = data[i].secucategory;
       if (accTableRows === 0) {  // add
         if (accSec === 1) {
