@@ -11,7 +11,7 @@ export class Header extends Message {
     version: number = 0;
     service: number = 0;
     msgtype: number = 0;
-    topic: number   = 0;
+    topic: number = 0;
     optslen: number = 0;
     datalen: number = 0;
 
@@ -49,6 +49,10 @@ export class QTPMessage extends Message {
     }
 
     toBuffer(): Buffer {
-        return null;
+        this.header.datalen = JSON.stringify(this.body).length;
+        let buf = Buffer.alloc(Header.len + this.header.datalen);
+        this.header.toBuffer().copy(buf);
+        Buffer.from(JSON.stringify(this.body)).copy(buf, Header.len, 0);
+        return buf;
     }
 }
