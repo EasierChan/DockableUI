@@ -18,7 +18,7 @@ export enum MsgType {
     // #begin message below used from PriceServer Begin
     PS_MSG_REGISTER = 65,
     PS_MSG_UNREGISTER = 66,
-    // #end 
+    // #end
     PS_MSG_TYPE_UPDATE_DATE = 57,
 
     PS_MSG_TYPE_IOPV_P = 1001,

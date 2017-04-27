@@ -1,4 +1,4 @@
-<div *ngFor="let item of statusbar.items" [class]="item.section + ' ' + item.color"
+<div *ngFor="let item of statusbar.items" [class]="item.section" [style.color]="item?.color"
  (click)="item.click()" [style.width.px]="item?.width">
     {{ item.text }}
 </div>

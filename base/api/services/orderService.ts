@@ -1,125 +1,516 @@
 "use strict";
 
 import { Injectable, EventEmitter } from "@angular/core";
-import { MsgType } from "../model/itrade/message.model";
+import { IHeader, MsgType, Header, Message } from "../model/itrade/message.model";
 import {
     ComStrategyInfo, ComRecordPos, ESSSecuCategory, ComEquitPos, ComOrderData, AlphaSignalInfo,
     ComFuturePos, ComGWNetGuiInfo, ComProfitInfo, ComOrderRecord, ComContract, TimeVal,
     ComConOrderStatus, ComConOrderErrorInfo, ComOrderErrorInfo, ComOrderStatus, ComGuiAskStrategy,
     ComAccountPos, ComStrategyCfg, ComFundPos, ComMarginPos, MarginPos, ComTotalProfitInfo,
-    ComConOrder, EOrderType, ComOrder, ComOrderCancel, StatArbOrder, ComGuiAckStrategy
+    ComConOrder, EOrderType, ComOrder, ComOrderCancel, StatArbOrder, ComGuiAckStrategy, FpPosUpdate
 } from "../model/itrade/orderstruct";
+import { TcpClient } from "../browser/tcpclient";
+import { Parser } from "../browser/parser";
+import { Pool } from "../browser/pool";
+// import { ItradeClient } from "../services/itrade.service";
+// import {  ItradeResolver } from "../dal/itrade/base";
+
+const logger = console;
 declare var electron: Electron.ElectronMainAndRenderer;
 
 export class OrderService {
     private _messageMap: any;
-    // strategyinfo
+    private _sessionid: number;
+    private _client: ItradeClient;
+    private _port: number;
+    private _host: string;
+    private _parser: ItradeParser;
+
     constructor() {
+        this._sessionid = 0;
+        this._client = new ItradeClient();
+        this._client.useSelfBuffer = true;
         this._messageMap = new Object();
+        this._parser = new StrategyParser(this._client);
+        this._client.addParser(this._parser);
         let msgObj = new Array<Object>();
-        let self = this;
-        electron.ipcRenderer.on("dal://itrade/data/order-reply", (e, data) => {
-            // whether function
-            // console.log("print order-reply info ,type:", data);
-            let msgtype = data.header.type;
-            let msgsubtype = data.header.subtype;
-            let msglen = data.header.msglen;
-            switch (msgtype) {
-                // 'StrategyInfo'
-                case 2011:
-                case 2033:
-                    msgObj = this.readStrategyInfo(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                // StrategyCfg
-                case 2000:
-                case 2002:
-                case 2004:
-                case 2049:
-                case 2030:
-                case 2029:
-                case 2032:
-                    msgObj = this.readStrategyCfg(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                // GuiCmdAck
-                case 2001:
-                case 2003:
-                case 2005:
-                case 2050:
-                case 2031:
-                    msgObj = this.readGuiCmdAck(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                // ComTotalProfitInfo
-                case 2048:
-                    msgObj = this.readComTotalProfitInfo(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                // order
-                case 2020:
-                    msgObj = this.readComConOrder(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                case 2013:
-                    msgObj = this.readComAccountPos(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                case 3502:
-                case 3504:
-                    msgObj = this.readComRecordPos(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                case 2015:
-                case 2017:
-                    msgObj = this.readComGWNetGuiInfo(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                case 2023:
-                    msgObj = this.readComProfitInfo(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                case 2025:
-                    msgObj = this.readStatArbOrder(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                case 2021:
-                    if (msgsubtype === 0) {
-                        msgObj = this.readComConOrderStatus(data.content, msgtype, msglen);
-                    }
-                    else if (msgsubtype === 1) {
-                        msgObj = this.readComConOrderErrorInfo(data.content, msgtype, msglen);
-                    }
-                    break;
-                // orderDone
-                case 2022:
-                case 3011:
-                case 3510:
-                    msgObj = this.readComOrderRecord(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                case 2040:
-                    msgObj = this.readLog(data.content, msgtype, msgsubtype, msglen);
-                    break;
-                default:
-                    break;
-            }
-            if (typeof (self._messageMap[data.header.type]) === "function") {
-                self._messageMap[data.header.type](msgObj);
-            } else {
-                console.error(data.header.type + " not regist!");
+    }
+
+    set sessionID(value: number) {
+        this._sessionid = value;
+    }
+
+    get sessionID(): number {
+        return this._sessionid;
+    }
+    registerServices(port: number, host: string): void {
+        this._port = port;
+        this._host = host;
+        this.connect(port, host);  // 9611 51.4
+    }
+
+    connect(port: number, host: string) {
+        this.start();
+        this._client.connect(port, host);
+    }
+
+    start() {
+        this._client.on("connect", () => {
+            this.regist();
+        });
+        this._client.on("data", msg => {
+            if (this._messageMap.hasOwnProperty(msg[0].type)) {
+                if (this._messageMap[msg[0].type].context !== undefined)
+                    this._messageMap[msg[0].type].callback.call(this._messageMap[msg[0].type].context, msg[1], this._sessionid);
+                else
+                    this._messageMap[msg[0].type].callback(msg[1], this._sessionid);
             }
         });
-
-    }
-
-    registerServices(): void {
-        electron.ipcRenderer.send("dal://itrade/data/order", {
-            type: -1,
-            subtype: -1,
-            buffer: 0
+        this._client.on("error", () => {
+            setTimeout(() => {
+                this._client.connect(this._port, this._host);
+            }, 10000);
         });
     }
-
-    addSlot(type: number, cb: Function) {
-        this._messageMap[type] = cb;
+    stop() {
+        this._client.dispose();
     }
 
-    sendOrder(type: number, subtype: number, buffer: Buffer, cb?: Function) {
-        electron.ipcRenderer.send("dal://itrade/data/order", {
-            type: type,
-            subtype: subtype,
-            buffer: buffer
+    regist() {
+        let offset: number = 0;
+        let connectBuffer = new Buffer(196);
+
+        this.write2buffer(connectBuffer, 2998, 0, 188, offset);
+        connectBuffer.writeUInt32LE(23, offset += 8);
+        this.write2buffer(connectBuffer, 2048, 1, 0, offset += 4);
+        this.write2buffer(connectBuffer, 2001, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2032, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2033, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2011, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2029, 0, 0, offset += 8);
+
+        // order  register
+        this.write2buffer(connectBuffer, 2013, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2013, 1, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2013, 2, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2021, 1, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2022, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2023, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2017, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 3510, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 3502, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2040, 1, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2040, 2, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2040, 3, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2040, 4, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2048, 0, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2025, 1000, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2025, 1001, 0, offset += 8);
+        this.write2buffer(connectBuffer, 2025, 1002, 0, offset += 8);
+        this._client.send(connectBuffer);
+        connectBuffer = null;
+        offset = 0;
+
+        connectBuffer = new Buffer(8);
+        this.write2buffer(connectBuffer, 2010, 0, 0, 0);
+        this._client.send(connectBuffer);
+        connectBuffer = null;
+
+        connectBuffer = new Buffer(8);
+        this.write2buffer(connectBuffer, 3503, 0, 0, 0);
+        this._client.send(connectBuffer);
+        connectBuffer = null;
+
+        connectBuffer = new Buffer(8);
+        this.write2buffer(connectBuffer, 3010, 0, 0, 0);
+        this._client.send(connectBuffer);
+        connectBuffer = null;
+
+        connectBuffer = new Buffer(8);
+        this.write2buffer(connectBuffer, 3509, 0, 0, 0);
+        this._client.send(connectBuffer);
+        connectBuffer = null;
+
+        connectBuffer = new Buffer(8);
+        this.write2buffer(connectBuffer, 2016, 0, 0, 0);
+        this._client.send(connectBuffer);
+        connectBuffer = null;
+
+        connectBuffer = new Buffer(8);
+        this.write2buffer(connectBuffer, 2044, 0, 0, 0);
+        this._client.send(connectBuffer);
+        connectBuffer = null;
+
+        offset = 0;
+        connectBuffer = new Buffer(52);
+        this.write2buffer(connectBuffer, 2998, 0, 44, offset); offset += 8;
+        connectBuffer.writeUInt32LE(5, offset); offset += 4;
+        this.write2buffer(connectBuffer, 5001, 0, 0, offset); offset += 8;
+        this.write2buffer(connectBuffer, 5021, 0, 0, offset); offset += 8;
+        this.write2buffer(connectBuffer, 5002, 0, 0, offset); offset += 8;
+        this.write2buffer(connectBuffer, 5005, 0, 0, offset); offset += 8;
+        this.write2buffer(connectBuffer, 5006, 0, 0, offset);
+        this._client.send(connectBuffer);
+        connectBuffer = null;
+        offset = 0;
+    }
+
+    send(type: number, subtype: number, body: any): void {
+        return this._client.sendMessage(type, subtype, body);
+    }
+
+    addSlot(type: number, cb: Function, context?: any) {
+        if (this._messageMap.hasOwnProperty(type))
+            return;
+        this._messageMap[type] = { callback: cb, context: context };
+    }
+
+
+    write2buffer(buffer: Buffer, type: number, subtype: number, msglen: number, offset: number): void {
+        buffer.writeInt16LE(type, offset);
+        buffer.writeInt16LE(subtype, offset += 2);
+        buffer.writeUInt32LE(msglen, offset += 2);
+    }
+
+    sendOrder(type: number, subtype: number, buffer: Buffer) {
+        this._client.sendMessage(type, subtype, buffer);
+    }
+
+}
+
+
+class ItradeClient extends TcpClient {
+    private _intervalHeart: NodeJS.Timer;
+    private _parsers: ItradeParser[] = [];
+    constructor() {
+        super();
+    }
+
+    addParser(parser: any): void {
+        this._parsers.push(parser);
+    }
+
+    sendMessage(type: number, subtype: number, body: Message | Buffer): void {
+        // console.log("send msg-->tpe:", type, ",subtype:", subtype);
+        let head = new Header();
+        head.type = type;
+        head.subtype = subtype;
+        head.msglen = 0;
+
+        if (body === undefined || body === null) {
+            this.send(head.toBuffer());
+        } else if (body instanceof Buffer) {
+            head.msglen = body.length;
+            this.send(Buffer.concat([head.toBuffer(), body], Header.len + head.msglen));
+        } else {
+            let buf = body.toBuffer();
+            head.msglen = buf.length;
+            this.send(Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
+        }
+        head = null;
+    }
+
+    sendHeartBeat(interval = 10): void {
+        let header: Header = new Header();
+        header.type = 255;
+        header.subtype = 0;
+        header.msglen = 0;
+        this._intervalHeart = setInterval(() => {
+            this.send(header.toBuffer());
+        }, interval * 1000);
+    }
+
+    dispose(): void {
+        if (this._intervalHeart !== null) {
+            clearInterval(this._intervalHeart);
+            this._intervalHeart = null;
+        }
+        this._parsers.forEach(parser => {
+            parser.dispose();
         });
+        super.dispose();
+    }
+}
+
+class ItradeParser extends Parser {
+    private _curHeader: Header = null;
+    constructor(_oPool: Pool<Buffer>) {
+        super(_oPool);
+    }
+
+    processRead(): void {
+        if (this.processMsgHeader() && this.processMsg() && this._oPool.length > 0) {
+            this._curHeader = null;
+            this.processRead();
+        }
+    }
+    /**
+     * process message head.
+     */
+    processMsgHeader(): boolean {
+        if (this._oPool.length === 0 || this._curHeader !== null)
+            return false;
+
+        let ret = false;
+        let bufCount = 0;
+        let buflen = 0;
+        let restLen = 0;
+        for (; bufCount < this._oPool.length; ++bufCount) {
+            buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
+            if (buflen >= Header.len) {
+                this._curHeader = new Header();
+                let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
+                this._curHeader.fromBuffer(tempBuffer);
+                tempBuffer = null;
+                ret = true;
+                break;
+            }
+        }
+        restLen = null;
+        buflen = null;
+        bufCount = null;
+        return ret;
+    }
+    /**
+     * process msg body
+     */
+    processMsg(): boolean {
+        let ret = false;
+        let bufCount = 0;
+        let buflen = 0;
+        let restLen = 0;
+        for (; bufCount < this._oPool.length; ++bufCount) {
+            buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
+            if (buflen >= this._curHeader.msglen + Header.len) {
+                let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
+                // logger.info(`processMsg:: type=${this._curHeader.type}, subtype=${this._curHeader.subtype}, msglen=${this._curHeader.msglen}`);
+                this.emit(this._curHeader.type.toString(), this._curHeader, tempBuffer.slice(Header.len));
+
+                restLen = buflen - this._curHeader.msglen - Header.len;
+                if (restLen > 0) {
+                    let restBuf = Buffer.alloc(restLen);
+                    tempBuffer.copy(restBuf, 0, buflen - restLen);
+                    this._oPool.prepend(restBuf);
+                    restBuf = null;
+                }
+                this._curHeader = null;
+                tempBuffer = null;
+                ret = true;
+                break;
+            }
+        }
+        restLen = null;
+        buflen = null;
+        bufCount = null;
+        return ret;
+    }
+}
+
+class StrategyParser extends ItradeParser {
+    private _intervalRead: NodeJS.Timer;
+    constructor(private _client: ItradeClient) {
+        super(_client.bufferQueue);
+        this.init();
+    }
+
+    init(): void {
+        this.registerMsgFunction("2001", this, this.processStrategyMsg);
+        this.registerMsgFunction("2033", this, this.processStrategyMsg);
+        this.registerMsgFunction("2000", this, this.processStrategyMsg);
+        this.registerMsgFunction("2002", this, this.processStrategyMsg);
+        this.registerMsgFunction("2004", this, this.processStrategyMsg);
+        this.registerMsgFunction("2049", this, this.processStrategyMsg);
+        this.registerMsgFunction("2030", this, this.processStrategyMsg);
+        this.registerMsgFunction("2029", this, this.processStrategyMsg);
+        this.registerMsgFunction("2032", this, this.processStrategyMsg);
+        this.registerMsgFunction("2011", this, this.processStrategyMsg);
+        this.registerMsgFunction("2003", this, this.processStrategyMsg);
+        this.registerMsgFunction("2005", this, this.processStrategyMsg);
+        this.registerMsgFunction("2050", this, this.processStrategyMsg);
+        this.registerMsgFunction("2031", this, this.processStrategyMsg);
+        this.registerMsgFunction("2048", this, this.processStrategyMsg);
+        this.registerMsgFunction("2020", this, this.processStrategyMsg);
+        this.registerMsgFunction("2013", this, this.processStrategyMsg);
+        this.registerMsgFunction("3502", this, this.processStrategyMsg);
+        this.registerMsgFunction("3504", this, this.processStrategyMsg);
+        this.registerMsgFunction("2015", this, this.processStrategyMsg);
+        this.registerMsgFunction("2017", this, this.processStrategyMsg);
+        this.registerMsgFunction("2023", this, this.processStrategyMsg);
+        this.registerMsgFunction("2025", this, this.processStrategyMsg);
+        this.registerMsgFunction("2021", this, this.processStrategyMsg);
+        this.registerMsgFunction("2022", this, this.processStrategyMsg);
+        this.registerMsgFunction("3011", this, this.processStrategyMsg);
+        this.registerMsgFunction("3510", this, this.processStrategyMsg);
+        this.registerMsgFunction("2040", this, this.processStrategyMsg);
+        this.registerMsgFunction("5021", this, this.processStrategyMsg);
+        this.registerMsgFunction("5024", this, this.processStrategyMsg);
+        this.registerMsgFunction("5022", this, this.processStrategyMsg);
+        this.registerMsgFunction("5022", this, this.processStrategyMsg);
+        this._intervalRead = setInterval(() => {
+            this.processRead();
+        }, 500);
+    }
+
+    processStrategyMsg(args: any[]): void {
+        // console.log("+++++", args[0].type);
+        let msgtype = args[0].type;
+        let msgsubtype = args[0].subtype;
+        let msglen = args[0].msglen;
+        let msgObj = new Array<Object>();
+        switch (msgtype) {
+            // 'StrategyInfo'
+            case 2011:
+            case 2033:
+                msgObj = this.readStrategyInfo(args[1], msgtype, msgsubtype, msglen);
+                break;
+            // StrategyCfg
+            case 2000:
+            case 2002:
+            case 2004:
+            case 2049:
+            case 2030:
+            case 2029:
+            case 2032:
+                msgObj = this.readStrategyCfg(args[1], msgtype, msgsubtype, msglen);
+                break;
+            // GuiCmdAck
+            case 2001:
+            case 2003:
+            case 2005:
+            case 2050:
+            case 2031:
+                msgObj = this.readGuiCmdAck(args[1], msgtype, msgsubtype, msglen);
+                break;
+            // ComTotalProfitInfo
+            case 2048:
+                msgObj = this.readComTotalProfitInfo(args[1], msgtype, msgsubtype, msglen);
+                break;
+            // order
+            case 2020:
+                msgObj = this.readComConOrder(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 2013:
+                msgObj = this.readComAccountPos(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 3502:
+            case 3504:
+                msgObj = this.readComRecordPos(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 2015:
+            case 2017:
+                msgObj = this.readComGWNetGuiInfo(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 2023:
+                msgObj = this.readComProfitInfo(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 2025:
+                msgObj = this.readStatArbOrder(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 2021:
+                if (msgsubtype === 0) {
+                    msgObj = this.readComConOrderStatus(args[1], msgtype, msglen);
+                }
+                else if (msgsubtype === 1) {
+                    msgObj = this.readComConOrderErrorInfo(args[1], msgtype, msglen);
+                }
+                break;
+            // orderDone
+            case 2022:
+            case 3011:
+            case 3510:
+                msgObj = this.readComOrderRecord(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 2040:
+                msgObj = this.readLog(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 5021:
+                msgObj = this.readBasketBack(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 5024:
+                msgObj = this.readPortfolioSummary(args[1], msgtype, msgsubtype, msglen);
+                break;
+            case 5022:
+                msgObj = this.readPortfolioMsgError(args[1], msgtype, msgsubtype, msglen);
+                break;
+            default:
+                break;
+        }
+        this._client.emit("data", args[0], msgObj);
+    }
+
+    dispose(): void {
+        if (this._intervalRead || this._intervalRead !== null) {
+            clearInterval(this._intervalRead);
+        }
+        super.dispose();
+    }
+
+
+    readPortfolioMsgError(buffer: Buffer, msgtype: number, subtype: number, msglen: number) {
+        let offset: number = 0;
+        let unknowncount = buffer.readUInt32LE(offset); offset += 4;
+        let account = buffer.readUIntLE(offset, 8); offset += 8;
+        let count = buffer.readUInt32LE(offset); offset += 4;
+        let ukey = buffer.readUInt32LE(offset); offset += 4;
+        let logStr = buffer.slice(offset, offset += 256).toString("utf-8");
+        logStr = String(logStr).slice(0, logStr.indexOf("\u0000"));
+        // console.log(unknowncount, account, count, ukey, logStr);
+        return [{ type: msgtype, logStr: logStr }];
+    }
+    readPortfolioSummary(buffer: Buffer, msgtype: number, subtype: number, msglen: number) {
+        let res = [];
+        let offset: number = 0;
+        let unknowncount = buffer.readUInt32LE(offset); offset += 4;
+        let account = buffer.readUIntLE(offset, 8); offset += 8;
+        let count = buffer.readUInt32LE(offset); offset += 4;
+        let ukey = buffer.readUInt32LE(offset); offset += 4;
+        let indexLots = buffer.readUInt32LE(offset); offset += 4;
+        let dayPnl = buffer.readIntLE(offset, 8); offset += 8;
+        let onPnl = buffer.readIntLE(offset, 8); offset += 8;
+        let value = buffer.readIntLE(offset, 8); offset += 8;
+        // console.log(unknowncount, account, count, ukey, indexLots, dayPnl, onPnl, value);
+        return [{ unknowncount: unknowncount, account: account, count: count, ukey: ukey, dayPnl: dayPnl, onPnl: onPnl, value: value }];
+    }
+    readBasketBack(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
+        let res = [];
+        let tableArr = [];
+        let count: number = 0;
+        let offset: number = 0;
+        let unknowncount = buffer.readUInt32LE(offset); offset += 4;
+        let account = buffer.readUIntLE(offset, 8); offset += 8;
+        count = buffer.readUInt32LE(offset); offset += 4;
+        if (count === 0) {
+            return [{ account: account, data: tableArr }];
+        } else {
+            for (let i = 0; i < count; ++i) {
+                let fpPosUpdate = new FpPosUpdate();
+                fpPosUpdate.UKey = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.LastPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.PreClose = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.BidSize = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.BidPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.AskPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.AskSize = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.InitPos = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.TgtPos = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.CurrPos = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.WorkingVol = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.Diff = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.Traded = buffer.readInt32LE(offset); offset += 4;
+                fpPosUpdate.AvgBuyPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.AvgSellPrice = buffer.readUInt32LE(offset); offset += 4;
+                fpPosUpdate.Percentage = buffer.readUInt16LE(offset); offset += 2;
+                fpPosUpdate.DayPnLCon = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.ONPnLCon = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.ValueCon = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.PreValue = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.Flag = buffer.readInt32LE(offset); offset += 4;
+                if (fpPosUpdate.UKey !== 0)
+                    tableArr.push(fpPosUpdate);
+            }
+        }
+        // console.log(tableArr);
+        return [{ account: account, data: tableArr, count: count }];
     }
 
     readGuiCmdAck(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
@@ -134,7 +525,7 @@ export class OrderService {
         comGuiAckStrategy.success = buffer.readUInt8(offset) === 1 ? true : false; offset += 4;
         comGuiAckStrategy.error = buffer.readUInt32LE(offset); offset += 4;
         res.push(comGuiAckStrategy);
-        console.log(comGuiAckStrategy);
+        // console.log(comGuiAckStrategy);
         return res;
 
     }
@@ -142,6 +533,7 @@ export class OrderService {
         let res = [];
         let offset: number = 0;
         let logStr = buffer.slice(offset, offset += 1024).toString("utf-8");
+        logStr = String(logStr).slice(0, logStr.indexOf("\u0000"));
         res.push(logStr);
         return res;
     }
@@ -267,20 +659,14 @@ export class OrderService {
                 let getParaOffset: number = 0;
                 getParabuffer.writeInt32LE(1, getParaOffset); getParaOffset += 4;
                 getParabuffer.writeInt32LE(strategyInfo.key, getParaOffset); getParaOffset += 4;
-                this.sendOrder(2012, 0, getParabuffer, (data) => {
-                    console.log("receive...2012...msg:", data);
-                });
-                this.sendOrder(2028, 0, getParabuffer, (data) => {
-                    console.log("receive ...2028...msg:", data);
-                });
-
+                this._client.sendMessage(2012, 0, getParabuffer);
+                this._client.sendMessage(2028, 0, getParabuffer);
             }
             res.push(strategyInfo);
             console.log("strategyInfo:", strategyInfo);
 
         }
         return res;
-
     }
     readComRecordPos(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
         let count: number = 0;
@@ -335,9 +721,10 @@ export class OrderService {
         for (let i = 0; i < count; ++i) {
             let comStrategyInfo = new ComGWNetGuiInfo();
             comStrategyInfo.key = buffer.readUInt32LE(offset); offset += 4;
-            comStrategyInfo.name = buffer.slice(offset, offset += 50).toString("utf-8");
+            let tempname = buffer.slice(offset, offset += 50).toString("utf-8");
+            comStrategyInfo.name = String(tempname).slice(0, tempname.indexOf("\u0000"));
             comStrategyInfo.connected = buffer.readUInt8(offset) === 0 ? false : true;
-            console.log("comStrategyInfo:", comStrategyInfo);
+            // console.log("comStrategyInfo:", comStrategyInfo);
             res.push(comStrategyInfo);
         }
         return res;
@@ -477,6 +864,7 @@ export class OrderService {
         let count: number = 0;
         let offset: number = 0;
         let res = [];
+        let rtnStr: String = "";
         count = buffer.readUInt32LE(offset); offset += 4;
         for (let i = 0; i < count; ++i) {
             let comConOrderErrorInfo = new ComConOrderErrorInfo();
@@ -493,8 +881,10 @@ export class OrderService {
             comConOrderErrorInfo.os.algorindex = buffer.readUInt32LE(offset); offset += 4;
             comConOrderErrorInfo.os.innercode = buffer.readUInt32LE(offset); offset += 4;
             comConOrderErrorInfo.os.action = buffer.readUInt8(offset); offset += 4;
-            comConOrderErrorInfo.os.errorid = buffer.readUInt32LE(offset); offset += 4;
-            comConOrderErrorInfo.os.errormsg = buffer.slice(offset, offset += 1024).toString("utf-8");
+            comConOrderErrorInfo.os.errorid = buffer.readInt32LE(offset); offset += 4;
+            let logStr = buffer.slice(offset, offset += 1024).toString("utf-8");
+            comConOrderErrorInfo.os.errormsg = String(logStr).slice(0, logStr.indexOf("\u0000"));
+            rtnStr = "errorid:" + comConOrderErrorInfo.os.errorid + ";errorMsg:" + comConOrderErrorInfo.os.errormsg;
             offset += 4;
             comConOrderErrorInfo.os.datetime = new TimeVal();
             comConOrderErrorInfo.os.datetime.tv_sec = buffer.readUIntLE(offset, 8); offset += 8;
@@ -502,7 +892,7 @@ export class OrderService {
             res.push(comConOrderErrorInfo);
             // console.log("comConOrderErrorInfo:", comConOrderErrorInfo);
         }
-        return [{ subytpe: 1, content: res }];
+        return [{ type: 2021, subytpe: 1, logStr: rtnStr }];
     }
 
     readComAccountPos(buffer: Buffer, msgtype: number, msgsubtype: number, msglen: number): Array<Object> {

@@ -30,7 +30,7 @@ export class AppStoreService {
 export class AppStateCheckerRef {
     private option: any;
     constructor() {
-        let option = electron.ipcRenderer.sendSync("get-init-param");
+        this.option = electron.ipcRenderer.sendSync("get-init-param");
     }
 
     onInit(appref: any, afterInit: (...params) => void) {
@@ -49,7 +49,7 @@ export class Menu {
         this._menu = new electron.remote.Menu();
     }
 
-    addItem(menuItem: MenuItem | string, click: Function, pos?: number): void {
+    addItem(menuItem: MenuItem | string, click?: Function, pos?: number): void {
         if (typeof menuItem === "string")
             menuItem = MenuItem.create(menuItem, click);
 
@@ -74,13 +74,19 @@ export class MenuItem {
     constructor() {
     }
 
-    static create(lable: string, click?: any, type: "normal" | "separator" | "submenu" | "checkbox" | "radio" = "normal"): any {
-        return new electron.remote.MenuItem({ label: lable, type: type, click: click });
+    static create(lable: string, click?: any, type: "normal" | "separator" | "submenu" | "checkbox" | "radio" = "normal", option?: {
+        visible: boolean;
+        checked: boolean;
+    }): any {
+        if (option)
+            return new electron.remote.MenuItem({ label: lable, type: type, click: click, visible: option.visible, checked: option.checked });
+        else
+            return new electron.remote.MenuItem({ label: lable, type: type, click: click });
     }
 }
 
 /**
- * 
+ *
  */
 export class MessageBox {
 
@@ -112,6 +118,7 @@ export class File {
             obj = JSON.parse(fs.readFileSync(fpath, { encoding: "utf8" }));
         } catch (e) {
             console.error(`file: ${fpath} failed to parse to JSON！`);
+            console.error(e);
             return null;
         }
         return obj;

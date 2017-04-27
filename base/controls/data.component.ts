@@ -1,7 +1,7 @@
 // data Component
 /**
  * author: chenlei
- * desc: components for acesss data, such as datatable, treeview, charts, 
+ * desc: components for acesss data, such as datatable, treeview, charts
  */
 import {
   Component, ViewChild, ContentChild, Input, OnInit, AfterViewInit,
@@ -48,7 +48,9 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     this.curPage = 0;
     this.pageSize = 10;
     this.curData = this.dataSource;
-    this.dataSource.detectChanges = () => this.ref.detectChanges;
+    this.dataSource.detectChanges = () => {
+      this.ref.detectChanges();
+    };
   }
 
   ngAfterViewInit(): void {
@@ -61,7 +63,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   templateUrl: "data.scrollerbar-table.html",
   inputs: ["className", "dataSource"]
 })
-export class ScrollerBarTable implements AfterViewInit, OnChanges {
+export class ScrollerBarTable implements OnInit, AfterViewInit {
   className: string;
   dataSource: any;
 
@@ -72,13 +74,9 @@ export class ScrollerBarTable implements AfterViewInit, OnChanges {
     private ref: ChangeDetectorRef) {
   }
 
-  ngOnChanges(changes: SimpleChanges) {
-    this.resizeHeader();
-  }
-
   ngOnInit() {
     this.dataSource.detectChanges = () => {
-      this.ref.detectChanges;
+      this.ref.detectChanges();
       this.resizeHeader();
     };
   }
@@ -90,6 +88,8 @@ export class ScrollerBarTable implements AfterViewInit, OnChanges {
   @HostListener("scroll")
   onScroll() {
     this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
+    this.head.nativeElement.style.display = "table";
+    this.resizeHeader();
   }
 
   @HostListener("resize")
@@ -98,9 +98,9 @@ export class ScrollerBarTable implements AfterViewInit, OnChanges {
   }
 
   resizeHeader() {
+    this.head.nativeElement.style.width = this.content.nativeElement.clientWidth + "px";
     let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
     this.content.nativeElement.querySelectorAll("thead > tr:first-child > th").forEach((th, index) => {
-      console.info(th.clientWidth);
       headCells[index].style.width = th.clientWidth + "px";
     });
   }
@@ -127,33 +127,25 @@ export class EChartComponent implements OnInit, AfterViewInit {
   }
 
   ngOnInit(): void {
-    // this.dataSource.init = () => {
-    //   this._echart = echarts.init(this.el.nativeElement);
-    //   this._echart.setOption(this.dataSource.option, true);
-    //   window.addEventListener("resize", () => {
-    //     this._echart.resize();
-    //   });
-    //   this.dataSource.setOption = (option) => {
-    //     this._echart.setOption(option);
-    //   };
-    // };
-  }
-
-  ngAfterViewInit(): void {
+    // console.info(this.dataSource.option);
     if (this.dataSource.option) {
-      setTimeout(() => {
-        let myChart: EChartsInstance = echarts.init(this.el.nativeElement);
-        myChart.setOption(this.dataSource.option, true);
+      let self = this;
+      this.dataSource.init = () => {
+        let myChart: EChartsInstance = echarts.init(self.el.nativeElement);
+        myChart.setOption(self.dataSource.option, true);
 
         window.addEventListener("resize", () => {
           myChart.resize();
         });
 
-        this.dataSource.setOption = (option, notMerge) => {
+        self.dataSource.setOption = (option, notMerge) => {
           myChart.setOption(option, notMerge);
         };
-      }, 100);
+      };
     }
+  }
+
+  ngAfterViewInit(): void {
   }
 }
 

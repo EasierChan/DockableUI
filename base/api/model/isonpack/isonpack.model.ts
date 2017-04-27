@@ -40,12 +40,12 @@ export class ISONPack2Header extends Message {
         return buf;
     }
 
-    fromBuffer(buf: Buffer): void {
+    fromBuffer(buf: Buffer, offset: number = 0): number {
         if (buf.length < ISONPack2Header.len) {
             logger.warn("ISONPack2Header: buffer length less than header len.");
             return;
         }
-        let offset = 0;
+
         this.flag1 = buf.readUInt8(offset); offset += 1;
         this.flag2 = buf.readUInt8(offset); offset += 1;
         this.packversion = buf.readUInt8(offset); offset += 1;
@@ -54,6 +54,7 @@ export class ISONPack2Header extends Message {
         this.appid = buf.readUInt16LE(offset); offset += 2;
         this.packid = buf.readUInt16LE(offset); offset += 2;
         this.packsn = buf.readUInt32LE(offset); offset += 4;
+        return offset;
     }
 }
 

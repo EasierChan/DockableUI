@@ -5,6 +5,7 @@
 
 import { AppStoreService, Menu, MessageBox } from "../base/api/services/backend.service";
 import { IP20Service } from "../base/api/services/ip20.service";
+import { QtpService } from "../base/api/services/qtp.service";
 import { Component, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import { IApp } from "../base/api/model/app.model";
 import { ConfigurationBLL, StrategyServerContainer, WorkspaceConfig, Channel, StrategyInstance } from "./bll/strategy.server";
@@ -52,6 +53,7 @@ export class AppComponent implements OnDestroy {
     curTemplate: any;
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
+        private qtp: QtpService,
         private ref: ChangeDetectorRef) {
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
@@ -316,7 +318,6 @@ export class AppComponent implements OnDestroy {
         });
         this.isAuthorized = true;
         if (this.isAuthorized) {
-            // this.configs = this.configBLL.getAllConfigs();
             // 
             // this.strategyContainer.addItem(self.configs);
         } else {
@@ -427,8 +428,17 @@ export class AppComponent implements OnDestroy {
 
     onStartApp(): void {
         console.info(this.config);
-        if (!this.appService.startApp(this.config.name, this.config.apptype, { port: this.config.port, host: this.config.host }))
+        if (!this.appService.startApp(this.config.name, this.config.apptype, {
+            port: this.config.port,
+            host: this.config.host,
+            name: this.config.name,
+            feedhandler: {
+                port: this.config.channels.feedhandler.port,
+                host: this.config.channels.feedhandler.addr
+            }
+        })) {
             this.showError("Error", `start ${name} app error!`, "alert");
+        }
     }
 
     showError(caption: string, content: string, type: string): void {
