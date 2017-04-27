@@ -5,6 +5,7 @@
 
 import { AppStoreService, Menu, MessageBox } from "../base/api/services/backend.service";
 import { IP20Service } from "../base/api/services/ip20.service";
+import { QtpService } from "../base/api/services/qtp.service";
 import { Component, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import { IApp } from "../base/api/model/app.model";
 import { ConfigurationBLL, StrategyServerContainer, WorkspaceConfig, Channel, StrategyInstance } from "./bll/strategy.server";
@@ -52,6 +53,7 @@ export class AppComponent implements OnDestroy {
     curTemplate: any;
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
+        private qtp: QtpService,
         private ref: ChangeDetectorRef) {
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
