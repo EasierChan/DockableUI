@@ -21,6 +21,7 @@ let ip20strs = {};
     providers: [
         AppStoreService,
         IP20Service,
+        QtpService,
         Menu
     ]
 })
@@ -78,6 +79,14 @@ export class AppComponent implements OnDestroy {
                 }
             });
         });
+
+        this.qtp.addSlot({
+            msgtype: 123,
+            callback: (msg) => {
+                console.info(msg);
+            }
+        });
+        this.qtp.connect(4801, "172.24.51.1");
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {
@@ -419,6 +428,10 @@ export class AppComponent implements OnDestroy {
 
         let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": timestamp };
         this.tgw.send(17, 41, loginObj); // login
+    }
+
+    createLoopbackTest(): void {
+        this.qtp.send(123, {});
     }
 
     onReset(): void {

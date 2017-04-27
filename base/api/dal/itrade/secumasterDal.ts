@@ -4,6 +4,7 @@
 "use strict";
 
 import { IPCManager } from "../ipcManager";
+import { Path } from "../../common/base/paths";
 
 const fs = require("fs");
 const path = require("path");
@@ -13,7 +14,7 @@ class SecuMaster {
     private static secuUkeyObj = new Object();
     static init() {
         // TODO load secuinfo, future info
-        let str = "/home/xinkui/secumain0417.csv";
+        let str = path.join(Path.baseDir, "secumain.csv");
         let content: String = new String();
         try {
             content = fs.readFileSync(path.join(str), { encoding: "utf-8" });

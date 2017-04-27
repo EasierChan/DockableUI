@@ -143,8 +143,8 @@ class QTPClient extends TcpClient {
         this._parsers.push(parser);
     }
 
-    sendMessage(header: Header, msg: QTPMessage): void {
-        this.send(Buffer.concat([header.toBuffer(), msg.toBuffer()]));
+    sendMessage(msg: QTPMessage): void {
+        this.send(msg.toBuffer());
     }
 
     sendHeartBeat(appid: number, interval = 10): void {
@@ -195,8 +195,11 @@ export class QtpService {
         this._client.connect(port, host);
     }
 
-    send(header: Header, msg: QTPMessage) {
-        this._client.sendMessage(header, msg);
+    send(msgtype: number, body: Object) {
+        let msg = new QTPMessage();
+        msg.header.msgtype = msgtype;
+        msg.body = body;
+        this._client.sendMessage(msg);
     }
 
     /**
@@ -217,5 +220,5 @@ export class QtpService {
 export interface Slot {
     msgtype: number;
     callback: Function;
-    context: any;
+    context?: any;
 }
