@@ -1,9 +1,0 @@
-<div *ngIf="!bHiddenProfile" class="sv-profiles">
-    <div *ngFor="let item of profiles" class="profile-item" (click)="clickItem(item)">
-        {{item.symbolCode1}},{{item.symbolCode2}}
-    </div>
-</div>
-<div id="root" [class]="className">
-    <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj">
-    </dock-control>
-</div>

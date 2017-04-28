@@ -5,6 +5,12 @@ import { DefaultLogger } from "../base/logger";
 import { UWindow, IWindowCreationOptions, WindowStyle } from "../base/window";
 import { Menu } from "electron";
 
+export interface Bound {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
 
 export interface MenuPath {
     level1: number;

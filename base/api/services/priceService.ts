@@ -1,3 +1,6 @@
+/**
+ * created by cl, 2017/02/11
+ */
 "use strict";
 
 import { Injectable, EventEmitter } from "@angular/core";
@@ -10,6 +13,12 @@ const { Socket } = require("@node/net");
 
 @Injectable()
 export class PriceService extends EventEmitter<any> {
+    private _socket = new Socket();
+    private _port: number;
+    private _host: string;
+    private _interval: number;
+    private _state: number = 0;
+    private _innercodes: number[] = [];
 
     constructor() {
         super();
@@ -26,22 +35,17 @@ export class PriceService extends EventEmitter<any> {
         });
     }
 
-    register(innercodes: number[]): void {
+    setEndpoint(port: number, host: string = "127.0.0.1"): void {
+        this._port = port;
+        this._host = host;
         let self = this;
-        let socket = new Socket();
-        socket.connect(20000, "127.0.0.1", () => {
-            let obj = {
-                header: {
-                    type: MsgType.PS_MSG_REGISTER, subtype: MsgType.PS_MSG_TYPE_MARKETDATA, msglen: 0
-                },
-                body: {
-                    innerCodes: innercodes
-                }
-            };
-            // console.log(JSON.stringify(obj));
-            socket.write(JSON.stringify(obj));
+        this._socket.connect(this._port, this._host);
+
+        self._socket.on("connect", () => {
+            this._state = 1;
         });
-        socket.on("data", data => {
+
+        self._socket.on("data", data => {
             try {
                 // console.info(data.toString());
                 data.toString().split("$").forEach(item => {
@@ -55,9 +59,47 @@ export class PriceService extends EventEmitter<any> {
                 console.error(data.toString());
             }
         });
-        socket.on("error", (err) => {
+        self._socket.on("error", (err) => {
+            this._state = 2;
             console.error(err.message);
         });
+        self._socket.on("end", err => {
+            this._state = 2;
+            console.info("remote closed");
+        });
+    }
+
+    setHeartBeat(interval: number): void {
+        this._interval = interval > 5000 ? interval : 5000;
+        setInterval(() => {
+            if (this._port && this._host && this._state === 2) {
+                this.setEndpoint(this._port, this._host);
+                this.sendCodes();
+            }
+        }, this._interval);
+    }
+
+    register(innercodes: number[]): void {
+        let self = this;
+        innercodes.forEach(code => {
+            if (!self._innercodes.includes(code))
+                self._innercodes.push(code);
+        });
+        this.sendCodes();
+    }
+
+    private sendCodes() {
+
+        let obj = {
+            header: {
+                type: MsgType.PS_MSG_REGISTER, subtype: MsgType.PS_MSG_TYPE_MARKETDATA, msglen: 0
+            },
+            body: {
+                innerCodes: this._innercodes
+            }
+        };
+        // console.log(JSON.stringify(obj));
+        this._socket.write(JSON.stringify(obj));
     }
 }
 

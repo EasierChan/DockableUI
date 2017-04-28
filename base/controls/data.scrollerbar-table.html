@@ -1,29 +1,53 @@
-<div #scollerTable class="scroller-table">
-  <table class="table table-condensed table-hover">
-    <thead>
-      <tr>
-        <th *ngIf="dataSource.bRowIndex">#</th>
-        <th *ngFor="let col of dataSource.columns">
+<!--<div #scollerTable class="scroller-table">-->
+<table #content class="table table-condensed table-hover">
+  <thead>
+    <tr>
+      <th *ngIf="dataSource.bRowIndex">#</th>
+      <template ngFor let-col [ngForOf]="dataSource.columns">
+        <th *ngIf="!col.bHidden" (resize)="onResize()">
           {{col.columnHeader}}
         </th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let row of curData.rows;let rowIdx = index;">
-        <td *ngIf="dataSource.bRowIndex">{{rowIdx + 1 + iFirstRow}}</td>
-          <td *ngFor="let cell of row.cells" (click)="cell.dataSource.click(cellIndex, rowIdx + pageSize * curPage)" [class]="cell.styleObj.type=='plaintext'? 'text-' + cell.className + ' bg-' + cell.className : null">
+      </template>
+    </tr>
+  </thead>
+  <tbody>
+    <template ngFor let-row [ngForOf]="dataSource.rows" let-i="index">
+      <tr *ngIf="!row.bHidden" [style.background-color]="row?.bgcolor">
+        <td *ngIf="dataSource.bRowIndex" [style.padding.px]="dataSource.cellpadding">{{i + 1}}</td>
+        <template ngFor let-cell [ngForOf]="row.cells" let-cellIndex="index">
+          <td *ngIf="!dataSource.columns[cellIndex].bHidden" (click)="cell.dataSource.click(cellIndex, i + pageSize * curPage)"
+             [class]="cell.styleObj.type=='plaintext'? 'text-' + cell.className + ' bg-' + cell.className : null" [style.padding.px]="dataSource.cellpadding">
             <button *ngIf="cell.styleObj.type=='button'" class="btn btn-default btn-{{cell.className}} btn-xs " [disabled]="cell.styleObj.disable"
               [name]="cell.dataSource.name">
-              {{cell.dataSource.text}}
-            </button>
+            {{cell.dataSource.text}}
+          </button>
             <input *ngIf="cell.styleObj.type=='textbox'" type="text" [(ngModel)]="cell.dataSource.text" [readonly]="cell.styleObj.readonly"
               [name]="cell.dataSource.name" class="btn-default btn-{{cell.className}} btn-xs">
             <span *ngIf="cell.styleObj.type=='plaintext'">{{cell.dataSource.text}}</span>
+            <label *ngIf="cell.styleObj.type=='checkbox'" [style.margin-left.px]="cell.styleObj.left" [style.margin-top.px]="cell.styleObj.top">
+                <input [name]="cell.dataSource.name" type="checkbox" [(ngModel)]="cell.dataSource.text"
+                 [disabled]="cell.styleObj?.disable" style="width: 15px;"> 
+                <span style="white-space: nowrap">{{cell.dataSource.title}}</span>
+            </label>
           </td>
+        </template>
       </tr>
-    </tbody>
-  </table>
-  <div class="vscrollerbar">
+    </template>
+  </tbody>
+</table>
+<table #head class="table table-condensed" cellspacing="0" style="position:absolute;top:0;">
+  <thead>
+    <tr>
+      <th *ngIf="dataSource.bRowIndex">#</th>
+      <template ngFor let-col [ngForOf]="dataSource.columns">
+        <th *ngIf="!col.bHidden">
+          {{col.columnHeader}}
+        </th>
+      </template>
+    </tr>
+  </thead>
+</table>
+<!--<div class="vscrollerbar">
     <div class="arrow-top"></div>
     <div #vtrack class="tracker" (click)="onTrackClick($event)">
       <div #vthumb class="thumb" (mousedown)="onScrollStart('v', $event)"></div>
@@ -36,5 +60,5 @@
       <div #hthumb class="thumb" (mousedown)="onScrollStart('h', $event)"></div>
     </div>
     <div class="arrow-right"></div>
-  </div>
-</div>
+  </div>-->
+<!--</div>-->

@@ -67,7 +67,6 @@ export class UWindow {
 
 	public static menuBarHiddenKey = "menuBarHidden";
 	public static colorThemeStorageKey = "theme";
-	public onClosed: () => void;
 
 	protected static MIN_WIDTH = 300;
 	protected static MIN_HEIGHT = 120;
@@ -173,6 +172,13 @@ export class UWindow {
 		return this._win;
 	}
 
+	public set onclosing(value: Function) {
+		let self = this;
+		this.win.on("close", () => {
+			value(self.getBounds());
+		});
+	}
+
 	public focus(): void {
 		if (!this._win) {
 			return;
@@ -249,8 +255,8 @@ export class UWindow {
 		});
 
 		// Window Failed to load
-		this._win.webContents.on("did-fail-load", (event: Event, errorCode: string, errorDescription: string, surl: string) => {
-			DefaultLogger.warn("[electron event]: fail to load, ", errorDescription, surl);
+		this._win.webContents.on("did-fail-load", (event: Event, errorCode: string, errorDescription: string, surl: string, isMainFrame: boolean) => {
+			DefaultLogger.error("[electron event]: fail to load, ", errorCode, errorDescription, surl, isMainFrame);
 		});
 
 	}
@@ -282,8 +288,9 @@ export class UWindow {
 	}
 
 	public close(): void {
-		if (this.win !== null && !this.win.isDestroyed())
+		if (this.win !== null && !this.win.isDestroyed()) {
 			this.win.close();
+		}
 	}
 
 	public serializeWindowState(): IWindowState {
@@ -461,11 +468,9 @@ export class UWindow {
 
 
 	public build(): void {
+		let self = this;
 		this._win.on("closed", () => {
-			this.dispose();
-			if (this.onClosed) {
-				this.onClosed();
-			}
+			self.dispose();
 		});
 	}
 

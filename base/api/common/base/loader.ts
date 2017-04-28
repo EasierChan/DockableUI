@@ -1,9 +1,11 @@
 /**
+ * date 2017/02/17 cl
  * 
  */
 "use strict";
-import {ULogger, DefaultLogger} from "./logger";
-import {UConfig} from "./configurator";
+import { ULogger, DefaultLogger } from "./logger";
+import { UConfig } from "./configurator";
+import { IPCManager } from "../../dal/ipcManager";
 
 export class ULoader {
     static init(): void {
@@ -11,6 +13,8 @@ export class ULoader {
         ULogger.init();
         DefaultLogger.info("Program environment initialize...");
         // init configuration
-        UConfig.init();
+        // UConfig.init();
+        // init IPCManager
+        IPCManager.start();
     }
 }

@@ -1,131 +1,7 @@
-"use strict";
-
-
-const UNIT_PER_YUAN: number = 10000.0;
 /**
- * 
+ * chenlei
  */
-export interface MSGHEADER {
-    type: number;
-    subtype: number;
-    msglen: number;
-}
-
-export class MsgInnerCode {
-    static len: number = 4;
-    innerCode: number;
-}
-
-export class Message {
-
-    toString(): string {
-        let props = Object.getOwnPropertyNames(this);
-        let rets = "|";
-        for (let i in props) {
-            if (typeof this[props[i]] === "function" || props[i] === "len")
-                continue;
-            rets = rets.concat(props[i], "=", this[props[i]], "|");
-        }
-        return rets;
-    }
-}
-
-export interface BufferDecoder {
-    fromBuffer(buffer: Buffer): void;
-}
-
-export class MsgUpdateDate extends Message implements BufferDecoder {
-    static len: number = 20;
-    type: number;
-    market: number;
-    oldDate: number;
-    newDate: number;
-    seqNum: number;
-
-    fromBuffer(buffer: Buffer): void {
-        if (buffer.length < MsgUpdateDate.len) {
-            console.error("MsgUpdateDate::fromBuffer error");
-            return;
-        }
-
-        let offset = 0;
-        this.type = buffer.readInt32LE(offset); offset += 4;
-        this.market = buffer.readInt32LE(offset); offset += 4;
-        this.oldDate = buffer.readInt32LE(offset); offset += 4;
-        this.newDate = buffer.readInt32LE(offset); offset += 4;
-        this.seqNum = buffer.readInt32LE(offset); offset += 4;
-    }
-}
-
-export class MsgBidAskIOPV extends Message implements BufferDecoder {
-    static len: number = 32;
-    type: number;
-    innerCode: number;
-    time: number;
-    bidIOPV: number;
-    askIOPV: number;
-    seqNum: number;
-
-    fromBuffer(buffer: Buffer): void {
-        if (buffer.length < MsgBidAskIOPV.len) {
-            console.error("MsgBidAskIOPV::fromBuffer error");
-            return;
-        }
-
-        let offset = 0;
-        this.type = buffer.readInt32LE(offset); offset += 4;
-        this.innerCode = buffer.readInt32LE(offset); offset += 4;
-        this.time = buffer.readInt32LE(offset); offset += 4;
-        this.bidIOPV = buffer.readInt32LE(offset); offset += 8;
-        this.askIOPV = buffer.readInt32LE(offset); offset += 8;
-        this.seqNum = buffer.readInt32LE(offset); offset += 4;
-    }
-}
-
-export class DepthMarketData extends Message implements BufferDecoder {
-    static len: number = 128;
-    type: number;
-    UKey: number;
-    LastPrice: number;
-    PreClosePrice: number;
-    PreSettlePrice: number;
-    OpenPrice: number;
-    HighestPrice: number;
-    LowestPrice: number;
-    Volume: number;
-    VolumeGap: number;
-    Time: number;
-    BidPrice: number;
-    BidVolume: number;
-    AskPrice: number;
-    AskVolume: number;
-    InstrumentID: string;
-
-    fromBuffer(buffer: Buffer): void {
-        if (buffer.length < DepthMarketData.len) {
-            console.error("MarketDataMsg::fromBuffer error");
-            return;
-        }
-
-        let offset = 0;
-        this.type       = buffer.readInt32LE(offset); offset += 4;
-        this.UKey       = buffer.readInt32LE(offset); offset += 4;
-        this.LastPrice  = buffer.readIntLE(offset, 8); offset += 8;
-        this.PreClosePrice  = buffer.readIntLE(offset, 8); offset += 8;
-        this.PreSettlePrice = buffer.readIntLE(offset, 8); offset += 8;
-        this.OpenPrice      = buffer.readIntLE(offset, 8); offset += 8;
-        this.HighestPrice   = buffer.readIntLE(offset, 8); offset += 8;
-        this.LowestPrice    = buffer.readIntLE(offset, 8); offset += 8;
-        this.Volume         = buffer.readInt32LE(offset); offset += 4;
-        this.VolumeGap      = buffer.readInt32LE(offset); offset += 4;
-        this.Time           = buffer.readIntLE(offset, 8); offset += 8;
-        this.BidPrice       = buffer.readIntLE(offset, 8); offset += 8;
-        this.BidVolume      = buffer.readIntLE(offset, 4); offset += 4;
-        this.AskPrice       = buffer.readIntLE(offset, 8); offset += 8;
-        this.AskVolume      = buffer.readInt32LE(offset); offset += 4;
-        this.InstrumentID   = buffer.toString("utf-8", offset);
-    }
-}
+"use strict";
 
 export enum MsgType {
     PS_MSG_TYPE_UNKNOWN,
@@ -156,5 +32,51 @@ export enum MsgType {
     MSG_TYPE_MARKETDATA = 1102,
     MSG_TYPE_MARKETDATA_FUTURES = 1106,
     MSG_TYPE_UPDATE_DATE = 1118,
-    MSG_TYPE_FUTURES = 100
+    MSG_TYPE_FUTURES = 100,
+    MSG_TYPE_SZ_SNAPSHOT = 201
+}
+
+export abstract class Message {
+    toString(): string {
+        let props = Object.getOwnPropertyNames(this);
+        let rets = "|";
+        for (let i in props) {
+            if (typeof this[props[i]] === "function" || props[i] === "len")
+                continue;
+            rets = rets.concat(props[i], "=", this[props[i]], "|");
+        }
+        return rets;
+    }
+
+    abstract fromBuffer(buffer: Buffer, offset: number): void;
+    abstract toBuffer(): Buffer;
+}
+
+export interface IHeader {
+    type: number;
+    subtype: number;
+    msglen: number;
+}
+
+export class Header extends Message {
+    static len = 8;
+    type: number;
+    subtype: number;
+    msglen: number;
+
+    toBuffer(): Buffer {
+        let buf: Buffer = Buffer.alloc(Header.len);
+        let offset = 0;
+        buf.writeInt16LE(this.type, offset); offset += 2;
+        buf.writeInt16LE(this.subtype, offset); offset += 2;
+        buf.writeInt32LE(this.msglen, offset); offset += 4;
+        return buf;
+    }
+
+    fromBuffer(buf: Buffer): void {
+        let offset = 0;
+        this.type = buf.readInt16LE(offset); offset += 2;
+        this.subtype = buf.readInt16LE(offset); offset += 2;
+        this.msglen = buf.readUInt32LE(offset); offset += 4;
+    }
 }
