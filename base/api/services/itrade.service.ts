@@ -303,6 +303,11 @@ class ItradeClient extends TcpClient {
         header.type = 255;
         header.subtype = 0;
         header.msglen = 0;
+        if (this._intervalHeart) {
+            clearInterval(this._intervalHeart);
+            this._intervalHeart = null;
+        }
+
         this._intervalHeart = setInterval(() => {
             this.send(header.toBuffer());
         }, interval * 1000);
@@ -368,6 +373,7 @@ export class ItradeService {
         });
 
         this._client.on("connect", () => {
+            this._client.sendHeartBeat(10);
             if (this._messageMap.hasOwnProperty(0)) {
                 if (this._messageMap[0].context !== undefined)
                     this._messageMap[0].callback.call(this._messageMap[0].context, this._sessionid);

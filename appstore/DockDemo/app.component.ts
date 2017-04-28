@@ -194,7 +194,7 @@ export class AppComponent implements OnInit {
     this.PositionPage = new TabPage("Position", "Position");
     this.pageObj["Position"] = this.PositionPage;
     let positionContent = new ComboControl("col");
-    this.PositionTable = new DataTable("table");
+    this.PositionTable = new DataTable("table2");
     this.PositionTable.addColumn("Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
       "TotalCost", "TodayOpen", "AvgPirce", "StrategyId", "Type");
     this.PositionTable.columnConfigurable = true;
@@ -307,8 +307,8 @@ export class AppComponent implements OnInit {
     let dd_symbol = new DropDown();
     dd_symbol.AcceptInput = true;
     dd_symbol.Title = "Code: ";
-    dd_symbol.addItem({ Text: "平安银行", Value: "3,000001" });
-    dd_symbol.addItem({ Text: "万科A", Value: "6,000002" });
+    dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
+    dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
     dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
     let self = this;
     dd_symbol.SelectChange = () => {
@@ -348,7 +348,7 @@ export class AppComponent implements OnInit {
     this.logPage = new TabPage("LOG", "LOG");
     this.pageObj["LOG"] = this.logPage;
     let logContent = new ComboControl("col");
-    this.logTable = new DataTable();
+    this.logTable = new DataTable("table2");
     this.logTable.addColumn("Time", "Content");
     logContent.addChild(this.logTable);
     this.logPage.setContent(logContent);
@@ -721,7 +721,7 @@ export class AppComponent implements OnInit {
     reqbtn.Width = 30;
     reqbtn.Text = "Req";
     profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
-    this.profitTable = new DataTable();
+    this.profitTable = new DataTable("table2");
     this.profitTable.addColumn("U-Key", "Code", "Account", "Strategy", "AvgPrice(B)", "AvgPirce(S)",
       "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
       "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPirce", "IOPV");

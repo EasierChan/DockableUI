@@ -66,10 +66,10 @@ class QTPParser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                console.info(`processMsg: appid=${this._curHeader.msgtype}`);
+                console.info(`processMsg: appid=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
                 this.emit(this._curHeader.msgtype.toString(), this._curHeader, tempBuffer);
 
-                restLen = buflen - Header.len;
+                restLen = buflen - Header.len - this._curHeader.datalen;
                 if (restLen > 0) {
                     let restBuf = Buffer.alloc(restLen);
                     tempBuffer.copy(restBuf, 0, buflen - restLen);
@@ -97,18 +97,18 @@ class QTPMessageParser extends QTPParser {
     }
 
     init(): void {
-        this.registerMsgFunction("17", this, this.processLoginMsg);
+        this.registerMsgFunction("8012", this, this.processQtpMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
     }
 
-    processLoginMsg(args: any[]): void {
-        let [header, content] = args;
+    processQtpMsg(args: any[]): void {
+        let [header, all] = args;
         let msg: QTPMessage = new QTPMessage();
         msg.header = header;
-        msg.fromBuffer(content, Header.len);
-        this.emit("data", msg);
+        msg.fromBuffer(all, Header.len);
+        this._client.emit("data", msg);
         // switch (header.msgtype) {
         //     case 43: // Login
         //         msg.fromBuffer(content);
@@ -183,6 +183,7 @@ export class QtpService {
     connect(port, host = "127.0.0.1") {
         let self = this;
         this._client.on("data", msg => {
+            msg = msg[0];
             if (self._messageMap.hasOwnProperty(msg.header.msgtype)) {
                 if (self._messageMap[msg.header.msgtype].context)
                     self._messageMap[msg.header.msgtype].callback.call(self._messageMap[msg.header.msgtype].context, msg.body);
@@ -191,6 +192,11 @@ export class QtpService {
             }
             else
                 console.warn(`unknown message appid = ${msg.header.msgtype}`);
+        });
+        this._client.on("error", () => {
+            setTimeout(() => {
+                this._client.connect(port, host);
+            }, 10000);
         });
         this._client.connect(port, host);
     }

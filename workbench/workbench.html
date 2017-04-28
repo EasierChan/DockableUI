@@ -94,7 +94,7 @@
                             <div class="row">
                                 <label for="configName">Configuration Name: </label>
                                 <div class="input-control text">
-                                    <input type="text" id="configName" [(ngModel)]="config.name">
+                                    <input type="text" id="configName" [(ngModel)]="config.name" [readonly]="isModify">
                                 </div>
                             </div>
                             <div>
@@ -341,8 +341,8 @@
                                 <div class="cell">
                                     <div>
                                         <span>Active Channel: </span>
-                                        <label><input name="groupChannel" type="radio">Default</label>
-                                        <label><input name="groupChannel" type="radio">Loopback Test</label>
+                                        <label><input name="groupChannel" type="radio" value="default" [(ngModel)]="config.activeChannel">Default</label>
+                                        <label><input name="groupChannel" type="radio" value="loopback" [(ngModel)]="config.activeChannel">Loopback Test</label>
                                     </div>
                                     <div class="accordion" data-role="accordion" data-close-any="true">
                                         <div class="frame active">
@@ -425,6 +425,32 @@
                                                         <label><input name="speed" type="radio">8</label>
                                                     </div>
                                                     <button style="float: right" (click)="createLoopbackTest()">generate</button>
+                                                </fieldset>
+                                                <fieldset *ngIf="loopbackConfig">
+                                                    <legend>Result</legend>
+                                                    <div>
+                                                        <table class="table condensed">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>name</th>
+                                                                    <th>host</th>
+                                                                    <th>port</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>{{config.channels.gateway[0].name}}</td>
+                                                                    <td>{{loopbackConfig.url}}</td>
+                                                                    <td>{{loopbackConfig.port}}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>{{config.channels.feedhandler.name}}</td>
+                                                                    <td>{{loopbackConfig.hqurl}}</td>
+                                                                    <td>{{loopbackConfig.port}}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
                                                 </fieldset>
                                             </div>
                                         </div>
