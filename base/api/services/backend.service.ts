@@ -152,3 +152,32 @@ export class File {
 export class Environment {
     public static appDataDir: string = electron.remote.app.getPath("appData");
 }
+
+export class Sound {
+    static readonly exec = require("@node/child_process").exec;
+    /**
+     * @param type 0 good, 1 bad;
+     */
+    static play(type: number) {
+        switch (type) {
+            case 0:
+                Sound.playWav(path.join(__dirname, "/../../sound/good.wav"));
+            case 1:
+                Sound.playWav(path.join(__dirname, "/../../sound/bad.wav"));
+                break;
+            default:
+                console.error(`unvalid type => ${type}`);
+        }
+    }
+
+    static playWav(fpath: string) {
+        Sound.exec("aplay " + fpath, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                return;
+            }
+            console.info(`stdout: ${stdout}`);
+            console.info(`stdout: ${stderr}`);
+        });
+    }
+}
