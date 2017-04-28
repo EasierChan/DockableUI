@@ -4,7 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
 import { AppComponent } from "./app.component";
-import { DataTableComponent, EChartComponent } from "../../base/controls/data.component";
+import { DataTableComponent, EChartComponent, ScrollerBarTable } from "../../base/controls/data.component";
 import { UserControlComponent, DockContainerComponent } from "../../base/controls/user.component";
 
 @NgModule({
@@ -18,6 +18,7 @@ import { UserControlComponent, DockContainerComponent } from "../../base/control
     DockContainerComponent,
     DataTableComponent,
     EChartComponent,
+    ScrollerBarTable,
     UserControlComponent
   ],
   bootstrap: [AppComponent]

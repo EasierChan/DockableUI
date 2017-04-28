@@ -75,6 +75,12 @@ export class AppStore {
                     name: "SpreadViewer",
                     desc: "show spread viewer",
                     category: "Transanctional"
+                },
+                {
+                    id: "BootstrapDemo",
+                    name: "BootstrapDemo",
+                    desc: "BootstrapDemo",
+                    category: "Transanctional"
                 }
             ];
             let appIds = [];

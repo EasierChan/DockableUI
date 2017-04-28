@@ -86,7 +86,7 @@ var AppComponent = (function () {
             _this.spreadviewers[index].hidden();
             body.addChild(_this.spreadviewers[index].ControlRef);
         });
-        btn_dayview.OnClick(function () {
+        btn_dayview.OnClick = function () {
             var yaxis = {};
             if (txt_min.Text.length > 0)
                 yaxis.min = parseFloat(txt_min.Text);
@@ -96,7 +96,7 @@ var AppComponent = (function () {
                 yaxis.interval = parseFloat(txt_tick.Text);
             _this.currentViewer.setEChartOption({ yAxis: yaxis });
             yaxis = null;
-        });
+        };
         row1.addChild(new control_1.DockContainer("v", 800, null).addChild(body));
         this.children.push(row1);
     };

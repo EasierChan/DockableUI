@@ -57,8 +57,14 @@ var AppStore = (function () {
                 },
                 {
                     id: "SpreadViewer",
-                    name: "ViewerTest",
+                    name: "SpreadViewer",
                     desc: "show spread viewer",
+                    category: "Transanctional"
+                },
+                {
+                    id: "BootstrapDemo",
+                    name: "BootstrapDemo",
+                    desc: "BootstrapDemo",
                     category: "Transanctional"
                 }
             ];

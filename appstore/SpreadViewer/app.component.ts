@@ -112,7 +112,7 @@ export class AppComponent implements OnInit {
       this.spreadviewers[index].hidden();
       body.addChild(this.spreadviewers[index].ControlRef);
     });
-    btn_dayview.OnClick(() => {
+    btn_dayview.OnClick = () => {
       let yaxis: any = {};
       if (txt_min.Text.length > 0) yaxis.min = parseFloat(txt_min.Text);
       if (txt_max.Text.length > 0) yaxis.max = parseFloat(txt_max.Text);
@@ -121,7 +121,7 @@ export class AppComponent implements OnInit {
       this.currentViewer.setEChartOption({ yAxis: yaxis });
 
       yaxis = null;
-    });
+    };
 
     row1.addChild(new DockContainer("v", 800, null).addChild(body));
     this.children.push(row1);

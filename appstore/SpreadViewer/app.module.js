@@ -30,6 +30,7 @@ var AppModule = (function () {
                 user_component_1.DockContainerComponent,
                 data_component_1.DataTableComponent,
                 data_component_1.EChartComponent,
+                data_component_1.ScrollerBarTable,
                 user_component_1.UserControlComponent
             ],
             bootstrap: [app_component_1.AppComponent]
