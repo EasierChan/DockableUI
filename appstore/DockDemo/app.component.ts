@@ -769,9 +769,9 @@ export class AppComponent implements OnInit {
         AppComponent.self.bookViewTable.detectChanges();
       }
     });
-
+    let defaultLayout = { "type": "v", "width": 1845, "children": [{ "type": "h", "height": 281, "modules": ["Position", "Account", "OrderStatus", "DoneOrders"] }, { "type": "h", "height": 368, "children": [{ "type": "v", "width": 355, "modules": ["BookView"] }, { "type": "v", "width": 1485, "modules": ["LOG", "StatArb", "Portfolio"] }] }, { "type": "h", "height": 343, "modules": ["StrategyMonitor", "Profit"] }] };
     let layout: any = File.parseJSON(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json");
-    let children = layout.children;
+    let children = layout ? layout.children : defaultLayout.children;
     let childrenLen = children.length;
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
       this.children.push(this.traversefunc(children[i]));
