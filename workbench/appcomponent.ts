@@ -119,13 +119,16 @@ export class AppComponent implements OnDestroy {
 
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.channels.feedhandler.port);
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.channels.feedhandler.addr;
-        } else {
-            this.curTemplate.body.data.SSGW.forEach(gw => {
-                gw.port = parseInt(this.config.loopbackConfig.port);
-                gw.addr = this.config.loopbackConfig.url;
+        } else { // loopback test
+            this.curTemplate.body.data.SSGW.forEach((gw, index) => {
+                gw.port = parseInt(this.config.loopbackConfig.result.port);
+                gw.addr = this.config.loopbackConfig.result.url;
+                if (index > 0) {
+                    gw.ref = this.curTemplate.body.data.SSGW[0].key;
+                }
             });
-            this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.loopbackConfig.hqport);
-            this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.loopbackConfig.hqurl;
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.loopbackConfig.result.hqport);
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.loopbackConfig.result.hqurl;
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.filename = "./lib/libFeedChronos.so";
         }
         console.info(this.curTemplate, this.config);
@@ -145,6 +148,9 @@ export class AppComponent implements OnDestroy {
             // obj.maxorderid = 0; 
             // obj.minorderid
             // obj.orderstep
+            item.parameters.forEach((iparam: any) => {
+                iparam.value = parseFloat(iparam.value);
+            });
             this.curTemplate.body.data["Strategy"].push(obj);
             this.curTemplate.body.data["PairTrades"][item.name] = {
                 Command: item.commands,
@@ -213,6 +219,15 @@ export class AppComponent implements OnDestroy {
             this.curTemplate = JSON.parse(JSON.stringify(this.configBLL.getTemplateByName(this.config.strategyCoreName)));
         }
 
+        if (!this.config.loopbackConfig.option) {
+            let idate = new Date().format("yyyy-mm-dd");
+            this.config.loopbackConfig.option = {
+                timebegin: idate,
+                timeend: idate,
+                speed: "1",
+                simlevel: "1"
+            };
+        }
         // this.ref.detectChanges();
         window.showMetroDialog("#config");
     }
@@ -447,8 +462,7 @@ export class AppComponent implements OnDestroy {
         this.qtp.addSlot({
             msgtype: 8012,
             callback: (msg) => {
-                console.info(msg);
-                this.config.loopbackConfig = msg;
+                this.config.loopbackConfig.result = msg;
             }
         });
         this.qtp.connect(4801, "172.24.51.1");
@@ -456,10 +470,10 @@ export class AppComponent implements OnDestroy {
 
     createLoopbackTest(): void {
         this.qtp.send(8010, {
-            timebegin: 20170425,
-            timeend: 20170426,
-            speed: 2,
-            simlevel: 1
+            timebegin: parseInt(this.config.loopbackConfig.option.timebegin.split("-").join("")),
+            timeend: parseInt(this.config.loopbackConfig.option.timeend.split("-").join("")),
+            speed: parseInt(this.config.loopbackConfig.option.speed),
+            simlevel: parseInt(this.config.loopbackConfig.option.simlevel)
         });
     }
 

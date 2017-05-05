@@ -297,7 +297,7 @@ export class WorkspaceConfig {
     private _port: string;
     host: string;
     activeChannel = "default";
-    loopbackConfig?: any;
+    loopbackConfig?: any = {};
 
     constructor() {
         this.curstep = 1;

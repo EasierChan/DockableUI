@@ -66,9 +66,9 @@ export class OrderService {
                     this._messageMap[msg[0].type].callback(msg[1], this._sessionid);
             }
         });
-        this._client.on("error", () => {
+        this._client.on("close", () => {
             setTimeout(() => {
-                this._client.connect(this._port, this._host);
+                this._client.reconnect(this._port, this._host);
             }, 10000);
         });
     }

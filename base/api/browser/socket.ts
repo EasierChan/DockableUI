@@ -76,6 +76,9 @@ export class TcpSocket {
         }
         logger.error("connection is not writable.");
         this.connect(this._port, this._ip);
+        this._sock.on("connect", (e) => {
+            this._sock.write(data);
+        });
     }
     /**
      * 关闭连接
