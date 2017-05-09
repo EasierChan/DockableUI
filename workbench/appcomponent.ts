@@ -54,6 +54,8 @@ export class AppComponent implements OnDestroy {
     curTemplate: any;
     isModify: boolean = false;
 
+    analysisApps: any[];
+
     constructor(private appService: AppStoreService, private tgw: IP20Service,
         private qtp: QtpService,
         private ref: ChangeDetectorRef) {
@@ -65,8 +67,11 @@ export class AppComponent implements OnDestroy {
         this.queryList = [];
 
         this.contextMenu = new Menu();
-        this.contextMenu.addItem("Open", () => {
-            this.onStartApp();
+        this.contextMenu.addItem("Start", () => {
+            this.operateStrategyServer(this.config, 1);
+        });
+        this.contextMenu.addItem("Stop", () => {
+            this.operateStrategyServer(this.config, 0);
         });
         this.contextMenu.addItem("Modify", () => {
             this.isModify = true;
@@ -357,13 +362,11 @@ export class AppComponent implements OnDestroy {
             roles: null,
             apps: null
         });
-        this.isAuthorized = true;
-        if (this.isAuthorized) {
-            // 
-            // this.strategyContainer.addItem(self.configs);
-        } else {
-            this.showError("Error", "Username or password wrong.", "alert");
-        }
+
+        this.analysisApps = [{
+            name: "SpreadViewerOne",
+            apptype: "SpreadViewer"
+        }];
         this.loginTGW();
     }
 
@@ -386,7 +389,7 @@ export class AppComponent implements OnDestroy {
                     config.host = msg.content.body.address;
                     this.strategyContainer.removeItem(config.name);
                     this.strategyContainer.addItem(config);
-                    this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: 1 } });
+                    // this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: 1 } });
                 }
             }
         });
@@ -409,6 +412,7 @@ export class AppComponent implements OnDestroy {
                     self.configs = self.configBLL.getAllConfigs();
                     self.configs.forEach(config => {
                         self.config = config;
+                        self.config.state = 0;
                         self.curTemplate = JSON.parse(JSON.stringify(self.configBLL.getTemplateByName(self.config.strategyCoreName)));
                         self.finish();
                     });
@@ -477,6 +481,11 @@ export class AppComponent implements OnDestroy {
         });
     }
 
+    operateStrategyServer(config: WorkspaceConfig, action: number) {
+        console.info(config, action);
+        this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
+    }
+
     onReset(): void {
         this.username = "";
         this.password = "";
@@ -493,6 +502,12 @@ export class AppComponent implements OnDestroy {
                 host: this.config.channels.feedhandler.addr
             }
         })) {
+            this.showError("Error", `start ${name} app error!`, "alert");
+        }
+    }
+
+    onAnalysisApp(item) {
+        if (!this.appService.startApp(item.name, item.apptype, {})) {
             this.showError("Error", `start ${name} app error!`, "alert");
         }
     }

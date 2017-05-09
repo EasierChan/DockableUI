@@ -308,9 +308,11 @@ class ItradeClient extends TcpClient {
             this._intervalHeart = null;
         }
 
-        this._intervalHeart = setInterval(() => {
-            this.send(header.toBuffer());
-        }, interval * 1000);
+        if (interval > 0) {
+            this._intervalHeart = setInterval(() => {
+                this.send(header.toBuffer());
+            }, interval * 1000);
+        }
     }
 
     dispose(): void {
@@ -334,7 +336,7 @@ export class ItradeService {
     private _sessionid: number;
     private _port: number;
     private _host: string;
-    private _time: any;
+    private _timer: any;
     constructor() {
         this._sessionid = 0;
         this._messageMap = {};
@@ -360,7 +362,7 @@ export class ItradeService {
     }
 
     start(): void {
-        this._time = null;
+        this._timer = null;
         this._client.on("data", msg => {
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
                 if (this._messageMap[msg[0].type].context !== undefined)
@@ -373,6 +375,9 @@ export class ItradeService {
         });
 
         this._client.on("connect", () => {
+            if (this._timer) {
+                clearTimeout(this._timer);
+            }
             this._client.sendHeartBeat(10);
             if (this._messageMap.hasOwnProperty(0)) {
                 if (this._messageMap[0].context !== undefined)
@@ -382,12 +387,18 @@ export class ItradeService {
             }
         });
 
-        this._client.on("error", () => {
-            if (this._time === null) {
-                this._time = setTimeout(() => {
-                    this._time = null;
-                    this._client.reconnect(this._port, this._host);
-                }, 10000);
+        this._client.on("close", () => {
+            this._client.sendHeartBeat(0);
+            this._timer = setTimeout(() => {
+                this._timer = null;
+                this._client.reconnect(this._port, this._host);
+            }, 10000);
+
+            if (this._messageMap.hasOwnProperty(-1)) {
+                if (this._messageMap[-1].context !== undefined)
+                    this._messageMap[-1].callback.call(this._messageMap[-1].context, this._sessionid);
+                else
+                    this._messageMap[-1].callback(this._sessionid);
             }
         });
     }
