@@ -765,11 +765,31 @@ export class SpreadViewer {
             },
             xAxis: {
                 type: "category",
+                axisLabel: {
+                    textStyle: {
+                        color: "#fff"
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: "#fff"
+                    }
+                },
                 boundaryGap: false,
                 data: this.timePoints
             },
             yAxis: {
                 type: "value",
+                axisLabel: {
+                    textStyle: {
+                        color: "#fff"
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: "#fff"
+                    }
+                },
                 min: "dataMin",
                 max: "dataMax"
             },
@@ -787,6 +807,7 @@ export class SpreadViewer {
                     data: this.values[0],
                     lineStyle: {
                         normal: {
+                            color: "#0f0",
                             width: 1
                         }
                     },
@@ -803,6 +824,7 @@ export class SpreadViewer {
                     data: this.values[1],
                     lineStyle: {
                         normal: {
+                            color: "#f00",
                             width: 1
                         }
                     }

@@ -507,7 +507,7 @@ export class AppComponent implements OnDestroy {
     }
 
     onAnalysisApp(item) {
-        if (!this.appService.startApp(item.name, item.apptype, {})) {
+        if (!this.appService.startApp(item.name, item.apptype, {port: 10000, host: "172.24.51.4"})) {
             this.showError("Error", `start ${name} app error!`, "alert");
         }
     }
