@@ -12,8 +12,6 @@ import {
 import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
-// import { ItradeClient } from "../services/itrade.service";
-// import {  ItradeResolver } from "../dal/itrade/base";
 
 const logger = console;
 declare var electron: Electron.ElectronMainAndRenderer;
@@ -663,7 +661,7 @@ class StrategyParser extends ItradeParser {
                 this._client.sendMessage(2028, 0, getParabuffer);
             }
             res.push(strategyInfo);
-            console.log("strategyInfo:", strategyInfo);
+            // console.log("strategyInfo:", strategyInfo);
 
         }
         return res;
