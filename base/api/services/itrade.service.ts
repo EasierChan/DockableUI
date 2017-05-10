@@ -355,6 +355,11 @@ export class ItradeService {
     }
 
     connect(port, host = "127.0.0.1") {
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
+
         this.start();
         this._client.connect(port, host);
         this._port = port;
@@ -362,7 +367,6 @@ export class ItradeService {
     }
 
     start(): void {
-        this._timer = null;
         this._client.on("data", msg => {
             if (this._messageMap.hasOwnProperty(msg[0].type)) {
                 if (this._messageMap[msg[0].type].context !== undefined)
@@ -377,6 +381,7 @@ export class ItradeService {
         this._client.on("connect", () => {
             if (this._timer) {
                 clearTimeout(this._timer);
+                this._timer = null;
             }
             this._client.sendHeartBeat(10);
             if (this._messageMap.hasOwnProperty(0)) {
