@@ -94,7 +94,7 @@
                             <div class="row">
                                 <label for="configName">Configuration Name: </label>
                                 <div class="input-control text">
-                                    <input type="text" id="configName" [(ngModel)]="config.name">
+                                    <input type="text" id="configName" [(ngModel)]="config.name" [readonly]="isModify">
                                 </div>
                             </div>
                             <div>
@@ -339,58 +339,122 @@
                             </div>
                             <div class="row">
                                 <div class="cell">
-                                    <!--<div class="accordion" data-role="accordion" data-close-any="true">
+                                    <div>
+                                        <span>Active Channel: </span>
+                                        <label><input name="groupChannel" type="radio" value="default" [(ngModel)]="config.activeChannel">Default</label>
+                                        <label><input name="groupChannel" type="radio" value="loopback" [(ngModel)]="config.activeChannel">Loopback Test</label>
+                                    </div>
+                                    <div class="accordion" data-role="accordion" data-close-any="true">
+                                        <div class="frame active">
+                                            <div class="heading bg-grayLight">
+                                                <div class="cell">Default</div>
+                                            </div>
+                                            <div class="content bg-darker">
+                                                <fieldset *ngIf="config.channels.gateway">
+                                                    <legend>Trade Channel</legend>
+                                                    <table class="table condensed">
+                                                        <thead>
+                                                            <tr>
+                                                                <!--<th><input type="checkbox"></th>-->
+                                                                <th>name</th>
+                                                                <th>type</th>
+                                                                <th>host</th>
+                                                                <th>port</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr *ngFor="let channel of config.channels.gateway">
+                                                                <!--<td><input type="checkbox" [(ngModel)]="channel.enable"></td>-->
+                                                                <td>{{channel.name}}</td>
+                                                                <td>{{channel.type === 1 ? "Stock": "Future"}}</td>
+                                                                <td><input type="text" [(ngModel)]="channel.addr"></td>
+                                                                <td><input type="text" [(ngModel)]="channel.port"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </fieldset>
+                                                <fieldset *ngIf="config.channels.feedhandler">
+                                                    <legend>MarketData Channel</legend>
+                                                    <table class="table condensed">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>name</th>
+                                                                <th>host</th>
+                                                                <th>port</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>{{config.channels.feedhandler.name}}</td>
+                                                                <td><input type="text" [(ngModel)]="config.channels.feedhandler.addr"></td>
+                                                                <td><input type="text" [(ngModel)]="config.channels.feedhandler.port"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </fieldset>
+                                            </div>
+                                        </div>
                                         <div class="frame">
                                             <div class="heading bg-grayLight">
-                                                <div class="cell">666600000040</div>
-                                                <div class="cell">Stock</div>
-                                            </div>-->
-                                    <!--<div class="content bg-darker">-->
-                                    <fieldset *ngIf="config.channels.gateway">
-                                        <legend>Trade Channel</legend>
-                                        <table class="table condensed">
-                                            <thead>
-                                                <tr>
-                                                    <!--<th><input type="checkbox"></th>-->
-                                                    <th>name</th>
-                                                    <th>type</th>
-                                                    <th>host</th>
-                                                    <th>port</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr *ngFor="let channel of config.channels.gateway">
-                                                    <!--<td><input type="checkbox" [(ngModel)]="channel.enable"></td>-->
-                                                    <td>{{channel.name}}</td>
-                                                    <td>{{channel.type === 1 ? "Stock": "Future"}}</td>
-                                                    <td><input type="text" [(ngModel)]="channel.addr"></td>
-                                                    <td><input type="text" [(ngModel)]="channel.port"></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </fieldset>
-                                    <fieldset *ngIf="config.channels.feedhandler">
-                                        <legend>MarketData Channel</legend>
-                                        <table class="table condensed">
-                                            <thead>
-                                                <tr>
-                                                    <th>name</th>
-                                                    <th>host</th>
-                                                    <th>port</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <tr>
-                                                    <td>{{config.channels.feedhandler.name}}</td>
-                                                    <td><input type="text" [(ngModel)]="config.channels.feedhandler.addr"></td>
-                                                    <td><input type="text" [(ngModel)]="config.channels.feedhandler.port"></td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </fieldset>
-                                    <!--</div>
+                                                <div class="cell">Loopback Test</div>
+                                            </div>
+                                            <div class="content bg-darker">
+                                                <fieldset *ngIf="config.channels.gateway">
+                                                    <legend>Preference</legend>
+                                                    <div>
+                                                        MatchMode:
+                                                        <label><input name="matchmode" type="radio" checked>Mode1</label>
+                                                        <label><input name="matchmode" type="radio">Mode2</label>
+                                                        <label><input name="matchmode" type="radio">Mode3</label>
+                                                    </div>
+                                                    <div>
+                                                        Duration:
+                                                        <input type="date">
+                                                        <span>-</span>
+                                                        <input type="date">
+                                                    </div>
+                                                    <div>
+                                                        Speed:
+                                                        <label><input name="speed" type="radio" checked>1</label>
+                                                        <label><input name="speed" type="radio">2</label>
+                                                        <label><input name="speed" type="radio">3</label>
+                                                        <label><input name="speed" type="radio">4</label>
+                                                        <label><input name="speed" type="radio">5</label>
+                                                        <label><input name="speed" type="radio">6</label>
+                                                        <label><input name="speed" type="radio">7</label>
+                                                        <label><input name="speed" type="radio">8</label>
+                                                    </div>
+                                                    <button style="float: right" (click)="createLoopbackTest()">generate</button>
+                                                </fieldset>
+                                                <fieldset *ngIf="loopbackConfig">
+                                                    <legend>Result</legend>
+                                                    <div>
+                                                        <table class="table condensed">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>name</th>
+                                                                    <th>host</th>
+                                                                    <th>port</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>{{config.channels.gateway[0].name}}</td>
+                                                                    <td>{{loopbackConfig.url}}</td>
+                                                                    <td>{{loopbackConfig.port}}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>{{config.channels.feedhandler.name}}</td>
+                                                                    <td>{{loopbackConfig.hqurl}}</td>
+                                                                    <td>{{loopbackConfig.port}}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </fieldset>
+                                            </div>
                                         </div>
-                                    </div>-->
+                                    </div>
                                 </div>
                             </div>
                         </div>

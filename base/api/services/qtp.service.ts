@@ -1,18 +1,18 @@
 /**
- * chenlei 2017/01/16
+ * chenlei 2017/04/27
  */
 "use strict";
 
 import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
-import { ISONPack2Header, ISONPack2 } from "../model/isonpack/isonpack.model";
+import { Header, QTPMessage } from "../model/qtp/message.model";
 import { Injectable } from "@angular/core";
 
 const logger = console;
 
-class IP20Parser extends Parser {
-    private _curHeader: ISONPack2Header = null;
+class QTPParser extends Parser {
+    private _curHeader: Header = null;
     constructor(_oPool: Pool<Buffer>) {
         super(_oPool);
     }
@@ -36,14 +36,14 @@ class IP20Parser extends Parser {
         let restLen = 0;
         for (; bufCount < this._oPool.length; ++bufCount) {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].byteLength;
-            if (buflen >= ISONPack2Header.len) {
-                this._curHeader = new ISONPack2Header();
+            if (buflen >= Header.len) {
+                this._curHeader = new Header();
                 if (bufCount > 1) {
                     let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
-                    this._curHeader.fromBuffer(tempBuffer);
+                    this._curHeader.fromBuffer(tempBuffer, 0);
                     tempBuffer = null;
                 } else {
-                    this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0]);
+                    this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0], 0);
                 }
                 ret = true;
                 break;
@@ -64,12 +64,12 @@ class IP20Parser extends Parser {
         let restLen = 0;
         for (; bufCount < this._oPool.length; ++bufCount) {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
-            if (buflen >= this._curHeader.packlen) {
+            if (buflen >= Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                console.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
-                this.emit(this._curHeader.appid.toString(), this._curHeader, tempBuffer);
+                console.info(`processMsg: appid=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
+                this.emit(this._curHeader.msgtype.toString(), this._curHeader, tempBuffer);
 
-                restLen = buflen - this._curHeader.packlen;
+                restLen = buflen - Header.len - this._curHeader.datalen;
                 if (restLen > 0) {
                     let restBuf = Buffer.alloc(restLen);
                     tempBuffer.copy(restBuf, 0, buflen - restLen);
@@ -89,7 +89,7 @@ class IP20Parser extends Parser {
     }
 }
 
-class ISONPackParser extends IP20Parser {
+class QTPMessageParser extends QTPParser {
     private _intervalRead: NodeJS.Timer;
     constructor(private _client: TcpClient) {
         super(_client.bufferQueue);
@@ -97,50 +97,31 @@ class ISONPackParser extends IP20Parser {
     }
 
     init(): void {
-        this.registerMsgFunction("17", this, this.processLoginMsg);
-        this.registerMsgFunction("270", this, this.processTemplateMsg);
-        this.registerMsgFunction("107", this, this.processTemplateMsg);
+        this.registerMsgFunction("8012", this, this.processQtpMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
     }
 
-    processLoginMsg(args: any[]): void {
-        let header: ISONPack2Header = args[0];
-        let all = args[1];
-        let msg = new ISONPack2();
-        switch (header.packid) {
-            case 43: // Login
-                msg.fromBuffer(all);
-                this._client.emit("data", msg);
-                break;
-            case 120: // login error
-                msg.fromBuffer(all);
-                this._client.emit("data", msg);
-                break;
-            default:
-                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
-                break;
-        }
-    }
-
-    processTemplateMsg(args: any[]): void {
-        let header: ISONPack2Header = args[0];
-        let all = args[1];
-        let msg;
-
-        switch (header.packid) {
-            case 194:
-            case 2001:
-            case 2003:
-                msg = new ISONPack2();
-                msg.fromBuffer(all);
-                this._client.emit("data", msg);
-                break;
-            default:
-                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
-                break;
-        }
+    processQtpMsg(args: any[]): void {
+        let [header, all] = args;
+        let msg: QTPMessage = new QTPMessage();
+        msg.header = header;
+        msg.fromBuffer(all, Header.len);
+        this._client.emit("data", msg);
+        // switch (header.msgtype) {
+        //     case 43: // Login
+        //         msg.fromBuffer(content);
+        //         this._client.emit("data", msg);
+        //         break;
+        //     case 120: // login error
+        //         msg.fromBuffer(content);
+        //         this._client.emit("data", msg);
+        //         break;
+        //     default:
+        //         logger.warn(`unknown message: appid=${header.msgtype}`);
+        //         break;
+        // }
     }
 
     dispose(): void {
@@ -151,9 +132,9 @@ class ISONPackParser extends IP20Parser {
     }
 }
 
-class ISONPackClient extends TcpClient {
+class QTPClient extends TcpClient {
     private _intervalHeart: NodeJS.Timer;
-    private _parsers: IP20Parser[] = [];
+    private _parsers: QTPMessageParser[] = [];
     constructor() {
         super();
     }
@@ -162,20 +143,15 @@ class ISONPackClient extends TcpClient {
         this._parsers.push(parser);
     }
 
-    sendMessage(appid: number, packid: number, body: Object): void {
-        let pack = new ISONPack2();
-        pack.content = body;
-        pack.head.appid = appid;
-        pack.head.packid = packid;
-        this.send(pack.toBuffer());
+    sendMessage(msg: QTPMessage): void {
+        this.send(msg.toBuffer());
     }
 
     sendHeartBeat(appid: number, interval = 10): void {
-        let header: ISONPack2Header = new ISONPack2Header();
-        header.appid = appid;
-        header.packid = 0;
-        header.packlen = ISONPack2Header.len;
-        header.bitmap = 0x40;
+        let header: Header = new Header();
+        header.msgtype = 255;
+        header.optslen = 0;
+        header.datalen = 0;
         this._intervalHeart = setInterval(() => {
             this.send(header.toBuffer());
         }, interval * 1000);
@@ -194,31 +170,42 @@ class ISONPackClient extends TcpClient {
 }
 
 @Injectable()
-export class IP20Service {
-    private _client: ISONPackClient;
+export class QtpService {
+    private _client: QTPClient;
     private _messageMap: Object;
     constructor() {
         this._messageMap = new Object();
-        this._client = new ISONPackClient();
+        this._client = new QTPClient();
         this._client.useSelfBuffer = true;
-        this._client.addParser(new ISONPackParser(this._client));
+        this._client.addParser(new QTPMessageParser(this._client));
     };
 
     connect(port, host = "127.0.0.1") {
         let self = this;
         this._client.on("data", msg => {
             msg = msg[0];
-            if (self._messageMap.hasOwnProperty(msg.head.appid) && self._messageMap[msg.head.appid].hasOwnProperty(msg.head.packid)) {
-                self._messageMap[msg.head.appid][msg.head.packid](msg);
+            if (self._messageMap.hasOwnProperty(msg.header.msgtype)) {
+                if (self._messageMap[msg.header.msgtype].context)
+                    self._messageMap[msg.header.msgtype].callback.call(self._messageMap[msg.header.msgtype].context, msg.body);
+                else
+                    self._messageMap[msg.header.msgtype].callback(msg.body);
             }
             else
-                console.warn(`unknown message appid = ${msg.head.appid}, packid = ${msg.head.packid}`);
+                console.warn(`unknown message appid = ${msg.header.msgtype}`);
+        });
+        this._client.on("error", () => {
+            setTimeout(() => {
+                this._client.connect(port, host);
+            }, 10000);
         });
         this._client.connect(port, host);
     }
 
-    send(appid: number, packid, jsonstr: Object) {
-        this._client.sendMessage(appid, packid, jsonstr);
+    send(msgtype: number, body: Object) {
+        let msg = new QTPMessage();
+        msg.header.msgtype = msgtype;
+        msg.body = body;
+        this._client.sendMessage(msg);
     }
 
     /**
@@ -226,15 +213,18 @@ export class IP20Service {
      */
     addSlot(...slots: Slot[]) {
         slots.forEach(slot => {
-            if (!this._messageMap.hasOwnProperty(slot.appid))
-                this._messageMap[slot.appid] = new Object();
-            this._messageMap[slot.appid][slot.packid] = slot.callback;
+            if (!this._messageMap.hasOwnProperty(slot.msgtype))
+                this._messageMap[slot.msgtype] = new Object();
+            this._messageMap[slot.msgtype] = {
+                callback: slot.callback,
+                context: slot.context
+            };
         });
     }
 }
 
 export interface Slot {
-    appid: number;
-    packid: number;
+    msgtype: number;
     callback: Function;
+    context?: any;
 }

@@ -5,6 +5,7 @@
 
 import { AppStoreService, Menu, MessageBox } from "../base/api/services/backend.service";
 import { IP20Service } from "../base/api/services/ip20.service";
+import { QtpService } from "../base/api/services/qtp.service";
 import { Component, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import { IApp } from "../base/api/model/app.model";
 import { ConfigurationBLL, StrategyServerContainer, WorkspaceConfig, Channel, StrategyInstance } from "./bll/strategy.server";
@@ -20,6 +21,7 @@ let ip20strs = {};
     providers: [
         AppStoreService,
         IP20Service,
+        QtpService,
         Menu
     ]
 })
@@ -50,8 +52,10 @@ export class AppComponent implements OnDestroy {
 
     contextMenu: Menu;
     curTemplate: any;
+    isModify: boolean = false;
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
+        private qtp: QtpService,
         private ref: ChangeDetectorRef) {
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
@@ -65,6 +69,7 @@ export class AppComponent implements OnDestroy {
             this.onStartApp();
         });
         this.contextMenu.addItem("Modify", () => {
+            this.isModify = true;
             this.onPopup(1);
         });
         this.contextMenu.addItem("Remove", () => {
@@ -72,6 +77,7 @@ export class AppComponent implements OnDestroy {
                 if (config.name === this.config.name) {
                     this.configs.splice(index);
                     this.configBLL.updateConfig();
+                    this.strategyContainer.removeItem(this.config.name);
                     this.ref.detectChanges();
                 }
             });
@@ -97,11 +103,32 @@ export class AppComponent implements OnDestroy {
     }
 
     finish() {
+        // validation
+        if (!this.config.name || this.config.name.length === 0 ||
+            !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
+            this.showError("Wrong Config", "check items: <br>1. config name.<br>2. one strategy instance at least.", "alert");
+            return;
+        }
+
         // create and modify config.
-        this.config.channels.gateway.forEach(gw => {
-            gw.port = parseInt(gw.port);
-        });
-        this.config.channels.feedhandler.port = parseInt(this.config.channels.feedhandler.port);
+        if (this.config.activeChannel === "default") {
+            this.config.channels.gateway.forEach((gw, index) => {
+                this.curTemplate.body.data.SSGW[index].port = gw.port = parseInt(gw.port);
+                this.curTemplate.body.data.SSGW[index].addr = gw.addr = gw.addr;
+            });
+
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.channels.feedhandler.port);
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.channels.feedhandler.addr;
+        } else {
+            this.curTemplate.body.data.SSGW.forEach(gw => {
+                gw.port = parseInt(this.config.loopbackConfig.port);
+                gw.addr = this.config.loopbackConfig.url;
+            });
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.loopbackConfig.hqport);
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.loopbackConfig.hqurl;
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.filename = "./lib/libFeedChronos.so";
+        }
+        console.info(this.curTemplate, this.config);
 
         this.curTemplate.body.data["SSNet"]["TSServer.port"] = this.config.port;
         this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;
@@ -130,7 +157,7 @@ export class AppComponent implements OnDestroy {
                 this.curTemplate.body.data["PairTrades"][item.name]["SendCheck"] = item.sendChecks;
             }
         });
-        this.configBLL.updateConfig();
+        this.configBLL.updateConfig(this.config);
         this.tgw.send(107, 2000, { routerid: 0, templateid: this.curTemplate.id, body: { name: this.config.name, config: JSON.stringify(this.curTemplate.body.data) } });
         this.closePanel();
     }
@@ -178,6 +205,7 @@ export class AppComponent implements OnDestroy {
         if (type === 0) {
             this.config = new WorkspaceConfig();
             this.panelTitle = "New Config";
+            this.isModify = false;
         } else {
             this.config.curstep = 1;
             this.panelTitle = this.config.name;
@@ -337,14 +365,14 @@ export class AppComponent implements OnDestroy {
             packid: 2001,
             callback: msg => {
                 console.info(msg.content.body);
-                this.config.name = msg.content.body.name;
-                this.config.host = msg.content.body.address;
-                this.strategyContainer.removeItem(this.config.name);
-                this.strategyContainer.addItem(this.config);
-                if (this.configs.find(item => { return item.name === this.config.name; }) === undefined) {
-                    this.configBLL.updateConfig(this.config);
+                let config = this.configs.find(item => { return item.name === msg.content.body.name; });
+                if (config) {
+                    config.name = msg.content.body.name;
+                    config.host = msg.content.body.address;
+                    this.strategyContainer.removeItem(config.name);
+                    this.strategyContainer.addItem(config);
+                    this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: 1 } });
                 }
-                this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: this.config.name, action: 1 } });
             }
         });
 
@@ -364,14 +392,12 @@ export class AppComponent implements OnDestroy {
                 self.isAuthorized = true;
                 if (self.isAuthorized) {
                     self.configs = self.configBLL.getAllConfigs();
-                    self.configs.forEach(item => {
-                        this.config = item;
-                        this.curTemplate = null;
-                        this.curTemplate = JSON.parse(JSON.stringify(this.configBLL.getTemplateByName(this.config.strategyCoreName)));
-                        this.finish();
+                    self.configs.forEach(config => {
+                        self.config = config;
+                        self.curTemplate = JSON.parse(JSON.stringify(self.configBLL.getTemplateByName(self.config.strategyCoreName)));
+                        self.finish();
                     });
-                    // 
-                    this.strategyContainer.addItems(self.configs);
+                    // this.strategyContainer.addItems(self.configs);
                 } else {
                     self.showError("Error", "Username or password wrong.", "alert");
                 }
@@ -417,6 +443,24 @@ export class AppComponent implements OnDestroy {
 
         let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": timestamp };
         this.tgw.send(17, 41, loginObj); // login
+
+        this.qtp.addSlot({
+            msgtype: 8012,
+            callback: (msg) => {
+                console.info(msg);
+                this.config.loopbackConfig = msg;
+            }
+        });
+        this.qtp.connect(4801, "172.24.51.1");
+    }
+
+    createLoopbackTest(): void {
+        this.qtp.send(8010, {
+            timebegin: 20170425,
+            timeend: 20170426,
+            speed: 2,
+            simlevel: 1
+        });
     }
 
     onReset(): void {

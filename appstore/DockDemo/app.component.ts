@@ -11,7 +11,7 @@ import {
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
-import { MessageBox, fs, AppStateCheckerRef, File, Environment } from "../../base/api/services/backend.service";
+import { MessageBox, fs, AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 declare let window: any;
@@ -282,7 +282,7 @@ export class AppComponent implements OnInit {
     this.PositionPage = new TabPage("Position", ManulTrader.getTranslateInfo(this.languageType, "Position"));
     this.pageObj["Position"] = this.PositionPage;
     let positionContent = new ComboControl("col");
-    this.PositionTable = new DataTable("table");
+    this.PositionTable = new DataTable("table2");
     let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
       "TotalCost", "TodayOpen", "AvgPirce", "StrategyID", "Type"];
     let positionTableRtnArr: string[] = [];
@@ -416,8 +416,8 @@ export class AppComponent implements OnInit {
     dd_symbol.AcceptInput = true;
     let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
     dd_symbol.Title = codeRtn + ": ";
-    dd_symbol.addItem({ Text: "平安银行", Value: "3,000001" });
-    dd_symbol.addItem({ Text: "万科A", Value: "6,000002" });
+    dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
+    dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
     dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
     let self = this;
     dd_symbol.SelectChange = () => {
@@ -467,7 +467,7 @@ export class AppComponent implements OnInit {
     this.logPage = new TabPage("LOG", ManulTrader.getTranslateInfo(this.languageType, "LOG"));
     this.pageObj["LOG"] = this.logPage;
     let logContent = new ComboControl("col");
-    this.logTable = new DataTable();
+    this.logTable = new DataTable("table2");
 
     let logTimeTittleRtn = ManulTrader.getTranslateInfo(this.languageType, "Time");
     let logContentTittleRtn = ManulTrader.getTranslateInfo(this.languageType, "Content");
@@ -922,7 +922,7 @@ export class AppComponent implements OnInit {
     reqbtn.Width = 30;
     reqbtn.Text = ManulTrader.getTranslateInfo(this.languageType, "Req");
     profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
-    this.profitTable = new DataTable();
+    this.profitTable = new DataTable("table2");
     let profittableArr: string[] = ["U-Key", "Code", "Account", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
       "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
       "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"];
@@ -1318,6 +1318,7 @@ export class AppComponent implements OnInit {
     }
   }
   addDoneOrderInfo(obj: any) {
+    Sound.play(0);
     let row = this.doneOrdersTable.newRow();
     row.cells[0].Text = obj.od.innercode;
     let codeInfo = ManulTrader.getSecuinfoByukey(2, obj.od.innercode);

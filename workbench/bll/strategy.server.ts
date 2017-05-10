@@ -64,7 +64,14 @@ export class ConfigurationBLL {
 
     updateConfig(config?: WorkspaceConfig) {
         if (config) {
-            this._configs.push(config);
+            let i = 0;
+            for (; i < this._configs.length; ++i) {
+                if (config.name === this._configs[i].name)
+                    break;
+            }
+            if (i === this._configs.length) {
+                this._configs.push(config);
+            }
         }
         File.writeAsync(this._configpath, JSON.stringify(this._configs));
     }
@@ -289,6 +296,8 @@ export class WorkspaceConfig {
     apptype: string = "DockDemo";
     private _port: string;
     host: string;
+    activeChannel = "default";
+    loopbackConfig?: any;
 
     constructor() {
         this.curstep = 1;
