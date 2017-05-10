@@ -39,7 +39,6 @@ export class AppComponent implements OnInit {
 
     onReady(option: any) {
         this.option = option;
-        console.info(option);
     }
 
     ngOnInit() {
@@ -124,8 +123,11 @@ export class AppComponent implements OnInit {
                 marketdataType1: "MARKETDATA",
                 marketdataType2: "MARKETDATA"
             });
-            spreadviewerContent.addChild(viewer.ControlRef);
-            viewer.show();
+
+            if (spreadviewerContent.childrenLen === 2) {
+                spreadviewerContent.addChild(viewer.ControlRef);
+                viewer.show();
+            }
             setTimeout(() => {
                 viewer.init();
                 viewer.start();

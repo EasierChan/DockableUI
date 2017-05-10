@@ -1,35 +1,41 @@
 <html>
-  <head>
-    <title></title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="../../base/css/bootstrap.css">
-    <link rel="stylesheet" href="../../base/css/core.css">
-    <!-- 1. Load libraries -->
-     <!-- Polyfill(s) for older browsers -->
-    <script src="../../node_modules/core-js/client/shim.min.js"></script>
 
-    <script src="../../node_modules/zone.js/dist/zone.js"></script>
-    <script src="../../node_modules/reflect-metadata/Reflect.js"></script>
-    <script src="../../node_modules/systemjs/dist/system.src.js"></script>
+<head>
+  <title></title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../../base/css/bootstrap.css">
+  <link rel="stylesheet" href="../../base/css/core.css">
+  <!-- 1. Load libraries -->
+  <!-- Polyfill(s) for older browsers -->
+  <script src="../../node_modules/core-js/client/shim.min.js"></script>
 
-    <!-- 2. Configure SystemJS -->
-    <script src="./systemjs.config.js"></script>
-    <script>
+  <script src="../../node_modules/zone.js/dist/zone.js"></script>
+  <script src="../../node_modules/reflect-metadata/Reflect.js"></script>
+  <script src="../../node_modules/systemjs/dist/system.src.js"></script>
+
+  <!-- 2. Configure SystemJS -->
+  <script src="./systemjs.config.js"></script>
+  <script>
       window.electron = require("electron");
-      System.import('app').catch(function(err){ console.error(err); });
+      System.import('app')
+      .catch(function(err){ 
+        console.error(err); 
+      });
     </script>
-  </head>
+</head>
 
-  <!-- 3. Display the application -->
-  <body>
-    <div class="loading">
-      <span>
+<!-- 3. Display the application -->
+
+<body>
+  <div class="loading">
+    <span>
         Loading...
       </span>
-    </div>
-  </body>
-  
-    <!--<script src="jquery-3.1.1.js"></script>-->
-    <!--<script src="base/controls/docklayout-core.js"></script>-->
+  </div>
+</body>
+
+<!--<script src="jquery-3.1.1.js"></script>-->
+<!--<script src="base/controls/docklayout-core.js"></script>-->
+
 </html>

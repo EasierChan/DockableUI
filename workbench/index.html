@@ -11,7 +11,6 @@
         window.jQuery = window.$ = require('../base/script/jquery');
         window.electron = require("electron");
     </script>
-    <script src="../node_modules/metro-dist/js/metro.js"></script>
     <!-- 1. Load libraries -->
     <!-- Polyfill(s) for older browsers -->
     <script src="../node_modules/core-js/client/shim.min.js"></script>
@@ -24,7 +23,11 @@
     <!--<script src="./main.js"></script>-->
     <script src="./systemjs.config.js"></script>
     <script>
-        System.import('app').catch(function (err) { console.error(err); });
+        System.import('app').then(()=>{
+                    var metroJS = document.createElement("script");
+                    metroJS.src = "../node_modules/metro-dist/js/metro.js";
+                    document.body.appendChild(metroJS);
+                }).catch(function (err) { console.error(err); });
     </script>
     <style>
         html,
@@ -33,7 +36,6 @@
             padding: 0;
             height: 100%;
         }
-        
     </style>
 </head>
 
