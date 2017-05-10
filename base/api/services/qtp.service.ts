@@ -173,6 +173,7 @@ class QTPClient extends TcpClient {
 export class QtpService {
     private _client: QTPClient;
     private _messageMap: Object;
+    private _timer: any;
     constructor() {
         this._messageMap = new Object();
         this._client = new QTPClient();
@@ -193,10 +194,15 @@ export class QtpService {
             else
                 console.warn(`unknown message appid = ${msg.header.msgtype}`);
         });
-        this._client.on("error", () => {
-            setTimeout(() => {
-                this._client.connect(port, host);
+        this._client.on("close", () => {
+            this._timer = setTimeout(() => {
+                this._client.reconnect(port, host);
             }, 10000);
+        });
+        this._client.on("connect", () => {
+            if (this._timer) {
+                clearTimeout(this._timer);
+            }
         });
         this._client.connect(port, host);
     }

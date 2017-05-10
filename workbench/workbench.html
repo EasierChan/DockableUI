@@ -51,34 +51,33 @@
                         <span class="mif-plus"></span>
                     </button>
                 </div>
-                <div class="tile-group">
+                <div class="tile-group double">
                     <span class="tile-group-title">Transanctional</span>
                     <div class="tile-container">
                         <template ngFor let-item [ngForOf]="configs">
                             <div [class]="detailClass" data-role="tile" (mouseup)="onClick($event, item)">
-                                <div class="tile-content iconic">
-                                    <!--<span class="icon mif-trademark"></span>-->
+                                <div class="tile-content iconic {{item.state===1?'bg-green':''}}">
+                                    <!--<span class="icon mif-play"></span>-->
                                     <span class="tile-label">{{ item.name }}</span>
                                 </div>
                             </div>
                         </template>
                     </div>
                 </div>
-                <!--<div class="tile-group double">
+                <div class="tile-group double">
                     <span class="tile-group-title">Analytical</span>
                     <div class="tile-container">
-                        <template ngFor let-app [ngForOf]="apps">
-                            <div *ngIf="app.category=='Analytical'" class="tile-square bg-green fg-white" data-role="tile" (click)="OnStartApp(app.name)">
-                                <div class="tile-content iconic">
-                                    <span class="icon mif-library"></span>
+                        <template ngFor let-app [ngForOf]="analysisApps">
+                            <div [class]="detailClass" data-role="tile" (click)="onAnalysisApp(app)">
+                                <div class="tile-content">
+                                    <!--<span class="icon mif-library"></span>-->
+                                    <span class="tile-label">{{ app.name }}</span>
                                 </div>
-                                <span class="tile-label">{{ app.desc }}</span>
                             </div>
                         </template>
                     </div>
-                </div>-->
+                </div>
             </div>
-            <!--<div class="dialog-overlay op-dark" *ngIf="bPopPanel" (click)="closePanel($event)">-->
             <div class="block-shadow-info" data-role="dialog" id="config" data-overlay="true" data-close-button="true" data-width="800"
                 data-height="600">
                 <div class="pop-center fg-white bg-darker">
@@ -403,30 +402,32 @@
                                                     <legend>Preference</legend>
                                                     <div>
                                                         MatchMode:
-                                                        <label><input name="matchmode" type="radio" checked>Mode1</label>
-                                                        <label><input name="matchmode" type="radio">Mode2</label>
-                                                        <label><input name="matchmode" type="radio">Mode3</label>
+                                                        <label><input name="matchmode" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.simlevel">Mode1</label>
+                                                        <label><input name="matchmode" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.simlevel">Mode2</label>
+                                                        <label><input name="matchmode" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.simlevel">Mode3</label>
                                                     </div>
                                                     <div>
                                                         Duration:
-                                                        <input type="date">
+                                                        <input type="date" [(ngModel)]="config.loopbackConfig.option.timebegin">
                                                         <span>-</span>
-                                                        <input type="date">
+                                                        <input type="date" [(ngModel)]="config.loopbackConfig.option.timeend">
                                                     </div>
                                                     <div>
                                                         Speed:
-                                                        <label><input name="speed" type="radio" checked>1</label>
-                                                        <label><input name="speed" type="radio">2</label>
-                                                        <label><input name="speed" type="radio">3</label>
-                                                        <label><input name="speed" type="radio">4</label>
-                                                        <label><input name="speed" type="radio">5</label>
-                                                        <label><input name="speed" type="radio">6</label>
-                                                        <label><input name="speed" type="radio">7</label>
-                                                        <label><input name="speed" type="radio">8</label>
+                                                        <label><input name="speed" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.speed">1</label>
+                                                        <label><input name="speed" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.speed">2</label>
+                                                        <label><input name="speed" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.speed">3</label>
+                                                        <label><input name="speed" type="radio" value="4" [(ngModel)]="config.loopbackConfig.option.speed">4</label>
+                                                        <label><input name="speed" type="radio" value="5" [(ngModel)]="config.loopbackConfig.option.speed">5</label>
+                                                        <label><input name="speed" type="radio" value="6" [(ngModel)]="config.loopbackConfig.option.speed">6</label>
+                                                        <label><input name="speed" type="radio" value="7" [(ngModel)]="config.loopbackConfig.option.speed">7</label>
+                                                        <label><input name="speed" type="radio" value="8" [(ngModel)]="config.loopbackConfig.option.speed">8</label>
+                                                        <label><input name="speed" type="radio" value="9" [(ngModel)]="config.loopbackConfig.option.speed">9</label>
+                                                        <label><input name="speed" type="radio" value="10" [(ngModel)]="config.loopbackConfig.option.speed">10</label>
                                                     </div>
                                                     <button style="float: right" (click)="createLoopbackTest()">generate</button>
                                                 </fieldset>
-                                                <fieldset *ngIf="loopbackConfig">
+                                                <fieldset *ngIf="config.loopbackConfig.result">
                                                     <legend>Result</legend>
                                                     <div>
                                                         <table class="table condensed">
@@ -440,13 +441,13 @@
                                                             <tbody>
                                                                 <tr>
                                                                     <td>{{config.channels.gateway[0].name}}</td>
-                                                                    <td>{{loopbackConfig.url}}</td>
-                                                                    <td>{{loopbackConfig.port}}</td>
+                                                                    <td>{{config.loopbackConfig.result.url}}</td>
+                                                                    <td>{{config.loopbackConfig.result.port}}</td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td>{{config.channels.feedhandler.name}}</td>
-                                                                    <td>{{loopbackConfig.hqurl}}</td>
-                                                                    <td>{{loopbackConfig.port}}</td>
+                                                                    <td>{{config.loopbackConfig.result.hqurl}}</td>
+                                                                    <td>{{config.loopbackConfig.result.hqport}}</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -507,16 +508,16 @@
                                         <td>
                                             <div data-role="group" data-group-type="one-state">
                                                 <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 2)" [disabled]="strategy.status=='RUN'||strategy.status=='STOP'">
-                                                    start
+                                                    <span class="mif-play"></span>
                                                 </button>
                                                 <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 3)" [disabled]="strategy.status=='PAUSE'||strategy.status=='STOP'">
-                                                    pause
+                                                    <span class="mif-pause"></span>
                                                 </button>
                                                 <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 4)" [disabled]="strategy.status=='STOP'">
-                                                    stop
+                                                    <span class="mif-stop"></span>
                                                 </button>
                                                 <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 5)" [disabled]="strategy.status=='WATCH'">
-                                                    watch
+                                                    <span class="mif-eye"></span>
                                                 </button>
                                             </div>
                                         </td>

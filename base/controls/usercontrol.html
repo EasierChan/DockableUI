@@ -23,7 +23,7 @@
       </ul>
       <button *ngIf="!child.styleObj.acceptInput" type="button" class="btn-xs btn-default dropdown-toggle" (click)="child.dataSource.click()"
        (blur)="child.dataSource.blur()" [disabled]="child.styleObj?.disable">
-          <pre style="width:100%">{{child.dataSource.selectedItem.Text}}</pre> <span class="caret"></span>
+          <pre style="width:100%">{{child.dataSource.selectedItem?.Text}}</pre> <span class="caret"></span>
       </button>
       <ul *ngIf="!child.styleObj.acceptInput" class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'" (mouseover)="child.dataSource.mouseover()"
         (mouseleave)="child.dataSource.mouseleave()">

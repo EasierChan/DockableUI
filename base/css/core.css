@@ -92,6 +92,7 @@ body > #root {
 .splitter-bar.horizental {
     height: 5px;
     cursor: row-resize;
+    border-top: 1px solid black;
 }
 
 .dock-container.horizental {
@@ -153,7 +154,7 @@ body > #root {
 .panel-header-list {
     flex: 0 0 25px;
     background-color: rgba(45, 45, 45, 1);
-    box-shadow: 0 -1px 0px #060606;
+    box-shadow: 0 -2px 2px #060606;
     display: flex;
     -webkit-user-drag: none;
 }
@@ -377,6 +378,8 @@ td input {
     display: flex;
     align-items: center;
     justify-content: center;
+    background: rgba(0, 140, 240, 1);
+    font-size: 30px;
 }
 /*user control*/
 .controls{
@@ -392,6 +395,9 @@ usercontrol{
 usercontrol.row{
     flex-flow: row nowrap;
     flex: none;
+    height: 25px;
+    vertical-align: middle;
+    margin: 0px;
     padding: 2px 0px;
 }
 

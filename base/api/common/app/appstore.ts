@@ -80,6 +80,12 @@ export class AppStore {
                     name: "DockDemo",
                     desc: "TradeMonitor",
                     category: "Transanctional"
+                },
+                {
+                    id: "SpreadViewer",
+                    name: "hello spread",
+                    desc: "TradeMonitor",
+                    category: "Transanctional"
                 }
             ];
             let appIds = [];

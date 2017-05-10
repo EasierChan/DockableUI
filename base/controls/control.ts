@@ -203,6 +203,10 @@ export class ComboControl extends Control {
         return this;
     }
 
+    get childrenLen() {
+        return this.children.length;
+    }
+
     set MinHeight(value: number) {
         this.styleObj.minHeight = value;
     }
@@ -620,10 +624,10 @@ export class SpreadViewer {
     static readonly EPS: number = 1.0e-5;
     static readonly YUAN_PER_UNIT = 10000;
     static readonly xInternal = 1000; // ms
-    private _msgs: Object = {};
-    private _lastIdx = {};
-    private _firstIdx: number = -1;
-    private _curIdx: number = -1;
+    private _msgs: Object;
+    private _lastIdx: Object;
+    private _firstIdx: number;
+    private _curIdx: number;
     private _xInterval: number = 1000;
     private _durations: Array<{ start: DatePoint, end: DatePoint }>;
     private _names: string[];
@@ -703,7 +707,7 @@ export class SpreadViewer {
                 return;
             }
 
-            // console.info(this._curIdx, this.values);
+            // console.info(this._curIdx);
             this.values[0][this._curIdx] = this.getSpreadValue1(this._curIdx);
             this.values[1][this._curIdx] = this.getSpreadValue2(this._curIdx);
             let newOption: any = {
@@ -739,8 +743,19 @@ export class SpreadViewer {
         if (config.xInterval) this._xInterval = config.xInterval;
         if (config.multiplier) this._multiplier = config.multiplier;
 
+        this._msgs = {};
+        this._lastIdx = {};
         this._lastIdx[this._innerCode1] = -1;
         this._lastIdx[this._innerCode2] = -1;
+        this._curIdx = -1;
+        this._firstIdx = -1;
+        this._timePoints = null;
+        this._names = null;
+        this._values = null;
+        if (this._timeoutHandler) {
+            clearInterval(this._timeoutHandler);
+            this._timeoutHandler = null;
+        }
 
         let echartOption = {
             title: {
@@ -765,11 +780,31 @@ export class SpreadViewer {
             },
             xAxis: {
                 type: "category",
+                axisLabel: {
+                    textStyle: {
+                        color: "#fff"
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: "#fff"
+                    }
+                },
                 boundaryGap: false,
                 data: this.timePoints
             },
             yAxis: {
                 type: "value",
+                axisLabel: {
+                    textStyle: {
+                        color: "#fff"
+                    }
+                },
+                axisLine: {
+                    lineStyle: {
+                        color: "#fff"
+                    }
+                },
                 min: "dataMin",
                 max: "dataMax"
             },
@@ -787,6 +822,7 @@ export class SpreadViewer {
                     data: this.values[0],
                     lineStyle: {
                         normal: {
+                            color: "#0f0",
                             width: 1
                         }
                     },
@@ -803,6 +839,7 @@ export class SpreadViewer {
                     data: this.values[1],
                     lineStyle: {
                         normal: {
+                            color: "#f00",
                             width: 1
                         }
                     }
@@ -813,7 +850,7 @@ export class SpreadViewer {
         if (!bReset)
             this._echart.setOption(echartOption);
         else
-            this._echart.resetOption(echartOption, false);
+            this._echart.resetOption(echartOption, bReset);
         echartOption = null;
     }
 
@@ -958,8 +995,16 @@ export class SpreadViewer {
     }
 
     dispose(): void {
+        this._msgs = null;
+        this._lastIdx = null;
+        this._curIdx = null;
+        this._firstIdx = null;
+        this._timePoints = null;
+        this._durations = null;
+        this._names = null;
+        this._values = null;
         if (this._timeoutHandler) {
-            clearTimeout(this._timeoutHandler);
+            clearInterval(this._timeoutHandler);
         }
     }
 }

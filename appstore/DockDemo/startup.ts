@@ -38,7 +38,8 @@ export class StartUp implements IApplication {
                 self.saveConfig();
             };
 
-            electron.ipcMain.on("get-init-param", (e, param) => {
+            electron.ipcMain.once("get-init-param", (e, param) => {
+                // console.info(option);
                 e.returnValue = option;
             });
             this._mainWindow.loadURL(path.join(__dirname, "index.html"));

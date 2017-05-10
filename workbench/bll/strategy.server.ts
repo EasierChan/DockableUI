@@ -87,6 +87,7 @@ export class StrategyBLL {
     private itrade: ItradeService = new ItradeService();
     strategies: StrategyItem[] = [];
     connState: string;
+    onConnect: Function;
 
     constructor() {
         this.itrade.sessionID = StrategyBLL.sessionId;
@@ -130,6 +131,7 @@ export class StrategyBLL {
             body = null;
             offset = null;
             this.connState = "CONNECTED";
+            this.onConnect();
         }, this);
         this.itrade.addSlot(2001, this.handleStartCommand, this);
         this.itrade.addSlot(2005, this.handlePauseCommand, this);
@@ -262,6 +264,14 @@ export class StrategyServerContainer {
         configs.forEach(config => {
             let bll = new StrategyBLL();
             this.items.push({ name: config.name, conn: bll });
+            bll.onConnect = () => {
+                config.state = 1;
+            };
+            bll.addSlot(-1, () => {
+                config.state = 0;
+                bll.connState = "INIT";
+                bll.strategies.length = 0;
+            });
             bll.start(config.port, config.host);
         });
     }
@@ -297,7 +307,8 @@ export class WorkspaceConfig {
     private _port: string;
     host: string;
     activeChannel = "default";
-    loopbackConfig?: any;
+    state: number = 0;
+    loopbackConfig?: any = {};
 
     constructor() {
         this.curstep = 1;
