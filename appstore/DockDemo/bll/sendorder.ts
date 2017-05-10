@@ -191,11 +191,11 @@ export class ManulTrader {
         let mem_size: number = 176;
         let msg_length = 4 + mem_size;
         let buffer = new Buffer(msg_length);
-        buffer.writeInt32LE(length, offset);
+        buffer.writeInt32LE(1, offset);
         offset += 4;
+
         buffer.writeUInt32LE(orders.ordertype, offset);
         offset += 8;
-
         buffer.writeUInt32LE(orders.con.contractid, offset);
         offset += 8;
         ManulTrader.writeUInt64LE(buffer, orders.con.account, offset);
@@ -234,20 +234,22 @@ export class ManulTrader {
 
         buffer.writeIntLE(comorder_data.action, offset, 1);
         offset += 1;
-        buffer.writeIntLE(comorder_data.property, offset, 1);
-        offset += 1;
-        buffer.writeIntLE(comorder_data.currency, offset, 1);
-        offset += 1;
-        buffer.writeIntLE(comorder_data.covered, offset, 1);
-        offset += 1;
+        offset += 67;
+        // buffer.writeIntLE(comorder_data.property, offset, 1);
+        // offset += 1;
+        // buffer.writeIntLE(comorder_data.currency, offset, 1);
+        // offset += 1;
+        // buffer.writeIntLE(comorder_data.covered, offset, 1);
+        // offset += 1;
 
-        for (let j = 0; j < 4; ++j) {
-            buffer.writeUInt32LE(comorder_data.signal[j].id, offset);
-            offset += 8;
-            ManulTrader.writeUInt64LE(buffer, comorder_data.signal[j].value, offset);
-            offset += 8;
-        }
+        // for (let j = 0; j < 4; ++j) {
+        //     buffer.writeUInt32LE(comorder_data.signal[j].id, offset);
+        //     offset += 8;
+        //     ManulTrader.writeUInt64LE(buffer, comorder_data.signal[j].value, offset);
+        //     offset += 8;
+        // }
         // offset += mem_size;
+        console.log("ready send cancel order");
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
     static getProfitInfo(): void {
