@@ -83,8 +83,10 @@ export class AppComponent implements OnInit {
   private commandIdx: number = 10;
   private parameterIdx: number = 11;
   private strategyStatus: number = 0;
+  private languageType: number = 0;
   private filename: String = "";
   private selectArr = [];
+  private OrderStatusSelArr = [];
 
   private statusbar: StatusBar;
   private option: any;
@@ -102,16 +104,20 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.statusbar = new StatusBar();
-    this.orderstatusPage = new TabPage("OrderStatus", "OrderStatus");
+    let order = "OrderStatus";
+    this.orderstatusPage = new TabPage(order, ManulTrader.getTranslateInfo(this.languageType, order));
     this.pageObj["OrderStatus"] = this.orderstatusPage;
     let orderstatusContent = new ComboControl("col");
 
     let orderstatusHeader = new ComboControl("row");
     let cb_handle = new MetaControl("checkbox");
     cb_handle.Text = true;
-    cb_handle.Title = "Handle";
+    let handle = "Handle";
+    let rtnHandle = ManulTrader.getTranslateInfo(this.languageType, handle);
+    cb_handle.Title = rtnHandle;
     orderstatusHeader.addChild(cb_handle);
     let dd_status = new DropDown();
+    dd_status.Left = 10;
     dd_status.addItem({ Text: "all    ", Value: "-1" });
     dd_status.addItem({ Text: "0.无效", Value: "0" });
     dd_status.addItem({ Text: "1.未报", Value: "1" });
@@ -125,8 +131,26 @@ export class AppComponent implements OnInit {
     dd_status.addItem({ Text: "9.已成", Value: "9" });
     dd_status.addItem({ Text: "10.废单", Value: "10" });
     orderstatusHeader.addChild(dd_status);
+
+    let cb_SelAll = new MetaControl("checkbox");
+    cb_SelAll.Left = 10;
+    cb_SelAll.Text = false;
+    cb_SelAll.Title = ManulTrader.getTranslateInfo(this.languageType, "All");
+    orderstatusHeader.addChild(cb_SelAll);
+    cb_SelAll.OnClick = () => {
+      for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
+        if (!cb_SelAll.Text)
+          this.orderstatusTable.rows[i].cells[0].Text = true;
+        else
+          this.orderstatusTable.rows[i].cells[0].Text = false;
+      }
+    };
+
     let btn_cancel = new MetaControl("button");
-    btn_cancel.Text = "Cancel Selected";
+    btn_cancel.Left = 10;
+    let cancel = "CancelSelected";
+    let rtnCancel = ManulTrader.getTranslateInfo(this.languageType, cancel);
+    btn_cancel.Text = rtnCancel;
     orderstatusHeader.addChild(btn_cancel);
     orderstatusContent.addChild(orderstatusHeader);
     cb_handle.OnClick = () => {
@@ -153,63 +177,137 @@ export class AppComponent implements OnInit {
         let strategyid = this.orderstatusTable.rows[i].cells[4].Text;
         let ukey = this.orderstatusTable.rows[i].cells[0].Text;
         let orderid = this.orderstatusTable.rows[i].cells[2].Text;
+        let account = this.orderstatusTable.rows[i].cells[11].Text;
+        let date = new Date();
         if (getStatus === 0 || getStatus === 6 || getStatus === 7 || getStatus === 9 || getStatus === 10)
           continue;
+        else if (!AppComponent.self.orderstatusTable.rows[i].cells[0].Text)
+          continue;
         else {   // no test
-          ManulTrader.cancelorder({ type: 1, strategyid: strategyid, ukey: ukey, orderid: orderid });
+          // ManulTrader.cancelorder({ type: 1, strategyid: strategyid, ukey: ukey, orderid: orderid });
+          ManulTrader.cancelorder({
+            ordertype: EOrderType.ORDER_TYPE_CANCEL,
+            con: {
+              contractid: 0,
+              account: parseInt(account),
+              orderaccount: "",
+              tradeunit: "",
+              tradeproto: ""
+            },
+            datetime: {
+              tv_sec: date.getSeconds(),
+              tv_usec: date.getMilliseconds()
+            },
+            data: {
+              strategyid: parseInt(strategyid),
+              algorid: 0,
+              orderid: parseInt(orderid),
+              algorindex: 0,
+              innercode: parseInt(ukey),
+              price: 0,
+              quantity: 0,
+              action: 0,
+              property: 0,
+              currency: 0,
+              covered: 0,
+              signal: [{ id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }]
+            }
+          });
         }
       }
     };
 
     this.orderstatusTable = new DataTable();
-    this.orderstatusTable.addColumn("U-Key", "Symbol", "OrderId", "Time", "Strategy",
-      "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account");
+    let orderstatusArr: string[] = ["Check", "U-Key", "Symbol", "OrderId", "Time", "Strategy",
+      "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account"];
+    let orderstatusTableRtnArr: string[] = [];
+    let orderstatusTableTitleLen = orderstatusArr.length;
+    for (let i = 0; i < orderstatusTableTitleLen; ++i) {
+      let orderstatusRtn = ManulTrader.getTranslateInfo(this.languageType, orderstatusArr[i]);
+      orderstatusTableRtnArr.push(orderstatusRtn);
+    }
+    orderstatusTableRtnArr.forEach(item => {
+      this.orderstatusTable.addColumn(item);
+    });
     this.orderstatusTable.columnConfigurable = true;
     orderstatusContent.addChild(this.orderstatusTable);
     this.orderstatusPage.setContent(orderstatusContent);
 
-    this.doneOrdersPage = new TabPage("DoneOrders", "DoneOrders");
+    this.orderstatusTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+      let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
+      AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
+    };
+
+    this.doneOrdersPage = new TabPage("DoneOrders", ManulTrader.getTranslateInfo(this.languageType, "DoneOrders"));
     this.pageObj["DoneOrders"] = this.doneOrdersPage;
     let doneOrdersContent = new ComboControl("col");
     this.doneOrdersTable = new DataTable("table");
-    this.doneOrdersTable.addColumn("U-Key", "Symbol", "OrderId", "Strategy",
+    let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
       "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "Account", "OrderTime",
-      "OrderPrice", "SymbolCode");
+      "OrderPrice", "SymbolCode"];
+    let doneOrderTableRtnArr: string[] = [];
+    let doneOrderTableTittleLen = doneorderTableArr.length;
+    for (let i = 0; i < doneOrderTableTittleLen; ++i) {
+      let doneOrderRtn = ManulTrader.getTranslateInfo(this.languageType, doneorderTableArr[i]);
+      doneOrderTableRtnArr.push(doneOrderRtn);
+    }
+    doneOrderTableRtnArr.forEach(item => {
+      this.doneOrdersTable.addColumn(item);
+    });
     this.doneOrdersTable.columnConfigurable = true;
     doneOrdersContent.addChild(this.doneOrdersTable);
     this.doneOrdersPage.setContent(doneOrdersContent);
 
 
-    this.accountPage = new TabPage("Account", "Account");
+    this.accountPage = new TabPage("Account", ManulTrader.getTranslateInfo(this.languageType, "Account"));
     this.pageObj["Account"] = this.accountPage;
     let accountContent = new ComboControl("col");
     this.accountTable = new DataTable("table");
-    this.accountTable.addColumn("Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Status",
+    let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Status",
       "ShangHai", "ShenZhen", "BuyFrzAmt", "SellFrzAmt", "Buymargin", "SellMargin", "TotalMargin", "Fee",
-      "PositionPL", "ClosePL");
+      "PositionPL", "ClosePL"];
+    let accountTableRtnArr: string[] = [];
+    let accountTableTittleLen = accountTableArr.length;
+    for (let i = 0; i < accountTableTittleLen; ++i) {
+      let accountRtn = ManulTrader.getTranslateInfo(this.languageType, accountTableArr[i]);
+      accountTableRtnArr.push(accountRtn);
+    }
+    accountTableRtnArr.forEach(item => {
+      this.accountTable.addColumn(item);
+    });
     this.accountTable.columnConfigurable = true;
     accountContent.addChild(this.accountTable);
     this.accountPage.setContent(accountContent);
 
-    this.PositionPage = new TabPage("Position", "Position");
+    this.PositionPage = new TabPage("Position", ManulTrader.getTranslateInfo(this.languageType, "Position"));
     this.pageObj["Position"] = this.PositionPage;
     let positionContent = new ComboControl("col");
     this.PositionTable = new DataTable("table");
-    this.PositionTable.addColumn("Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
-      "TotalCost", "TodayOpen", "AvgPirce", "StrategyId", "Type");
+    let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
+      "TotalCost", "TodayOpen", "AvgPirce", "StrategyID", "Type"];
+    let positionTableRtnArr: string[] = [];
+    let positionTableTittleLen = positionTableArr.length;
+    for (let i = 0; i < positionTableTittleLen; ++i) {
+      let positionRtn = ManulTrader.getTranslateInfo(this.languageType, positionTableArr[i]);
+      positionTableRtnArr.push(positionRtn);
+    }
+    positionTableRtnArr.forEach(item => {
+      this.PositionTable.addColumn(item);
+    });
     this.PositionTable.columnConfigurable = true;
     positionContent.addChild(this.PositionTable);
     this.PositionPage.setContent(positionContent);
 
     let leftAlign = 20;
     let rowSep = 5;
-    this.tradePage = new TabPage("ManulTrader", "ManulTrader");
+    this.tradePage = new TabPage("ManulTrader", ManulTrader.getTranslateInfo(this.languageType, "ManulTrader"));
     let tradeContent = new ComboControl("col");
     tradeContent.MinHeight = 500;
     tradeContent.MinWidth = 500;
     this.dd_Account = new DropDown();
     this.dd_Account.Width = 120;
-    this.dd_Account.Title = "Account:   ";
+    let dd_accountRtn = ManulTrader.getTranslateInfo(this.languageType, "Account");
+    this.dd_Account.Title = dd_accountRtn + ":  ";
     this.dd_Account.Left = leftAlign;
     this.dd_Account.Top = 20;
     tradeContent.addChild(this.dd_Account);
@@ -217,44 +315,54 @@ export class AppComponent implements OnInit {
     this.dd_Strategy.Width = 120;
     this.dd_Strategy.Left = leftAlign;
     this.dd_Strategy.Top = rowSep;
-    this.dd_Strategy.Title = "Strategy:  ";
+    let dd_strategyRtn = ManulTrader.getTranslateInfo(this.languageType, "Strategy");
+    this.dd_Strategy.Title = dd_strategyRtn + ":  ";
     tradeContent.addChild(this.dd_Strategy);
     let txt_Symbol = new MetaControl("textbox");
     txt_Symbol.Left = leftAlign;
     txt_Symbol.Top = rowSep;
-    txt_Symbol.Title = "Symbol:    ";
+    let txt_symbolRtn = ManulTrader.getTranslateInfo(this.languageType, "Symbol");
+    txt_Symbol.Title = txt_symbolRtn + ":    ";
     tradeContent.addChild(txt_Symbol);
     let txt_UKey = new MetaControl("textbox");
     txt_UKey.Left = leftAlign;
     txt_UKey.Top = rowSep;
-    txt_UKey.Title = "UKey:      ";
+    let txt_UKeyRtn = ManulTrader.getTranslateInfo(this.languageType, "U-key");
+    txt_UKey.Title = txt_UKeyRtn + ":      ";
     tradeContent.addChild(txt_UKey);
     let txt_Price = new MetaControl("textbox");
     txt_Price.Left = leftAlign;
     txt_Price.Top = rowSep;
-    txt_Price.Title = "Price:     ";
+    let txt_PriceRtn = ManulTrader.getTranslateInfo(this.languageType, "Price");
+    txt_Price.Title = txt_PriceRtn + ":     ";
     tradeContent.addChild(txt_Price);
     let txt_Volume = new MetaControl("textbox");
     txt_Volume.Left = leftAlign;
     txt_Volume.Top = rowSep;
-    txt_Volume.Title = "Volume:    ";
+    let txt_VolumeRtn = ManulTrader.getTranslateInfo(this.languageType, "Volume");
+    txt_Volume.Title = txt_VolumeRtn + ":    ";
     tradeContent.addChild(txt_Volume);
     let dd_Action = new DropDown();
     dd_Action.Left = leftAlign;
     dd_Action.Top = rowSep;
-    dd_Action.Title = "Action:    ";
+    let dd_ActionRtn = ManulTrader.getTranslateInfo(this.languageType, "Action");
+    dd_Action.Title = dd_ActionRtn + ":    ";
     dd_Action.Width = 120;
-    dd_Action.addItem({ Text: "Buy", Value: "0" });
-    dd_Action.addItem({ Text: "Sell", Value: "1" });
+    let buyRtn = ManulTrader.getTranslateInfo(this.languageType, "Buy");
+    let sellRtn = ManulTrader.getTranslateInfo(this.languageType, "Sell");
+    dd_Action.addItem({ Text: buyRtn, Value: "0" });
+    dd_Action.addItem({ Text: sellRtn, Value: "1" });
     tradeContent.addChild(dd_Action);
     let btn_row = new ComboControl("row");
     let btn_clear = new MetaControl("button");
     btn_clear.Left = leftAlign;
-    btn_clear.Text = "Clear";
+    let clearRtn = ManulTrader.getTranslateInfo(this.languageType, "Clear");
+    btn_clear.Text = clearRtn;
     btn_row.addChild(btn_clear);
     let btn_submit = new MetaControl("button");
     btn_submit.Left = 30;
-    btn_submit.Text = "Submit";
+    let SubmitRtn = ManulTrader.getTranslateInfo(this.languageType, "Submit");
+    btn_submit.Text = SubmitRtn;
     btn_clear.Class = btn_submit.Class = "primary";
     btn_row.addChild(btn_submit);
     tradeContent.addChild(btn_row);
@@ -267,7 +375,7 @@ export class AppComponent implements OnInit {
       let ukey = txt_UKey.Text;
       let price = txt_Price.Text;
       let volume = txt_Volume.Text;
-      let action = dd_Action.SelectedItem.Text;
+      let actionValue = dd_Action.SelectedItem.Value;
 
       let date = new Date();
       ManulTrader.submitOrder({
@@ -291,7 +399,7 @@ export class AppComponent implements OnInit {
           innercode: parseInt(ukey),
           price: price * 10000,
           quantity: parseInt(volume),
-          action: (action === "Sell") ? 1 : 0,
+          action: (actionValue === 1) ? 1 : 0,
           property: 0,
           currency: 0,
           covered: 0,
@@ -300,13 +408,14 @@ export class AppComponent implements OnInit {
       });
     };
 
-    this.bookviewPage = new TabPage("BookView", "BookView");
+    this.bookviewPage = new TabPage("BookView", ManulTrader.getTranslateInfo(this.languageType, "BookView"));
     this.pageObj["BookView"] = this.bookviewPage;
 
     let bookviewHeader = new ComboControl("row");
     let dd_symbol = new DropDown();
     dd_symbol.AcceptInput = true;
-    dd_symbol.Title = "Code: ";
+    let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
+    dd_symbol.Title = codeRtn + ": ";
     dd_symbol.addItem({ Text: "平安银行", Value: "3,000001" });
     dd_symbol.addItem({ Text: "万科A", Value: "6,000002" });
     dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
@@ -321,7 +430,16 @@ export class AppComponent implements OnInit {
     bookviewHeader.addChild(dd_symbol);
 
     this.bookViewTable = new DataTable("table");
-    this.bookViewTable.addColumn("BidVol", "Price", "AskVol", "TransVol");
+    let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
+    let bookviewRtnArr: string[] = [];
+    let bookviewTittleLen = bookviewArr.length;
+    for (let i = 0; i < bookviewTittleLen; ++i) {
+      let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewArr[i]);
+      bookviewRtnArr.push(bookviewRtn);
+    }
+    bookviewRtnArr.forEach(item => {
+      this.bookViewTable.addColumn(item);
+    });
     for (let i = 0; i < 20; ++i) {
       let row = this.bookViewTable.newRow();
       row.cells[0].Class = "warning";
@@ -338,81 +456,115 @@ export class AppComponent implements OnInit {
       [txt_UKey.Text, txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
       txt_Price.Text = rowItem.cells[1].Text;
       dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? dd_Action.Items[1] : dd_Action.Items[0];
-      Dialog.popup(this, tradeContent, { title: "Trade" });
+      let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
+      Dialog.popup(this, tradeContent, { title: tradeRtn });
     };
     let bookViewContent = new ComboControl("col");
     bookViewContent.addChild(bookviewHeader);
     bookViewContent.addChild(this.bookViewTable);
     this.bookviewPage.setContent(bookViewContent);
 
-    this.logPage = new TabPage("LOG", "LOG");
+    this.logPage = new TabPage("LOG", ManulTrader.getTranslateInfo(this.languageType, "LOG"));
     this.pageObj["LOG"] = this.logPage;
     let logContent = new ComboControl("col");
     this.logTable = new DataTable();
-    this.logTable.addColumn("Time", "Content");
+
+    let logTimeTittleRtn = ManulTrader.getTranslateInfo(this.languageType, "Time");
+    let logContentTittleRtn = ManulTrader.getTranslateInfo(this.languageType, "Content");
+    this.logTable.addColumn(logTimeTittleRtn);
+    this.logTable.addColumn(logContentTittleRtn);
     logContent.addChild(this.logTable);
     this.logPage.setContent(logContent);
 
-    this.statarbPage = new TabPage("StatArb", "StatArb");
+    this.statarbPage = new TabPage("StatArb", ManulTrader.getTranslateInfo(this.languageType, "StatArb"));
     this.pageObj["StatArb"] = this.statarbPage;
     let statarbLeftAlign = 20;
     let statarbHeader = new ComboControl("row");
     this.buyamountLabel = new MetaControl("textbox");
     this.buyamountLabel.Left = statarbLeftAlign;
     this.buyamountLabel.Width = 50;
-    this.buyamountLabel.Title = "BUY.AMOUNT: ";
+
+    this.buyamountLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "BUY.AMOUNT") + ":";
     this.buyamountLabel.Disable = true;
     this.sellamountLabel = new MetaControl("textbox");
     this.sellamountLabel.Left = statarbLeftAlign;
     this.sellamountLabel.Width = 50;
-    this.sellamountLabel.Title = "SELL.AMOUNT: ";
+    this.sellamountLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "SELL.AMOUNT") + ":";
     this.sellamountLabel.Disable = true;
     statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
     this.statarbTable = new DataTable();
-    this.statarbTable.addColumn("Symbol", "InnerCode", "Change(%)", "Position",
-      "Trade", "Amount", "StrategyId", "DiffQty", "SymbolCode");
+    let statarbTablearr: string[] = ["Symbol", "InnerCode", "Change(%)", "Position",
+      "Trade", "Amount", "StrategyID", "DiffQty", "SymbolCode"];
+    let statarbTableRtnarr: string[] = [];
+    let statarbTableTitleLen = statarbTablearr.length;
+    for (let i = 0; i < statarbTableTitleLen; ++i) {
+      let statarbRtn = ManulTrader.getTranslateInfo(this.languageType, statarbTablearr[i]);
+      statarbTableRtnarr.push(statarbRtn);
+    }
+    statarbTableRtnarr.forEach(item => {
+      this.statarbTable.addColumn(item);
+    });
+
     this.statarbTable.columnConfigurable = true;
     let statarbContent = new ComboControl("col");
     statarbContent.addChild(statarbHeader);
     statarbContent.addChild(this.statarbTable);
     this.statarbPage.setContent(statarbContent);
 
-    this.portfolioPage = new TabPage("Portfolio", "Portfolio");
+    this.portfolioPage = new TabPage("Portfolio", ManulTrader.getTranslateInfo(this.languageType, "Portfolio"));
     this.pageObj["Portfolio"] = this.portfolioPage;
     let loadItem = new ComboControl("row");
 
     this.portfolioAccLabel = new MetaControl("textbox");
     this.portfolioAccLabel.Left = statarbLeftAlign;
     this.portfolioAccLabel.Width = 100;
-    this.portfolioAccLabel.Title = "Account: ";
+    let accountRtn = ManulTrader.getTranslateInfo(this.languageType, "Account");
+    this.portfolioAccLabel.Title = accountRtn + ": ";
     this.portfolioAccLabel.Disable = true;
 
     this.portfolioLabel = new MetaControl("textbox");
     this.portfolioLabel.Width = 60;
-    this.portfolioLabel.Title = "PORTFOLIO Value:";
+    let portfoliovalueRtn = ManulTrader.getTranslateInfo(this.languageType, "PORTFOLIOValue");
+    if (portfoliovalueRtn === "PORTFOLIOValue")
+      this.portfolioLabel.Title = "PORTFOLIO Value:";
+    else
+      this.portfolioLabel.Title = portfoliovalueRtn + ":";
     this.portfolioLabel.Left = 20;
     this.portfolioLabel.Disable = true;
 
     this.portfolioDaypnl = new MetaControl("textbox");
     this.portfolioDaypnl.Width = 60;
-    this.portfolioDaypnl.Title = "PORTFOLIO Day pnl:";
+    let portfolioDaypnlRtn = ManulTrader.getTranslateInfo(this.languageType, "PORTFOLIODaypnl");
+    if (portfolioDaypnlRtn === "PORTFOLIODaypnl")
+      this.portfolioDaypnl.Title = "PORTFOLIO Day pnl:";
+    else
+      this.portfolioDaypnl.Title = portfolioDaypnlRtn + ":";
     this.portfolioDaypnl.Left = 20;
     this.portfolioDaypnl.Disable = true;
 
     this.portfolioonpnl = new MetaControl("textbox");
     this.portfolioonpnl.Width = 60;
-    this.portfolioonpnl.Title = "PORTFOLIO O/N Pnl:";
+    let portfolioonpnlRtn = ManulTrader.getTranslateInfo(this.languageType, "PORTFOLIOO/NPnl");
+    if (portfolioonpnlRtn === "PORTFOLIOO/NPnl")
+      this.portfolioonpnl.Title = "PORTFOLIO O/N Pnl:";
+    else
+      this.portfolioonpnl.Title = portfolioonpnlRtn + ":";
     this.portfolioonpnl.Left = 20;
     this.portfolioonpnl.Disable = true;
 
     this.portfolioCount = new MetaControl("textbox");
     this.portfolioCount.Width = 50;
-    this.portfolioCount.Title = "Count:";
+    let portfolioCountRtn = ManulTrader.getTranslateInfo(this.languageType, "Count");
+    this.portfolioCount.Title = portfolioCountRtn + ":";
     this.portfolioCount.Left = 20;
     this.portfolioCount.Disable = true;
 
     let btn_load = new MetaControl("button");
-    btn_load.Text = " Load    CSV ";
+    let btn_loadRtn = ManulTrader.getTranslateInfo(this.languageType, "LoadCSV");
+    if (btn_loadRtn === "LoadCSV")
+      btn_load.Text = " Load    CSV ";
+    else
+      btn_load.Text = btn_loadRtn + "     ";
     btn_load.Left = 20;
     btn_load.Class = "primary";
 
@@ -423,7 +575,8 @@ export class AppComponent implements OnInit {
     this.portfolioBuyCom = new DropDown();
     this.portfolioBuyCom.Width = 59;
     this.portfolioBuyCom.Left = 20;
-    this.portfolioBuyCom.Title = "Buy: ";
+
+    this.portfolioBuyCom.Title = ManulTrader.getTranslateInfo(this.languageType, "Buy") + ": ";
     this.portfolioBuyCom.addItem({ Text: "B5", Value: "0" });
     this.portfolioBuyCom.addItem({ Text: "B4", Value: "1" });
     this.portfolioBuyCom.addItem({ Text: "B3", Value: "2" });
@@ -465,7 +618,7 @@ export class AppComponent implements OnInit {
     this.portfolioSellCom = new DropDown();
     this.portfolioSellCom.Width = 62;
     this.portfolioSellCom.Left = 20;
-    this.portfolioSellCom.Title = "Sell:";
+    this.portfolioSellCom.Title = ManulTrader.getTranslateInfo(this.languageType, "Sell") + ":";
     this.portfolioSellCom.addItem({ Text: "B5", Value: "0" });
     this.portfolioSellCom.addItem({ Text: "B4", Value: "1" });
     this.portfolioSellCom.addItem({ Text: "B3", Value: "2" });
@@ -502,26 +655,58 @@ export class AppComponent implements OnInit {
     this.portfolioSellOffset.addItem({ Text: "-9", Value: "-9" });
     this.portfolioSellOffset.addItem({ Text: "-10", Value: "-10" });
 
-    this.allChk = new MetaControl("checkbox"); this.allChk.Width = 30; this.allChk.Title = " All"; this.allChk.Text = false; this.allChk.Left = 22;
-    let allbuyChk = new MetaControl("checkbox"); allbuyChk.Width = 30; allbuyChk.Title = " All-Buy"; allbuyChk.Text = false; allbuyChk.Left = 20;
-    let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30; allsellChk.Title = " All-Sell"; allsellChk.Text = false; allsellChk.Left = 20;
+    this.allChk = new MetaControl("checkbox"); this.allChk.Width = 30;
+    this.allChk.Title = " " + ManulTrader.getTranslateInfo(this.languageType, "All");
+    this.allChk.Text = false; this.allChk.Left = 22;
+    let allbuyChk = new MetaControl("checkbox"); allbuyChk.Width = 30;
+    allbuyChk.Title = " " + ManulTrader.getTranslateInfo(this.languageType, "All-Buy");
+    allbuyChk.Text = false; allbuyChk.Left = 20;
+    let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30;
+    allsellChk.Title = " " + ManulTrader.getTranslateInfo(this.languageType, "All-Sell");
+    allsellChk.Text = false; allsellChk.Left = 20;
 
-    this.range = new URange(); this.range.Width = 168; this.range.Left = 20; this.range.Title = "Order Rate:";
+    this.range = new URange(); this.range.Width = 168; this.range.Left = 20;
+    let orderRateRtn = ManulTrader.getTranslateInfo(this.languageType, "orderrate");
+    if (orderRateRtn === "orderrate")
+      this.range.Title = "Order Rate:";
+    else
+      this.range.Title = orderRateRtn + ":";
     this.rateText = new MetaControl("textbox"); this.rateText.Width = 35; this.rateText.Title = ""; this.rateText.Left = 5;
     let percentText = new MetaControl("plaintext"); percentText.Title = "%"; percentText.Width = 15;
 
     this.range.Text = 0; this.rateText.Text = 0;
 
-    let btn_sendSel = new MetaControl("button"); btn_sendSel.Text = "Send Selected"; btn_sendSel.Left = 20; btn_sendSel.Class = "primary";
-    let btn_cancelSel = new MetaControl("button"); btn_cancelSel.Text = "Cancel Selected"; btn_cancelSel.Left = 20; btn_cancelSel.Class = "primary";
+    let btn_sendSel = new MetaControl("button");
+    let sendSelRtn = ManulTrader.getTranslateInfo(this.languageType, "sendselected");
+    if (sendSelRtn === "sendselected")
+      btn_sendSel.Text = "Send Selected";
+    else
+      btn_sendSel.Text = sendSelRtn;
+    btn_sendSel.Left = 20; btn_sendSel.Class = "primary";
+    let btn_cancelSel = new MetaControl("button");
+    let cancelSelRtn = ManulTrader.getTranslateInfo(this.languageType, "cancelselected");
+    if (cancelSelRtn === "cancelselected")
+      btn_cancelSel.Text = "Cancel Selected";
+    else
+      btn_cancelSel.Text = cancelSelRtn;
+    btn_cancelSel.Left = 20; btn_cancelSel.Class = "primary";
 
     tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioBUyOffset).addChild(this.portfolioSellCom).addChild(this.portfolioSellOffset).addChild(this.allChk).addChild(allbuyChk)
       .addChild(allsellChk).addChild(this.range).addChild(this.rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
 
     this.portfolioTable = new DataTable("table2");
-    this.portfolioTable.addColumn("Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+    let portfolioTableArr: string[] = ["Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
       "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
-      "AskPrice", "AvgBuyPrice", "AvgSellPirce", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl");
+      "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"];
+    let portfolioTableTittleLen = portfolioTableArr.length;
+    let portfoliotableRtnArr: string[] = [];
+    for (let i = 0; i < portfolioTableTittleLen; ++i) {
+      let portfolioTableRtn = ManulTrader.getTranslateInfo(this.languageType, portfolioTableArr[i]);
+      portfoliotableRtnArr.push(portfolioTableRtn);
+    }
+    portfoliotableRtnArr.forEach(item => {
+      this.portfolioTable.addColumn(item);
+    });
     this.portfolioTable.columnConfigurable = true;
     this.portfolioTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
       let ukey = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Data.ukey;
@@ -659,18 +844,34 @@ export class AppComponent implements OnInit {
     portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
     this.portfolioPage.setContent(portfolioContent);
 
-    this.strategyPage = new TabPage("StrategyMonitor", "StrategyMonitor");
+    this.strategyPage = new TabPage("StrategyMonitor", ManulTrader.getTranslateInfo(this.languageType, "StrategyMonitor"));
     this.pageObj["StrategyMonitor"] = this.strategyPage;
 
     let strategyHeader = new ComboControl("row");
     let startall = new MetaControl("button");
-    startall.Text = "Start All";
+    let startallRtn = ManulTrader.getTranslateInfo(this.languageType, "StartAll");
+    if (startallRtn === "StartAll")
+      startall.Text = "Start All";
+    else
+      startall.Text = startallRtn;
     let pauseall = new MetaControl("button");
-    pauseall.Text = "Pause All";
+    let pauseallRtn = ManulTrader.getTranslateInfo(this.languageType, "PauseAll");
+    if (pauseallRtn === "PauseAll")
+      pauseall.Text = "Pause All";
+    else
+      pauseall.Text = pauseallRtn;
     let stopall = new MetaControl("button");
-    stopall.Text = "Stop All";
+    let stopallRtn = ManulTrader.getTranslateInfo(this.languageType, "StopAll");
+    if (stopallRtn === "StopAll")
+      stopall.Text = "Stop All";
+    else
+      stopall.Text = stopallRtn;
     let watchall = new MetaControl("button");
-    watchall.Text = "Watch All";
+    let watchallRtn = ManulTrader.getTranslateInfo(this.languageType, "WatchAll");
+    if (watchallRtn === "WatchAll")
+      watchall.Text = "Watch All";
+    else
+      watchall.Text = watchallRtn;
     // startall.Class = pauseall.Class = stopall.Class = watchall.Class = "primary";
     strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall);
 
@@ -687,44 +888,52 @@ export class AppComponent implements OnInit {
       this.controlBtnClick(3);
     };
 
-    this.profitPage = new TabPage("Profit", "Profit");
+    this.profitPage = new TabPage("Profit", ManulTrader.getTranslateInfo(this.languageType, "Profit"));
     this.pageObj["Profit"] = this.profitPage;
     let profitleftAlign = 20;
     let profitHeader = new ComboControl("row");
     this.totalpnLabel = new MetaControl("textbox");
     this.totalpnLabel.Left = profitleftAlign;
     this.totalpnLabel.Width = 85;
-    this.totalpnLabel.Title = "TOTALPNL: ";
+    this.totalpnLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "TOTALPNL") + ": ";
     this.totalpnLabel.Disable = true;
     this.pospnlLabel = new MetaControl("textbox");
     this.pospnlLabel.Left = profitleftAlign;
     this.pospnlLabel.Width = 85;
-    this.pospnlLabel.Title = "POSPNL: ";
+    this.pospnlLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "POSPNL") + ": ";
     this.pospnlLabel.Disable = true;
     this.trapnlt = new MetaControl("textbox");
     this.trapnlt.Left = profitleftAlign;
     this.trapnlt.Width = 85;
-    this.trapnlt.Title = "TRAPNL.T: ";
+    this.trapnlt.Title = ManulTrader.getTranslateInfo(this.languageType, "TRAPNL.T") + ": ";
     this.trapnlt.Disable = true;
     this.pospnlt = new MetaControl("textbox");
     this.pospnlt.Left = profitleftAlign;
     this.pospnlt.Width = 85;
-    this.pospnlt.Title = "POSPNL.T: ";
+    this.pospnlt.Title = ManulTrader.getTranslateInfo(this.languageType, "POSPNL.T") + ": ";
     this.pospnlt.Disable = true;
     this.totalpnlt = new MetaControl("textbox");
     this.totalpnlt.Left = profitleftAlign;
     this.totalpnlt.Width = 85;
-    this.totalpnlt.Title = "TOTALPNL.T: ";
+    this.totalpnlt.Title = ManulTrader.getTranslateInfo(this.languageType, "TOTALPNL.T") + ": ";
     this.totalpnlt.Disable = true;
     let reqbtn = new MetaControl("button");
     reqbtn.Left = profitleftAlign;
     reqbtn.Width = 30;
-    reqbtn.Text = "Req";
+    reqbtn.Text = ManulTrader.getTranslateInfo(this.languageType, "Req");
     profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
     this.profitTable = new DataTable();
-    this.profitTable.addColumn("U-Key", "Code", "Account", "Strategy", "AvgPrice(B)", "AvgPirce(S)",
+    let profittableArr: string[] = ["U-Key", "Code", "Account", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
       "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
-      "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPirce", "IOPV");
+      "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"];
+    let profitTableTittleLen = profittableArr.length;
+    let profitTableRtnArr: string[] = [];
+    for (let i = 0; i < profitTableTittleLen; ++i) {
+      profitTableRtnArr.push(ManulTrader.getTranslateInfo(this.languageType, profittableArr[i]));
+    }
+    profitTableRtnArr.forEach(item => {
+      this.profitTable.addColumn(item);
+    });
     this.profitTable.columnConfigurable = true;
     let profitContent = new ComboControl("col");
     profitContent.addChild(profitHeader);
@@ -734,11 +943,18 @@ export class AppComponent implements OnInit {
       ManulTrader.getProfitInfo();
     };
 
-
     this.strategyTable = new DataTable();
     this.strategyTable.RowIndex = false;
-    this.strategyTable.addColumn("StrategyID", "Sym1", "Sym2", "Start", "Pause",
-      "Stop", "Watch", "Status", "PosPnl(K)", "TraPnl(K)");
+    let strategyTableInitArr: string[] = ["StrategyID", "Sym1", "Sym2", "Start", "Pause",
+      "Stop", "Watch", "Status", "PosPnl(K)", "TraPnl(K)"];
+    let strategyTableInitTittleLen = strategyTableInitArr.length;
+    let strategytableRtnArr: string[] = [];
+    for (let i = 0; i < strategyTableInitTittleLen; ++i) {
+      strategytableRtnArr.push(ManulTrader.getTranslateInfo(this.languageType, strategyTableInitArr[i]));
+    }
+    strategytableRtnArr.forEach(item => {
+      this.strategyTable.addColumn(item);
+    });
     let strategyContent = new ComboControl("col");
     strategyContent.addChild(strategyHeader);
     strategyContent.addChild(this.strategyTable);
@@ -780,6 +996,7 @@ export class AppComponent implements OnInit {
 
     this.children.push(this.traversefunc(children[childrenLen - 1]));
     this.init(this.option.port, this.option.host);
+    // this.init(9082, "172.24.51.4");
   }
 
   init(port: number, host: string) {
@@ -818,6 +1035,38 @@ export class AppComponent implements OnInit {
     ManulTrader.init(port, host);
   }
 
+
+  gethanizaionInfo(obj: any, data: any) {
+    for (let o in obj) {
+      if ((o + "") === data)
+        return obj[o];
+    }
+    return null;
+  }
+
+  gethanizationVal(obj: any, type: number) {
+    if (type === 1)
+      return obj.chinese;
+    return "";
+  }
+
+  traverseobj(obj: any, data: any) {
+    for (let o in obj) {
+      if ((o + "") === data) {
+        return obj[o];
+      }
+    }
+    return {};
+  }
+
+  traverseukeyObj(obj: any, data: any) {
+    for (let o in obj) {
+      if (parseInt(o) === parseInt(data)) {
+        return obj[o];
+      }
+    }
+    return {};
+  }
 
   traversefunc(obj) {
     let dock = new DockContainer(obj.type, obj.width, obj.height);
@@ -1155,32 +1404,36 @@ export class AppComponent implements OnInit {
   }
   addUndoneOrderInfo(obj: any) {
     let row = this.orderstatusTable.newRow();
-    row.cells[0].Text = obj.od.innercode;
+    row.cells[0].Type = "checkbox";
+    row.cells[0].Text = false;
+    row.cells[0].Data = { ukey: 0, chk: true };
+    row.cells[0].Data.ukey = obj.od.innercode;
+    row.cells[1].Text = obj.od.innercode;
     let codeInfo = ManulTrader.getSecuinfoByukey(2, obj.od.innercode);
     let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
     if (codeInfo) {
       if (tempObj) {
-        row.cells[1].Text = (tempObj.SecuCode + "").split(".")[0];
+        row.cells[2].Text = (tempObj.SecuCode + "").split(".")[0];
       }
     }
     else
-      row.cells[1].Text = "";
-    row.cells[2].Text = obj.od.orderid;
-    row.cells[3].Text = this.formatTime(obj.od.odatetime.tv_sec);
-    row.cells[4].Text = obj.od.strategyid;
+      row.cells[2].Text = "";
+    row.cells[3].Text = obj.od.orderid;
+    row.cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
+    row.cells[5].Text = obj.od.strategyid;
     let action: number = obj.od.action;
     if (action === 0)
-      row.cells[5].Text = "Buy";
+      row.cells[6].Text = "Buy";
     else if (action === 1)
-      row.cells[5].Text = "Sell";
+      row.cells[6].Text = "Sell";
     else
-      row.cells[5].Text = "";
-    row.cells[6].Text = obj.od.oprice / 10000;
-    row.cells[7].Text = obj.od.ovolume;
-    row.cells[8].Text = obj.od.ivolume;
-    row.cells[9].Text = this.parseOrderStatus(obj.od.status);
-    row.cells[9].Data = obj.od.status;
-    row.cells[10].Text = obj.con.account;
+      row.cells[6].Text = "";
+    row.cells[7].Text = obj.od.oprice / 10000;
+    row.cells[8].Text = obj.od.ovolume;
+    row.cells[9].Text = obj.od.ivolume;
+    row.cells[10].Text = this.parseOrderStatus(obj.od.status);
+    row.cells[10].Data = obj.od.status;
+    row.cells[11].Text = obj.con.account;
     AppComponent.self.orderstatusTable.detectChanges();
   }
   formatTime(time: any): String {
@@ -1230,19 +1483,19 @@ export class AppComponent implements OnInit {
       return "10.废单";
   }
   refreshUndoneOrderInfo(obj: any, idx: number) {
-    this.orderstatusTable.rows[idx].cells[3].Text = this.formatTime(obj.od.odatetime.tv_sec);
+    this.orderstatusTable.rows[idx].cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
     let action: number = obj.od.action;
     if (action === 0)
-      this.orderstatusTable.rows[idx].cells[5].Text = "Buy";
+      this.orderstatusTable.rows[idx].cells[6].Text = "Buy";
     else if (action === 1)
-      this.orderstatusTable.rows[idx].cells[5].Text = "Sell";
+      this.orderstatusTable.rows[idx].cells[6].Text = "Sell";
     else
-      this.orderstatusTable.rows[idx].cells[5].Text = "";
-    this.orderstatusTable.rows[idx].cells[6].Text = obj.od.oprice / 10000;
-    this.orderstatusTable.rows[idx].cells[7].Text = obj.od.ovolume;
-    this.orderstatusTable.rows[idx].cells[8].Text = obj.od.ivolume;
-    this.orderstatusTable.rows[idx].cells[9].Text = this.parseOrderStatus(obj.od.status);
-    this.orderstatusTable.rows[idx].cells[9].Data = obj.od.status;
+      this.orderstatusTable.rows[idx].cells[6].Text = "";
+    this.orderstatusTable.rows[idx].cells[7].Text = obj.od.oprice / 10000;
+    this.orderstatusTable.rows[idx].cells[8].Text = obj.od.ovolume;
+    this.orderstatusTable.rows[idx].cells[9].Text = obj.od.ivolume;
+    this.orderstatusTable.rows[idx].cells[10].Text = this.parseOrderStatus(obj.od.status);
+    this.orderstatusTable.rows[idx].cells[10].Data = obj.od.status;
     AppComponent.self.orderstatusTable.detectChanges();
   }
 
@@ -1610,7 +1863,7 @@ export class AppComponent implements OnInit {
     // AppComponent.self.ref.detectChanges();
   }
   showStrategyCfg(data: any) {
-    //  console.log("333333333333", data);
+    // console.log("333333333333", data);
     if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
       return;
     let addSubCOmFlag: boolean = false;
@@ -1627,7 +1880,7 @@ export class AppComponent implements OnInit {
           let checkText = AppComponent.self.strategyTable.rows[i].cells[j].Text;
           if (checkText === "submit") {
             findFlag = false;
-            continue;
+            break;
           }
         }
         if (getId === strategyId && findFlag) {
@@ -1738,11 +1991,11 @@ export class AppComponent implements OnInit {
     let value = data.value;
     let level = data.level;
     if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
-      AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
+      AppComponent.self.strategyTable.insertColumn(ManulTrader.getTranslateInfo(this.languageType, title), colIdx);  // add col
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "default";
     } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
-      AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
+      AppComponent.self.strategyTable.insertColumn(ManulTrader.getTranslateInfo(this.languageType, title), colIdx);  // add col
       // add button
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "button";
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
@@ -1750,7 +2003,7 @@ export class AppComponent implements OnInit {
       if (value === 0)
         AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
     } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
-      AppComponent.self.strategyTable.insertColumn(title, colIdx);
+      AppComponent.self.strategyTable.insertColumn(ManulTrader.getTranslateInfo(this.languageType, title), colIdx);
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "textbox";
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
       AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "success";
@@ -2077,24 +2330,6 @@ export class AppComponent implements OnInit {
     AppComponent.self.portfolioDaypnl.Text = data[0].dayPnl / 10000;
     AppComponent.self.portfolioonpnl.Text = data[0].onPnl / 10000;
   }
-  traverseobj(obj: any, data: any) {
-    for (let o in obj) {
-      if ((o + "") === data) {
-        return obj[o];
-      }
-    }
-    return {};
-  }
-
-  traverseukeyObj(obj: any, data: any) {
-    for (let o in obj) {
-      if (parseInt(o) === parseInt(data)) {
-        return obj[o];
-      }
-    }
-    return {};
-  }
-
 
   returnSelArr(data: any, check: any) {    // check if opposite
     let type = data;

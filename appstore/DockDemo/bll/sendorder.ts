@@ -3,11 +3,11 @@
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
 import { SecuMasterService } from "../../../base/api/services/secumaster.service";
+import { TranslateService } from "../../../base/api/services/translate.service";
 import { AppComponent } from "../app.component";
 
 export class ManulTrader {
     private static orderService = new OrderService();
-    // private static secumaster = new SecuMasterService();
     static submitOrder(...orders: ComConOrder[]): void {
         let offset: number = 0;
         // handle with array
@@ -88,6 +88,10 @@ export class ManulTrader {
     static getSecuinfoByukey(type: number, ...ukey: number[]) {
         // return ManulTrader.orderService.getsecuInfobyukey(type, ...ukey);
         return SecuMasterService.getSecuinfoByUKey(type, ...ukey);
+    }
+
+    static getTranslateInfo(type: number, ...words: string[]) {
+        return TranslateService.getTranslateInfo(type, ...words);
     }
 
     static submitPara(data: any) {
@@ -181,30 +185,69 @@ export class ManulTrader {
         });
         ManulTrader.orderService.sendOrder(5001, 0, buffer);
     }
-    static cancelorder(data: any) {
-        let order: ComConOrder = new ComConOrder();
+    static cancelorder(orders: any) {
         let offset: number = 0;
-        let buffer = new Buffer(176 + 4);
-        buffer.writeInt32LE(1, offset); offset += 4;
-        buffer.writeInt32LE(EOrderType.ORDER_TYPE_CANCEL, offset); offset += 8;
-        buffer.writeUInt32LE(order.con.contractid, offset); offset += 8;
-        ManulTrader.writeUInt64LE(buffer, order.con.account, offset); offset += 8;
-        buffer.write(order.con.orderaccount, offset, 20); offset += 20;
-        buffer.write(order.con.tradeunit, offset, 10); offset += 10;
-        buffer.write(order.con.tradeproto, offset, 10); offset += 10;
+        // handle with array
+        let mem_size: number = 176;
+        let msg_length = 4 + mem_size;
+        let buffer = new Buffer(msg_length);
+        buffer.writeInt32LE(length, offset);
+        offset += 4;
+        buffer.writeUInt32LE(orders.ordertype, offset);
+        offset += 8;
+
+        buffer.writeUInt32LE(orders.con.contractid, offset);
+        offset += 8;
+        ManulTrader.writeUInt64LE(buffer, orders.con.account, offset);
+        offset += 8;
+
+        buffer.write(orders.con.orderaccount, offset, 20);
+        offset += 20;
+        buffer.write(orders.con.tradeunit, offset, 10);
+        offset += 10;
+        buffer.write(orders.con.tradeproto, offset, 10);
+        offset += 10;
+
         // datetime timeval
-        buffer.writeUIntLE(0, offset, 8); offset += 8;
-        buffer.writeUIntLE(0, offset, 8); offset += 8;
+        buffer.writeUIntLE(0, offset, 8);
+        offset += 8;
+        buffer.writeUIntLE(0, offset, 8);
+        offset += 8;
+
         // data ComOrder
-        let comorder_data = order.data as ComOrderCancel;
-        buffer.writeUInt32LE(data.strategyid, offset); offset += 4;
-        buffer.writeUInt32LE(comorder_data.algorid, offset); offset += 4;
-        buffer.writeUInt32LE(data.orderid, offset); offset += 4;
-        buffer.writeUInt32LE(comorder_data.algorindex, offset); offset += 4;
-        buffer.writeUInt32LE(data.ukey, offset); offset += 4;
-        buffer.writeUInt32LE(comorder_data.price, offset); offset += 4;
-        buffer.writeUInt32LE(comorder_data.quantity, offset); offset += 4;
-        offset += 68;
+        let comorder_data = orders.data as ComOrder;
+
+        buffer.writeUInt32LE(comorder_data.strategyid, offset);
+        offset += 4;
+        buffer.writeUInt32LE(comorder_data.algorid, offset);
+        offset += 4;
+        buffer.writeUInt32LE(comorder_data.orderid, offset);
+        offset += 4;
+        buffer.writeUInt32LE(comorder_data.algorindex, offset);
+        offset += 4;
+        buffer.writeUInt32LE(comorder_data.innercode, offset);
+        offset += 4;
+        buffer.writeUInt32LE(comorder_data.price, offset);
+        offset += 4;
+        buffer.writeUInt32LE(comorder_data.quantity, offset);
+        offset += 4;
+
+        buffer.writeIntLE(comorder_data.action, offset, 1);
+        offset += 1;
+        buffer.writeIntLE(comorder_data.property, offset, 1);
+        offset += 1;
+        buffer.writeIntLE(comorder_data.currency, offset, 1);
+        offset += 1;
+        buffer.writeIntLE(comorder_data.covered, offset, 1);
+        offset += 1;
+
+        for (let j = 0; j < 4; ++j) {
+            buffer.writeUInt32LE(comorder_data.signal[j].id, offset);
+            offset += 8;
+            ManulTrader.writeUInt64LE(buffer, comorder_data.signal[j].value, offset);
+            offset += 8;
+        }
+        // offset += mem_size;
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
     static getProfitInfo(): void {
