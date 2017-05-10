@@ -173,10 +173,10 @@ export class AppComponent implements OnInit {
 
     btn_cancel.OnClick = () => {
       for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
-        let getStatus = parseInt(this.orderstatusTable.rows[i].cells[9].Data);
-        let strategyid = this.orderstatusTable.rows[i].cells[4].Text;
-        let ukey = this.orderstatusTable.rows[i].cells[0].Text;
-        let orderid = this.orderstatusTable.rows[i].cells[2].Text;
+        let getStatus = parseInt(this.orderstatusTable.rows[i].cells[10].Data);
+        let strategyid = this.orderstatusTable.rows[i].cells[5].Text;
+        let ukey = this.orderstatusTable.rows[i].cells[1].Text;
+        let orderid = this.orderstatusTable.rows[i].cells[3].Text;
         let account = this.orderstatusTable.rows[i].cells[11].Text;
         let date = new Date();
         if (getStatus === 0 || getStatus === 6 || getStatus === 7 || getStatus === 9 || getStatus === 10)
@@ -184,7 +184,6 @@ export class AppComponent implements OnInit {
         else if (!AppComponent.self.orderstatusTable.rows[i].cells[0].Text)
           continue;
         else {   // no test
-          // ManulTrader.cancelorder({ type: 1, strategyid: strategyid, ukey: ukey, orderid: orderid });
           ManulTrader.cancelorder({
             ordertype: EOrderType.ORDER_TYPE_CANCEL,
             con: {
@@ -206,11 +205,7 @@ export class AppComponent implements OnInit {
               innercode: parseInt(ukey),
               price: 0,
               quantity: 0,
-              action: 0,
-              property: 0,
-              currency: 0,
-              covered: 0,
-              signal: [{ id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }]
+              action: 1
             }
           });
         }
@@ -307,7 +302,7 @@ export class AppComponent implements OnInit {
     this.dd_Account = new DropDown();
     this.dd_Account.Width = 120;
     let dd_accountRtn = ManulTrader.getTranslateInfo(this.languageType, "Account");
-    this.dd_Account.Title = dd_accountRtn + ":  ";
+    this.dd_Account.Title = dd_accountRtn + ":   ";
     this.dd_Account.Left = leftAlign;
     this.dd_Account.Top = 20;
     tradeContent.addChild(this.dd_Account);
@@ -328,7 +323,7 @@ export class AppComponent implements OnInit {
     txt_UKey.Left = leftAlign;
     txt_UKey.Top = rowSep;
     let txt_UKeyRtn = ManulTrader.getTranslateInfo(this.languageType, "U-key");
-    txt_UKey.Title = txt_UKeyRtn + ":      ";
+    txt_UKey.Title = txt_UKeyRtn + ":     ";
     tradeContent.addChild(txt_UKey);
     let txt_Price = new MetaControl("textbox");
     txt_Price.Left = leftAlign;
@@ -1290,7 +1285,7 @@ export class AppComponent implements OnInit {
   deleteUndoneOrder(data: any) {
     let rows = this.orderstatusTable.rows.length;
     for (let i = 0; i < rows; ++i) {
-      let getOrderId = this.orderstatusTable.rows[i].cells[2].Text;
+      let getOrderId = this.orderstatusTable.rows[i].cells[3].Text;
       if (data === getOrderId) {
         this.orderstatusTable.rows.splice(i);
         break;
@@ -1391,7 +1386,7 @@ export class AppComponent implements OnInit {
     } else {
       let checkFlag: boolean = false;
       for (let j = 0; j < orderStatusTableRows; ++j) {
-        let getOrderId = this.orderstatusTable.rows[j].cells[2].Text;
+        let getOrderId = this.orderstatusTable.rows[j].cells[3].Text;
         if (orderId === getOrderId) {  // refresh
           checkFlag = true;
           this.refreshUndoneOrderInfo(data, j);
