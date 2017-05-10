@@ -156,7 +156,9 @@ export class UWindow {
 
 	public setMenu(menuTemplate: any): void {
 		try {
-			if (Array.isArray(menuTemplate)) {
+			if (menuTemplate === null) {
+				this.win.setMenu(menuTemplate);
+			} else if (Array.isArray(menuTemplate)) {
 				this._menu = Menu.buildFromTemplate(menuTemplate);
 				this.win.setMenu(this._menu);
 			}

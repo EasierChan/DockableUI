@@ -60,6 +60,7 @@ export class AppStore {
         AppStore.parseCommandArgs();
         AppStore.loadConfig();
         let contentWindow: ContentWindow = new ContentWindow({ state: AppStore._config.state });
+        contentWindow.setMenu(null);
         contentWindow.loadURL(path.join(AppStore._appstoreHome, "..", "workbench", "index.html"));
         AppStore._instances[AppStore._workbench] = contentWindow;
 
