@@ -307,7 +307,7 @@ export class AppComponent implements OnInit {
     this.dd_Account = new DropDown();
     this.dd_Account.Width = 120;
     let dd_accountRtn = ManulTrader.getTranslateInfo(this.languageType, "Account");
-    this.dd_Account.Title = dd_accountRtn + ":  ";
+    this.dd_Account.Title = dd_accountRtn + ":   ";
     this.dd_Account.Left = leftAlign;
     this.dd_Account.Top = 20;
     tradeContent.addChild(this.dd_Account);
@@ -328,7 +328,7 @@ export class AppComponent implements OnInit {
     txt_UKey.Left = leftAlign;
     txt_UKey.Top = rowSep;
     let txt_UKeyRtn = ManulTrader.getTranslateInfo(this.languageType, "U-key");
-    txt_UKey.Title = txt_UKeyRtn + ":      ";
+    txt_UKey.Title = txt_UKeyRtn + ":     ";
     tradeContent.addChild(txt_UKey);
     let txt_Price = new MetaControl("textbox");
     txt_Price.Left = leftAlign;
