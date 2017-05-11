@@ -16,11 +16,45 @@ export class StartUp implements IApplication {
     _config: DockDemoConfig;
     _appdir: string;
     _cfgFile: string;
-    static _instance: StartUp;
+    _menuTemplate: any;
+    _option;
+    static instanceMap: Object = {};
 
     constructor() {
         this._windowMgr = new UWindwManager();
         this._config = { name: "", state: { x: 0, y: 0, width: 1200, height: 800 } };
+        this._menuTemplate = [
+            {
+                label: "File",
+                submenu: [
+                    { label: "New BookView", click: this.itemClick },
+                    { label: "New SpreadView", click: this.itemClick },
+                    { type: "separator" },
+                    { role: "close" }
+                ]
+            },
+            {
+                label: "Window",
+                submenu: [
+                    { label: "OrderStatus", type: "checkbox", click: this.itemClick },
+                    { label: "DoneOrders", type: "checkbox", click: this.itemClick },
+                    { label: "Log", type: "checkbox", click: this.itemClick },
+                    { label: "Profit", type: "checkbox", click: this.itemClick },
+                    { label: "Position", type: "checkbox", click: this.itemClick },
+                    { label: "Account", type: "checkbox", click: this.itemClick },
+                    { label: "StatArb", type: "checkbox", click: this.itemClick }
+                ]
+            },
+            {
+                label: "Help",
+                submenu: [
+                    { label: "Toggle Developer Tools", role: "toggledevtools", click(item, owner) { owner.webContents.openDevTools(); } },
+                    { label: "Reload", role: "reload", click(item, owner) { owner.reload(); } },
+                    { type: "separator" },
+                    { role: "about" }
+                ]
+            }
+        ];
     }
     /**
      * bootstrap
@@ -38,13 +72,12 @@ export class StartUp implements IApplication {
                 self.saveConfig();
             };
 
-            electron.ipcMain.once("get-init-param", (e, param) => {
-                // console.info(option);
-                e.returnValue = option;
-            });
-            this._mainWindow.loadURL(path.join(__dirname, "index.html"));
+            this._option = option;
+            StartUp.instanceMap[this._mainWindow.win.webContents.id] = this;
+
+            this._mainWindow.loadURL(`${__dirname}/index.html`);
             this._mainWindow.win.setTitle(name);
-            this._mainWindow.setMenuBarVisibility(true);
+            this._mainWindow.setMenu(this._menuTemplate);
             this._windowMgr.addContentWindow(this._mainWindow);
         }
         this._mainWindow.show();
@@ -86,6 +119,9 @@ export class StartUp implements IApplication {
         fs.writeFileSync(this._cfgFile, JSON.stringify(this._config, null, 2));
     }
 
+    itemClick(menuItem, owner, event) {
+        owner.webContents.send("app://menuitem-click", menuItem);
+    }
 
     static instance(): StartUp {
         return new StartUp();
@@ -97,3 +133,10 @@ interface DockDemoConfig {
     state: Bound;
     layout?: Object;
 }
+
+electron.ipcMain.on(`app://get-init-param`, (e, param) => {
+    if (StartUp.instanceMap.hasOwnProperty(e.sender.id))
+        e.returnValue = StartUp.instanceMap[e.sender.id]._option;
+    else
+        e.returnValue = {};
+});
