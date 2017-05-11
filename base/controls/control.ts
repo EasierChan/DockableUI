@@ -79,15 +79,20 @@ export class TabPanel extends Control {
      * @param pageTitle show the tab desc
      */
     addTab2(pageId, pageTitle): TabPanel {
-        this.headers.addHeader(new TabHeader(pageId));
+        this.headers.addHeader(new TabHeader(pageId, pageTitle));
         this.pages.addPage(new TabPage(pageId, pageTitle));
         return this;
     }
 
     addTab(page: TabPage): TabPanel {
-        this.headers.addHeader(new TabHeader(page.id));
+        this.headers.addHeader(new TabHeader(page.id, page.title));
         this.pages.addPage(page);
         return this;
+    }
+
+    removeTab(pageid: string) {
+        this.headers.removeHeader(pageid);
+        this.pages.removePage(pageid);
     }
 
     setActive(pageId: string): TabPanel {
@@ -115,6 +120,16 @@ export class TabPages extends Control {
         return this;
     }
 
+    removePage(id: string) {
+        let len = this.pages.length - 1;
+        for (; len >= 0; --len) {
+            if (this.pages[len].id === id) {
+                this.pages.splice(len, 1);
+                break;
+            }
+        }
+    }
+
     getAllPage(): TabPage[] {
         return this.pages;
     }
@@ -128,6 +143,16 @@ export class TabHeaders extends Control {
     addHeader(header: TabHeader): TabHeaders {
         this.headers.push(header);
         return this;
+    }
+
+    removeHeader(id: string): void {
+        let len = this.headers.length - 1;
+        for (; len >= 0; --len) {
+            if (this.headers[len].targetId === id) {
+                this.headers.splice(len, 1);
+                break;
+            }
+        }
     }
 
     getAllHeader(): TabHeader[] {
@@ -167,10 +192,12 @@ export class TabPage extends Control {
 
 export class TabHeader extends Control {
     targetId: string = "";
-    constructor(targetId?: string) {
+    tabName: string = "";
+    constructor(targetId: string, tabName: string) {
         super();
         this.className = "tab";
         this.targetId = targetId;
+        this.tabName = tabName;
     }
 
     setTargetId(value: string): void {
@@ -827,7 +854,7 @@ export class SpreadViewer {
                         }
                     },
                     tooltip: {
-                        formatter: function (param) {
+                        formatter: function(param) {
                             return JSON.stringify(param);
                         }
                     }

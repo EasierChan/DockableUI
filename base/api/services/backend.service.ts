@@ -29,12 +29,23 @@ export class AppStoreService {
 @Injectable()
 export class AppStateCheckerRef {
     private option: any;
+    onMenuItemClick: (menuitem: any, param?: any) => void;
+
     constructor() {
-        this.option = electron.ipcRenderer.sendSync("get-init-param");
+        this.option = electron.ipcRenderer.sendSync(`app://get-init-param`);
+        electron.ipcRenderer.on("app://menuitem-click", (e, item, param) => {
+            if (this.onMenuItemClick) {
+                this.onMenuItemClick(item, param);
+            }
+        });
     }
 
     onInit(appref: any, afterInit: (...params) => void) {
         afterInit.call(appref, this.option);
+    }
+
+    addModules(name: string) {
+        electron.ipcRenderer.send("app://menuitem-add", name);
     }
 }
 

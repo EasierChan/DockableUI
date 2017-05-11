@@ -95,6 +95,9 @@ export class AppComponent implements OnInit {
     AppComponent.self = this;
     window.onbeforeunload = this.onDestroy;
     this.statechecker.onInit(this, this.onReady);
+    this.statechecker.onMenuItemClick = (item) => {
+      console.info(item.label);
+    };
   }
 
   onReady(option: any) {
