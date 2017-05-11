@@ -156,11 +156,11 @@ export class UWindow {
 
 	public setMenu(menuTemplate: any): void {
 		try {
-			if (menuTemplate === null) {
-				this.win.setMenu(menuTemplate);
-			} else if (Array.isArray(menuTemplate)) {
+			if (Array.isArray(menuTemplate)) {
 				this._menu = Menu.buildFromTemplate(menuTemplate);
 				this.win.setMenu(this._menu);
+			} else {
+				this.win.setMenu(menuTemplate);
 			}
 		} catch (err) {
 			DefaultLogger.error(err);

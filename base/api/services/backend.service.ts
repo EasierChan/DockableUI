@@ -44,8 +44,12 @@ export class AppStateCheckerRef {
         afterInit.call(appref, this.option);
     }
 
-    addModules(name: string) {
-        electron.ipcRenderer.send("app://menuitem-add", name);
+    addMenuItem(action: number, name: string) {
+        electron.ipcRenderer.send("app://menuitem-CRUD", { action: action, name: name });
+    }
+
+    changeItemState(name, itemIndex, state, action: number = 2) {
+        electron.ipcRenderer.send("app://menuitem-CRUD", { action: action, index: itemIndex, state: state });
     }
 }
 
