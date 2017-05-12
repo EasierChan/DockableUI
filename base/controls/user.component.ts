@@ -2,9 +2,9 @@
  * created by chenlei
  * used to created custom user control based on className and dataSource.
  */
-import { Component, AfterContentInit, Input, ElementRef, AfterViewInit, ViewChild } from "@angular/core";
+import { Component, AfterContentInit, Input, ElementRef, AfterViewInit, ViewChild, Renderer } from "@angular/core";
 import { NgForm } from "@angular/forms";
-import { CssStyle, Control, ComboControl, Dialog, StatusBar } from "./control";
+import { CssStyle, Control, ComboControl, Dialog, StatusBar, TabPanel } from "./control";
 
 @Component({
     moduleId: module.id,
@@ -35,6 +35,8 @@ export class DockContainerComponent implements AfterViewInit {
     @Input() dataSource: any;
     @ViewChild("container") container: ElementRef;
 
+    constructor(private renderer: Renderer) { }
+
     ngAfterViewInit() {
         if (this.className.startsWith("dock-container")) {
             this.styleObj.getWidth = () => {
@@ -44,6 +46,38 @@ export class DockContainerComponent implements AfterViewInit {
                 return this.container.nativeElement.clientHeight;
             };
         }
+
+        let removedPage = null;
+        this.renderer.listen(this.container.nativeElement, "addpage", ($event) => {
+            // console.info("addpage", $event.detail.pageid);
+            // let len = this.children.length;
+            // for (; len >= 0; --len) {
+            //     if (this.children[len] instanceof TabPanel) {
+            //         let ipanel = this.children[len] as TabPanel;
+            //         ipanel.addTab(removedPage);
+            //     }
+            // }
+        });
+
+        this.renderer.listen(this.container.nativeElement, "removepage", ($event) => {
+            // console.info("removepage", $event.detail.pageid);
+            // let len = this.children.length;
+            // for (; len >= 0; --len) {
+            //     if (this.children[len] instanceof TabPanel) {
+            //         let ipanel = this.children[len] as TabPanel;
+            //         removedPage = ipanel.removeTab($event.detail.pageid);
+            //         break;
+            //     }
+            // }
+        });
+
+        this.renderer.listen(this.container.nativeElement, "adddock", ($event) => {
+            // console.info("adddock", $event);
+        });
+
+        this.renderer.listen(this.container.nativeElement, "removedock", ($event) => {
+            // console.info("removedock", $event);
+        });
     }
 }
 

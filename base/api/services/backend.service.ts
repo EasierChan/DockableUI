@@ -128,6 +128,10 @@ export class MessageBox {
 
 export class File {
     public static parseJSON(fpath: string): Object {
+        if (!fs.existsSync(fpath)) {
+            return null;
+        }
+
         let obj;
         try {
             obj = JSON.parse(fs.readFileSync(fpath, { encoding: "utf8" }));

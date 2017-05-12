@@ -97,8 +97,26 @@ export class AppComponent implements OnInit {
     this.statechecker.onInit(this, this.onReady);
     this.statechecker.onMenuItemClick = (item) => {
       console.info(item.label);
+      // this.findTabPanel(this);
     };
   }
+
+  // findTabPanel(dock: any): TabPanel {
+  //   dock.children.forEach(item => {
+  //     if (item instanceof TabPanel) {
+  //       let pItem = item as TabPanel;
+  //       console.info(pItem.getAllTabs());
+  //       if (pItem.getAllTabs().includes("BookView")) {
+  //         pItem.addTab(new TabPage("BookView2", "lalla"));
+  //       }
+  //       return pItem;
+  //     } else if (item instanceof DockContainer) {
+  //       return this.findTabPanel(item);
+  //     }
+  //     return null;
+  //   });
+  //   return null;
+  // }
 
   onReady(option: any) {
     // option.port and option.host and option.name ;
@@ -984,7 +1002,7 @@ export class AppComponent implements OnInit {
       }
     });
     let defaultLayout = { "type": "v", "width": 1845, "children": [{ "type": "h", "height": 281, "modules": ["Position", "Account", "OrderStatus", "DoneOrders"] }, { "type": "h", "height": 368, "children": [{ "type": "v", "width": 355, "modules": ["BookView"] }, { "type": "v", "width": 1485, "modules": ["LOG", "StatArb", "Portfolio"] }] }, { "type": "h", "height": 343, "modules": ["StrategyMonitor", "Profit"] }] };
-    let layout: any = File.parseJSON(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json");
+    let layout: any = File.parseJSON(`${Environment.appDataDir}/ChronosApps/${this.option.name}/layout.json`);
     let children = layout ? layout.children : defaultLayout.children;
     let childrenLen = children.length;
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
@@ -2380,7 +2398,7 @@ export class AppComponent implements OnInit {
   }
 
   onDestroy() {
-    File.writeSync(Environment.appDataDir + "/ChronosApps/DockDemo/layout.json", window.getLayout());
+    File.writeSync(`${Environment.appDataDir}/ChronosApps/${AppComponent.self.option.name}/layout.json`, window.getLayout());
   }
 }
 

@@ -90,9 +90,19 @@ export class TabPanel extends Control {
         return this;
     }
 
+    getAllTabs(): string[] {
+        let res = [];
+
+        this.pages.getAllPage().forEach(item => {
+            res.push(item.id);
+        });
+
+        return res;
+    }
+
     removeTab(pageid: string) {
         this.headers.removeHeader(pageid);
-        this.pages.removePage(pageid);
+        return this.pages.removePage(pageid);
     }
 
     setActive(pageId: string): TabPanel {
@@ -124,8 +134,7 @@ export class TabPages extends Control {
         let len = this.pages.length - 1;
         for (; len >= 0; --len) {
             if (this.pages[len].id === id) {
-                this.pages.splice(len, 1);
-                break;
+                return this.pages.splice(len, 1)[0];
             }
         }
     }
@@ -854,7 +863,7 @@ export class SpreadViewer {
                         }
                     },
                     tooltip: {
-                        formatter: function(param) {
+                        formatter: function (param) {
                             return JSON.stringify(param);
                         }
                     }

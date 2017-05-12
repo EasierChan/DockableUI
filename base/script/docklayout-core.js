@@ -5,6 +5,11 @@ window.jQuery = window.$ = require("./jquery");
 var ev_resize = document.createEvent("CustomEvent");
 ev_resize.initCustomEvent("resize", false, false, null);
 
+var ev_addpage = document.createEvent("CustomEvent");
+var ev_removepage = document.createEvent("CustomEvent");
+var ev_adddock = document.createEvent("CustomEvent");
+var ev_removedock = document.createEvent("CustomEvent");
+
 function init() {
     if (typeof jQuery === 'undefined') {
         alert("jQuery runtime needed.");
@@ -36,16 +41,92 @@ function init() {
                 </div>');
     }
 
-    function addTabPage($tabpanel_, page_id_, page_title_) {
+    function addTabPage2($tabpanel_, page_id_, page_title_) {
         if (!$tabpanel_.is('.tab-panel'))
             return;
-        var page_ = $('<div id="' + page_id_ + '" class="tab-page active" draggable="true">\
+        var page_ = $('<div id="' + page_id_ + '" class="tab-page" draggable="true">\
                             <div class="page-title">' + page_title_ + '</div>\
                             <div class="page-body"></div>\
                         </div>');
-        $tabpanel_.find(".tab-pages").prepend(page_);
-        var header_ = $('<div data-target="' + page_id_ + '" class="tab active">' + page_id_ + '</div>')
-        $tabpanel_.find(".panel-header-list").prepend(header_);
+        $tabpanel_.find(".tab-pages").append(page_);
+        var header_ = $('<div data-target="' + page_id_ + '" class="tab">' + page_id_ + '</div>')
+        $tabpanel_.find(".panel-header-list").append(header_);
+        header_.click(function () {
+            if ($(this).hasClass('active'))
+                return;
+            var id = $(this).data("target");
+            $(this).addClass('active');
+            $(this).siblings().removeClass('active');
+            $('#' + id).siblings().removeClass('active');
+            $('#' + id).addClass('active');
+        });
+    }
+
+    function refreshTabpanel(child_page_id_) {
+        var srcPage = $("#" + child_page_id_);
+        var srcheader = srcPage.parent().next(".panel-header-list").children("[data-target='" + srcPage.attr("id") + "']");
+        srcheader.click(function () {
+            if ($(this).hasClass('active'))
+                return;
+            var id = $(this).data("target");
+            $(this).addClass('active');
+            $(this).siblings().removeClass('active');
+            $('#' + id).siblings().removeClass('active');
+            $('#' + id).addClass('active');
+        });
+    }
+
+    function removeTabPage(page_id_) {
+        var srcPage = $("#" + page_id_);
+        var originContainer = srcPage.closest(".dock-container");
+        var siblingsLen = srcPage.siblings().length;
+        if (srcPage.next().length > 0)
+            srcPage.next().addClass("active");
+        else
+            srcPage.parent().children().first().addClass("active");
+
+        var $srcheader = srcPage.parent().next(".panel-header-list").children("[data-target='" + srcPage.attr("id") + "']");
+        if ($srcheader.next().length > 0)
+            $srcheader.next().addClass("active");
+        else
+            $srcheader.parent().children().first().addClass("active");
+
+        if (siblingsLen === 0) { //only a page, remove 
+            // remove splitter
+            if (originContainer.prev().length > 0) {
+                originContainer.prev().remove(); //remove bar
+                if (originContainer.siblings().length == 1) { // if only a sibling
+                    // console.log("clear unnecessary container");
+                    originContainer.parent().append(originContainer.prev().children());
+                    originContainer.prev().remove();
+                } else {
+                    if (originContainer.is(".vertical"))
+                        originContainer.prev().outerWidth(originContainer.prev().outerWidth() +
+                            originContainer.outerWidth() + splitterbarWH);
+                    else
+                        originContainer.prev().outerHeight(originContainer.prev().outerHeight() +
+                            originContainer.outerHeight() + splitterbarWH);
+                }
+            } else if (originContainer.next().length > 0) {
+                originContainer.next().remove();
+                if (originContainer.siblings().length == 1) {
+                    // console.log("clear unnecessary container");
+                    originContainer.parent().append(originContainer.next().children());
+                    originContainer.next().remove();
+                } else {
+                    if (originContainer.is(".vertical"))
+                        originContainer.next().outerWidth(originContainer.next().outerWidth() +
+                            originContainer.outerWidth() + splitterbarWH);
+                    else
+                        originContainer.next().outerHeight(originContainer.next().outerHeight() +
+                            originContainer.outerHeight() + splitterbarWH);
+                }
+            } else {
+                // console.warn("originContainer is the only child of its parent");
+            }
+
+            originContainer.remove();
+        }
     }
 
     function moveTabPage(srcPage, dstContainer) {
@@ -74,6 +155,12 @@ function init() {
 
         dstContainer.find(".panel-header-list").prepend($srcheader);
         $srcheader.siblings().removeClass("active");
+
+        // dispatch event to angular
+        ev_removepage.initCustomEvent("removepage", false, false, { pageid: srcPage.attr("id") });
+        originContainer[0].dispatchEvent(ev_removepage);
+        ev_addpage.initCustomEvent("addpage", false, false, { pageid: srcPage.attr("id") });
+        dstContainer[0].dispatchEvent(ev_addpage);
 
         if (siblingsLen === 0) { //only a page, remove 
             // remove splitter
@@ -268,6 +355,11 @@ function init() {
         var id = $(document).data("drag-src-id");
         var $parent = $(document).data("drop-dock-ref");
         var $src = $("#" + id);
+
+        if ($parent.find("#" + id).length > 0 && $src.siblings().length === 0) {
+            console.info("unnecessary move.");
+            return;
+        }
 
         if ($(this).is(".dock-center")) {
             if ($parent.find("#" + id).length > 0) {
@@ -473,6 +565,8 @@ function init() {
     // start app
     reallocChildSize($("#root"), ".dock-container.horizental");
     window.getLayout = getLayout;
+    window.removeTabPage = removeTabPage;
+    window.refreshTabpanel = refreshTabpanel;
 };
 // })(jQuery);
 function initDocklayout() {
