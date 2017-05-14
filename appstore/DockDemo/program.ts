@@ -6,5 +6,5 @@ const DockManager = require("../../base/script/docklayout-core");
 
 const platform = platformBrowserDynamic();
 platform.bootstrapModule(AppModule).then(function(){
-    DockManager.init();
+    // DockManager.init();
 });

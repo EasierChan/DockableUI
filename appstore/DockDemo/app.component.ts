@@ -25,8 +25,9 @@ declare let window: any;
   ]
 })
 export class AppComponent implements OnInit {
-  className: string = "dock-container vertical";
-  children: Control[] = [];
+  // className: string = "dock-container vertical";
+  // children: Control[] = [];
+  private main: DockContainer;
   private pageObj: Object = new Object();
   private dialog: Dialog;
   private orderstatusPage: TabPage;
@@ -93,8 +94,9 @@ export class AppComponent implements OnInit {
 
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
-    window.onbeforeunload = this.onDestroy;
     this.statechecker.onInit(this, this.onReady);
+    this.statechecker.onResize(this, this.onResize);
+    this.statechecker.onDestory(this, this.onDestroy);
     this.statechecker.onMenuItemClick = (item) => {
       console.info(item.label);
       // this.findTabPanel(this);
@@ -979,39 +981,40 @@ export class AppComponent implements OnInit {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-    this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
-    this.psInstance.setHeartBeat(1000000);
-    this.psInstance.register([3, 6, 2007741]);
-    this.psInstance.subscribe((msg) => {
-      if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
-        if (msg.type === 201) {
-          for (let i = 0; i < 10; ++i) {
-            // console.info(i);
-            this.bookViewTable.rows[i + 10].cells[0].Text = msg.bidvols[i] + "";
-            this.bookViewTable.rows[i + 10].cells[1].Text = msg.bidprices[i] / 10000 + "";
-            this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
-            this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
-          }
-        } else if (msg.type === 100) {
-          this.bookViewTable.rows[10].cells[0].Text = msg.bidvolume;
-          this.bookViewTable.rows[10].cells[1].Text = msg.bidprice / 10000;
-          this.bookViewTable.rows[9].cells[1].Text = msg.askprice / 10000;
-          this.bookViewTable.rows[9].cells[2].Text = msg.askvolume;
-        }
-        AppComponent.self.bookViewTable.detectChanges();
-      }
-    });
+    // this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
+    // this.psInstance.setHeartBeat(1000000);
+    // this.psInstance.register([3, 6, 2007741]);
+    // this.psInstance.subscribe((msg) => {
+    //   if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
+    //     if (msg.type === 201) {
+    //       for (let i = 0; i < 10; ++i) {
+    //         // console.info(i);
+    //         this.bookViewTable.rows[i + 10].cells[0].Text = msg.bidvols[i] + "";
+    //         this.bookViewTable.rows[i + 10].cells[1].Text = msg.bidprices[i] / 10000 + "";
+    //         this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
+    //         this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
+    //       }
+    //     } else if (msg.type === 100) {
+    //       this.bookViewTable.rows[10].cells[0].Text = msg.bidvolume;
+    //       this.bookViewTable.rows[10].cells[1].Text = msg.bidprice / 10000;
+    //       this.bookViewTable.rows[9].cells[1].Text = msg.askprice / 10000;
+    //       this.bookViewTable.rows[9].cells[2].Text = msg.askvolume;
+    //     }
+    //     AppComponent.self.bookViewTable.detectChanges();
+    //   }
+    // });
     let defaultLayout = { "type": "v", "width": 1845, "children": [{ "type": "h", "height": 281, "modules": ["Position", "Account", "OrderStatus", "DoneOrders"] }, { "type": "h", "height": 368, "children": [{ "type": "v", "width": 355, "modules": ["BookView"] }, { "type": "v", "width": 1485, "modules": ["LOG", "StatArb", "Portfolio"] }] }, { "type": "h", "height": 343, "modules": ["StrategyMonitor", "Profit"] }] };
     let layout: any = File.parseJSON(`${Environment.appDataDir}/ChronosApps/${this.option.name}/layout.json`);
     let children = layout ? layout.children : defaultLayout.children;
     let childrenLen = children.length;
+    this.main = new DockContainer(null, layout.type, layout.width, layout.height);
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
-      this.children.push(this.traversefunc(children[i]));
-      this.children.push(new Splitter("h"));
+      this.main.addChild(this.traversefunc(children[i], this.main));
+      this.main.addChild(new Splitter("h"));
     }
 
-    this.children.push(this.traversefunc(children[childrenLen - 1]));
-    this.init(this.option.port, this.option.host);
+    this.main.addChild(this.traversefunc(children[childrenLen - 1], this.main));
+    // this.init(this.option.port, this.option.host);
     // this.init(9082, "172.24.51.4");
   }
 
@@ -1084,11 +1087,11 @@ export class AppComponent implements OnInit {
     return {};
   }
 
-  traversefunc(obj) {
-    let dock = new DockContainer(obj.type, obj.width, obj.height);
+  traversefunc(obj, parent) {
+    let dock = new DockContainer(obj.type, obj.width, obj.height, parent);
     if (obj.children && obj.children.length > 0) {
       obj.children.forEach((child, index) => {
-        dock.addChild(AppComponent.self.traversefunc(child));
+        dock.addChild(AppComponent.self.traversefunc(child, dock));
         if (index < obj.children.length - 1)
           dock.addChild(new Splitter(child.type));
       });
@@ -2398,7 +2401,13 @@ export class AppComponent implements OnInit {
   }
 
   onDestroy() {
-    File.writeSync(`${Environment.appDataDir}/ChronosApps/${AppComponent.self.option.name}/layout.json`, window.getLayout());
+    // File.writeSync(`${Environment.appDataDir}/ChronosApps/${AppComponent.self.option.name}/layout.json`, window.getLayout());
+  }
+
+  onResize(event: any) {
+    // minus 10 to remove the window's border.
+    this.main.reallocSize(event.currentTarget.document.body.clientWidth - 10, event.currentTarget.document.body.clientHeight - 27);
+    this.ref.detectChanges();
   }
 }
 

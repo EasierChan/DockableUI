@@ -177,7 +177,7 @@ body,
 }
 
 .dock-center {
-    display: none;
+    display: block;
 }
 
 .bar-block {

@@ -44,6 +44,18 @@ export class AppStateCheckerRef {
         afterInit.call(appref, this.option);
     }
 
+    onResize(appref: any, resizeCB: (e?: any) => void) {
+        window.onresize = (ev: UIEvent) => {
+            resizeCB.call(appref, ev);
+        };
+    }
+
+    onDestory(appref: any, beforeunload: (e?: any) => void) {
+        window.onbeforeunload = (ev: BeforeUnloadEvent) => {
+            beforeunload.call(appref, ev);
+        };
+    }
+
     addMenuItem(action: number, name: string) {
         electron.ipcRenderer.send("app://menuitem-CRUD", { action: action, name: name });
     }

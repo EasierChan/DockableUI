@@ -367,7 +367,21 @@ export class AppComponent implements OnDestroy {
             name: "SpreadViewerOne",
             apptype: "SpreadViewer"
         }];
-        this.loginTGW();
+        // this.loginTGW();
+        this.isAuthorized = true;
+        let config = new WorkspaceConfig();
+        config.state = 0;
+        config.name = "test";
+        config.apptype = "DockDemo";
+        config.activeChannel = "default";
+        config.port = 9090;
+        config.host = "172.24.51.4";
+        config.channels.feedhandler = {
+            port: 10000,
+            addr: "172.24.51.4"
+        };
+        this.configs = [];
+        this.configs.push(config);
     }
 
     loginTGW(): void {
@@ -507,7 +521,7 @@ export class AppComponent implements OnDestroy {
     }
 
     onAnalysisApp(item) {
-        if (!this.appService.startApp(item.name, item.apptype, {port: 10000, host: "172.24.51.4"})) {
+        if (!this.appService.startApp(item.name, item.apptype, { port: 10000, host: "172.24.51.4" })) {
             this.showError("Error", `start ${name} app error!`, "alert");
         }
     }

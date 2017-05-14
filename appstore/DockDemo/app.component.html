@@ -1,12 +1,14 @@
-<div id="root" [class]="className">
-    <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj">
+<!--<div id="root" [class]="className">
+    <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj" [dataSource]="child.dataSource">
     </dock-control>
-</div>
+</div>-->
+<dock-control class="main" [className]="main.className" [children]="main.children" [styleObj]="main.styleObj" [dataSource]="main.dataSource">
+</dock-control>
 <div *ngIf="statusbar" class="statusbar" [statusbar]="statusbar">
 </div>
 <div *ngIf="dialog && dialog.bshow" class="dialog" [dialog]="dialog">
 </div>
-<div class="dock-sn">
+<!--<div class="dock-sn">
     <div class="dock-north">
         <div class="bar-block"></div>
         <div class="bar-arrow"></div>
@@ -27,4 +29,4 @@
         <div class="bar-arrow"></div>
     </div>
 </div>
-<div class="dock-cover"></div>
+<div class="dock-cover"></div>-->
