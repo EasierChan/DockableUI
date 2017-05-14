@@ -162,6 +162,7 @@ export class UWindow {
 			} else {
 				this.win.setMenu(menuTemplate);
 			}
+			this.win.setMenuBarVisibility(true);
 		} catch (err) {
 			DefaultLogger.error(err);
 		}
