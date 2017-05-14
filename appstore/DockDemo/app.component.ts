@@ -1009,11 +1009,11 @@ export class AppComponent implements OnInit {
     let childrenLen = children.length;
     this.main = new DockContainer(null, layout.type, layout.width, layout.height);
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
-      this.main.addChild(this.traversefunc(children[i], this.main));
+      this.main.addChild(this.traversefunc(this.main, children[i]));
       this.main.addChild(new Splitter("h"));
     }
 
-    this.main.addChild(this.traversefunc(children[childrenLen - 1], this.main));
+    this.main.addChild(this.traversefunc(this.main, children[childrenLen - 1]));
     // this.init(this.option.port, this.option.host);
     // this.init(9082, "172.24.51.4");
   }
@@ -1087,11 +1087,11 @@ export class AppComponent implements OnInit {
     return {};
   }
 
-  traversefunc(obj, parent) {
-    let dock = new DockContainer(obj.type, obj.width, obj.height, parent);
+  traversefunc(parent, obj) {
+    let dock = new DockContainer(parent, obj.type, obj.width, obj.height);
     if (obj.children && obj.children.length > 0) {
       obj.children.forEach((child, index) => {
-        dock.addChild(AppComponent.self.traversefunc(child, dock));
+        dock.addChild(AppComponent.self.traversefunc(dock, child));
         if (index < obj.children.length - 1)
           dock.addChild(new Splitter(child.type));
       });
