@@ -4,7 +4,7 @@
  * desc:
  */
 
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, AfterViewInit } from "@angular/core";
 import {
   Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog,
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
@@ -24,7 +24,7 @@ declare let window: any;
     AppStateCheckerRef
   ]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, AfterViewInit {
   // className: string = "dock-container vertical";
   // children: Control[] = [];
   private main: DockContainer;
@@ -91,6 +91,7 @@ export class AppComponent implements OnInit {
 
   private statusbar: StatusBar;
   private option: any;
+  private layout: any;
 
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
@@ -981,41 +982,98 @@ export class AppComponent implements OnInit {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-    // this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
-    // this.psInstance.setHeartBeat(1000000);
-    // this.psInstance.register([3, 6, 2007741]);
-    // this.psInstance.subscribe((msg) => {
-    //   if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
-    //     if (msg.type === 201) {
-    //       for (let i = 0; i < 10; ++i) {
-    //         // console.info(i);
-    //         this.bookViewTable.rows[i + 10].cells[0].Text = msg.bidvols[i] + "";
-    //         this.bookViewTable.rows[i + 10].cells[1].Text = msg.bidprices[i] / 10000 + "";
-    //         this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
-    //         this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
-    //       }
-    //     } else if (msg.type === 100) {
-    //       this.bookViewTable.rows[10].cells[0].Text = msg.bidvolume;
-    //       this.bookViewTable.rows[10].cells[1].Text = msg.bidprice / 10000;
-    //       this.bookViewTable.rows[9].cells[1].Text = msg.askprice / 10000;
-    //       this.bookViewTable.rows[9].cells[2].Text = msg.askvolume;
-    //     }
-    //     AppComponent.self.bookViewTable.detectChanges();
-    //   }
-    // });
-    let defaultLayout = { "type": "v", "width": 1845, "children": [{ "type": "h", "height": 281, "modules": ["Position", "Account", "OrderStatus", "DoneOrders"] }, { "type": "h", "height": 368, "children": [{ "type": "v", "width": 355, "modules": ["BookView"] }, { "type": "v", "width": 1485, "modules": ["LOG", "StatArb", "Portfolio"] }] }, { "type": "h", "height": 343, "modules": ["StrategyMonitor", "Profit"] }] };
-    let layout: any = File.parseJSON(`${Environment.appDataDir}/ChronosApps/${this.option.name}/layout.json`);
-    let children = layout ? layout.children : defaultLayout.children;
+    this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
+    this.psInstance.setHeartBeat(1000000);
+    this.psInstance.register([3, 6, 2007741]);
+    this.psInstance.subscribe((msg) => {
+      if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
+        if (msg.type === 201) {
+          for (let i = 0; i < 10; ++i) {
+            // console.info(i);
+            this.bookViewTable.rows[i + 10].cells[0].Text = msg.bidvols[i] + "";
+            this.bookViewTable.rows[i + 10].cells[1].Text = msg.bidprices[i] / 10000 + "";
+            this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
+            this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
+          }
+        } else if (msg.type === 100) {
+          this.bookViewTable.rows[10].cells[0].Text = msg.bidvolume;
+          this.bookViewTable.rows[10].cells[1].Text = msg.bidprice / 10000;
+          this.bookViewTable.rows[9].cells[1].Text = msg.askprice / 10000;
+          this.bookViewTable.rows[9].cells[2].Text = msg.askvolume;
+        }
+        AppComponent.self.bookViewTable.detectChanges();
+      }
+    });
+
+    this.loadLayout();
+    this.init(this.option.port, this.option.host);
+    // this.init(9082, "172.24.51.4");
+  }
+
+  ngAfterViewInit() {
+    // this.main.reallocSize(this.layout.width, this.layout.height);
+  }
+
+  loadLayout() {
+    let defaultLayout = {
+      "type": "v",
+      "width": 1190,
+      "height": 660,
+      "children": [
+        {
+          "type": "h",
+          "height": 200,
+          "modules": [
+            "Position",
+            "Account",
+            "OrderStatus",
+            "DoneOrders"
+          ]
+        },
+        {
+          "type": "h",
+          "height": 250,
+          "children": [
+            {
+              "type": "v",
+              "width": 228,
+              "modules": [
+                "BookView"
+              ]
+            },
+            {
+              "type": "v",
+              "width": 957,
+              "modules": [
+                "LOG",
+                "StatArb",
+                "Portfolio"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "h",
+          "height": 200,
+          "modules": [
+            "StrategyMonitor",
+            "Profit"
+          ]
+        }
+      ]
+    };
+    this.layout = File.parseJSON(`${Environment.appDataDir}/ChronosApps/${this.option.name}/layout.json`);
+    this.layout = this.layout ? this.layout : defaultLayout;
+
+    let children = this.layout.children;
     let childrenLen = children.length;
-    this.main = new DockContainer(null, layout.type, layout.width, layout.height);
+    this.main = new DockContainer(null, this.layout.type, this.layout.width, this.layout.height);
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
       this.main.addChild(this.traversefunc(this.main, children[i]));
       this.main.addChild(new Splitter("h"));
     }
 
     this.main.addChild(this.traversefunc(this.main, children[childrenLen - 1]));
-    // this.init(this.option.port, this.option.host);
-    // this.init(9082, "172.24.51.4");
   }
 
   init(port: number, host: string) {
@@ -2401,7 +2459,7 @@ export class AppComponent implements OnInit {
   }
 
   onDestroy() {
-    // File.writeSync(`${Environment.appDataDir}/ChronosApps/${AppComponent.self.option.name}/layout.json`, window.getLayout());
+    File.writeSync(`${Environment.appDataDir}/ChronosApps/${AppComponent.self.option.name}/layout.json`, this.main.getLayout());
   }
 
   onResize(event: any) {

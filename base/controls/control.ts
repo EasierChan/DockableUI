@@ -416,6 +416,26 @@ export class DockContainer extends Control {
 
         return false;
     }
+
+    getLayout() {
+        let layout: any = {};
+        layout.type = this.styleObj.type;
+        layout.width = this.width;
+        layout.height = this.height;
+
+        if (this.subpanel && this.children.length === 1) {
+            layout.modules = this.subpanel.getAllTabs();
+        } else {
+            layout.children = [];
+            this.children.forEach(child => {
+                if (child instanceof DockContainer) {
+                    layout.children.push(child.getLayout());
+                }
+            });
+        }
+
+        return layout;
+    }
 }
 
 export class Splitter extends Control {
