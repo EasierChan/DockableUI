@@ -193,11 +193,13 @@ export class Sound {
         switch (type) {
             case 0:
                 Sound.playWav(path.join(__dirname, "/../../sound/good.wav"));
+                break;
             case 1:
                 Sound.playWav(path.join(__dirname, "/../../sound/bad.wav"));
                 break;
             default:
                 console.error(`unvalid type => ${type}`);
+                break;
         }
     }
 
