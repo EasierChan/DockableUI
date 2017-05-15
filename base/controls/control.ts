@@ -44,33 +44,128 @@ export class DockContainer extends Control {
                 height: height === undefined ? 200 : height
             };
         }
+
         this.styleObj.canHoldpage = false;
         this.styleObj.showNavbar = false;
         this.styleObj.showCover = false;
         this.children = [];
         this.dataSource = {};
         this.dataSource.appendTabpage = (pageid: string, panelId: string, location: number) => {
-            if (!this.subpanel || this.subpanel.id === panelId || TabPanel.fromPanelId(panelId) === null)
+            if (TabPanel.fromPanelId(panelId) === null)
                 return;
 
+            // console.info("drop", location);
             switch (location) {
                 case 0: // center
-                    this.subpanel.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
-                    this.subpanel.setActive(pageid);
+                    if (this.subpanel && this.subpanel.id !== panelId) {
+                        this.subpanel.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                        this.subpanel.setActive(pageid);
+                    }
                     break;
                 case 1: // north
+                    let northHeight = Math.round(this.height / 2);
+                    let dockNorth = new DockContainer(this, "h", null, northHeight);
+                    let panelNorth = new TabPanel();
+                    panelNorth.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    panelNorth.setActive(pageid);
+                    dockNorth.addChild(panelNorth);
+                    if (this.styleObj.type === "v") {
+                        let dockSouth = new DockContainer(this, "h", null, this.height - 5 - northHeight);
+                        this.children.forEach(child => {
+                            dockSouth.addChild(child);
+                        });
+
+                        this.children.length = 0;
+                        this.subpanel = null;
+
+                        this.addChild(dockNorth);
+                        this.addChild(new Splitter("h"));
+                        this.addChild(dockSouth);
+                    } else {
+                        this.styleObj.height = this.height - 5 - northHeight;
+                        this.parent.children.unshift(new Splitter("h"));
+                        this.parent.children.unshift(dockNorth);
+                    }
                     break;
                 case 2: // east
+                    let eastWidth = Math.round(this.width / 2);
+                    let dockEast = new DockContainer(this, "v", eastWidth, null);
+                    let panelEast = new TabPanel();
+                    panelEast.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    panelEast.setActive(pageid);
+                    dockEast.addChild(panelEast);
+                    if (this.styleObj.type === "v") {
+                        this.styleObj.width = this.width - 5 - eastWidth;
+                        let idx = this.parent.children.indexOf(this);
+                        this.parent.children.splice(idx + 1, 0, new Splitter("v"), dockEast);
+                    } else {
+                        let dockWest = new DockContainer(this, "v", this.width - 5 - eastWidth, null);
+                        this.children.forEach(child => {
+                            dockWest.addChild(child);
+                        });
+                        this.children.length = 0;
+                        this.subpanel = null;
+
+                        this.addChild(dockWest);
+                        this.addChild(new Splitter("v"));
+                        this.addChild(dockEast);
+                    }
                     break;
                 case 3: // south
+                    let southHeight = Math.round(this.height / 2);
+                    let dockSouth = new DockContainer(this, "h", null, southHeight);
+                    let panelSouth = new TabPanel();
+                    panelSouth.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    panelSouth.setActive(pageid);
+                    dockSouth.addChild(panelSouth);
+                    if (this.styleObj.type === "v") {
+                        let dockNorth = new DockContainer(this, "h", null, this.height - 5 - southHeight);
+                        this.children.forEach(child => {
+                            dockNorth.addChild(child);
+                        });
+                        this.children.length = 0;
+                        this.subpanel = null;
+
+                        this.addChild(dockNorth);
+                        this.addChild(new Splitter("h"));
+                        this.addChild(dockSouth);
+                    } else {
+                        this.styleObj.height = this.height - 5 - southHeight;
+                        this.parent.children.push(new Splitter("h"));
+                        this.parent.children.push(dockSouth);
+                    }
                     break;
                 case 4: // west
+                    let westWidth = Math.round(this.width / 2);
+                    let dockWest = new DockContainer(this, "v", westWidth, null);
+                    let panelWest = new TabPanel();
+                    panelWest.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    panelWest.setActive(pageid);
+                    dockWest.addChild(panelWest);
+
+                    if (this.styleObj.type === "v") {
+                        this.styleObj.width = this.width - 5 - westWidth;
+                        let idx = this.parent.children.indexOf(this);
+                        this.parent.children.splice(idx, 0, dockWest, new Splitter("v"));
+                    } else {
+                        let dockEast = new DockContainer(this, "v", this.width - 5 - westWidth, null);
+                        this.children.forEach(child => {
+                            dockEast.addChild(child);
+                        });
+                        this.children.length = 0;
+                        this.subpanel = null;
+
+                        this.addChild(dockWest);
+                        this.addChild(new Splitter("v"));
+                        this.addChild(dockEast);
+                    }
                     break;
                 default:
                     break;
             }
+
             if (TabPanel.fromPanelId(panelId).getAllTabs().length === 0) {
-                ;
+                DockContainer.clearUnvalidUp(this, panelId);
             }
         };
         this.dataSource.showNavbar = () => {
@@ -109,11 +204,17 @@ export class DockContainer extends Control {
     }
 
     get width() {
-        return this.styleObj.getWidth();
+        if (typeof this.styleObj.getWidth === "function")
+            return this.styleObj.getWidth();
+        else
+            return this.styleObj.width;
     }
 
     get height() {
-        return this.styleObj.getHeight();
+        if (typeof this.styleObj.getHeight === "function")
+            return this.styleObj.getHeight();
+        else
+            return this.styleObj.height;
     }
 
     hasTabpage(pageid: string) {
@@ -139,6 +240,7 @@ export class DockContainer extends Control {
         let childTotalWH = 0;
         let diff = 0;
         let zoomRate = 0;
+        // console.info(this, width, height);
         if (this.styleObj.type === "v") {
             this.styleObj.width = width;
             if (this.subpanel)
@@ -185,6 +287,134 @@ export class DockContainer extends Control {
         childTotalWH = null;
         diff = null;
         zoomRate = null;
+    }
+
+    /**
+     * find the unvalid item from bottom to top, then remove it and resize.
+     * @param leaf It's the container include the page from panel whose id is 'panelId.'
+     * @param panelId whose panel don't have any tabpage.
+     */
+    static clearUnvalidUp(leaf: DockContainer, panelId) {
+        // console.info("clearUnvalidUP");
+        if (leaf.parent === null)
+            return;
+
+        let siblings = leaf.parent.children;
+        let len = siblings.length;
+
+        if (len === 1) {
+            return DockContainer.clearUnvalidUp(leaf.parent, panelId);
+        }
+
+        for (let index = 0; index < len; ++index) {
+            if (siblings[index] instanceof DockContainer && siblings[index] !== leaf) {
+                if (!siblings[index].subpanel) {
+                    if (DockContainer.clearUnvalidDown(siblings[index], panelId))
+                        return;
+                } else {
+                    if (siblings[index].subpanel.id === panelId) {
+                        // TODO clear unvalid clear
+                        // have siblings
+                        if (len > 1) {
+                            if (index === len - 1) { // last one
+                                if (siblings[index - 2].styleObj.type === "v") {
+                                    siblings[index - 2].styleObj.width +=
+                                        siblings[index - 1].width + siblings[index].width;
+                                    siblings[index - 2].reallocSize(siblings[index - 2].styleObj.width, siblings[index - 2].height);
+                                } else {
+                                    siblings[index - 2].styleObj.height +=
+                                        siblings[index - 1].height + siblings[index].height;
+                                    siblings[index - 2].reallocSize(siblings[index - 2].width, siblings[index - 2].styleObj.height);
+                                }
+
+                                // siblings[index - 2].reallocSize(siblings[index - 2].styleObj.width, siblings[index - 2].styleObj.height);
+                                siblings.splice(index - 1, 2);
+                            } else {
+                                if (siblings[index + 2].styleObj.type === "v") {
+                                    siblings[index + 2].styleObj.width +=
+                                        siblings[index].width + siblings[index + 1].width;
+                                    siblings[index + 2].reallocSize(siblings[index + 2].styleObj.width, siblings[index + 2].height);
+                                } else {
+                                    siblings[index + 2].styleObj.height +=
+                                        siblings[index].height + siblings[index + 1].height;
+                                    siblings[index + 2].reallocSize(siblings[index + 2].width, siblings[index + 2].styleObj.height);
+                                }
+
+                                siblings.splice(index, 2);
+                            }
+                        } else {
+                            siblings.splice(index, 1);
+                        }
+
+                        return;
+                    }
+                }
+            }
+        }
+
+        return DockContainer.clearUnvalidUp(leaf.parent, panelId);
+    }
+
+    /**
+     * find a empty panel from top to bottom
+     * @param leaf find into it.
+     * @param panelId the empty panel's id.
+     */
+    static clearUnvalidDown(leaf: DockContainer, panelId) {
+        if (leaf === null)
+            return false;
+
+        let children = leaf.children;
+        let len = children.length;
+
+        for (let index = 0; index < len; ++index) {
+            if (children[index] instanceof DockContainer) {
+                if (children[index].subpanel) {
+                    // TODO clear unvalid clear
+                    if (children[index].subpanel.id === panelId) {
+                        // have siblings
+                        if (len > 1) {
+                            if (index === len - 1) { // last one
+                                if (children[index - 2].styleObj.type === "v") {
+                                    children[index - 2].styleObj.width +=
+                                        children[index - 1].width + children[index].width;
+                                    children[index - 2].reallocSize(children[index - 2].styleObj.width, children[index - 2].height);
+                                } else {
+                                    children[index - 2].styleObj.height +=
+                                        children[index - 1].height + children[index].height;
+                                    children[index - 2].reallocSize(children[index - 2].width, children[index - 2].styleObj.height);
+                                }
+
+                                // children[index - 2].reallocSize(children[index - 2].styleObj.width, children[index - 2].styleObj.height);
+                                children.splice(index - 1, 2);
+                            } else {
+                                if (children[index + 2].styleObj.type === "v") {
+                                    children[index + 2].styleObj.width +=
+                                        children[index].width + children[index + 1].width;
+                                    children[index + 2].reallocSize(children[index + 2].styleObj.width, children[index + 2].height);
+                                } else {
+                                    children[index + 2].styleObj.height +=
+                                        children[index].height + children[index + 1].height;
+                                    children[index + 2].reallocSize(children[index + 2].width, children[index + 2].styleObj.height);
+                                }
+                                console.info(children[index + 2]);
+                                // children[index + 2].reallocSize(children[index + 2].styleObj.width, children[index + 2].styleObj.height);
+                                children.splice(index, 2);
+                            }
+                        } else {
+                            children.splice(index, 1);
+                        }
+
+                        return true;
+                    }
+                } else {
+                    if (DockContainer.clearUnvalidDown(children[index], panelId))
+                        break;
+                }
+            }
+        }
+
+        return false;
     }
 }
 

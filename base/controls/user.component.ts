@@ -58,7 +58,6 @@ export class DockContainerComponent implements AfterViewInit {
     ngAfterViewInit() {
         if (this.isDockContainer()) {
             this.styleObj.getWidth = () => {
-                console.info(this.ele.nativeElement.clientWidth, this.container.nativeElement.clientWidth);
                 return this.ele.nativeElement.clientWidth > 0 ? this.ele.nativeElement.clientWidth : this.container.nativeElement.clientWidth;
             };
             this.styleObj.getHeight = () => {
@@ -138,7 +137,7 @@ export class DockContainerComponent implements AfterViewInit {
                 this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
             });
             this.renderer.listen(this.east.nativeElement, "drop", (event: DragEvent) => {
-                this.locateTo(event, 4);
+                this.locateTo(event, 2);
             });
         }
 
@@ -168,11 +167,10 @@ export class DockContainerComponent implements AfterViewInit {
     locateTo(event: DragEvent, locate: number) {
         event.preventDefault();
         event.stopPropagation();
-        console.info("drop");
         this.dataSource.hideNavbar();
         this.dataSource.hideCover();
         let [srcTabpageId, srcPanelId] = event.dataTransfer.getData("text/plain").split("&");
-        this.dataSource.appendTabpage(srcTabpageId, srcPanelId, 0);
+        this.dataSource.appendTabpage(srcTabpageId, srcPanelId, locate);
     }
 
     static bInit = false;
