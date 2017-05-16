@@ -1598,19 +1598,18 @@ export class DataTable extends Control {
 
     addColumn(...columns: string[]): DataTable {
         columns.forEach(item => {
-            this.columns.push(new DataTableColumn(item));
+            let col = new DataTableColumn(item);
+            this.columns.push(col);
+            this._menu.addItem(MenuItem.create(col.Name, (self) => {
+                if (col.Name === self.label) {
+                    col.hidden = !self.checked;
+                    // this.detectChanges();
+                }
+            }, "checkbox", { visible: !col.hidden, checked: true }), null);
             this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length));
         });
 
         this.dataSource.columns = this.columns;
-        this.columns.forEach(col => {
-            this._menu.addItem(MenuItem.create(col.Name, (self) => {
-                if (col.Name === self.label) {
-                    col.hidden = !self.checked;
-                    this.detectChanges();
-                }
-            }, "checkbox", { visible: !col.hidden, checked: true }), null);
-        });
 
         return this;
     }
