@@ -79,6 +79,11 @@ export class AppComponent implements OnInit, AfterViewInit {
   private dd_Account: DropDown;
   private dd_Strategy: DropDown;
 
+  private txt_UKey: any;
+  private txt_Symbol: any;
+  private txt_Price: any;
+  private dd_Action: any;
+  private tradeContent: any;
   // strategy index flag
   private commentIdx: number = 10;
   private commandIdx: number = 10;
@@ -93,33 +98,51 @@ export class AppComponent implements OnInit, AfterViewInit {
   private option: any;
   private layout: any;
 
+  static bookViewSN = 1;
+  static spreadViewSN = 1;
+
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
     this.statechecker.onInit(this, this.onReady);
     this.statechecker.onResize(this, this.onResize);
     this.statechecker.onDestory(this, this.onDestroy);
-    this.statechecker.onMenuItemClick = (item) => {
-      console.info(item.label);
-      // this.findTabPanel(this);
-    };
+    this.statechecker.onMenuItemClick = this.onMenuItemClick;
+    TabPanel.afterAnyPageClosed = this.onTabPageClosed;
   }
 
-  // findTabPanel(dock: any): TabPanel {
-  //   dock.children.forEach(item => {
-  //     if (item instanceof TabPanel) {
-  //       let pItem = item as TabPanel;
-  //       console.info(pItem.getAllTabs());
-  //       if (pItem.getAllTabs().includes("BookView")) {
-  //         pItem.addTab(new TabPage("BookView2", "lalla"));
-  //       }
-  //       return pItem;
-  //     } else if (item instanceof DockContainer) {
-  //       return this.findTabPanel(item);
-  //     }
-  //     return null;
-  //   });
-  //   return null;
-  // }
+  onTabPageClosed(pageid: string) {
+    AppComponent.self.statechecker.changeMenuItemState(pageid, false, 2);
+  }
+
+  onMenuItemClick(item) {
+    let label = item.label as string;
+    if (label.endsWith("New BookView")) {
+      let newBVID = "BookView" + AppComponent.bookViewSN++;
+      // AppComponent.self.statechecker.addMenuItem(0, newBVID);
+      return;
+    }
+
+    if (label.endsWith("New SpreadView")) {
+      let newSVID = "SpreadView" + AppComponent.spreadViewSN++;
+      // AppComponent.self.statechecker.addMenuItem(1, newSVID);
+      return;
+    }
+
+    if (!item.checked) {
+      AppComponent.self.main.removeTabpage(item.label);
+    } else {
+      let panel = AppComponent.self.main.getFirstChildPanel();
+      if (panel === null) {
+        console.error("not found a panel to locate a tabpage.");
+        return;
+      }
+
+      if (AppComponent.self.pageObj.hasOwnProperty(item.label)) {
+        panel.addTab(AppComponent.self.pageObj[item.label]);
+        panel.setActive(item.label);
+      }
+    }
+  }
 
   onReady(option: any) {
     // option.port and option.host and option.name ;
@@ -320,58 +343,58 @@ export class AppComponent implements OnInit, AfterViewInit {
     let leftAlign = 20;
     let rowSep = 5;
     this.tradePage = new TabPage("ManulTrader", ManulTrader.getTranslateInfo(this.languageType, "ManulTrader"));
-    let tradeContent = new ComboControl("col");
-    tradeContent.MinHeight = 500;
-    tradeContent.MinWidth = 500;
+    this.tradeContent = new ComboControl("col");
+    this.tradeContent.MinHeight = 500;
+    this.tradeContent.MinWidth = 500;
     this.dd_Account = new DropDown();
     this.dd_Account.Width = 120;
     let dd_accountRtn = ManulTrader.getTranslateInfo(this.languageType, "Account");
     this.dd_Account.Title = dd_accountRtn + ":   ";
     this.dd_Account.Left = leftAlign;
     this.dd_Account.Top = 20;
-    tradeContent.addChild(this.dd_Account);
+    this.tradeContent.addChild(this.dd_Account);
     this.dd_Strategy = new DropDown();
     this.dd_Strategy.Width = 120;
     this.dd_Strategy.Left = leftAlign;
     this.dd_Strategy.Top = rowSep;
     let dd_strategyRtn = ManulTrader.getTranslateInfo(this.languageType, "Strategy");
     this.dd_Strategy.Title = dd_strategyRtn + ":  ";
-    tradeContent.addChild(this.dd_Strategy);
-    let txt_Symbol = new MetaControl("textbox");
-    txt_Symbol.Left = leftAlign;
-    txt_Symbol.Top = rowSep;
+    this.tradeContent.addChild(this.dd_Strategy);
+    this.txt_Symbol = new MetaControl("textbox");
+    this.txt_Symbol.Left = leftAlign;
+    this.txt_Symbol.Top = rowSep;
     let txt_symbolRtn = ManulTrader.getTranslateInfo(this.languageType, "Symbol");
-    txt_Symbol.Title = txt_symbolRtn + ":    ";
-    tradeContent.addChild(txt_Symbol);
-    let txt_UKey = new MetaControl("textbox");
-    txt_UKey.Left = leftAlign;
-    txt_UKey.Top = rowSep;
+    this.txt_Symbol.Title = txt_symbolRtn + ":    ";
+    this.tradeContent.addChild(this.txt_Symbol);
+    this.txt_UKey = new MetaControl("textbox");
+    this.txt_UKey.Left = leftAlign;
+    this.txt_UKey.Top = rowSep;
     let txt_UKeyRtn = ManulTrader.getTranslateInfo(this.languageType, "U-key");
-    txt_UKey.Title = txt_UKeyRtn + ":     ";
-    tradeContent.addChild(txt_UKey);
-    let txt_Price = new MetaControl("textbox");
-    txt_Price.Left = leftAlign;
-    txt_Price.Top = rowSep;
+    this.txt_UKey.Title = txt_UKeyRtn + ":     ";
+    this.tradeContent.addChild(this.txt_UKey);
+    this.txt_Price = new MetaControl("textbox");
+    this.txt_Price.Left = leftAlign;
+    this.txt_Price.Top = rowSep;
     let txt_PriceRtn = ManulTrader.getTranslateInfo(this.languageType, "Price");
-    txt_Price.Title = txt_PriceRtn + ":     ";
-    tradeContent.addChild(txt_Price);
+    this.txt_Price.Title = txt_PriceRtn + ":     ";
+    this.tradeContent.addChild(this.txt_Price);
     let txt_Volume = new MetaControl("textbox");
     txt_Volume.Left = leftAlign;
     txt_Volume.Top = rowSep;
     let txt_VolumeRtn = ManulTrader.getTranslateInfo(this.languageType, "Volume");
     txt_Volume.Title = txt_VolumeRtn + ":    ";
-    tradeContent.addChild(txt_Volume);
-    let dd_Action = new DropDown();
-    dd_Action.Left = leftAlign;
-    dd_Action.Top = rowSep;
+    this.tradeContent.addChild(txt_Volume);
+    this.dd_Action = new DropDown();
+    this.dd_Action.Left = leftAlign;
+    this.dd_Action.Top = rowSep;
     let dd_ActionRtn = ManulTrader.getTranslateInfo(this.languageType, "Action");
-    dd_Action.Title = dd_ActionRtn + ":    ";
-    dd_Action.Width = 120;
+    this.dd_Action.Title = dd_ActionRtn + ":    ";
+    this.dd_Action.Width = 120;
     let buyRtn = ManulTrader.getTranslateInfo(this.languageType, "Buy");
     let sellRtn = ManulTrader.getTranslateInfo(this.languageType, "Sell");
-    dd_Action.addItem({ Text: buyRtn, Value: "0" });
-    dd_Action.addItem({ Text: sellRtn, Value: "1" });
-    tradeContent.addChild(dd_Action);
+    this.dd_Action.addItem({ Text: buyRtn, Value: "0" });
+    this.dd_Action.addItem({ Text: sellRtn, Value: "1" });
+    this.tradeContent.addChild(this.dd_Action);
     let btn_row = new ComboControl("row");
     let btn_clear = new MetaControl("button");
     btn_clear.Left = leftAlign;
@@ -384,17 +407,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     btn_submit.Text = SubmitRtn;
     btn_clear.Class = btn_submit.Class = "primary";
     btn_row.addChild(btn_submit);
-    tradeContent.addChild(btn_row);
-    this.tradePage.setContent(tradeContent);
+    this.tradeContent.addChild(btn_row);
+    this.tradePage.setContent(this.tradeContent);
 
     btn_submit.OnClick = () => {
       let account = this.dd_Account.SelectedItem.Text;
       let getstrategy = this.dd_Strategy.SelectedItem.Text;
-      let symbol = txt_Symbol.Text;
-      let ukey = txt_UKey.Text;
-      let price = txt_Price.Text;
+      let symbol = this.txt_Symbol.Text;
+      let ukey = this.txt_UKey.Text;
+      let price = this.txt_Price.Text;
       let volume = txt_Volume.Text;
-      let actionValue = dd_Action.SelectedItem.Value;
+      let actionValue = this.dd_Action.SelectedItem.Value;
 
       let date = new Date();
       ManulTrader.submitOrder({
@@ -472,19 +495,19 @@ export class AppComponent implements OnInit, AfterViewInit {
       // console.info(cellIndex, rowIndex);
     };
     this.bookViewTable.OnRowClick = (rowItem, rowIndex) => {
-      [txt_UKey.Text, txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
-      txt_Price.Text = rowItem.cells[1].Text;
-      dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? dd_Action.Items[1] : dd_Action.Items[0];
+      [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
+      this.txt_Price.Text = rowItem.cells[1].Text;
+      this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
       let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
-      Dialog.popup(this, tradeContent, { title: tradeRtn });
+      Dialog.popup(this, this.tradeContent, { title: tradeRtn });
     };
     let bookViewContent = new ComboControl("col");
     bookViewContent.addChild(bookviewHeader);
     bookViewContent.addChild(this.bookViewTable);
     this.bookviewPage.setContent(bookViewContent);
 
-    this.logPage = new TabPage("LOG", ManulTrader.getTranslateInfo(this.languageType, "LOG"));
-    this.pageObj["LOG"] = this.logPage;
+    this.logPage = new TabPage("Log", ManulTrader.getTranslateInfo(this.languageType, "LOG"));
+    this.pageObj["Log"] = this.logPage;
     let logContent = new ComboControl("col");
     this.logTable = new DataTable("table2");
 
@@ -1045,7 +1068,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               "type": "v",
               "width": 957,
               "modules": [
-                "LOG",
+                "Log",
                 "StatArb",
                 "Portfolio"
               ]
@@ -1158,6 +1181,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       obj.modules.forEach(page => {
         // console.log(AppComponent.self.pageObj[page]);
         panel.addTab(AppComponent.self.pageObj[page]);
+        this.statechecker.changeMenuItemState(page, true, 2);
       });
       dock.addChild(panel);
       panel.setActive(obj.modules[0]);
@@ -2456,6 +2480,64 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
       }
     }
+  }
+
+  createBookView(bookviewID) {
+    let bookviewPage = new TabPage(bookviewID, ManulTrader.getTranslateInfo(this.languageType, "BookView"));
+    this.pageObj[bookviewID] = this.bookviewPage;
+
+    let bookviewHeader = new ComboControl("row");
+    let dd_symbol = new DropDown();
+    dd_symbol.AcceptInput = true;
+    let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
+    dd_symbol.Title = codeRtn + ": ";
+    dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
+    dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
+    dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
+    let self = this;
+    let bookViewTable = new DataTable("table");
+    dd_symbol.SelectChange = () => {
+      bookViewTable.rows.forEach(row => {
+        row.cells.forEach(cell => {
+          cell.Text = "";
+        });
+      });
+    };
+    bookviewHeader.addChild(dd_symbol);
+
+    let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
+    let bookviewRtnArr: string[] = [];
+    let bookviewTittleLen = bookviewArr.length;
+    for (let i = 0; i < bookviewTittleLen; ++i) {
+      let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewArr[i]);
+      bookviewRtnArr.push(bookviewRtn);
+    }
+    bookviewRtnArr.forEach(item => {
+      bookViewTable.addColumn(item);
+    });
+    for (let i = 0; i < 20; ++i) {
+      let row = bookViewTable.newRow();
+      row.cells[0].Class = "warning";
+      row.cells[0].Text = "";
+      row.cells[1].Class = "info";
+      row.cells[2].Class = "danger";
+      row.cells[3].Class = "default";
+    }
+    let bHead = false;
+    bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+      // console.info(cellIndex, rowIndex);
+    };
+    bookViewTable.OnRowClick = (rowItem, rowIndex) => {
+      [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
+      this.txt_Price.Text = rowItem.cells[1].Text;
+      this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+      let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
+      Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+    };
+    let bookViewContent = new ComboControl("col");
+    bookViewContent.addChild(bookviewHeader);
+    bookViewContent.addChild(bookViewTable);
+    bookviewPage.setContent(bookViewContent);
   }
 
   onDestroy() {

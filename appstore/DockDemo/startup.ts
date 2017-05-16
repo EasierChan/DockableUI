@@ -27,8 +27,11 @@ export class StartUp implements IApplication {
     positionItem: any;
     accountItem: any;
     statarbItem: any;
+    portfolioItem: any;
     sep1: any;
+    bookViewItem: any;
     sep2: any;
+    spreadViewItem: any;
     subWindMenu: any;
     itemsMap: any = {};
     static instanceMap: Object = {};
@@ -48,30 +51,47 @@ export class StartUp implements IApplication {
         }));
 
         this.orderstatusItem = new MenuItem({ label: "OrderStatus", type: "checkbox", click: this.itemClick });
+        this.itemsMap["OrderStatus"] = this.orderstatusItem;
         this.doneorderItem = new MenuItem({ label: "DoneOrders", type: "checkbox", click: this.itemClick });
+        this.itemsMap["DoneOrders"] = this.doneorderItem;
         this.logItem = new MenuItem({ label: "Log", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Log"] = this.logItem;
         this.profixItem = new MenuItem({ label: "Profit", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Profit"] = this.profixItem;
         this.positionItem = new MenuItem({ label: "Position", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Position"] = this.positionItem;
         this.accountItem = new MenuItem({ label: "Account", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Account"] = this.accountItem;
         this.statarbItem = new MenuItem({ label: "StatArb", type: "checkbox", click: this.itemClick });
+        this.itemsMap["StatArb"] = this.statarbItem;
+        this.portfolioItem = new MenuItem({ label: "Portfolio", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Portfolio"] = this.portfolioItem;
         this.sep1 = new MenuItem({ type: "separator" });
+        this.bookViewItem = new MenuItem({ label: "BookView", type: "checkbox", click: this.itemClick });
+        this.itemsMap["BookView"] = this.bookViewItem;
         this.sep2 = new MenuItem({ type: "separator" });
+        this.spreadViewItem = new MenuItem({ label: "SpreadView", type: "checkbox", click: this.itemClick });
+        this.itemsMap["SpreadView"] = this.spreadViewItem;
         this.subWindMenu = new Menu();
-        this.subWindMenu.append(this.orderstatusItem); this.itemsMap[0] = this.orderstatusItem;
-        this.subWindMenu.append(this.doneorderItem); this.itemsMap[1] = this.doneorderItem;
-        this.subWindMenu.append(this.logItem); this.itemsMap[2] = this.logItem;
-        this.subWindMenu.append(this.profixItem); this.itemsMap[3] = this.profixItem;
-        this.subWindMenu.append(this.positionItem); this.itemsMap[4] = this.positionItem;
-        this.subWindMenu.append(this.accountItem); this.itemsMap[5] = this.accountItem;
-        this.subWindMenu.append(this.statarbItem); this.itemsMap[6] = this.statarbItem;
+        this.subWindMenu.append(this.orderstatusItem);
+        this.subWindMenu.append(this.doneorderItem);
+        this.subWindMenu.append(this.logItem);
+        this.subWindMenu.append(this.profixItem);
+        this.subWindMenu.append(this.positionItem);
+        this.subWindMenu.append(this.accountItem);
+        this.subWindMenu.append(this.statarbItem);
+        this.subWindMenu.append(this.portfolioItem);
         this.subWindMenu.append(this.sep1);
+        this.subWindMenu.append(this.bookViewItem);
         this.subWindMenu.append(this.sep2);
+        this.subWindMenu.append(this.spreadViewItem);
         this._menuTemplate.append(new MenuItem({ label: "Window", submenu: this.subWindMenu }));
         this._menuTemplate.append(new MenuItem({
             label: "Help",
             submenu: [
                 { label: "Toggle Developer Tools", click: (item, owner) => { owner.webContents.openDevTools(); } },
                 { label: "Reload", click: (item, owner) => { owner.reload(); } },
+                // { label: "Reset Layout", click: (item, owner) => this.removeLayout(owner) },
                 { type: "separator" },
                 { role: "about" }
             ]
@@ -144,6 +164,14 @@ export class StartUp implements IApplication {
         owner.webContents.send("app://menuitem-click", menuItem);
     }
 
+    removeLayout(owner) {
+        owner.webContents.once("did-start-loading", () => {
+            console.info(path.join(this._appdir, "layout.json"));
+            fs.unlink(path.join(this._appdir, "layout.json"));
+        });
+        owner.reload();
+    }
+
     static instance(): StartUp {
         return new StartUp();
     }
@@ -170,13 +198,15 @@ ipcMain.on(`app://menuitem-CRUD`, (e, param) => {
 
     switch (param.action) {
         case 0: // add bookview item.
-            inst.subWindMenu.insert(8, new MenuItem({ label: param.name }));
+            inst.subWindMenu.insert(10, new MenuItem({ label: param.name, type: "checkbox", checked: true, click: this.itemClick }));
             break;
         case 1: // add spreadview item.
-            inst.subWindMenu.append(new MenuItem({ label: param.name }));
+            inst.subWindMenu.append(new MenuItem({ label: param.name, type: "checkbox", checked: true, click: this.itemClick }));
             break;
         case 2: // change item's state.
-            inst.itemsMap[param.index].checked = param.state;
+            if (inst.itemsMap.hasOwnProperty(param.name)) {
+                inst.itemsMap[param.name].checked = param.state;
+            }
             break;
         default:
             console.info(`undefine action: ${param.action}`);

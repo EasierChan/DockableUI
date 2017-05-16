@@ -199,6 +199,8 @@ export class DockContainer extends Control {
             this.subpanel = containerRef;
             this.styleObj.canHoldpage = true;
         }
+
+        containerRef.parent = this;
         this.children.push(containerRef);
         return this;
     }
@@ -436,9 +438,50 @@ export class DockContainer extends Control {
 
         return layout;
     }
+
+    removeTabpage(pageid: string) {
+        if (this.subpanel) {
+            if (this.subpanel.removeTab(pageid) !== null) {
+                if (this.subpanel.getAllTabs().length === 0) {
+                    DockContainer.clearUnvalidUp(this, this.subpanel.id);
+                }
+                return true;
+            }
+        }
+
+        let len = this.children.length;
+        for (let i = 0; i < len; ++i) {
+            if (this.children[i] instanceof DockContainer) {
+                if (this.children[i].removeTabpage(pageid)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    getFirstChildPanel(): TabPanel {
+        if (this.subpanel)
+            return this.subpanel;
+
+        let len = this.children.length;
+        for (let i = 0; i < len; ++i) {
+            if (this.children[i] instanceof DockContainer) {
+                if (this.children[i].subpanel) {
+                    return this.children[i].subpanel;
+                } else {
+                    return this.children[i].getFirstChildPanel();
+                }
+            }
+        }
+
+        return null;
+    }
 }
 
 export class Splitter extends Control {
+    parent: any;
     static readonly size = 5;
     constructor(type) {
         super();
@@ -460,6 +503,9 @@ export class TabPanel extends Control {
     id: string;
     protected pages: TabPages;
     protected headers: TabHeaders;
+    private afterPageClosed: Function;
+    parent: any;
+
     constructor() {
         super();
         this.id = "u-tabpanel" + TabPanel.sn++;
@@ -472,6 +518,20 @@ export class TabPanel extends Control {
         this.dataSource = { id: this.id };
         this.dataSource.setActive = (pageid) => {
             this.setActive(pageid);
+        };
+        this.dataSource.onClose = (pageid) => {
+            this.removeTab(pageid);
+            if (this.getAllTabs().length === 0) {
+                if (!DockContainer.clearUnvalidDown(this.parent.parent, this.id)) {
+                    DockContainer.clearUnvalidDown(this.parent.parent.parent, this.id);
+                }
+            }
+            if (this.afterPageClosed) {
+                this.afterPageClosed(pageid);
+            }
+            if (TabPanel.afterAnyPageClosed) {
+                TabPanel.afterAnyPageClosed(pageid);
+            }
         };
         TabPanel.panelMap[this.id] = this;
     }
@@ -535,12 +595,14 @@ export class TabPanel extends Control {
     }
 
     static fromPanelId(panelId: string): TabPanel {
-        if (TabPanel.panelMap.hasOwnProperty(panelId)) {
+        if (TabPanel.panelMap.hasOwnProperty(panelId) && TabPanel.panelMap[panelId]) {
             return TabPanel.panelMap[panelId];
         }
 
         return null;
     }
+
+    static afterAnyPageClosed: Function;
 }
 
 export class TabPages extends Control {
@@ -561,6 +623,8 @@ export class TabPages extends Control {
                 return this.pages.splice(len, 1)[0];
             }
         }
+
+        return null;
     }
 
     getAllPage(): TabPage[] {

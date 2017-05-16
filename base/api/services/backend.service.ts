@@ -60,8 +60,8 @@ export class AppStateCheckerRef {
         electron.ipcRenderer.send("app://menuitem-CRUD", { action: action, name: name });
     }
 
-    changeItemState(name, itemIndex, state, action: number = 2) {
-        electron.ipcRenderer.send("app://menuitem-CRUD", { action: action, index: itemIndex, state: state });
+    changeMenuItemState(name, state, action: number = 2) {
+        electron.ipcRenderer.send("app://menuitem-CRUD", { action: action, name: name, state: state });
     }
 }
 
