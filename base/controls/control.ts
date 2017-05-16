@@ -242,7 +242,7 @@ export class DockContainer extends Control {
         let childTotalWH = 0;
         let diff = 0;
         let zoomRate = 0;
-        // console.info(this, width, height);
+        // console.info(this.id, this.styleObj.type, width, height);
         if (this.styleObj.type === "v") {
             this.styleObj.width = width;
             if (this.subpanel)
