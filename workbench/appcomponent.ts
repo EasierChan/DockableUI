@@ -367,21 +367,21 @@ export class AppComponent implements OnDestroy {
             name: "SpreadViewerOne",
             apptype: "SpreadViewer"
         }];
-        // this.loginTGW();
-        this.isAuthorized = true;
-        let config = new WorkspaceConfig();
-        config.state = 0;
-        config.name = "test";
-        config.apptype = "DockDemo";
-        config.activeChannel = "default";
-        config.port = 9090;
-        config.host = "172.24.51.4";
-        config.channels.feedhandler = {
-            port: 10000,
-            addr: "172.24.51.4"
-        };
-        this.configs = [];
-        this.configs.push(config);
+        this.loginTGW();
+        // this.isAuthorized = true;
+        // let config = new WorkspaceConfig();
+        // config.state = 0;
+        // config.name = "test";
+        // config.apptype = "DockDemo";
+        // config.activeChannel = "default";
+        // config.port = 9090;
+        // config.host = "172.24.51.4";
+        // config.channels.feedhandler = {
+        //     port: 10000,
+        //     addr: "172.24.51.4"
+        // };
+        // this.configs = [];
+        // this.configs.push(config);
     }
 
     loginTGW(): void {
