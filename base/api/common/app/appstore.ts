@@ -186,13 +186,12 @@ export class AppStore {
         if (!fs.existsSync(AppStore._cfgFile)) {
             fs.writeFileSync(AppStore._cfgFile, JSON.stringify(AppStore._config), { encoding: "utf8" });
         }
-        console.info(AppStore._cfgFile, AppStore._config);
+
         AppStore._config = JSON.parse(fs.readFileSync(AppStore._cfgFile, "utf8"));
-        console.info(AppStore._cfgFile, AppStore._config);
     }
 
     static saveConfig() {
-        console.info(AppStore._config);
+        // console.info(AppStore._config);
         fs.writeFileSync(AppStore._cfgFile, JSON.stringify(AppStore._config, null, 2));
     }
 }
