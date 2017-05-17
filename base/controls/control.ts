@@ -565,15 +565,18 @@ export class TabPanel extends Control {
     removeTab(pageid: string) {
         this.headers.removeHeader(pageid);
         let respage = this.pages.removePage(pageid);
-        if (this.headers.at(0) !== null) {
-            this.headers.at(0).setActive();
-            this.pages.getAllPage().forEach(page => {
-                if (page.id === this.headers.at(0).targetId)
-                    page.setActive();
-                else
-                    page.unActive();
-            });
-        }
+        this.headers.getAllHeader().forEach((header, index) => {
+            if (index === 0)
+                header.setActive();
+            else
+                header.unActive();
+        });
+        this.pages.getAllPage().forEach(page => {
+            if (page.id === this.headers.at(0).targetId)
+                page.setActive();
+            else
+                page.unActive();
+        });
         return respage;
     }
 

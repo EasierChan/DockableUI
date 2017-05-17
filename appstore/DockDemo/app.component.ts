@@ -119,6 +119,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     if (label.endsWith("New BookView")) {
       let newBVID = "BookView" + AppComponent.bookViewSN++;
       // AppComponent.self.statechecker.addMenuItem(0, newBVID);
+      AppComponent.self.createBookView(newBVID);
+      let panel = AppComponent.self.main.getFirstChildPanel();
+      if (panel === null) {
+        console.error("not found a panel to locate a tabpage.");
+        return;
+      }
+
+      if (AppComponent.self.pageObj.hasOwnProperty(newBVID)) {
+        panel.addTab(AppComponent.self.pageObj[newBVID]);
+        panel.setActive(newBVID);
+      }
       return;
     }
 
@@ -886,8 +897,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
     this.portfolioPage.setContent(portfolioContent);
 
-    this.strategyPage = new TabPage("StrategyMonitor", ManulTrader.getTranslateInfo(this.languageType, "StrategyMonitor"));
-    this.pageObj["StrategyMonitor"] = this.strategyPage;
+    this.strategyPage = new TabPage("Strategy", ManulTrader.getTranslateInfo(this.languageType, "StrategyMonitor"));
+    this.pageObj["Strategy"] = this.strategyPage;
 
     let strategyHeader = new ComboControl("row");
     let startall = new MetaControl("button");
@@ -1038,59 +1049,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   loadLayout() {
-    let defaultLayout = {
-      "type": "v",
-      "width": 1190,
-      "height": 660,
-      "children": [
-        {
-          "type": "h",
-          "height": 200,
-          "modules": [
-            "Position",
-            "Account",
-            "OrderStatus",
-            "DoneOrders"
-          ]
-        },
-        {
-          "type": "h",
-          "height": 250,
-          "children": [
-            {
-              "type": "v",
-              "width": 228,
-              "modules": [
-                "BookView"
-              ]
-            },
-            {
-              "type": "v",
-              "width": 957,
-              "modules": [
-                "Log",
-                "StatArb",
-                "Portfolio"
-              ]
-            }
-          ]
-        },
-        {
-          "type": "h",
-          "height": 200,
-          "modules": [
-            "StrategyMonitor",
-            "Profit"
-          ]
-        }
-      ]
-    };
-    this.layout = File.parseJSON(`${Environment.appDataDir}/ChronosApps/${this.option.name}/layout.json`);
-    this.layout = this.layout ? this.layout : defaultLayout;
-
-    let children = this.layout.children;
+    let children = this.option.layout.children;
     let childrenLen = children.length;
-    this.main = new DockContainer(null, this.layout.type, this.layout.width, this.layout.height);
+    this.main = new DockContainer(null, this.option.layout.type, this.option.layout.width, this.option.layout.height);
     for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
       this.main.addChild(this.traversefunc(this.main, children[i]));
       this.main.addChild(new Splitter("h"));
@@ -2484,7 +2445,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   createBookView(bookviewID) {
     let bookviewPage = new TabPage(bookviewID, ManulTrader.getTranslateInfo(this.languageType, "BookView"));
-    this.pageObj[bookviewID] = this.bookviewPage;
+    this.pageObj[bookviewID] = bookviewPage;
 
     let bookviewHeader = new ComboControl("row");
     let dd_symbol = new DropDown();
@@ -2538,6 +2499,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     bookViewContent.addChild(bookviewHeader);
     bookViewContent.addChild(bookViewTable);
     bookviewPage.setContent(bookViewContent);
+    return bookviewPage;
   }
 
   onDestroy() {

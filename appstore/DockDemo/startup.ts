@@ -28,6 +28,7 @@ export class StartUp implements IApplication {
     accountItem: any;
     statarbItem: any;
     portfolioItem: any;
+    strategyItem: any;
     sep1: any;
     bookViewItem: any;
     sep2: any;
@@ -66,6 +67,8 @@ export class StartUp implements IApplication {
         this.itemsMap["StatArb"] = this.statarbItem;
         this.portfolioItem = new MenuItem({ label: "Portfolio", type: "checkbox", click: this.itemClick });
         this.itemsMap["Portfolio"] = this.portfolioItem;
+        this.strategyItem = new MenuItem({ label: "Strategy", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Strategy"] = this.strategyItem;
         this.sep1 = new MenuItem({ type: "separator" });
         this.bookViewItem = new MenuItem({ label: "BookView", type: "checkbox", click: this.itemClick });
         this.itemsMap["BookView"] = this.bookViewItem;
@@ -81,6 +84,7 @@ export class StartUp implements IApplication {
         this.subWindMenu.append(this.accountItem);
         this.subWindMenu.append(this.statarbItem);
         this.subWindMenu.append(this.portfolioItem);
+        this.subWindMenu.append(this.strategyItem);
         this.subWindMenu.append(this.sep1);
         this.subWindMenu.append(this.bookViewItem);
         this.subWindMenu.append(this.sep2);
@@ -91,7 +95,7 @@ export class StartUp implements IApplication {
             submenu: [
                 { label: "Toggle Developer Tools", click: (item, owner) => { owner.webContents.openDevTools(); } },
                 { label: "Reload", click: (item, owner) => { owner.reload(); } },
-                // { label: "Reset Layout", click: (item, owner) => this.removeLayout(owner) },
+                { label: "Reset Layout", click: (item, owner) => this.removeLayout(owner) },
                 { type: "separator" },
                 { role: "about" }
             ]
@@ -113,7 +117,8 @@ export class StartUp implements IApplication {
                 self.saveConfig();
             };
 
-            this._option = option;
+            this._option = option ? option : {};
+            this._option.layout = this.loadLayout();
             StartUp.instanceMap[this._mainWindow.win.webContents.id] = this;
 
             this._mainWindow.loadURL(`${__dirname}/index.html`);
@@ -165,11 +170,62 @@ export class StartUp implements IApplication {
     }
 
     removeLayout(owner) {
-        owner.webContents.once("did-start-loading", () => {
-            console.info(path.join(this._appdir, "layout.json"));
-            fs.unlink(path.join(this._appdir, "layout.json"));
-        });
+        this._option.layout = this.defaultLayout;
         owner.reload();
+    }
+
+    loadLayout() {
+        let flayout = path.join(this._appdir, "layout.json");
+        if (!fs.existsSync(flayout)) {
+            return this.defaultLayout;
+        }
+
+        return JSON.parse(fs.readFileSync(flayout));
+    }
+
+    get defaultLayout() {
+        let [width, height] = [this._mainWindow.getBounds().width - 10, this._mainWindow.getBounds().height - 26];
+
+        let res = {
+            type: "v",
+            width: width,
+            children: [{
+                type: "h",
+                height: Math.floor(height * 0.3),
+                modules: [
+                    "Position",
+                    "Account",
+                    "OrderStatus",
+                    "DoneOrders",
+                    "Profit"
+                ]
+            }, {
+                type: "h",
+                height: Math.floor(height * 0.4),
+                children: [{
+                    type: "v",
+                    width: Math.floor(width * 0.3),
+                    modules: [
+                        "BookView"
+                    ]
+                }, {
+                    type: "v",
+                    width: width - Math.floor(width * 0.3) - 5,
+                    modules: [
+                        "Log",
+                        "StatArb",
+                        "Portfolio"
+                    ]
+                }]
+            }, {
+                type: "h",
+                height: height - Math.floor(height * 0.3) - Math.floor(height * 0.4) - 10,
+                modules: [
+                    "Strategy"
+                ]
+            }]
+        };
+        return res;
     }
 
     static instance(): StartUp {
@@ -198,7 +254,7 @@ ipcMain.on(`app://menuitem-CRUD`, (e, param) => {
 
     switch (param.action) {
         case 0: // add bookview item.
-            inst.subWindMenu.insert(10, new MenuItem({ label: param.name, type: "checkbox", checked: true, click: this.itemClick }));
+            inst.subWindMenu.insert(11, new MenuItem({ label: param.name, type: "checkbox", checked: true, click: this.itemClick }));
             break;
         case 1: // add spreadview item.
             inst.subWindMenu.append(new MenuItem({ label: param.name, type: "checkbox", checked: true, click: this.itemClick }));

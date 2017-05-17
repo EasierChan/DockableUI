@@ -333,10 +333,13 @@ export class AppComponent implements OnDestroy {
 
     updateCheck(e, item, instance: StrategyInstance) {
         if (e.target.checked) {
-            if (item.name === "SendCheck") instance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
+            if (item.name === "SendCheck")
+                instance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
             instance.checks.push(item.key);
         } else {
-            if (item.name === "SendCheck") instance.sendChecks = null;
+            if (item.name === "SendCheck")
+                instance.sendChecks = null;
+
             let i = instance.checks.indexOf(item.key);
             if (i >= 0)
                 instance.checks.splice(i, 1);
