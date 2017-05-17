@@ -13,6 +13,7 @@ import { ComboControl, MetaControl } from "../../base/controls/control";
 import { PriceService } from "../../base/api/services/priceService";
 import { MessageBox, fs, AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
+import { SecuMasterService } from "../../base/api/services/secumaster.service";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 declare let window: any;
 @Component({
@@ -96,7 +97,10 @@ export class AppComponent implements OnInit {
     window.onbeforeunload = this.onDestroy;
     this.statechecker.onInit(this, this.onReady);
     this.statechecker.onMenuItemClick = (item) => {
-      console.info(item.label);
+      console.info(item.label, item.checked);
+      // find the page in which panel
+      let Pageid = item.label;
+      // let panel = new TabPanel();
     };
   }
 
@@ -348,8 +352,8 @@ export class AppComponent implements OnInit {
     dd_Action.Width = 120;
     let buyRtn = ManulTrader.getTranslateInfo(this.languageType, "Buy");
     let sellRtn = ManulTrader.getTranslateInfo(this.languageType, "Sell");
-    dd_Action.addItem({ Text: buyRtn, Value: "0" });
-    dd_Action.addItem({ Text: sellRtn, Value: "1" });
+    dd_Action.addItem({ Text: buyRtn, Value: 0 });
+    dd_Action.addItem({ Text: sellRtn, Value: 1 });
     tradeContent.addChild(dd_Action);
     let btn_row = new ComboControl("row");
     let btn_clear = new MetaControl("button");
@@ -414,16 +418,38 @@ export class AppComponent implements OnInit {
     dd_symbol.AcceptInput = true;
     let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
     dd_symbol.Title = codeRtn + ": ";
-    dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
-    dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
-    dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
+    // dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
+    // dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
+    // dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
     let self = this;
     dd_symbol.SelectChange = () => {
       this.bookViewTable.rows.forEach(row => {
         row.cells.forEach(cell => {
-          cell.Text = "";
+          console.log(cell.Text);
         });
       });
+    };
+    dd_symbol.matchMethod = (inputText) => {
+      console.log(inputText);
+      let len = inputText.length;
+      let sendStr: string = "";
+      for (let i = 0; i < len; ++i) {
+        let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
+        if (bcheck) {
+          sendStr += inputText.charAt(i).toLocaleUpperCase();
+        }
+        else {
+          sendStr += inputText.charAt(i);
+        }
+      }
+      let msg = ManulTrader.getCodeList(sendStr);
+      let rtnArr = [];
+      dd_symbol.Items.length = 0;
+      let msgLen = msg.length;
+      for (let i = 0; i < msgLen; ++i) {
+        rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
+      }
+      return rtnArr;
     };
     bookviewHeader.addChild(dd_symbol);
 
@@ -991,7 +1017,6 @@ export class AppComponent implements OnInit {
       this.children.push(this.traversefunc(children[i]));
       this.children.push(new Splitter("h"));
     }
-
     this.children.push(this.traversefunc(children[childrenLen - 1]));
     this.init(this.option.port, this.option.host);
     // this.init(9082, "172.24.51.4");
@@ -1029,10 +1054,28 @@ export class AppComponent implements OnInit {
     ManulTrader.addSlot(2040, this.showLog);
     ManulTrader.addSlot(5021, this.showBasketBackInfo);
     ManulTrader.addSlot(5024, this.showPortfolioSummary);
+    ManulTrader.addSlot(8000, this.changeSSstatus);
 
     ManulTrader.init(port, host);
   }
 
+  changeSSstatus(data: any) {
+    let markLen = AppComponent.self.statusbar.items.length;
+    if (markLen === 0) { // add
+      AppComponent.self.addStatusBarMark({ name: "SS", connected: data });
+    } else {
+      let markFlag: Boolean = false;
+      for (let i = 0; i < markLen; ++i) {
+        let text = AppComponent.self.statusbar.items[i].text;
+        if (text === "SS") {
+          AppComponent.self.statusbar.items[i].color = data ? "green" : "red";
+          markFlag = true;
+        }
+      }
+      if (!markFlag)
+        AppComponent.self.addStatusBarMark({ name: "SS", connected: data });
+    }
+  }
 
   gethanizaionInfo(obj: any, data: any) {
     for (let o in obj) {
@@ -1277,7 +1320,8 @@ export class AppComponent implements OnInit {
     // console.log("showComOrderRecord", data);
     for (let i = 0; i < data.length; ++i) {
       let orderStatus = data[i].od.status;
-      if (orderStatus === 9 || orderStatus === 8) {
+      // if (orderStatus === 9 || orderStatus === 8) {
+      if (orderStatus === 9) {
         AppComponent.self.deleteUndoneOrder(data[i].od.orderid);
         AppComponent.self.handleDoneOrder(data[i]);
       } else {

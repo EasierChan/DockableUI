@@ -5,13 +5,14 @@
 
 import { IPCManager } from "../ipcManager";
 import { Path } from "../../common/base/paths";
-
 const fs = require("fs");
 const path = require("path");
 
 class SecuMaster {
     private static secuCodeObj = new Object();
     private static secuUkeyObj = new Object();
+    private static pinyinObj = new Object();
+
     static init() {
         // TODO load secuinfo, future info
         let str = path.join(Path.baseDir, "secumain.csv");
@@ -26,8 +27,9 @@ class SecuMaster {
         let lines = content.split("\n");
         lines.forEach(function (linestr) {
             let arr = linestr.split(",");
-            SecuMaster.secuCodeObj[arr[4]] = { InnerCode: arr[0], SecuCode: arr[4], SecuAbbr: arr[3] };
-            SecuMaster.secuUkeyObj[arr[0]] = { InnerCode: arr[0], SecuCode: arr[4], SecuAbbr: arr[3] };
+            SecuMaster.secuCodeObj[arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
+            SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
+            SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
         });
     }
 
@@ -56,6 +58,35 @@ class SecuMaster {
         }
         return rtnObj;
     }
+
+    static getCodeList(data: string) {
+        let tip = 0;
+        let rtnArr = [];
+        for (let o in SecuMaster.pinyinObj) {
+            let pinyin = o.split(",")[0];
+            let len = pinyin.length;
+            let upStr: string = "";
+            for (let i = 0; i < len; ++i) {
+                let bcheck = (/^[A-Z]+$/).test(pinyin.charAt(i));
+                if (bcheck) {
+                    upStr += pinyin.charAt(i).toLocaleUpperCase();
+                }
+                else {
+                    upStr += pinyin.charAt(i);
+                }
+            }
+            let code = o.split(",")[1];
+            let bPinyin = upStr.startsWith(data);
+            let bCode = code.startsWith(data);
+            if (bPinyin || bCode) {
+                tip += 1;
+                rtnArr.push({ code: SecuMaster.pinyinObj[o].InnerCode, symbolCode: SecuMaster.pinyinObj[o].SecuCode });
+                if (tip === 10)
+                    return rtnArr;
+            }
+        }
+        return rtnArr;
+    }
 }
 
 SecuMaster.init();
@@ -70,4 +101,9 @@ IPCManager.register("dal://itrade/secumaster/getsecuinfo", (e, param) => {
         rtnObj = SecuMaster.getSecuinfoByUKey(param.data);
     }
     e.returnValue = rtnObj;
+});
+
+IPCManager.register("dal://itrade/secumaster/getcodelist", (e, param) => {
+    let rtn = SecuMaster.getCodeList(param);
+    e.returnValue = rtn;
 });

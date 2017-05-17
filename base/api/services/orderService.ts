@@ -54,6 +54,8 @@ export class OrderService {
 
     start() {
         this._client.on("connect", () => {
+            // SS
+            this._messageMap[8000].callback(true, this._sessionid);
             this.regist();
         });
         this._client.on("data", msg => {
@@ -65,6 +67,7 @@ export class OrderService {
             }
         });
         this._client.on("close", () => {
+            this._messageMap[8000].callback(false, this._sessionid);
             setTimeout(() => {
                 this._client.reconnect(this._port, this._host);
             }, 10000);

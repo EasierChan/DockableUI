@@ -645,7 +645,7 @@ interface DatePoint {
 
 /**
  * note: first=>setConfig(), second=>init(), third=>start()
- * 
+ *
  */
 export class SpreadViewer {
     static readonly EPS: number = 1.0e-5;

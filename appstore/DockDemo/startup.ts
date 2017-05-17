@@ -42,7 +42,8 @@ export class StartUp implements IApplication {
                     { label: "Profit", type: "checkbox", click: this.itemClick },
                     { label: "Position", type: "checkbox", click: this.itemClick },
                     { label: "Account", type: "checkbox", click: this.itemClick },
-                    { label: "StatArb", type: "checkbox", click: this.itemClick }
+                    { label: "StatArb", type: "checkbox", click: this.itemClick },
+                    { label: "Portfolio", type: "checkbox", click: this.itemClick }
                 ]
             },
             {
