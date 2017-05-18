@@ -418,9 +418,6 @@ export class AppComponent implements OnInit {
     dd_symbol.AcceptInput = true;
     let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
     dd_symbol.Title = codeRtn + ": ";
-    // dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
-    // dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
-    // dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
     let self = this;
     dd_symbol.SelectChange = () => {
       this.bookViewTable.rows.forEach(row => {
