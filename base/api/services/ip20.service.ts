@@ -113,6 +113,7 @@ class ISONPackParser extends IP20Parser {
             case 43: // Login
             case 120: // login error
             case 109:
+            case 110:
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);
                 break;

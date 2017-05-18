@@ -62,6 +62,7 @@ export class ISONPack2 extends Message {
     head: ISONPack2Header = new ISONPack2Header();
     contentLen: number;
     content: Object;
+    topicHeader: any;
     /**
      * decode a buffer, and return the used bufferlen.
      */
@@ -84,7 +85,13 @@ export class ISONPack2 extends Message {
         if (this.head.bitmap & 0x80) { // topicHeader.
             let len0 = buf.readUInt32LE(offset); offset += 4;
             // read topicHeader
-            offset += len0;
+            this.topicHeader = {};
+            this.topicHeader.topic = buf.readUInt32LE(offset); offset += 4;
+            this.topicHeader.kw = buf.readUInt32LE(offset); offset += 4;
+            this.topicHeader.sn = buf.readUInt32LE(offset); offset += 4;
+            this.topicHeader.tm = buf.readUInt32LE(offset); offset += 4;
+            this.topicHeader.ms = buf.readUInt16LE(offset); offset += 2;
+            this.topicHeader.res = buf.readUInt16LE(offset); offset += 2;
         }
 
         if (this.head.bitmap & 0x40) {
@@ -95,7 +102,7 @@ export class ISONPack2 extends Message {
                 offset += this.contentLen;
             } catch (e) {
                 logger.warn(`JSON.parse exception: ${e.message}`);
-                this.content = buf.slice(ISONPack2Header.len + 4, this.head.packlen).toString();
+                this.content = buf.slice(offset, buf.indexOf(0, offset)).toString();
             }
         }
 
