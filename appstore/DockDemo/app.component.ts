@@ -470,9 +470,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     dd_symbol.AcceptInput = true;
     let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
     dd_symbol.Title = codeRtn + ": ";
-    // dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
-    // dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
-    // dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
     let self = this;
     dd_symbol.SelectChange = () => {
       this.bookViewTable.rows.forEach(row => {
@@ -482,7 +479,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
     };
     dd_symbol.matchMethod = (inputText) => {
-      console.log(inputText);
       let len = inputText.length;
       let sendStr: string = "";
       for (let i = 0; i < len; ++i) {
@@ -499,7 +495,10 @@ export class AppComponent implements OnInit, AfterViewInit {
       dd_symbol.Items.length = 0;
       let msgLen = msg.length;
       for (let i = 0; i < msgLen; ++i) {
-        rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
+        if (msg[i].SecuAbbr === msg[i].symbolCode)
+          rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
+        else
+          rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode });
       }
       return rtnArr;
     };
@@ -1041,7 +1040,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     };
     this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
     this.psInstance.setHeartBeat(1000000);
-    this.psInstance.register([3, 6, 2007741]);
+    this.psInstance.register([1584]);
     this.psInstance.subscribe((msg) => {
       if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
         if (msg.type === 201) {

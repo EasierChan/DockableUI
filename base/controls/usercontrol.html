@@ -11,7 +11,7 @@
   </label>
   <label *ngIf="child.styleObj.type=='date'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">
       <pre>{{child.dataSource.title}}</pre>
-        <input type="datetime" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" [style.width.px]="child.styleObj?.width"
+        <input type="date" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" [style.width.px]="child.styleObj?.width"
         class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
   </label>
   <div *ngIf="child.styleObj.type=='dropdown'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top">

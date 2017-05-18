@@ -27,9 +27,16 @@ class SecuMaster {
         let lines = content.split("\n");
         lines.forEach(function (linestr) {
             let arr = linestr.split(",");
-            SecuMaster.secuCodeObj[arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
-            SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
-            SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
+            let arrLen = arr.length;
+            if (arrLen === 4) {
+                SecuMaster.secuCodeObj[arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
+                SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
+                SecuMaster.pinyinObj["," + arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0]};
+            } else if (arrLen === 5) {
+                SecuMaster.secuCodeObj[arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
+                SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
+                SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
+            }
         });
     }
 
@@ -76,11 +83,15 @@ class SecuMaster {
                 }
             }
             let code = o.split(",")[1];
-            let bPinyin = upStr.startsWith(data);
+            let bPinyin = false;
+            if (!pinyin)
+                bPinyin = false;
+            else
+                bPinyin = upStr.startsWith(data);
             let bCode = code.startsWith(data);
             if (bPinyin || bCode) {
                 tip += 1;
-                rtnArr.push({ code: SecuMaster.pinyinObj[o].InnerCode, symbolCode: SecuMaster.pinyinObj[o].SecuCode });
+                rtnArr.push({ code: SecuMaster.pinyinObj[o].InnerCode, symbolCode: SecuMaster.pinyinObj[o].SecuCode, SecuAbbr: SecuMaster.pinyinObj[o].SecuAbbr });
                 if (tip === 10)
                     return rtnArr;
             }

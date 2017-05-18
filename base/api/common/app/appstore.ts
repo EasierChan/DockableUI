@@ -87,6 +87,12 @@ export class AppStore {
                     name: "hello spread",
                     desc: "TradeMonitor",
                     category: "Transanctional"
+                },
+                {
+                    id: "LoopbackTestReport",
+                    name: "hello spread",
+                    desc: "TradeMonitor",
+                    category: "Transanctional"
                 }
             ];
             let appIds = [];

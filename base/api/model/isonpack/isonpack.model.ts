@@ -96,13 +96,15 @@ export class ISONPack2 extends Message {
 
         if (this.head.bitmap & 0x40) {
             this.contentLen = buf.readUInt32LE(offset); offset += 4; // json data len;
+            let cstrEndOffset = buf.indexOf(0, offset);
+            let len =  cstrEndOffset !== -1 ?  cstrEndOffset : (this.contentLen + offset);
 
             try {
-                this.content = JSON.parse(buf.slice(offset, buf.indexOf(0, offset)).toString());
+                this.content = JSON.parse(buf.slice(offset, len).toString());
                 offset += this.contentLen;
             } catch (e) {
                 logger.warn(`JSON.parse exception: ${e.message}`);
-                this.content = buf.slice(offset, buf.indexOf(0, offset)).toString();
+                this.content = buf.slice(offset, len).toString();
             }
         }
 
