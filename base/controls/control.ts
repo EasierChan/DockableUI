@@ -319,12 +319,12 @@ export class DockContainer extends Control {
                         if (len > 1) {
                             if (index === len - 1) { // last one
                                 if (siblings[index - 2].styleObj.type === "v") {
-                                    siblings[index - 2].styleObj.width +=
-                                        siblings[index - 1].width + siblings[index].width;
+                                    siblings[index - 2].styleObj.width =
+                                        siblings[index - 1].width + siblings[index].width + siblings[index - 2].width;
                                     siblings[index - 2].reallocSize(siblings[index - 2].styleObj.width, siblings[index - 2].height);
                                 } else {
-                                    siblings[index - 2].styleObj.height +=
-                                        siblings[index - 1].height + siblings[index].height;
+                                    siblings[index - 2].styleObj.height =
+                                        siblings[index - 1].height + siblings[index].height + siblings[index - 2].height;
                                     siblings[index - 2].reallocSize(siblings[index - 2].width, siblings[index - 2].styleObj.height);
                                 }
 
@@ -332,12 +332,12 @@ export class DockContainer extends Control {
                                 siblings.splice(index - 1, 2);
                             } else {
                                 if (siblings[index + 2].styleObj.type === "v") {
-                                    siblings[index + 2].styleObj.width +=
-                                        siblings[index].width + siblings[index + 1].width;
+                                    siblings[index + 2].styleObj.width =
+                                        siblings[index].width + siblings[index + 1].width + siblings[index + 2].width;
                                     siblings[index + 2].reallocSize(siblings[index + 2].styleObj.width, siblings[index + 2].height);
                                 } else {
-                                    siblings[index + 2].styleObj.height +=
-                                        siblings[index].height + siblings[index + 1].height;
+                                    siblings[index + 2].styleObj.height =
+                                        siblings[index].height + siblings[index + 1].height + siblings[index + 2].height;
                                     siblings[index + 2].reallocSize(siblings[index + 2].width, siblings[index + 2].styleObj.height);
                                 }
 
@@ -377,12 +377,12 @@ export class DockContainer extends Control {
                         if (len > 1) {
                             if (index === len - 1) { // last one
                                 if (children[index - 2].styleObj.type === "v") {
-                                    children[index - 2].styleObj.width +=
-                                        children[index - 1].width + children[index].width;
+                                    children[index - 2].styleObj.width =
+                                        children[index - 1].width + children[index].width + children[index - 2].width;
                                     children[index - 2].reallocSize(children[index - 2].styleObj.width, children[index - 2].height);
                                 } else {
-                                    children[index - 2].styleObj.height +=
-                                        children[index - 1].height + children[index].height;
+                                    children[index - 2].styleObj.height =
+                                        children[index - 1].height + children[index].height + children[index - 2].height;
                                     children[index - 2].reallocSize(children[index - 2].width, children[index - 2].styleObj.height);
                                 }
 
@@ -390,15 +390,14 @@ export class DockContainer extends Control {
                                 children.splice(index - 1, 2);
                             } else {
                                 if (children[index + 2].styleObj.type === "v") {
-                                    children[index + 2].styleObj.width +=
-                                        children[index].width + children[index + 1].width;
+                                    children[index + 2].styleObj.width =
+                                        children[index].width + children[index + 1].width + children[index + 2].width;
                                     children[index + 2].reallocSize(children[index + 2].styleObj.width, children[index + 2].height);
                                 } else {
-                                    children[index + 2].styleObj.height +=
-                                        children[index].height + children[index + 1].height;
+                                    children[index + 2].styleObj.height =
+                                        children[index].height + children[index + 1].height + children[index + 2].height;
                                     children[index + 2].reallocSize(children[index + 2].width, children[index + 2].styleObj.height);
                                 }
-                                console.info(children[index + 2]);
                                 // children[index + 2].reallocSize(children[index + 2].styleObj.width, children[index + 2].styleObj.height);
                                 children.splice(index, 2);
                             }

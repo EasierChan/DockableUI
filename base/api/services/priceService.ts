@@ -209,8 +209,8 @@ export class MDParser extends ItradeParser {
             case MsgType.MSG_TYPE_UPDATE_DATE:
                 let msg = new MsgUpdateDate();
                 msg.fromBuffer(body);
-                this._client.emit("data", msg);
-                // logger.info("updatedate data: ", msg.newDate);
+                // this._client.emit("data", msg);
+                logger.info("updatedate data: ", msg.newDate);
                 break;
             case MsgType.MSG_TYPE_FUTURES:
                 let futuredata = new DepthMarketData();

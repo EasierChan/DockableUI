@@ -119,6 +119,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     let label = item.label as string;
     if (label.endsWith("New BookView")) {
       let newBVID = "BookView" + AppComponent.bookViewSN++;
+      while (AppComponent.self.pageObj.hasOwnProperty(newBVID)) {
+        newBVID = "BookView" + AppComponent.bookViewSN++;
+      }
       // AppComponent.self.statechecker.addMenuItem(0, newBVID);
       AppComponent.self.createBookView(newBVID);
       let panel = AppComponent.self.main.getFirstChildPanel();
@@ -1040,7 +1043,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     };
     this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
     this.psInstance.setHeartBeat(1000000);
-    this.psInstance.register([1584]);
+    // this.psInstance.register([1584]);
     this.psInstance.subscribe((msg) => {
       if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
         if (msg.type === 201) {
@@ -1179,9 +1182,14 @@ export class AppComponent implements OnInit, AfterViewInit {
     } else if (obj.modules && obj.modules.length > 0) {
       let panel = new TabPanel();
       obj.modules.forEach(page => {
-        // console.log(AppComponent.self.pageObj[page]);
-        panel.addTab(AppComponent.self.pageObj[page]);
-        this.statechecker.changeMenuItemState(page, true, 2);
+        if (AppComponent.self.pageObj.hasOwnProperty(page)) {
+          panel.addTab(AppComponent.self.pageObj[page]);
+          this.statechecker.changeMenuItemState(page, true, 2);
+        } else {
+          if (page.startsWith("BookView")) {
+            panel.addTab(AppComponent.self.createBookView(page));
+          }
+        }
       });
       dock.addChild(panel);
       panel.setActive(obj.modules[0]);
@@ -2492,18 +2500,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     dd_symbol.AcceptInput = true;
     let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
     dd_symbol.Title = codeRtn + ": ";
-    dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
-    dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
-    dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
     let self = this;
     let bookViewTable = new DataTable("table");
-    dd_symbol.SelectChange = () => {
-      bookViewTable.rows.forEach(row => {
-        row.cells.forEach(cell => {
-          cell.Text = "";
-        });
-      });
-    };
     bookviewHeader.addChild(dd_symbol);
 
     let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
@@ -2529,9 +2527,11 @@ export class AppComponent implements OnInit, AfterViewInit {
       // console.info(cellIndex, rowIndex);
     };
     bookViewTable.OnRowClick = (rowItem, rowIndex) => {
-      [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
-      this.txt_Price.Text = rowItem.cells[1].Text;
-      this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+      if (dd_symbol.SelectedItem !== null) {
+        [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
+        this.txt_Price.Text = rowItem.cells[1].Text;
+        this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+      }
       let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
       Dialog.popup(this, this.tradeContent, { title: tradeRtn });
     };
