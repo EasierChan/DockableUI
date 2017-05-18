@@ -2,6 +2,7 @@
  * created by chenlei
  */
 import { PriceService } from "../../base/api/services/priceService";
+import { IP20Service } from "../../base/api/services/ip20.service";
 import { Menu, MenuItem } from "../api/services/backend.service";
 
 export interface CssStyle {
@@ -783,7 +784,7 @@ export class HBox extends ComboControl {
 
 export class MetaControl extends Control {
     protected _dataObj: any;
-    constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range") {
+    constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range" | "datetime") {
         super();
         this.styleObj = {
             type: type,
@@ -933,6 +934,12 @@ export class ComboBox extends MetaControl {
 
     get Completelist() {
         return this.dataSource.completelist;
+    }
+}
+
+export class DateTimeBox extends MetaControl {
+    constructor() {
+        super("datetime");
     }
 }
 
@@ -1202,7 +1209,7 @@ export class SpreadViewer {
     private _bReset: boolean;
     private _state = 0;
 
-    constructor(private priceServ: PriceService) {
+    constructor(private priceServ: PriceService | IP20Service) {
         this._echart = new EChart();
         this.hidden();
     }
@@ -1227,29 +1234,60 @@ export class SpreadViewer {
     }
 
     start(): void {
-        this.priceServ.register([this._innerCode1, this._innerCode2]);
-        this.priceServ.subscribe(msg => {
-            if (!msg.ukey || !this.hasInstrumentID(msg.ukey)) {
-                console.info(msg);
-                return;
-            }
+        if (this.priceServ instanceof PriceService) {
+            this.priceServ.register([this._innerCode1, this._innerCode2]);
+            this.priceServ.subscribe(msg => {
+                if (!msg.ukey || !this.hasInstrumentID(msg.ukey)) {
+                    console.info(msg);
+                    return;
+                }
 
-            switch (msg.type) {
-                case 201: // Snapshot
-                    this.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprices[0], BidPrice: msg.bidprices[0] });
-                    break;
-                case 100: // Futures
-                    this.setMarketData(msg);
-                    break;
-                case 1001:
-                case 1002:
-                case 1003:
-                case 1004:
-                default: // IOPV
-                    this.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
-                    break;
-            }
-        });
+                switch (msg.type) {
+                    case 201: // Snapshot
+                        this.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprices[0], BidPrice: msg.bidprices[0] });
+                        break;
+                    case 100: // Futures
+                        this.setMarketData(msg);
+                        break;
+                    case 1001:
+                    case 1002:
+                    case 1003:
+                    case 1004:
+                    default: // IOPV
+                        this.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
+                        break;
+                }
+            });
+        } else {
+            let self = this;
+            this.priceServ.send(17, 101, { topic: 3112, kwlist: [this._innerCode1, this._innerCode2] });
+            this.priceServ.addSlot({
+                appid: 17,
+                packid: 110,
+                callback: (msg) => {
+                    if (!msg.ukey || !self.hasInstrumentID(msg.ukey)) {
+                        console.info(msg);
+                        return;
+                    }
+
+                    switch (msg.type) {
+                        case 201: // Snapshot
+                            self.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprices[0], BidPrice: msg.bidprices[0] });
+                            break;
+                        case 100: // Futures
+                            self.setMarketData(msg);
+                            break;
+                        case 1001:
+                        case 1002:
+                        case 1003:
+                        case 1004:
+                        default: // IOPV
+                            self.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
+                            break;
+                    }
+                }
+            });
+        }
 
         this._timeoutHandler = setInterval(() => {
             if (this._lastIdx[this._innerCode1] === -1 || this._lastIdx[this._innerCode2] === -1) // both have one at least

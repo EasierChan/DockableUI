@@ -87,6 +87,37 @@ export class AppComponent implements OnDestroy {
                 }
             });
         });
+        this.contextMenu.addItem("ViewResult", () => {
+            let name = "ResultOf" + this.config.name;
+            this.appService.startApp(name, "LoopbackTestReport", {
+                port: this.config.loopbackConfig.port,
+                host: this.config.loopbackConfig.host,
+                name: name,
+                feedhandler: {
+                    port: this.config.channels.feedhandler.port,
+                    host: this.config.channels.feedhandler.addr
+                }
+            })
+        });
+        // this.tgw.connect(8012, "172.24.51.4");
+        // let timestamp: any = new Date();
+        // timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
+        // timestamp = timestamp.substr(0, timestamp.length - 1);
+        // let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": timestamp }; // 
+        // this.tgw.send(17, 41, loginObj);
+        // this.tgw.addSlot({
+        //     appid: 17,
+        //     packid: 43,
+        //     callback: (msg) => {
+        //         this.tgw.send(17, 101, { topic: 3112, kwlist: [2163460] });
+        //     }
+        // }, {
+        //     appid: 17,
+        //     packid: 110,
+        //     callback: (msg) => {
+        //         console.info(msg);
+        //     }
+        // });
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {

@@ -111,10 +111,8 @@ class ISONPackParser extends IP20Parser {
         let msg = new ISONPack2();
         switch (header.packid) {
             case 43: // Login
-                msg.fromBuffer(all);
-                this._client.emit("data", msg);
-                break;
             case 120: // login error
+            case 109:
                 msg.fromBuffer(all);
                 this._client.emit("data", msg);
                 break;
