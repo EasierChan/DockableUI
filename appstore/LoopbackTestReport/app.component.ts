@@ -43,22 +43,23 @@ export class AppComponent implements OnInit {
         txt_start.Text = "";
         txt_start.Title = "BeginDate:";
         txt_start.Left = 100;
-        txt_start.Width = 80;
+        txt_start.Width = 120;
         svHeaderRow1.addChild(txt_start);
         let txt_end = new DateTimeBox();
         txt_end.Text = "";
         txt_end.Title = "Begin:";
         txt_end.Left = 10;
-        txt_end.Width = 80;
+        txt_end.Width = 120;
         svHeaderRow1.addChild(txt_end);
         let btn_query = new Button();
         btn_query.Class = "primary";
         btn_query.Text = "Search";
         btn_query.Left = 10;
-        btn_query.Disable = true;
+        btn_query.Disable = false;
         svHeaderRow1.addChild(btn_query);
 
         let svHeaderRow2 = new HBox();
+        viewContent.addChild(svHeaderRow1);
 
         this.main = viewContent;
     }
