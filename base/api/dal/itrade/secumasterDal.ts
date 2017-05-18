@@ -84,7 +84,7 @@ class SecuMaster {
             }
             let code = o.split(",")[1];
             let bPinyin = false;
-            if (pinyin)
+            if (!pinyin)
                 bPinyin = false;
             else
                 bPinyin = upStr.startsWith(data);
