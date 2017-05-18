@@ -17,7 +17,7 @@ export class StartUp implements IApplication {
     _config: DockDemoConfig;
     _appdir: string;
     _cfgFile: string;
-    static instanceMap: StartUp;
+    static instanceMap: any = {};
     _option: any;
 
     constructor() {
