@@ -90,6 +90,10 @@ export class ManulTrader {
         return SecuMasterService.getSecuinfoByUKey(type, ...ukey);
     }
 
+    static getCodeList(data: string) {
+        return SecuMasterService.getCodeList(data);
+    }
+
     static getTranslateInfo(type: number, ...words: string[]) {
         return TranslateService.getTranslateInfo(type, ...words);
     }

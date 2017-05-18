@@ -1,7 +1,7 @@
 /**
  * date: 2017/03/09, created by cl
  * desc: manage the ipc channels
- * 
+ *
  */
 import { ipcMain } from "electron";
 import * as fs from "fs";
