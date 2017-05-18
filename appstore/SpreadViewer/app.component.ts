@@ -7,9 +7,9 @@
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
-    VBox, HBox, TextBox, Button
+    VBox, HBox, TextBox, Button, DockContainer
 } from "../../base/controls/control";
-import { PriceService } from "../../base/api/services/priceService";
+import { IP20Service } from "../../base/api/services/ip20.service";
 import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
 declare let window: any;
 
@@ -17,23 +17,19 @@ declare let window: any;
     moduleId: module.id,
     selector: "body",
     template: `
-      <div id="root" [class]="className">
-        <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj">
+        <dock-control [className]="main.className" [children]="main.children" [styleObj]="main.styleObj" [dataSource]="main.dataSource">
         </dock-control>
-      </div>
     `,
     providers: [
-        PriceService,
+        IP20Service,
         AppStateCheckerRef
     ]
 })
 export class AppComponent implements OnInit {
-    className: string = "dock-container vertical";
-    children: Control[] = [];
-
+    main: any;
     option: any;
 
-    constructor(private psInstance: PriceService, private state: AppStateCheckerRef) {
+    constructor(private tgw: IP20Service, private state: AppStateCheckerRef) {
         this.state.onInit(this, this.onReady);
     }
 
@@ -99,7 +95,7 @@ export class AppComponent implements OnInit {
 
         spreadviewerContent.addChild(svHeaderRow1);
         spreadviewerContent.addChild(svHeaderRow2);
-        let viewer = new SpreadViewer(this.psInstance);
+        let viewer = new SpreadViewer(this.tgw);
 
         btn_init.OnClick = () => {
             viewer.setConfig({
@@ -143,7 +139,13 @@ export class AppComponent implements OnInit {
             yaxis = null;
         };
 
-        this.children.push(spreadviewerContent);
-        this.psInstance.setEndpoint(this.option.port, this.option.host);
+        this.main = spreadviewerContent;
+
+        this.tgw.connect(8012, "172.24.51.4");
+        let timestamp: any = new Date();
+        timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
+        timestamp = timestamp.substr(0, timestamp.length - 1);
+        let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": timestamp }; // 
+        this.tgw.send(17, 41, loginObj);
     }
 }

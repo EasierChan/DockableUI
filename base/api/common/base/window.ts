@@ -111,7 +111,7 @@ export class UWindow {
 			minHeight: UWindow.MIN_HEIGHT,
 			show: false, // !isFullscreenOrMaximized,
 			useContentSize: true,
-			autoHideMenuBar: true,
+			autoHideMenuBar: false,
 			enableLargerThanScreen: true,
 			// title: this.envService.product.nameLong,
 			webPreferences: {
@@ -159,7 +159,10 @@ export class UWindow {
 			if (Array.isArray(menuTemplate)) {
 				this._menu = Menu.buildFromTemplate(menuTemplate);
 				this.win.setMenu(this._menu);
+			} else {
+				this.win.setMenu(menuTemplate);
 			}
+			this.win.setMenuBarVisibility(menuTemplate !== null);
 		} catch (err) {
 			DefaultLogger.error(err);
 		}
@@ -432,7 +435,7 @@ export class UWindow {
 
 	public getBounds(): Electron.Rectangle {
 		const pos = this.win.getPosition();
-		const dimension = this.win.getSize();
+		const dimension = this.win.getContentSize();
 
 		return { x: pos[0], y: pos[1], width: dimension[0], height: dimension[1] };
 	}

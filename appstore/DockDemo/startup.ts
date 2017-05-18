@@ -7,7 +7,8 @@ import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path } f
 const path = require("path");
 const fs = require("fs");
 declare let window: any;
-const electron = require("electron");
+import { ipcMain, MenuItem, Menu } from "electron";
+
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
     _mainWindow: ContentWindow;
@@ -18,44 +19,87 @@ export class StartUp implements IApplication {
     _cfgFile: string;
     _menuTemplate: any;
     _option;
+
+    orderstatusItem: any;
+    doneorderItem: any;
+    logItem: any;
+    profixItem: any;
+    positionItem: any;
+    accountItem: any;
+    statarbItem: any;
+    portfolioItem: any;
+    strategyItem: any;
+    sep1: any;
+    bookViewItem: any;
+    sep2: any;
+    spreadViewItem: any;
+    subWindMenu: any;
+    itemsMap: any = {};
     static instanceMap: Object = {};
 
     constructor() {
         this._windowMgr = new UWindwManager();
         this._config = { name: "", state: { x: 0, y: 0, width: 1200, height: 800 } };
-        this._menuTemplate = [
-            {
-                label: "File",
-                submenu: [
-                    { label: "New BookView", click: this.itemClick },
-                    { label: "New SpreadView", click: this.itemClick },
-                    { type: "separator" },
-                    { role: "close" }
-                ]
-            },
-            {
-                label: "Window",
-                submenu: [
-                    { label: "OrderStatus", type: "checkbox", click: this.itemClick },
-                    { label: "DoneOrders", type: "checkbox", click: this.itemClick },
-                    { label: "Log", type: "checkbox", click: this.itemClick },
-                    { label: "Profit", type: "checkbox", click: this.itemClick },
-                    { label: "Position", type: "checkbox", click: this.itemClick },
-                    { label: "Account", type: "checkbox", click: this.itemClick },
-                    { label: "StatArb", type: "checkbox", click: this.itemClick },
-                    { label: "Portfolio", type: "checkbox", click: this.itemClick }
-                ]
-            },
-            {
-                label: "Help",
-                submenu: [
-                    { label: "Toggle Developer Tools", role: "toggledevtools", click(item, owner) { owner.webContents.openDevTools(); } },
-                    { label: "Reload", role: "reload", click(item, owner) { owner.reload(); } },
-                    { type: "separator" },
-                    { role: "about" }
-                ]
-            }
-        ];
+        this._menuTemplate = new Menu();
+        this._menuTemplate.append(new MenuItem({
+            label: "File",
+            submenu: [
+                { label: "New BookView", click: this.itemClick },
+                { label: "New SpreadView", click: this.itemClick },
+                { type: "separator" },
+                { role: "close" }
+            ]
+        }));
+
+        this.orderstatusItem = new MenuItem({ label: "OrderStatus", type: "checkbox", click: this.itemClick });
+        this.itemsMap["OrderStatus"] = this.orderstatusItem;
+        this.doneorderItem = new MenuItem({ label: "DoneOrders", type: "checkbox", click: this.itemClick });
+        this.itemsMap["DoneOrders"] = this.doneorderItem;
+        this.logItem = new MenuItem({ label: "Log", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Log"] = this.logItem;
+        this.profixItem = new MenuItem({ label: "Profit", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Profit"] = this.profixItem;
+        this.positionItem = new MenuItem({ label: "Position", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Position"] = this.positionItem;
+        this.accountItem = new MenuItem({ label: "Account", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Account"] = this.accountItem;
+        this.statarbItem = new MenuItem({ label: "StatArb", type: "checkbox", click: this.itemClick });
+        this.itemsMap["StatArb"] = this.statarbItem;
+        this.portfolioItem = new MenuItem({ label: "Portfolio", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Portfolio"] = this.portfolioItem;
+        this.strategyItem = new MenuItem({ label: "Strategy", type: "checkbox", click: this.itemClick });
+        this.itemsMap["Strategy"] = this.strategyItem;
+        this.sep1 = new MenuItem({ type: "separator" });
+        this.bookViewItem = new MenuItem({ label: "BookView", type: "checkbox", click: this.itemClick });
+        this.itemsMap["BookView"] = this.bookViewItem;
+        this.sep2 = new MenuItem({ type: "separator" });
+        this.spreadViewItem = new MenuItem({ label: "SpreadView", type: "checkbox", click: this.itemClick });
+        this.itemsMap["SpreadView"] = this.spreadViewItem;
+        this.subWindMenu = new Menu();
+        this.subWindMenu.append(this.orderstatusItem);
+        this.subWindMenu.append(this.doneorderItem);
+        this.subWindMenu.append(this.logItem);
+        this.subWindMenu.append(this.profixItem);
+        this.subWindMenu.append(this.positionItem);
+        this.subWindMenu.append(this.accountItem);
+        this.subWindMenu.append(this.statarbItem);
+        this.subWindMenu.append(this.portfolioItem);
+        this.subWindMenu.append(this.strategyItem);
+        this.subWindMenu.append(this.sep1);
+        this.subWindMenu.append(this.bookViewItem);
+        this.subWindMenu.append(this.sep2);
+        this.subWindMenu.append(this.spreadViewItem);
+        this._menuTemplate.append(new MenuItem({ label: "Window", submenu: this.subWindMenu }));
+        this._menuTemplate.append(new MenuItem({
+            label: "Help",
+            submenu: [
+                { label: "Toggle Developer Tools", click: (item, owner) => { owner.webContents.openDevTools(); } },
+                { label: "Reload", click: (item, owner) => { owner.reload(); } },
+                { label: "Reset Layout", click: (item, owner) => this.removeLayout(owner) },
+                { type: "separator" },
+                { role: "about" }
+            ]
+        }));
     }
     /**
      * bootstrap
@@ -73,7 +117,8 @@ export class StartUp implements IApplication {
                 self.saveConfig();
             };
 
-            this._option = option;
+            this._option = option ? option : {};
+            this._option.layout = this.loadLayout();
             StartUp.instanceMap[this._mainWindow.win.webContents.id] = this;
 
             this._mainWindow.loadURL(`${__dirname}/index.html`);
@@ -120,8 +165,67 @@ export class StartUp implements IApplication {
         fs.writeFileSync(this._cfgFile, JSON.stringify(this._config, null, 2));
     }
 
-    itemClick(menuItem, owner, event) {
+    itemClick(menuItem, owner) {
         owner.webContents.send("app://menuitem-click", menuItem);
+    }
+
+    removeLayout(owner) {
+        this._option.layout = this.defaultLayout;
+        owner.reload();
+    }
+
+    loadLayout() {
+        let flayout = path.join(this._appdir, "layout.json");
+        if (!fs.existsSync(flayout)) {
+            return this.defaultLayout;
+        }
+
+        return JSON.parse(fs.readFileSync(flayout));
+    }
+
+    get defaultLayout() {
+        let [width, height] = [this._mainWindow.getBounds().width - 10, this._mainWindow.getBounds().height - 26];
+
+        let res = {
+            type: "v",
+            width: width,
+            children: [{
+                type: "h",
+                height: Math.floor(height * 0.3),
+                modules: [
+                    "Position",
+                    "Account",
+                    "OrderStatus",
+                    "DoneOrders",
+                    "Profit"
+                ]
+            }, {
+                type: "h",
+                height: Math.floor(height * 0.4),
+                children: [{
+                    type: "v",
+                    width: Math.floor(width * 0.3),
+                    modules: [
+                        "BookView"
+                    ]
+                }, {
+                    type: "v",
+                    width: width - Math.floor(width * 0.3) - 5,
+                    modules: [
+                        "Log",
+                        "StatArb",
+                        "Portfolio"
+                    ]
+                }]
+            }, {
+                type: "h",
+                height: height - Math.floor(height * 0.3) - Math.floor(height * 0.4) - 10,
+                modules: [
+                    "Strategy"
+                ]
+            }]
+        };
+        return res;
     }
 
     static instance(): StartUp {
@@ -135,9 +239,33 @@ interface DockDemoConfig {
     layout?: Object;
 }
 
-electron.ipcMain.on(`app://get-init-param`, (e, param) => {
+ipcMain.on(`app://get-init-param`, (e, param) => {
     if (StartUp.instanceMap.hasOwnProperty(e.sender.id))
         e.returnValue = StartUp.instanceMap[e.sender.id]._option;
     else
         e.returnValue = {};
+});
+
+ipcMain.on(`app://menuitem-CRUD`, (e, param) => {
+    if (!StartUp.instanceMap.hasOwnProperty(e.sender.id))
+        return;
+
+    let inst = StartUp.instanceMap[e.sender.id];
+
+    switch (param.action) {
+        case 0: // add bookview item.
+            inst.subWindMenu.insert(11, new MenuItem({ label: param.name, type: "checkbox", checked: true, click: this.itemClick }));
+            break;
+        case 1: // add spreadview item.
+            inst.subWindMenu.append(new MenuItem({ label: param.name, type: "checkbox", checked: true, click: this.itemClick }));
+            break;
+        case 2: // change item's state.
+            if (inst.itemsMap.hasOwnProperty(param.name)) {
+                inst.itemsMap[param.name].checked = param.state;
+            }
+            break;
+        default:
+            console.info(`undefine action: ${param.action}`);
+            break;
+    }
 });

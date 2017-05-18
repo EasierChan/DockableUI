@@ -1,5 +1,6 @@
 "use strict";
 import { IPCManager } from "../ipcManager";
+import { Path } from "../../common/base/paths";
 const fs = require("fs");
 const path = require("path");
 
@@ -8,20 +9,18 @@ class Translate {
     private static englighObj = new Object();
     static init() {
         // load translate file
-        let str = "/home/xinkui/hanization.csv";
-        let content: String = new String();
-        try {
-            content = fs.readFileSync(path.join(str), { encoding: "utf-8" });
-        }
-        catch (e) {
-            console.info(e);
-            // alert("can not open secumain.csv");
-        }
-        let lines = content.split("\n");
-        lines.forEach(function (linesstr) {
-            let arr = linesstr.split(",");
-            Translate.chineseObj[arr[0]] = { chinese: arr[1] };
-            Translate.englighObj[arr[0]] = { english: arr[0] };
+        let str = path.join(Path.baseDir, "hanization.csv");
+        fs.readFile(path.join(str), { encoding: "utf-8" }, (err, data) => {
+            if (err) {
+                console.info(err);
+                return;
+            }
+            let lines = data.split("\n");
+            lines.forEach(function (linesstr) {
+                let arr = linesstr.split(",");
+                Translate.chineseObj[arr[0]] = { chinese: arr[1] };
+                Translate.englighObj[arr[0]] = { english: arr[0] };
+            });
         });
     }
 

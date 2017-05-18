@@ -2,6 +2,7 @@
  * created by chenlei
  */
 import { PriceService } from "../../base/api/services/priceService";
+import { IP20Service } from "../../base/api/services/ip20.service";
 import { Menu, MenuItem } from "../api/services/backend.service";
 
 export interface CssStyle {
@@ -19,59 +20,521 @@ export class Control {
 }
 
 export class DockContainer extends Control {
+    static dockMap: Object = {};
+    static docksn: number = 1;
+    private id: string;
+    private subpanel: TabPanel;
 
-    constructor(type: "v" | "h", width?: number, height?: number) {
+    constructor(private parent: DockContainer, type: "v" | "h", width?: number, height?: number) {
         super();
+        this.id = "u-dock" + DockContainer.docksn++;
+        DockContainer.dockMap[this.id] = this;
+
         if (type === "v") {
             this.className = "dock-container vertical";
             this.styleObj = {
-                type: "",
+                type: type,
                 width: width === undefined ? 300 : width,
                 height: null
             };
         } else {
             this.className = "dock-container horizental";
             this.styleObj = {
-                type: "",
+                type: type,
                 width: null,
                 height: height === undefined ? 200 : height
             };
         }
+
+        this.styleObj.canHoldpage = false;
+        this.styleObj.showNavbar = false;
+        this.styleObj.showCover = false;
         this.children = [];
+        this.dataSource = {};
+        this.dataSource.appendTabpage = (pageid: string, panelId: string, location: number) => {
+            if (TabPanel.fromPanelId(panelId) === null)
+                return;
+
+            // console.info("drop", location);
+            switch (location) {
+                case 0: // center
+                    if (this.subpanel && this.subpanel.id !== panelId) {
+                        this.subpanel.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                        this.subpanel.setActive(pageid);
+                    }
+                    break;
+                case 1: // north
+                    let northHeight = Math.round(this.height / 2);
+                    let dockNorth = new DockContainer(this, "h", null, northHeight);
+                    let panelNorth = new TabPanel();
+                    panelNorth.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    panelNorth.setActive(pageid);
+                    dockNorth.addChild(panelNorth);
+                    if (this.styleObj.type === "v") {
+                        let dockSouth = new DockContainer(this, "h", null, this.height - 5 - northHeight);
+                        this.children.forEach(child => {
+                            dockSouth.addChild(child);
+                        });
+
+                        this.children.length = 0;
+                        this.subpanel = null;
+
+                        this.addChild(dockNorth);
+                        this.addChild(new Splitter("h"));
+                        this.addChild(dockSouth);
+                    } else {
+                        this.styleObj.height = this.height - 5 - northHeight;
+                        this.parent.children.unshift(new Splitter("h"));
+                        this.parent.children.unshift(dockNorth);
+                    }
+                    break;
+                case 2: // east
+                    let eastWidth = Math.round(this.width / 2);
+                    let dockEast = new DockContainer(this, "v", eastWidth, null);
+                    let panelEast = new TabPanel();
+                    panelEast.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    panelEast.setActive(pageid);
+                    dockEast.addChild(panelEast);
+                    if (this.styleObj.type === "v") {
+                        this.styleObj.width = this.width - 5 - eastWidth;
+                        let idx = this.parent.children.indexOf(this);
+                        this.parent.children.splice(idx + 1, 0, new Splitter("v"), dockEast);
+                    } else {
+                        let dockWest = new DockContainer(this, "v", this.width - 5 - eastWidth, null);
+                        this.children.forEach(child => {
+                            dockWest.addChild(child);
+                        });
+                        this.children.length = 0;
+                        this.subpanel = null;
+
+                        this.addChild(dockWest);
+                        this.addChild(new Splitter("v"));
+                        this.addChild(dockEast);
+                    }
+                    break;
+                case 3: // south
+                    let southHeight = Math.round(this.height / 2);
+                    let dockSouth = new DockContainer(this, "h", null, southHeight);
+                    let panelSouth = new TabPanel();
+                    panelSouth.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    panelSouth.setActive(pageid);
+                    dockSouth.addChild(panelSouth);
+                    if (this.styleObj.type === "v") {
+                        let dockNorth = new DockContainer(this, "h", null, this.height - 5 - southHeight);
+                        this.children.forEach(child => {
+                            dockNorth.addChild(child);
+                        });
+                        this.children.length = 0;
+                        this.subpanel = null;
+
+                        this.addChild(dockNorth);
+                        this.addChild(new Splitter("h"));
+                        this.addChild(dockSouth);
+                    } else {
+                        this.styleObj.height = this.height - 5 - southHeight;
+                        this.parent.children.push(new Splitter("h"));
+                        this.parent.children.push(dockSouth);
+                    }
+                    break;
+                case 4: // west
+                    let westWidth = Math.round(this.width / 2);
+                    let dockWest = new DockContainer(this, "v", westWidth, null);
+                    let panelWest = new TabPanel();
+                    panelWest.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    panelWest.setActive(pageid);
+                    dockWest.addChild(panelWest);
+
+                    if (this.styleObj.type === "v") {
+                        this.styleObj.width = this.width - 5 - westWidth;
+                        let idx = this.parent.children.indexOf(this);
+                        this.parent.children.splice(idx, 0, dockWest, new Splitter("v"));
+                    } else {
+                        let dockEast = new DockContainer(this, "v", this.width - 5 - westWidth, null);
+                        this.children.forEach(child => {
+                            dockEast.addChild(child);
+                        });
+                        this.children.length = 0;
+                        this.subpanel = null;
+
+                        this.addChild(dockWest);
+                        this.addChild(new Splitter("v"));
+                        this.addChild(dockEast);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if (TabPanel.fromPanelId(panelId).getAllTabs().length === 0) {
+                DockContainer.clearUnvalidUp(this, panelId);
+            }
+        };
+        this.dataSource.showNavbar = () => {
+            this.styleObj.showNavbar = true;
+            for (let prop in DockContainer.dockMap) {
+                if (prop !== this.id) {
+                    DockContainer.dockMap[prop].styleObj.showNavbar = false;
+                    DockContainer.dockMap[prop].styleObj.showCover = false;
+                }
+            }
+        };
+        this.dataSource.hideNavbar = () => {
+            this.styleObj.showNavbar = false;
+        };
+        this.dataSource.showCover = () => {
+            this.styleObj.showCover = true;
+
+            for (let prop in DockContainer.dockMap) {
+                if (prop !== this.id) {
+                    DockContainer.dockMap[prop].styleObj.showCover = false;
+                }
+            }
+        };
+        this.dataSource.hideCover = () => {
+            this.styleObj.showCover = false;
+        };
     }
 
     addChild(containerRef: any): DockContainer {
+        if (containerRef instanceof TabPanel) {
+            this.subpanel = containerRef;
+            this.styleObj.canHoldpage = true;
+        }
+
+        containerRef.parent = this;
         this.children.push(containerRef);
         return this;
     }
 
-    get Width() {
-        return this.styleObj.getWidth();
+    get width() {
+        if (typeof this.styleObj.getWidth === "function")
+            return this.styleObj.getWidth();
+        else
+            return this.styleObj.width;
     }
 
-    get Height() {
-        return this.styleObj.getHeight();
+    get height() {
+        if (typeof this.styleObj.getHeight === "function")
+            return this.styleObj.getHeight();
+        else
+            return this.styleObj.height;
+    }
+
+    hasTabpage(pageid: string) {
+        if (!this.subpanel)
+            return false;
+        return this.subpanel.getAllTabs().includes(pageid);
+    }
+
+    showNavbar() {
+        this.styleObj.showNavbar = true;
+        for (let prop in DockContainer.dockMap) {
+            if (prop !== this.id) {
+                DockContainer.dockMap[prop].styleObj.showNavbar = false;
+            }
+        }
+    }
+
+    hideNavbar() {
+        this.styleObj.showNavbar = false;
+    }
+
+    reallocSize(width, height) {
+        let childTotalWH = 0;
+        let diff = 0;
+        let zoomRate = 0;
+        // console.info(this.id, this.styleObj.type, width, height);
+        if (this.styleObj.type === "v") {
+            this.styleObj.width = width;
+            if (this.subpanel)
+                return;
+
+            this.children.forEach(hitem => {
+                childTotalWH += hitem.height;
+            });
+            diff = height - childTotalWH;
+            zoomRate = height / childTotalWH;
+            this.children.forEach((item, index) => {
+                if (item instanceof DockContainer) {
+                    if (index === this.children.length - 1) {
+                        item.reallocSize(width, item.height + diff);
+                        return;
+                    }
+                    diff -= item.height * (zoomRate - 1);
+                    item.reallocSize(width, item.height * zoomRate);
+                }
+            });
+        } else {
+            this.styleObj.height = height;
+            if (this.subpanel)
+                return;
+
+            this.children.forEach(hitem => {
+                childTotalWH += hitem.width;
+            });
+
+            diff = width - childTotalWH;
+            zoomRate = width / childTotalWH;
+
+            this.children.forEach((item, index) => {
+                if (item instanceof DockContainer) {
+                    if (index === this.children.length - 1) {
+                        item.reallocSize(item.width + diff, height);
+                        return;
+                    }
+                    diff -= item.width * (zoomRate - 1);
+                    item.reallocSize(item.width * zoomRate, height);
+                }
+            });
+        }
+        childTotalWH = null;
+        diff = null;
+        zoomRate = null;
+    }
+
+    /**
+     * find the unvalid item from bottom to top, then remove it and resize.
+     * @param leaf It's the container include the page from panel whose id is 'panelId.'
+     * @param panelId whose panel don't have any tabpage.
+     */
+    static clearUnvalidUp(leaf: DockContainer, panelId) {
+        // console.info("clearUnvalidUP");
+        if (leaf.parent === null)
+            return;
+
+        let siblings = leaf.parent.children;
+        let len = siblings.length;
+
+        if (len === 1) {
+            return DockContainer.clearUnvalidUp(leaf.parent, panelId);
+        }
+
+        for (let index = 0; index < len; ++index) {
+            if (siblings[index] instanceof DockContainer && siblings[index] !== leaf) {
+                if (!siblings[index].subpanel) {
+                    if (DockContainer.clearUnvalidDown(siblings[index], panelId))
+                        return;
+                } else {
+                    if (siblings[index].subpanel.id === panelId) {
+                        // TODO clear unvalid clear
+                        // have siblings
+                        if (len > 1) {
+                            if (index === len - 1) { // last one
+                                if (siblings[index - 2].styleObj.type === "v") {
+                                    siblings[index - 2].styleObj.width +=
+                                        siblings[index - 1].width + siblings[index].width;
+                                    siblings[index - 2].reallocSize(siblings[index - 2].styleObj.width, siblings[index - 2].height);
+                                } else {
+                                    siblings[index - 2].styleObj.height +=
+                                        siblings[index - 1].height + siblings[index].height;
+                                    siblings[index - 2].reallocSize(siblings[index - 2].width, siblings[index - 2].styleObj.height);
+                                }
+
+                                // siblings[index - 2].reallocSize(siblings[index - 2].styleObj.width, siblings[index - 2].styleObj.height);
+                                siblings.splice(index - 1, 2);
+                            } else {
+                                if (siblings[index + 2].styleObj.type === "v") {
+                                    siblings[index + 2].styleObj.width +=
+                                        siblings[index].width + siblings[index + 1].width;
+                                    siblings[index + 2].reallocSize(siblings[index + 2].styleObj.width, siblings[index + 2].height);
+                                } else {
+                                    siblings[index + 2].styleObj.height +=
+                                        siblings[index].height + siblings[index + 1].height;
+                                    siblings[index + 2].reallocSize(siblings[index + 2].width, siblings[index + 2].styleObj.height);
+                                }
+
+                                siblings.splice(index, 2);
+                            }
+                        } else {
+                            siblings.splice(index, 1);
+                        }
+
+                        return;
+                    }
+                }
+            }
+        }
+
+        return DockContainer.clearUnvalidUp(leaf.parent, panelId);
+    }
+
+    /**
+     * find a empty panel from top to bottom
+     * @param leaf find into it.
+     * @param panelId the empty panel's id.
+     */
+    static clearUnvalidDown(leaf: DockContainer, panelId) {
+        if (leaf === null)
+            return false;
+
+        let children = leaf.children;
+        let len = children.length;
+
+        for (let index = 0; index < len; ++index) {
+            if (children[index] instanceof DockContainer) {
+                if (children[index].subpanel) {
+                    // TODO clear unvalid clear
+                    if (children[index].subpanel.id === panelId) {
+                        // have siblings
+                        if (len > 1) {
+                            if (index === len - 1) { // last one
+                                if (children[index - 2].styleObj.type === "v") {
+                                    children[index - 2].styleObj.width +=
+                                        children[index - 1].width + children[index].width;
+                                    children[index - 2].reallocSize(children[index - 2].styleObj.width, children[index - 2].height);
+                                } else {
+                                    children[index - 2].styleObj.height +=
+                                        children[index - 1].height + children[index].height;
+                                    children[index - 2].reallocSize(children[index - 2].width, children[index - 2].styleObj.height);
+                                }
+
+                                // children[index - 2].reallocSize(children[index - 2].styleObj.width, children[index - 2].styleObj.height);
+                                children.splice(index - 1, 2);
+                            } else {
+                                if (children[index + 2].styleObj.type === "v") {
+                                    children[index + 2].styleObj.width +=
+                                        children[index].width + children[index + 1].width;
+                                    children[index + 2].reallocSize(children[index + 2].styleObj.width, children[index + 2].height);
+                                } else {
+                                    children[index + 2].styleObj.height +=
+                                        children[index].height + children[index + 1].height;
+                                    children[index + 2].reallocSize(children[index + 2].width, children[index + 2].styleObj.height);
+                                }
+                                console.info(children[index + 2]);
+                                // children[index + 2].reallocSize(children[index + 2].styleObj.width, children[index + 2].styleObj.height);
+                                children.splice(index, 2);
+                            }
+                        } else {
+                            children.splice(index, 1);
+                        }
+
+                        return true;
+                    }
+                } else {
+                    if (DockContainer.clearUnvalidDown(children[index], panelId))
+                        break;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    getLayout() {
+        let layout: any = {};
+        layout.type = this.styleObj.type;
+        layout.width = this.width;
+        layout.height = this.height;
+
+        if (this.subpanel && this.children.length === 1) {
+            layout.modules = this.subpanel.getAllTabs();
+        } else {
+            layout.children = [];
+            this.children.forEach(child => {
+                if (child instanceof DockContainer) {
+                    layout.children.push(child.getLayout());
+                }
+            });
+        }
+
+        return layout;
+    }
+
+    removeTabpage(pageid: string) {
+        if (this.subpanel) {
+            if (this.subpanel.removeTab(pageid) !== null) {
+                if (this.subpanel.getAllTabs().length === 0) {
+                    DockContainer.clearUnvalidUp(this, this.subpanel.id);
+                }
+                return true;
+            }
+        }
+
+        let len = this.children.length;
+        for (let i = 0; i < len; ++i) {
+            if (this.children[i] instanceof DockContainer) {
+                if (this.children[i].removeTabpage(pageid)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    getFirstChildPanel(): TabPanel {
+        if (this.subpanel)
+            return this.subpanel;
+
+        let len = this.children.length;
+        for (let i = 0; i < len; ++i) {
+            if (this.children[i] instanceof DockContainer) {
+                if (this.children[i].subpanel) {
+                    return this.children[i].subpanel;
+                } else {
+                    return this.children[i].getFirstChildPanel();
+                }
+            }
+        }
+
+        return null;
     }
 }
 
 export class Splitter extends Control {
+    parent: any;
+    static readonly size = 5;
     constructor(type) {
         super();
         this.className = type === "v" ? "splitter-bar vertical" : "splitter-bar horizental";
     }
+
+    get height() {
+        return Splitter.size;
+    }
+
+    get width() {
+        return Splitter.size;
+    }
 }
 
 export class TabPanel extends Control {
+    private static sn = 1;
+    private static panelMap: Object = {};
+    id: string;
     protected pages: TabPages;
     protected headers: TabHeaders;
+    private afterPageClosed: Function;
+    parent: any;
+
     constructor() {
         super();
+        this.id = "u-tabpanel" + TabPanel.sn++;
         this.pages = new TabPages();
         this.headers = new TabHeaders();
         this.className = "tab-panel";
         this.children = [];
         this.children.push(this.pages);
         this.children.push(this.headers);
+        this.dataSource = { id: this.id };
+        this.dataSource.setActive = (pageid) => {
+            this.setActive(pageid);
+        };
+        this.dataSource.onClose = (pageid) => {
+            this.removeTab(pageid);
+            if (this.getAllTabs().length === 0) {
+                if (!DockContainer.clearUnvalidDown(this.parent.parent, this.id)) {
+                    DockContainer.clearUnvalidDown(this.parent.parent.parent, this.id);
+                }
+            }
+            if (this.afterPageClosed) {
+                this.afterPageClosed(pageid);
+            }
+            if (TabPanel.afterAnyPageClosed) {
+                TabPanel.afterAnyPageClosed(pageid);
+            }
+        };
+        TabPanel.panelMap[this.id] = this;
     }
     /**
      * pageId connection between header and title
@@ -90,23 +553,60 @@ export class TabPanel extends Control {
         return this;
     }
 
+    getAllTabs(): string[] {
+        let res = [];
+
+        this.pages.getAllPage().forEach(item => {
+            res.push(item.id);
+        });
+
+        return res;
+    }
+
     removeTab(pageid: string) {
         this.headers.removeHeader(pageid);
-        this.pages.removePage(pageid);
+        let respage = this.pages.removePage(pageid);
+        this.headers.getAllHeader().forEach((header, index) => {
+            if (index === 0)
+                header.setActive();
+            else
+                header.unActive();
+        });
+        this.pages.getAllPage().forEach(page => {
+            if (page.id === this.headers.at(0).targetId)
+                page.setActive();
+            else
+                page.unActive();
+        });
+        return respage;
     }
 
     setActive(pageId: string): TabPanel {
         this.pages.getAllPage().forEach(page => {
             if (page.id === pageId)
                 page.setActive();
+            else
+                page.unActive();
         });
 
         this.headers.getAllHeader().forEach(header => {
             if (header.targetId === pageId)
                 header.setActive();
+            else
+                header.unActive();
         });
         return this;
     }
+
+    static fromPanelId(panelId: string): TabPanel {
+        if (TabPanel.panelMap.hasOwnProperty(panelId) && TabPanel.panelMap[panelId]) {
+            return TabPanel.panelMap[panelId];
+        }
+
+        return null;
+    }
+
+    static afterAnyPageClosed: Function;
 }
 
 export class TabPages extends Control {
@@ -124,10 +624,11 @@ export class TabPages extends Control {
         let len = this.pages.length - 1;
         for (; len >= 0; --len) {
             if (this.pages[len].id === id) {
-                this.pages.splice(len, 1);
-                break;
+                return this.pages.splice(len, 1)[0];
             }
         }
+
+        return null;
     }
 
     getAllPage(): TabPage[] {
@@ -155,6 +656,12 @@ export class TabHeaders extends Control {
         }
     }
 
+    at(index: number) {
+        if (this.headers.length > index)
+            return this.headers[index];
+        return null;
+    }
+
     getAllHeader(): TabHeader[] {
         return this.headers;
     }
@@ -165,6 +672,14 @@ export class TabPage extends Control {
     constructor(private _id: string, private _title: string) {
         super();
         this.className = "tab-page";
+    }
+
+    onDrag(event: DragEvent, panelId: string) {
+        event.dataTransfer.setData("text/plain", `${this._id}&${panelId}`);
+    }
+
+    onDragEnd(event: DragEvent) {
+        // console.info(event);
     }
 
     get id(): string {
@@ -182,6 +697,12 @@ export class TabPage extends Control {
     setActive(): TabPage {
         this.className = this.className + " active";
         return this;
+    }
+
+    unActive() {
+        if (this.className.indexOf("active") < 0)
+            return;
+        this.className = this.className.substr(0, this.className.indexOf("active") - 1);
     }
 
     setContent(ele: ComboControl): TabPage {
@@ -207,6 +728,12 @@ export class TabHeader extends Control {
     setActive(): TabHeader {
         this.className = this.className + " active";
         return this;
+    }
+
+    unActive() {
+        if (this.className.indexOf("active") < 0)
+            return;
+        this.className = this.className.substr(0, this.className.indexOf("active") - 1);
     }
 }
 
@@ -257,7 +784,7 @@ export class HBox extends ComboControl {
 
 export class MetaControl extends Control {
     protected _dataObj: any;
-    constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range") {
+    constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range" | "datetime") {
         super();
         this.styleObj = {
             type: type,
@@ -407,6 +934,12 @@ export class ComboBox extends MetaControl {
 
     get Completelist() {
         return this.dataSource.completelist;
+    }
+}
+
+export class DateTimeBox extends MetaControl {
+    constructor() {
+        super("datetime");
     }
 }
 
@@ -676,7 +1209,7 @@ export class SpreadViewer {
     private _bReset: boolean;
     private _state = 0;
 
-    constructor(private priceServ: PriceService) {
+    constructor(private priceServ: PriceService | IP20Service) {
         this._echart = new EChart();
         this.hidden();
     }
@@ -701,29 +1234,60 @@ export class SpreadViewer {
     }
 
     start(): void {
-        this.priceServ.register([this._innerCode1, this._innerCode2]);
-        this.priceServ.subscribe(msg => {
-            if (!msg.ukey || !this.hasInstrumentID(msg.ukey)) {
-                console.info(msg);
-                return;
-            }
+        if (this.priceServ instanceof PriceService) {
+            this.priceServ.register([this._innerCode1, this._innerCode2]);
+            this.priceServ.subscribe(msg => {
+                if (!msg.ukey || !this.hasInstrumentID(msg.ukey)) {
+                    console.info(msg);
+                    return;
+                }
 
-            switch (msg.type) {
-                case 201: // Snapshot
-                    this.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprices[0], BidPrice: msg.bidprices[0] });
-                    break;
-                case 100: // Futures
-                    this.setMarketData(msg);
-                    break;
-                case 1001:
-                case 1002:
-                case 1003:
-                case 1004:
-                default: // IOPV
-                    this.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
-                    break;
-            }
-        });
+                switch (msg.type) {
+                    case 201: // Snapshot
+                        this.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprices[0], BidPrice: msg.bidprices[0] });
+                        break;
+                    case 100: // Futures
+                        this.setMarketData(msg);
+                        break;
+                    case 1001:
+                    case 1002:
+                    case 1003:
+                    case 1004:
+                    default: // IOPV
+                        this.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
+                        break;
+                }
+            });
+        } else {
+            let self = this;
+            this.priceServ.send(17, 101, { topic: 3112, kwlist: [this._innerCode1, this._innerCode2] });
+            this.priceServ.addSlot({
+                appid: 17,
+                packid: 110,
+                callback: (msg) => {
+                    if (!msg.ukey || !self.hasInstrumentID(msg.ukey)) {
+                        console.info(msg);
+                        return;
+                    }
+
+                    switch (msg.type) {
+                        case 201: // Snapshot
+                            self.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprices[0], BidPrice: msg.bidprices[0] });
+                            break;
+                        case 100: // Futures
+                            self.setMarketData(msg);
+                            break;
+                        case 1001:
+                        case 1002:
+                        case 1003:
+                        case 1004:
+                        default: // IOPV
+                            self.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
+                            break;
+                    }
+                }
+            });
+        }
 
         this._timeoutHandler = setInterval(() => {
             if (this._lastIdx[this._innerCode1] === -1 || this._lastIdx[this._innerCode2] === -1) // both have one at least
@@ -854,7 +1418,7 @@ export class SpreadViewer {
                         }
                     },
                     tooltip: {
-                        formatter: function(param) {
+                        formatter: function (param) {
                             return JSON.stringify(param);
                         }
                     }
@@ -1075,19 +1639,18 @@ export class DataTable extends Control {
 
     addColumn(...columns: string[]): DataTable {
         columns.forEach(item => {
-            this.columns.push(new DataTableColumn(item));
+            let col = new DataTableColumn(item);
+            this.columns.push(col);
+            this._menu.addItem(MenuItem.create(col.Name, (self) => {
+                if (col.Name === self.label) {
+                    col.hidden = !self.checked;
+                    // this.detectChanges();
+                }
+            }, "checkbox", { visible: !col.hidden, checked: true }), null);
             this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length));
         });
 
         this.dataSource.columns = this.columns;
-        this.columns.forEach(col => {
-            this._menu.addItem(MenuItem.create(col.Name, (self) => {
-                if (col.Name === self.label) {
-                    col.hidden = !self.checked;
-                    this.detectChanges();
-                }
-            }, "checkbox", { visible: !col.hidden, checked: true }), null);
-        });
 
         return this;
     }

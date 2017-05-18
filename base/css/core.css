@@ -53,11 +53,12 @@ body > .statusbar > div:hover {
     cursor: pointer;
 }
 
-body > #root {
+body > .main {
     flex: auto;
     width: 100%;
     padding: 1px 5px;
     background-color: transparent;
+    overflow: hidden;
 }
 
 .dock-container {

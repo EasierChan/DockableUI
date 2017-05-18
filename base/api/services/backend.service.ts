@@ -44,8 +44,24 @@ export class AppStateCheckerRef {
         afterInit.call(appref, this.option);
     }
 
-    addModules(name: string) {
-        electron.ipcRenderer.send("app://menuitem-add", name);
+    onResize(appref: any, resizeCB: (e?: any) => void) {
+        window.onresize = (ev: UIEvent) => {
+            resizeCB.call(appref, ev);
+        };
+    }
+
+    onDestory(appref: any, beforeunload: (e?: any) => void) {
+        window.onbeforeunload = (ev: BeforeUnloadEvent) => {
+            beforeunload.call(appref, ev);
+        };
+    }
+
+    addMenuItem(action: number, name: string) {
+        electron.ipcRenderer.send("app://menuitem-CRUD", { action: action, name: name });
+    }
+
+    changeMenuItemState(name, state, action: number = 2) {
+        electron.ipcRenderer.send("app://menuitem-CRUD", { action: action, name: name, state: state });
     }
 }
 
@@ -124,6 +140,10 @@ export class MessageBox {
 
 export class File {
     public static parseJSON(fpath: string): Object {
+        if (!fs.existsSync(fpath)) {
+            return null;
+        }
+
         let obj;
         try {
             obj = JSON.parse(fs.readFileSync(fpath, { encoding: "utf8" }));
@@ -173,11 +193,13 @@ export class Sound {
         switch (type) {
             case 0:
                 Sound.playWav(path.join(__dirname, "/../../sound/good.wav"));
+                break;
             case 1:
                 Sound.playWav(path.join(__dirname, "/../../sound/bad.wav"));
                 break;
             default:
                 console.error(`unvalid type => ${type}`);
+                break;
         }
     }
 

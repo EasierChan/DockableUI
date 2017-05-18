@@ -60,6 +60,7 @@ export class AppStore {
         AppStore.parseCommandArgs();
         AppStore.loadConfig();
         let contentWindow: ContentWindow = new ContentWindow({ state: AppStore._config.state });
+        // contentWindow.setMenu(null);
         contentWindow.loadURL(path.join(AppStore._appstoreHome, "..", "workbench", "index.html"));
         AppStore._instances[AppStore._workbench] = contentWindow;
 
@@ -186,10 +187,11 @@ export class AppStore {
             fs.writeFileSync(AppStore._cfgFile, JSON.stringify(AppStore._config), { encoding: "utf8" });
         }
 
-        Object.assign(AppStore._config, JSON.parse(fs.readFileSync(AppStore._cfgFile, "utf8")));
+        AppStore._config = JSON.parse(fs.readFileSync(AppStore._cfgFile, "utf8"));
     }
 
     static saveConfig() {
+        // console.info(AppStore._config);
         fs.writeFileSync(AppStore._cfgFile, JSON.stringify(AppStore._config, null, 2));
     }
 }
