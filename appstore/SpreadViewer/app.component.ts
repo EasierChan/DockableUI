@@ -95,15 +95,15 @@ export class AppComponent implements OnInit {
 
         spreadviewerContent.addChild(svHeaderRow1);
         spreadviewerContent.addChild(svHeaderRow2);
-        let viewer = new SpreadViewer(this.tgw);
+        let viewer = new SpreadViewer();
 
         btn_init.OnClick = () => {
             viewer.setConfig({
                 symbolCode1: txt_code1.Text,
-                innerCode1: 3,
+                innerCode1: 1114116,
                 coeff1: parseFloat(txt_coeff.Text),
                 symbolCode2: txt_code2.Text,
-                innerCode2: 6,
+                innerCode2: 1114115,
                 coeff2: parseFloat(txt_coeff.Text),
                 durations: [{
                     start: {
@@ -141,11 +141,69 @@ export class AppComponent implements OnInit {
 
         this.main = spreadviewerContent;
 
+
+        // this.priceServ.register([this._innerCode1, this._innerCode2]);
+        // this.priceServ.subscribe(msg => {
+        //     if (!msg.ukey || !this.hasInstrumentID(msg.ukey)) {
+        //         console.info(msg);
+        //         return;
+        //     }
+
+        //     switch (msg.type) {
+        //         case 201: // Snapshot
+        //             this.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprices[0], BidPrice: msg.bidprices[0] });
+        //             break;
+        //         case 100: // Futures
+        //             this.setMarketData(msg);
+        //             break;
+        //         case 1001:
+        //         case 1002:
+        //         case 1003:
+        //         case 1004:
+        //         default: // IOPV
+        //             this.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
+        //             break;
+        //     }
+        // });
+
         this.tgw.connect(8012, "172.24.51.4");
-        let timestamp: any = new Date();
-        timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
-        timestamp = timestamp.substr(0, timestamp.length - 1);
-        let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": timestamp }; // 
+        let timestamp = new Date();
+        let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": timestamp.getTime() }; // 
         this.tgw.send(17, 41, loginObj);
+        this.tgw.addSlot({
+            appid: 17,
+            packid: 43,
+            callback: msg => {
+                this.tgw.send(17, 101, { topic: 3112, kwlist: [1114115, 1114116] });
+            }
+        });
+
+        this.tgw.addSlot({
+            appid: 17,
+            packid: 110,
+            callback: (msg) => {
+                if (!msg.ukey || !viewer.hasInstrumentID(msg.ukey)) {
+                    console.info(msg);
+                    return;
+                }
+
+                switch (msg.type) {
+                    case 201: // Snapshot
+                        viewer.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprice[0], BidPrice: msg.bidprice[0] });
+                        break;
+                    case 100: // Futures
+                        viewer.setMarketData(msg);
+                        break;
+                    case 1001:
+                    case 1002:
+                    case 1003:
+                    case 1004:
+                    default: // IOPV
+                        viewer.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
+                        break;
+                }
+            }
+        });
+
     }
 }

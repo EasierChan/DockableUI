@@ -97,7 +97,7 @@ export class AppComponent implements OnDestroy {
                     port: this.config.channels.feedhandler.port,
                     host: this.config.channels.feedhandler.addr
                 }
-            })
+            });
         });
         // this.tgw.connect(8012, "172.24.51.4");
         // let timestamp: any = new Date();
