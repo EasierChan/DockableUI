@@ -185,6 +185,11 @@ export class QtpService {
 
     connect(port, host = "127.0.0.1") {
         let self = this;
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
+
         this._client.on("data", msg => {
             msg = msg[0];
             if (self._messageMap.hasOwnProperty(msg.header.msgtype)) {

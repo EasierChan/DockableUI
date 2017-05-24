@@ -196,6 +196,8 @@ class ISONPackClient extends TcpClient {
 export class IP20Service {
     private _client: ISONPackClient;
     private _messageMap: Object;
+    private _timer: any;
+
     constructor() {
         this._messageMap = new Object();
         this._client = new ISONPackClient();
@@ -205,6 +207,12 @@ export class IP20Service {
 
     connect(port, host = "127.0.0.1") {
         let self = this;
+
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
+
         this._client.on("data", msg => {
             msg = msg[0];
             if (self._messageMap.hasOwnProperty(msg.head.appid) && self._messageMap[msg.head.appid].hasOwnProperty(msg.head.packid)) {
@@ -212,6 +220,19 @@ export class IP20Service {
             }
             else
                 console.warn(`unknown message appid = ${msg.head.appid}, packid = ${msg.head.packid}`);
+        });
+
+        this._client.on("connect", () => {
+            if (this._timer) {
+                clearTimeout(this._timer);
+                this._timer = null;
+            }
+        });
+
+        this._client.on("close", () => {
+            this._timer = setTimeout(() => {
+                this._client.reconnect(port, host);
+            }, 10000);
         });
         this._client.connect(port, host);
     }
