@@ -6,7 +6,7 @@
 
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
-    VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label
+    VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel
 } from "../../base/controls/control";
 import { QtpService } from "../../base/api/services/qtp.service";
 import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
@@ -25,6 +25,7 @@ declare let window: any;
     ]
 })
 export class AppComponent implements OnInit {
+    private readonly apptype = "loopbacktest";
     main: any;
     option: any;
     dd_tests: DropDown;
@@ -64,26 +65,56 @@ export class AppComponent implements OnInit {
         let lbl_duration = new Label();
         lbl_duration.Title = "Duration:";
         lbl_duration.Left = 10;
-        // lbl_duration.Width = 100;
         svHeaderRow1.addChild(lbl_duration);
+        let btn_query = new Button();
+        btn_query.Left = 10;
+        btn_query.Text = "Query";
+        svHeaderRow1.addChild(btn_query);
         viewContent.addChild(svHeaderRow1);
+        let panel = new TabPanel();
+        panel.addTab2("speed", "speed");
+        panel.setActive("speed");
+        viewContent.addChild(panel);
 
         let table = new DataTable("table2");
         table.addColumn("Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
-        viewContent.addChild(table);
+        // viewContent.addChild(table);
 
         viewContent.addChild(new HBox());
         this.main = viewContent;
 
+        let resultMap: any = {};
         dd_tests.SelectChange = () => {
             // table.rows.length = 0;
             if (dd_tests.SelectedItem && dd_tests.SelectedItem.Value) {
                 lbl_mode.Text = dd_tests.SelectedItem.Value.simlevel;
                 lbl_speed.Text = dd_tests.SelectedItem.Value.speed;
                 lbl_duration.Text = dd_tests.SelectedItem.Value.timebegin + "-" + dd_tests.SelectedItem.Value.timeend;
-                this.qtp.send(8016, { nId: dd_tests.SelectedItem.Value.id }); // trade detail
-                table.rows.length = 0;
+                if (resultMap.hasOwnProperty(dd_tests.SelectedItem.Value.id)) {
+                    table.rows.length = 0;
+                    resultMap[dd_tests.SelectedItem.Value.id].details.forEach(item => {
+                        let row = table.newRow();
+                        row.cells[0].Text = item.orderid;
+                        row.cells[1].Text = item.tradedate;
+                        row.cells[2].Text = item.accountid;
+                        row.cells[3].Text = item.innercode;
+                        row.cells[4].Text = item.orderstatus;
+                        row.cells[5].Text = item.ordertime;
+                        row.cells[6].Text = item.orderprice / 10000;
+                        row.cells[7].Text = item.ordervolume;
+                        row.cells[8].Text = item.dealprice / 10000;
+                        row.cells[9].Text = item.dealvolume;
+                        row.cells[10].Text = item.dealbalance / 10000;
+                        row.cells[11].Text = item.directive === 1 ? "B" : "S";
+                    });
+                }
             }
+        };
+
+        btn_query.OnClick = () => {
+            table.rows.length = 0;
+            this.qtp.send(8014, { nId: dd_tests.SelectedItem.Value.id }); // pnl
+            this.qtp.send(8016, { nId: dd_tests.SelectedItem.Value.id }); // detail
         };
 
         this.qtp.addSlot({
@@ -97,12 +128,14 @@ export class AppComponent implements OnInit {
                 callback: msg => {
                     console.info(msg);
                     // let row = table.newRow();
+                    // resultMap[msg.nId].pnl = msg.Accpl;
                 }
             }, {
                 msgtype: 8017,
                 callback: msg => {
                     console.info(msg);
                     if (Array.isArray(msg.orderdetails)) {
+                        // resultMap[msg.nId].details = msg.orderdetails;
                         msg.orderdetails.forEach(item => {
                             let row = table.newRow();
                             row.cells[0].Text = item.orderid;

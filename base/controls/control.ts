@@ -510,6 +510,11 @@ export class TabPanel extends Control {
         this.pages = new TabPages();
         this.headers = new TabHeaders();
         this.className = "tab-panel";
+        this.styleObj = {
+            type: "tabpanel",
+            width: null,
+            height: null
+        };
         this.children = [];
         this.children.push(this.pages);
         this.children.push(this.headers);

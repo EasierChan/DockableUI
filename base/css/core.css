@@ -61,6 +61,11 @@ body > .main {
     overflow: hidden;
 }
 
+usercontrol.col > dock-control {
+    flex: auto;
+    display: flex;
+}
+
 .dock-container {
     background-color: #000010;
     color: #F0F0F0;

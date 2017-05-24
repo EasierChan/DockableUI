@@ -27,6 +27,7 @@ declare let window: any;
     ]
 })
 export class AppComponent implements OnInit {
+    private readonly apptype = "spreadviewer";
     main: any;
     option: any;
 

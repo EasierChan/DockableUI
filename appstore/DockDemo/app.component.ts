@@ -26,8 +26,7 @@ declare let window: any;
   ]
 })
 export class AppComponent implements OnInit, AfterViewInit {
-  // className: string = "dock-container vertical";
-  // children: Control[] = [];
+  private readonly apptype = "trade";
   private main: DockContainer;
   private pageObj: Object = new Object();
   private dialog: Dialog;

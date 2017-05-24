@@ -57,6 +57,7 @@
   <dock-table *ngIf="child.styleObj.type=='table'" [className]="child.className" [dataSource]="child.dataSource"></dock-table>
   <dock-table2 *ngIf="child.styleObj.type=='table2'" [className]="child.className" [dataSource]="child.dataSource"></dock-table2>
   <echart *ngIf="child.styleObj.type=='echart'&&child.className!='hidden'" [dataSource]="child.dataSource"></echart>
+  <dock-control *ngIf="child.styleObj.type=='tabpanel'" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj" [dataSource]="child.dataSource"></dock-control>
   <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource" [class]="child.styleObj.type"
     [style.min-width.px]="child.styleObj?.minWidth" [style.min-height.px]="child.styleObj?.minHeight">
   </usercontrol>

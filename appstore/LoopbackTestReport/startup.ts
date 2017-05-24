@@ -38,17 +38,15 @@ export class StartUp implements IApplication {
             this._mainWindow.onclosing = bound => {
                 self._config.state = bound;
                 self.saveConfig();
-                IPCManager.unregister(`app://${this._mainWindow.id}/init`);
+                delete StartUp.instanceMap[this._mainWindow.win.webContents.id];
             };
 
             this._option = option;
-            IPCManager.register(`app://${this._mainWindow.id}/init`, (e, param) => {
-                e.returnValue = this._option;
-            });
 
             this._mainWindow.loadURL(path.join(__dirname, "index.html"));
             this._mainWindow.win.setTitle(name);
             this._mainWindow.setMenuBarVisibility(true);
+            StartUp.instanceMap[this._mainWindow.win.webContents.id] = this;
             // this._windowMgr.addContentWindow(this._mainWindow);
         }
         this._mainWindow.show();
@@ -102,3 +100,13 @@ interface DockDemoConfig {
     state: Bound;
     layout?: Object;
 }
+
+IPCManager.register(`app://loopbacktest/init`, (e, param) => {
+    if (StartUp.instanceMap.hasOwnProperty(e.sender.id)) {
+        e.returnValue = StartUp.instanceMap[e.sender.id]._option;
+        return;
+    }
+
+    console.error(`unknown sender id ${e.sender.id}`);
+    e.returnValue = {};
+});

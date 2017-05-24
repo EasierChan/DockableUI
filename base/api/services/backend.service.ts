@@ -32,7 +32,6 @@ export class AppStateCheckerRef {
     onMenuItemClick: (menuitem: any, param?: any) => void;
 
     constructor() {
-        this.option = electron.ipcRenderer.sendSync(`app://${electron.remote.getCurrentWebContents().id}/init`);
         electron.ipcRenderer.on("app://menuitem-click", (e, item, param) => {
             if (this.onMenuItemClick) {
                 this.onMenuItemClick(item, param);
@@ -41,7 +40,13 @@ export class AppStateCheckerRef {
     }
 
     onInit(appref: any, afterInit: (...params) => void) {
-        afterInit.call(appref, this.option);
+        if (appref.apptype) {
+            this.option = electron.ipcRenderer.sendSync(`app://${appref.apptype}/init`);
+            afterInit.call(appref, this.option);
+            return;
+        }
+
+        console.error(`apptype is undefined.`);
     }
 
     onResize(appref: any, resizeCB: (e?: any) => void) {
