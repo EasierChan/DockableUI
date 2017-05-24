@@ -62,6 +62,7 @@ export class ISONPack2 extends Message {
     head: ISONPack2Header = new ISONPack2Header();
     contentLen: number;
     content: Object;
+    topicHeader: any;
     /**
      * decode a buffer, and return the used bufferlen.
      */
@@ -84,21 +85,27 @@ export class ISONPack2 extends Message {
         if (this.head.bitmap & 0x80) { // topicHeader.
             let len0 = buf.readUInt32LE(offset); offset += 4;
             // read topicHeader
-            offset += len0;
+            this.topicHeader = {};
+            this.topicHeader.topic = buf.readUInt32LE(offset); offset += 4;
+            this.topicHeader.kw = buf.readUInt32LE(offset); offset += 4;
+            this.topicHeader.sn = buf.readUInt32LE(offset); offset += 4;
+            this.topicHeader.tm = buf.readUInt32LE(offset); offset += 4;
+            this.topicHeader.ms = buf.readUInt16LE(offset); offset += 2;
+            this.topicHeader.res = buf.readUInt16LE(offset); offset += 2;
         }
 
         if (this.head.bitmap & 0x40) {
             this.contentLen = buf.readUInt32LE(offset); offset += 4; // json data len;
-            let cstrEndOffset = buf.indexOf(0, offset);
-            let len =  cstrEndOffset !== -1 ?  cstrEndOffset : (this.contentLen + offset);
+            let cstrEndOffset = buf.slice(offset, offset + this.contentLen - 4).indexOf(0);
+            let len = (cstrEndOffset !== -1 ? cstrEndOffset : this.contentLen - 4) + offset;
 
             try {
-                this.content = JSON.parse(buf.slice(offset, len).toString());
-                offset += this.contentLen;
+                this.content = JSON.parse(buf.slice(offset, len).toString("utf-8"));
             } catch (e) {
-                logger.warn(`JSON.parse exception: ${e.message}`);
+                logger.warn(`JSON.parse exception: ${e.message},${offset}, ${len}, ${cstrEndOffset}`);
                 this.content = buf.slice(offset, len).toString();
             }
+            offset += this.contentLen;
         }
 
         return this.head.packlen;
