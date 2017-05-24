@@ -10,7 +10,7 @@ import {
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
-import { PriceService } from "../../base/api/services/priceService";
+import { IP20Service } from "../../base/api/services/ip20.service";
 import { MessageBox, fs, AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { SecuMasterService } from "../../base/api/services/secumaster.service";
@@ -21,7 +21,7 @@ declare let window: any;
   selector: "body",
   templateUrl: "app.component.html",
   providers: [
-    PriceService,
+    IP20Service,
     AppStateCheckerRef
   ]
 })
@@ -102,7 +102,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   static bookViewSN = 1;
   static spreadViewSN = 1;
 
-  constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
+  constructor(private tgw: IP20Service, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
     this.statechecker.onInit(this, this.onReady);
     this.statechecker.onResize(this, this.onResize);
@@ -2611,6 +2611,43 @@ export class AppComponent implements OnInit, AfterViewInit {
     bookViewContent.addChild(bookViewTable);
     bookviewPage.setContent(bookViewContent);
     return bookviewPage;
+  }
+
+  subscribeMarketData(...codes: number[]) {
+    let timestamp: Date = new Date();
+    let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
+      ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
+      ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
+    let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
+
+    this.tgw.addSlot({
+      appid: 17,
+      packid: 43,
+      callback: msg => {
+        console.info(`tgw ans=>${msg}`);
+        // this.tgw.send(17, 101, { topic: 3112, kwlist: [2163460] });
+      }
+    });
+    this.tgw.addSlot({
+      appid: 17,
+      packid: 120,
+      callback: msg => {
+        console.info(msg);
+      }
+    });
+    this.tgw.send(17, 41, loginObj);
+
+    this.tgw.addSlot({
+      appid: 17,
+      packid: 110,
+      callback: (msg) => {
+        console.info(msg);
+      }
+    });
+
+    timestamp = null;
+    stimestamp = null;
+    loginObj = null;
   }
 
   onDestroy() {
