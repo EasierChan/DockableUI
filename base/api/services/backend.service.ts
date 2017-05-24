@@ -32,7 +32,7 @@ export class AppStateCheckerRef {
     onMenuItemClick: (menuitem: any, param?: any) => void;
 
     constructor() {
-        this.option = electron.ipcRenderer.sendSync(`app://get-init-param`);
+        this.option = electron.ipcRenderer.sendSync(`app://${electron.remote.getCurrentWebContents().id}/init`);
         electron.ipcRenderer.on("app://menuitem-click", (e, item, param) => {
             if (this.onMenuItemClick) {
                 this.onMenuItemClick(item, param);
@@ -139,7 +139,7 @@ export class MessageBox {
 }
 
 export class File {
-    public static parseJSON(fpath: string): Object {
+    public static parseJSON(fpath: string): any {
         if (!fs.existsSync(fpath)) {
             return null;
         }
@@ -177,6 +177,20 @@ export class File {
             fs.writeFile(fpath, content, { encoding: "utf8" });
         else
             fs.writeFile(fpath, JSON.stringify(content), { encoding: "utf8" });
+    }
+
+    public static appendAsync(fpath: string, content: string) {
+        fs.open(fpath, "a+", (err, fd) => {
+            if (err) {
+                console.error(err);
+                return;
+            }
+
+            if (typeof (content) === "string")
+                fs.write(fd, content);
+            else
+                fs.write(fd, JSON.stringify(content));
+        });
     }
 }
 

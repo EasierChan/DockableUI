@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { AppStoreService, Menu, MessageBox } from "../base/api/services/backend.service";
+import { AppStoreService, Menu, MessageBox, File } from "../base/api/services/backend.service";
 import { IP20Service } from "../base/api/services/ip20.service";
 import { QtpService } from "../base/api/services/qtp.service";
 import { Component, ChangeDetectorRef, OnDestroy } from "@angular/core";
@@ -55,6 +55,7 @@ export class AppComponent implements OnDestroy {
     isModify: boolean = false;
 
     analysisApps: any[];
+    sendLoopConfigs: any[] = [];
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
         private qtp: QtpService,
@@ -88,36 +89,19 @@ export class AppComponent implements OnDestroy {
             });
         });
         this.contextMenu.addItem("ViewResult", () => {
-            let name = "ResultOf" + this.config.name;
-            this.appService.startApp(name, "LoopbackTestReport", {
-                port: this.config.loopbackConfig.port,
-                host: this.config.loopbackConfig.host,
-                name: name,
-                feedhandler: {
-                    port: this.config.channels.feedhandler.port,
-                    host: this.config.channels.feedhandler.addr
-                }
-            });
+            if (this.config.activeChannel === "loopback") {
+                let name = "ResultOf" + this.config.name;
+                this.sendLoopConfigs = this.configBLL.getLoopbackItems();
+                console.info(this.sendLoopConfigs);
+                let items = this.sendLoopConfigs.filter(item => { return item.name === this.config.name; });
+                this.appService.startApp(name, "LoopbackTestReport", {
+                    port: 4801,
+                    host: "172.24.51.1",
+                    name: name,
+                    tests: items
+                });
+            }
         });
-        // this.tgw.connect(8012, "172.24.51.4");
-        // let timestamp: any = new Date();
-        // timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
-        // timestamp = timestamp.substr(0, timestamp.length - 1);
-        // let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": timestamp }; // 
-        // this.tgw.send(17, 41, loginObj);
-        // this.tgw.addSlot({
-        //     appid: 17,
-        //     packid: 43,
-        //     callback: (msg) => {
-        //         this.tgw.send(17, 101, { topic: 3112, kwlist: [2163460] });
-        //     }
-        // }, {
-        //     appid: 17,
-        //     packid: 110,
-        //     callback: (msg) => {
-        //         console.info(msg);
-        //     }
-        // });
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {
@@ -514,19 +498,39 @@ export class AppComponent implements OnDestroy {
         this.qtp.addSlot({
             msgtype: 8012,
             callback: (msg) => {
+                console.info(msg);
                 this.config.loopbackConfig.result = msg;
+                let item = this.sendLoopConfigs.find((item, idx) => {
+                    return item.reqsn === msg.reqsn;
+                });
+
+                if (item) {
+                    item.id = msg.nId;
+                    item.name = this.config.name;
+                    let today = new Date();
+                    item.date = today.getFullYear() + ("0" + (today.getMonth() + 1)).slice(-2) +
+                        ("0" + today.getDate()).slice(-2);
+                    this.configBLL.addLoopbackItems(item);
+                } else {
+                    console.error(`unvalid message. ${msg}`);
+                }
             }
         });
         this.qtp.connect(4801, "172.24.51.1");
     }
 
+    static reqnum = 1;
     createLoopbackTest(): void {
-        this.qtp.send(8010, {
+        let tmpobj = {
+            reqsn: AppComponent.reqnum++,
             timebegin: parseInt(this.config.loopbackConfig.option.timebegin.split("-").join("")),
             timeend: parseInt(this.config.loopbackConfig.option.timeend.split("-").join("")),
             speed: parseInt(this.config.loopbackConfig.option.speed),
             simlevel: parseInt(this.config.loopbackConfig.option.simlevel)
-        });
+        };
+
+        this.sendLoopConfigs.push(tmpobj);
+        this.qtp.send(8010, tmpobj);
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {

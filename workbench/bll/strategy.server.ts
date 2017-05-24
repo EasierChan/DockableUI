@@ -21,6 +21,9 @@ export class ConfigurationBLL {
 
         this._configpath = path.join(this._basedir, "instances.json");
         this._configs = WorkspaceConfig.setObject(File.parseJSON(this._configpath) || []);
+
+        this._loopbackPath = path.join(this._basedir, "loopback.json");
+        this._loopbackItems = File.parseJSON(this._loopbackPath) || [];
     }
 
     private _basedir: string;
@@ -32,6 +35,9 @@ export class ConfigurationBLL {
 
     private _configs: WorkspaceConfig[];
     private _configpath: string;
+
+    private _loopbackItems: any[];
+    private _loopbackPath: string;
 
     private _names: string[];
     /**
@@ -79,6 +85,15 @@ export class ConfigurationBLL {
     updateTemplate(name: string, template: any) {
         this._templates[name] = template;
         File.writeAsync(this._templatepath, JSON.stringify(this._templates));
+    }
+
+    addLoopbackItems(item: any) {
+        this._loopbackItems.push(item);
+        File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
+    }
+
+    getLoopbackItems() {
+        return this._loopbackItems;
     }
 }
 

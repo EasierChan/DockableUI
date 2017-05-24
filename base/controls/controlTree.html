@@ -15,7 +15,7 @@
         <!-- panel headers-->
         <div class="panel-header-list">
             <div *ngFor="let header of children[1].headers" [attr.data-target]="header.targetId" [class]="header.className" (click)="dataSource.setActive(header.targetId)">
-                {{header.targetId}} <span aria-hidden="true" (click)="dataSource.onClose(header.targetId)">&times;</span>
+                {{header.targetId}} <span *ngIf="header.bcloseable" aria-hidden="true" (click)="dataSource.onClose(header.targetId)">&times;</span>
             </div>
         </div>
     </template>

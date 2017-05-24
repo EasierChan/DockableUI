@@ -544,8 +544,10 @@ export class TabPanel extends Control {
         return this;
     }
 
-    addTab(page: TabPage): TabPanel {
-        this.headers.addHeader(new TabHeader(page.id, page.title));
+    addTab(page: TabPage, closeable = true): TabPanel {
+        let header = new TabHeader(page.id, page.title);
+        header.closeable = closeable;
+        this.headers.addHeader(header);
         this.pages.addPage(page);
         return this;
     }
@@ -632,6 +634,7 @@ export class TabPages extends Control {
         return this.pages;
     }
 }
+
 export class TabHeaders extends Control {
     protected headers: TabHeader[] = [];
     constructor() {
@@ -711,11 +714,13 @@ export class TabPage extends Control {
 export class TabHeader extends Control {
     targetId: string = "";
     tabName: string = "";
+    bcloseable: boolean;
     constructor(targetId: string, tabName: string) {
         super();
         this.className = "tab";
         this.targetId = targetId;
         this.tabName = tabName;
+        this.bcloseable = true;
     }
 
     setTargetId(value: string): void {
@@ -731,6 +736,14 @@ export class TabHeader extends Control {
         if (this.className.indexOf("active") < 0)
             return;
         this.className = this.className.substr(0, this.className.indexOf("active") - 1);
+    }
+
+    set closeable(value: boolean) {
+        this.bcloseable = value;
+    }
+
+    get closeable() {
+        return this.bcloseable;
     }
 }
 
@@ -1238,6 +1251,7 @@ export class SpreadViewer {
 
             if (!this._msgs[this._innerCode1][this._curIdx] || !this._msgs[this._innerCode2][this._curIdx]) {
                 console.warn(`curIdx: ${this._curIdx} don't have data of both.`);
+                ++this._curIdx;
                 return;
             }
 
@@ -1451,12 +1465,12 @@ export class SpreadViewer {
         return Math.round((this._msgs[this._innerCode1][idx].bidPrice1 - this._coeff2 * this._msgs[this._innerCode2][idx].askPrice1) * this._multiplier * 100) / 100;
     }
 
-    private index(timestamp: number): number {
-        let itime = Math.floor(timestamp / 1000);
-        let ihour = Math.floor(itime / 10000);
-        let iminute = Math.floor(itime % 10000 / 100);
+    private index(seconds: number): number {
+        // let itime = Math.floor(timestamp / 1000);
+        let ihour = Math.floor(seconds / 10000);
+        let iminute = Math.floor(seconds % 10000 / 100);
         return (ihour - this._durations[0].start.hour) * 60 * 60 + (iminute - this._durations[0].start.minute) * 60 +
-            + itime % 10000 % 100;
+            + seconds % 10000 % 100;
     }
 
     setMarketData(msg: any): void {
@@ -1510,12 +1524,14 @@ export class SpreadViewer {
             if (msg.UKey === this._innerCode1) {
                 if (!this._msgs[this._innerCode2][idx])
                     this._msgs[this._innerCode2][idx] = {};
+
                 this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].askPrice1;
                 this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].bidPrice1;
                 this._curIdx = idx;
             } else {// if (msg.UKey === this._innerCode2)
                 if (!this._msgs[this._innerCode1][idx])
                     this._msgs[this._innerCode1][idx] = {};
+
                 this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].askPrice1;
                 this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].bidPrice1;
                 this._curIdx = idx;

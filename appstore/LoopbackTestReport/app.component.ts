@@ -1,14 +1,14 @@
 /**
- * created by cl, 2017/05/09
+ * created by cl, 2017/05/19
  * update: [date]
- * desc:
+ * desc: show loopback test.
  */
 
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
-    VBox, HBox, DateTimeBox, Button
+    VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label
 } from "../../base/controls/control";
-import { PriceService } from "../../base/api/services/priceService";
+import { QtpService } from "../../base/api/services/qtp.service";
 import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
 declare let window: any;
 
@@ -16,51 +16,110 @@ declare let window: any;
     moduleId: module.id,
     selector: "body",
     template: `
-        <dock-control [className]="main.className" [children]="main.children" [styleObj]="main.styleObj" [dataSource]="main.dataSource">
+        <dock-control style="width: 100%; height: 100%" [className]="main.className" [children]="main.children" [styleObj]="main.styleObj" [dataSource]="main.dataSource">
         </dock-control>
     `,
     providers: [
-        PriceService,
+        QtpService,
         AppStateCheckerRef
     ]
 })
 export class AppComponent implements OnInit {
     main: any;
     option: any;
+    dd_tests: DropDown;
 
-    constructor(private state: AppStateCheckerRef) {
-        this.state.onInit(this, this.onReady);
+    constructor(private state: AppStateCheckerRef, private qtp: QtpService) {
     }
 
     onReady(option: any) {
         this.option = option;
+        document.title = this.option.name;
+        this.qtp.connect(this.option.port, this.option.host);
     }
 
     ngOnInit() {
+        this.state.onInit(this, this.onReady);
         let viewContent = new VBox();
         let svHeaderRow1 = new HBox();
-        let txt_start = new DateTimeBox();
-        txt_start.Text = "";
-        txt_start.Title = "BeginDate:";
-        txt_start.Left = 100;
-        txt_start.Width = 120;
-        svHeaderRow1.addChild(txt_start);
-        let txt_end = new DateTimeBox();
-        txt_end.Text = "";
-        txt_end.Title = "Begin:";
-        txt_end.Left = 10;
-        txt_end.Width = 120;
-        svHeaderRow1.addChild(txt_end);
-        let btn_query = new Button();
-        btn_query.Class = "primary";
-        btn_query.Text = "Search";
-        btn_query.Left = 10;
-        btn_query.Disable = false;
-        svHeaderRow1.addChild(btn_query);
+        let dd_tests = new DropDown();
+        dd_tests.Title = "Tests:";
+        dd_tests.Left = 50;
+        dd_tests.addItem({ Text: "--all--", Value: undefined });
 
-        let svHeaderRow2 = new HBox();
+        this.option.tests.forEach(item => {
+            dd_tests.addItem({ Text: item.date + " " + item.id, Value: item });
+        });
+        svHeaderRow1.addChild(dd_tests);
+        let lbl_mode = new Label();
+        lbl_mode.Title = "Mode:";
+        lbl_mode.Left = 10;
+        lbl_mode.Width = 50;
+        svHeaderRow1.addChild(lbl_mode);
+        let lbl_speed = new Label();
+        lbl_speed.Title = "Speed:";
+        lbl_speed.Left = 10;
+        lbl_speed.Width = 50;
+        svHeaderRow1.addChild(lbl_speed);
+        let lbl_duration = new Label();
+        lbl_duration.Title = "Duration:";
+        lbl_duration.Left = 10;
+        // lbl_duration.Width = 100;
+        svHeaderRow1.addChild(lbl_duration);
         viewContent.addChild(svHeaderRow1);
 
+        let table = new DataTable("table2");
+        table.addColumn("Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
+        viewContent.addChild(table);
+
+        viewContent.addChild(new HBox());
         this.main = viewContent;
+
+        dd_tests.SelectChange = () => {
+            // table.rows.length = 0;
+            if (dd_tests.SelectedItem && dd_tests.SelectedItem.Value) {
+                lbl_mode.Text = dd_tests.SelectedItem.Value.simlevel;
+                lbl_speed.Text = dd_tests.SelectedItem.Value.speed;
+                lbl_duration.Text = dd_tests.SelectedItem.Value.timebegin + "-" + dd_tests.SelectedItem.Value.timeend;
+                this.qtp.send(8016, { nId: dd_tests.SelectedItem.Value.id }); // trade detail
+                table.rows.length = 0;
+            }
+        };
+
+        this.qtp.addSlot({
+            msgtype: 8013,
+            callback: msg => {
+                console.info(msg);
+                // let row = table.newRow();
+            }
+        }, {
+                msgtype: 8015,
+                callback: msg => {
+                    console.info(msg);
+                    // let row = table.newRow();
+                }
+            }, {
+                msgtype: 8017,
+                callback: msg => {
+                    console.info(msg);
+                    if (Array.isArray(msg.orderdetails)) {
+                        msg.orderdetails.forEach(item => {
+                            let row = table.newRow();
+                            row.cells[0].Text = item.orderid;
+                            row.cells[1].Text = item.tradedate;
+                            row.cells[2].Text = item.accountid;
+                            row.cells[3].Text = item.innercode;
+                            row.cells[4].Text = item.orderstatus;
+                            row.cells[5].Text = item.ordertime;
+                            row.cells[6].Text = item.orderprice / 10000;
+                            row.cells[7].Text = item.ordervolume;
+                            row.cells[8].Text = item.dealprice / 10000;
+                            row.cells[9].Text = item.dealvolume;
+                            row.cells[10].Text = item.dealbalance / 10000;
+                            row.cells[11].Text = item.directive === 1 ? "B" : "S";
+                        });
+                    }
+                }
+            });
     }
 }

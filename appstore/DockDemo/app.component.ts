@@ -104,7 +104,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
-    this.statechecker.onInit(this, this.onReady);
     this.statechecker.onResize(this, this.onResize);
     this.statechecker.onDestory(this, this.onDestroy);
     this.statechecker.onMenuItemClick = this.onMenuItemClick;
@@ -162,6 +161,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   onReady(option: any) {
     // option.port and option.host and option.name ;
     this.option = option;
+    // console.info(this.option);
   }
 
   ngOnInit(): void {
@@ -474,13 +474,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
     dd_symbol.Title = codeRtn + ": ";
     let self = this;
-    dd_symbol.SelectChange = () => {
-      this.bookViewTable.rows.forEach(row => {
-        row.cells.forEach(cell => {
-          console.log(cell.Text);
-        });
-      });
-    };
     dd_symbol.matchMethod = (inputText) => {
       let len = inputText.length;
       let sendStr: string = "";
@@ -1041,8 +1034,6 @@ export class AppComponent implements OnInit, AfterViewInit {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-    this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
-    this.psInstance.setHeartBeat(1000000);
     // this.psInstance.register([1584]);
     this.psInstance.subscribe((msg) => {
       if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
@@ -1064,13 +1055,15 @@ export class AppComponent implements OnInit, AfterViewInit {
       }
     });
 
+    this.statechecker.onInit(this, this.onReady);
     this.loadLayout();
-    this.init(this.option.port, this.option.host);
     // this.init(9082, "172.24.51.4");
   }
 
   ngAfterViewInit() {
-    // this.main.reallocSize(this.layout.width, this.layout.height);
+    this.init(this.option.port, this.option.host);
+    this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
+    this.psInstance.setHeartBeat(1000000);
   }
 
   loadLayout() {

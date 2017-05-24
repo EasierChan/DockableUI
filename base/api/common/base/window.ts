@@ -270,7 +270,6 @@ export class UWindow {
 			return;
 
 		this.options.viewUrl = contentUrl;
-		this.registerListeners();
 
 		if (this.options.state.wStyle === WindowStyle.Aqy) {
 			this.setMenuBarVisibility(false);
@@ -282,6 +281,7 @@ export class UWindow {
 			}
 			this.win.loadURL(`file://${contentUrl}`);
 		}
+		this.registerListeners();
 		// this.win.webContents.reloadIgnoringCache();
 	}
 

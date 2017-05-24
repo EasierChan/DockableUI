@@ -3,6 +3,7 @@
  * update: [date]
  * desc:
  */
+"use strict";
 
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
@@ -35,6 +36,7 @@ export class AppComponent implements OnInit {
 
     onReady(option: any) {
         this.option = option;
+        this.tgw.connect(8012, "172.24.51.4");
     }
 
     ngOnInit() {
@@ -100,15 +102,15 @@ export class AppComponent implements OnInit {
         btn_init.OnClick = () => {
             viewer.setConfig({
                 symbolCode1: txt_code1.Text,
-                innerCode1: 1114116,
+                innerCode1: 3801236,
                 coeff1: parseFloat(txt_coeff.Text),
                 symbolCode2: txt_code2.Text,
-                innerCode2: 1114115,
+                innerCode2: 3801247,
                 coeff2: parseFloat(txt_coeff.Text),
                 durations: [{
                     start: {
                         hour: 9,
-                        minute: 30
+                        minute: 0
                     },
                     end: {
                         hour: 11,
@@ -128,6 +130,7 @@ export class AppComponent implements OnInit {
                 viewer.init();
                 viewer.start();
                 txt_max.Disable = txt_min.Disable = txt_tick.Disable = btn_dayview.Disable = false;
+                this.tgw.send(17, 101, { topic: 3112, kwlist: [3801236, 3801247] });
             }, 100);
         };
         btn_dayview.OnClick = () => {
@@ -166,42 +169,41 @@ export class AppComponent implements OnInit {
         //     }
         // });
 
-        this.tgw.connect(8012, "172.24.51.4");
-        let timestamp = new Date();
-        let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": timestamp.getTime() }; // 
-        this.tgw.send(17, 41, loginObj);
+        let timestamp: Date = new Date();
+        let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
+            ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
+            ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
+        let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp }; // 
         this.tgw.addSlot({
             appid: 17,
             packid: 43,
             callback: msg => {
-                this.tgw.send(17, 101, { topic: 3112, kwlist: [1114115, 1114116] });
+                console.info(`tgw ans=>${msg}`);
+                // this.tgw.send(17, 101, { topic: 3112, kwlist: [2163460] });
             }
         });
+        this.tgw.addSlot({
+            appid: 17,
+            packid: 120,
+            callback: msg => {
+                console.info(msg);
+            }
+        });
+        this.tgw.send(17, 41, loginObj);
 
         this.tgw.addSlot({
             appid: 17,
             packid: 110,
             callback: (msg) => {
-                if (!msg.ukey || !viewer.hasInstrumentID(msg.ukey)) {
+                let time = new Date(msg.content.time * 1000);
+                let stime = ("0" + time.getHours()).slice(-2) + ("0" + time.getMinutes()).slice(-2) + ("0" + time.getSeconds()).slice(-2);
+
+                if (!msg.content.ukey || !viewer.hasInstrumentID(msg.content.ukey)) {
                     console.info(msg);
                     return;
                 }
 
-                switch (msg.type) {
-                    case 201: // Snapshot
-                        viewer.setMarketData({ UKey: msg.ukey, Time: msg.time, AskPrice: msg.askprice[0], BidPrice: msg.bidprice[0] });
-                        break;
-                    case 100: // Futures
-                        viewer.setMarketData(msg);
-                        break;
-                    case 1001:
-                    case 1002:
-                    case 1003:
-                    case 1004:
-                    default: // IOPV
-                        viewer.setMarketData({ UKey: msg.innerCode, Time: msg.time, AskPrice: msg.askIOPV, BidPrice: msg.bidIOPV });
-                        break;
-                }
+                viewer.setMarketData({ UKey: msg.content.ukey, Time: parseInt(stime), AskPrice: msg.content.ask_price[0], BidPrice: msg.content.bid_price[0] });
             }
         });
 

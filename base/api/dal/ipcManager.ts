@@ -11,6 +11,7 @@ export class IPCManager {
     private static _channelsMap: Object = new Object();
 
     static start() {
+        ipcMain.setMaxListeners(100);
         fs.readdirSync(`${__dirname}/itrade`).forEach(modelName => {
             if (modelName.endsWith("Dal.js")) {
                 require(`${__dirname}/itrade/${modelName}`);
@@ -22,7 +23,22 @@ export class IPCManager {
         if (!(IPCManager._channelsMap.hasOwnProperty(channel) && IPCManager._channelsMap[channel] === cb)) {
             IPCManager._channelsMap[channel] = cb;
             ipcMain.on(channel, cb);
-             console.info(`add channel ${channel}`);
+            console.info(`add channel ${channel}`);
+        }
+    }
+
+    static unregister(channel: string, cb?: Electron.IpcMainEventListener) {
+        if (cb) {
+            ipcMain.removeListener(channel, cb);
+        } else {
+            ipcMain.removeAllListeners(channel);
+        }
+
+
+        if (IPCManager._channelsMap.hasOwnProperty(channel)) {
+            IPCManager._channelsMap[channel] = null;
+            delete IPCManager._channelsMap[channel];
+            console.info(`remove channel ${channel}`);
         }
     }
 

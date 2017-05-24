@@ -19,9 +19,7 @@ import { UserControlComponent, DockContainerComponent, StatusBarComponent, Dialo
     DataTableComponent,
     ScrollerBarTable,
     EChartComponent,
-    UserControlComponent,
-    StatusBarComponent,
-    DialogComponent
+    UserControlComponent
   ],
   bootstrap: [AppComponent]
 })

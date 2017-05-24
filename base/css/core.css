@@ -62,7 +62,6 @@ body > .main {
 }
 
 .dock-container {
-    /*display: flex;*/
     background-color: #000010;
     color: #F0F0F0;
     overflow: hidden;
@@ -98,14 +97,12 @@ body > .main {
 
 .dock-container.horizental {
     height: 200px;
-    /*display: flex;
-    flex-flow: row nowrap;*/
+    flex-flow: row nowrap;
 }
 
 .dock-container.vertical {
     width: 300px;
-    /*display: flex;
-    flex-flow: column nowrap;*/
+    flex-flow: column nowrap;
 }
 
 .tab-panel {

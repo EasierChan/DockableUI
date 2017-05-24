@@ -64,7 +64,7 @@ class QTPParser extends Parser {
         let restLen = 0;
         for (; bufCount < this._oPool.length; ++bufCount) {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
-            if (buflen >= Header.len) {
+            if (buflen >= this._curHeader.datalen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
                 console.info(`processMsg: appid=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
                 this.emit(this._curHeader.msgtype.toString(), this._curHeader, tempBuffer);
@@ -98,6 +98,8 @@ class QTPMessageParser extends QTPParser {
 
     init(): void {
         this.registerMsgFunction("8012", this, this.processQtpMsg);
+        this.registerMsgFunction("8015", this, this.processQtpMsg);
+        this.registerMsgFunction("8017", this, this.processQtpMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);

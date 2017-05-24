@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path } from "../../base/api/backend";
+import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path, IPCManager } from "../../base/api/backend";
 const path = require("path");
 const fs = require("fs");
 declare let window: any;
@@ -38,10 +38,13 @@ export class StartUp implements IApplication {
             this._mainWindow.onclosing = bound => {
                 self._config.state = bound;
                 self.saveConfig();
+                IPCManager.unregister(`app://${this._mainWindow.id}/init`);
             };
 
             this._option = option;
-            StartUp.instanceMap[this._mainWindow.win.webContents.id] = this;
+            IPCManager.register(`app://${this._mainWindow.id}/init`, (e, param) => {
+                e.returnValue = this._option;
+            });
 
             this._mainWindow.loadURL(path.join(__dirname, "index.html"));
             this._mainWindow.win.setTitle(name);
@@ -98,10 +101,3 @@ interface DockDemoConfig {
     state: Bound;
     layout?: Object;
 }
-
-ipcMain.on(`app://get-init-param`, (e, param) => {
-    if (StartUp.instanceMap.hasOwnProperty(e.sender.id))
-        e.returnValue = StartUp.instanceMap[e.sender.id]._option;
-    else
-        e.returnValue = {};
-});
