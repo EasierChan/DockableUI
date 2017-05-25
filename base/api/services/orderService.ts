@@ -466,9 +466,9 @@ class StrategyParser extends ItradeParser {
         let count = buffer.readUInt32LE(offset); offset += 4;
         let ukey = buffer.readUInt32LE(offset); offset += 4;
         let indexLots = buffer.readUInt32LE(offset); offset += 4;
-        let dayPnl = buffer.readIntLE(offset, 8); offset += 8;
-        let onPnl = buffer.readIntLE(offset, 8); offset += 8;
-        let value = buffer.readIntLE(offset, 8); offset += 8;
+        let dayPnl = this.readInt64LE(buffer, offset); offset += 8;
+        let onPnl = this.readInt64LE(buffer, offset); offset += 8;
+        let value = this.readInt64LE(buffer, offset); offset += 8;
         // console.log(unknowncount, account, count, ukey, indexLots, dayPnl, onPnl, value);
         return [{ unknowncount: unknowncount, account: account, count: count, ukey: ukey, dayPnl: dayPnl, onPnl: onPnl, value: value }];
     }
@@ -501,10 +501,10 @@ class StrategyParser extends ItradeParser {
                 fpPosUpdate.AvgBuyPrice = buffer.readUInt32LE(offset); offset += 4;
                 fpPosUpdate.AvgSellPrice = buffer.readUInt32LE(offset); offset += 4;
                 fpPosUpdate.Percentage = buffer.readUInt16LE(offset); offset += 2;
-                fpPosUpdate.DayPnLCon = buffer.readIntLE(offset, 8); offset += 8;
-                fpPosUpdate.ONPnLCon = buffer.readIntLE(offset, 8); offset += 8;
-                fpPosUpdate.ValueCon = buffer.readIntLE(offset, 8); offset += 8;
-                fpPosUpdate.PreValue = buffer.readIntLE(offset, 8); offset += 8;
+                fpPosUpdate.DayPnLCon = this.readInt64LE(buffer, offset); offset += 8;
+                fpPosUpdate.ONPnLCon = this.readInt64LE(buffer, offset); offset += 8;
+                fpPosUpdate.ValueCon = this.readInt64LE(buffer, offset); offset += 8;
+                fpPosUpdate.PreValue = this.readInt64LE(buffer, offset); offset += 8;
                 fpPosUpdate.Flag = buffer.readInt32LE(offset); offset += 4;
                 if (fpPosUpdate.UKey !== 0)
                     tableArr.push(fpPosUpdate);
@@ -522,7 +522,7 @@ class StrategyParser extends ItradeParser {
         count = buffer.readUInt32LE(offset); offset += 4;
         comGuiAckStrategy.strategyid = buffer.readUInt32LE(offset); offset += 4;
         comGuiAckStrategy.key = buffer.readUInt32LE(offset); offset += 4;
-        comGuiAckStrategy.value = buffer.readIntLE(offset, 8); offset += 8;
+        comGuiAckStrategy.value = this.readInt64LE(buffer, offset); offset += 8;
         comGuiAckStrategy.success = buffer.readUInt8(offset) === 1 ? true : false; offset += 4;
         comGuiAckStrategy.error = buffer.readUInt32LE(offset); offset += 4;
         res.push(comGuiAckStrategy);
@@ -533,6 +533,8 @@ class StrategyParser extends ItradeParser {
     readLog(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
         let res = [];
         let offset: number = 0;
+        let count: number = 0;
+        count = buffer.readUInt32LE(offset); offset += 4;
         let logStr = buffer.slice(offset, offset += 1024).toString("utf-8");
         logStr = String(logStr).slice(0, logStr.indexOf("\u0000"));
         res.push(logStr);
@@ -549,10 +551,10 @@ class StrategyParser extends ItradeParser {
             statArbOrder.strategyid = buffer.readUInt32LE(offset); offset += 4;
             statArbOrder.code = buffer.readUInt32LE(offset); offset += 4;
             statArbOrder.pricerate = buffer.readInt32LE(offset); offset += 8;
-            statArbOrder.position = buffer.readIntLE(offset, 8); offset += 8;
-            statArbOrder.quantity = buffer.readIntLE(offset, 8); offset += 8;
-            statArbOrder.amount = buffer.readIntLE(offset, 8); offset += 8;
-            statArbOrder.diffQty = buffer.readIntLE(offset, 8); offset += 8;
+            statArbOrder.position = this.readInt64LE(buffer, offset); offset += 8;
+            statArbOrder.quantity = this.readInt64LE(buffer, offset); offset += 8;
+            statArbOrder.amount = this.readInt64LE(buffer, offset); offset += 8;
+            statArbOrder.diffQty = this.readInt64LE(buffer, offset); offset += 8;
             res.push(statArbOrder);
         }
         return [{ subtype: subtype, content: res }];
@@ -620,17 +622,17 @@ class StrategyParser extends ItradeParser {
             let comTotalProfitInfo = new ComTotalProfitInfo();
             comTotalProfitInfo.strategyid = buffer.readUInt32LE(offset); offset += 8;
             comTotalProfitInfo.account = buffer.readUIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totalpositionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totaltodaypositionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totallastpositionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totaltradingpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totallasttradingfee = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totaltradingfee = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totalintradaytradingfee = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totalpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totalposition = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totaltodayposition = buffer.readIntLE(offset, 8); offset += 8;
-            comTotalProfitInfo.totalLastposition = buffer.readIntLE(offset, 8); offset += 8;
+            comTotalProfitInfo.totalpositionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totaltodaypositionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totallastpositionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totaltradingpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totallasttradingfee = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totaltradingfee = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totalintradaytradingfee = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totalpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totalposition = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totaltodayposition = this.readInt64LE(buffer, offset); offset += 8;
+            comTotalProfitInfo.totalLastposition = this.readInt64LE(buffer, offset); offset += 8;
             res.push(comTotalProfitInfo);
         }
         return [{ subtype: subtype, content: res }];
@@ -681,32 +683,32 @@ class StrategyParser extends ItradeParser {
             comRecordPos.poolpri = buffer.readUInt32LE(offset); offset += 4;
             comRecordPos.secucategory = buffer.readUInt8(offset); offset += 4;
             comRecordPos.strategyid = buffer.readUInt32LE(offset); offset += 4;
-            comRecordPos.initpos = buffer.readUIntLE(offset, 8); offset += 8;
+            comRecordPos.initpos = this.readInt64LE(buffer, offset); offset += 8;
             if (ESSSecuCategory.SS_SECU_CATEGORY_EQUIT === comRecordPos.secucategory) {
                 comRecordPos.record = new ComEquitPos();
-                comRecordPos.record.date = buffer.readUInt32LE(offset); offset += 8;
-                comRecordPos.record.account = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.code = buffer.readUInt32LE(offset); offset += 8;
-                comRecordPos.record.TotalVol = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.AvlVol = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.WorkingVol = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.TotalCost = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.AvlCreRedempVol = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.CovedFrzVol = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.type = buffer.readUInt32LE(offset); offset += 16;
+                comRecordPos.record.date = buffer.readInt32LE(offset); offset += 8;
+                comRecordPos.record.account = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.code = buffer.readInt32LE(offset); offset += 8;
+                comRecordPos.record.TotalVol = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.AvlVol = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.WorkingVol = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.TotalCost = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.AvlCreRedempVol = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.CovedFrzVol = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.type = buffer.readInt32LE(offset); offset += 16;
             } else if (ESSSecuCategory.SS_SECU_CATEGORY_FUTURE === comRecordPos.secucategory) {
                 comRecordPos.record = new ComFuturePos();
-                comRecordPos.record.date = buffer.readUInt32LE(offset); offset += 8;
-                comRecordPos.record.account = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.code = buffer.readUInt32LE(offset); offset += 8;
-                comRecordPos.record.TotalVol = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.AvlVol = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.WorkingVol = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.TotalCost = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.MarginAveragePrice = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.AveragePrice = buffer.readUIntLE(offset, 8); offset += 8;
-                comRecordPos.record.type = buffer.readUInt32LE(offset); offset += 8;
-                comRecordPos.record.TodayOpen = buffer.readUIntLE(offset, 8); offset += 8;
+                comRecordPos.record.date = buffer.readInt32LE(offset); offset += 8;
+                comRecordPos.record.account = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.code = buffer.readInt32LE(offset); offset += 8;
+                comRecordPos.record.TotalVol = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.AvlVol = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.WorkingVol = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.TotalCost = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.MarginAveragePrice = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.AveragePrice = this.readInt64LE(buffer, offset); offset += 8;
+                comRecordPos.record.type = buffer.readInt32LE(offset); offset += 8;
+                comRecordPos.record.TodayOpen = this.readInt64LE(buffer, offset); offset += 8;
             }
             res.push(comRecordPos);
             //  console.log("print readComRecordPos info---- :", comRecordPos, offset);
@@ -740,34 +742,34 @@ class StrategyParser extends ItradeParser {
             let comProfitInfo = new ComProfitInfo();
             comProfitInfo.strategyid = buffer.readUInt32LE(offset); offset += 8;
             comProfitInfo.account = buffer.readUIntLE(offset, 8); offset += 8;
-            comProfitInfo.totalpositionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.totaltodaypositionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.totallastpositionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.totaltradingpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.totallasttradingfee = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.totaltradingfee = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.totalintradaytradingfee = buffer.readIntLE(offset, 8); offset += 8;
+            comProfitInfo.totalpositionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.totaltodaypositionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.totallastpositionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.totaltradingpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.totallasttradingfee = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.totaltradingfee = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.totalintradaytradingfee = this.readInt64LE(buffer, offset); offset += 8;
             comProfitInfo.totalpnl = buffer.readUIntLE(offset, 8); offset += 8;
-            comProfitInfo.totalposition = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.totaltodayposition = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.totalLastposition = buffer.readIntLE(offset, 8); offset += 8;
+            comProfitInfo.totalposition = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.totaltodayposition = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.totalLastposition = this.readInt64LE(buffer, offset); offset += 8;
 
             comProfitInfo.innercode = buffer.readUInt32LE(offset); offset += 8;
-            comProfitInfo.avgpriceforbuy = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.avgpriceforsell = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.positionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.tradingpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.iopv = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.lasttradingfee = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.tradingfee = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.lastpositionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.todaypositionpnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.pnl = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.lastposition = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.todayposition = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.lastclose = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.marketprice = buffer.readIntLE(offset, 8); offset += 8;
-            comProfitInfo.intradaytradingfee = buffer.readIntLE(offset, 8); offset += 8;
+            comProfitInfo.avgpriceforbuy = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.avgpriceforsell = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.positionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.tradingpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.iopv = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.lasttradingfee = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.tradingfee = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.lastpositionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.todaypositionpnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.pnl = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.lastposition = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.todayposition = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.lastclose = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.marketprice = this.readInt64LE(buffer, offset); offset += 8;
+            comProfitInfo.intradaytradingfee = this.readInt64LE(buffer, offset); offset += 8;
             res.push(comProfitInfo);
             // console.log("comProfitInfo:", comProfitInfo);
         }
@@ -851,7 +853,7 @@ class StrategyParser extends ItradeParser {
             comConOrderStatus.os.price = buffer.readUInt32LE(offset); offset += 4;
             comConOrderStatus.os.quantity = buffer.readUInt32LE(offset); offset += 4;
             comConOrderStatus.os.datetime = new TimeVal();
-            comConOrderStatus.os.datetime.tv_sec = buffer.readIntLE(offset, 8); offset += 8;
+            comConOrderStatus.os.datetime.tv_sec = this.readInt64LE(buffer, offset); offset += 8;
             comConOrderStatus.os.datetime.tv_usec = buffer.readUIntLE(offset, 8); offset += 8;
             comConOrderStatus.os.ordertype = buffer.readUInt8(offset); offset += 1;
             comConOrderStatus.os.tradetype = buffer.readUInt8(offset); offset += 1;
@@ -909,31 +911,31 @@ class StrategyParser extends ItradeParser {
             if (ESSSecuCategory.SS_SECU_CATEGORY_EQUIT === comAccountPos.secucategory) {
                 comAccountPos.record = new ComFundPos();
                 comAccountPos.record.date = buffer.readUInt32LE(offset); offset += 8;
-                comAccountPos.record.account = buffer.readUIntLE(offset, 8); offset += 8;
+                comAccountPos.record.account = this.readInt64LE(buffer, offset); offset += 8;
                 comAccountPos.record.c = buffer.slice(offset, offset + 1).toString("utf-8"); offset += 8;
-                comAccountPos.record.TotalAmount = buffer.readUIntLE(offset, 8); offset += 8;
-                comAccountPos.record.AvlAmount = buffer.readUIntLE(offset, 8); offset += 8;
-                comAccountPos.record.FrzAmount = buffer.readUIntLE(offset, 8); offset += 8;
+                comAccountPos.record.TotalAmount = this.readInt64LE(buffer, offset); offset += 8;
+                comAccountPos.record.AvlAmount = this.readInt64LE(buffer, offset); offset += 8;
+                comAccountPos.record.FrzAmount = this.readInt64LE(buffer, offset); offset += 8;
                 offset += 80;
             } else if (ESSSecuCategory.SS_SECU_CATEGORY_FUTURE === comAccountPos.secucategory) {
                 let margin = new ComMarginPos();
                 margin.date = buffer.readUInt32LE(offset); offset += 8;
-                margin.account = buffer.readUIntLE(offset, 8); offset += 8;
+                margin.account = this.readInt64LE(buffer, offset); offset += 8;
                 margin.c = buffer.slice(offset, offset + 1).toString("utf-8"); offset += 8;
-                margin.TotalAmount = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.AvlAmount = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.FrzAmount = buffer.readUIntLE(offset, 8); offset += 8;
+                margin.TotalAmount = this.readInt64LE(buffer, offset); offset += 8;
+                margin.AvlAmount = this.readInt64LE(buffer, offset); offset += 8;
+                margin.FrzAmount = this.readInt64LE(buffer, offset); offset += 8;
 
-                margin.BuyFrzAmt = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.SellFrzAmt = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.BuyMargin = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.SellFrzAmt = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.TotalMargin = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.Fee = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.PositionPL = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.ClosePL = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.PreFee = buffer.readUIntLE(offset, 8); offset += 8;
-                margin.PreFundVal = buffer.readUIntLE(offset, 8); offset += 8;
+                margin.BuyFrzAmt = this.readInt64LE(buffer, offset); offset += 8;
+                margin.SellFrzAmt = this.readInt64LE(buffer, offset); offset += 8;
+                margin.BuyMargin = this.readInt64LE(buffer, offset); offset += 8;
+                margin.SellMargin = this.readInt64LE(buffer, offset); offset += 8;
+                margin.TotalMargin = this.readInt64LE(buffer, offset); offset += 8;
+                margin.Fee = this.readInt64LE(buffer, offset); offset += 8;
+                margin.PositionPL = this.readInt64LE(buffer, offset); offset += 8;
+                margin.ClosePL = this.readInt64LE(buffer, offset); offset += 8;
+                margin.PreFee = this.readInt64LE(buffer, offset); offset += 8;
+                margin.PreFundVal = this.readInt64LE(buffer, offset); offset += 8;
                 comAccountPos.record = margin;
             }
             res.push(comAccountPos);
@@ -941,29 +943,35 @@ class StrategyParser extends ItradeParser {
         }
         return res;
     }
-    readStrategyCfg(buffer: Buffer, msgtype: number, msgsubtype: number, msglen: number): Array<Object> {
+    readStrategyCfg(buf: Buffer, msgtype: number, msgsubtype: number, msglen: number): Array<Object> {
         let count: number = 0;
         let offset: number = 0;
         let res = [];
-        count = buffer.readUInt32LE(offset); offset += 4;
+        count = buf.readUInt32LE(offset); offset += 4;
         for (let i = 0; i < count; ++i) {
             let comStrategyCfg = new ComStrategyCfg();
-            comStrategyCfg.strategyid = buffer.readUInt32LE(offset); offset += 4;
-            comStrategyCfg.key = buffer.readUInt32LE(offset); offset += 4;
-            let str_end = buffer.indexOf(0, offset);
-            comStrategyCfg.name = buffer.slice(offset, str_end).toString("utf-8");
+            comStrategyCfg.strategyid = buf.readUInt32LE(offset); offset += 4;
+            comStrategyCfg.key = buf.readUInt32LE(offset); offset += 4;
+            let str_end = buf.indexOf(0, offset);
+            comStrategyCfg.name = buf.slice(offset, str_end).toString("utf-8");
             offset += 56;
-            comStrategyCfg.value = buffer.readIntLE(offset, 8); offset += 8;
-            comStrategyCfg.decimal = buffer.readUInt8(offset); offset += 1;
-            comStrategyCfg.type = buffer.readUInt8(offset); offset += 1;
-            comStrategyCfg.level = buffer.readUInt8(offset); offset += 1;
-            comStrategyCfg.save = buffer.readUInt8(offset); offset += 1;
-            comStrategyCfg.modify = buffer.readUInt8(offset); offset += 1;
-            comStrategyCfg.dirty = buffer.readUInt8(offset); offset += 1;
+            comStrategyCfg.value = this.readInt64LE(buf, offset); offset += 8;
+            comStrategyCfg.decimal = buf.readUInt8(offset); offset += 1;
+            comStrategyCfg.type = buf.readUInt8(offset); offset += 1;
+            comStrategyCfg.level = buf.readUInt8(offset); offset += 1;
+            comStrategyCfg.save = buf.readUInt8(offset); offset += 1;
+            comStrategyCfg.modify = buf.readUInt8(offset); offset += 1;
+            comStrategyCfg.dirty = buf.readUInt8(offset); offset += 1;
             offset += 2;
-            // console.log("comStrategyCfg:",comStrategyCfg);
             res.push(comStrategyCfg);
+            // console.log("comStrategyCfg:", comStrategyCfg);
         }
         return res;
+    }
+    readInt64LE(buffer: Buffer, offset: number): any {
+        let low: number = buffer.readInt32LE(offset); offset += 4;
+        let n: number = buffer.readInt32LE(offset) * 4294967296.0 + low; offset += 4;
+        if (low < 0) n += 4294967296;
+        return n;
     }
 }

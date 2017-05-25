@@ -10,7 +10,7 @@ import {
   DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
-import { PriceService } from "../../base/api/services/priceService";
+import { IP20Service } from "../../base/api/services/ip20.service";
 import { MessageBox, fs, AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { SecuMasterService } from "../../base/api/services/secumaster.service";
@@ -21,7 +21,7 @@ declare let window: any;
   selector: "body",
   templateUrl: "app.component.html",
   providers: [
-    PriceService,
+    IP20Service,
     AppStateCheckerRef
   ]
 })
@@ -78,6 +78,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private rateText: MetaControl;
   private dd_Account: DropDown;
   private dd_Strategy: DropDown;
+  private dd_symbol: DropDown;
 
   private txt_UKey: any;
   private txt_Symbol: any;
@@ -93,6 +94,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   private filename: String = "";
   private selectArr = [];
   private OrderStatusSelArr = [];
+  // private bookviewObj = { bookview: 0, code: "" };
+  private bookviewArr = [];
+  private codeList: number[] = [];
 
   private statusbar: StatusBar;
   private option: any;
@@ -100,9 +104,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   static bookViewSN = 1;
   static spreadViewSN = 1;
+  static loginFlag: boolean = false;
 
-  constructor(private psInstance: PriceService, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
+  constructor(private tgw: IP20Service, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
+    this.statechecker.onInit(this, this.onReady);
     this.statechecker.onResize(this, this.onResize);
     this.statechecker.onDestory(this, this.onDestroy);
     this.statechecker.onMenuItemClick = this.onMenuItemClick;
@@ -110,6 +116,23 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   onTabPageClosed(pageid: string) {
+    let len = AppComponent.self.bookviewArr.length;
+    for (let i = 0; i < len; ++i) {
+      if (AppComponent.self.bookviewArr[i].bookview === pageid) {
+        let code = AppComponent.self.bookviewArr[i].code;
+        let index = AppComponent.self.codeList.indexOf(parseInt(code));
+        if (index > -1) {
+          AppComponent.self.codeList.splice(index, 1);
+        }
+        AppComponent.self.bookviewArr.splice(i, 1);
+        len--;
+        let codeIdx = AppComponent.self.codeList.indexOf(parseInt(code));
+        if (codeIdx > -1) {
+          AppComponent.self.codeList.splice(codeIdx, 1);
+          AppComponent.self.subscribeMarketData(AppComponent.self.codeList);
+        }
+      }
+    }
     AppComponent.self.statechecker.changeMenuItemState(pageid, false, 2);
   }
 
@@ -465,74 +488,81 @@ export class AppComponent implements OnInit, AfterViewInit {
     };
 
     this.bookviewPage = new TabPage("BookView", ManulTrader.getTranslateInfo(this.languageType, "BookView"));
-    this.pageObj["BookView"] = this.bookviewPage;
+    this.createBookView("BookView");
 
-    let bookviewHeader = new ComboControl("row");
-    let dd_symbol = new DropDown();
-    dd_symbol.AcceptInput = true;
-    let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
-    dd_symbol.Title = codeRtn + ": ";
-    let self = this;
-    dd_symbol.matchMethod = (inputText) => {
-      let len = inputText.length;
-      let sendStr: string = "";
-      for (let i = 0; i < len; ++i) {
-        let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
-        if (bcheck) {
-          sendStr += inputText.charAt(i).toLocaleUpperCase();
-        }
-        else {
-          sendStr += inputText.charAt(i);
-        }
-      }
-      let msg = ManulTrader.getCodeList(sendStr);
-      let rtnArr = [];
-      dd_symbol.Items.length = 0;
-      let msgLen = msg.length;
-      for (let i = 0; i < msgLen; ++i) {
-        if (msg[i].SecuAbbr === msg[i].symbolCode)
-          rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
-        else
-          rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode });
-      }
-      return rtnArr;
-    };
-    bookviewHeader.addChild(dd_symbol);
+    // this.pageObj["BookView"] = this.bookviewPage;
 
-    this.bookViewTable = new DataTable("table");
-    let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
-    let bookviewRtnArr: string[] = [];
-    let bookviewTittleLen = bookviewArr.length;
-    for (let i = 0; i < bookviewTittleLen; ++i) {
-      let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewArr[i]);
-      bookviewRtnArr.push(bookviewRtn);
-    }
-    bookviewRtnArr.forEach(item => {
-      this.bookViewTable.addColumn(item);
-    });
-    for (let i = 0; i < 20; ++i) {
-      let row = this.bookViewTable.newRow();
-      row.cells[0].Class = "warning";
-      row.cells[0].Text = "";
-      row.cells[1].Class = "info";
-      row.cells[2].Class = "danger";
-      row.cells[3].Class = "default";
-    }
-    let bHead = false;
-    this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
-      // console.info(cellIndex, rowIndex);
-    };
-    this.bookViewTable.OnRowClick = (rowItem, rowIndex) => {
-      [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
-      this.txt_Price.Text = rowItem.cells[1].Text;
-      this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
-      let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
-      Dialog.popup(this, this.tradeContent, { title: tradeRtn });
-    };
-    let bookViewContent = new ComboControl("col");
-    bookViewContent.addChild(bookviewHeader);
-    bookViewContent.addChild(this.bookViewTable);
-    this.bookviewPage.setContent(bookViewContent);
+    // let bookviewHeader = new ComboControl("row");
+    // this.dd_symbol = new DropDown();
+    // this.dd_symbol.AcceptInput = true;
+    // let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
+    // this.dd_symbol.Title = codeRtn + ": ";
+    // let self = this;
+    // this.dd_symbol.SelectChange = () => {
+    //   this.clearBookViewTable();
+    //   this.subscribeMarketData(parseInt((this.dd_symbol.SelectedItem.Value).split(",")[2]));
+
+    // };
+    // this.dd_symbol.matchMethod = (inputText) => {
+    //   let len = inputText.length;
+    //   let sendStr: string = "";
+    //   for (let i = 0; i < len; ++i) {
+    //     let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
+    //     if (bcheck) {
+    //       sendStr += inputText.charAt(i).toLocaleUpperCase();
+    //     }
+    //     else {
+    //       sendStr += inputText.charAt(i);
+    //     }
+    //   }
+    //   let msg = ManulTrader.getCodeList(sendStr);
+    //   let rtnArr = [];
+    //   this.dd_symbol.Items.length = 0;
+    //   let msgLen = msg.length;
+    //   for (let i = 0; i < msgLen; ++i) {
+    //     if (msg[i].SecuAbbr === msg[i].symbolCode)
+    //       rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
+    //     else
+    //       rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
+    //   }
+    //   return rtnArr;
+    // };
+    // bookviewHeader.addChild(this.dd_symbol);
+
+    // this.bookViewTable = new DataTable("table");
+    // let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
+    // let bookviewRtnArr: string[] = [];
+    // let bookviewTittleLen = bookviewArr.length;
+    // for (let i = 0; i < bookviewTittleLen; ++i) {
+    //   let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewArr[i]);
+    //   bookviewRtnArr.push(bookviewRtn);
+    // }
+    // bookviewRtnArr.forEach(item => {
+    //   this.bookViewTable.addColumn(item);
+    // });
+    // for (let i = 0; i < 20; ++i) {
+    //   let row = this.bookViewTable.newRow();
+    //   row.cells[0].Class = "warning";
+    //   row.cells[0].Text = "";
+    //   row.cells[1].Class = "info";
+    //   row.cells[2].Class = "danger";
+    //   row.cells[3].Class = "default";
+    // }
+    // let bHead = false;
+    // this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+    //   // console.info(cellIndex, rowIndex);
+    // };
+    // this.bookViewTable.OnRowClick = (rowItem, rowIndex) => {
+    //   [this.txt_UKey.Text, this.txt_Symbol.Text] = this.dd_symbol.SelectedItem.Value.split(",");
+    //   this.txt_Price.Text = rowItem.cells[1].Text;
+    //   this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+    //   let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
+    //   Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+    // };
+    // let bookViewContent = new ComboControl("col");
+    // bookViewContent.addChild(bookviewHeader);
+    // bookViewContent.addChild(this.bookViewTable);
+    // this.bookviewPage.setContent(bookViewContent);
 
     this.logPage = new TabPage("Log", ManulTrader.getTranslateInfo(this.languageType, "LOG"));
     this.pageObj["Log"] = this.logPage;
@@ -552,17 +582,19 @@ export class AppComponent implements OnInit, AfterViewInit {
     let statarbHeader = new ComboControl("row");
     this.buyamountLabel = new MetaControl("textbox");
     this.buyamountLabel.Left = statarbLeftAlign;
-    this.buyamountLabel.Width = 50;
+    this.buyamountLabel.Width = 90;
+    this.buyamountLabel.Text = "0";
 
     this.buyamountLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "BUY.AMOUNT") + ":";
     this.buyamountLabel.Disable = true;
     this.sellamountLabel = new MetaControl("textbox");
     this.sellamountLabel.Left = statarbLeftAlign;
-    this.sellamountLabel.Width = 50;
+    this.sellamountLabel.Width = 90;
     this.sellamountLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "SELL.AMOUNT") + ":";
     this.sellamountLabel.Disable = true;
+    this.sellamountLabel.Text = "0";
     statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
-    this.statarbTable = new DataTable();
+    this.statarbTable = new DataTable("table2");
     let statarbTablearr: string[] = ["Symbol", "InnerCode", "Change(%)", "Position",
       "Trade", "Amount", "StrategyID", "DiffQty", "SymbolCode"];
     let statarbTableRtnarr: string[] = [];
@@ -879,7 +911,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       let bidPriceLevel = AppComponent.self.portfolioSellCom.SelectedItem.Value;
       let askOffset = AppComponent.self.portfolioBUyOffset.SelectedItem.Value;
       let bidOffset = AppComponent.self.portfolioSellOffset.SelectedItem.Value;
-      console.log(askPriceLevel, bidPriceLevel, askOffset, bidOffset);
+      // console.log(askPriceLevel, bidPriceLevel, askOffset, bidOffset);
       let sendArr = [];
       // find qty by ukey
       for (let j = 0; j < selArrLen; ++j) {
@@ -1033,36 +1065,15 @@ export class AppComponent implements OnInit, AfterViewInit {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-    // this.psInstance.register([1584]);
-    this.psInstance.subscribe((msg) => {
-      if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
-        if (msg.type === 201) {
-          for (let i = 0; i < 10; ++i) {
-            // console.info(i);
-            this.bookViewTable.rows[i + 10].cells[0].Text = msg.bidvols[i] + "";
-            this.bookViewTable.rows[i + 10].cells[1].Text = msg.bidprices[i] / 10000 + "";
-            this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
-            this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
-          }
-        } else if (msg.type === 100) {
-          this.bookViewTable.rows[10].cells[0].Text = msg.bidvolume;
-          this.bookViewTable.rows[10].cells[1].Text = msg.bidprice / 10000;
-          this.bookViewTable.rows[9].cells[1].Text = msg.askprice / 10000;
-          this.bookViewTable.rows[9].cells[2].Text = msg.askvolume;
-        }
-        AppComponent.self.bookViewTable.detectChanges();
-      }
-    });
 
-    this.statechecker.onInit(this, this.onReady);
     this.loadLayout();
+    this.init(this.option.port, this.option.host);
+    this.subScribeMarketInit(8012, "172.24.51.4");
     // this.init(9082, "172.24.51.4");
   }
 
   ngAfterViewInit() {
     this.init(this.option.port, this.option.host);
-    this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
-    this.psInstance.setHeartBeat(1000000);
   }
 
   loadLayout() {
@@ -1074,6 +1085,58 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.main.addChild(new Splitter("h"));
     }
     this.main.addChild(this.traversefunc(this.main, children[childrenLen - 1]));
+  }
+
+  subScribeMarketInit(port: number, host: string) {
+    if (!AppComponent.loginFlag) {
+      let timestamp: Date = new Date();
+      let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
+        ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
+        ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
+      let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
+      this.tgw.connect(port, host);
+      this.tgw.send(17, 41, loginObj);
+
+      this.tgw.addSlot({ // login success
+        appid: 17,
+        packid: 43,
+        callback: msg => {
+          AppComponent.loginFlag = true;
+          console.info(`tgw ans=>${msg}`);
+        }
+      });
+      this.tgw.addSlot({  // login error
+        appid: 17,
+        packid: 120,
+        callback: msg => {
+          AppComponent.loginFlag = false;
+          console.info(msg);
+        }
+      });
+
+      this.tgw.addSlot({ // receive msg
+        appid: 17,
+        packid: 110,
+        callback: (msg) => {
+          let len = AppComponent.self.bookviewArr.length;
+          // console.log("*****************", msg.content, len, AppComponent.self.bookviewArr);
+          for (let idx = 0; idx < len; ++idx) {
+            if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
+              for (let i = 0; i < 10; ++i) {
+                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[0].Text = msg.content.bid_volume[i] + "";
+                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = msg.content.bid_price[i] / 10000 + "";
+                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[2].Text = msg.content.ask_volume[i] + "";
+                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = msg.content.ask_price[i] / 10000 + "";
+              }
+            }
+          }
+        }
+      });
+      AppComponent.loginFlag = true;
+      timestamp = null;
+      stimestamp = null;
+      loginObj = null;
+    }
   }
 
   init(port: number, host: string) {
@@ -1207,25 +1270,29 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   showStatArbOrder(data: any) {
-    // console.log("statarb....", data);
+    //  console.log("statarb....", data);
     for (let i = 0; i < data.length; ++i) {
       let subtype = data[i].subtype;
       let dataArr = data[i].content;
       if (subtype === 1001) {  // add
-        let row = AppComponent.self.statarbTable.newRow();
-        row.cells[0].Text = "";
-        row.cells[1].Text = dataArr[0].code;
-        row.cells[2].Text = dataArr[0].pricerate / 100;
-        row.cells[3].Text = dataArr[0].position;
-        row.cells[4].Text = dataArr[0].quantity;
-        row.cells[5].Text = dataArr[0].amount / 10000;
-        row.cells[6].Text = dataArr[0].strategyid;
-        row.cells[7].Text = dataArr[0].diffQty;
-        row.cells[8].Text = "";
-        if (dataArr[0].amount > 0)
-          AppComponent.self.buyamountLabel.Text -= dataArr[0].amount / 10000;
-        else if (dataArr[0].amount < 0)
-          AppComponent.self.sellamountLabel.Text += dataArr[0].amount / 10000;
+        let statArbLen = AppComponent.self.statarbTable.rows.length;
+        if (statArbLen === 0) {
+          AppComponent.self.addStatArbInfo(dataArr);
+        } else {
+          let checkFlag: boolean = false;
+          for (let j = 0; j < statArbLen; ++j) {
+            let getStrategyid = AppComponent.self.statarbTable.rows[j].cells[6].Text;
+            let getukey = AppComponent.self.statarbTable.rows[j].cells[1].Text;
+            if (dataArr[0].code === getukey && dataArr[0].strategyid === getStrategyid) {
+              checkFlag = true;
+              AppComponent.self.refreshStatArbInfo(dataArr, j);
+            }
+          }
+          if (!checkFlag) {
+            AppComponent.self.addStatArbInfo(dataArr);
+            checkFlag = false;
+          }
+        }
       } else if (subtype === 1002) { // hide
         for (let hideIdx = 0; hideIdx < AppComponent.self.statarbTable.rows.length; ++hideIdx) {
           let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
@@ -1233,15 +1300,61 @@ export class AppComponent implements OnInit, AfterViewInit {
           if (getUkey === dataArr[hideIdx].code && getStrategyid === dataArr[hideIdx].strategyid) {
             AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
             if (dataArr[hideIdx].amount > 0) {
-              AppComponent.self.buyamountLabel.Text -= dataArr[hideIdx].amount / 10000;
+              AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[hideIdx].amount / 10000).toString();
             } else if (dataArr[hideIdx].amount < 0) {
-              AppComponent.self.sellamountLabel.Text += dataArr[hideIdx].amount / 10000;
+              AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + dataArr[hideIdx].amount / 10000).toString();
             }
           }
         }
       }
     }
   }
+
+  addStatArbInfo(dataArr: any) {
+    let row = AppComponent.self.statarbTable.newRow();
+    row.cells[1].Text = dataArr[0].code;
+    let codeInfo = ManulTrader.getSecuinfoByukey(2, dataArr[0].code);
+    let strategyId = dataArr[0].strategyid;
+    let tempObj = AppComponent.self.traverseukeyObj(codeInfo, dataArr[0].code);
+    if (codeInfo) {
+      if (tempObj) {
+        row.cells[0].Text = (tempObj.SecuCode + "").split(".")[0];
+        row.cells[8].Text = tempObj.SecuAbbr;
+      }
+    } else {
+      row.cells[0].Text = "";
+      row.cells[8].Text = "";
+    }
+    row.cells[2].Text = dataArr[0].pricerate / 100;
+    row.cells[3].Text = dataArr[0].position;
+    row.cells[4].Text = dataArr[0].quantity;
+    row.cells[5].Text = dataArr[0].amount / 10000;
+    row.cells[6].Text = dataArr[0].strategyid;
+    row.cells[7].Text = dataArr[0].diffQty;
+
+    if (dataArr[0].amount > 0) {
+      AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) + dataArr[0].amount / 10000).toString();
+    }
+    else if (dataArr[0].amount < 0)
+      AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toString();
+  }
+  refreshStatArbInfo(dataArr: any, idx: number) {
+    AppComponent.self.statarbTable.rows[idx].cells[2].Text = dataArr[0].pricerate / 100;
+    AppComponent.self.statarbTable.rows[idx].cells[3].Text = dataArr[0].position;
+    AppComponent.self.statarbTable.rows[idx].cells[4].Text = dataArr[0].quantity;
+    let getamount = AppComponent.self.statarbTable.rows[idx].cells[5].Text;
+    if (getamount !== dataArr[0].amount / 10000) {
+      AppComponent.self.statarbTable.rows[idx].cells[5].Text = dataArr[0].amount / 10000;
+      if (dataArr[0].amount > 0) {
+        AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - parseFloat(getamount) + dataArr[0].amount / 10000).toString();
+      } else if (dataArr[0].amount < 0) {
+        AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + parseFloat(getamount) - dataArr[0].amount / 10000).toString();
+      }
+    }
+    AppComponent.self.statarbTable.rows[idx].cells[7].Text = dataArr[0].diffQty;
+
+  }
+
   showComorderstatusAndErrorInfo(data: any) {
     // add log
     let type = data[0].type;
@@ -1254,6 +1367,8 @@ export class AppComponent implements OnInit, AfterViewInit {
   showGuiCmdAck(data: any) {
     let strategyid = data[0].strategyid;
     let ret = data[0].success ? "successfully!" : "unsuccessfully!";
+    if (!data[0].success)
+      Sound.play(1);
     let row = AppComponent.self.findRowByStrategyId(strategyid);
     for (let i = AppComponent.self.commandIdx + 1; i < AppComponent.self.parameterIdx; ++i) {
       if (AppComponent.self.strategyTable.rows[row].cells[i].Data.key === data[0].key) {
@@ -1266,6 +1381,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
   showLog(data: any) {
     let logStr = data[0];
+    console.log(logStr);
     let time = AppComponent.self.getCurrentTime();
     let row = AppComponent.self.logTable.newRow();
     row.cells[0].Text = time;
@@ -1582,8 +1698,10 @@ export class AppComponent implements OnInit, AfterViewInit {
       return "8.部成";
     else if (status === EOrderStatus.ORDER_STATUS_DEALED)
       return "9.已成";
-    else
+    else {
+      Sound.play(1);
       return "10.废单";
+    }
   }
   refreshUndoneOrderInfo(obj: any, idx: number) {
     this.orderstatusTable.rows[idx].cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
@@ -1608,6 +1726,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       let equityPosTableRows: number = AppComponent.self.PositionTable.rows.length;
       let equityposSec: number = data[i].secucategory;
       let ukey: number = data[i].record.code;
+      let type: number = data[i].record.type;
       if (equityPosTableRows === 0) {
         if (equityposSec === 1) // equity
           AppComponent.self.addEquityPosInfo(data[i]);
@@ -1626,7 +1745,11 @@ export class AppComponent implements OnInit, AfterViewInit {
               AppComponent.self.refreshEquitPosInfo(data[i], j);
             }
             else if (getSec === 2) {
-              AppComponent.self.refreshFuturePosInfo(data[i], j);
+              let getType = AppComponent.self.PositionTable.rows[j].cells[12].Text;
+              if (getType === type)
+                AppComponent.self.refreshFuturePosInfo(data[i], j);
+              else
+                AppComponent.self.addFuturePosInfo(data[i]);
             }
           }
         }
@@ -1672,14 +1795,21 @@ export class AppComponent implements OnInit, AfterViewInit {
     row.cells[0].Text = obj.record.account;
     row.cells[1].Text = obj.secucategory;
     row.cells[2].Text = obj.record.code;
-    row.cells[3].Text = "";
+    let codeInfo = ManulTrader.getSecuinfoByukey(2, obj.record.code);
+    if (codeInfo) {
+      let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
+      if (tempObj)
+        row.cells[3].Text = (tempObj.SecuCode + "").split(".")[0];
+    }
+    else
+      row.cells[3].Text = "";
     row.cells[4].Text = obj.record.TotalVol;
     row.cells[5].Text = obj.record.AvlVol;
     row.cells[6].Text = 0;
     row.cells[7].Text = obj.record.WorkingVol;
     row.cells[8].Text = obj.record.TotalCost;
     row.cells[9].Text = obj.record.TodayOpen;
-    row.cells[10].Text = obj.record.AveragePrice;
+    row.cells[10].Text = obj.record.MarginAveragePrice / 10000;
     row.cells[11].Text = obj.strategyid;
     row.cells[12].Text = obj.record.type;
     AppComponent.self.PositionTable.detectChanges();
@@ -1698,7 +1828,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     AppComponent.self.PositionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
     AppComponent.self.PositionTable.rows[idx].cells[8].Text = obj.record.TotalCost;
     AppComponent.self.PositionTable.rows[idx].cells[9].Text = obj.record.TodayOpen;
-    AppComponent.self.PositionTable.rows[idx].cells[10].Text = obj.record.AveragePrice;
+    AppComponent.self.PositionTable.rows[idx].cells[10].Text = obj.record.MarginAveragePrice / 10000;
     AppComponent.self.PositionTable.detectChanges();
   }
   showComGWNetGuiInfo(data: any) {
@@ -1724,6 +1854,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     let tempmark = new StatusBarItem(name);
     tempmark.section = "right";
     tempmark.color = data.connected ? "green" : "red";
+    if (!data.connected)
+      Sound.play(1);
     tempmark.width = 50;
     AppComponent.self.statusbar.items.push(tempmark);
     let row = AppComponent.self.logTable.newRow();
@@ -1891,9 +2023,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     let row = AppComponent.self.accountTable.newRow();
     row.cells[0].Text = obj.record.account;
     row.cells[1].Text = obj.secucategory;
-    row.cells[2].Text = obj.record.TotalAmount;
-    row.cells[3].Text = obj.record.AvlAmount;
-    row.cells[4].Text = obj.record.FrzAmount;
+    row.cells[2].Text = obj.record.TotalAmount / 10000;
+    row.cells[3].Text = obj.record.AvlAmount / 10000;
+    row.cells[4].Text = obj.record.FrzAmount / 10000;
     row.cells[5].Text = obj.record.date;
     row.cells[6].Text = obj.record.c;
     if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SH)
@@ -1918,55 +2050,55 @@ export class AppComponent implements OnInit, AfterViewInit {
     let row = AppComponent.self.accountTable.newRow();
     row.cells[0].Text = obj.record.account;
     row.cells[1].Text = obj.secucategory;
-    row.cells[2].Text = obj.record.TotalAmount;
-    row.cells[3].Text = obj.record.AvlAmount;
-    row.cells[4].Text = obj.record.FrzAmount;
+    row.cells[2].Text = obj.record.TotalAmount / 10000;
+    row.cells[3].Text = obj.record.AvlAmount / 10000;
+    row.cells[4].Text = obj.record.FrzAmount / 10000;
     row.cells[5].Text = obj.record.date;
     row.cells[6].Text = obj.record.c;
     row.cells[7].Text = 0;
     row.cells[8].Text = 0;
-    row.cells[9].Text = obj.record.BuyFrzAmt;
-    row.cells[10].Text = obj.record.SellFrzAmt;
-    row.cells[11].Text = obj.record.Buymargin;
-    row.cells[12].Text = obj.record.SellMargin;
-    row.cells[13].Text = obj.record.TotalMargin;
-    row.cells[14].Text = obj.record.Fee;
-    row.cells[15].Text = obj.record.PositionPL;
-    row.cells[16].Text = obj.record.ClosePL;
+    row.cells[9].Text = obj.record.BuyFrzAmt / 10000;
+    row.cells[10].Text = obj.record.SellFrzAmt / 10000;
+    row.cells[11].Text = obj.record.BuyMargin / 10000;
+    row.cells[12].Text = obj.record.SellMargin / 10000;
+    row.cells[13].Text = obj.record.TotalMargin / 10000;
+    row.cells[14].Text = obj.record.Fee / 10000;
+    row.cells[15].Text = obj.record.PositionPL / 10000;
+    row.cells[16].Text = obj.record.ClosePL / 10000;
     // AppComponent.self.ref.detectChanges();
   }
   refreshAccountEquiteInfo(obj: any, idx: number) {
     if (obj.market === SECU_MARKET.SM_SH)
-      AppComponent.self.accountTable.rows[idx].cells[7].Text = obj.record.AvlAmount;
+      AppComponent.self.accountTable.rows[idx].cells[7].Text = obj.record.AvlAmount / 10000;
     else if (obj.market === SECU_MARKET.SM_SZ)
-      AppComponent.self.accountTable.rows[idx].cells[8].Text = obj.record.AvlAmount;
+      AppComponent.self.accountTable.rows[idx].cells[8].Text = obj.record.AvlAmount / 10000;
     else {
-      AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount;
-      AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount;
-      AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount;
+      AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount / 10000;
+      AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount / 10000;
+      AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount / 10000;
       AppComponent.self.accountTable.rows[idx].cells[5].Text = obj.record.date;
       AppComponent.self.accountTable.rows[idx].cells[6].Text = obj.record.c;
     }
     // AppComponent.self.ref.detectChanges();
   }
   refreshAccountFutureInfo(obj: any, idx: number) {
-    AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount;
-    AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount;
-    AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount;
+    AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount / 10000;
     AppComponent.self.accountTable.rows[idx].cells[5].Text = obj.record.date;
     AppComponent.self.accountTable.rows[idx].cells[6].Text = obj.record.c;
-    AppComponent.self.accountTable.rows[idx].cells[9].Text = obj.record.BuyFrzAmt;
-    AppComponent.self.accountTable.rows[idx].cells[10].Text = obj.record.SellFrzAmt;
-    AppComponent.self.accountTable.rows[idx].cells[11].Text = obj.record.Buymargin;
-    AppComponent.self.accountTable.rows[idx].cells[12].Text = obj.record.SellMargin;
-    AppComponent.self.accountTable.rows[idx].cells[13].Text = obj.record.TotalMargin;
-    AppComponent.self.accountTable.rows[idx].cells[14].Text = obj.record.Fee;
-    AppComponent.self.accountTable.rows[idx].cells[15].Text = obj.record.PositionPL;
-    AppComponent.self.accountTable.rows[idx].cells[16].Text = obj.record.ClosePL;
+    AppComponent.self.accountTable.rows[idx].cells[9].Text = obj.record.BuyFrzAmt / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[10].Text = obj.record.SellFrzAmt / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[11].Text = obj.record.BuyMargin / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[12].Text = obj.record.SellMargin / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[13].Text = obj.record.TotalMargin / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[14].Text = obj.record.Fee / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[15].Text = obj.record.PositionPL / 10000;
+    AppComponent.self.accountTable.rows[idx].cells[16].Text = obj.record.ClosePL / 10000;
     // AppComponent.self.ref.detectChanges();
   }
   showStrategyCfg(data: any) {
-    // console.log("333333333333", data);
+    //  console.log("333333333333", data);
     if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
       return;
     let addSubCOmFlag: boolean = false;
@@ -2494,6 +2626,42 @@ export class AppComponent implements OnInit, AfterViewInit {
     dd_symbol.Title = codeRtn + ": ";
     let self = this;
     let bookViewTable = new DataTable("table");
+    dd_symbol.SelectChange = () => {
+      this.clearBookViewTable(bookViewTable);
+      // bind bookivewID, and subscribe code
+      let subscribecode = (dd_symbol.SelectedItem.Value).split(",")[2];
+      this.bookviewArr.push({ bookview: bookviewID, code: subscribecode, table: bookViewTable });
+      let rtn = this.codeList.indexOf(parseInt(subscribecode));
+      if (rtn === -1) {
+        this.codeList.push(parseInt(subscribecode));
+        this.subscribeMarketData(this.codeList);
+      }
+    };
+    dd_symbol.matchMethod = (inputText) => {
+      let len = inputText.length;
+      let sendStr: string = "";
+      for (let i = 0; i < len; ++i) {
+        let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
+        if (bcheck) {
+          sendStr += inputText.charAt(i).toLocaleUpperCase();
+        }
+        else {
+          sendStr += inputText.charAt(i);
+        }
+      }
+      let msg = ManulTrader.getCodeList(sendStr);
+      let rtnArr = [];
+      dd_symbol.Items.length = 0;
+      let msgLen = msg.length;
+      for (let i = 0; i < msgLen; ++i) {
+        if (msg[i].SecuAbbr === msg[i].symbolCode)
+          rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
+        else
+          rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
+      }
+      return rtnArr;
+    };
+
     bookviewHeader.addChild(dd_symbol);
 
     let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
@@ -2532,6 +2700,19 @@ export class AppComponent implements OnInit, AfterViewInit {
     bookViewContent.addChild(bookViewTable);
     bookviewPage.setContent(bookViewContent);
     return bookviewPage;
+  }
+
+  clearBookViewTable(bookViewTable) {
+    let len = bookViewTable.rows.length;
+    for (let i = 0; i < len; ++i) {
+      bookViewTable.rows[i].cells[0].Text = "";
+      bookViewTable.rows[i].cells[1].Text = "";
+      bookViewTable.rows[i].cells[2].Text = "";
+    }
+  }
+
+  subscribeMarketData(codes: any) {
+    this.tgw.send(17, 101, { topic: 3112, kwlist: codes });
   }
 
   onDestroy() {
