@@ -24,6 +24,9 @@ export class ConfigurationBLL {
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");
         this._loopbackItems = File.parseJSON(this._loopbackPath) || [];
+
+        this._svpath = path.join(this._basedir, "svconfigs.json");
+        this._svconfigs = File.parseJSON(this._svpath) || [];
     }
 
     private _basedir: string;
@@ -38,6 +41,9 @@ export class ConfigurationBLL {
 
     private _loopbackItems: any[];
     private _loopbackPath: string;
+
+    private _svconfigs: any[];
+    private _svpath: string;
 
     private _names: string[];
     /**
@@ -94,6 +100,25 @@ export class ConfigurationBLL {
 
     getLoopbackItems() {
         return this._loopbackItems;
+    }
+
+    getSVConfigs() {
+        return this._svconfigs;
+    }
+
+    addSVConfigItem(item) {
+        this._svconfigs.push(item);
+        File.writeAsync(this._svpath, JSON.stringify(this._svconfigs));
+    }
+
+    removeSVConfigItem(config: SpreadViewConfig) {
+        this._svconfigs.forEach((item, index) => {
+            if (item.name === config.name) {
+                this._svconfigs.splice(index, 1);
+                return;
+            }
+        });
+        File.writeAsync(this._svpath, JSON.stringify(this._svconfigs));
     }
 }
 
@@ -378,4 +403,12 @@ export class Channel {
     account: number;
     addr: string;
     port: number;
+}
+
+export class SpreadViewConfig {
+    name: string;
+    apptype: string = "SpreadViewer";
+    code1: string;
+    code2: string;
+    formula: string;
 }

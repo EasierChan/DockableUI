@@ -44,13 +44,13 @@ export class AppComponent implements OnInit {
         let spreadviewerContent = new VBox();
         let svHeaderRow1 = new HBox();
         let txt_code1 = new TextBox();
-        txt_code1.Text = "";
+        txt_code1.Text = this.option.details.code1;
         txt_code1.Title = "Code1:";
         txt_code1.Left = 100;
         txt_code1.Width = 80;
         svHeaderRow1.addChild(txt_code1);
         let txt_code2 = new TextBox();
-        txt_code2.Text = "";
+        txt_code2.Text = this.option.details.code2;
         txt_code2.Title = "Code2:";
         txt_code2.Left = 10;
         txt_code2.Width = 80;

@@ -8,7 +8,7 @@ import { IP20Service } from "../base/api/services/ip20.service";
 import { QtpService } from "../base/api/services/qtp.service";
 import { Component, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import { IApp } from "../base/api/model/app.model";
-import { ConfigurationBLL, StrategyServerContainer, WorkspaceConfig, Channel, StrategyInstance } from "./bll/strategy.server";
+import { ConfigurationBLL, StrategyServerContainer, WorkspaceConfig, Channel, StrategyInstance, SpreadViewConfig } from "./bll/strategy.server";
 
 declare var window: any; // hack by chenlei @ 2017/02/07
 let ip20strs = {};
@@ -54,13 +54,16 @@ export class AppComponent implements OnDestroy {
     curTemplate: any;
     isModify: boolean = false;
 
-    analysisApps: any[];
+    svconfigs: SpreadViewConfig[];
     sendLoopConfigs: any[] = [];
+    svconfig: SpreadViewConfig;
+    svMenu: Menu;
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
         private qtp: QtpService,
         private ref: ChangeDetectorRef) {
         this.config = new WorkspaceConfig();
+        this.svconfig = new SpreadViewConfig();
         this.config.curstep = 1;
         this.bDetails = false;
         this.bLeftSelectedAll = this.bRightSelectedAll = false;
@@ -101,6 +104,14 @@ export class AppComponent implements OnDestroy {
                     tests: items
                 });
             }
+        });
+
+        this.svMenu = new Menu();
+        this.svMenu.addItem("Modify", () => {
+            this.onCreateSpreadViewer(1);
+        });
+        this.svMenu.addItem("Remove", () => {
+            this.configBLL.removeSVConfigItem(this.svconfig);
         });
     }
 
@@ -381,10 +392,7 @@ export class AppComponent implements OnDestroy {
             apps: null
         });
 
-        this.analysisApps = [{
-            name: "SpreadViewerOne",
-            apptype: "SpreadViewer"
-        }];
+        this.svconfigs = this.configBLL.getSVConfigs();
         this.loginTGW();
         // this.isAuthorized = true;
         // let config = new WorkspaceConfig();
@@ -558,9 +566,31 @@ export class AppComponent implements OnDestroy {
         }
     }
 
-    onAnalysisApp(item) {
-        if (!this.appService.startApp(item.name, item.apptype, { port: 10000, host: "172.24.51.4" })) {
-            this.showError("Error", `start ${name} app error!`, "alert");
+    onCreateSpreadViewer(type = 0) {
+        if (type === 0) {
+            this.svconfig = new SpreadViewConfig();
+        }
+        window.showMetroDialog("#svconfig");
+    }
+
+    onCloseSVConfig() {
+        this.configBLL.addSVConfigItem(this.svconfig);
+        window.hideMetroDialog("#svconfig");
+    }
+
+    onSVConfigClick(e: MouseEvent, item) {
+        console.info(e);
+        if (e.button === 2) {
+            this.svconfig = item;
+            this.svMenu.popup();
+        } else {
+            if (!this.appService.startApp(item.name, item.apptype, {
+                port: 10000,
+                host: "172.24.51.4",
+                details: item,
+            })) {
+                this.showError("Error", `start ${name} app error!`, "alert");
+            }
         }
     }
 
