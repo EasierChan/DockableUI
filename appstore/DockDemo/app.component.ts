@@ -26,8 +26,6 @@ declare let window: any;
   ]
 })
 export class AppComponent implements OnInit, AfterViewInit {
-  // className: string = "dock-container vertical";
-  // children: Control[] = [];
   private main: DockContainer;
   private pageObj: Object = new Object();
   private dialog: Dialog;
@@ -79,6 +77,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   private rateText: MetaControl;
   private dd_Account: DropDown;
   private dd_Strategy: DropDown;
+  private dd_symbol: DropDown;
 
   private txt_UKey: any;
   private txt_Symbol: any;
@@ -94,6 +93,9 @@ export class AppComponent implements OnInit, AfterViewInit {
   private filename: String = "";
   private selectArr = [];
   private OrderStatusSelArr = [];
+  // private bookviewObj = { bookview: 0, code: "" };
+  private bookviewArr = [];
+  private codeList: number[] = [];
 
   private statusbar: StatusBar;
   private option: any;
@@ -101,6 +103,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   static bookViewSN = 1;
   static spreadViewSN = 1;
+  static loginFlag: boolean = false;
 
   constructor(private tgw: IP20Service, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
     AppComponent.self = this;
@@ -112,6 +115,23 @@ export class AppComponent implements OnInit, AfterViewInit {
   }
 
   onTabPageClosed(pageid: string) {
+    let len = AppComponent.self.bookviewArr.length;
+    for (let i = 0; i < len; ++i) {
+      if (AppComponent.self.bookviewArr[i].bookview === pageid) {
+        let code = AppComponent.self.bookviewArr[i].code;
+        let index = AppComponent.self.codeList.indexOf(parseInt(code));
+        if (index > -1) {
+          AppComponent.self.codeList.splice(index, 1);
+        }
+        AppComponent.self.bookviewArr.splice(i, 1);
+        len--;
+        let codeIdx = AppComponent.self.codeList.indexOf(parseInt(code));
+        if (codeIdx > -1) {
+          AppComponent.self.codeList.splice(codeIdx, 1);
+          AppComponent.self.subscribeMarketData(AppComponent.self.codeList);
+        }
+      }
+    }
     AppComponent.self.statechecker.changeMenuItemState(pageid, false, 2);
   }
 
@@ -462,82 +482,83 @@ export class AppComponent implements OnInit, AfterViewInit {
       });
     };
 
+
     this.bookviewPage = new TabPage("BookView", ManulTrader.getTranslateInfo(this.languageType, "BookView"));
-    this.pageObj["BookView"] = this.bookviewPage;
+    this.createBookView("BookView");
 
-    let bookviewHeader = new ComboControl("row");
-    let dd_symbol = new DropDown();
-    dd_symbol.AcceptInput = true;
-    let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
-    dd_symbol.Title = codeRtn + ": ";
-    let self = this;
-    dd_symbol.SelectChange = () => {
-      this.bookViewTable.rows.forEach(row => {
-        row.cells.forEach(cell => {
-          console.log(cell.Text);
-        });
-      });
-    };
-    dd_symbol.matchMethod = (inputText) => {
-      let len = inputText.length;
-      let sendStr: string = "";
-      for (let i = 0; i < len; ++i) {
-        let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
-        if (bcheck) {
-          sendStr += inputText.charAt(i).toLocaleUpperCase();
-        }
-        else {
-          sendStr += inputText.charAt(i);
-        }
-      }
-      let msg = ManulTrader.getCodeList(sendStr);
-      let rtnArr = [];
-      dd_symbol.Items.length = 0;
-      let msgLen = msg.length;
-      for (let i = 0; i < msgLen; ++i) {
-        if (msg[i].SecuAbbr === msg[i].symbolCode)
-          rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
-        else
-          rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode });
-      }
-      return rtnArr;
-    };
-    bookviewHeader.addChild(dd_symbol);
+    // this.pageObj["BookView"] = this.bookviewPage;
 
-    this.bookViewTable = new DataTable("table");
-    let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
-    let bookviewRtnArr: string[] = [];
-    let bookviewTittleLen = bookviewArr.length;
-    for (let i = 0; i < bookviewTittleLen; ++i) {
-      let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewArr[i]);
-      bookviewRtnArr.push(bookviewRtn);
-    }
-    bookviewRtnArr.forEach(item => {
-      this.bookViewTable.addColumn(item);
-    });
-    for (let i = 0; i < 20; ++i) {
-      let row = this.bookViewTable.newRow();
-      row.cells[0].Class = "warning";
-      row.cells[0].Text = "";
-      row.cells[1].Class = "info";
-      row.cells[2].Class = "danger";
-      row.cells[3].Class = "default";
-    }
-    let bHead = false;
-    this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
-      // console.info(cellIndex, rowIndex);
-    };
-    this.bookViewTable.OnRowClick = (rowItem, rowIndex) => {
-      [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
-      this.txt_Price.Text = rowItem.cells[1].Text;
-      this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
-      let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
-      Dialog.popup(this, this.tradeContent, { title: tradeRtn });
-    };
-    let bookViewContent = new ComboControl("col");
-    bookViewContent.addChild(bookviewHeader);
-    bookViewContent.addChild(this.bookViewTable);
-    this.bookviewPage.setContent(bookViewContent);
+    // let bookviewHeader = new ComboControl("row");
+    // this.dd_symbol = new DropDown();
+    // this.dd_symbol.AcceptInput = true;
+    // let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
+    // this.dd_symbol.Title = codeRtn + ": ";
+    // let self = this;
+    // this.dd_symbol.SelectChange = () => {
+    //   this.clearBookViewTable();
+    //   this.subscribeMarketData(parseInt((this.dd_symbol.SelectedItem.Value).split(",")[2]));
+
+    // };
+    // this.dd_symbol.matchMethod = (inputText) => {
+    //   let len = inputText.length;
+    //   let sendStr: string = "";
+    //   for (let i = 0; i < len; ++i) {
+    //     let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
+    //     if (bcheck) {
+    //       sendStr += inputText.charAt(i).toLocaleUpperCase();
+    //     }
+    //     else {
+    //       sendStr += inputText.charAt(i);
+    //     }
+    //   }
+    //   let msg = ManulTrader.getCodeList(sendStr);
+    //   let rtnArr = [];
+    //   this.dd_symbol.Items.length = 0;
+    //   let msgLen = msg.length;
+    //   for (let i = 0; i < msgLen; ++i) {
+    //     if (msg[i].SecuAbbr === msg[i].symbolCode)
+    //       rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
+    //     else
+    //       rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
+    //   }
+    //   return rtnArr;
+    // };
+    // bookviewHeader.addChild(this.dd_symbol);
+
+    // this.bookViewTable = new DataTable("table");
+    // let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
+    // let bookviewRtnArr: string[] = [];
+    // let bookviewTittleLen = bookviewArr.length;
+    // for (let i = 0; i < bookviewTittleLen; ++i) {
+    //   let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewArr[i]);
+    //   bookviewRtnArr.push(bookviewRtn);
+    // }
+    // bookviewRtnArr.forEach(item => {
+    //   this.bookViewTable.addColumn(item);
+    // });
+    // for (let i = 0; i < 20; ++i) {
+    //   let row = this.bookViewTable.newRow();
+    //   row.cells[0].Class = "warning";
+    //   row.cells[0].Text = "";
+    //   row.cells[1].Class = "info";
+    //   row.cells[2].Class = "danger";
+    //   row.cells[3].Class = "default";
+    // }
+    // let bHead = false;
+    // this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+    //   // console.info(cellIndex, rowIndex);
+    // };
+    // this.bookViewTable.OnRowClick = (rowItem, rowIndex) => {
+    //   [this.txt_UKey.Text, this.txt_Symbol.Text] = this.dd_symbol.SelectedItem.Value.split(",");
+    //   this.txt_Price.Text = rowItem.cells[1].Text;
+    //   this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+    //   let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
+    //   Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+    // };
+    // let bookViewContent = new ComboControl("col");
+    // bookViewContent.addChild(bookviewHeader);
+    // bookViewContent.addChild(this.bookViewTable);
+    // this.bookviewPage.setContent(bookViewContent);
 
     this.logPage = new TabPage("Log", ManulTrader.getTranslateInfo(this.languageType, "LOG"));
     this.pageObj["Log"] = this.logPage;
@@ -886,7 +907,7 @@ export class AppComponent implements OnInit, AfterViewInit {
       let bidPriceLevel = AppComponent.self.portfolioSellCom.SelectedItem.Value;
       let askOffset = AppComponent.self.portfolioBUyOffset.SelectedItem.Value;
       let bidOffset = AppComponent.self.portfolioSellOffset.SelectedItem.Value;
-      console.log(askPriceLevel, bidPriceLevel, askOffset, bidOffset);
+      // console.log(askPriceLevel, bidPriceLevel, askOffset, bidOffset);
       let sendArr = [];
       // find qty by ukey
       for (let j = 0; j < selArrLen; ++j) {
@@ -1040,31 +1061,9 @@ export class AppComponent implements OnInit, AfterViewInit {
       // console.log(cellItem, cellIdx, rowIdx);
       AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
     };
-    this.psInstance.setEndpoint(this.option.feedhandler.port, this.option.feedhandler.host);
-    this.psInstance.setHeartBeat(1000000);
-    this.psInstance.register([1584]);
-    this.psInstance.subscribe((msg) => {
-      if (msg.ukey === parseInt(dd_symbol.SelectedItem.Value.split(",")[0])) {
-        if (msg.type === 201) {
-          for (let i = 0; i < 10; ++i) {
-            // console.info(i);
-            this.bookViewTable.rows[i + 10].cells[0].Text = msg.bidvols[i] + "";
-            this.bookViewTable.rows[i + 10].cells[1].Text = msg.bidprices[i] / 10000 + "";
-            this.bookViewTable.rows[9 - i].cells[2].Text = msg.askvols[i] + "";
-            this.bookViewTable.rows[9 - i].cells[1].Text = msg.askprices[i] / 10000 + "";
-          }
-        } else if (msg.type === 100) {
-          this.bookViewTable.rows[10].cells[0].Text = msg.bidvolume;
-          this.bookViewTable.rows[10].cells[1].Text = msg.bidprice / 10000;
-          this.bookViewTable.rows[9].cells[1].Text = msg.askprice / 10000;
-          this.bookViewTable.rows[9].cells[2].Text = msg.askvolume;
-        }
-        AppComponent.self.bookViewTable.detectChanges();
-      }
-    });
-
     this.loadLayout();
     this.init(this.option.port, this.option.host);
+    this.subScribeMarketInit(8012, "172.24.51.4");
     // this.init(9082, "172.24.51.4");
   }
 
@@ -1081,6 +1080,58 @@ export class AppComponent implements OnInit, AfterViewInit {
       this.main.addChild(new Splitter("h"));
     }
     this.main.addChild(this.traversefunc(this.main, children[childrenLen - 1]));
+  }
+
+  subScribeMarketInit(port: number, host: string) {
+    if (!AppComponent.loginFlag) {
+      let timestamp: Date = new Date();
+      let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
+        ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
+        ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
+      let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
+      this.tgw.connect(port, host);
+      this.tgw.send(17, 41, loginObj);
+
+      this.tgw.addSlot({ // login success
+        appid: 17,
+        packid: 43,
+        callback: msg => {
+          AppComponent.loginFlag = true;
+          console.info(`tgw ans=>${msg}`);
+        }
+      });
+      this.tgw.addSlot({  // login error
+        appid: 17,
+        packid: 120,
+        callback: msg => {
+          AppComponent.loginFlag = false;
+          console.info(msg);
+        }
+      });
+
+      this.tgw.addSlot({ // receive msg
+        appid: 17,
+        packid: 110,
+        callback: (msg) => {
+          let len = AppComponent.self.bookviewArr.length;
+          // console.log("*****************", msg.content, len, AppComponent.self.bookviewArr);
+          for (let idx = 0; idx < len; ++idx) {
+            if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
+              for (let i = 0; i < 10; ++i) {
+                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[0].Text = msg.content.bid_volume[i] + "";
+                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = msg.content.bid_price[i] / 10000 + "";
+                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[2].Text = msg.content.ask_volume[i] + "";
+                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = msg.content.ask_price[i] / 10000 + "";
+              }
+            }
+          }
+        }
+      });
+      AppComponent.loginFlag = true;
+      timestamp = null;
+      stimestamp = null;
+      loginObj = null;
+    }
   }
 
   init(port: number, host: string) {
@@ -2563,17 +2614,42 @@ export class AppComponent implements OnInit, AfterViewInit {
     dd_symbol.AcceptInput = true;
     let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
     dd_symbol.Title = codeRtn + ": ";
-    dd_symbol.addItem({ Text: "000001", Value: "3,000001" });
-    dd_symbol.addItem({ Text: "000002", Value: "6,000002" });
-    dd_symbol.addItem({ Text: "IC1706", Value: "2007741,IC1706" });
     let self = this;
     let bookViewTable = new DataTable("table");
     dd_symbol.SelectChange = () => {
-      bookViewTable.rows.forEach(row => {
-        row.cells.forEach(cell => {
-          cell.Text = "";
-        });
-      });
+      this.clearBookViewTable(bookViewTable);
+      // bind bookivewID, and subscribe code
+      let subscribecode = (dd_symbol.SelectedItem.Value).split(",")[2];
+      this.bookviewArr.push({ bookview: bookviewID, code: subscribecode, table: bookViewTable });
+      let rtn = this.codeList.indexOf(parseInt(subscribecode));
+      if (rtn === -1) {
+        this.codeList.push(parseInt(subscribecode));
+        this.subscribeMarketData(this.codeList);
+      }
+    };
+    dd_symbol.matchMethod = (inputText) => {
+      let len = inputText.length;
+      let sendStr: string = "";
+      for (let i = 0; i < len; ++i) {
+        let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
+        if (bcheck) {
+          sendStr += inputText.charAt(i).toLocaleUpperCase();
+        }
+        else {
+          sendStr += inputText.charAt(i);
+        }
+      }
+      let msg = ManulTrader.getCodeList(sendStr);
+      let rtnArr = [];
+      dd_symbol.Items.length = 0;
+      let msgLen = msg.length;
+      for (let i = 0; i < msgLen; ++i) {
+        if (msg[i].SecuAbbr === msg[i].symbolCode)
+          rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
+        else
+          rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
+      }
+      return rtnArr;
     };
     bookviewHeader.addChild(dd_symbol);
 
@@ -2613,41 +2689,17 @@ export class AppComponent implements OnInit, AfterViewInit {
     return bookviewPage;
   }
 
-  subscribeMarketData(...codes: number[]) {
-    let timestamp: Date = new Date();
-    let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
-      ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
-      ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-    let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
+  clearBookViewTable(bookViewTable) {
+    let len = bookViewTable.rows.length;
+    for (let i = 0; i < len; ++i) {
+      bookViewTable.rows[i].cells[0].Text = "";
+      bookViewTable.rows[i].cells[1].Text = "";
+      bookViewTable.rows[i].cells[2].Text = "";
+    }
+  }
 
-    this.tgw.addSlot({
-      appid: 17,
-      packid: 43,
-      callback: msg => {
-        console.info(`tgw ans=>${msg}`);
-        // this.tgw.send(17, 101, { topic: 3112, kwlist: [2163460] });
-      }
-    });
-    this.tgw.addSlot({
-      appid: 17,
-      packid: 120,
-      callback: msg => {
-        console.info(msg);
-      }
-    });
-    this.tgw.send(17, 41, loginObj);
-
-    this.tgw.addSlot({
-      appid: 17,
-      packid: 110,
-      callback: (msg) => {
-        console.info(msg);
-      }
-    });
-
-    timestamp = null;
-    stimestamp = null;
-    loginObj = null;
+  subscribeMarketData(codes: any) {
+    this.tgw.send(17, 101, { topic: 3112, kwlist: codes });
   }
 
   onDestroy() {

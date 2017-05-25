@@ -545,7 +545,6 @@ class StrategyParser extends ItradeParser {
         let count: number = 0;
         let offset: number = 0;
         count = buffer.readUInt32LE(offset); offset += 4;
-        console.log(count);
         let res = [];
         for (let i = 0; i < count; ++i) {
             let statArbOrder = new StatArbOrder();
