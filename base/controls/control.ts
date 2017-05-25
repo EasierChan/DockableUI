@@ -1564,6 +1564,29 @@ export class SpreadViewer {
     }
 }
 
+export class ChartViewer {
+    private _chart: EChart;
+
+    constructor() {
+        this._chart = new EChart();
+    }
+
+    setOption(option) {
+        this._chart.setOption(option);
+    }
+
+    changeOption(option) {
+        this._chart.resetOption(option);
+    }
+
+    init() {
+        this._chart.init();
+    }
+
+    get containerRef() {
+        return this._chart;
+    }
+}
 
 export class DataTable extends Control {
     public columns: DataTableColumn[] = [];

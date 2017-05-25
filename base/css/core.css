@@ -66,6 +66,10 @@ usercontrol.col > dock-control {
     display: flex;
 }
 
+usercontrol.col > dock-control > .tab-panel {
+    height: auto;
+}
+
 .dock-container {
     background-color: #000010;
     color: #F0F0F0;
