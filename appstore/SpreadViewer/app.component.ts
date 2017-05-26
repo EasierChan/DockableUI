@@ -11,7 +11,7 @@ import {
     VBox, HBox, TextBox, Button, DockContainer
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
+import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService } from "../../base/api/services/backend.service";
 declare let window: any;
 
 @Component({
@@ -23,7 +23,8 @@ declare let window: any;
     `,
     providers: [
         IP20Service,
-        AppStateCheckerRef
+        AppStateCheckerRef,
+        SecuMasterService
     ]
 })
 export class AppComponent implements OnInit {
@@ -31,7 +32,7 @@ export class AppComponent implements OnInit {
     main: any;
     option: any;
 
-    constructor(private tgw: IP20Service, private state: AppStateCheckerRef) {
+    constructor(private tgw: IP20Service, private state: AppStateCheckerRef, private secuinfo: SecuMasterService) {
         this.state.onInit(this, this.onReady);
     }
 
@@ -48,12 +49,14 @@ export class AppComponent implements OnInit {
         txt_code1.Title = "Code1:";
         txt_code1.Left = 100;
         txt_code1.Width = 80;
+        txt_code1.ReadOnly = true;
         svHeaderRow1.addChild(txt_code1);
         let txt_code2 = new TextBox();
         txt_code2.Text = this.option.details.code2;
         txt_code2.Title = "Code2:";
         txt_code2.Left = 10;
         txt_code2.Width = 80;
+        txt_code2.ReadOnly = true;
         svHeaderRow1.addChild(txt_code2);
         let txt_coeff = new TextBox();
         txt_coeff.Text = "";
@@ -100,13 +103,14 @@ export class AppComponent implements OnInit {
         spreadviewerContent.addChild(svHeaderRow2);
         let viewer = new SpreadViewer();
 
+        let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
         btn_init.OnClick = () => {
             viewer.setConfig({
                 symbolCode1: this.option.details.code1,
-                innerCode1: 3801236,
+                innerCode1: parseInt(res[this.option.details.code1].ukey),
                 coeff1: parseFloat(txt_coeff.Text),
                 symbolCode2: this.option.details.code2,
-                innerCode2: 3801247,
+                innerCode2: parseInt(res[this.option.details.code2].ukey),
                 coeff2: parseFloat(txt_coeff.Text),
                 durations: [{
                     start: {

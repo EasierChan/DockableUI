@@ -117,6 +117,21 @@ export class MenuItem {
     }
 }
 
+@Injectable()
+export class SecuMasterService {
+    // TODO
+    getSecuinfoByCode(...code: string[]) {
+        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 1, data: code });
+    }
+
+    getSecuinfoByUKey(...ukey: number[]) {
+        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 2, data: ukey });
+    }
+
+    getCodeList(data: string) {
+        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 3, data: data });
+    }
+}
 /**
  *
  */

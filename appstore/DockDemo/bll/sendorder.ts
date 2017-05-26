@@ -2,12 +2,13 @@
 
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
-import { SecuMasterService } from "../../../base/api/services/secumaster.service";
+import { SecuMasterService } from "../../../base/api/services/backend.service";
 import { TranslateService } from "../../../base/api/services/translate.service";
 import { AppComponent } from "../app.component";
 
 export class ManulTrader {
     private static orderService = new OrderService();
+    private static secuinfo = new SecuMasterService();
     static submitOrder(...orders: ComConOrder[]): void {
         let offset: number = 0;
         // handle with array
@@ -82,16 +83,16 @@ export class ManulTrader {
 
     static getSecuinfoByCode(...code: string[]) {
         // return ManulTrader.orderService.getsecuInfobycode(type, ...code);
-        return SecuMasterService.getSecuinfoByCode(...code);
+        return ManulTrader.secuinfo.getSecuinfoByCode(...code);
     }
 
     static getSecuinfoByukey(...ukey: number[]) {
         // return ManulTrader.orderService.getsecuInfobyukey(type, ...ukey);
-        return SecuMasterService.getSecuinfoByUKey(...ukey);
+        return ManulTrader.secuinfo.getSecuinfoByUKey(...ukey);
     }
 
     static getCodeList(data: string) {
-        return SecuMasterService.getCodeList(data);
+        return ManulTrader.secuinfo.getCodeList(data);
     }
 
     static getTranslateInfo(type: number, ...words: string[]) {

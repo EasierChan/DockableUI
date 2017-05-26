@@ -176,6 +176,7 @@ export class AppComponent implements OnDestroy {
             obj.checks = item.checks;
             obj.cfg = obj.field = obj.name = obj.log = item.name;
             obj.key = parseInt(item.key);
+            obj.status = 2; // RUN;
             // obj.maxorderid = 0; 
             // obj.minorderid
             // obj.orderstep
