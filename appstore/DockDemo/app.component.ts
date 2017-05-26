@@ -850,7 +850,7 @@ export class AppComponent implements OnInit, AfterViewInit {
               splitStr.forEach(function (item) {
                 let arr = item.split(",");
                 if (arr.length === 2 && arr[0]) {
-                  let obj = ManulTrader.getSecuinfoByCode(1, arr[0] + "");
+                  let obj = ManulTrader.getSecuinfoByCode(arr[0] + "");
                   let rtnObj = AppComponent.self.traverseobj(obj, arr[0]);
                   if (rtnObj) {
                     let sendObj = { currPos: 0, ukey: 0, targetPos: 0 };
@@ -1313,7 +1313,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   addStatArbInfo(dataArr: any) {
     let row = AppComponent.self.statarbTable.newRow();
     row.cells[1].Text = dataArr[0].code;
-    let codeInfo = ManulTrader.getSecuinfoByukey(2, dataArr[0].code);
+    let codeInfo = ManulTrader.getSecuinfoByukey(dataArr[0].code);
     let strategyId = dataArr[0].strategyid;
     let tempObj = AppComponent.self.traverseukeyObj(codeInfo, dataArr[0].code);
     if (codeInfo) {
@@ -1539,7 +1539,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     Sound.play(0);
     let row = this.doneOrdersTable.newRow();
     row.cells[0].Text = obj.od.innercode;
-    let codeInfo = ManulTrader.getSecuinfoByukey(2, obj.od.innercode);
+    let codeInfo = ManulTrader.getSecuinfoByukey(obj.od.innercode);
     let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
     if (codeInfo) {
       if (tempObj) {
@@ -1628,7 +1628,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     row.cells[0].Data = { ukey: 0, chk: true };
     row.cells[0].Data.ukey = obj.od.innercode;
     row.cells[1].Text = obj.od.innercode;
-    let codeInfo = ManulTrader.getSecuinfoByukey(2, obj.od.innercode);
+    let codeInfo = ManulTrader.getSecuinfoByukey(obj.od.innercode);
     let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
     if (codeInfo) {
       if (tempObj) {
@@ -1771,7 +1771,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     row.cells[0].Text = obj.record.account;
     row.cells[1].Text = obj.secucategory;
     row.cells[2].Text = obj.record.code;
-    let codeInfo = ManulTrader.getSecuinfoByukey(2, obj.record.code);
+    let codeInfo = ManulTrader.getSecuinfoByukey(obj.record.code);
     if (codeInfo) {
       let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
       if (tempObj)
@@ -1795,7 +1795,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     row.cells[0].Text = obj.record.account;
     row.cells[1].Text = obj.secucategory;
     row.cells[2].Text = obj.record.code;
-    let codeInfo = ManulTrader.getSecuinfoByukey(2, obj.record.code);
+    let codeInfo = ManulTrader.getSecuinfoByukey(obj.record.code);
     if (codeInfo) {
       let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
       if (tempObj)
@@ -1916,7 +1916,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   addProfitInfo(obj: any) {
     let row = AppComponent.self.profitTable.newRow();
     row.cells[0].Text = obj.innercode;
-    let codeInfo = ManulTrader.getSecuinfoByukey(2, obj.innercode);
+    let codeInfo = ManulTrader.getSecuinfoByukey(obj.innercode);
     if (codeInfo) {
       let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.innercode);
       if (tempObj)
@@ -2419,7 +2419,7 @@ export class AppComponent implements OnInit, AfterViewInit {
   addPortfolioTableInfo(tableData: any, len: number, idx: number) {
     let row = AppComponent.self.portfolioTable.newRow();
     let ukey = tableData.UKey;
-    let codeInfo = ManulTrader.getSecuinfoByukey(2, ukey);
+    let codeInfo = ManulTrader.getSecuinfoByukey(ukey);
     if (codeInfo) {
       let tempObj = AppComponent.self.traverseukeyObj(codeInfo, ukey);
       let symbol = ""; let abbr = "";

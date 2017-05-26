@@ -104,17 +104,18 @@ SecuMaster.init();
 
 IPCManager.register("dal://itrade/secumaster/getsecuinfo", (e, param) => {
     // TODO i.e. SecuMaster.getSecuinfoByCode
-    let type = param.type;   // 1,code   2,ukey
-    let rtnObj = new Object();
-    if (type === 1) {
-        rtnObj = SecuMaster.getSecuinfoByCode(param.data);
-    } else if (type === 2) {
-        rtnObj = SecuMaster.getSecuinfoByUKey(param.data);
+    switch (param.type) {
+        case 1: // code
+            e.returnValue = SecuMaster.getSecuinfoByCode(param.data);
+            break;
+        case 2: // ukey
+            e.returnValue = SecuMaster.getSecuinfoByUKey(param.data);
+            break;
+        case 3: //
+            e.returnValue = SecuMaster.getCodeList(param.data);
+            break;
+        default:
+            console.error(`unknown type=>${param.type}`);
+            break;
     }
-    e.returnValue = rtnObj;
-});
-
-IPCManager.register("dal://itrade/secumaster/getcodelist", (e, param) => {
-    let rtn = SecuMaster.getCodeList(param);
-    e.returnValue = rtn;
 });

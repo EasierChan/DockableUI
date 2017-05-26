@@ -229,7 +229,6 @@ export class Sound {
                 return;
             }
             console.info(`stdout: ${stdout}`);
-            console.info(`stdout: ${stderr}`);
         });
     }
 }

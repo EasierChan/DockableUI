@@ -102,10 +102,10 @@ export class AppComponent implements OnInit {
 
         btn_init.OnClick = () => {
             viewer.setConfig({
-                symbolCode1: txt_code1.Text,
+                symbolCode1: this.option.details.code1,
                 innerCode1: 3801236,
                 coeff1: parseFloat(txt_coeff.Text),
-                symbolCode2: txt_code2.Text,
+                symbolCode2: this.option.details.code2,
                 innerCode2: 3801247,
                 coeff2: parseFloat(txt_coeff.Text),
                 durations: [{

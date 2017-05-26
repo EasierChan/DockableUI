@@ -80,14 +80,14 @@ export class ManulTrader {
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
 
-    static getSecuinfoByCode(type: number, ...code: string[]) {
+    static getSecuinfoByCode(...code: string[]) {
         // return ManulTrader.orderService.getsecuInfobycode(type, ...code);
-        return SecuMasterService.getSecuinfoByCode(type, ...code);
+        return SecuMasterService.getSecuinfoByCode(...code);
     }
 
-    static getSecuinfoByukey(type: number, ...ukey: number[]) {
+    static getSecuinfoByukey(...ukey: number[]) {
         // return ManulTrader.orderService.getsecuInfobyukey(type, ...ukey);
-        return SecuMasterService.getSecuinfoByUKey(type, ...ukey);
+        return SecuMasterService.getSecuinfoByUKey(...ukey);
     }
 
     static getCodeList(data: string) {
