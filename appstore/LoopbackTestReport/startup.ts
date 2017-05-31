@@ -56,7 +56,8 @@ export class StartUp implements IApplication {
      * @param none
      */
     quit(): void {
-        this._mainWindow.close();
+        if (this._mainWindow)
+            this._mainWindow.close();
         // this._windowMgr.closeAll();
     }
     /**

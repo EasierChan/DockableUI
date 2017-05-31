@@ -73,6 +73,22 @@ export class AppStore {
             event.returnValue = AppStore.startupAnApp(appname, apptype, option);
         });
 
+        IPCManager.register("appstore://unloadApp", (event, appname) => {
+            AppStore._instances[appname].quit();
+            delete AppStore._instances[appname];
+            let appdir = path.join(Path.baseDir, appname);
+            fs.exists(appdir, (bexists) => {
+                if (bexists) {
+                    fs.readdir(appdir, (err, files) => {
+                        files.forEach(fpath => {
+                            fs.unlink(path.join(appdir, fpath));
+                        });
+                        fs.rmdir(appdir);
+                    });
+                }
+            });
+        });
+
         IPCManager.register("appstore://login", (event, loginInfo) => {
             // begin test
             let apps = [

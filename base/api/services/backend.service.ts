@@ -17,8 +17,8 @@ export class AppStoreService {
         return electron.ipcRenderer.sendSync("appstore://startupAnApp", name, type, option);
     }
 
-    closeApp(name: string): boolean {
-        return electron.ipcRenderer.sendSync("appstore://hideApp", name);
+    unloadApp(name: string): boolean {
+        return electron.ipcRenderer.sendSync("appstore://unloadApp", name);
     }
 
     getUserProfile(loginInfo: UserProfile): any {

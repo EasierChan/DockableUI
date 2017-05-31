@@ -6,7 +6,7 @@
 
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
-    VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel, TabPage, ChartViewer
+    VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel, TabPage, ChartViewer, TextBox
 } from "../../base/controls/control";
 import { QtpService } from "../../base/api/services/qtp.service";
 import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
@@ -29,6 +29,10 @@ export class AppComponent implements OnInit {
     main: any;
     option: any;
     dd_tests: DropDown;
+    txt_freeriskrate: TextBox;
+    lbl_maxRetracementRatio: Label;
+    lbl_sharpeRatio: Label;
+    lbl_percentProfitable: Label;
     table: DataTable;
     chart: ChartViewer;
     resultMap: any = {};
@@ -43,19 +47,18 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
-        let self = this;
         this.state.onInit(this, this.onReady);
         let viewContent = new VBox();
         let svHeaderRow1 = new HBox();
-        let dd_tests = new DropDown();
-        dd_tests.Title = "Tests:";
-        dd_tests.Left = 50;
-        dd_tests.addItem({ Text: "--all--", Value: undefined });
+        this.dd_tests = new DropDown();
+        this.dd_tests.Title = "Tests:";
+        this.dd_tests.Left = 50;
+        this.dd_tests.addItem({ Text: "--all--", Value: undefined });
 
         this.option.tests.forEach(item => {
-            dd_tests.addItem({ Text: item.date + " " + item.id, Value: item });
+            this.dd_tests.addItem({ Text: item.date + " " + item.id, Value: item });
         });
-        svHeaderRow1.addChild(dd_tests);
+        svHeaderRow1.addChild(this.dd_tests);
         let lbl_mode = new Label();
         lbl_mode.Title = "Mode:";
         lbl_mode.Left = 10;
@@ -75,6 +78,26 @@ export class AppComponent implements OnInit {
         btn_query.Text = "Query";
         svHeaderRow1.addChild(btn_query);
         viewContent.addChild(svHeaderRow1);
+
+        let indicatorRow = new HBox();
+        this.txt_freeriskrate = new TextBox();
+        this.txt_freeriskrate.Title = "FreeRiskRate:";
+        this.txt_freeriskrate.Text = 0.04;
+        this.txt_freeriskrate.Left = 50;
+        this.txt_freeriskrate.Width = 50;
+        indicatorRow.addChild(this.txt_freeriskrate);
+        this.lbl_maxRetracementRatio = new Label();
+        this.lbl_maxRetracementRatio.Title = "Maximum Retracement Ratio:";
+        this.lbl_maxRetracementRatio.Left = 10;
+        this.lbl_sharpeRatio = new Label();
+        this.lbl_sharpeRatio.Title = "Sharpe Ratio:";
+        this.lbl_sharpeRatio.Left = 10;
+        this.lbl_percentProfitable = new Label();
+        this.lbl_percentProfitable.Title = "Winning Ratio:";
+        this.lbl_percentProfitable.Left = 10;
+        indicatorRow.addChild(this.lbl_maxRetracementRatio).addChild(this.lbl_sharpeRatio).addChild(this.lbl_percentProfitable);
+        viewContent.addChild(indicatorRow);
+
         let panel = new TabPanel();
         let detailsPage = new TabPage("OrderDetail", "OrderDetail");
         let detailContent = new VBox();
@@ -97,7 +120,7 @@ export class AppComponent implements OnInit {
                 }
             },
             legend: {
-                data: ["profit"]
+                data: ["收益率"]
             },
             dataZoom: [
                 {
@@ -115,13 +138,24 @@ export class AppComponent implements OnInit {
             yAxis: [
                 {
                     type: "value",
-                    name: "盈亏(元)",
+                    name: "收益率",
+                    nameTextStyle: {
+                        color: "#fff"
+                    },
+                    axisLabel: {
+                        formatter: (value, index) => {
+                            return (value * 100).toFixed(2) + "%";
+                        },
+                        textStyle: {
+                            color: "#fff"
+                        }
+                    },
                     boundaryGap: [0.2, 0.2]
                 }
             ],
             series: [
                 {
-                    name: "profit",
+                    name: "收益率",
                     type: "line",
                     data: []
                 }
@@ -136,64 +170,26 @@ export class AppComponent implements OnInit {
         viewContent.addChild(new HBox());
         this.main = viewContent;
 
-        dd_tests.SelectChange = () => {
+        this.dd_tests.SelectChange = () => {
             // table.rows.length = 0;
-            if (dd_tests.SelectedItem && dd_tests.SelectedItem.Value) {
-                lbl_mode.Text = dd_tests.SelectedItem.Value.simlevel;
-                lbl_speed.Text = dd_tests.SelectedItem.Value.speed;
-                lbl_duration.Text = dd_tests.SelectedItem.Value.timebegin + "-" + dd_tests.SelectedItem.Value.timeend;
-                if (this.resultMap.hasOwnProperty(dd_tests.SelectedItem.Value.id)) {
+            if (this.dd_tests.SelectedItem && this.dd_tests.SelectedItem.Value) {
+                lbl_mode.Text = this.dd_tests.SelectedItem.Value.simlevel;
+                lbl_speed.Text = this.dd_tests.SelectedItem.Value.speed;
+                lbl_duration.Text = this.dd_tests.SelectedItem.Value.timebegin + "-" + this.dd_tests.SelectedItem.Value.timeend;
+                if (this.resultMap.hasOwnProperty(this.dd_tests.SelectedItem.Value.id)) {
                     this.table.rows.length = 0;
-                    self.setDetailsOfItem(dd_tests.SelectedItem.Value.id, self.resultMap[dd_tests.SelectedItem.Value.id].details);
-
-                    self.chart.changeOption({
-                        xAxis: [
-                            {
-                                type: "category",
-                                boundaryGap: false,
-                                data: (function () {
-                                    let beginYear = dd_tests.SelectedItem.Value.timebegin / 10000;
-                                    let beginMonth = dd_tests.SelectedItem.Value.timebegin % 10000 / 100;
-                                    let beginDay = dd_tests.SelectedItem.Value.timebegin % 100;
-                                    let endYear = dd_tests.SelectedItem.Value.timeend / 10000;
-                                    let endMonth = dd_tests.SelectedItem.Value.timeend % 10000 / 100;
-                                    let endDay = dd_tests.SelectedItem.Value.timeend % 100;
-                                    let beginDate = new Date(beginYear, beginMonth - 1, beginDay);
-                                    let endDate = new Date(endYear, endMonth - 1, endDay);
-                                    let res = [];
-                                    while (beginDate.valueOf() <= endDate.valueOf()) {
-                                        res.push(beginDate.toLocaleDateString());
-                                        beginDate.setDate(++beginDay);
-                                    }
-                                    return res;
-                                })()
-                            }
-                        ], series: [
-                            {
-                                name: "profit",
-                                type: "line",
-                                data: (function () {
-                                    let res = [];
-                                    self.resultMap[dd_tests.SelectedItem.Value.id].pnl.forEach(item => {
-                                        res.push(item.aeupl + item.apopl);
-                                    });
-                                    return res;
-                                })()
-                            }
-                        ]
-                    });
+                    this.setDetailsOfItem(this.dd_tests.SelectedItem.Value.id, this.resultMap[this.dd_tests.SelectedItem.Value.id].details);
+                    this.setProfitOfItem(this.dd_tests.SelectedItem.Value.id, this.resultMap[this.dd_tests.SelectedItem.Value.id].pnl);
                 }
             }
         };
 
         btn_query.OnClick = () => {
-            console.info(dd_tests.SelectedItem)
-            if (dd_tests.SelectedItem && dd_tests.SelectedItem.Value && dd_tests.SelectedItem.Value.id !== undefined) {
+            if (this.dd_tests.SelectedItem && this.dd_tests.SelectedItem.Value && this.dd_tests.SelectedItem.Value.id !== undefined) {
                 this.chart.init();
-                console.info(`hello`);
                 this.table.rows.length = 0;
-                this.qtp.send(8014, { nId: dd_tests.SelectedItem.Value.id }); // pnl
-                this.qtp.send(8016, { nId: dd_tests.SelectedItem.Value.id }); // detail
+                this.qtp.send(8014, { nId: this.dd_tests.SelectedItem.Value.id }); // pnl
+                this.qtp.send(8016, { nId: this.dd_tests.SelectedItem.Value.id }); // detail
             }
         };
 
@@ -203,66 +199,33 @@ export class AppComponent implements OnInit {
                 callback: msg => {
                     console.info(msg);
                     // let row = table.newRow();
-                }
+                },
+                context: this
             },
             {
                 msgtype: 8015,
                 callback: msg => {
                     console.info(msg);
                     // let row = table.newRow();
-                    if (!self.resultMap.hasOwnProperty(msg.nId)) {
-                        self.resultMap[msg.nId] = {};
-                    }
-                    self.resultMap[msg.nId].pnl = msg.Accpl;
-                    self.chart.changeOption({
-                        xAxis: [
-                            {
-                                type: "category",
-                                boundaryGap: false,
-                                data: (function () {
-                                    let beginYear = dd_tests.SelectedItem.Value.timebegin / 10000;
-                                    let beginMonth = dd_tests.SelectedItem.Value.timebegin % 10000 / 100;
-                                    let beginDay = dd_tests.SelectedItem.Value.timebegin % 100;
-                                    let endYear = dd_tests.SelectedItem.Value.timeend / 10000;
-                                    let endMonth = dd_tests.SelectedItem.Value.timeend % 10000 / 100;
-                                    let endDay = dd_tests.SelectedItem.Value.timeend % 100;
-                                    let beginDate = new Date(beginYear, beginMonth - 1, beginDay);
-                                    let endDate = new Date(endYear, endMonth - 1, endDay);
-                                    let res = [];
-                                    while (beginDate.valueOf() <= endDate.valueOf()) {
-                                        res.push(beginDate.toLocaleDateString());
-                                        beginDate.setDate(++beginDay);
-                                    }
-                                    return res;
-                                })()
-                            }
-                        ], series: [
-                            {
-                                name: "profit",
-                                type: "line",
-                                data: (function () {
-                                    let res = [];
-                                    self.resultMap[dd_tests.SelectedItem.Value.id].pnl.forEach(item => {
-                                        res.push((item.aeupl + item.apopl) / 10000);
-                                    });
-                                    return res;
-                                })()
-                            }
-                        ]
-                    });
-                }
+                    this.setProfitOfItem(msg.nId, msg.Accpl);
+                },
+                context: this
             },
             {
                 msgtype: 8017,
                 callback: msg => {
                     console.info(msg);
-                    self.table.rows.length = 0;
-                    self.setDetailsOfItem(msg.nId, msg.orderdetails);
-                }
+                    if (msg.packidx === 1)
+                        this.table.rows.length = 0;
+                    this.setDetailsOfItem(msg.nId, msg.orderdetails);
+                    if (msg.packidx === 1)
+                        this.resultMap[msg.nId].details = msg.orderdetails;
+                    else
+                        this.resultMap[msg.nId].details.splice(this.resultMap[msg.nId].details.length, 0, msg.orderdetails);
+                },
+                context: this
             }
         );
-
-
     }
 
     setDetailsOfItem(id: number, orderdetails: any) {
@@ -270,7 +233,7 @@ export class AppComponent implements OnInit {
             if (!this.resultMap.hasOwnProperty(id)) {
                 this.resultMap[id] = {};
             }
-            this.resultMap[id].details = orderdetails;
+
             orderdetails.forEach(item => {
                 let row = this.table.newRow();
                 row.cells[0].Text = item.orderid;
@@ -290,6 +253,104 @@ export class AppComponent implements OnInit {
     }
 
     setProfitOfItem(id: number, profit: any) {
+        if (!this.resultMap.hasOwnProperty(id)) {
+            this.resultMap[id] = {};
+        }
 
+        let self = this;
+        let ratios = [];
+        let bottoms = [];
+        let tops = [];
+        let winCount = 0, sumratio = 0;
+        this.resultMap[id].pnl = profit;
+
+        this.chart.changeOption({
+            xAxis: [
+                {
+                    type: "category",
+                    boundaryGap: false,
+                    data: (function () {
+                        let beginYear = self.dd_tests.SelectedItem.Value.timebegin / 10000;
+                        let beginMonth = self.dd_tests.SelectedItem.Value.timebegin % 10000 / 100;
+                        let beginDay = self.dd_tests.SelectedItem.Value.timebegin % 100;
+                        let endYear = self.dd_tests.SelectedItem.Value.timeend / 10000;
+                        let endMonth = self.dd_tests.SelectedItem.Value.timeend % 10000 / 100;
+                        let endDay = self.dd_tests.SelectedItem.Value.timeend % 100;
+                        let beginDate = new Date(beginYear, beginMonth - 1, beginDay);
+                        let endDate = new Date(endYear, endMonth - 1, endDay);
+                        let res = [];
+                        while (beginDate.valueOf() <= endDate.valueOf()) {
+                            res.push(beginDate.toLocaleDateString());
+                            beginDate.setDate(++beginDay);
+                        }
+                        return res;
+                    })()
+                }
+            ], series: [
+                {
+                    name: "收益率",
+                    type: "line",
+                    data: (function () {
+                        ratios = [];
+                        let tmp = null;
+                        let lastIdx;
+                        self.resultMap[self.dd_tests.SelectedItem.Value.id].pnl.forEach((item, idx) => {
+                            tmp = (item.aeupl + item.apopl) / (item.cost + item.amt);
+                            sumratio += tmp;
+                            if (tmp > 0) {
+                                ++winCount;
+                            }
+                            ratios.push(tmp);
+
+                            if (idx === 0)
+                                return;
+
+                            if (tmp >= ratios[idx - 1]) {
+                                if (idx === 1) {
+                                    tops.push(idx);
+                                } else {
+                                    lastIdx = tops.pop();
+                                    if (typeof lastIdx === undefined || idx === lastIdx + 1)
+                                        tops.push(idx);
+                                    else
+                                        tops.push(lastIdx, idx);
+                                }
+                            } else {
+                                if (idx === 1) {
+                                    tops.push(0);
+                                    bottoms.push(idx);
+                                } else {
+                                    lastIdx = bottoms.pop();
+                                    if (typeof lastIdx === undefined || idx === lastIdx + 1)
+                                        bottoms.push(idx);
+                                    else
+                                        bottoms.push(lastIdx, idx);
+                                }
+                            }
+
+                        });
+                        return ratios;
+                    })()
+                }
+            ]
+        });
+
+        let maxRetraceRatio = 0;
+        if (tops.length > 0 && bottoms.length > 0) {
+            tops.forEach((itop, itopIdx) => {
+                bottoms.filter(idx => { return idx > itop && (idx < tops[itopIdx + 1] || tops.length === itopIdx + 1); }).forEach(ibot => {
+                    maxRetraceRatio = ratios[itop] - ratios[ibot] > maxRetraceRatio ? ratios[itop] - ratios[ibot] : maxRetraceRatio;
+                });
+            });
+        }
+        console.info(maxRetraceRatio);
+        this.lbl_maxRetracementRatio.Text = (maxRetraceRatio * 365 * 100).toFixed(2) + "%";
+        this.lbl_percentProfitable.Text = (winCount * 100 / profit.length).toFixed(2) + "%";
+        let avgratio = sumratio / profit.length;
+        let variance = 0;
+        ratios.forEach(ratio => {
+            variance += Math.pow((ratio - avgratio) * 365, 2);
+        });
+        this.lbl_sharpeRatio.Text = ((ratios.pop() * 365 - parseFloat(this.txt_freeriskrate.Text)) * 100 / Math.sqrt(variance)).toFixed(2) + "%";
     }
 }

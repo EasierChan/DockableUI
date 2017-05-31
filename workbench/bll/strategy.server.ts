@@ -94,8 +94,11 @@ export class ConfigurationBLL {
     }
 
     addLoopbackItems(item: any) {
-        this._loopbackItems.push(item);
-        File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
+        let value = this._loopbackItems.find(aItem => { return aItem.id === item.id; });
+        if (!value) {
+            this._loopbackItems.push(item);
+            File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
+        }
     }
 
     getLoopbackItems() {
