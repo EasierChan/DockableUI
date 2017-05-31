@@ -56,7 +56,7 @@ export class AppStore {
         return false;
     }
 
-    public static bootstrap(): void {
+    public static bootstrap(): any {
         AppStore.parseCommandArgs();
         AppStore.loadConfig();
         let contentWindow: ContentWindow = new ContentWindow({ state: AppStore._config.state });
@@ -161,6 +161,8 @@ export class AppStore {
                 });
             });
         }
+
+        return contentWindow;
     }
 
     public static quit(): void {
