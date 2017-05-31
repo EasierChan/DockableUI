@@ -25,7 +25,7 @@
             <span *ngIf="cell.styleObj.type=='plaintext'">{{cell.dataSource.text}}</span>
             <label *ngIf="cell.styleObj.type=='checkbox'" [style.margin-left.px]="cell.styleObj.left" [style.margin-top.px]="cell.styleObj.top">
                 <input [name]="cell.dataSource.name" type="checkbox" [(ngModel)]="cell.dataSource.text"
-                 [disabled]="cell.styleObj?.disable" style="width: 15px;"> 
+                 [disabled]="cell.styleObj?.disable" style="width: 12px;"> 
                 <span style="white-space: nowrap">{{cell.dataSource.title}}</span>
             </label>
           </td>
