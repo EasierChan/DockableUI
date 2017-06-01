@@ -1018,6 +1018,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 appid: 17,
                 packid: 43,
                 callback: msg => {
+                    AppComponent.self.changeIp20Status(true);
                     AppComponent.loginFlag = true;
                     console.info(`tgw ans=>${msg}`);
                 }
@@ -1026,6 +1027,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 appid: 17,
                 packid: 120,
                 callback: msg => {
+                    AppComponent.self.changeIp20Status(false);
                     AppComponent.loginFlag = false;
                     console.info(msg);
                 }
@@ -1089,25 +1091,38 @@ export class AppComponent implements OnInit, AfterViewInit {
         ManulTrader.addSlot(5021, this.showBasketBackInfo);
         ManulTrader.addSlot(5024, this.showPortfolioSummary);
         ManulTrader.addSlot(8000, this.changeSSstatus);
+        ManulTrader.addPsSlot(9000, this.changePsStatus);
 
         ManulTrader.init(port, host);
     }
 
+    changePsStatus(data: any) {
+        console.log("******************", data);
+    }
+
+    changeIp20Status(data: any) {
+        AppComponent.self.addStatus(data, "PS");
+    }
+
     changeSSstatus(data: any) {
+        AppComponent.self.addStatus(data, "SS");
+    }
+
+    addStatus(data: any, mark: string) {
         let markLen = AppComponent.self.statusbar.items.length;
         if (markLen === 0) { // add
-            AppComponent.self.addStatusBarMark({ name: "SS", connected: data });
+            AppComponent.self.addStatusBarMark({ name: mark, connected: data });
         } else {
             let markFlag: Boolean = false;
             for (let i = 0; i < markLen; ++i) {
                 let text = AppComponent.self.statusbar.items[i].text;
-                if (text === "SS") {
+                if (text === mark) {
                     AppComponent.self.statusbar.items[i].color = data ? "green" : "red";
                     markFlag = true;
                 }
             }
             if (!markFlag)
-                AppComponent.self.addStatusBarMark({ name: "SS", connected: data });
+                AppComponent.self.addStatusBarMark({ name: mark, connected: data });
         }
     }
 

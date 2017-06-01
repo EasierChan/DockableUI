@@ -2,12 +2,14 @@
 
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
+import { PriceService } from "../../../base/api/services/priceService";
 import { SecuMasterService } from "../../../base/api/services/backend.service";
 import { TranslateService } from "../../../base/api/services/translate.service";
 import { AppComponent } from "../app.component";
 
 export class ManulTrader {
     private static orderService = new OrderService();
+    private static priceService = new PriceService();
     private static secuinfo = new SecuMasterService();
     static submitOrder(...orders: ComConOrder[]): void {
         let offset: number = 0;
@@ -265,8 +267,8 @@ export class ManulTrader {
         let offset: number = 0;
         let buffer = new Buffer(12);
         // fetch position
-        let account: number = 666600000040;
-        ManulTrader.writeUInt64LE(buffer, account, offset); offset += 8;
+        // let account: number = 666600000040;
+        ManulTrader.writeUInt64LE(buffer, data, offset); offset += 8;
         buffer.writeUInt32LE(0, offset); offset += 4;
         ManulTrader.orderService.sendOrder(5002, 0, buffer);
     }
@@ -304,6 +306,10 @@ export class ManulTrader {
 
     static addSlot(type: number, cb: Function) {
         ManulTrader.orderService.addSlot(type, cb);
+    }
+
+    static addPsSlot(type: number, cb: Function) {
+        ManulTrader.priceService.addslot(type, cb);
     }
 
     static init(port: number, host: string) {
