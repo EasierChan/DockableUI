@@ -48,6 +48,7 @@ class QTPParser extends Parser {
                 ret = true;
                 break;
             }
+            console.info(this._oPool.length);
         }
         restLen = null;
         buflen = null;

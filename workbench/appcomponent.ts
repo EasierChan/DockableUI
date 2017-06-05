@@ -508,6 +508,7 @@ export class AppComponent implements OnDestroy {
             msgtype: 8012,
             callback: (msg) => {
                 console.info(msg);
+                alert("Generate Successfully!");
                 this.config.loopbackConfig.result = msg;
                 let item = this.sendLoopConfigs.find((item, idx) => {
                     return item.reqsn === msg.reqsn;

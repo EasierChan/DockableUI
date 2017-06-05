@@ -62,12 +62,12 @@ export class AppComponent implements OnInit {
         let lbl_mode = new Label();
         lbl_mode.Title = "Mode:";
         lbl_mode.Left = 10;
-        lbl_mode.Width = 50;
+        lbl_mode.Width = 80;
         svHeaderRow1.addChild(lbl_mode);
         let lbl_speed = new Label();
         lbl_speed.Title = "Speed:";
         lbl_speed.Left = 10;
-        lbl_speed.Width = 50;
+        lbl_speed.Width = 80;
         svHeaderRow1.addChild(lbl_speed);
         let lbl_duration = new Label();
         lbl_duration.Title = "Duration:";
@@ -87,13 +87,13 @@ export class AppComponent implements OnInit {
         this.txt_freeriskrate.Width = 50;
         indicatorRow.addChild(this.txt_freeriskrate);
         this.lbl_maxRetracementRatio = new Label();
-        this.lbl_maxRetracementRatio.Title = "Maximum Retracement Ratio:";
+        this.lbl_maxRetracementRatio.Title = "MaxDrawdown:";
         this.lbl_maxRetracementRatio.Left = 10;
         this.lbl_sharpeRatio = new Label();
-        this.lbl_sharpeRatio.Title = "Sharpe Ratio:";
+        this.lbl_sharpeRatio.Title = "Sharpe:";
         this.lbl_sharpeRatio.Left = 10;
         this.lbl_percentProfitable = new Label();
-        this.lbl_percentProfitable.Title = "Winning Ratio:";
+        this.lbl_percentProfitable.Title = "Winning:";
         this.lbl_percentProfitable.Left = 10;
         indicatorRow.addChild(this.lbl_maxRetracementRatio).addChild(this.lbl_sharpeRatio).addChild(this.lbl_percentProfitable);
         viewContent.addChild(indicatorRow);
@@ -101,7 +101,7 @@ export class AppComponent implements OnInit {
         let panel = new TabPanel();
         let detailsPage = new TabPage("OrderDetail", "OrderDetail");
         let detailContent = new VBox();
-        this.table = new DataTable("table2");
+        this.table = new DataTable("table");
         this.table.addColumn("Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
         detailContent.addChild(this.table);
         detailsPage.setContent(detailContent);
@@ -117,10 +117,13 @@ export class AppComponent implements OnInit {
                 tigger: "axis",
                 axisPointer: {
                     type: "line"
+                },
+                formatter: params => {
+                    return params.seriesName + "<br />" + params.value.toFixed(3);
                 }
             },
             legend: {
-                data: ["收益率"]
+                data: ["净值"]
             },
             dataZoom: [
                 {
@@ -138,13 +141,13 @@ export class AppComponent implements OnInit {
             yAxis: [
                 {
                     type: "value",
-                    name: "收益率",
+                    name: "净值",
                     nameTextStyle: {
                         color: "#fff"
                     },
                     axisLabel: {
                         formatter: (value, index) => {
-                            return (value * 100).toFixed(2) + "%";
+                            return value;
                         },
                         textStyle: {
                             color: "#fff"
@@ -155,7 +158,7 @@ export class AppComponent implements OnInit {
             ],
             series: [
                 {
-                    name: "收益率",
+                    name: "净值",
                     type: "line",
                     data: []
                 }
@@ -178,6 +181,7 @@ export class AppComponent implements OnInit {
                 lbl_duration.Text = this.dd_tests.SelectedItem.Value.timebegin + "-" + this.dd_tests.SelectedItem.Value.timeend;
                 if (this.resultMap.hasOwnProperty(this.dd_tests.SelectedItem.Value.id)) {
                     this.table.rows.length = 0;
+                    console.info(this.resultMap[this.dd_tests.SelectedItem.Value.id].details.length);
                     this.setDetailsOfItem(this.dd_tests.SelectedItem.Value.id, this.resultMap[this.dd_tests.SelectedItem.Value.id].details);
                     this.setProfitOfItem(this.dd_tests.SelectedItem.Value.id, this.resultMap[this.dd_tests.SelectedItem.Value.id].pnl);
                 }
@@ -214,14 +218,15 @@ export class AppComponent implements OnInit {
             {
                 msgtype: 8017,
                 callback: msg => {
-                    console.info(msg);
+                    // console.info(msg);
                     if (msg.packidx === 1)
                         this.table.rows.length = 0;
                     this.setDetailsOfItem(msg.nId, msg.orderdetails);
                     if (msg.packidx === 1)
                         this.resultMap[msg.nId].details = msg.orderdetails;
                     else
-                        this.resultMap[msg.nId].details.splice(this.resultMap[msg.nId].details.length, 0, msg.orderdetails);
+                        this.resultMap[msg.nId].details = this.resultMap[msg.nId].details.concat(msg.orderdetails);
+                    // console.info(this.resultMap[msg.nId].details.length);
                 },
                 context: this
             }
@@ -258,7 +263,7 @@ export class AppComponent implements OnInit {
         }
 
         let self = this;
-        let ratios = [];
+        let total_ratios = [];
         let bottoms = [];
         let tops = [];
         let winCount = 0, sumratio = 0;
@@ -288,24 +293,30 @@ export class AppComponent implements OnInit {
                 }
             ], series: [
                 {
-                    name: "收益率",
+                    name: "净值",
                     type: "line",
                     data: (function () {
-                        ratios = [];
+                        total_ratios = [];
                         let tmp = null;
+                        let firstValue = 0;
                         let lastIdx;
                         self.resultMap[self.dd_tests.SelectedItem.Value.id].pnl.forEach((item, idx) => {
-                            tmp = (item.aeupl + item.apopl) / (item.cost + item.amt);
-                            sumratio += tmp;
-                            if (tmp > 0) {
+
+                            if (item.aeupl + item.apopl > 0) {
                                 ++winCount;
                             }
-                            ratios.push(tmp);
 
-                            if (idx === 0)
+                            if (idx === 0) {
+                                firstValue = item.cost + item.amt - item.aeupl - item.apopl;
+                                total_ratios.push((item.cost + item.amt) / firstValue);
+                                sumratio += total_ratios[idx];
                                 return;
+                            }
 
-                            if (tmp >= ratios[idx - 1]) {
+                            total_ratios.push((item.cost + item.amt) / firstValue);
+                            sumratio += total_ratios[idx];
+
+                            if (total_ratios[idx] >= total_ratios[idx - 1]) {
                                 if (idx === 1) {
                                     tops.push(idx);
                                 } else {
@@ -327,30 +338,36 @@ export class AppComponent implements OnInit {
                                         bottoms.push(lastIdx, idx);
                                 }
                             }
-
                         });
-                        return ratios;
+                        return total_ratios;
                     })()
                 }
             ]
         });
 
         let maxRetraceRatio = 0;
+        let drawdown = 0;
         if (tops.length > 0 && bottoms.length > 0) {
             tops.forEach((itop, itopIdx) => {
                 bottoms.filter(idx => { return idx > itop && (idx < tops[itopIdx + 1] || tops.length === itopIdx + 1); }).forEach(ibot => {
-                    maxRetraceRatio = ratios[itop] - ratios[ibot] > maxRetraceRatio ? ratios[itop] - ratios[ibot] : maxRetraceRatio;
+                    maxRetraceRatio = total_ratios[itop] - total_ratios[ibot] > maxRetraceRatio ? total_ratios[itop] - total_ratios[ibot] : maxRetraceRatio;
+                    drawdown = maxRetraceRatio / total_ratios[itop];
                 });
             });
         }
-        console.info(maxRetraceRatio);
-        this.lbl_maxRetracementRatio.Text = (maxRetraceRatio * 365 * 100).toFixed(2) + "%";
+        // console.info(maxRetraceRatio);
+        this.lbl_maxRetracementRatio.Text = (drawdown * 100).toFixed(2) + "%";
         this.lbl_percentProfitable.Text = (winCount * 100 / profit.length).toFixed(2) + "%";
-        let avgratio = sumratio / profit.length;
+        let avgratio = (sumratio - profit.length) / profit.length;
         let variance = 0;
-        ratios.forEach(ratio => {
-            variance += Math.pow((ratio - avgratio) * 365, 2);
+        total_ratios.forEach(ratio => {
+            variance += Math.pow((ratio - 1 - avgratio) * 365, 2);
         });
-        this.lbl_sharpeRatio.Text = ((ratios.pop() * 365 - parseFloat(this.txt_freeriskrate.Text)) * 100 / Math.sqrt(variance)).toFixed(2) + "%";
+
+        if (variance !== 0) {
+            this.lbl_sharpeRatio.Text = (((total_ratios.pop() - 1) * 365 - parseFloat(this.txt_freeriskrate.Text)) / Math.sqrt(variance)).toFixed(2);
+        } else {
+            this.lbl_sharpeRatio.Text = 0;
+        }
     }
 }
