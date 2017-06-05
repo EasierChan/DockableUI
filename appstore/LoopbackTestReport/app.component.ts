@@ -187,7 +187,7 @@ export class AppComponent implements OnInit {
         };
 
         btn_query.OnClick = () => {
-            console.info(dd_tests.SelectedItem)
+            console.info(dd_tests.SelectedItem);
             if (dd_tests.SelectedItem && dd_tests.SelectedItem.Value && dd_tests.SelectedItem.Value.id !== undefined) {
                 this.chart.init();
                 console.info(`hello`);
