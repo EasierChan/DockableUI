@@ -358,14 +358,17 @@ export class AppComponent implements OnInit {
         // console.info(maxRetraceRatio);
         this.lbl_maxRetracementRatio.Text = (drawdown * 100).toFixed(2) + "%";
         this.lbl_percentProfitable.Text = (winCount * 100 / profit.length).toFixed(2) + "%";
-        let avgratio = (sumratio - profit.length) / profit.length;
+        let avgratio = sumratio / profit.length;
         let variance = 0;
         total_ratios.forEach(ratio => {
-            variance += Math.pow((ratio - 1 - avgratio) * 365, 2);
+            variance += Math.pow(ratio - avgratio, 2);
         });
 
+        // console.info(total_ratios, variance);
         if (variance !== 0) {
-            this.lbl_sharpeRatio.Text = (((total_ratios.pop() - 1) * 365 - parseFloat(this.txt_freeriskrate.Text)) / Math.sqrt(variance)).toFixed(2);
+            let value = ((total_ratios.pop() - 1) * 365 / profit.length - parseFloat(this.txt_freeriskrate.Text)) / (Math.sqrt(variance) * 365);
+            // console.info(value);
+            this.lbl_sharpeRatio.Text  = value.toFixed(2);
         } else {
             this.lbl_sharpeRatio.Text = 0;
         }
