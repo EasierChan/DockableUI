@@ -1685,6 +1685,14 @@ export class DataTable extends Control {
         }
     }
 
+    set width(value: number) {
+        this.styleObj.width = value;
+    }
+
+    set height(value: number) {
+        this.styleObj.height = value;
+    }
+
     detectChanges(): void {
         this.dataSource.detectChanges();
     }
