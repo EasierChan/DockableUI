@@ -61,7 +61,7 @@
                     <span class="tile-group-title">Transanctional</span>
                     <div class="tile-container">
                         <template ngFor let-item [ngForOf]="configs">
-                            <div [class]="detailClass" data-role="tile" (mouseup)="onClick($event, item)">
+                            <div [class]="detailClass" data-role="tile" (mouseup)="onClick($event, item);">
                                 <div class="tile-content iconic {{item.state===1?'bg-green':''}}">
                                     <!--<span class="icon mif-play"></span>-->
                                     <span class="tile-label">{{ item.name }}</span>

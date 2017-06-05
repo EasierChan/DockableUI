@@ -122,6 +122,8 @@ export class AppComponent implements OnDestroy {
             this.contextMenu.popup();
         } else {
             this.onStartApp();
+            this.bDetails = false;
+            window.hideMetroCharm("#detailCharm");
         }
     }
 
@@ -594,6 +596,8 @@ export class AppComponent implements OnDestroy {
                 this.showError("Error", `start ${name} app error!`, "alert");
             }
         }
+        this.bDetails = false;
+        window.hideMetroCharm("#detailCharm");
     }
 
     showError(caption: string, content: string, type: string): void {
