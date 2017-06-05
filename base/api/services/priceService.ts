@@ -27,12 +27,14 @@ export class PriceService extends EventEmitter<any> {
     private _innercodesMap: any = {};
     private _client: PSClient;
     private onClose: Function;
+    private _messageMap: any;
 
     constructor() {
         super();
         this._client = new PSClient();
         this._client.useSelfBuffer = true;
         this._client.addParser(new MDParser(this._client));
+        this._messageMap = new Object();
     }
     /**
      * QTS::MSG::PS_MSG_TYPE_MARKETDATA
@@ -53,22 +55,26 @@ export class PriceService extends EventEmitter<any> {
         this._client.connect(this._port, this._host);
 
         self._client.on("connect", () => {
+            this._messageMap[9000].callback("1");
             this._state = 1;
         });
 
         self._client.on("data", data => {
             try {
                 self.emit(data[0]);
+                this._messageMap[9000].callback("2");
             } catch (err) {
                 console.error(`${err.message}`);
                 console.error(data.toString());
             }
         });
         self._client.on("error", (err) => {
+            this._messageMap[9000].callback("3");
             this._state = 2;
             console.error(err.message);
         });
         self._client.on("close", err => {
+            this._messageMap[9000].callback("4");
             this._state = 2;
             if (this.onClose) {
                 this.onClose();
@@ -76,6 +82,7 @@ export class PriceService extends EventEmitter<any> {
             console.info("remote closed");
         });
         self._client.on("end", err => {
+            this._messageMap[9000].callback("5");
             this._state = 2;
             console.info("remote closed");
         });
@@ -111,6 +118,11 @@ export class PriceService extends EventEmitter<any> {
         this._client.sendMessage(header, {
             innerCodes: this._innercodesMap[subtype]
         });
+    }
+    addslot(type: number, cb: Function, context?: any) {
+        if (this._messageMap.hasOwnProperty(type))
+            return;
+        this._messageMap[type] = { callback: cb, context: context };
     }
 }
 
