@@ -84,7 +84,7 @@ export class AppComponent implements OnDestroy {
         this.contextMenu.addItem("Remove", () => {
             this.configs.forEach((config, index) => {
                 if (config.name === this.config.name) {
-                    this.configs.splice(index);
+                    this.configs.splice(index, 1);
                     this.configBLL.updateConfig();
                     this.strategyContainer.removeItem(this.config.name);
                     this.ref.detectChanges();
@@ -170,7 +170,7 @@ export class AppComponent implements OnDestroy {
         this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;
         let sobj = Object.assign({}, this.curTemplate.body.data["Strategy"][0]);
         this.curTemplate.body.data["Strategy"].length = 0;
-        delete this.curTemplate.body.data["PairTrades"]["PairTrade"];
+        this.curTemplate.body.data["PairTrades"] = {};
         this.config.strategyInstances.forEach(item => {
             let obj = JSON.parse(JSON.stringify(sobj));
             // obj.account = item.accounts;
@@ -452,13 +452,6 @@ export class AppComponent implements OnDestroy {
                 self.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
                 self.isAuthorized = true;
                 if (self.isAuthorized) {
-                    self.configs = self.configBLL.getAllConfigs();
-                    self.configs.forEach(config => {
-                        self.config = config;
-                        self.config.state = 0;
-                        self.curTemplate = JSON.parse(JSON.stringify(self.configBLL.getTemplateByName(self.config.strategyCoreName)));
-                        self.finish();
-                    });
                     // this.strategyContainer.addItems(self.configs);
                 } else {
                     self.showError("Error", "Username or password wrong.", "alert");
@@ -485,19 +478,34 @@ export class AppComponent implements OnDestroy {
 
                     if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
                         let templatelist = JSON.parse(ip20strs[msg.content.head.pkgId].concat(msg.content.body));
+
                         templatelist.body.forEach(template => {
-                            this.configBLL.updateTemplate(template.templatename, { id: templatelist.body[0].id, body: JSON.parse(templatelist.body[0].templatetext) });
+                            this.configBLL.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
                         });
 
+                        self.configs = self.configBLL.getAllConfigs();
+                        self.configs.forEach(config => {
+                            self.config = config;
+                            self.config.state = 0;
+                            self.curTemplate = JSON.parse(JSON.stringify(self.configBLL.getTemplateByName(self.config.strategyCoreName)));
+                            self.finish();
+                        });
                         delete ip20strs[msg.content.head.pkgId];
                     } else {
                         ip20strs[msg.content.head.pkgId] = ip20strs[msg.content.head.pkgId].concat(msg.content.body);
                     }
                 } else {
                     let templatelist = JSON.parse(ip20strs[msg.content.head.pkgId].concat(msg.content.body));
-
                     templatelist.body.forEach(template => {
-                        this.configBLL.updateTemplate(template.templatename, { id: templatelist.body[0].id, body: JSON.parse(templatelist.body[0].templatetext) });
+                        this.configBLL.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
+                    });
+
+                    self.configs = self.configBLL.getAllConfigs();
+                    self.configs.forEach(config => {
+                        self.config = config;
+                        self.config.state = 0;
+                        self.curTemplate = JSON.parse(JSON.stringify(self.configBLL.getTemplateByName(self.config.strategyCoreName)));
+                        self.finish();
                     });
                 }
             }

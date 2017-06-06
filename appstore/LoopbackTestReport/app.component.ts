@@ -135,6 +135,11 @@ export class AppComponent implements OnInit {
                 {
                     type: "category",
                     boundaryGap: false,
+                    axisLabel: {
+                        textStyle: {
+                            color: "#fff"
+                        }
+                    },
                     data: []
                 }
             ],
@@ -153,7 +158,11 @@ export class AppComponent implements OnInit {
                             color: "#fff"
                         }
                     },
-                    boundaryGap: [0.2, 0.2]
+                    boundaryGap: [0.2, 0.2],
+                    min: 0.8,
+                    interval: 0.05,
+                    minInterval: 0.05,
+                    splitNumber: 20
                 }
             ],
             series: [
@@ -340,7 +349,9 @@ export class AppComponent implements OnInit {
                             }
                         });
                         return total_ratios;
-                    })()
+                    })(),
+                    boundaryGap: [0.2, 0.2],
+                    interval: 0.1
                 }
             ]
         });
