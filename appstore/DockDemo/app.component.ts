@@ -372,6 +372,29 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.PositionTable.columnConfigurable = true;
         positionContent.addChild(this.PositionTable);
         this.PositionPage.setContent(positionContent);
+        this.PositionTable.OnRowClick = (rowItem, rowIndex) => {
+            let account = rowItem.cells[0].Text;
+            let ukey = rowItem.cells[2].Text;
+            let strategyid = rowItem.cells[11].Text;
+            let symbol = rowItem.cells[3].Text;
+            this.dd_Action.SelectedItem = this.dd_Action.Items[1];
+            this.txt_UKey.Text = ukey + "";
+            this.txt_Symbol.Text = symbol + "";
+            for (let i = 0; i < this.dd_Account.Items.length; ++i) {
+                if (parseInt(account) === parseInt(this.dd_Account.Items[i].Text)) {
+                    this.dd_Account.SelectedItem = this.dd_Account.Items[i];
+                    break;
+                }
+            }
+            for (let j = 0; j < this.dd_Strategy.Items.length; ++j) {
+                if (parseInt(strategyid) === parseInt(this.dd_Strategy.Items[j].Text)) {
+                    this.dd_Strategy.SelectedItem = this.dd_Strategy.Items[j];
+                    break;
+                }
+            }
+            let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
+            Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+        };
 
         let leftAlign = 20;
         let rowSep = 5;
