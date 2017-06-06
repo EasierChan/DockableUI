@@ -31,6 +31,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private dialog: Dialog;
     private orderstatusPage: TabPage;
     private tradePage: TabPage;
+    private commentPage: TabPage;
     private doneOrdersPage: TabPage;
     private bookviewPage: TabPage;
     private logPage: TabPage;
@@ -52,6 +53,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private profitTable: DataTable;
     private statarbTable: DataTable;
     private portfolioTable: DataTable;
+    private commentTable: DataTable;
 
     // profittable textbox
     private totalpnLabel: MetaControl;
@@ -84,6 +86,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private txt_Price: any;
     private dd_Action: any;
     private tradeContent: any;
+    private commentContent: any;
     // strategy index flag
     private commentIdx: number = 10;
     private commandIdx: number = 10;
@@ -95,6 +98,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private OrderStatusSelArr = [];
     // private bookviewObj = { bookview: 0, code: "" };
     private bookviewArr = [];
+    private commentObj = {};
 
     private statusbar: StatusBar;
     private option: any;
@@ -478,6 +482,25 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             });
         };
+
+        this.commentPage = new TabPage("Comment", ManulTrader.getTranslateInfo(this.languageType, "Comment"));
+        this.commentContent = new ComboControl("col");
+        this.commentTable = new DataTable("table2");
+        this.commentTable.height = 400;
+
+        let commentTableArr: string[] = ["Key", "Value"];
+        let commentTableRtnArr: string[] = [];
+        for (let i = 0; i < commentTableArr.length; ++i) {
+            let commentRtn = ManulTrader.getTranslateInfo(this.languageType, commentTableArr[i]);
+            commentTableRtnArr.push(commentRtn);
+        }
+        commentTableRtnArr.forEach(item => {
+            this.commentTable.addColumn(item);
+        });
+        this.commentTable.columnConfigurable = true;
+        this.commentContent.addChild(this.commentTable);
+        this.commentPage.setContent(this.commentContent);
+
 
         this.bookviewPage = new TabPage("BookView", ManulTrader.getTranslateInfo(this.languageType, "BookView"));
         this.createBookView("BookView");
@@ -1038,7 +1061,6 @@ export class AppComponent implements OnInit, AfterViewInit {
                 packid: 110,
                 callback: (msg) => {
                     let len = AppComponent.self.bookviewArr.length;
-                    //  console.log("*****************", msg.content, len, AppComponent.self.bookviewArr);
                     for (let idx = 0; idx < len; ++idx) {
                         if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
                             for (let i = 0; i < 10; ++i) {
@@ -1126,6 +1148,45 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
     }
 
+    handleCommentObj(data: any) {
+        let judge = AppComponent.self.judgeObject(this.commentObj);
+        let strategyid = data.strategyid;
+        if (!judge) {
+            this.commentObj[strategyid] = {};
+            this.commentObj[strategyid][data.key] = { name: data.name, value: data.value };
+        } else {
+            // traverse commentobj,insert or modify
+            let commentFlag: boolean = false;
+            let tempFlag: boolean = false;
+            for (let o in this.commentObj) {
+                if (o === strategyid) {
+                    commentFlag = true;
+                    let strategyComment = this.commentObj[o];
+                    for (let tempobj in strategyComment) {
+                        if (tempobj === data.key) {
+                            tempFlag = true;
+                            strategyComment.value = data.value;
+                        }
+                    }
+                }
+                if (!tempFlag) {
+                    this.commentObj[o][data.key] = { name: data.name, value: data.value };
+                }
+
+            }
+            if (!commentFlag) {
+                this.commentObj[strategyid][data.key] = { name: data.name, value: data.value };
+            }
+        }
+        // console.log(this.commentObj);
+    }
+
+    judgeObject(data: any) {
+        for (let o in data) {
+            return true;
+        }
+        return false;
+    }
     gethanizaionInfo(obj: any, data: any) {
         for (let o in obj) {
             if ((o + "") === data)
@@ -2100,8 +2161,9 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
 
-            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {  // this msg insert into comment dialog ,but now, pause!
+            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {  // this msg insert into comment dialog
                 // console.log("COMMENT level == 0:", data[i]);
+                AppComponent.self.handleCommentObj(data[i]);
             }
             if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) { // show
                 let commandObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commentIdx, AppComponent.self.commandIdx);
@@ -2230,7 +2292,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
-        console.log(data);
+        // console.log(data);
         if (data.dataSource.text === "submit") {  // submit
             let sendArray = [];
             let dvalue = 0;
@@ -2256,7 +2318,20 @@ export class AppComponent implements OnInit, AfterViewInit {
             else
                 alert("no changes!");
         } else if (data.dataSource.text === "comment") {
-
+            let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
+            for (let o in this.commentObj) {
+                if (parseInt(o) === strategyId) {
+                    for (let obj in this.commentObj[o]) {
+                        let row = AppComponent.self.commentTable.newRow();
+                        // console.log(this.commentObj[o][obj].name, this.commentObj[o][obj].value);
+                        row.cells[0].Text = this.commentObj[o][obj].name;
+                        row.cells[1].Text = this.commentObj[o][obj].value;
+                    }
+                }
+                // AppComponent.self.commentTable.detectChanges();
+            }
+            let commentRtn = ManulTrader.getTranslateInfo(this.languageType, "Comment");
+            Dialog.popup(this, this.commentContent, { title: commentRtn });
         } else {
             let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
             if (data.dataSource.text === "start") {
