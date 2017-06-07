@@ -105,12 +105,12 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     static bookViewSN = 1;
     static spreadViewSN = 1;
-    static tgw = null;
+    static bgWorker = null;
     static loginFlag: boolean = false;
 
     constructor(private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
         AppComponent.self = this;
-        AppComponent.tgw = WorkerFactory.createIP20Worker();
+        AppComponent.bgWorker = WorkerFactory.createIP20Worker();
         console.info(process.pid);
         this.statechecker.onInit(this, this.onReady);
         this.statechecker.onResize(this, this.onResize);
@@ -1053,21 +1053,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     subScribeMarketInit(port: number, host: string) {
         if (!AppComponent.loginFlag) {
-            AppComponent.tgw.send({ command: "start", params: { port: port, host: host } });
-            AppComponent.tgw.onData = msg => {
-                // console.info(msg);
-                let len = AppComponent.self.bookviewArr.length;
-                for (let idx = 0; idx < len; ++idx) {
-                    if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
-                        for (let i = 0; i < 10; ++i) {
-                            AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[0].Text = msg.content.bid_volume[i] + "";
-                            AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = msg.content.bid_price[i] / 10000 + "";
-                            AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[2].Text = msg.content.ask_volume[i] + "";
-                            AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = msg.content.ask_price[i] / 10000 + "";
-                        }
-                    }
-                }
-            };
+            AppComponent.bgWorker.send({ command: "ps-start", params: { port: port, host: host } });
             AppComponent.loginFlag = true;
         }
     }
@@ -1105,13 +1091,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         ManulTrader.addSlot(5021, this.showBasketBackInfo);
         ManulTrader.addSlot(5024, this.showPortfolioSummary);
         ManulTrader.addSlot(8000, this.changeSSstatus);
-        ManulTrader.addPsSlot(9000, this.changePsStatus);
 
         ManulTrader.init(port, host);
-    }
-
-    changePsStatus(data: any) {
-        console.log("******************", data);
     }
 
     changeIp20Status(data: any) {
@@ -2726,11 +2707,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     subscribeMarketData(codes: any) {
-        AppComponent.tgw.send({ command: "sendMsg", params: { appid: 17, packid: 101, msg: { topic: 3112, kwlist: codes } } });
+        AppComponent.bgWorker.send({ command: "ps-send", params: { appid: 17, packid: 101, msg: { topic: 3112, kwlist: codes } } });
     }
 
     onDestroy() {
-        AppComponent.tgw.dispose();
+        AppComponent.bgWorker.dispose();
         File.writeSync(`${Environment.appDataDir}/ChronosApps/${AppComponent.self.option.name}/layout.json`, this.main.getLayout());
     }
 
@@ -2738,6 +2719,41 @@ export class AppComponent implements OnInit, AfterViewInit {
         // minus 10 to remove the window's border.
         this.main.reallocSize(event.currentTarget.document.body.clientWidth - 10, event.currentTarget.document.body.clientHeight - 27);
         this.ref.detectChanges();
+    }
+
+    createBackgroundWork() {
+        AppComponent.bgWorker.onData = data => {
+            switch (data.event) {
+                case "ps-data":
+                    let msg = data.content;
+                    let len = AppComponent.self.bookviewArr.length;
+                    for (let idx = 0; idx < len; ++idx) {
+                        if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
+                            for (let i = 0; i < 10; ++i) {
+                                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[0].Text = msg.content.bid_volume[i] + "";
+                                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = msg.content.bid_price[i] / 10000 + "";
+                                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[2].Text = msg.content.ask_volume[i] + "";
+                                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = msg.content.ask_price[i] / 10000 + "";
+                            }
+                        }
+                    }
+                    break;
+                case "ps-connect":
+                    AppComponent.self.changeIp20Status(true);
+                    break;
+                case "ps-close":
+                    AppComponent.self.changeIp20Status(false);
+                    break;
+                case "ss-connect":
+                    break;
+                case "ss-close":
+                    break;
+                case "ss-data":
+                    break;
+                default:
+                    break;
+            }
+        };
     }
 }
 

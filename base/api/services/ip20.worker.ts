@@ -7,7 +7,6 @@ import { TcpClient } from "../common/base/tcpclient";
 import { Parser } from "../common/base/parser";
 import { Pool } from "../common/base/pool";
 import { ISONPack2Header, ISONPack2 } from "../model/isonpack/isonpack.model";
-import { Injectable } from "@angular/core";
 
 const logger = console;
 
@@ -267,90 +266,3 @@ export interface Slot {
     packid: number;
     callback: Function;
 }
-
-/**
- * interface for single pro.
- */
-process.on("message", (m: WSIP20, sock) => {
-    console.info(m);
-    switch (m.command) {
-        case "start":
-            IP20Factory.instance.onConnect = () => {
-                process.send({ event: "connect" });
-            };
-
-            IP20Factory.instance.onClose = () => {
-                process.send({ event: "close" });
-            };
-
-            IP20Factory.instance.addSlot({
-                appid: 17,
-                packid: 43,
-                callback(msg) {
-                    logger.info(`tgw ans=>${msg}`);
-                }
-            }, {
-                    appid: 17,
-                    packid: 120,
-                    callback(msg) {
-                        logger.info(`tgw ans=>${msg}`);
-                    }
-                }, {
-                    appid: 17,
-                    packid: 110,
-                    callback(msg) {
-                        process.send({ event: "data", content: msg });
-                    }
-                });
-
-            IP20Factory.instance.connect(m.params.port, m.params.host);
-            let timestamp: Date = new Date();
-            let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
-                ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
-                ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-            let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
-            IP20Factory.instance.send(17, 41, loginObj);
-            break;
-        case "sendMsg":
-            IP20Factory.instance.send(m.params.appid, m.params.packid, m.params.msg);
-            break;
-        case "stop":
-            break;
-        default:
-            logger.error(`unvalid command => ${m.command}`);
-            break;
-    }
-});
-
-process.on("close", () => {
-    console.info(`process closed`);
-});
-
-process.on("disconnect", () => {
-    console.info(`process disconnect`);
-});
-
-process.on("error", () => {
-    console.info(`process error`);
-});
-
-process.on("exit", () => {
-    console.info(`process exit`);
-});
-
-interface WSIP20 {
-    command: string;
-    params: any;
-}
-
-class IP20Factory {
-    private static tgw: IP20Service;
-    static get instance() {
-        if (!IP20Factory.tgw)
-            IP20Factory.tgw = new IP20Service();
-
-        return IP20Factory.tgw;
-    }
-}
-
-console.info(process.pid);
