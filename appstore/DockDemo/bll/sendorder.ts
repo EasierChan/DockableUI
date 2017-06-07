@@ -2,14 +2,11 @@
 
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
-import { PriceService } from "../../../base/api/services/priceService";
 import { SecuMasterService } from "../../../base/api/services/backend.service";
 import { TranslateService } from "../../../base/api/services/translate.service";
-import { AppComponent } from "../app.component";
 
 export class ManulTrader {
     private static orderService = new OrderService();
-    private static priceService = new PriceService();
     private static secuinfo = new SecuMasterService();
     static submitOrder(...orders: ComConOrder[]): void {
         let offset: number = 0;
@@ -306,10 +303,6 @@ export class ManulTrader {
 
     static addSlot(type: number, cb: Function) {
         ManulTrader.orderService.addSlot(type, cb);
-    }
-
-    static addPsSlot(type: number, cb: Function) {
-        ManulTrader.priceService.addslot(type, cb);
     }
 
     static init(port: number, host: string) {
