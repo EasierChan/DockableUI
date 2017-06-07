@@ -31,6 +31,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private dialog: Dialog;
     private orderstatusPage: TabPage;
     private tradePage: TabPage;
+    private commentPage: TabPage;
     private doneOrdersPage: TabPage;
     private bookviewPage: TabPage;
     private logPage: TabPage;
@@ -52,6 +53,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private profitTable: DataTable;
     private statarbTable: DataTable;
     private portfolioTable: DataTable;
+    private commentTable: DataTable;
 
     // profittable textbox
     private totalpnLabel: MetaControl;
@@ -84,6 +86,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private txt_Price: any;
     private dd_Action: any;
     private tradeContent: any;
+    private commentContent: any;
     // strategy index flag
     private commentIdx: number = 10;
     private commandIdx: number = 10;
@@ -95,7 +98,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private OrderStatusSelArr = [];
     // private bookviewObj = { bookview: 0, code: "" };
     private bookviewArr = [];
-    private codeList: number[] = [];
+    private commentObj = {};
 
     private statusbar: StatusBar;
     private option: any;
@@ -116,22 +119,16 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     onTabPageClosed(pageid: string) {
         let len = AppComponent.self.bookviewArr.length;
+        let tempCodeList = [];
         for (let i = 0; i < len; ++i) {
+            let code = AppComponent.self.bookviewArr[i].code;
             if (AppComponent.self.bookviewArr[i].bookview === pageid) {
-                let code = AppComponent.self.bookviewArr[i].code;
-                let index = AppComponent.self.codeList.indexOf(parseInt(code));
-                if (index > -1) {
-                    AppComponent.self.codeList.splice(index, 1);
-                }
                 AppComponent.self.bookviewArr.splice(i, 1);
-                len--;
-                let codeIdx = AppComponent.self.codeList.indexOf(parseInt(code));
-                if (codeIdx > -1) {
-                    AppComponent.self.codeList.splice(codeIdx, 1);
-                    AppComponent.self.subscribeMarketData(AppComponent.self.codeList);
-                }
+            } else {
+                tempCodeList.push(parseInt(code));
             }
         }
+        AppComponent.self.subscribeMarketData(tempCodeList);
         AppComponent.self.statechecker.changeMenuItemState(pageid, false, 2);
     }
 
@@ -375,6 +372,29 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.PositionTable.columnConfigurable = true;
         positionContent.addChild(this.PositionTable);
         this.PositionPage.setContent(positionContent);
+        this.PositionTable.OnRowClick = (rowItem, rowIndex) => {
+            let account = rowItem.cells[0].Text;
+            let ukey = rowItem.cells[2].Text;
+            let strategyid = rowItem.cells[11].Text;
+            let symbol = rowItem.cells[3].Text;
+            this.dd_Action.SelectedItem = this.dd_Action.Items[1];
+            this.txt_UKey.Text = ukey + "";
+            this.txt_Symbol.Text = symbol + "";
+            for (let i = 0; i < this.dd_Account.Items.length; ++i) {
+                if (parseInt(account) === parseInt(this.dd_Account.Items[i].Text)) {
+                    this.dd_Account.SelectedItem = this.dd_Account.Items[i];
+                    break;
+                }
+            }
+            for (let j = 0; j < this.dd_Strategy.Items.length; ++j) {
+                if (parseInt(strategyid) === parseInt(this.dd_Strategy.Items[j].Text)) {
+                    this.dd_Strategy.SelectedItem = this.dd_Strategy.Items[j];
+                    break;
+                }
+            }
+            let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
+            Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+        };
 
         let leftAlign = 20;
         let rowSep = 5;
@@ -486,82 +506,27 @@ export class AppComponent implements OnInit, AfterViewInit {
             });
         };
 
+        this.commentPage = new TabPage("Comment", ManulTrader.getTranslateInfo(this.languageType, "Comment"));
+        this.commentContent = new ComboControl("col");
+        this.commentTable = new DataTable("table2");
+        this.commentTable.height = 400;
+
+        let commentTableArr: string[] = ["Key", "Value"];
+        let commentTableRtnArr: string[] = [];
+        for (let i = 0; i < commentTableArr.length; ++i) {
+            let commentRtn = ManulTrader.getTranslateInfo(this.languageType, commentTableArr[i]);
+            commentTableRtnArr.push(commentRtn);
+        }
+        commentTableRtnArr.forEach(item => {
+            this.commentTable.addColumn(item);
+        });
+        this.commentTable.columnConfigurable = true;
+        this.commentContent.addChild(this.commentTable);
+        this.commentPage.setContent(this.commentContent);
+
+
         this.bookviewPage = new TabPage("BookView", ManulTrader.getTranslateInfo(this.languageType, "BookView"));
         this.createBookView("BookView");
-
-        // this.pageObj["BookView"] = this.bookviewPage;
-
-        // let bookviewHeader = new ComboControl("row");
-        // this.dd_symbol = new DropDown();
-        // this.dd_symbol.AcceptInput = true;
-        // let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
-        // this.dd_symbol.Title = codeRtn + ": ";
-        // let self = this;
-        // this.dd_symbol.SelectChange = () => {
-        //   this.clearBookViewTable();
-        //   this.subscribeMarketData(parseInt((this.dd_symbol.SelectedItem.Value).split(",")[2]));
-
-        // };
-        // this.dd_symbol.matchMethod = (inputText) => {
-        //   let len = inputText.length;
-        //   let sendStr: string = "";
-        //   for (let i = 0; i < len; ++i) {
-        //     let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
-        //     if (bcheck) {
-        //       sendStr += inputText.charAt(i).toLocaleUpperCase();
-        //     }
-        //     else {
-        //       sendStr += inputText.charAt(i);
-        //     }
-        //   }
-        //   let msg = ManulTrader.getCodeList(sendStr);
-        //   let rtnArr = [];
-        //   this.dd_symbol.Items.length = 0;
-        //   let msgLen = msg.length;
-        //   for (let i = 0; i < msgLen; ++i) {
-        //     if (msg[i].SecuAbbr === msg[i].symbolCode)
-        //       rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
-        //     else
-        //       rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
-        //   }
-        //   return rtnArr;
-        // };
-        // bookviewHeader.addChild(this.dd_symbol);
-
-        // this.bookViewTable = new DataTable("table");
-        // let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
-        // let bookviewRtnArr: string[] = [];
-        // let bookviewTittleLen = bookviewArr.length;
-        // for (let i = 0; i < bookviewTittleLen; ++i) {
-        //   let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewArr[i]);
-        //   bookviewRtnArr.push(bookviewRtn);
-        // }
-        // bookviewRtnArr.forEach(item => {
-        //   this.bookViewTable.addColumn(item);
-        // });
-        // for (let i = 0; i < 20; ++i) {
-        //   let row = this.bookViewTable.newRow();
-        //   row.cells[0].Class = "warning";
-        //   row.cells[0].Text = "";
-        //   row.cells[1].Class = "info";
-        //   row.cells[2].Class = "danger";
-        //   row.cells[3].Class = "default";
-        // }
-        // let bHead = false;
-        // this.bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
-        //   // console.info(cellIndex, rowIndex);
-        // };
-        // this.bookViewTable.OnRowClick = (rowItem, rowIndex) => {
-        //   [this.txt_UKey.Text, this.txt_Symbol.Text] = this.dd_symbol.SelectedItem.Value.split(",");
-        //   this.txt_Price.Text = rowItem.cells[1].Text;
-        //   this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
-        //   let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
-        //   Dialog.popup(this, this.tradeContent, { title: tradeRtn });
-        // };
-        // let bookViewContent = new ComboControl("col");
-        // bookViewContent.addChild(bookviewHeader);
-        // bookViewContent.addChild(this.bookViewTable);
-        // this.bookviewPage.setContent(bookViewContent);
 
         this.logPage = new TabPage("Log", ManulTrader.getTranslateInfo(this.languageType, "LOG"));
         this.pageObj["Log"] = this.logPage;
@@ -835,10 +800,10 @@ export class AppComponent implements OnInit, AfterViewInit {
             let readself = this;
             let account: number = 666600000040;
             ManulTrader.registerAccPos(account);
-            MessageBox.openFileDialog("Select CSV", function(filenames) {
+            MessageBox.openFileDialog("Select CSV", function (filenames) {
                 console.log(filenames);
                 if (filenames !== undefined)
-                    fs.readFile(filenames[0], function(err, content) {
+                    fs.readFile(filenames[0], function (err, content) {
                         if (err === null) {
                             readself.portfolioCount.Text = "0";
                             readself.allChk.Text = false;
@@ -846,7 +811,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                             let codeStr = content.toString();
                             let splitStr = codeStr.split("\n");
                             let initPos = [];
-                            splitStr.forEach(function(item) {
+                            splitStr.forEach(function (item) {
                                 let arr = item.split(",");
                                 if (arr.length === 2 && arr[0]) {
                                     let obj = ManulTrader.getSecuinfoByCode(arr[0] + "");
@@ -1099,6 +1064,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 appid: 17,
                 packid: 43,
                 callback: msg => {
+                    AppComponent.self.changeIp20Status(true);
                     AppComponent.loginFlag = true;
                     console.info(`tgw ans=>${msg}`);
                 }
@@ -1107,6 +1073,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 appid: 17,
                 packid: 120,
                 callback: msg => {
+                    AppComponent.self.changeIp20Status(false);
                     AppComponent.loginFlag = false;
                     console.info(msg);
                 }
@@ -1117,7 +1084,6 @@ export class AppComponent implements OnInit, AfterViewInit {
                 packid: 110,
                 callback: (msg) => {
                     let len = AppComponent.self.bookviewArr.length;
-                    // console.log("*****************", msg.content, len, AppComponent.self.bookviewArr);
                     for (let idx = 0; idx < len; ++idx) {
                         if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
                             for (let i = 0; i < 10; ++i) {
@@ -1170,28 +1136,80 @@ export class AppComponent implements OnInit, AfterViewInit {
         ManulTrader.addSlot(5021, this.showBasketBackInfo);
         ManulTrader.addSlot(5024, this.showPortfolioSummary);
         ManulTrader.addSlot(8000, this.changeSSstatus);
+        ManulTrader.addPsSlot(9000, this.changePsStatus);
 
         ManulTrader.init(port, host);
     }
 
+    changePsStatus(data: any) {
+        console.log("******************", data);
+    }
+
+    changeIp20Status(data: any) {
+        AppComponent.self.addStatus(data, "PS");
+    }
+
     changeSSstatus(data: any) {
+        AppComponent.self.addStatus(data, "SS");
+    }
+
+    addStatus(data: any, mark: string) {
         let markLen = AppComponent.self.statusbar.items.length;
         if (markLen === 0) { // add
-            AppComponent.self.addStatusBarMark({ name: "SS", connected: data });
+            AppComponent.self.addStatusBarMark({ name: mark, connected: data });
         } else {
             let markFlag: Boolean = false;
             for (let i = 0; i < markLen; ++i) {
                 let text = AppComponent.self.statusbar.items[i].text;
-                if (text === "SS") {
+                if (text === mark) {
                     AppComponent.self.statusbar.items[i].color = data ? "green" : "red";
                     markFlag = true;
                 }
             }
             if (!markFlag)
-                AppComponent.self.addStatusBarMark({ name: "SS", connected: data });
+                AppComponent.self.addStatusBarMark({ name: mark, connected: data });
         }
     }
 
+    handleCommentObj(data: any) {
+        let judge = AppComponent.self.judgeObject(this.commentObj);
+        let strategyid = data.strategyid;
+        if (!judge) {
+            this.commentObj[strategyid] = {};
+            this.commentObj[strategyid][data.key] = { name: data.name, value: data.value };
+        } else {
+            // traverse commentobj,insert or modify
+            let commentFlag: boolean = false;
+            let tempFlag: boolean = false;
+            for (let o in this.commentObj) {
+                if (o === strategyid) {
+                    commentFlag = true;
+                    let strategyComment = this.commentObj[o];
+                    for (let tempobj in strategyComment) {
+                        if (tempobj === data.key) {
+                            tempFlag = true;
+                            strategyComment.value = data.value;
+                        }
+                    }
+                }
+                if (!tempFlag) {
+                    this.commentObj[o][data.key] = { name: data.name, value: data.value };
+                }
+
+            }
+            if (!commentFlag) {
+                this.commentObj[strategyid][data.key] = { name: data.name, value: data.value };
+            }
+        }
+        // console.log(this.commentObj);
+    }
+
+    judgeObject(data: any) {
+        for (let o in data) {
+            return true;
+        }
+        return false;
+    }
     gethanizaionInfo(obj: any, data: any) {
         for (let o in obj) {
             if ((o + "") === data)
@@ -2166,8 +2184,9 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
 
-            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {  // this msg insert into comment dialog ,but now, pause!
+            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {  // this msg insert into comment dialog
                 // console.log("COMMENT level == 0:", data[i]);
+                AppComponent.self.handleCommentObj(data[i]);
             }
             if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) { // show
                 let commandObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commentIdx, AppComponent.self.commandIdx);
@@ -2296,7 +2315,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
-        console.log(data);
+        // console.log(data);
         if (data.dataSource.text === "submit") {  // submit
             let sendArray = [];
             let dvalue = 0;
@@ -2322,7 +2341,20 @@ export class AppComponent implements OnInit, AfterViewInit {
             else
                 alert("no changes!");
         } else if (data.dataSource.text === "comment") {
-
+            let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
+            for (let o in this.commentObj) {
+                if (parseInt(o) === strategyId) {
+                    for (let obj in this.commentObj[o]) {
+                        let row = AppComponent.self.commentTable.newRow();
+                        // console.log(this.commentObj[o][obj].name, this.commentObj[o][obj].value);
+                        row.cells[0].Text = this.commentObj[o][obj].name;
+                        row.cells[1].Text = this.commentObj[o][obj].value;
+                    }
+                }
+                // AppComponent.self.commentTable.detectChanges();
+            }
+            let commentRtn = ManulTrader.getTranslateInfo(this.languageType, "Comment");
+            Dialog.popup(this, this.commentContent, { title: commentRtn });
         } else {
             let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
             if (data.dataSource.text === "start") {
@@ -2632,13 +2664,23 @@ export class AppComponent implements OnInit, AfterViewInit {
         dd_symbol.SelectChange = () => {
             this.clearBookViewTable(bookViewTable);
             // bind bookivewID, and subscribe code
+            let tempCodeList = [];
+            let bookcodeFlag: boolean = false;
             let subscribecode = (dd_symbol.SelectedItem.Value).split(",")[2];
-            this.bookviewArr.push({ bookview: bookviewID, code: subscribecode, table: bookViewTable });
-            let rtn = this.codeList.indexOf(parseInt(subscribecode));
-            if (rtn === -1) {
-                this.codeList.push(parseInt(subscribecode));
-                this.subscribeMarketData(this.codeList);
+            for (let i = 0; i < AppComponent.self.bookviewArr.length; ++i) {
+                tempCodeList.push(parseInt(AppComponent.self.bookviewArr[i].code));
+                if (AppComponent.self.bookviewArr[i].bookview === bookviewID) {
+                    tempCodeList.splice(i, 1);
+                    tempCodeList.push(parseInt(subscribecode));
+                    bookcodeFlag = true;
+                    AppComponent.self.bookviewArr[i].code = subscribecode;
+                }
             }
+            if (!bookcodeFlag) {
+                this.bookviewArr.push({ bookview: bookviewID, code: subscribecode, table: bookViewTable });
+                tempCodeList.push(parseInt(subscribecode));
+            }
+            this.subscribeMarketData(tempCodeList);
         };
         dd_symbol.matchMethod = (inputText) => {
             let len = inputText.length;
@@ -2667,11 +2709,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         bookviewHeader.addChild(dd_symbol);
 
-        let bookviewArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
+        let bookviewTableArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
         let bookviewRtnArr: string[] = [];
-        let bookviewTittleLen = bookviewArr.length;
+        let bookviewTittleLen = bookviewTableArr.length;
         for (let i = 0; i < bookviewTittleLen; ++i) {
-            let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewArr[i]);
+            let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewTableArr[i]);
             bookviewRtnArr.push(bookviewRtn);
         }
         bookviewRtnArr.forEach(item => {
