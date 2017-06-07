@@ -5,7 +5,6 @@ import { OrderService } from "../../../base/api/services/orderService";
 import { PriceService } from "../../../base/api/services/priceService";
 import { SecuMasterService } from "../../../base/api/services/backend.service";
 import { TranslateService } from "../../../base/api/services/translate.service";
-import { AppComponent } from "../app.component";
 
 export class ManulTrader {
     private static orderService = new OrderService();
