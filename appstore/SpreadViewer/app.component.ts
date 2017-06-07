@@ -135,7 +135,7 @@ export class AppComponent implements OnInit {
                 viewer.init();
                 viewer.start();
                 txt_max.Disable = txt_min.Disable = txt_tick.Disable = btn_dayview.Disable = false;
-                this.tgw.send(17, 101, { topic: 3112, kwlist: [3801236, 3801247] });
+                this.tgw.send(17, 101, { topic: 3112, kwlist: [parseInt(res[this.option.details.code1].ukey), parseInt(res[this.option.details.code2].ukey)] });
             }, 100);
         };
         btn_dayview.OnClick = () => {
@@ -204,7 +204,7 @@ export class AppComponent implements OnInit {
                 let stime = ("0" + time.getHours()).slice(-2) + ("0" + time.getMinutes()).slice(-2) + ("0" + time.getSeconds()).slice(-2);
 
                 if (!msg.content.ukey || !viewer.hasInstrumentID(msg.content.ukey)) {
-                    console.info(msg);
+                    console.warn(`unvalid ukey => ${msg.content.ukey}`);
                     return;
                 }
 
