@@ -395,7 +395,6 @@ export class AppComponent implements OnInit, AfterViewInit {
             let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
             Dialog.popup(this, this.tradeContent, { title: tradeRtn });
         };
-
         let leftAlign = 20;
         let rowSep = 5;
         this.tradePage = new TabPage("ManulTrader", ManulTrader.getTranslateInfo(this.languageType, "ManulTrader"));
@@ -1083,6 +1082,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 appid: 17,
                 packid: 110,
                 callback: (msg) => {
+                    // console.log(msg);
                     let len = AppComponent.self.bookviewArr.length;
                     for (let idx = 0; idx < len; ++idx) {
                         if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
@@ -1532,7 +1532,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         for (let i = 0; i < rows; ++i) {
             let getOrderId = this.orderstatusTable.rows[i].cells[3].Text;
             if (data === getOrderId) {
-                this.orderstatusTable.rows.splice(i);
+                this.orderstatusTable.rows.splice(i, 1);
                 break;
             }
         }
@@ -2700,7 +2700,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             let msgLen = msg.length;
             for (let i = 0; i < msgLen; ++i) {
                 if (msg[i].SecuAbbr === msg[i].symbolCode)
-                    rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode });
+                    rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
                 else
                     rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
             }
@@ -2757,6 +2757,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     subscribeMarketData(codes: any) {
+        // console.log("send future msg:", codes);
         this.tgw.send(17, 101, { topic: 3112, kwlist: codes });
     }
 
