@@ -10,7 +10,7 @@ import {
     DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
-import { IP20Service } from "../../base/api/services/ip20.service";
+import { WorkerFactory } from "../../base/api/services/uworker.server";
 import { MessageBox, fs, AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
 import { ManulTrader } from "./bll/sendorder";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
@@ -20,7 +20,6 @@ declare let window: any;
     selector: "body",
     templateUrl: "app.component.html",
     providers: [
-        IP20Service,
         AppStateCheckerRef
     ]
 })
@@ -106,10 +105,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     static bookViewSN = 1;
     static spreadViewSN = 1;
+    static tgw = null;
     static loginFlag: boolean = false;
 
-    constructor(private tgw: IP20Service, private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
+    constructor(private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
         AppComponent.self = this;
+        AppComponent.tgw = WorkerFactory.createIP20Worker();
+        console.info(process.pid);
         this.statechecker.onInit(this, this.onReady);
         this.statechecker.onResize(this, this.onResize);
         this.statechecker.onDestory(this, this.onDestroy);
@@ -1052,54 +1054,22 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     subScribeMarketInit(port: number, host: string) {
         if (!AppComponent.loginFlag) {
-            let timestamp: Date = new Date();
-            let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
-                ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
-                ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-            let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
-            this.tgw.connect(port, host);
-            this.tgw.send(17, 41, loginObj);
-
-            this.tgw.addSlot({ // login success
-                appid: 17,
-                packid: 43,
-                callback: msg => {
-                    AppComponent.self.changeIp20Status(true);
-                    AppComponent.loginFlag = true;
-                    console.info(`tgw ans=>${msg}`);
-                }
-            });
-            this.tgw.addSlot({  // login error
-                appid: 17,
-                packid: 120,
-                callback: msg => {
-                    AppComponent.self.changeIp20Status(false);
-                    AppComponent.loginFlag = false;
-                    console.info(msg);
-                }
-            });
-
-            this.tgw.addSlot({ // receive msg
-                appid: 17,
-                packid: 110,
-                callback: (msg) => {
-                    let len = AppComponent.self.bookviewArr.length;
-                    for (let idx = 0; idx < len; ++idx) {
-                        if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
-                            for (let i = 0; i < 10; ++i) {
-                                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[0].Text = msg.content.bid_volume[i] + "";
-                                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = msg.content.bid_price[i] / 10000 + "";
-                                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[2].Text = msg.content.ask_volume[i] + "";
-                                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = msg.content.ask_price[i] / 10000 + "";
-                            }
+            AppComponent.tgw.send({ command: "start", params: { port: port, host: host } });
+            AppComponent.tgw.onData = msg => {
+                // console.info(msg);
+                let len = AppComponent.self.bookviewArr.length;
+                for (let idx = 0; idx < len; ++idx) {
+                    if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
+                        for (let i = 0; i < 10; ++i) {
+                            AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[0].Text = msg.content.bid_volume[i] + "";
+                            AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = msg.content.bid_price[i] / 10000 + "";
+                            AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[2].Text = msg.content.ask_volume[i] + "";
+                            AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = msg.content.ask_price[i] / 10000 + "";
                         }
                     }
                 }
-            });
+            };
             AppComponent.loginFlag = true;
-            timestamp = null;
-            stimestamp = null;
-            loginObj = null;
         }
     }
 
@@ -2757,10 +2727,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     subscribeMarketData(codes: any) {
-        this.tgw.send(17, 101, { topic: 3112, kwlist: codes });
+        AppComponent.tgw.send({ command: "sendMsg", params: { appid: 17, packid: 101, msg: { topic: 3112, kwlist: codes } } });
     }
 
     onDestroy() {
+        AppComponent.tgw.dispose();
         File.writeSync(`${Environment.appDataDir}/ChronosApps/${AppComponent.self.option.name}/layout.json`, this.main.getLayout());
     }
 
@@ -2770,5 +2741,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.ref.detectChanges();
     }
 }
+
 
 

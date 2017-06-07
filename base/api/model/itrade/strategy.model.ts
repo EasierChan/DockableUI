@@ -492,10 +492,10 @@ export class StatArbOrder extends Message {
         this.strategyid = buf.readUInt32LE(offset); offset += 4;
         this.code = buf.readUInt32LE(offset); offset += 4;
         this.pricerate = buf.readInt32LE(offset); offset += 8;
-        this.position = buf.readIntLE(offset, 8); offset += 8;
-        this.quantity = buf.readIntLE(offset, 8); offset += 8;
-        this.amount = buf.readIntLE(offset, 8); offset += 8;
-        this.diffQty = buf.readIntLE(offset, 8); offset += 8;
+        this.position = BufferUtil.readInt64LE(buf, offset); offset += 8;
+        this.quantity = BufferUtil.readInt64LE(buf, offset); offset += 8;
+        this.amount = BufferUtil.readInt64LE(buf, offset); offset += 8;
+        this.diffQty = BufferUtil.readInt64LE(buf, offset); offset += 8;
         return offset;
     }
 }
@@ -528,7 +528,7 @@ class ComOrderStatus extends Message {
         this.action = buf.readUInt8(offset); offset += 4;
         this.price = buf.readUInt32LE(offset); offset += 4;
         this.quantity = buf.readUInt32LE(offset); offset += 4;
-        this.datetime.tv_sec = buf.readIntLE(offset, 8); offset += 8;
+        this.datetime.tv_sec = BufferUtil.readInt64LE(buf, offset); offset += 8;
         this.datetime.tv_usec = buf.readUIntLE(offset, 8); offset += 8;
         this.ordertype = buf.readUInt8(offset); offset += 1;
         this.tradetype = buf.readUInt8(offset); offset += 1;
@@ -597,6 +597,64 @@ export class ComConOrderErrorInfo extends Message {
     fromBuffer(buf: Buffer, offset: number): number {
         offset += this.con.fromBuffer(buf, offset);
         offset += this.os.fromBuffer(buf, offset);
+        return offset;
+    }
+}
+
+export class FpPosUpdate extends Message {
+    UKey: number = 0; // uint32_t
+    LastPrice: number = 0;  // uint32_t
+    PreClose: number = 0;  // uint32_t
+    BidSize: number = 0;  // uint32_t
+    BidPrice: number = 0;  // uint32_t
+    AskPrice: number = 0;  // uint32_t
+    AskSize: number = 0;  // uint32_t
+    InitPos: number = 0; // int32_t
+    TgtPos: number = 0; // int32_t
+    CurrPos: number = 0; // int32_t
+    WorkingVol: number = 0; // uint32_t
+    Diff: number = 0; // int32_t
+    Traded: number = 0; // int32_t
+    AvgBuyPrice: number = 0; // uint32_t
+    AvgSellPrice: number = 0; // uint32_t
+    Percentage: number = 0; // uint16_t
+    DayPnLCon: number = 0;     // int64_t
+    ONPnLCon: number = 0; // int64_t
+    ValueCon: number = 0; // int64_t
+    PreValue: number = 0; // int64_t
+    Flag: number = 0;  // int32_t  0 for normal status, 1 for suspend, 2 for forbidden, 3 for hit ceiling, 4 for hit floor
+
+    fromBuffer(buf, offset) {
+        return BufferUtil.format(buf, offset, "15i1w4l1i", this);
+    }
+
+    toBuffer(): Buffer {
+        return null;
+    }
+};
+
+export class FpQtyOrder {
+    UKey: number = 0;  // uint32
+    AskPriceLevel: number = 0; // uint8
+    BidPriceLevel: number = 0; // uint8
+    AskOffset: number = 0; // int8
+    BidOffset: number = 0; // int8
+    Qty: number = 0; // uint32
+
+    fromBuffer(buf, offset) {
+        return BufferUtil.format(buf, offset, "1i4b1i", this);
+    }
+
+    toBuffer() {
+        let buf = Buffer.alloc(12, 0);
+        let offset = 0;
+
+        buf.writeUInt32LE(this.UKey, offset); offset += 4;
+        buf.writeUInt8(this.AskPriceLevel, offset); offset += 1;
+        buf.writeUInt8(this.BidPriceLevel, offset); offset += 1;
+        buf.writeUInt8(this.AskOffset, offset); offset += 1;
+        buf.writeUInt8(this.BidOffset, offset); offset += 1;
+        buf.writeUInt32LE(this.Qty, offset); offset += 4;
         return offset;
     }
 }

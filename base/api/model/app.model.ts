@@ -74,7 +74,7 @@ export class BufferUtil {
                     break;
                 case "l":
                     for (; len > 0; --len) {
-                        msg[props[iprop++]] = buf.readUIntLE(offset, 8);
+                        msg[props[iprop++]] = BufferUtil.readInt64LE(buf, offset);
                         offset += 8;
                     }
                     break;
@@ -98,7 +98,7 @@ export class BufferUtil {
                     break;
                 case "L":
                     for (; len > 0; --len) {
-                        msg[props[iprop++]] = buf.readIntLE(offset, 8);
+                        msg[props[iprop++]] = BufferUtil.readInt64LE(buf, offset);
                         offset += 8;
                     }
                     break;
@@ -128,5 +128,12 @@ export class BufferUtil {
         });
 
         return offset;
+    }
+
+    static readInt64LE(buffer: Buffer, offset: number): any {
+        let low: number = buffer.readInt32LE(offset); offset += 4;
+        let n: number = buffer.readInt32LE(offset) * 4294967296 + low; offset += 4;
+        if (low < 0) n += 4294967296;
+        return n;
     }
 }

@@ -1,19 +1,19 @@
 /**
- * do sth in a single process.
+ * createWorker
  */
 "use strict";
 
 const fork = require("@node/child_process").fork;
 
-export class UWorker {
-    private child;
+class UWorker {
+    child;
     onData: Function;
 
     constructor(private pscript: string) {
         this.child = fork(this.pscript);
         this.child.on("message", (m, sock) => {
             if (this.onData) {
-                this.onData(m);
+                this.onData(m.content);
             }
         });
     }
@@ -22,7 +22,14 @@ export class UWorker {
         this.child.send(msg);
     }
 
+
     dispose() {
-        this.child.disconnect();
+        this.child.kill();
+    }
+}
+
+export class WorkerFactory {
+    static createIP20Worker() {
+        return new UWorker(`${__dirname}/ip20.worker.js`);
     }
 }

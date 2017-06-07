@@ -3,9 +3,9 @@
  */
 "use strict";
 
-import { TcpClient } from "../browser/tcpclient";
-import { Parser } from "../browser/parser";
-import { Pool } from "../browser/pool";
+import { TcpClient } from "../common/base/tcpclient";
+import { Parser } from "../common/base/parser";
+import { Pool } from "../common/base/pool";
 import { ISONPack2Header, ISONPack2 } from "../model/isonpack/isonpack.model";
 import { Injectable } from "@angular/core";
 
@@ -192,7 +192,6 @@ class ISONPackClient extends TcpClient {
     }
 }
 
-@Injectable()
 export class IP20Service {
     private _client: ISONPackClient;
     private _messageMap: Object;
@@ -273,6 +272,7 @@ export interface Slot {
  * interface for single pro.
  */
 process.on("message", (m: WSIP20, sock) => {
+    console.info(m);
     switch (m.command) {
         case "start":
             IP20Factory.instance.onConnect = () => {
@@ -287,21 +287,21 @@ process.on("message", (m: WSIP20, sock) => {
                 appid: 17,
                 packid: 43,
                 callback(msg) {
-                    console.info(`tgw ans=>${msg}`);
+                    logger.info(`tgw ans=>${msg}`);
                 }
             }, {
-                appid: 17,
-                packid: 120,
-                callback(msg) {
-                    console.info(`tgw ans=>${msg}`);
-                }
-            }, {
-                appid: 17,
-                packid: 110,
-                callback(msg) {
-                    process.send({ event: "data", content: msg});
-                }
-            });
+                    appid: 17,
+                    packid: 120,
+                    callback(msg) {
+                        logger.info(`tgw ans=>${msg}`);
+                    }
+                }, {
+                    appid: 17,
+                    packid: 110,
+                    callback(msg) {
+                        process.send({ event: "data", content: msg });
+                    }
+                });
 
             IP20Factory.instance.connect(m.params.port, m.params.host);
             let timestamp: Date = new Date();
@@ -312,14 +312,30 @@ process.on("message", (m: WSIP20, sock) => {
             IP20Factory.instance.send(17, 41, loginObj);
             break;
         case "sendMsg":
-            IP20Factory.instance.send(m.params.appi, m.params.packid, m.params.msg);
+            IP20Factory.instance.send(m.params.appid, m.params.packid, m.params.msg);
             break;
         case "stop":
             break;
         default:
-            console.error(`unvalid command => ${m.command}`);
+            logger.error(`unvalid command => ${m.command}`);
             break;
     }
+});
+
+process.on("close", () => {
+    console.info(`process closed`);
+});
+
+process.on("disconnect", () => {
+    console.info(`process disconnect`);
+});
+
+process.on("error", () => {
+    console.info(`process error`);
+});
+
+process.on("exit", () => {
+    console.info(`process exit`);
 });
 
 interface WSIP20 {
@@ -336,3 +352,5 @@ class IP20Factory {
         return IP20Factory.tgw;
     }
 }
+
+console.info(process.pid);
