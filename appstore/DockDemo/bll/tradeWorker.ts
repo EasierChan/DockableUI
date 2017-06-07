@@ -86,7 +86,7 @@ interface WSIP20 {
     params: any;
 }
 
-class IP20Factory {
+export class IP20Factory {
     private static tgw: IP20Service;
     static get instance() {
         if (!IP20Factory.tgw)
