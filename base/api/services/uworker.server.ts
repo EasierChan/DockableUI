@@ -13,7 +13,7 @@ class UWorker {
         this.child = fork(this.pscript);
         this.child.on("message", (m, sock) => {
             if (this.onData) {
-                this.onData(m.content);
+                this.onData(m);
             }
         });
     }
