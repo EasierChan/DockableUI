@@ -389,7 +389,7 @@ export class WorkspaceConfig {
 export class StrategyInstance {
     key: string;
     name: string;
-    accounts: number[] = [];
+    accounts: string;
     algoes: number[] = [];
     checks: number[] = [];
     sendChecks?: Object[];

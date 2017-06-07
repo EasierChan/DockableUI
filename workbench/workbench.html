@@ -279,7 +279,7 @@
                                                             <div class="cell">BaseInfo</div>
                                                         </div>
                                                         <div class="content bg-gray">
-                                                            <label class="col2">Accounts:<input type="text"></label>
+                                                            <label class="col2">Accounts:<input type="text" [(ngModel)]="instance.accounts"></label>
                                                             <fieldset>
                                                                 <legend>Algoes</legend>
                                                                 <label *ngFor="let algo of curTemplate.body.data.Order"><input type="checkbox" [checked]="instance.algoes.includes(algo.key)" (change)="updateAlgo($event, algo, instance)">{{algo.name}}</label>
@@ -515,12 +515,12 @@
                 <h5>Strategy Moniter</h5>
 
                 <div class="accordion" data-role="accordion" data-close-any="true">
-                    <div *ngFor="let item of strategyContainer.items" class="frame">
-                        <div class="heading bg-grayLight">
+                    <!--<div *ngFor="let item of strategyContainer.items" >-->
+                        <!--<div class="heading bg-grayLight">
                             <div class="cell">{{item.name}}</div>
                             <div class="cell">{{item.conn.connState}}</div>
                         </div>
-                        <div class="content bg-darker">
+                        <div class="content bg-darker">-->
                             <table class="table condensed">
                                 <thead>
                                     <tr>
@@ -533,6 +533,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    <template ngFor let-item  [ngForOf]="strategyContainer.items" >
                                     <tr *ngFor="let strategy of item.conn.strategies">
                                         <td>{{strategy.id}}</td>
                                         <td>{{strategy.name}}</td>
@@ -556,10 +557,11 @@
                                         <td>{{strategy?.totalpnl}}</td>
                                         <td>{{strategy?.totalposition}}</td>
                                     </tr>
+                                    </template>
                                 </tbody>
                             </table>
-                        </div>
-                    </div>
+                        <!--</div>-->
+                    <!--</div>-->
                 </div>
             </div>
         </div>

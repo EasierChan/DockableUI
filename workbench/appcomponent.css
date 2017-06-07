@@ -164,6 +164,11 @@
     padding-left: 0.125rem;
 }
 
+.group-of-buttons .button.active {
+    background-color: #eaeaea;
+    color: #bebebe;
+}
+
 .table td .input-control {
     width: auto;
 }
