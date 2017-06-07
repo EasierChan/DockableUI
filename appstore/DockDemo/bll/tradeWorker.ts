@@ -5,7 +5,7 @@ import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "
 import { OrderService } from "../../../base/api/services/orderService";
 import { SecuMasterService } from "../../../base/api/services/backend.service";
 import { TranslateService } from "../../../base/api/services/translate.service";
-
+import { ManulTrader } from "./sendorder";
 const logger = console;
 /**
  * interface for single pro.
@@ -56,8 +56,107 @@ process.on("message", (m: WSIP20, sock) => {
         case "ps-stop":
             break;
         case "ss-start":
+            // process of strategy init
+            ManulTrader.addSlot(2011, data => {
+                process.send({ event: "ps-data", content: { type: 2011, data: data } });
+            });
+            ManulTrader.addSlot(2033, data => {
+                process.send({ event: "ps-data", content: { type: 2033, data: data } });
+            });
+            ManulTrader.addSlot(2000, data => {
+                process.send({ event: "ps-data", content: { type: 2000, data: data } });
+            });
+            ManulTrader.addSlot(2002, data => {
+                process.send({ event: "ps-data", content: { type: 2002, data: data } });
+            });
+            ManulTrader.addSlot(2004, data => {
+                process.send({ event: "ps-data", content: { type: 2004, data: data } });
+            });
+            ManulTrader.addSlot(2049, data => {
+                process.send({ event: "ps-data", content: { type: 2049, data: data } });
+            });
+            ManulTrader.addSlot(2030, data => {
+                process.send({ event: "ps-data", content: { type: 2030, data: data } });
+            });
+            ManulTrader.addSlot(2029, data => {
+                process.send({ event: "ps-data", content: { type: 2029, data: data } });
+            });
+            ManulTrader.addSlot(2032, data => {
+                process.send({ event: "ps-data", content: { type: 2032, data: data } });
+            });
+            ManulTrader.addSlot(2001, data => {
+                process.send({ event: "ps-data", content: { type: 2001, data: data } });
+            });
+            ManulTrader.addSlot(2003, data => {
+                process.send({ event: "ps-data", content: { type: 2003, data: data } });
+            });
+            ManulTrader.addSlot(2005, data => {
+                process.send({ event: "ps-data", content: { type: 2005, data: data } });
+            });
+            ManulTrader.addSlot(2050, data => {
+                process.send({ event: "ps-data", content: { type: 2050, data: data } });
+            });
+            ManulTrader.addSlot(2031, data => {
+                process.send({ event: "ps-data", content: { type: 2031, data: data } });
+            });
+            ManulTrader.addSlot(2048, data => {
+                process.send({ event: "ps-data", content: { type: 2048, data: data } });
+            });
+            ManulTrader.addSlot(2020, data => {
+                process.send({ event: "ps-data", content: { type: 2020, data: data } });
+            });
+            ManulTrader.addSlot(2013, data => {
+                process.send({ event: "ps-data", content: { type: 2013, data: data } });
+            });
+            ManulTrader.addSlot(3502, data => {
+                process.send({ event: "ps-data", content: { type: 3502, data: data } });
+            });
+            ManulTrader.addSlot(3504, data => {
+                process.send({ event: "ps-data", content: { type: 3054, data: data } });
+            });
+            ManulTrader.addSlot(2015, data => {
+                process.send({ event: "ps-data", content: { type: 2015, data: data } });
+            });
+            ManulTrader.addSlot(2017, data => {
+                process.send({ event: "ps-data", content: { type: 2017, data: data } });
+            });
+            ManulTrader.addSlot(2023, data => {
+                process.send({ event: "ps-data", content: { type: 2023, data: data } });
+            });
+            ManulTrader.addSlot(2025, data => {
+                process.send({ event: "ps-data", content: { type: 2025, data: data } });
+            });
+            ManulTrader.addSlot(5022, data => {
+                process.send({ event: "ps-data", content: { type: 5022, data: data } });
+            });
+            ManulTrader.addSlot(2021, data => {
+                process.send({ event: "ps-data", content: { type: 2021, data: data } });
+            });
+            ManulTrader.addSlot(2022, data => {
+                process.send({ event: "ps-data", content: { type: 2022, data: data } });
+            });
+            ManulTrader.addSlot(3011, data => {
+                process.send({ event: "ps-data", content: { type: 3011, data: data } });
+            });
+            ManulTrader.addSlot(3510, data => {
+                process.send({ event: "ps-data", content: { type: 3510, data: data } });
+            });
+            ManulTrader.addSlot(2040, data => {
+                process.send({ event: "ps-data", content: { type: 2040, data: data } });
+            });
+            ManulTrader.addSlot(5021, data => {
+                process.send({ event: "ps-data", content: { type: 5021, data: data } });
+            });
+            ManulTrader.addSlot(5024, data => {
+                process.send({ event: "ps-data", content: { type: 5024, data: data } });
+            });
+            ManulTrader.addSlot(8000, data => {
+                process.send({ event: "ps-data", content: { type: 8000, data: data } });
+            });
+            ManulTrader.init(m.params.port, m.params.host);
             break;
         case "ss-send":
+            ss_sendHandle(m.params);
             break;
         default:
             logger.error(`unvalid command => ${m.command}`);
@@ -93,5 +192,17 @@ class IP20Factory {
             IP20Factory.tgw = new IP20Service();
 
         return IP20Factory.tgw;
+    }
+}
+
+function ss_sendHandle(data: any) {
+    let type = data.type;
+    let content = data.data;
+    switch (type) {
+        case "sendorder":
+            ManulTrader.submitOrder(content);
+            break;
+        default:
+            break;
     }
 }

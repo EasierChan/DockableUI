@@ -477,7 +477,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             let actionValue = this.dd_Action.SelectedItem.Value;
 
             let date = new Date();
-            ManulTrader.submitOrder({
+            let orderPack = {
                 ordertype: EOrderType.ORDER_TYPE_ORDER,
                 con: {
                     contractid: 0,
@@ -504,6 +504,10 @@ export class AppComponent implements OnInit, AfterViewInit {
                     covered: 0,
                     signal: [{ id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }]
                 }
+            };
+            // submit order
+            AppComponent.bgWorker.send({
+                command: "ss-send", params: { type: "sendorder", data: orderPack }
             });
         };
 
@@ -1033,6 +1037,9 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         this.loadLayout();
         this.init(this.option.port, this.option.host);
+        AppComponent.bgWorker.send({
+            command: "ss-start", params: { port: this.option.port, host: this.option.host }
+        });
         this.subScribeMarketInit(8012, "172.24.51.4");
         // this.init(9082, "172.24.51.4");
     }
@@ -1059,40 +1066,38 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     init(port: number, host: string) {
-        ManulTrader.addSlot(2011, this.showStrategyInfo);
-        ManulTrader.addSlot(2033, this.showStrategyInfo);
-        ManulTrader.addSlot(2000, this.showStrategyCfg);
-        ManulTrader.addSlot(2002, this.showStrategyCfg);
-        ManulTrader.addSlot(2004, this.showStrategyCfg);
-        ManulTrader.addSlot(2049, this.showStrategyCfg);
-        ManulTrader.addSlot(2030, this.showStrategyCfg);
-        ManulTrader.addSlot(2029, this.showStrategyCfg);
-        ManulTrader.addSlot(2032, this.showStrategyCfg);
-        ManulTrader.addSlot(2001, this.showGuiCmdAck);
-        ManulTrader.addSlot(2003, this.showGuiCmdAck);
-        ManulTrader.addSlot(2005, this.showGuiCmdAck);
-        ManulTrader.addSlot(2050, this.showGuiCmdAck);
-        ManulTrader.addSlot(2031, this.showGuiCmdAck);
-        ManulTrader.addSlot(2048, this.showComTotalProfitInfo);
-        ManulTrader.addSlot(2020, this.showComConOrder);
-        ManulTrader.addSlot(2013, this.showComAccountPos);
-        ManulTrader.addSlot(3502, this.showComRecordPos);
-        ManulTrader.addSlot(3504, this.showComRecordPos);
-        ManulTrader.addSlot(2015, this.showComGWNetGuiInfo);
-        ManulTrader.addSlot(2017, this.showComGWNetGuiInfo);
-        ManulTrader.addSlot(2023, this.showComProfitInfo);
-        ManulTrader.addSlot(2025, this.showStatArbOrder);
-        ManulTrader.addSlot(5022, this.showComorderstatusAndErrorInfo);
-        ManulTrader.addSlot(2021, this.showComorderstatusAndErrorInfo);
-        ManulTrader.addSlot(2022, this.showComOrderRecord);
-        ManulTrader.addSlot(3011, this.showComOrderRecord);
-        ManulTrader.addSlot(3510, this.showComOrderRecord);
-        ManulTrader.addSlot(2040, this.showLog);
-        ManulTrader.addSlot(5021, this.showBasketBackInfo);
-        ManulTrader.addSlot(5024, this.showPortfolioSummary);
-        ManulTrader.addSlot(8000, this.changeSSstatus);
-
-        ManulTrader.init(port, host);
+        // ManulTrader.addSlot(2011, this.showStrategyInfo);
+        // ManulTrader.addSlot(2033, this.showStrategyInfo);
+        // ManulTrader.addSlot(2000, this.showStrategyCfg);
+        // ManulTrader.addSlot(2002, this.showStrategyCfg);
+        // ManulTrader.addSlot(2004, this.showStrategyCfg);
+        // ManulTrader.addSlot(2049, this.showStrategyCfg);
+        // ManulTrader.addSlot(2030, this.showStrategyCfg);
+        // ManulTrader.addSlot(2029, this.showStrategyCfg);
+        // ManulTrader.addSlot(2032, this.showStrategyCfg);
+        // ManulTrader.addSlot(2001, this.showGuiCmdAck);
+        // ManulTrader.addSlot(2003, this.showGuiCmdAck);
+        // ManulTrader.addSlot(2005, this.showGuiCmdAck);
+        // ManulTrader.addSlot(2050, this.showGuiCmdAck);
+        // ManulTrader.addSlot(2031, this.showGuiCmdAck);
+        // ManulTrader.addSlot(2048, this.showComTotalProfitInfo);
+        // ManulTrader.addSlot(2020, this.showComConOrder);
+        // ManulTrader.addSlot(2013, this.showComAccountPos);
+        // ManulTrader.addSlot(3502, this.showComRecordPos);
+        // ManulTrader.addSlot(3504, this.showComRecordPos);
+        // ManulTrader.addSlot(2015, this.showComGWNetGuiInfo);
+        // ManulTrader.addSlot(2017, this.showComGWNetGuiInfo);
+        // ManulTrader.addSlot(2023, this.showComProfitInfo);
+        // ManulTrader.addSlot(2025, this.showStatArbOrder);
+        // ManulTrader.addSlot(5022, this.showComorderstatusAndErrorInfo);
+        // ManulTrader.addSlot(2021, this.showComorderstatusAndErrorInfo);
+        // ManulTrader.addSlot(2022, this.showComOrderRecord);
+        // ManulTrader.addSlot(3011, this.showComOrderRecord);
+        // ManulTrader.addSlot(3510, this.showComOrderRecord);
+        // ManulTrader.addSlot(2040, this.showLog);
+        // ManulTrader.addSlot(5021, this.showBasketBackInfo);
+        // ManulTrader.addSlot(5024, this.showPortfolioSummary);
+        // ManulTrader.addSlot(8000, this.changeSSstatus);
     }
 
     changeIp20Status(data: any) {
@@ -2745,10 +2750,113 @@ export class AppComponent implements OnInit, AfterViewInit {
                     AppComponent.self.changeIp20Status(false);
                     break;
                 case "ss-connect":
+
                     break;
                 case "ss-close":
                     break;
                 case "ss-data":
+                    let type = data.content.type;
+                    let receivedata = data.content.data;
+                    switch (type) {
+                        case 2011:
+                            this.showStrategyInfo(receivedata);
+                            break;
+                        case 2033:
+                            this.showStrategyInfo(receivedata);
+                            break;
+                        case 2000:
+                            this.showStrategyCfg(receivedata);
+                            break;
+                        case 2002:
+                            this.showStrategyCfg(receivedata);
+                            break;
+                        case 2004:
+                            this.showStrategyCfg(receivedata);
+                            break;
+                        case 2049:
+                            this.showStrategyCfg(receivedata);
+                            break;
+                        case 2030:
+                            this.showStrategyCfg(receivedata);
+                            break;
+                        case 2029:
+                            this.showStrategyCfg(receivedata);
+                            break;
+                        case 2032:
+                            this.showStrategyCfg(receivedata);
+                            break;
+                        case 2001:
+                            this.showGuiCmdAck(receivedata);
+                            break;
+                        case 2003:
+                            this.showGuiCmdAck(receivedata);
+                            break;
+                        case 2005:
+                            this.showGuiCmdAck(receivedata);
+                            break;
+                        case 2050:
+                            this.showGuiCmdAck(receivedata);
+                            break;
+                        case 2031:
+                            this.showGuiCmdAck(receivedata);
+                            break;
+                        case 2048:
+                            this.showComTotalProfitInfo(receivedata);
+                            break;
+                        case 2020:
+                            this.showComConOrder(receivedata);
+                            break;
+                        case 2013:
+                            this.showComAccountPos(receivedata);
+                            break;
+                        case 3502:
+                            this.showComRecordPos(receivedata);
+                            break;
+                        case 3504:
+                            this.showComRecordPos(receivedata);
+                            break;
+                        case 2015:
+                            this.showComGWNetGuiInfo(receivedata);
+                            break;
+                        case 2017:
+                            this.showComGWNetGuiInfo(receivedata);
+                            break;
+                        case 2023:
+                            this.showComProfitInfo(receivedata);
+                            break;
+                        case 2025:
+                            this.showStatArbOrder(receivedata);
+                            break;
+                        case 5022:
+                            this.showComorderstatusAndErrorInfo(receivedata);
+                            break;
+                        case 2021:
+                            this.showComorderstatusAndErrorInfo(receivedata);
+                            break;
+                        case 2022:
+                            this.showComOrderRecord(receivedata);
+                            break;
+                        case 3011:
+                            this.showComOrderRecord(receivedata);
+                            break;
+                        case 3510:
+                            this.showComOrderRecord(receivedata);
+                            break;
+                        case 2040:
+                            this.showLog(receivedata);
+                            break;
+                        case 5021:
+                            this.showBasketBackInfo(receivedata);
+                            break;
+                        case 5024:
+                            this.showPortfolioSummary(receivedata);
+                            break;
+                        case 8000:
+                            this.changeSSstatus(receivedata);
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 default:
                     break;
