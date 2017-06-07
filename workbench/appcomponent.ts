@@ -173,7 +173,10 @@ export class AppComponent implements OnDestroy {
         this.curTemplate.body.data["PairTrades"] = {};
         this.config.strategyInstances.forEach(item => {
             let obj = JSON.parse(JSON.stringify(sobj));
-            // obj.account = item.accounts;
+            obj.account = [];
+            item.accounts.split(",").forEach(iact => {
+                obj.account.push(parseInt(iact));
+            });
             obj.algoes = item.algoes;
             obj.checks = item.checks;
             obj.cfg = obj.field = obj.name = obj.log = item.name;

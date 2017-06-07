@@ -32,4 +32,10 @@ export class WorkerFactory {
     static createIP20Worker() {
         return new UWorker(`${__dirname}/ip20.worker.js`);
     }
+
+    static createWorker(url: string) {
+        if (!url.endsWith(".js"))
+            url += ".js";
+        return new UWorker(url);
+    }
 }

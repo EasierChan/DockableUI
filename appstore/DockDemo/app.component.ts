@@ -110,8 +110,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     constructor(private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
         AppComponent.self = this;
-        AppComponent.bgWorker = WorkerFactory.createIP20Worker();
-        console.info(process.pid);
+        AppComponent.bgWorker = WorkerFactory.createWorker(`${__dirname}/bll/tradeWorker`);
         this.statechecker.onInit(this, this.onReady);
         this.statechecker.onResize(this, this.onResize);
         this.statechecker.onDestory(this, this.onDestroy);
@@ -1038,6 +1037,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit() {
+        setInterval(() => {
+            this.bookviewArr.forEach(item => {
+                item.table.detectChanges();
+            });
+        }, 1000);
     }
 
     loadLayout() {
@@ -1053,6 +1057,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     subScribeMarketInit(port: number, host: string) {
         if (!AppComponent.loginFlag) {
+            this.createBackgroundWork();
             AppComponent.bgWorker.send({ command: "ps-start", params: { port: port, host: host } });
             AppComponent.loginFlag = true;
         }
