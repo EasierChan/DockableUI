@@ -1161,7 +1161,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     changeIp20Status(data: any) {
-        console.log("************", data);
         AppComponent.self.addStatus(data, "PS");
     }
 
@@ -1525,7 +1524,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         console.log("showComConOrder: 2020 ,UNKNOWN ,????", data);
     }
     showComOrderRecord(data: any) {
-        console.log("showComOrderRecord", data);
         let hasDone = false;
         for (let i = 0; i < data.length; ++i) {
             let orderStatus = data[i].od.status;
@@ -1758,7 +1756,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showComRecordPos(data: any) {
-         console.log("000000000000", data);
         for (let i = 0; i < data.length; ++i) {
             let equityPosTableRows: number = AppComponent.self.PositionTable.rows.length;
             let equityposSec: number = data[i].secucategory;
@@ -1869,7 +1866,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.PositionTable.detectChanges();
     }
     showComGWNetGuiInfo(data: any) {
-        // console.log("+++++++++++", data);
         let markLen = AppComponent.self.statusbar.items.length;
         if (markLen === 0) { // add
             AppComponent.self.addStatusBarMark(data[0]);
@@ -1917,7 +1913,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.profitTable.detectChanges();
     }
     showComProfitInfo(data: any) {
-        // console.log("**************", data);
         for (let i = 0; i < data.length; ++i) {
             let profitTableRows: number = AppComponent.self.profitTable.rows.length;
             let profitUkey: number = data[i].innercode;
