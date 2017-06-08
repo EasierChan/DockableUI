@@ -1540,7 +1540,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
 
         if (hasDone) {
-            Sound.play(0);
+            // Sound.play(0);
         }
     }
     deleteUndoneOrder(data: any) {
