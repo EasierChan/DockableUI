@@ -11,8 +11,10 @@ import {
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
 import { WorkerFactory } from "../../base/api/services/uworker.server";
-import { MessageBox, fs, AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
-import { ManulTrader } from "./bll/sendorder";
+import {
+    MessageBox, fs, AppStateCheckerRef, File, Environment,
+    Sound, SecuMasterService, TranslateService
+} from "../../base/api/services/backend.service";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 declare let window: any;
 @Component({
@@ -20,6 +22,8 @@ declare let window: any;
     selector: "body",
     templateUrl: "app.component.html",
     providers: [
+        SecuMasterService,
+        TranslateService,
         AppStateCheckerRef
     ]
 })
@@ -108,7 +112,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     static bgWorker = null;
     static loginFlag: boolean = false;
 
-    constructor(private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef) {
+    constructor(private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef,
+        private secuinfo: SecuMasterService, private langServ: TranslateService) {
         AppComponent.self = this;
         AppComponent.bgWorker = WorkerFactory.createWorker(`${__dirname}/bll/tradeWorker`);
         this.statechecker.onInit(this, this.onReady);
@@ -186,7 +191,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     ngOnInit(): void {
         this.statusbar = new StatusBar();
         let order = "OrderStatus";
-        this.orderstatusPage = new TabPage(order, ManulTrader.getTranslateInfo(this.languageType, order));
+        this.orderstatusPage = new TabPage(order, this.langServ.getTranslateInfo(this.languageType, order));
         this.pageObj["OrderStatus"] = this.orderstatusPage;
         let orderstatusContent = new ComboControl("col");
 
@@ -194,7 +199,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let cb_handle = new MetaControl("checkbox");
         cb_handle.Text = true;
         let handle = "Handle";
-        let rtnHandle = ManulTrader.getTranslateInfo(this.languageType, handle);
+        let rtnHandle = this.langServ.getTranslateInfo(this.languageType, handle);
         cb_handle.Title = rtnHandle;
         orderstatusHeader.addChild(cb_handle);
         let dd_status = new DropDown();
@@ -216,7 +221,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let cb_SelAll = new MetaControl("checkbox");
         cb_SelAll.Left = 10;
         cb_SelAll.Text = false;
-        cb_SelAll.Title = ManulTrader.getTranslateInfo(this.languageType, "All");
+        cb_SelAll.Title = this.langServ.getTranslateInfo(this.languageType, "All");
         orderstatusHeader.addChild(cb_SelAll);
         cb_SelAll.OnClick = () => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
@@ -230,7 +235,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let btn_cancel = new MetaControl("button");
         btn_cancel.Left = 10;
         let cancel = "CancelSelected";
-        let rtnCancel = ManulTrader.getTranslateInfo(this.languageType, cancel);
+        let rtnCancel = this.langServ.getTranslateInfo(this.languageType, cancel);
         btn_cancel.Text = rtnCancel;
         orderstatusHeader.addChild(btn_cancel);
         orderstatusContent.addChild(orderstatusHeader);
@@ -264,8 +269,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                     continue;
                 else if (!AppComponent.self.orderstatusTable.rows[i].cells[0].Text)
                     continue;
-                else {   // no test
-                    ManulTrader.cancelorder({
+                else {
+                    let cancelorderPack = {
                         ordertype: EOrderType.ORDER_TYPE_CANCEL,
                         con: {
                             contractid: 0,
@@ -288,6 +293,9 @@ export class AppComponent implements OnInit, AfterViewInit {
                             quantity: 0,
                             action: 1
                         }
+                    };
+                    AppComponent.bgWorker.send({
+                        command: "ss-send", params: { type: "cancelorder", data: cancelorderPack }
                     });
                 }
             }
@@ -299,7 +307,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let orderstatusTableRtnArr: string[] = [];
         let orderstatusTableTitleLen = orderstatusArr.length;
         for (let i = 0; i < orderstatusTableTitleLen; ++i) {
-            let orderstatusRtn = ManulTrader.getTranslateInfo(this.languageType, orderstatusArr[i]);
+            let orderstatusRtn = this.langServ.getTranslateInfo(this.languageType, orderstatusArr[i]);
             orderstatusTableRtnArr.push(orderstatusRtn);
         }
         orderstatusTableRtnArr.forEach(item => {
@@ -314,7 +322,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
         };
 
-        this.doneOrdersPage = new TabPage("DoneOrders", ManulTrader.getTranslateInfo(this.languageType, "DoneOrders"));
+        this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
         this.pageObj["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new ComboControl("col");
         this.doneOrdersTable = new DataTable("table");
@@ -324,7 +332,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let doneOrderTableRtnArr: string[] = [];
         let doneOrderTableTittleLen = doneorderTableArr.length;
         for (let i = 0; i < doneOrderTableTittleLen; ++i) {
-            let doneOrderRtn = ManulTrader.getTranslateInfo(this.languageType, doneorderTableArr[i]);
+            let doneOrderRtn = this.langServ.getTranslateInfo(this.languageType, doneorderTableArr[i]);
             doneOrderTableRtnArr.push(doneOrderRtn);
         }
         doneOrderTableRtnArr.forEach(item => {
@@ -335,7 +343,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.doneOrdersPage.setContent(doneOrdersContent);
 
 
-        this.accountPage = new TabPage("Account", ManulTrader.getTranslateInfo(this.languageType, "Account"));
+        this.accountPage = new TabPage("Account", this.langServ.getTranslateInfo(this.languageType, "Account"));
         this.pageObj["Account"] = this.accountPage;
         let accountContent = new ComboControl("col");
         this.accountTable = new DataTable("table");
@@ -345,7 +353,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let accountTableRtnArr: string[] = [];
         let accountTableTittleLen = accountTableArr.length;
         for (let i = 0; i < accountTableTittleLen; ++i) {
-            let accountRtn = ManulTrader.getTranslateInfo(this.languageType, accountTableArr[i]);
+            let accountRtn = this.langServ.getTranslateInfo(this.languageType, accountTableArr[i]);
             accountTableRtnArr.push(accountRtn);
         }
         accountTableRtnArr.forEach(item => {
@@ -355,7 +363,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         accountContent.addChild(this.accountTable);
         this.accountPage.setContent(accountContent);
 
-        this.PositionPage = new TabPage("Position", ManulTrader.getTranslateInfo(this.languageType, "Position"));
+        this.PositionPage = new TabPage("Position", this.langServ.getTranslateInfo(this.languageType, "Position"));
         this.pageObj["Position"] = this.PositionPage;
         let positionContent = new ComboControl("col");
         this.PositionTable = new DataTable("table2");
@@ -364,7 +372,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let positionTableRtnArr: string[] = [];
         let positionTableTittleLen = positionTableArr.length;
         for (let i = 0; i < positionTableTittleLen; ++i) {
-            let positionRtn = ManulTrader.getTranslateInfo(this.languageType, positionTableArr[i]);
+            let positionRtn = this.langServ.getTranslateInfo(this.languageType, positionTableArr[i]);
             positionTableRtnArr.push(positionRtn);
         }
         positionTableRtnArr.forEach(item => {
@@ -393,18 +401,18 @@ export class AppComponent implements OnInit, AfterViewInit {
                     break;
                 }
             }
-            let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
+            let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
             Dialog.popup(this, this.tradeContent, { title: tradeRtn });
         };
         let leftAlign = 20;
         let rowSep = 5;
-        this.tradePage = new TabPage("ManulTrader", ManulTrader.getTranslateInfo(this.languageType, "ManulTrader"));
+        this.tradePage = new TabPage("ManulTrader", this.langServ.getTranslateInfo(this.languageType, "ManulTrader"));
         this.tradeContent = new ComboControl("col");
         this.tradeContent.MinHeight = 500;
         this.tradeContent.MinWidth = 500;
         this.dd_Account = new DropDown();
         this.dd_Account.Width = 120;
-        let dd_accountRtn = ManulTrader.getTranslateInfo(this.languageType, "Account");
+        let dd_accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
         this.dd_Account.Title = dd_accountRtn + ":   ";
         this.dd_Account.Left = leftAlign;
         this.dd_Account.Top = 20;
@@ -413,53 +421,53 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.dd_Strategy.Width = 120;
         this.dd_Strategy.Left = leftAlign;
         this.dd_Strategy.Top = rowSep;
-        let dd_strategyRtn = ManulTrader.getTranslateInfo(this.languageType, "Strategy");
+        let dd_strategyRtn = this.langServ.getTranslateInfo(this.languageType, "Strategy");
         this.dd_Strategy.Title = dd_strategyRtn + ":  ";
         this.tradeContent.addChild(this.dd_Strategy);
         this.txt_Symbol = new MetaControl("textbox");
         this.txt_Symbol.Left = leftAlign;
         this.txt_Symbol.Top = rowSep;
-        let txt_symbolRtn = ManulTrader.getTranslateInfo(this.languageType, "Symbol");
+        let txt_symbolRtn = this.langServ.getTranslateInfo(this.languageType, "Symbol");
         this.txt_Symbol.Title = txt_symbolRtn + ":    ";
         this.tradeContent.addChild(this.txt_Symbol);
         this.txt_UKey = new MetaControl("textbox");
         this.txt_UKey.Left = leftAlign;
         this.txt_UKey.Top = rowSep;
-        let txt_UKeyRtn = ManulTrader.getTranslateInfo(this.languageType, "U-key");
+        let txt_UKeyRtn = this.langServ.getTranslateInfo(this.languageType, "U-key");
         this.txt_UKey.Title = txt_UKeyRtn + ":     ";
         this.tradeContent.addChild(this.txt_UKey);
         this.txt_Price = new MetaControl("textbox");
         this.txt_Price.Left = leftAlign;
         this.txt_Price.Top = rowSep;
-        let txt_PriceRtn = ManulTrader.getTranslateInfo(this.languageType, "Price");
+        let txt_PriceRtn = this.langServ.getTranslateInfo(this.languageType, "Price");
         this.txt_Price.Title = txt_PriceRtn + ":     ";
         this.tradeContent.addChild(this.txt_Price);
         let txt_Volume = new MetaControl("textbox");
         txt_Volume.Left = leftAlign;
         txt_Volume.Top = rowSep;
-        let txt_VolumeRtn = ManulTrader.getTranslateInfo(this.languageType, "Volume");
+        let txt_VolumeRtn = this.langServ.getTranslateInfo(this.languageType, "Volume");
         txt_Volume.Title = txt_VolumeRtn + ":    ";
         this.tradeContent.addChild(txt_Volume);
         this.dd_Action = new DropDown();
         this.dd_Action.Left = leftAlign;
         this.dd_Action.Top = rowSep;
-        let dd_ActionRtn = ManulTrader.getTranslateInfo(this.languageType, "Action");
+        let dd_ActionRtn = this.langServ.getTranslateInfo(this.languageType, "Action");
         this.dd_Action.Title = dd_ActionRtn + ":    ";
         this.dd_Action.Width = 120;
-        let buyRtn = ManulTrader.getTranslateInfo(this.languageType, "Buy");
-        let sellRtn = ManulTrader.getTranslateInfo(this.languageType, "Sell");
+        let buyRtn = this.langServ.getTranslateInfo(this.languageType, "Buy");
+        let sellRtn = this.langServ.getTranslateInfo(this.languageType, "Sell");
         this.dd_Action.addItem({ Text: buyRtn, Value: 0 });
         this.dd_Action.addItem({ Text: sellRtn, Value: 1 });
         this.tradeContent.addChild(this.dd_Action);
         let btn_row = new ComboControl("row");
         let btn_clear = new MetaControl("button");
         btn_clear.Left = leftAlign;
-        let clearRtn = ManulTrader.getTranslateInfo(this.languageType, "Clear");
+        let clearRtn = this.langServ.getTranslateInfo(this.languageType, "Clear");
         btn_clear.Text = clearRtn;
         btn_row.addChild(btn_clear);
         let btn_submit = new MetaControl("button");
         btn_submit.Left = 30;
-        let SubmitRtn = ManulTrader.getTranslateInfo(this.languageType, "Submit");
+        let SubmitRtn = this.langServ.getTranslateInfo(this.languageType, "Submit");
         btn_submit.Text = SubmitRtn;
         btn_clear.Class = btn_submit.Class = "primary";
         btn_row.addChild(btn_submit);
@@ -510,7 +518,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             });
         };
 
-        this.commentPage = new TabPage("Comment", ManulTrader.getTranslateInfo(this.languageType, "Comment"));
+        this.commentPage = new TabPage("Comment", this.langServ.getTranslateInfo(this.languageType, "Comment"));
         this.commentContent = new ComboControl("col");
         this.commentTable = new DataTable("table2");
         this.commentTable.height = 400;
@@ -518,7 +526,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let commentTableArr: string[] = ["Key", "Value"];
         let commentTableRtnArr: string[] = [];
         for (let i = 0; i < commentTableArr.length; ++i) {
-            let commentRtn = ManulTrader.getTranslateInfo(this.languageType, commentTableArr[i]);
+            let commentRtn = this.langServ.getTranslateInfo(this.languageType, commentTableArr[i]);
             commentTableRtnArr.push(commentRtn);
         }
         commentTableRtnArr.forEach(item => {
@@ -529,22 +537,22 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.commentPage.setContent(this.commentContent);
 
 
-        this.bookviewPage = new TabPage("BookView", ManulTrader.getTranslateInfo(this.languageType, "BookView"));
+        this.bookviewPage = new TabPage("BookView", this.langServ.getTranslateInfo(this.languageType, "BookView"));
         this.createBookView("BookView");
 
-        this.logPage = new TabPage("Log", ManulTrader.getTranslateInfo(this.languageType, "LOG"));
+        this.logPage = new TabPage("Log", this.langServ.getTranslateInfo(this.languageType, "LOG"));
         this.pageObj["Log"] = this.logPage;
         let logContent = new ComboControl("col");
         this.logTable = new DataTable("table2");
 
-        let logTimeTittleRtn = ManulTrader.getTranslateInfo(this.languageType, "Time");
-        let logContentTittleRtn = ManulTrader.getTranslateInfo(this.languageType, "Content");
+        let logTimeTittleRtn = this.langServ.getTranslateInfo(this.languageType, "Time");
+        let logContentTittleRtn = this.langServ.getTranslateInfo(this.languageType, "Content");
         this.logTable.addColumn(logTimeTittleRtn);
         this.logTable.addColumn(logContentTittleRtn);
         logContent.addChild(this.logTable);
         this.logPage.setContent(logContent);
 
-        this.statarbPage = new TabPage("StatArb", ManulTrader.getTranslateInfo(this.languageType, "StatArb"));
+        this.statarbPage = new TabPage("StatArb", this.langServ.getTranslateInfo(this.languageType, "StatArb"));
         this.pageObj["StatArb"] = this.statarbPage;
         let statarbLeftAlign = 20;
         let statarbHeader = new ComboControl("row");
@@ -553,12 +561,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.buyamountLabel.Width = 90;
         this.buyamountLabel.Text = "0";
 
-        this.buyamountLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "BUY.AMOUNT") + ":";
+        this.buyamountLabel.Title = this.langServ.getTranslateInfo(this.languageType, "BUY.AMOUNT") + ":";
         this.buyamountLabel.Disable = true;
         this.sellamountLabel = new MetaControl("textbox");
         this.sellamountLabel.Left = statarbLeftAlign;
         this.sellamountLabel.Width = 90;
-        this.sellamountLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "SELL.AMOUNT") + ":";
+        this.sellamountLabel.Title = this.langServ.getTranslateInfo(this.languageType, "SELL.AMOUNT") + ":";
         this.sellamountLabel.Disable = true;
         this.sellamountLabel.Text = "0";
         statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
@@ -568,7 +576,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let statarbTableRtnarr: string[] = [];
         let statarbTableTitleLen = statarbTablearr.length;
         for (let i = 0; i < statarbTableTitleLen; ++i) {
-            let statarbRtn = ManulTrader.getTranslateInfo(this.languageType, statarbTablearr[i]);
+            let statarbRtn = this.langServ.getTranslateInfo(this.languageType, statarbTablearr[i]);
             statarbTableRtnarr.push(statarbRtn);
         }
         statarbTableRtnarr.forEach(item => {
@@ -581,20 +589,20 @@ export class AppComponent implements OnInit, AfterViewInit {
         statarbContent.addChild(this.statarbTable);
         this.statarbPage.setContent(statarbContent);
 
-        this.portfolioPage = new TabPage("Portfolio", ManulTrader.getTranslateInfo(this.languageType, "Portfolio"));
+        this.portfolioPage = new TabPage("Portfolio", this.langServ.getTranslateInfo(this.languageType, "Portfolio"));
         this.pageObj["Portfolio"] = this.portfolioPage;
         let loadItem = new ComboControl("row");
 
         this.portfolioAccLabel = new MetaControl("textbox");
         this.portfolioAccLabel.Left = statarbLeftAlign;
         this.portfolioAccLabel.Width = 100;
-        let accountRtn = ManulTrader.getTranslateInfo(this.languageType, "Account");
+        let accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
         this.portfolioAccLabel.Title = accountRtn + ": ";
         this.portfolioAccLabel.Disable = true;
 
         this.portfolioLabel = new MetaControl("textbox");
         this.portfolioLabel.Width = 60;
-        let portfoliovalueRtn = ManulTrader.getTranslateInfo(this.languageType, "PORTFOLIOValue");
+        let portfoliovalueRtn = this.langServ.getTranslateInfo(this.languageType, "PORTFOLIOValue");
         if (portfoliovalueRtn === "PORTFOLIOValue")
             this.portfolioLabel.Title = "PORTFOLIO Value:";
         else
@@ -604,7 +612,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         this.portfolioDaypnl = new MetaControl("textbox");
         this.portfolioDaypnl.Width = 60;
-        let portfolioDaypnlRtn = ManulTrader.getTranslateInfo(this.languageType, "PORTFOLIODaypnl");
+        let portfolioDaypnlRtn = this.langServ.getTranslateInfo(this.languageType, "PORTFOLIODaypnl");
         if (portfolioDaypnlRtn === "PORTFOLIODaypnl")
             this.portfolioDaypnl.Title = "PORTFOLIO Day pnl:";
         else
@@ -614,7 +622,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         this.portfolioonpnl = new MetaControl("textbox");
         this.portfolioonpnl.Width = 60;
-        let portfolioonpnlRtn = ManulTrader.getTranslateInfo(this.languageType, "PORTFOLIOO/NPnl");
+        let portfolioonpnlRtn = this.langServ.getTranslateInfo(this.languageType, "PORTFOLIOO/NPnl");
         if (portfolioonpnlRtn === "PORTFOLIOO/NPnl")
             this.portfolioonpnl.Title = "PORTFOLIO O/N Pnl:";
         else
@@ -624,13 +632,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         this.portfolioCount = new MetaControl("textbox");
         this.portfolioCount.Width = 50;
-        let portfolioCountRtn = ManulTrader.getTranslateInfo(this.languageType, "Count");
+        let portfolioCountRtn = this.langServ.getTranslateInfo(this.languageType, "Count");
         this.portfolioCount.Title = portfolioCountRtn + ":";
         this.portfolioCount.Left = 20;
         this.portfolioCount.Disable = true;
 
         let btn_load = new MetaControl("button");
-        let btn_loadRtn = ManulTrader.getTranslateInfo(this.languageType, "LoadCSV");
+        let btn_loadRtn = this.langServ.getTranslateInfo(this.languageType, "LoadCSV");
         if (btn_loadRtn === "LoadCSV")
             btn_load.Text = " Load    CSV ";
         else
@@ -646,7 +654,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.portfolioBuyCom.Width = 59;
         this.portfolioBuyCom.Left = 20;
 
-        this.portfolioBuyCom.Title = ManulTrader.getTranslateInfo(this.languageType, "Buy") + ": ";
+        this.portfolioBuyCom.Title = this.langServ.getTranslateInfo(this.languageType, "Buy") + ": ";
         this.portfolioBuyCom.addItem({ Text: "B5", Value: "0" });
         this.portfolioBuyCom.addItem({ Text: "B4", Value: "1" });
         this.portfolioBuyCom.addItem({ Text: "B3", Value: "2" });
@@ -688,7 +696,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.portfolioSellCom = new DropDown();
         this.portfolioSellCom.Width = 62;
         this.portfolioSellCom.Left = 20;
-        this.portfolioSellCom.Title = ManulTrader.getTranslateInfo(this.languageType, "Sell") + ":";
+        this.portfolioSellCom.Title = this.langServ.getTranslateInfo(this.languageType, "Sell") + ":";
         this.portfolioSellCom.addItem({ Text: "B5", Value: "0" });
         this.portfolioSellCom.addItem({ Text: "B4", Value: "1" });
         this.portfolioSellCom.addItem({ Text: "B3", Value: "2" });
@@ -726,17 +734,17 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.portfolioSellOffset.addItem({ Text: "-10", Value: "-10" });
 
         this.allChk = new MetaControl("checkbox"); this.allChk.Width = 30;
-        this.allChk.Title = " " + ManulTrader.getTranslateInfo(this.languageType, "All");
+        this.allChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All");
         this.allChk.Text = false; this.allChk.Left = 22;
         let allbuyChk = new MetaControl("checkbox"); allbuyChk.Width = 30;
-        allbuyChk.Title = " " + ManulTrader.getTranslateInfo(this.languageType, "All-Buy");
+        allbuyChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All-Buy");
         allbuyChk.Text = false; allbuyChk.Left = 20;
         let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30;
-        allsellChk.Title = " " + ManulTrader.getTranslateInfo(this.languageType, "All-Sell");
+        allsellChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All-Sell");
         allsellChk.Text = false; allsellChk.Left = 20;
 
         this.range = new URange(); this.range.Width = 168; this.range.Left = 20;
-        let orderRateRtn = ManulTrader.getTranslateInfo(this.languageType, "orderrate");
+        let orderRateRtn = this.langServ.getTranslateInfo(this.languageType, "orderrate");
         if (orderRateRtn === "orderrate")
             this.range.Title = "Order Rate:";
         else
@@ -747,14 +755,14 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.range.Text = 0; this.rateText.Text = 0;
 
         let btn_sendSel = new MetaControl("button");
-        let sendSelRtn = ManulTrader.getTranslateInfo(this.languageType, "sendselected");
+        let sendSelRtn = this.langServ.getTranslateInfo(this.languageType, "sendselected");
         if (sendSelRtn === "sendselected")
             btn_sendSel.Text = "Send Selected";
         else
             btn_sendSel.Text = sendSelRtn;
         btn_sendSel.Left = 20; btn_sendSel.Class = "primary";
         let btn_cancelSel = new MetaControl("button");
-        let cancelSelRtn = ManulTrader.getTranslateInfo(this.languageType, "cancelselected");
+        let cancelSelRtn = this.langServ.getTranslateInfo(this.languageType, "cancelselected");
         if (cancelSelRtn === "cancelselected")
             btn_cancelSel.Text = "Cancel Selected";
         else
@@ -771,7 +779,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let portfolioTableTittleLen = portfolioTableArr.length;
         let portfoliotableRtnArr: string[] = [];
         for (let i = 0; i < portfolioTableTittleLen; ++i) {
-            let portfolioTableRtn = ManulTrader.getTranslateInfo(this.languageType, portfolioTableArr[i]);
+            let portfolioTableRtn = this.langServ.getTranslateInfo(this.languageType, portfolioTableArr[i]);
             portfoliotableRtnArr.push(portfolioTableRtn);
         }
         portfoliotableRtnArr.forEach(item => {
@@ -794,16 +802,34 @@ export class AppComponent implements OnInit, AfterViewInit {
                 let bidPriceLevel = AppComponent.self.portfolioSellCom.SelectedItem.Value;
                 let askOffset = AppComponent.self.portfolioBUyOffset.SelectedItem.Value;
                 let bidOffset = AppComponent.self.portfolioSellOffset.SelectedItem.Value;
-                ManulTrader.singleBuy(account, askPriceLevel, bidPriceLevel, askOffset, bidOffset, ukey, qty);
+                AppComponent.bgWorker.send({
+                    command: "ss-send", params: {
+                        type: "singleBuy", data: {
+                            account: account,
+                            askPriceLevel: askPriceLevel,
+                            bidPriceLevel: bidPriceLevel,
+                            askOffset: askOffset,
+                            bidOffset: bidOffset,
+                            ukey: ukey,
+                            qty: qty
+                        }
+                    }
+                });
             } else if (cellIndex === 11) {
-                ManulTrader.singleCancel(account, ukey);
+                AppComponent.bgWorker.send({
+                    command: "ss-send", params: {
+                        type: "singleCancel", data: {
+                            account: account, ukey: ukey
+                        }
+                    }
+                });
             }
         };
 
         btn_load.OnClick = () => {
             let readself = this;
             let account: number = 666600000040;
-            ManulTrader.registerAccPos(account);
+            // ManulTrader.registerAccPos(account);
             MessageBox.openFileDialog("Select CSV", function (filenames) {
                 console.log(filenames);
                 if (filenames !== undefined)
@@ -818,7 +844,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                             splitStr.forEach(function (item) {
                                 let arr = item.split(",");
                                 if (arr.length === 2 && arr[0]) {
-                                    let obj = ManulTrader.getSecuinfoByCode(arr[0] + "");
+                                    let obj = this.secuinfo.getSecuinfoByCode(arr[0] + "");
                                     let rtnObj = AppComponent.self.traverseobj(obj, arr[0]);
                                     if (rtnObj) {
                                         let sendObj = { currPos: 0, ukey: 0, targetPos: 0 };
@@ -829,7 +855,13 @@ export class AppComponent implements OnInit, AfterViewInit {
                                     }
                                 }
                             });
-                            ManulTrader.submitBasket(5001, 8016930, 300, account, initPos);
+                            AppComponent.bgWorker.send({
+                                command: "ss-send", params: {
+                                    type: "submitBasket", data: {
+                                        type: 5001, indexSymbol: 8016930, divideNum: 300, account: account, initPos: initPos
+                                    }
+                                }
+                            });
                         }
                         else
                             console.log(err);
@@ -901,43 +933,62 @@ export class AppComponent implements OnInit, AfterViewInit {
                     }
                 }
             }
-            ManulTrader.sendAllSel(AppComponent.self.portfolioAccLabel.Text, sendArr.length, askPriceLevel,
-                bidPriceLevel, askOffset, bidOffset, sendArr);
+            AppComponent.bgWorker.send({
+                command: "ss-send", params: {
+                    type: "sendAllSel", data: {
+                        account: AppComponent.self.portfolioAccLabel.Text,
+                        count: sendArr.length,
+                        askPriceLevel: askPriceLevel,
+                        bidPriceLevel: bidPriceLevel,
+                        askOffset: askOffset,
+                        bidOffset: bidOffset,
+                        sendArr: sendArr
+                    }
+                }
+            });
         };
         btn_cancelSel.OnClick = () => { // 5005
             let selArrLen = AppComponent.self.selectArr.length;
             if (selArrLen === 0)
                 return;
-            ManulTrader.cancelAllSel(AppComponent.self.portfolioAccLabel.Text, selArrLen, AppComponent.self.selectArr);
+            AppComponent.bgWorker.send({
+                command: "ss-send", params: {
+                    type: "cancelAllSel", data: {
+                        account: AppComponent.self.portfolioAccLabel.Text,
+                        count: selArrLen,
+                        sendArr: AppComponent.self.selectArr
+                    }
+                }
+            });
         };
         let portfolioContent = new ComboControl("col");
         portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
         this.portfolioPage.setContent(portfolioContent);
 
-        this.strategyPage = new TabPage("Strategy", ManulTrader.getTranslateInfo(this.languageType, "StrategyMonitor"));
+        this.strategyPage = new TabPage("Strategy", this.langServ.getTranslateInfo(this.languageType, "StrategyMonitor"));
         this.pageObj["Strategy"] = this.strategyPage;
 
         let strategyHeader = new ComboControl("row");
         let startall = new MetaControl("button");
-        let startallRtn = ManulTrader.getTranslateInfo(this.languageType, "StartAll");
+        let startallRtn = this.langServ.getTranslateInfo(this.languageType, "StartAll");
         if (startallRtn === "StartAll")
             startall.Text = "Start All";
         else
             startall.Text = startallRtn;
         let pauseall = new MetaControl("button");
-        let pauseallRtn = ManulTrader.getTranslateInfo(this.languageType, "PauseAll");
+        let pauseallRtn = this.langServ.getTranslateInfo(this.languageType, "PauseAll");
         if (pauseallRtn === "PauseAll")
             pauseall.Text = "Pause All";
         else
             pauseall.Text = pauseallRtn;
         let stopall = new MetaControl("button");
-        let stopallRtn = ManulTrader.getTranslateInfo(this.languageType, "StopAll");
+        let stopallRtn = this.langServ.getTranslateInfo(this.languageType, "StopAll");
         if (stopallRtn === "StopAll")
             stopall.Text = "Stop All";
         else
             stopall.Text = stopallRtn;
         let watchall = new MetaControl("button");
-        let watchallRtn = ManulTrader.getTranslateInfo(this.languageType, "WatchAll");
+        let watchallRtn = this.langServ.getTranslateInfo(this.languageType, "WatchAll");
         if (watchallRtn === "WatchAll")
             watchall.Text = "Watch All";
         else
@@ -958,39 +1009,39 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.controlBtnClick(3);
         };
 
-        this.profitPage = new TabPage("Profit", ManulTrader.getTranslateInfo(this.languageType, "Profit"));
+        this.profitPage = new TabPage("Profit", this.langServ.getTranslateInfo(this.languageType, "Profit"));
         this.pageObj["Profit"] = this.profitPage;
         let profitleftAlign = 20;
         let profitHeader = new ComboControl("row");
         this.totalpnLabel = new MetaControl("textbox");
         this.totalpnLabel.Left = profitleftAlign;
         this.totalpnLabel.Width = 85;
-        this.totalpnLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "TOTALPNL") + ": ";
+        this.totalpnLabel.Title = this.langServ.getTranslateInfo(this.languageType, "TOTALPNL") + ": ";
         this.totalpnLabel.Disable = true;
         this.pospnlLabel = new MetaControl("textbox");
         this.pospnlLabel.Left = profitleftAlign;
         this.pospnlLabel.Width = 85;
-        this.pospnlLabel.Title = ManulTrader.getTranslateInfo(this.languageType, "POSPNL") + ": ";
+        this.pospnlLabel.Title = this.langServ.getTranslateInfo(this.languageType, "POSPNL") + ": ";
         this.pospnlLabel.Disable = true;
         this.trapnlt = new MetaControl("textbox");
         this.trapnlt.Left = profitleftAlign;
         this.trapnlt.Width = 85;
-        this.trapnlt.Title = ManulTrader.getTranslateInfo(this.languageType, "TRAPNL.T") + ": ";
+        this.trapnlt.Title = this.langServ.getTranslateInfo(this.languageType, "TRAPNL.T") + ": ";
         this.trapnlt.Disable = true;
         this.pospnlt = new MetaControl("textbox");
         this.pospnlt.Left = profitleftAlign;
         this.pospnlt.Width = 85;
-        this.pospnlt.Title = ManulTrader.getTranslateInfo(this.languageType, "POSPNL.T") + ": ";
+        this.pospnlt.Title = this.langServ.getTranslateInfo(this.languageType, "POSPNL.T") + ": ";
         this.pospnlt.Disable = true;
         this.totalpnlt = new MetaControl("textbox");
         this.totalpnlt.Left = profitleftAlign;
         this.totalpnlt.Width = 85;
-        this.totalpnlt.Title = ManulTrader.getTranslateInfo(this.languageType, "TOTALPNL.T") + ": ";
+        this.totalpnlt.Title = this.langServ.getTranslateInfo(this.languageType, "TOTALPNL.T") + ": ";
         this.totalpnlt.Disable = true;
         let reqbtn = new MetaControl("button");
         reqbtn.Left = profitleftAlign;
         reqbtn.Width = 30;
-        reqbtn.Text = ManulTrader.getTranslateInfo(this.languageType, "Req");
+        reqbtn.Text = this.langServ.getTranslateInfo(this.languageType, "Req");
         profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
         this.profitTable = new DataTable("table2");
         let profittableArr: string[] = ["U-Key", "Code", "Account", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
@@ -999,7 +1050,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let profitTableTittleLen = profittableArr.length;
         let profitTableRtnArr: string[] = [];
         for (let i = 0; i < profitTableTittleLen; ++i) {
-            profitTableRtnArr.push(ManulTrader.getTranslateInfo(this.languageType, profittableArr[i]));
+            profitTableRtnArr.push(this.langServ.getTranslateInfo(this.languageType, profittableArr[i]));
         }
         profitTableRtnArr.forEach(item => {
             this.profitTable.addColumn(item);
@@ -1010,7 +1061,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         profitContent.addChild(this.profitTable);
         this.profitPage.setContent(profitContent);
         reqbtn.OnClick = () => {
-            ManulTrader.getProfitInfo();
+            AppComponent.bgWorker.send({
+                command: "ss-send", params: {
+                    type: "getProfitInfo", data: ""
+                }
+            });
         };
 
         this.strategyTable = new DataTable();
@@ -1020,7 +1075,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let strategyTableInitTittleLen = strategyTableInitArr.length;
         let strategytableRtnArr: string[] = [];
         for (let i = 0; i < strategyTableInitTittleLen; ++i) {
-            strategytableRtnArr.push(ManulTrader.getTranslateInfo(this.languageType, strategyTableInitArr[i]));
+            strategytableRtnArr.push(this.langServ.getTranslateInfo(this.languageType, strategyTableInitArr[i]));
         }
         strategytableRtnArr.forEach(item => {
             this.strategyTable.addColumn(item);
@@ -1106,6 +1161,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     changeIp20Status(data: any) {
+        console.log("************", data);
         AppComponent.self.addStatus(data, "PS");
     }
 
@@ -1289,7 +1345,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     addStatArbInfo(dataArr: any) {
         let row = AppComponent.self.statarbTable.newRow();
         row.cells[1].Text = dataArr[0].code;
-        let codeInfo = ManulTrader.getSecuinfoByukey(dataArr[0].code);
+        let codeInfo = this.secuinfo.getSecuinfoByUKey(dataArr[0].code);
         let strategyId = dataArr[0].strategyid;
         let tempObj = AppComponent.self.traverseukeyObj(codeInfo, dataArr[0].code);
         if (codeInfo) {
@@ -1520,7 +1576,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     addDoneOrderInfo(obj: any) {
         let row = this.doneOrdersTable.newRow();
         row.cells[0].Text = obj.od.innercode;
-        let codeInfo = ManulTrader.getSecuinfoByukey(obj.od.innercode);
+        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
         let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
         if (codeInfo) {
             if (tempObj) {
@@ -1609,7 +1665,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[0].Data = { ukey: 0, chk: true };
         row.cells[0].Data.ukey = obj.od.innercode;
         row.cells[1].Text = obj.od.innercode;
-        let codeInfo = ManulTrader.getSecuinfoByukey(obj.od.innercode);
+        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
         let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
         if (codeInfo) {
             if (tempObj) {
@@ -1702,7 +1758,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showComRecordPos(data: any) {
-        // console.log("000000000000", data);
+         console.log("000000000000", data);
         for (let i = 0; i < data.length; ++i) {
             let equityPosTableRows: number = AppComponent.self.PositionTable.rows.length;
             let equityposSec: number = data[i].secucategory;
@@ -1752,7 +1808,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
-        let codeInfo = ManulTrader.getSecuinfoByukey(obj.record.code);
+        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
         if (codeInfo) {
             let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
             if (tempObj)
@@ -1776,7 +1832,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
-        let codeInfo = ManulTrader.getSecuinfoByukey(obj.record.code);
+        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
         if (codeInfo) {
             let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
             if (tempObj)
@@ -1897,7 +1953,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     addProfitInfo(obj: any) {
         let row = AppComponent.self.profitTable.newRow();
         row.cells[0].Text = obj.innercode;
-        let codeInfo = ManulTrader.getSecuinfoByukey(obj.innercode);
+        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.innercode);
         if (codeInfo) {
             let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.innercode);
             if (tempObj)
@@ -1945,7 +2001,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showComAccountPos(data: any) {
-        // console.log("***********", data);
+        //  console.log("***********", data);
         for (let i = 0; i < data.length; ++i) {
             let accTableRows: number = AppComponent.self.accountTable.rows.length;
             let accData: number = data[i].record.account;
@@ -2208,11 +2264,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         let value = data.value;
         let level = data.level;
         if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
-            AppComponent.self.strategyTable.insertColumn(ManulTrader.getTranslateInfo(this.languageType, title), colIdx);  // add col
+            AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, title), colIdx);  // add col
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "default";
         } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
-            AppComponent.self.strategyTable.insertColumn(ManulTrader.getTranslateInfo(this.languageType, title), colIdx);  // add col
+            AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, title), colIdx);  // add col
             // add button
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "button";
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
@@ -2220,7 +2276,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             if (value === 0)
                 AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
         } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
-            AppComponent.self.strategyTable.insertColumn(ManulTrader.getTranslateInfo(this.languageType, title), colIdx);
+            AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, title), colIdx);
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "textbox";
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "success";
@@ -2297,7 +2353,11 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
             if (alertFlag)
-                ManulTrader.submitPara(sendArray);
+                AppComponent.bgWorker.send({
+                    command: "ss-send", params: {
+                        type: "submitPara", data: sendArray
+                    }
+                });
             else
                 alert("no changes!");
         } else if (data.dataSource.text === "comment") {
@@ -2313,7 +2373,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
                 // AppComponent.self.commentTable.detectChanges();
             }
-            let commentRtn = ManulTrader.getTranslateInfo(this.languageType, "Comment");
+            let commentRtn = this.langServ.getTranslateInfo(this.languageType, "Comment");
             Dialog.popup(this, this.commentContent, { title: commentRtn });
         } else {
             let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
@@ -2336,7 +2396,11 @@ export class AppComponent implements OnInit, AfterViewInit {
                         ret = confirm("extute " + clickname + " ?");
                     }
                     if (ret) {
-                        ManulTrader.submitPara([data.Data]);
+                        AppComponent.bgWorker.send({
+                            command: "ss-send", params: {
+                                type: "submitPara", data: [data.Data]
+                            }
+                        });
                     }
                 }
             }
@@ -2346,7 +2410,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     operateSteategy(strategyid: number, cellidx: number, rowIdx: number, tip: number) {
         AppComponent.self.showStraContrlDisable(tip, cellidx, rowIdx);
-        ManulTrader.strategyControl(tip, strategyid);
+        AppComponent.bgWorker.send({
+            command: "ss-send", params: {
+                type: "strategyControl", data: {
+                    tip: tip, strategyid: strategyid
+                }
+            }
+        });
     }
 
     showStraContrlDisable(Ctrltype: number, cellIdx: number, rowIdx: number) {
@@ -2414,7 +2484,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     addPortfolioTableInfo(tableData: any, len: number, idx: number) {
         let row = AppComponent.self.portfolioTable.newRow();
         let ukey = tableData.UKey;
-        let codeInfo = ManulTrader.getSecuinfoByukey(ukey);
+        let codeInfo = this.secuinfo.getSecuinfoByUKey(ukey);
         if (codeInfo) {
             let tempObj = AppComponent.self.traverseukeyObj(codeInfo, ukey);
             let symbol = ""; let abbr = "";
@@ -2611,13 +2681,13 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     createBookView(bookviewID) {
-        let bookviewPage = new TabPage(bookviewID, ManulTrader.getTranslateInfo(this.languageType, "BookView"));
+        let bookviewPage = new TabPage(bookviewID, this.langServ.getTranslateInfo(this.languageType, "BookView"));
         this.pageObj[bookviewID] = bookviewPage;
 
         let bookviewHeader = new ComboControl("row");
         let dd_symbol = new DropDown();
         dd_symbol.AcceptInput = true;
-        let codeRtn = ManulTrader.getTranslateInfo(this.languageType, "Code");
+        let codeRtn = this.langServ.getTranslateInfo(this.languageType, "Code");
         dd_symbol.Title = codeRtn + ": ";
         let self = this;
         let bookViewTable = new DataTable("table");
@@ -2654,7 +2724,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     sendStr += inputText.charAt(i);
                 }
             }
-            let msg = ManulTrader.getCodeList(sendStr);
+            let msg = this.secuinfo.getCodeList(sendStr);
             let rtnArr = [];
             dd_symbol.Items.length = 0;
             let msgLen = msg.length;
@@ -2673,7 +2743,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let bookviewRtnArr: string[] = [];
         let bookviewTittleLen = bookviewTableArr.length;
         for (let i = 0; i < bookviewTittleLen; ++i) {
-            let bookviewRtn = ManulTrader.getTranslateInfo(this.languageType, bookviewTableArr[i]);
+            let bookviewRtn = this.langServ.getTranslateInfo(this.languageType, bookviewTableArr[i]);
             bookviewRtnArr.push(bookviewRtn);
         }
         bookviewRtnArr.forEach(item => {
@@ -2697,7 +2767,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 this.txt_Price.Text = rowItem.cells[1].Text;
                 this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
             }
-            let tradeRtn = ManulTrader.getTranslateInfo(this.languageType, "Trade");
+            let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
             Dialog.popup(this, this.tradeContent, { title: tradeRtn });
         };
         let bookViewContent = new ComboControl("col");

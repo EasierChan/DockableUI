@@ -1,6 +1,5 @@
 "use strict";
 
-import { Injectable, EventEmitter } from "@angular/core";
 import { IHeader, MsgType, Header, Message } from "../model/itrade/message.model";
 import {
     ComStrategyInfo, ComRecordPos, ESSSecuCategory, ComEquitPos, ComOrderData, AlphaSignalInfo,
@@ -9,9 +8,9 @@ import {
     ComAccountPos, ComStrategyCfg, ComFundPos, ComMarginPos, MarginPos, ComTotalProfitInfo,
     ComConOrder, EOrderType, ComOrder, ComOrderCancel, StatArbOrder, ComGuiAckStrategy, FpPosUpdate
 } from "../model/itrade/orderstruct";
-import { TcpClient } from "../browser/tcpclient";
-import { Parser } from "../browser/parser";
-import { Pool } from "../browser/pool";
+import { TcpClient } from "../common/base/tcpclient";
+import { Parser } from "../common/base/parser";
+import { Pool } from "../common/base/pool";
 
 const logger = console;
 declare var electron: Electron.ElectronMainAndRenderer;
