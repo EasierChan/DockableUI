@@ -684,7 +684,7 @@ export class TabPage extends Control {
     }
 
     onDragEnd(event: DragEvent) {
-        // console.info(event);
+        // console.info(`drag end`);
     }
 
     get id(): string {
@@ -1691,6 +1691,10 @@ export class DataTable extends Control {
 
     set height(value: number) {
         this.styleObj.height = value;
+    }
+
+    set align(value: string) {
+        this.styleObj.alignment = value;
     }
 
     detectChanges(): void {

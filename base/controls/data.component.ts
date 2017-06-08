@@ -16,11 +16,12 @@ const echarts: ECharts = require("../script/echart/echarts");
   moduleId: module.id,
   selector: "dock-table",
   templateUrl: "data.table.html",
-  inputs: ["className", "dataSource"]
+  inputs: ["className", "dataSource", "styleObj"]
 })
 export class DataTableComponent implements OnInit, AfterViewInit {
   className: string;
   dataSource: any;
+  styleObj: any;
   curData: any;
   pageSize: number;
   curPage: number;
@@ -61,11 +62,12 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   moduleId: module.id,
   selector: "dock-table2",
   templateUrl: "data.scrollerbar-table.html",
-  inputs: ["className", "dataSource"]
+  inputs: ["className", "dataSource", "styleObj"]
 })
 export class ScrollerBarTable implements OnInit, AfterViewInit {
   className: string;
   dataSource: any;
+  styleObj: any;
 
   @ViewChild("content") content: ElementRef;
   @ViewChild("head") head: ElementRef;

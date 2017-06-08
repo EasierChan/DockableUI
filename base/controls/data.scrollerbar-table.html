@@ -4,13 +4,13 @@
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
       <th *ngIf="dataSource.bRowIndex">#</th>
       <template ngFor let-col [ngForOf]="dataSource.columns">
-        <th *ngIf="!col.bHidden">
+        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment">
           {{col.columnHeader}}
         </th>
       </template>
     </tr>
   </thead>
-  <tbody>
+  <tbody [style.text-align]="styleObj?.alignment">
     <template ngFor let-row [ngForOf]="dataSource.rows" let-i="index">
       <tr *ngIf="!row.bHidden" [style.background-color]="row?.bgcolor">
         <td *ngIf="dataSource.bRowIndex" [style.padding.px]="dataSource.cellpadding">{{i + 1}}</td>
@@ -40,7 +40,7 @@
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
       <th *ngIf="dataSource.bRowIndex">#</th>
       <template ngFor let-col [ngForOf]="dataSource.columns">
-        <th *ngIf="!col.bHidden">
+        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment">
           {{col.columnHeader}}
         </th>
       </template>
