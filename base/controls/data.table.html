@@ -3,7 +3,7 @@
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
       <th *ngIf="dataSource.bRowIndex">#</th>
       <template ngFor let-col [ngForOf]="dataSource.columns">
-        <th *ngIf="!col.bHidden">
+        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment">
           {{col.columnHeader}}
         </th>
       </template>
