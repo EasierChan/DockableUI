@@ -2616,6 +2616,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         dd_symbol.Title = codeRtn + ": ";
         let self = this;
         let bookViewTable = new DataTable("table");
+        bookViewTable.align = "right";
         dd_symbol.SelectChange = () => {
             this.clearBookViewTable(bookViewTable);
             // bind bookivewID, and subscribe code
@@ -2736,9 +2737,9 @@ export class AppComponent implements OnInit, AfterViewInit {
                         if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
                             for (let i = 0; i < 10; ++i) {
                                 AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[0].Text = msg.content.bid_volume[i] + "";
-                                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = msg.content.bid_price[i] / 10000 + "";
+                                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = (msg.content.bid_price[i] / 10000).toFixed(4);
                                 AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[2].Text = msg.content.ask_volume[i] + "";
-                                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = msg.content.ask_price[i] / 10000 + "";
+                                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = (msg.content.ask_price[i] / 10000).toFixed(4);
                             }
                         }
                     }

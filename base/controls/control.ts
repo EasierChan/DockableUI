@@ -1693,6 +1693,10 @@ export class DataTable extends Control {
         this.styleObj.height = value;
     }
 
+    set align(value: string) {
+        this.styleObj.alignment = value;
+    }
+
     detectChanges(): void {
         this.dataSource.detectChanges();
     }

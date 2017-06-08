@@ -9,7 +9,7 @@
       </template>
     </tr>
   </thead>
-  <tbody>
+  <tbody [style.text-align]="styleObj?.alignment">
     <template ngFor let-row [ngForOf]="curData.rows" let-i="index">
       <tr *ngIf="!row.bHidden" [style.background-color]="row?.bgcolor">
         <td *ngIf="dataSource.bRowIndex" [style.padding.px]="dataSource.cellpadding">{{i + 1 + pageSize * curPage}}</td>

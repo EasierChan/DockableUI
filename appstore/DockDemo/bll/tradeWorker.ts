@@ -11,7 +11,7 @@ const logger = console;
  * interface for single pro.
  */
 process.on("message", (m: WSIP20, sock) => {
-    console.info(m);
+
     switch (m.command) {
         case "ps-start":
             IP20Factory.instance.onConnect = () => {
