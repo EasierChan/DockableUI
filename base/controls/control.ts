@@ -53,6 +53,9 @@ export class DockContainer extends Control {
             if (TabPanel.fromPanelId(panelId) === null)
                 return;
 
+            if (this.subpanel && this.subpanel.id === panelId && this.subpanel.getAllTabs().length === 1) {
+                return;
+            }
             // console.info("drop", location);
             switch (location) {
                 case 0: // center
