@@ -53,6 +53,9 @@ export class DockContainer extends Control {
             if (TabPanel.fromPanelId(panelId) === null)
                 return;
 
+            if (this.subpanel && this.subpanel.id === panelId && this.subpanel.getAllTabs().length === 1) {
+                return;
+            }
             // console.info("drop", location);
             switch (location) {
                 case 0: // center
@@ -1256,8 +1259,14 @@ export class SpreadViewer {
 
             if (!this._msgs[this._innerCode1][this._curIdx] || !this._msgs[this._innerCode2][this._curIdx]) {
                 console.warn(`curIdx: ${this._curIdx} don't have data of both.`);
-                ++this._curIdx;
-                return;
+                if (!this._msgs[this._innerCode1][this._curIdx]) {
+                    this._msgs[this._innerCode1][this._curIdx] = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]];
+                }
+
+                if (!this._msgs[this._innerCode2][this._curIdx]) {
+                    this._msgs[this._innerCode2][this._curIdx] = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]];
+                }
+                // return;
             }
 
             // console.info(this._curIdx);
@@ -1371,7 +1380,7 @@ export class SpreadViewer {
                 {
                     name: this.names[0],
                     type: "line",
-                    // smooth: true,
+                    connectNulls: true,
                     data: this.values[0],
                     lineStyle: {
                         normal: {
@@ -1388,7 +1397,7 @@ export class SpreadViewer {
                 {
                     name: this.names[1],
                     type: "line",
-                    // smooth: true,
+                    connectNulls: true,
                     data: this.values[1],
                     lineStyle: {
                         normal: {
@@ -1495,8 +1504,8 @@ export class SpreadViewer {
 
         this._msgs[msg.UKey][idx].askPrice1 = msg.AskPrice / SpreadViewer.YUAN_PER_UNIT;
         this._msgs[msg.UKey][idx].bidPrice1 = msg.BidPrice / SpreadViewer.YUAN_PER_UNIT;
+        console.info(msg.UKey, this._lastIdx, idx, this._msgs);
         if (this._lastIdx[this._innerCode1] !== -1 && this._lastIdx[this._innerCode2] !== -1) {
-            // console.info(msg.UKey, this._lastIdx, idx, this._msgs);
             for (let i = this._lastIdx[this._innerCode1] + 1; i < idx; ++i) {
                 if (!this._msgs[this._innerCode1][i])
                     this._msgs[this._innerCode1][i] = {};
@@ -1532,14 +1541,14 @@ export class SpreadViewer {
 
                 this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].askPrice1;
                 this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].bidPrice1;
-                this._curIdx = idx;
+                this._curIdx = Math.max(this._lastIdx[this._innerCode2], idx);
             } else {// if (msg.UKey === this._innerCode2)
                 if (!this._msgs[this._innerCode1][idx])
                     this._msgs[this._innerCode1][idx] = {};
 
                 this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].askPrice1;
                 this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].bidPrice1;
-                this._curIdx = idx;
+                this._curIdx = Math.max(this._lastIdx[this._innerCode1], idx);
             }
         }
         this._lastIdx[msg.UKey] = idx;
@@ -1599,16 +1608,19 @@ export class DataTable extends Control {
         super();
         this.className = "table";
         this.dataSource = {
-            headerColumnCount: 0,
             columns: null,
             rows: null,
-            bRowIndex: true,
             detectChanges: null,
-            cellpadding: null,
             tableHeaderClick: () => { }
         };
 
-        this.styleObj = { type: type, width: null, height: null };
+        this.styleObj = {
+            type: type,
+            width: null,
+            height: null,
+            cellpadding: null,
+            bRowIndex: true
+        };
     }
 
     newRow(): DataTableRow {
@@ -1621,7 +1633,7 @@ export class DataTable extends Control {
     }
 
     set RowIndex(value: boolean) {
-        this.dataSource.bRowIndex = value;
+        this.styleObj.bRowIndex = value;
     }
 
     addColumn(...columns: string[]): DataTable {
@@ -1668,7 +1680,7 @@ export class DataTable extends Control {
     }
 
     set cellPadding(value: number) {
-        this.dataSource.cellpadding = value;
+        this.styleObj.cellpadding = value;
     }
 
     set columnConfigurable(value: boolean) {
@@ -1699,6 +1711,21 @@ export class DataTable extends Control {
 
     detectChanges(): void {
         this.dataSource.detectChanges();
+    }
+
+    set pageSize(value: number) {
+        this.styleObj.pageSize = value;
+    }
+
+    get pageCount() {
+        return this.styleObj.pageCount = Math.floor(this.dataSource.rows.length / this.styleObj.pageSize)
+            + (this.dataSource.rows.length % this.styleObj.pageSize === 0 ? 0 : 1);
+    }
+
+    set curPage(value: number) {
+        this.styleObj.curPage = value > this.pageCount
+            ? this.pageCount
+            : this.pageCount < 1 ? 1 : value;
     }
 }
 

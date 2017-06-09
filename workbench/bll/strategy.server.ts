@@ -110,7 +110,8 @@ export class ConfigurationBLL {
     }
 
     addSVConfigItem(item) {
-        this._svconfigs.push(item);
+        if (!this._svconfigs.includes(item))
+            this._svconfigs.push(item);
         File.writeAsync(this._svpath, JSON.stringify(this._svconfigs));
     }
 

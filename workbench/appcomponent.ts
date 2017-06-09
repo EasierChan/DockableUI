@@ -182,7 +182,7 @@ export class AppComponent implements OnDestroy {
             obj.cfg = obj.field = obj.name = obj.log = item.name;
             obj.key = parseInt(item.key);
             obj.status = 2; // RUN;
-            // obj.maxorderid = 0; 
+            // obj.maxorderid = 0;
             // obj.minorderid
             // obj.orderstep
             item.parameters.forEach((iparam: any) => {
@@ -341,7 +341,7 @@ export class AppComponent implements OnDestroy {
         e.stopPropagation();
     }
 
-    // select endpoint of tgw 
+    // select endpoint of tgw
     onSelectServer(item): void {
         this.selectedServer = item;
     }

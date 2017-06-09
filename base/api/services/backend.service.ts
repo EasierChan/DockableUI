@@ -132,6 +132,13 @@ export class SecuMasterService {
         return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 3, data: data });
     }
 }
+
+@Injectable()
+export class TranslateService {
+    getTranslateInfo(type: number, ...word: string[]) {
+        return electron.ipcRenderer.sendSync("dal://itrade/translate/translateinfo", { type: type, data: word });
+    }
+}
 /**
  *
  */

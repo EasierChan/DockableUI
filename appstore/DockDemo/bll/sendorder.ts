@@ -2,12 +2,10 @@
 
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
-import { SecuMasterService } from "../../../base/api/services/backend.service";
-import { TranslateService } from "../../../base/api/services/translate.service";
 
 export class ManulTrader {
     private static orderService = new OrderService();
-    private static secuinfo = new SecuMasterService();
+    // private static secuinfo = new SecuMasterService();
     static submitOrder(...orders: ComConOrder[]): void {
         let offset: number = 0;
         // handle with array
@@ -80,23 +78,23 @@ export class ManulTrader {
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
 
-    static getSecuinfoByCode(...code: string[]) {
-        // return ManulTrader.orderService.getsecuInfobycode(type, ...code);
-        return ManulTrader.secuinfo.getSecuinfoByCode(...code);
-    }
+    // static getSecuinfoByCode(...code: string[]) {
+    //     // return ManulTrader.orderService.getsecuInfobycode(type, ...code);
+    //     return ManulTrader.secuinfo.getSecuinfoByCode(...code);
+    // }
 
-    static getSecuinfoByukey(...ukey: number[]) {
-        // return ManulTrader.orderService.getsecuInfobyukey(type, ...ukey);
-        return ManulTrader.secuinfo.getSecuinfoByUKey(...ukey);
-    }
+    // static getSecuinfoByukey(...ukey: number[]) {
+    //     // return ManulTrader.orderService.getsecuInfobyukey(type, ...ukey);
+    //     return ManulTrader.secuinfo.getSecuinfoByUKey(...ukey);
+    // }
 
-    static getCodeList(data: string) {
-        return ManulTrader.secuinfo.getCodeList(data);
-    }
+    // static getCodeList(data: string) {
+    //     return ManulTrader.secuinfo.getCodeList(data);
+    // }
 
-    static getTranslateInfo(type: number, ...words: string[]) {
-        return TranslateService.getTranslateInfo(type, ...words);
-    }
+    // static getTranslateInfo(type: number, ...words: string[]) {
+    //     return TranslateService.getTranslateInfo(type, ...words);
+    // }
 
     static submitPara(data: any) {
         //  console.log("+++++++", data);
@@ -279,7 +277,7 @@ export class ManulTrader {
         let msgLen = 8;
         let offset: number = 0;
         let buffer = new Buffer(msgLen);
-        buffer.writeInt32LE(length, offset); offset += 4;
+        buffer.writeInt32LE(1, offset); offset += 4;
         buffer.writeInt32LE(strategyid, offset);
         if (type === 0) {
             ManulTrader.orderService.sendOrder(2000, 0, buffer);
