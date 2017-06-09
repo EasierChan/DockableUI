@@ -152,8 +152,19 @@ export class AppStore {
                 label: "Show Workbench", click() {
                     contentWindow.show();
                 }
-            },
-            {
+            }, {
+                type: "separator"
+            }, {
+                label: "中文",
+                type: "radio",
+                click() { }
+            }, {
+                label: "English",
+                type: "radio",
+                click() { }
+            }, {
+                type: "separator"
+            }, {
                 label: "Exit", click() {
                     contentWindow.win.removeAllListeners();
                     AppStore._config.state = contentWindow.getBounds();

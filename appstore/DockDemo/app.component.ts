@@ -95,7 +95,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private commandIdx: number = 10;
     private parameterIdx: number = 11;
     private strategyStatus: number = 0;
-    private languageType: number = 0;
+    private languageType: number = 1;
     private filename: String = "";
     private selectArr = [];
     private OrderStatusSelArr = [];
@@ -303,7 +303,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         };
 
-        this.orderstatusTable = new DataTable();
+        this.orderstatusTable = new DataTable("table2");
         let orderstatusArr: string[] = ["Check", "U-Key", "Symbol", "OrderId", "Time", "Strategy",
             "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account"];
         let orderstatusTableRtnArr: string[] = [];
@@ -328,7 +328,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
         this.pageObj["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new ComboControl("col");
-        this.doneOrdersTable = new DataTable("table");
+        this.doneOrdersTable = new DataTable("table2");
         let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
             "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "Account", "OrderTime",
             "OrderPrice", "SymbolCode"];
@@ -1128,7 +1128,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     changeIp20Status(data: any) {
-        // console.log("************", data);
         AppComponent.self.addStatus(data, "PS");
     }
 
@@ -1492,7 +1491,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         console.log("showComConOrder: 2020 ,UNKNOWN ,????", data);
     }
     showComOrderRecord(data: any) {
-        // console.log("showComOrderRecord", data);
         let hasDone = false;
         for (let i = 0; i < data.length; ++i) {
             let orderStatus = data[i].od.status;
@@ -1843,7 +1841,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.PositionTable.detectChanges();
     }
     showComGWNetGuiInfo(data: any) {
-        // console.log("+++++++++++", data);
         let markLen = AppComponent.self.statusbar.items.length;
         if (markLen === 0) { // add
             AppComponent.self.addStatusBarMark(data[0]);
@@ -1891,7 +1888,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.profitTable.detectChanges();
     }
     showComProfitInfo(data: any) {
-        // console.log("**************", data);
         for (let i = 0; i < data.length; ++i) {
             let profitTableRows: number = AppComponent.self.profitTable.rows.length;
             let profitUkey: number = data[i].innercode;

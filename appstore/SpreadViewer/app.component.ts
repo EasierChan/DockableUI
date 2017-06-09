@@ -115,11 +115,20 @@ export class AppComponent implements OnInit {
                 durations: [{
                     start: {
                         hour: 9,
-                        minute: 0
+                        minute: 30
                     },
                     end: {
                         hour: 11,
                         minute: 30
+                    }
+                }, {
+                    start: {
+                        hour: 13,
+                        minute: 0
+                    },
+                    end: {
+                        hour: 15,
+                        minute: 0
                     }
                 }],
                 multiplier: 1,
