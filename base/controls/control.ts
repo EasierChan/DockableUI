@@ -1608,16 +1608,19 @@ export class DataTable extends Control {
         super();
         this.className = "table";
         this.dataSource = {
-            headerColumnCount: 0,
             columns: null,
             rows: null,
-            bRowIndex: true,
             detectChanges: null,
-            cellpadding: null,
             tableHeaderClick: () => { }
         };
 
-        this.styleObj = { type: type, width: null, height: null };
+        this.styleObj = {
+            type: type,
+            width: null,
+            height: null,
+            cellpadding: null,
+            bRowIndex: true
+        };
     }
 
     newRow(): DataTableRow {
@@ -1630,7 +1633,7 @@ export class DataTable extends Control {
     }
 
     set RowIndex(value: boolean) {
-        this.dataSource.bRowIndex = value;
+        this.styleObj.bRowIndex = value;
     }
 
     addColumn(...columns: string[]): DataTable {
@@ -1677,7 +1680,7 @@ export class DataTable extends Control {
     }
 
     set cellPadding(value: number) {
-        this.dataSource.cellpadding = value;
+        this.styleObj.cellpadding = value;
     }
 
     set columnConfigurable(value: boolean) {
@@ -1708,6 +1711,21 @@ export class DataTable extends Control {
 
     detectChanges(): void {
         this.dataSource.detectChanges();
+    }
+
+    set pageSize(value: number) {
+        this.styleObj.pageSize = value;
+    }
+
+    get pageCount() {
+        return this.styleObj.pageCount = Math.floor(this.dataSource.rows.length / this.styleObj.pageSize)
+            + (this.dataSource.rows.length % this.styleObj.pageSize === 0 ? 0 : 1);
+    }
+
+    set curPage(value: number) {
+        this.styleObj.curPage = value > this.pageCount
+            ? this.pageCount
+            : this.pageCount < 1 ? 1 : value;
     }
 }
 

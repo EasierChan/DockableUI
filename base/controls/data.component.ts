@@ -27,20 +27,21 @@ export class DataTableComponent implements OnInit, AfterViewInit {
   curPage: number;
 
   constructor(private render: Renderer, private ele: ElementRef, private ref: ChangeDetectorRef) {
-    this.render.listen(this.ele.nativeElement, "mousewheel", (e) => {
-      this.curData = new DataTable();
-      if (!this.dataSource.rows || this.dataSource.rows.length === 0)
-        return;
-      // e.deltaY < 0  move up
-      if (e.deltaY < 0 && this.curPage > 0) {
-        --this.curPage;
-      } else if (e.deltaY > 0 && this.dataSource.rows.length / this.pageSize - 1 > this.curPage) {
-        ++this.curPage;
-      }
-      this.curData.rows = this.dataSource.rows.slice(this.curPage * this.pageSize);
-      // e.deltaY > 0 move down
-      // console.log(this.curData);
-    });
+    // this.render.listen(this.ele.nativeElement, "mousewheel", (e) => {
+    //   this.curData = new DataTable();
+    //   if (!this.dataSource.rows || this.dataSource.rows.length === 0)
+    //     return;
+    //   // e.deltaY < 0  move up
+    //   if (e.deltaY < 0 && this.curPage > 0) {
+    //     --this.curPage;
+    //   } else if (e.deltaY > 0 && this.dataSource.rows.length / this.pageSize - 1 > this.curPage) {
+    //     ++this.curPage;
+    //   }
+
+    //   this.curData.rows = this.dataSource.rows.slice(this.curPage * this.pageSize);
+    //   // e.deltaY > 0 move down
+    //   // console.log(this.curData);
+    // });
   }
 
 
