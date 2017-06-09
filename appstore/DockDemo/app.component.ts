@@ -95,7 +95,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private commandIdx: number = 10;
     private parameterIdx: number = 11;
     private strategyStatus: number = 0;
-    private languageType: number = 0;
+    private languageType: number = 1;
     private filename: String = "";
     private selectArr = [];
     private OrderStatusSelArr = [];
@@ -301,7 +301,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         };
 
-        this.orderstatusTable = new DataTable();
+        this.orderstatusTable = new DataTable("table2");
         let orderstatusArr: string[] = ["Check", "U-Key", "Symbol", "OrderId", "Time", "Strategy",
             "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account"];
         let orderstatusTableRtnArr: string[] = [];
@@ -325,7 +325,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
         this.pageObj["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new ComboControl("col");
-        this.doneOrdersTable = new DataTable("table");
+        this.doneOrdersTable = new DataTable("table2");
         let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
             "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "Account", "OrderTime",
             "OrderPrice", "SymbolCode"];
