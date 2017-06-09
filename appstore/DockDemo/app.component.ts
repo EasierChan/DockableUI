@@ -225,10 +225,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         orderstatusHeader.addChild(cb_SelAll);
         cb_SelAll.OnClick = () => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
-                if (!cb_SelAll.Text)
-                    this.orderstatusTable.rows[i].cells[0].Text = true;
-                else
-                    this.orderstatusTable.rows[i].cells[0].Text = false;
+                if (!this.orderstatusTable.rows[i].cells[0].Disable)
+                    if (!cb_SelAll.Text)
+                        this.orderstatusTable.rows[i].cells[0].Text = true;
+                    else
+                        this.orderstatusTable.rows[i].cells[0].Text = false;
             }
         };
 
@@ -239,8 +240,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         btn_cancel.Text = rtnCancel;
         orderstatusHeader.addChild(btn_cancel);
         orderstatusContent.addChild(orderstatusHeader);
+        cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = false;
         cb_handle.OnClick = () => {
-            dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
+            cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
         };
         dd_status.SelectChange = (item) => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
@@ -319,7 +321,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         this.orderstatusTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
             let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
-            AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
+            if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
+                AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
         };
 
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
@@ -1090,7 +1093,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         };
 
         this.loadLayout();
-        this.init(this.option.port, this.option.host);
         AppComponent.bgWorker.send({
             command: "ss-start", params: { port: this.option.port, host: this.option.host }
         });
@@ -1125,43 +1127,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
     }
 
-    init(port: number, host: string) {
-        // ManulTrader.addSlot(2011, this.showStrategyInfo);
-        // ManulTrader.addSlot(2033, this.showStrategyInfo);
-        // ManulTrader.addSlot(2000, this.showStrategyCfg);
-        // ManulTrader.addSlot(2002, this.showStrategyCfg);
-        // ManulTrader.addSlot(2004, this.showStrategyCfg);
-        // ManulTrader.addSlot(2049, this.showStrategyCfg);
-        // ManulTrader.addSlot(2030, this.showStrategyCfg);
-        // ManulTrader.addSlot(2029, this.showStrategyCfg);
-        // ManulTrader.addSlot(2032, this.showStrategyCfg);
-        // ManulTrader.addSlot(2001, this.showGuiCmdAck);
-        // ManulTrader.addSlot(2003, this.showGuiCmdAck);
-        // ManulTrader.addSlot(2005, this.showGuiCmdAck);
-        // ManulTrader.addSlot(2050, this.showGuiCmdAck);
-        // ManulTrader.addSlot(2031, this.showGuiCmdAck);
-        // ManulTrader.addSlot(2048, this.showComTotalProfitInfo);
-        // ManulTrader.addSlot(2020, this.showComConOrder);
-        // ManulTrader.addSlot(2013, this.showComAccountPos);
-        // ManulTrader.addSlot(3502, this.showComRecordPos);
-        // ManulTrader.addSlot(3504, this.showComRecordPos);
-        // ManulTrader.addSlot(2015, this.showComGWNetGuiInfo);
-        // ManulTrader.addSlot(2017, this.showComGWNetGuiInfo);
-        // ManulTrader.addSlot(2023, this.showComProfitInfo);
-        // ManulTrader.addSlot(2025, this.showStatArbOrder);
-        // ManulTrader.addSlot(5022, this.showComorderstatusAndErrorInfo);
-        // ManulTrader.addSlot(2021, this.showComorderstatusAndErrorInfo);
-        // ManulTrader.addSlot(2022, this.showComOrderRecord);
-        // ManulTrader.addSlot(3011, this.showComOrderRecord);
-        // ManulTrader.addSlot(3510, this.showComOrderRecord);
-        // ManulTrader.addSlot(2040, this.showLog);
-        // ManulTrader.addSlot(5021, this.showBasketBackInfo);
-        // ManulTrader.addSlot(5024, this.showPortfolioSummary);
-        // ManulTrader.addSlot(8000, this.changeSSstatus);
-    }
-
     changeIp20Status(data: any) {
-        console.log("************", data);
+        // console.log("************", data);
         AppComponent.self.addStatus(data, "PS");
     }
 
@@ -1525,7 +1492,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         console.log("showComConOrder: 2020 ,UNKNOWN ,????", data);
     }
     showComOrderRecord(data: any) {
-        console.log("showComOrderRecord", data);
+        // console.log("showComOrderRecord", data);
         let hasDone = false;
         for (let i = 0; i < data.length; ++i) {
             let orderStatus = data[i].od.status;
@@ -1664,6 +1631,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[0].Text = false;
         row.cells[0].Data = { ukey: 0, chk: true };
         row.cells[0].Data.ukey = obj.od.innercode;
+        if (6 === obj.od.status || 7 === obj.od.status) {
+            row.cells[0].Disable = true;
+        }
         row.cells[1].Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
         let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
@@ -1754,11 +1724,15 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.orderstatusTable.rows[idx].cells[9].Text = obj.od.ivolume;
         this.orderstatusTable.rows[idx].cells[10].Text = this.parseOrderStatus(obj.od.status);
         this.orderstatusTable.rows[idx].cells[10].Data = obj.od.status;
+        if (6 === obj.od.status || 7 === obj.od.status) {
+            this.orderstatusTable.rows[idx].cells[0].Disable = true;
+            if (this.orderstatusTable.rows[idx].cells[0].Text)
+                this.orderstatusTable.rows[idx].cells[0].Text = !this.orderstatusTable.rows[idx].cells[0].Text;
+        }
         AppComponent.self.orderstatusTable.detectChanges();
     }
 
     showComRecordPos(data: any) {
-         console.log("000000000000", data);
         for (let i = 0; i < data.length; ++i) {
             let equityPosTableRows: number = AppComponent.self.PositionTable.rows.length;
             let equityposSec: number = data[i].secucategory;
@@ -2826,7 +2800,6 @@ export class AppComponent implements OnInit, AfterViewInit {
                     AppComponent.self.changeIp20Status(false);
                     break;
                 case "ss-connect":
-
                     break;
                 case "ss-close":
                     break;

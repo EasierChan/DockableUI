@@ -111,7 +111,7 @@ process.on("message", (m: WSIP20, sock) => {
                 process.send({ event: "ss-data", content: { type: 3502, data: data } });
             });
             ManulTrader.addSlot(3504, data => {
-                process.send({ event: "ss-data", content: { type: 3054, data: data } });
+                process.send({ event: "ss-data", content: { type: 3504, data: data } });
             });
             ManulTrader.addSlot(2015, data => {
                 process.send({ event: "ss-data", content: { type: 2015, data: data } });
