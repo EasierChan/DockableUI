@@ -42,20 +42,24 @@ function stripComments(content) {
 }
 
 export class UConfig {
-	private static default: Object;
+	static default: Object;
 	// private static user: Object;
 	// static all: UAppSetting;
 
-	static init(name: string): void {
+	static init(name: string, default_cfg_file: string = ""): void {
 		try {
 			let appdir = path.join(Path.baseDir, name);
 			if (!fs.existsSync(appdir))
 				fs.mkdirSync(appdir);
 
-			if (!fs.existsSync(path.join(appdir, "default.json")))
-				fs.writeFileSync(path.join(appdir, "default.json"), "", { encoding: "utf-8" });
+			if (!fs.existsSync(path.join(appdir, "default-setting.json"))) {
+				if (fs.existsSync(default_cfg_file))
+					fs.linkSync(default_cfg_file, path.join(appdir, "default-setting.json"));
+				else
+					fs.writeFileSync(path.join(appdir, "default-setting.json"), default_cfg_file, { encoding: "utf-8" });
+			}
 
-			UConfig.default = JSON.parse(stripComments(fs.readFileSync(path.join(appdir, "default.json"), "utf-8")));
+			UConfig.default = JSON.parse(stripComments(fs.readFileSync(path.join(appdir, "default-setting.json"), "utf-8")));
 			// // DefaultLogger.trace(JSON.stringify(UConfig.default));
 			// if (Paths.configration.settings.user !== null) {
 			// 	UConfig.user = JSON.parse(stripComments(fs.readFileSync(Paths.configration.settings.user, "utf-8")));

@@ -1,10 +1,12 @@
 {
-    /* 行情前置ip地址 */
-    "front_addr": "172.24.10.35",
-    /* 行情前置端口 */
-    "front_port": 2015,
-    // 心跳间隔（s)
-    "heartbeat": 10,
-    // 窗口大小, 0 表示默认大小
-    "recvwnd_size": 0
+    /* 行情前置地址 */
+    "endpoints": [
+         {
+            "name": "首选节点",
+            "quote_addr": "172.24.51.4:8012",
+            "trade_addr": "172.24.51.9:6114",
+            "loopback_addr": "172.24.51.1:4801"
+        }
+    ],
+    "language": "zh-cn"
 }

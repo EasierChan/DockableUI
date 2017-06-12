@@ -12,6 +12,7 @@ import { DefaultLogger } from "../base/logger";
 import { UserDal } from "../../dal/itrade/userDal";
 import { IPCManager } from "../../dal/ipcManager";
 import { Path } from "../base/paths";
+import { UConfig } from "../base/configurator";
 
 export class AppStore {
     private static _bAuthorized: boolean = false;
@@ -67,6 +68,10 @@ export class AppStore {
         contentWindow.win.on("close", (e) => {
             e.preventDefault();
             contentWindow.win.hide();
+        });
+
+        IPCManager.register("appstore://get-setting", (event) => {
+            event.returnValue = UConfig.default;
         });
 
         IPCManager.register("appstore://startupAnApp", (event, appname, apptype, option) => {

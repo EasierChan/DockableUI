@@ -32,7 +32,7 @@ export class AppComponent implements OnDestroy {
     isAuthorized: boolean = false;
     username: string;
     password: string;
-    selectedServer: string;
+    selectedServer: any;
     // bPopPanel: boolean = false;
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
@@ -58,6 +58,7 @@ export class AppComponent implements OnDestroy {
     sendLoopConfigs: any[] = [];
     svconfig: SpreadViewConfig;
     svMenu: Menu;
+    setting: any;
 
     constructor(private appService: AppStoreService, private tgw: IP20Service,
         private qtp: QtpService,
@@ -69,6 +70,7 @@ export class AppComponent implements OnDestroy {
         this.bLeftSelectedAll = this.bRightSelectedAll = false;
         this.selectedList = [];
         this.queryList = [];
+        this.setting = this.appService.getSetting();
 
         this.contextMenu = new Menu();
         this.contextMenu.addItem("Start", () => {
@@ -91,15 +93,18 @@ export class AppComponent implements OnDestroy {
                 }
             });
         });
+
+
         this.contextMenu.addItem("ViewResult", () => {
+            let [loopback_host, loopback_port] = this.selectedServer.loopback_addr.split(":");
             if (this.config.activeChannel === "loopback") {
                 let name = "ResultOf" + this.config.name;
                 this.sendLoopConfigs = this.configBLL.getLoopbackItems();
                 console.info(this.sendLoopConfigs);
                 let items = this.sendLoopConfigs.filter(item => { return item.name === this.config.name; });
                 this.appService.startApp(name, "LoopbackTestReport", {
-                    port: 4801,
-                    host: "172.24.51.1",
+                    port: parseInt(loopback_port),
+                    host: loopback_host,
                     name: name,
                     tests: items
                 });
@@ -417,12 +422,14 @@ export class AppComponent implements OnDestroy {
     }
 
     loginTGW(): void {
+        let [trade_host, trade_port] = this.selectedServer.trade_addr.split(":");
+        let [loopback_host, loopback_port] = this.selectedServer.loopback_addr.split(":");
         let self = this;
         // tgw login
         let timestamp: any = new Date();
         timestamp = timestamp.format("yyyymmddHHMMss") + "" + timestamp.getMilliseconds();
         timestamp = timestamp.substr(0, timestamp.length - 1);
-        this.tgw.connect(6114, "172.24.51.9");
+        this.tgw.connect(parseInt(trade_port), trade_host);
         // listener
         this.tgw.addSlot({ // create config ack
             appid: 107,
@@ -539,7 +546,7 @@ export class AppComponent implements OnDestroy {
                 }
             }
         });
-        this.qtp.connect(4801, "172.24.51.1");
+        this.qtp.connect(parseInt(loopback_port), loopback_host);
     }
 
     static reqnum = 1;
@@ -594,14 +601,14 @@ export class AppComponent implements OnDestroy {
     }
 
     onSVConfigClick(e: MouseEvent, item) {
-        console.info(e);
+        let [quote_host, quote_port] = this.selectedServer.quote_addr.split(":");
         if (e.button === 2) {
             this.svconfig = item;
             this.svMenu.popup();
         } else {
             if (!this.appService.startApp(item.name, item.apptype, {
-                port: 10000,
-                host: "172.24.51.4",
+                port: parseInt(quote_port),
+                host: quote_host,
                 details: item,
             })) {
                 this.showError("Error", `start ${name} app error!`, "alert");

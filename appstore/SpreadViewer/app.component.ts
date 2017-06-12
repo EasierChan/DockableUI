@@ -38,7 +38,7 @@ export class AppComponent implements OnInit {
 
     onReady(option: any) {
         this.option = option;
-        this.tgw.connect(8012, "172.24.51.4");
+        this.tgw.connect(this.option.port, this.option.host);
     }
 
     ngOnInit() {
