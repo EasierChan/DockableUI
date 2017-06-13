@@ -24,6 +24,10 @@ export class AppStoreService {
     getUserProfile(loginInfo: UserProfile): any {
         return electron.ipcRenderer.sendSync("appstore://login", loginInfo);
     }
+
+    getSetting(): any {
+        return electron.ipcRenderer.sendSync("appstore://get-setting");
+    }
 }
 
 @Injectable()

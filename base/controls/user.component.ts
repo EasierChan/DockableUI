@@ -4,7 +4,7 @@
  */
 import {
     Component, AfterContentInit, Input, ElementRef, AfterViewInit,
-    ViewChild, Renderer, HostListener, HostBinding
+    ViewChild, Renderer, HostListener, HostBinding, ChangeDetectorRef
 } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import {
@@ -43,6 +43,7 @@ export class DockContainerComponent implements AfterViewInit {
     dataSource: any;
     static splitter: any = null;
     static startPoint: any = [0, 0];
+    static lastEnterEle = null;
     @ViewChild("container") container: ElementRef;
     @ViewChild("navSN") navSN: ElementRef;
     @ViewChild("navEW") navEW: ElementRef;
@@ -53,7 +54,7 @@ export class DockContainerComponent implements AfterViewInit {
     @ViewChild("center") center: ElementRef;
     @ViewChild("navCover") navCover: ElementRef;
 
-    constructor(private renderer: Renderer, private ele: ElementRef) { }
+    constructor(private renderer: Renderer, private ele: ElementRef, private detector: ChangeDetectorRef) { }
 
     ngAfterViewInit() {
         if (this.isDockContainer()) {
@@ -64,9 +65,14 @@ export class DockContainerComponent implements AfterViewInit {
                 return this.ele.nativeElement.clientHeight > 0 ? this.ele.nativeElement.clientHeight : this.container.nativeElement.clientHeight;
             };
             this.renderer.listen(this.container.nativeElement, "dragenter", (event: DragEvent) => {
-                // console.info(`dragenter`);
                 event.preventDefault();
                 event.stopPropagation();
+
+                // if (event.srcElement.className !== "dock-cover" && event.srcElement.className !== "panel-title")
+                //     return;
+
+                // console.info(event);
+                this.detector.detach();
                 this.dataSource.showNavbar();
                 // this.renderer.setElementStyle(this.navSN.nativeElement, "display", "flex");
                 this.renderer.setElementStyle(this.navSN.nativeElement, "top", "0");
@@ -81,14 +87,27 @@ export class DockContainerComponent implements AfterViewInit {
                     this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
                     this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
                 }
-            });
 
+                this.detector.detectChanges();
+
+                if (DockContainerComponent.lastEnterEle !== null && DockContainerComponent.lastEnterEle !== this) {
+                    DockContainerComponent.lastEnterEle.detector.detectChanges();
+                    DockContainerComponent.lastEnterEle.detector.reattach();
+                }
+
+                DockContainerComponent.lastEnterEle = this;
+            });
             this.renderer.listen(this.container.nativeElement, "dragover", (event: DragEvent) => {
                 event.preventDefault();
+                event.stopPropagation();
             });
-
             this.renderer.listen(this.container.nativeElement, "drop", (event: DragEvent) => {
+                event.preventDefault();
                 this.locateTo(event, 0);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
             // this.renderer.listen(this.center.nativeElement, "dragover", (event: DragEvent) => {
             //     this.dataSource.showCover();
@@ -105,6 +124,7 @@ export class DockContainerComponent implements AfterViewInit {
                 this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
                 this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
                 this.renderer.setElementStyle(this.navCover.nativeElement, "height", "30%");
+                this.detector.detectChanges();
             });
             this.renderer.listen(this.north.nativeElement, "dragover", (event: DragEvent) => {
                 event.preventDefault();
@@ -120,6 +140,7 @@ export class DockContainerComponent implements AfterViewInit {
                 this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
                 this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
                 this.renderer.setElementStyle(this.navCover.nativeElement, "height", "30%");
+                this.detector.detectChanges();
             });
             this.renderer.listen(this.south.nativeElement, "dragover", (event: DragEvent) => {
                 event.preventDefault();
@@ -135,6 +156,7 @@ export class DockContainerComponent implements AfterViewInit {
                 this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
                 this.renderer.setElementStyle(this.navCover.nativeElement, "width", "30%");
                 this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
+                this.detector.detectChanges();
             });
             this.renderer.listen(this.west.nativeElement, "dragover", (event: DragEvent) => {
                 event.preventDefault();
@@ -150,6 +172,7 @@ export class DockContainerComponent implements AfterViewInit {
                 this.renderer.setElementStyle(this.navCover.nativeElement, "left", "70%");
                 this.renderer.setElementStyle(this.navCover.nativeElement, "width", "30%");
                 this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
+                this.detector.detectChanges();
             });
             this.renderer.listen(this.east.nativeElement, "dragover", (event: DragEvent) => {
                 event.preventDefault();

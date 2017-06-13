@@ -1,6 +1,7 @@
 "use strict";
 
 import { app, BrowserWindow } from "electron";
+import path = require("path");
 import { ULoader } from "./base/api/common/base/loader";
 
 let mainWin = null;
@@ -13,7 +14,7 @@ if (shouldQuit) {
     app.quit();
 }
 
-ULoader.init();
+ULoader.init(__dirname, path.join(__dirname, "default-setting.json"));
 import { AppStore } from "./base/api/common/app/appstore";
 
 let tray = null;

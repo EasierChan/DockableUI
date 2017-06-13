@@ -9,23 +9,23 @@ import {
 
 
 // dal://itrade/data/order
-import { IPCManager } from "../ipcManager";
-IPCManager.register("dal://itrade/data/order", (e, param) => {
-    switch (param.type) {
-        case -1:
-            OrderDal.start();
-            break;
-        default:
-            DefaultLogger.error("send without");
-            OrderDal.sendMsg(param.type, param.subtype, param.buffer);
-            break;
-    }
-    OrderDal.addListener("order", (data) =>     {
-        if (!e.sender.isDestroyed()) {
-            e.sender.send("dal://itrade/data/order-reply", data);
-        }
-    });
-});
+// import { IPCManager } from "../ipcManager";
+// IPCManager.register("dal://itrade/data/order", (e, param) => {
+//     switch (param.type) {
+//         case -1:
+//             OrderDal.start();
+//             break;
+//         default:
+//             DefaultLogger.error("send without");
+//             OrderDal.sendMsg(param.type, param.subtype, param.buffer);
+//             break;
+//     }
+//     OrderDal.addListener("order", (data) =>     {
+//         if (!e.sender.isDestroyed()) {
+//             e.sender.send("dal://itrade/data/order-reply", data);
+//         }
+//     });
+// });
 
 // it is a eventemitter
 export class OrderResolver extends ItradeResolver {
