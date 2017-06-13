@@ -105,6 +105,7 @@ export class AppComponent implements OnDestroy {
                     port: parseInt(loopback_port),
                     host: loopback_host,
                     name: name,
+                    lang: this.setting.language,
                     tests: items
                 });
             }
@@ -578,6 +579,7 @@ export class AppComponent implements OnDestroy {
             port: this.config.port,
             host: this.config.host,
             name: this.config.name,
+            lang: this.setting.language,
             feedhandler: {
                 port: this.config.channels.feedhandler.port,
                 host: this.config.channels.feedhandler.addr
@@ -608,6 +610,7 @@ export class AppComponent implements OnDestroy {
             if (!this.appService.startApp(item.name, item.apptype, {
                 port: parseInt(quote_port),
                 host: quote_host,
+                lang: this.setting.language,
                 details: item,
             })) {
                 this.showError("Error", `start ${name} app error!`, "alert");
