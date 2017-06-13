@@ -15,6 +15,7 @@ class SecuMaster {
 
     static init() {
         // TODO load secuinfo, future info
+        let data1 = new Date();
         let str = path.join(Path.baseDir, "secumain.csv");
         let content: String = new String();
         try {
@@ -29,15 +30,36 @@ class SecuMaster {
             let arr = linestr.split(",");
             let arrLen = arr.length;
             if (arrLen === 4) {
-                SecuMaster.secuCodeObj[arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
-                SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
                 SecuMaster.pinyinObj["," + arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
             } else if (arrLen === 5) {
-                SecuMaster.secuCodeObj[arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
-                SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
                 SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
             }
         });
+        let data2 = new Date();
+        // console.log("******************", data2.getTime() - data1.getTime());
+        let portStr = path.join(Path.baseDir, "port.csv");
+        let portContent: String = new String();
+        try {
+            portContent = fs.readFileSync(path.join(portStr), { encoding: "utf-8" });
+        }
+        catch (e) {
+            console.info(e);
+            // alert("can not open secumain.csv");
+        }
+        let portlines = portContent.split("\n");
+        portlines.forEach(function (linestr) {
+            let arr = linestr.split(",");
+            let arrLen = arr.length;
+            if (arrLen === 4) {
+                SecuMaster.secuCodeObj[arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
+                SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
+            } else if (arrLen === 5) {
+                SecuMaster.secuCodeObj[arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
+                SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
+            }
+        });
+        let data3 = new Date();
+        // console.log("******************", data3.getTime() - data2.getTime());
     }
 
     static getSecuinfoByCode(code: string[]) {

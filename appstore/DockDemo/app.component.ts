@@ -66,7 +66,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private totalpnlt: MetaControl;
     private buyamountLabel: MetaControl;
     private sellamountLabel: MetaControl;
-    private portfolioAccLabel: MetaControl;
+    // private portfolioAccLabel: MetaControl;
     private reserveCheckBox: MetaControl;
     private portfolioLabel: MetaControl;
     private portfoliopnl: MetaControl;
@@ -81,6 +81,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private range: URange;
     private rateText: MetaControl;
     private dd_Account: DropDown;
+    private portfolio_acc: DropDown;
     private dd_Strategy: DropDown;
     private dd_symbol: DropDown;
 
@@ -596,12 +597,15 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.pageObj["Portfolio"] = this.portfolioPage;
         let loadItem = new ComboControl("row");
 
-        this.portfolioAccLabel = new MetaControl("textbox");
-        this.portfolioAccLabel.Left = statarbLeftAlign;
-        this.portfolioAccLabel.Width = 100;
+        this.portfolio_acc = new DropDown();
+        this.portfolio_acc.Width = 110;
+        this.portfolio_acc.Left = statarbLeftAlign;
         let accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
-        this.portfolioAccLabel.Title = accountRtn + ": ";
-        this.portfolioAccLabel.Disable = true;
+        this.portfolio_acc.Title = accountRtn + ": ";
+        this.portfolio_acc.SelectChange = () => {
+            console.log(this.portfolio_acc.SelectedItem.Text);
+        };
+
 
         this.portfolioLabel = new MetaControl("textbox");
         this.portfolioLabel.Width = 60;
@@ -649,7 +653,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         btn_load.Left = 20;
         btn_load.Class = "primary";
 
-        loadItem.addChild(this.portfolioAccLabel).addChild(this.portfolioLabel)
+        loadItem.addChild(this.portfolio_acc).addChild(this.portfolioLabel)
             .addChild(this.portfolioDaypnl).addChild(this.portfolioonpnl).addChild(this.portfolioCount).addChild(btn_load);
 
         let tradeitem = new ComboControl("row");
@@ -791,7 +795,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.portfolioTable.columnConfigurable = true;
         this.portfolioTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
             let ukey = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Data.ukey;
-            let account = AppComponent.self.portfolioAccLabel.Text;
+            let account = AppComponent.self.portfolio_acc.SelectedItem.Text;
             if (cellIndex === 10) {
                 let value = AppComponent.self.portfolioTable.rows[rowIndex].cells[9].Text + "";
                 let rtn = AppComponent.self.TestingInput(value);
@@ -831,7 +835,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         btn_load.OnClick = () => {
             let readself = this;
-            let account: number = 666600000040;
+            let account: number = parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text);
             // ManulTrader.registerAccPos(account);
             MessageBox.openFileDialog("Select CSV", function (filenames) {
                 console.log(filenames);
@@ -847,7 +851,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                             splitStr.forEach(function (item) {
                                 let arr = item.split(",");
                                 if (arr.length === 2 && arr[0]) {
-                                    let obj = this.secuinfo.getSecuinfoByCode(arr[0] + "");
+                                    let obj = AppComponent.self.secuinfo.getSecuinfoByCode(arr[0] + "");
+                                    console.log(obj);
                                     let rtnObj = AppComponent.self.traverseobj(obj, arr[0]);
                                     if (rtnObj) {
                                         let sendObj = { currPos: 0, ukey: 0, targetPos: 0 };
@@ -939,7 +944,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: {
                     type: "sendAllSel", data: {
-                        account: AppComponent.self.portfolioAccLabel.Text,
+                        account: AppComponent.self.portfolio_acc.SelectedItem.Text,
                         count: sendArr.length,
                         askPriceLevel: askPriceLevel,
                         bidPriceLevel: bidPriceLevel,
@@ -957,7 +962,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: {
                     type: "cancelAllSel", data: {
-                        account: AppComponent.self.portfolioAccLabel.Text,
+                        account: AppComponent.self.portfolio_acc.SelectedItem.Text,
                         count: selArrLen,
                         sendArr: AppComponent.self.selectArr
                     }
@@ -1976,8 +1981,9 @@ export class AppComponent implements OnInit, AfterViewInit {
             let accTableRows: number = AppComponent.self.accountTable.rows.length;
             let accData: number = data[i].record.account;
             // -------in manultrader frame,set account info
-            let checkFlag: boolean = true;
+            let checkFlag: boolean = true; let portfolioCheckFlag: boolean = true;
             let dd_account_len = AppComponent.self.dd_Account.Items.length;
+            let portfolioAccLen = AppComponent.self.portfolio_acc.Items.length;
             for (let idx = 0; idx < dd_account_len; ++idx) {
                 let gettext = AppComponent.self.dd_Account.Items[idx].Text;
                 if (accData + "" === gettext)
@@ -1986,6 +1992,14 @@ export class AppComponent implements OnInit, AfterViewInit {
             if (checkFlag) {
                 AppComponent.self.dd_Account.addItem({ Text: accData + "", Value: dd_account_len + "" });
             }
+
+            for (let idx = 0; idx < portfolioAccLen; ++idx) {
+                let gettext = AppComponent.self.portfolio_acc.Items[idx].Text;
+                if (accData + "" === gettext)
+                    portfolioCheckFlag = false;
+            }
+            if (portfolioCheckFlag)
+                AppComponent.self.portfolio_acc.addItem({ Text: accData + "", Value: portfolioAccLen + "" });
             // ----------------------
             let accSec: number = data[i].secucategory;
             if (accTableRows === 0) {  // add
@@ -2105,7 +2119,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         // AppComponent.self.ref.detectChanges();
     }
     showStrategyCfg(data: any) {
-        //  console.log("333333333333", data);
+        // console.log("333333333333", data);
         if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
             return;
         let addSubCOmFlag: boolean = false;
@@ -2146,10 +2160,10 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
             if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {  // show
                 let paraObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commandIdx, AppComponent.self.parameterIdx);
+                console.log("rtn paraobj:", paraObj);
                 if (paraObj.col === -1) { // add
                     AppComponent.self.addStrategyTableCol({ row: paraObj.row, col: AppComponent.self.parameterIdx }, data[i], type);
-                    if (!(data.length < 50))
-                        AppComponent.self.parameterIdx++;
+                    AppComponent.self.parameterIdx++;
                 }
                 else { // refresh
                     AppComponent.self.refreshStrategyInfo(paraObj, data[i], type);
@@ -2159,11 +2173,9 @@ export class AppComponent implements OnInit, AfterViewInit {
                 let commentObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, 10, AppComponent.self.commentIdx);
                 if (commentObj.col === -1) { // add
                     AppComponent.self.addStrategyTableCol({ row: commentObj.row, col: AppComponent.self.commentIdx }, data[i], type);
-                    if (!(data.length < 50)) {
-                        AppComponent.self.commentIdx++;
-                        AppComponent.self.commandIdx++;
-                        AppComponent.self.parameterIdx++;
-                    }
+                    AppComponent.self.commentIdx++;
+                    AppComponent.self.commandIdx++;
+                    AppComponent.self.parameterIdx++;
                 }
                 else { // refresh
                     AppComponent.self.refreshStrategyInfo(commentObj, data[i], type);
@@ -2178,10 +2190,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                 let commandObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commentIdx, AppComponent.self.commandIdx);
                 if (commandObj.col === -1) {  // add
                     AppComponent.self.addStrategyTableCol({ row: commandObj.row, col: AppComponent.self.commandIdx }, data[i], type);
-                    if (!(data.length < 50)) {
-                        AppComponent.self.commandIdx++;
-                        AppComponent.self.parameterIdx++;
-                    }
+                    AppComponent.self.commandIdx++;
+                    AppComponent.self.parameterIdx++;
                 } else {  // refresh
                     AppComponent.self.refreshStrategyInfo(commandObj, data[i], type);
                 }
@@ -2191,6 +2201,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     }
     checkTableIndex(strategyid: number, name: String, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
+        // console.log(strategyid, name, type, preIdx, rearIdx);
         let initLen: number = 10; // init talble column lengths
         let checkcolFlag: boolean = false;
         let rowFlagIdx: number = -1;
@@ -2199,6 +2210,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             let getId = this.strategyTable.rows[i].cells[0].Text;
             if (getId === strategyid) {
                 rowFlagIdx = i;
+                break;
             }
         }
         // special judge
@@ -2225,6 +2237,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     addStrategyTableCol(paraObj: any, data: any, type: number) {
+        // console.log("addStrategyTableCol", paraObj, data, type);
         let colIdx = paraObj.col;
         let rowIdx = paraObj.row;
         let title = data.name;
@@ -2417,7 +2430,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     showBasketBackInfo(data: any) {
         let account = data[0].account;
-        AppComponent.self.portfolioAccLabel.Text = account;
         let count = data[0].count;
         AppComponent.self.portfolioCount.Text = count;
         let tableData = data[0].data;
