@@ -94,7 +94,6 @@ export class AppComponent implements OnDestroy {
             });
         });
 
-
         this.contextMenu.addItem("ViewResult", () => {
             let [loopback_host, loopback_port] = this.selectedServer.loopback_addr.split(":");
             if (this.config.activeChannel === "loopback") {

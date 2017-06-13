@@ -162,11 +162,17 @@ export class AppStore {
             }, {
                 label: "中文",
                 type: "radio",
-                click() { }
+                click() {
+                    UConfig.default.language = "zh-cn";
+                    UConfig.saveChanges();
+                }
             }, {
                 label: "English",
                 type: "radio",
-                click() { }
+                click() {
+                    UConfig.default.language = "en-us";
+                    UConfig.saveChanges();
+                }
             }, {
                 type: "separator"
             }, {

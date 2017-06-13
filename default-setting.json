@@ -1,12 +1,11 @@
 {
-    /* 行情前置地址 */
-    "endpoints": [
-         {
-            "name": "首选节点",
-            "quote_addr": "172.24.51.4:8012",
-            "trade_addr": "172.24.51.9:6114",
-            "loopback_addr": "172.24.51.1:4801"
-        }
-    ],
-    "language": "zh-cn"
+  "endpoints": [
+    {
+      "name": "首选节点",
+      "quote_addr": "172.24.51.4:8012",
+      "trade_addr": "172.24.51.9:6114",
+      "loopback_addr": "172.24.51.1:4801"
+    }
+  ],
+  "language": "zh-cn"
 }

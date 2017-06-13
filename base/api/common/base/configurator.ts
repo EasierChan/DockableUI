@@ -42,24 +42,25 @@ function stripComments(content) {
 }
 
 export class UConfig {
-	static default: Object;
+	static default: any;
+	static appdir: string;
 	// private static user: Object;
 	// static all: UAppSetting;
 
 	static init(name: string, default_cfg_file: string = ""): void {
 		try {
-			let appdir = path.join(Path.baseDir, name);
-			if (!fs.existsSync(appdir))
-				fs.mkdirSync(appdir);
+			UConfig.appdir = path.join(Path.baseDir, name);
+			if (!fs.existsSync(UConfig.appdir))
+				fs.mkdirSync(UConfig.appdir);
 
-			if (!fs.existsSync(path.join(appdir, "default-setting.json"))) {
+			if (!fs.existsSync(path.join(UConfig.appdir, "default-setting.json"))) {
 				if (fs.existsSync(default_cfg_file))
-					fs.linkSync(default_cfg_file, path.join(appdir, "default-setting.json"));
+					fs.linkSync(default_cfg_file, path.join(UConfig.appdir, "default-setting.json"));
 				else
-					fs.writeFileSync(path.join(appdir, "default-setting.json"), default_cfg_file, { encoding: "utf-8" });
+					fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), default_cfg_file, { encoding: "utf-8" });
 			}
 
-			UConfig.default = JSON.parse(stripComments(fs.readFileSync(path.join(appdir, "default-setting.json"), "utf-8")));
+			UConfig.default = JSON.parse(stripComments(fs.readFileSync(path.join(UConfig.appdir, "default-setting.json"), "utf-8")));
 			// // DefaultLogger.trace(JSON.stringify(UConfig.default));
 			// if (Paths.configration.settings.user !== null) {
 			// 	UConfig.user = JSON.parse(stripComments(fs.readFileSync(Paths.configration.settings.user, "utf-8")));
@@ -69,6 +70,10 @@ export class UConfig {
 		} catch (err) {
 			throw Error("app settings load error!");
 		}
+	}
+
+	static saveChanges() {
+		fs.writeFile(path.join(UConfig.appdir, "default-setting.json"), JSON.stringify(UConfig.default, null, 2));
 	}
 
 	static reload(name: string): void {
