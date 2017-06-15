@@ -4,7 +4,6 @@
 "use strict";
 
 import { Message } from "../app.model";
-const logger = console;
 
 export class Header extends Message {
     static len = 12;

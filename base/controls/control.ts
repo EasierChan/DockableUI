@@ -786,6 +786,24 @@ export class ComboControl extends Control {
     set MinWidth(value: number) {
         this.styleObj.minWidth = value;
     }
+
+    set align(value: "left" | "right" | "center") {
+        switch (value) {
+            case "left":
+                this.styleObj.align = "flex-start";
+                break;
+            case "right":
+                this.styleObj.align = "flex-end";
+                break;
+            case "center":
+                this.styleObj.align = "center";
+                break;
+            default:
+                console.error(`unvalid align value => ${value}`);
+                break;
+        }
+        this.styleObj.align = value;
+    }
 }
 
 export class VBox extends ComboControl {
@@ -824,6 +842,10 @@ export class MetaControl extends Control {
 
     set OnInput(value: Function) {
         this.dataSource.input = value;
+    }
+
+    set onChange(value: Function) {
+        this.dataSource.change = value;
     }
 
     set Class(value: string) {

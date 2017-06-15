@@ -1,6 +1,6 @@
 "use strict";
 
-import { IP20Service } from "../../../base/api/services/ip20.worker";
+import { IP20Factory } from "../../../base/api/services/ip20.worker";
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
 import { ManulTrader } from "./sendorder";
@@ -182,16 +182,6 @@ process.on("exit", () => {
 interface WSIP20 {
     command: string;
     params: any;
-}
-
-export class IP20Factory {
-    private static tgw: IP20Service;
-    static get instance() {
-        if (!IP20Factory.tgw)
-            IP20Factory.tgw = new IP20Service();
-
-        return IP20Factory.tgw;
-    }
 }
 
 function ss_sendHandle(data: any) {

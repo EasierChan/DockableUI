@@ -4,7 +4,7 @@
     {{child.dataSource.text}}
   </button>
   <label *ngIf="child.styleObj.type=='textbox'" [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top"
-    (input)="child.dataSource.input ? child.dataSource.input() : null">
+    (input)="child.dataSource.input ? child.dataSource.input() : null" (change)="child.dataSource?.change()">
       <pre>{{child.dataSource.title}}</pre>
         <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" [style.width.px]="child.styleObj?.width"
         class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
@@ -61,6 +61,6 @@
   <echart *ngIf="child.styleObj.type=='echart'&&child.className!='hidden'" [dataSource]="child.dataSource"></echart>
   <dock-control *ngIf="child.styleObj.type=='tabpanel'" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj" [dataSource]="child.dataSource"></dock-control>
   <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource" [class]="child.styleObj.type"
-    [style.min-width.px]="child.styleObj?.minWidth" [style.min-height.px]="child.styleObj?.minHeight">
+    [style.min-width.px]="child.styleObj?.minWidth" [style.min-height.px]="child.styleObj?.minHeight" [style.justify-content]="child.styleObj?.align">
   </usercontrol>
 </template>

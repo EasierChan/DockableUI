@@ -8,7 +8,7 @@ import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
     VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel, TabPage, ChartViewer, TextBox
 } from "../../base/controls/control";
-import { QtpService } from "../../base/api/services/qtp.service";
+import { WorkerFactory } from "../../base/api/services/uworker.server";
 import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
 declare let window: any;
 
@@ -20,7 +20,6 @@ declare let window: any;
         </dock-control>
     `,
     providers: [
-        QtpService,
         AppStateCheckerRef
     ]
 })
@@ -33,21 +32,53 @@ export class AppComponent implements OnInit {
     lbl_maxRetracementRatio: Label;
     lbl_sharpeRatio: Label;
     lbl_percentProfitable: Label;
+    txt_pagesize: TextBox;
+    txt_pageidx: TextBox;
+    lbl_pagecount: Label;
     table: DataTable;
     chart: ChartViewer;
-    resultMap: any = {};
+    worker: any;
 
-    constructor(private state: AppStateCheckerRef, private qtp: QtpService) {
+    constructor(private state: AppStateCheckerRef) {
+        this.state.onInit(this, this.onReady);
+        this.state.onDestory(this, this.onDestroy);
+        this.createWorker();
     }
 
     onReady(option: any) {
         this.option = option;
         document.title = this.option.name;
-        this.qtp.connect(this.option.port, this.option.host);
+        // this.qtp.connect(this.option.port, this.option.host);
+    }
+
+    onDestroy() {
+        this.worker.dispose();
+    }
+
+    createWorker() {
+        let self = this;
+        this.worker = WorkerFactory.createWorker(`${__dirname}/messageWorker.js`);
+        this.worker.onData = data => {
+            switch (data.event) {
+                case "data":
+                    switch (data.content.type) {
+                        case 8015:
+                            self.setProfitOfItem(data.content.data.nId, data.content.data.Accpl);
+                            break;
+                        case 8017:
+                            self.setDetailsOfItem(data.content.nId, data.content.data);
+                            break;
+                    }
+                    break;
+                default:
+                    console.error(`unknown data event => ${data.event}!`);
+                    break;
+            }
+        };
+        this.worker.send({ command: "start", params: { port: this.option.port, host: this.option.host } });
     }
 
     ngOnInit() {
-        this.state.onInit(this, this.onReady);
         let viewContent = new VBox();
         let svHeaderRow1 = new HBox();
         this.dd_tests = new DropDown();
@@ -101,8 +132,34 @@ export class AppComponent implements OnInit {
         let panel = new TabPanel();
         let detailsPage = new TabPage("OrderDetail", "OrderDetail");
         let detailContent = new VBox();
-        this.table = new DataTable("table");
-        this.table.addColumn("Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
+        let pagination = new HBox();
+        pagination.align = "center";
+        this.txt_pagesize = new TextBox();
+        this.txt_pagesize.Title = "页面大小:";
+        this.txt_pagesize.Text = 20;
+        this.txt_pagesize.Width = 30;
+        this.txt_pagesize.onChange = () => {
+            this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: 0, end: parseInt(this.txt_pagesize.Text) } });
+        };
+        this.txt_pageidx = new TextBox();
+        this.txt_pageidx = new TextBox();
+        this.txt_pageidx.Title = ",第";
+        this.txt_pageidx.Text = 1;
+        this.txt_pageidx.Width = 30;
+        this.txt_pageidx.onChange = () => {
+            let idx = parseInt(this.txt_pageidx.Text);
+            let size = parseInt(this.txt_pagesize.Text);
+            if (idx > 0) {
+                this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: size * (idx - 1), end: size * idx } });
+            }
+        };
+        this.lbl_pagecount = new Label();
+        this.lbl_pagecount.Text = "页";
+        pagination.addChild(this.txt_pagesize).addChild(this.txt_pageidx).addChild(this.lbl_pagecount);
+        detailContent.addChild(pagination);
+        this.table = new DataTable("table2");
+        this.table.RowIndex = false;
+        this.table.addColumn("Index", "Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
         detailContent.addChild(this.table);
         detailsPage.setContent(detailContent);
         panel.addTab(detailsPage, false);
@@ -188,12 +245,8 @@ export class AppComponent implements OnInit {
                 lbl_mode.Text = this.dd_tests.SelectedItem.Value.simlevel;
                 lbl_speed.Text = this.dd_tests.SelectedItem.Value.speed;
                 lbl_duration.Text = this.dd_tests.SelectedItem.Value.timebegin + "-" + this.dd_tests.SelectedItem.Value.timeend;
-                if (this.resultMap.hasOwnProperty(this.dd_tests.SelectedItem.Value.id)) {
-                    this.table.rows.length = 0;
-                    console.info(this.resultMap[this.dd_tests.SelectedItem.Value.id].details.length);
-                    this.setDetailsOfItem(this.dd_tests.SelectedItem.Value.id, this.resultMap[this.dd_tests.SelectedItem.Value.id].details);
-                    this.setProfitOfItem(this.dd_tests.SelectedItem.Value.id, this.resultMap[this.dd_tests.SelectedItem.Value.id].pnl);
-                }
+                this.table.rows.length = 0;
+                this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: 0, end: parseInt(this.txt_pagesize.Text) } });
             }
         };
 
@@ -201,82 +254,44 @@ export class AppComponent implements OnInit {
             if (this.dd_tests.SelectedItem && this.dd_tests.SelectedItem.Value && this.dd_tests.SelectedItem.Value.id !== undefined) {
                 this.chart.init();
                 this.table.rows.length = 0;
-                this.qtp.send(8014, { nId: this.dd_tests.SelectedItem.Value.id }); // pnl
-                this.qtp.send(8016, { nId: this.dd_tests.SelectedItem.Value.id }); // detail
+                this.worker.send({ command: "send", params: { type: 8014, data: { nId: this.dd_tests.SelectedItem.Value.id } } });
+                this.worker.send({ command: "send", params: { type: 8016, data: { nId: this.dd_tests.SelectedItem.Value.id } } });
+                setTimeout(() => {
+                    this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: 0, end: parseInt(this.txt_pagesize.Text) } });
+                }, 1000);
             }
         };
-
-        this.qtp.addSlot(
-            {
-                msgtype: 8013,
-                callback: msg => {
-                    console.info(msg);
-                    // let row = table.newRow();
-                },
-                context: this
-            },
-            {
-                msgtype: 8015,
-                callback: msg => {
-                    console.info(msg);
-                    // let row = table.newRow();
-                    this.setProfitOfItem(msg.nId, msg.Accpl);
-                },
-                context: this
-            },
-            {
-                msgtype: 8017,
-                callback: msg => {
-                    // console.info(msg);
-                    if (msg.packidx === 1)
-                        this.table.rows.length = 0;
-                    this.setDetailsOfItem(msg.nId, msg.orderdetails);
-                    if (msg.packidx === 1)
-                        this.resultMap[msg.nId].details = msg.orderdetails;
-                    else
-                        this.resultMap[msg.nId].details = this.resultMap[msg.nId].details.concat(msg.orderdetails);
-                    // console.info(this.resultMap[msg.nId].details.length);
-                },
-                context: this
-            }
-        );
     }
 
     setDetailsOfItem(id: number, orderdetails: any) {
-        if (Array.isArray(orderdetails)) {
-            if (!this.resultMap.hasOwnProperty(id)) {
-                this.resultMap[id] = {};
-            }
-
-            orderdetails.forEach(item => {
+        if (id === this.dd_tests.SelectedItem.Value.id && Array.isArray(orderdetails)) {
+            this.table.rows.length = 0;
+            orderdetails.forEach((item, index) => {
                 let row = this.table.newRow();
-                row.cells[0].Text = item.orderid;
-                row.cells[1].Text = item.tradedate;
-                row.cells[2].Text = item.accountid;
-                row.cells[3].Text = item.innercode;
-                row.cells[4].Text = item.orderstatus;
-                row.cells[5].Text = item.ordertime;
-                row.cells[6].Text = item.orderprice / 10000;
-                row.cells[7].Text = item.ordervolume;
-                row.cells[8].Text = item.dealprice / 10000;
-                row.cells[9].Text = item.dealvolume;
-                row.cells[10].Text = item.dealbalance / 10000;
-                row.cells[11].Text = item.directive === 1 ? "B" : "S";
+                row.cells[0].Text = (parseInt(this.txt_pageidx.Text) - 1) * parseInt(this.txt_pagesize.Text) + index + 1;
+                row.cells[1].Text = item.orderid;
+                row.cells[2].Text = item.tradedate;
+                row.cells[3].Text = item.accountid;
+                row.cells[4].Text = item.innercode;
+                row.cells[5].Text = item.orderstatus;
+                row.cells[6].Text = item.ordertime;
+                row.cells[7].Text = item.orderprice / 10000;
+                row.cells[8].Text = item.ordervolume;
+                row.cells[9].Text = item.dealprice / 10000;
+                row.cells[10].Text = item.dealvolume;
+                row.cells[11].Text = item.dealbalance / 10000;
+                row.cells[12].Text = item.directive === 1 ? "B" : "S";
             });
+            this.table.detectChanges();
         }
     }
 
     setProfitOfItem(id: number, profit: any) {
-        if (!this.resultMap.hasOwnProperty(id)) {
-            this.resultMap[id] = {};
-        }
-
         let self = this;
         let total_ratios = [];
         let bottoms = [];
         let tops = [];
         let winCount = 0, sumratio = 0;
-        this.resultMap[id].pnl = profit;
 
         this.chart.changeOption({
             xAxis: [
@@ -309,7 +324,7 @@ export class AppComponent implements OnInit {
                         let tmp = null;
                         let firstValue = 0;
                         let lastIdx;
-                        self.resultMap[self.dd_tests.SelectedItem.Value.id].pnl.forEach((item, idx) => {
+                        profit.forEach((item, idx) => {
 
                             if (item.aeupl + item.apopl > 0) {
                                 ++winCount;
@@ -379,7 +394,7 @@ export class AppComponent implements OnInit {
         if (variance !== 0) {
             let value = ((total_ratios.pop() - 1) * 365 / profit.length - parseFloat(this.txt_freeriskrate.Text)) / (Math.sqrt(variance) * 365);
             // console.info(value);
-            this.lbl_sharpeRatio.Text  = value.toFixed(2);
+            this.lbl_sharpeRatio.Text = value.toFixed(2);
         } else {
             this.lbl_sharpeRatio.Text = 0;
         }
