@@ -78,24 +78,6 @@ export class ManulTrader {
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
 
-    // static getSecuinfoByCode(...code: string[]) {
-    //     // return ManulTrader.orderService.getsecuInfobycode(type, ...code);
-    //     return ManulTrader.secuinfo.getSecuinfoByCode(...code);
-    // }
-
-    // static getSecuinfoByukey(...ukey: number[]) {
-    //     // return ManulTrader.orderService.getsecuInfobyukey(type, ...ukey);
-    //     return ManulTrader.secuinfo.getSecuinfoByUKey(...ukey);
-    // }
-
-    // static getCodeList(data: string) {
-    //     return ManulTrader.secuinfo.getCodeList(data);
-    // }
-
-    // static getTranslateInfo(type: number, ...words: string[]) {
-    //     return TranslateService.getTranslateInfo(type, ...words);
-    // }
-
     static submitPara(data: any) {
         //  console.log("+++++++", data);
         let offset: number = 0;
@@ -251,7 +233,6 @@ export class ManulTrader {
         //     offset += 8;
         // }
         // offset += mem_size;
-        console.log("ready send cancel order");
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
     static getProfitInfo(): void {
@@ -262,7 +243,6 @@ export class ManulTrader {
         let offset: number = 0;
         let buffer = new Buffer(12);
         // fetch position
-        // let account: number = 666600000040;
         ManulTrader.writeUInt64LE(buffer, data, offset); offset += 8;
         buffer.writeUInt32LE(0, offset); offset += 4;
         ManulTrader.orderService.sendOrder(5002, 0, buffer);
