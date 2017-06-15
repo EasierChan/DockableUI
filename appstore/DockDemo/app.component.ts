@@ -186,6 +186,18 @@ export class AppComponent implements OnInit, AfterViewInit {
     onReady(option: any) {
         // option.port and option.host and option.name ;
         this.option = option;
+        let language = this.option.lang;
+        switch (language) {
+            case "zh-cn":
+                this.languageType = 1;
+                break;
+            case "en-us":
+                this.languageType = 0;
+                break;
+            default:
+                this.languageType = 0;
+                break;
+        }
         // console.info(this.option);
     }
 
@@ -603,7 +615,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         let accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
         this.portfolio_acc.Title = accountRtn + ": ";
         this.portfolio_acc.SelectChange = () => {
-            console.log(this.portfolio_acc.SelectedItem.Text);
+            // console.log(this.portfolio_acc.SelectedItem.Text);
+            // this.portfolioTable.rows.length = 0;
         };
 
 
@@ -836,7 +849,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         btn_load.OnClick = () => {
             let readself = this;
             let account: number = parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text);
-            // ManulTrader.registerAccPos(account);
+            AppComponent.bgWorker.send({
+                command: "ss-send", params: { type: "registerAccPos", data: account }
+            });
             MessageBox.openFileDialog("Select CSV", function (filenames) {
                 console.log(filenames);
                 if (filenames !== undefined)
@@ -852,7 +867,6 @@ export class AppComponent implements OnInit, AfterViewInit {
                                 let arr = item.split(",");
                                 if (arr.length === 2 && arr[0]) {
                                     let obj = AppComponent.self.secuinfo.getSecuinfoByCode(arr[0] + "");
-                                    console.log(obj);
                                     let rtnObj = AppComponent.self.traverseobj(obj, arr[0]);
                                     if (rtnObj) {
                                         let sendObj = { currPos: 0, ukey: 0, targetPos: 0 };
@@ -2160,7 +2174,6 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
             if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {  // show
                 let paraObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commandIdx, AppComponent.self.parameterIdx);
-                console.log("rtn paraobj:", paraObj);
                 if (paraObj.col === -1) { // add
                     AppComponent.self.addStrategyTableCol({ row: paraObj.row, col: AppComponent.self.parameterIdx }, data[i], type);
                     AppComponent.self.parameterIdx++;
@@ -2429,7 +2442,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showBasketBackInfo(data: any) {
+        console.log(data);
+        let getaccount: number = parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text);
         let account = data[0].account;
+        if (account !== getaccount)
+            return;
         let count = data[0].count;
         AppComponent.self.portfolioCount.Text = count;
         let tableData = data[0].data;
@@ -2500,7 +2517,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 row.cells[0].Data.chk = true;
                 row.cells[10].Disable = true;
                 row.cells[11].Disable = true;
-                row.cells[12].Text = "SUspended";
+                row.cells[12].Text = "Suspended";
             } else if (flag === 2) {
                 row.cells[0].Disable = true;
                 row.cells[0].Data.chk = true;
