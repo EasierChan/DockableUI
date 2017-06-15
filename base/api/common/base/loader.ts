@@ -24,6 +24,11 @@ export class ULoader {
         if (!fs.existsSync(fpath)) {
             fs.linkSync(path.join(rootDir, "secumain.csv"), fpath);
         }
+
+        fpath = path.join(Path.baseDir, "port.csv");
+        if (!fs.existsSync(fpath)) {
+            fs.linkSync(path.join(rootDir, "port.csv"), fpath);
+        }
         // init logger
         ULogger.init();
         DefaultLogger.info("Program environment initialize...");
