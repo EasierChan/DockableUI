@@ -73,7 +73,9 @@ export class UConfig {
 	}
 
 	static saveChanges() {
-		fs.writeFile(path.join(UConfig.appdir, "default-setting.json"), JSON.stringify(UConfig.default, null, 2));
+		fs.writeFile(path.join(UConfig.appdir, "default-setting.json"), JSON.stringify(UConfig.default, null, 2), (err) => {
+			if (err) console.error(err.message);
+		});
 	}
 
 	static reload(name: string): void {

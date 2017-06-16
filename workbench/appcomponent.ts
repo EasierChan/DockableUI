@@ -176,7 +176,12 @@ export class AppComponent implements OnDestroy {
         let sobj = Object.assign({}, this.curTemplate.body.data["Strategy"][0]);
         this.curTemplate.body.data["Strategy"].length = 0;
         this.curTemplate.body.data["PairTrades"] = {};
+        let hasError = false;
         this.config.strategyInstances.forEach(item => {
+            if (!item.accounts || item.accounts.length < 1) {
+                hasError = true;
+                return;
+            }
             let obj = JSON.parse(JSON.stringify(sobj));
             obj.account = [];
             item.accounts.split(",").forEach(iact => {
@@ -205,6 +210,11 @@ export class AppComponent implements OnDestroy {
                 this.curTemplate.body.data["PairTrades"][item.name]["SendCheck"] = item.sendChecks;
             }
         });
+
+        if (hasError) {
+            this.showError("Wrong Config", "check items: <br>1. config name.<br>2. one strategy instance at least.<br>3. account must not be empty.", "alert");
+            return;
+        }
         this.configBLL.updateConfig(this.config);
         this.tgw.send(107, 2000, { routerid: 0, templateid: this.curTemplate.id, body: { name: this.config.name, config: JSON.stringify(this.curTemplate.body.data) } });
         this.closePanel();
