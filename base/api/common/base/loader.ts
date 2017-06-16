@@ -17,17 +17,17 @@ export class ULoader {
         // init base info
         let fpath = path.join(Path.baseDir, "hanization.csv");
         if (!fs.existsSync(fpath)) {
-            fs.linkSync(path.join(rootDir, "hanization.csv"), fpath);
+            fs.writeFileSync(fpath, fs.readFileSync(path.join(rootDir, "hanization.csv"), "utf-8"), { encoding: "utf-8" });
         }
 
         fpath = path.join(Path.baseDir, "secumain.csv");
         if (!fs.existsSync(fpath)) {
-            fs.linkSync(path.join(rootDir, "secumain.csv"), fpath);
+            fs.writeFileSync(fpath, fs.readFileSync(path.join(rootDir, "secumain.csv"), "utf-8"), { encoding: "utf-8" });
         }
 
         fpath = path.join(Path.baseDir, "port.csv");
         if (!fs.existsSync(fpath)) {
-            fs.linkSync(path.join(rootDir, "port.csv"), fpath);
+            fs.writeFileSync(fpath, fs.readFileSync(path.join(rootDir, "port.csv"), "utf-8"), { encoding: "utf-8" });
         }
         // init logger
         ULogger.init();
