@@ -246,6 +246,11 @@ export class DockContainerComponent implements AfterViewInit {
             if (DockContainerComponent.splitter.className.includes("vertical")) {
                 let gap = event.pageX - DockContainerComponent.startPoint[0];
 
+                if (DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth + gap < 0
+                    || DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth - gap < 0) {
+                    return;
+                }
+
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "width",
                     `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth + gap}`);
 
@@ -254,6 +259,11 @@ export class DockContainerComponent implements AfterViewInit {
 
             } else {
                 let gap = event.pageY - DockContainerComponent.startPoint[1];
+
+                if (DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap < 0
+                    || DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap < 0) {
+                    return;
+                }
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "height",
                     `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}`);
