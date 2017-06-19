@@ -2689,7 +2689,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let codeRtn = this.langServ.getTranslateInfo(this.languageType, "Code");
         dd_symbol.Title = codeRtn + ": ";
         let self = this;
-        let bookViewTable = new DataTable("table");
+        let bookViewTable = new DataTable("table2");
         bookViewTable.align = "right";
         dd_symbol.SelectChange = () => {
             this.clearBookViewTable(bookViewTable);
