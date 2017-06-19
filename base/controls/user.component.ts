@@ -131,6 +131,10 @@ export class DockContainerComponent implements AfterViewInit {
             });
             this.renderer.listen(this.north.nativeElement, "drop", (event: DragEvent) => {
                 this.locateTo(event, 1);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
             this.renderer.listen(this.south.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
@@ -147,6 +151,10 @@ export class DockContainerComponent implements AfterViewInit {
             });
             this.renderer.listen(this.south.nativeElement, "drop", (event: DragEvent) => {
                 this.locateTo(event, 3);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
             this.renderer.listen(this.west.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
@@ -163,6 +171,10 @@ export class DockContainerComponent implements AfterViewInit {
             });
             this.renderer.listen(this.west.nativeElement, "drop", (event: DragEvent) => {
                 this.locateTo(event, 4);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
             this.renderer.listen(this.east.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
@@ -179,6 +191,10 @@ export class DockContainerComponent implements AfterViewInit {
             });
             this.renderer.listen(this.east.nativeElement, "drop", (event: DragEvent) => {
                 this.locateTo(event, 2);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
         }
 
@@ -223,7 +239,7 @@ export class DockContainerComponent implements AfterViewInit {
         let ev_resize = document.createEvent("CustomEvent");
         ev_resize.initCustomEvent("resize", false, false, null);
 
-        document.onmouseup = (event) => {
+        document.onmousemove = (event) => {
             if (DockContainerComponent.splitter === null)
                 return;
 
@@ -238,6 +254,7 @@ export class DockContainerComponent implements AfterViewInit {
 
             } else {
                 let gap = event.pageY - DockContainerComponent.startPoint[1];
+
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "height",
                     `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}`);
 
@@ -251,9 +268,16 @@ export class DockContainerComponent implements AfterViewInit {
             if (leftTb !== null) {
                 leftTb.dispatchEvent(ev_resize);
             }
+
             if (rightTb !== null) {
                 rightTb.dispatchEvent(ev_resize);
             }
+
+            DockContainerComponent.startPoint = [event.pageX, event.pageY];
+            // DockContainerComponent.splitter = null;
+        };
+
+        document.onmouseup = event => {
             DockContainerComponent.splitter = null;
         };
     }
