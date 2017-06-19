@@ -3,8 +3,8 @@
  * used to created custom user control based on className and dataSource.
  */
 import {
-    Component, AfterContentInit, Input, ElementRef, AfterViewInit,
-    ViewChild, Renderer, HostListener, HostBinding, ChangeDetectorRef
+    Component, Input, ElementRef, AfterViewInit, OnInit,
+    ViewChild, Renderer, HostListener, ChangeDetectorRef
 } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import {
@@ -20,12 +20,12 @@ import {
     templateUrl: "usercontrol.html",
     inputs: ["children", "dataSource", "styleObj"]
 })
-export class UserControlComponent implements AfterContentInit {
+export class UserControlComponent implements AfterViewInit {
     children: any[];
     dataSource: any;
     styleObj: any;
 
-    ngAfterContentInit(): void {
+    ngAfterViewInit(): void {
         // console.log(JSON.stringify(this.children));
     }
 }
@@ -303,8 +303,43 @@ export class DockContainerComponent implements AfterViewInit {
     styleUrls: ["../css/easier-icons.css"],
     inputs: ["dialog"]
 })
-export class DialogComponent {
+export class DialogComponent implements AfterViewInit {
     dialog: Dialog;
+    @ViewChild("head") head: ElementRef;
+    @ViewChild("holder") holder: ElementRef;
+    bMouseDown: boolean;
+    startPoint: number[];
+
+    constructor(private ele: ElementRef, private render: Renderer) {
+        this.bMouseDown = false;
+    }
+
+    ngAfterViewInit() {
+        this.render.setElementStyle(this.holder.nativeElement, "width", this.dialog.width.toString());
+        this.render.setElementStyle(this.holder.nativeElement, "height", this.dialog.height.toString());
+        this.render.setElementStyle(this.holder.nativeElement, "left", ((this.ele.nativeElement.clientWidth - this.holder.nativeElement.clientWidth) / 2).toString());
+        this.render.setElementStyle(this.holder.nativeElement, "top", ((this.ele.nativeElement.clientHeight - this.holder.nativeElement.clientHeight) / 2).toString());
+        this.render.listen(this.head.nativeElement, "mousedown", (event: MouseEvent) => {
+            this.bMouseDown = true;
+            this.startPoint = [event.pageX, event.pageY];
+        });
+    }
+
+    @HostListener("mousemove", ["$event"])
+    onMouseMove(event: MouseEvent) {
+        if (!this.bMouseDown)
+            return false;
+
+        let [offsetX, offsetY] = [event.pageX - this.startPoint[0], event.pageY - this.startPoint[1]];
+        this.render.setElementStyle(this.holder.nativeElement, "left", (this.holder.nativeElement.offsetLeft + offsetX).toString());
+        this.render.setElementStyle(this.holder.nativeElement, "top", (this.holder.nativeElement.offsetTop + offsetY).toString());
+        this.startPoint = [event.pageX, event.pageY];
+    }
+
+    @HostListener("mouseup")
+    onMouseUp() {
+        this.bMouseDown = false;
+    }
 }
 
 /**

@@ -2370,7 +2370,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 // AppComponent.self.commentTable.detectChanges();
             }
             let commentRtn = this.langServ.getTranslateInfo(this.languageType, "Comment");
-            Dialog.popup(this, this.commentContent, { title: commentRtn });
+            Dialog.popup(this, this.commentContent, { title: commentRtn, height: 450 });
         } else {
             let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
             if (data.dataSource.text === "start") {

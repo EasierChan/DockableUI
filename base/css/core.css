@@ -491,14 +491,12 @@ echart{
     position: absolute;
     width: 100%;
     height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     background-color: rgba(red, green, blue, 0.1);
     z-index: 1002;
 }
 /* content */
 .dialog > .holder {
+    position: relative;
     min-width: 300px;
     min-height: 300px;
     padding: 5px;

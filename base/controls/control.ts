@@ -1841,10 +1841,10 @@ export class DataTableColumn {
 export class Dialog {
     public content: ComboControl;
     private bshow: boolean;
-    private title: string;
+    title: string;
     private static _instance: Dialog;
-    private width: number;
-    private height: number;
+    width: number = 300;
+    height: number = 300;
 
     private constructor() {
         this.bshow = false;
@@ -1865,8 +1865,8 @@ export class Dialog {
     static popup(owner: any, content: ComboControl, option: DialogOption): void {
         Dialog.instance.content = content;
         Dialog.instance.title = option.title;
-        Dialog.instance.width = option.width;
-        Dialog.instance.height = option.height;
+        option.width ? Dialog.instance.width = option.width : null;
+        option.height ? Dialog.instance.height = option.height : null;
         owner.dialog = Dialog.instance;
         Dialog.instance.show();
     }
