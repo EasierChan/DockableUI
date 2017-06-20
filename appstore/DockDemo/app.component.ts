@@ -6,7 +6,7 @@
 
 import { Component, OnInit, ChangeDetectorRef, AfterViewInit } from "@angular/core";
 import {
-    Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog,
+    Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog, Label,
     DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { ComboControl, MetaControl } from "../../base/controls/control";
@@ -426,55 +426,99 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.tradeContent = new ComboControl("col");
         this.tradeContent.MinHeight = 500;
         this.tradeContent.MinWidth = 500;
+
+        let account_firrow = new ComboControl("row");
         this.dd_Account = new DropDown();
         this.dd_Account.Width = 120;
         let dd_accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
-        this.dd_Account.Title = dd_accountRtn + ":   ";
-        this.dd_Account.Left = leftAlign;
-        this.dd_Account.Top = 20;
-        this.tradeContent.addChild(this.dd_Account);
+        let account_Label = new Label();
+        account_Label.Text = dd_accountRtn + ":";
+        account_Label.Left = leftAlign;
+        account_Label.Top = rowSep;
+        this.dd_Account.Title = "";
+        this.dd_Account.Top = rowSep;
+        account_firrow.addChild(account_Label).addChild(this.dd_Account);
+        this.tradeContent.addChild(account_firrow);
+
+        let strategy_secrow = new ComboControl("row");
+        let dd_strategyRtn = this.langServ.getTranslateInfo(this.languageType, "Strategy");
+        let strategy_label = new Label();
+        strategy_label.Text = dd_strategyRtn + ":";
+        strategy_label.Left = leftAlign;
+        strategy_label.Top = rowSep;
         this.dd_Strategy = new DropDown();
+        this.dd_Strategy.Title = "";
         this.dd_Strategy.Width = 120;
         this.dd_Strategy.Left = leftAlign;
         this.dd_Strategy.Top = rowSep;
-        let dd_strategyRtn = this.langServ.getTranslateInfo(this.languageType, "Strategy");
-        this.dd_Strategy.Title = dd_strategyRtn + ":  ";
-        this.tradeContent.addChild(this.dd_Strategy);
-        this.txt_Symbol = new MetaControl("textbox");
-        this.txt_Symbol.Left = leftAlign;
-        this.txt_Symbol.Top = rowSep;
+        strategy_secrow.addChild(strategy_label).addChild(this.dd_Strategy);
+        this.tradeContent.addChild(strategy_secrow);
+
+        let symbol_thirdrow = new ComboControl("row");
         let txt_symbolRtn = this.langServ.getTranslateInfo(this.languageType, "Symbol");
-        this.txt_Symbol.Title = txt_symbolRtn + ":    ";
-        this.tradeContent.addChild(this.txt_Symbol);
-        this.txt_UKey = new MetaControl("textbox");
-        this.txt_UKey.Left = leftAlign;
-        this.txt_UKey.Top = rowSep;
+        let symbol_label = new Label();
+        symbol_label.Text = txt_symbolRtn + ":";
+        symbol_label.Left = leftAlign;
+        symbol_label.Top = rowSep;
+        this.txt_Symbol = new MetaControl("textbox");
+        this.txt_Symbol.Top = rowSep;
+        this.txt_Symbol.Title = "";
+        symbol_thirdrow.addChild(symbol_label).addChild(this.txt_Symbol);
+        this.tradeContent.addChild(symbol_thirdrow);
+
+        let ukey_fourthrow = new ComboControl("row");
         let txt_UKeyRtn = this.langServ.getTranslateInfo(this.languageType, "U-key");
-        this.txt_UKey.Title = txt_UKeyRtn + ":     ";
-        this.tradeContent.addChild(this.txt_UKey);
-        this.txt_Price = new MetaControl("textbox");
-        this.txt_Price.Left = leftAlign;
-        this.txt_Price.Top = rowSep;
+        let ukey_label = new Label();
+        ukey_label.Text = txt_UKeyRtn + ":";
+        ukey_label.Left = leftAlign;
+        ukey_label.Top = rowSep;
+        this.txt_UKey = new MetaControl("textbox");
+        this.txt_UKey.Top = rowSep;
+        this.txt_UKey.Title = "";
+        ukey_fourthrow.addChild(ukey_label).addChild(this.txt_UKey);
+        this.tradeContent.addChild(ukey_fourthrow);
+
+        let price_fifthrow = new ComboControl("row");
         let txt_PriceRtn = this.langServ.getTranslateInfo(this.languageType, "Price");
-        this.txt_Price.Title = txt_PriceRtn + ":     ";
-        this.tradeContent.addChild(this.txt_Price);
-        let txt_Volume = new MetaControl("textbox");
-        txt_Volume.Left = leftAlign;
-        txt_Volume.Top = rowSep;
+        let price_label = new Label();
+        price_label.Text = txt_PriceRtn + ":";
+        price_label.Left = leftAlign;
+        price_label.Top = rowSep;
+        this.txt_Price = new MetaControl("textbox");
+        this.txt_Price.Top = rowSep;
+        this.txt_Price.Title = "";
+        price_fifthrow.addChild(price_label).addChild(this.txt_Price);
+        this.tradeContent.addChild(price_fifthrow);
+
+        let volume_sixrow = new ComboControl("row");
         let txt_VolumeRtn = this.langServ.getTranslateInfo(this.languageType, "Volume");
-        txt_Volume.Title = txt_VolumeRtn + ":    ";
-        this.tradeContent.addChild(txt_Volume);
-        this.dd_Action = new DropDown();
-        this.dd_Action.Left = leftAlign;
-        this.dd_Action.Top = rowSep;
+        let volume_label = new Label();
+        volume_label.Text = txt_VolumeRtn + ":";
+        volume_label.Left = leftAlign;
+        volume_label.Top = rowSep;
+        let txt_Volume = new MetaControl("textbox");
+        txt_Volume.Top = rowSep;
+        txt_Volume.Title = "";
+        volume_sixrow.addChild(volume_label).addChild(txt_Volume);
+        this.tradeContent.addChild(volume_sixrow);
+
+        let action_sevenrow = new ComboControl("row");
         let dd_ActionRtn = this.langServ.getTranslateInfo(this.languageType, "Action");
-        this.dd_Action.Title = dd_ActionRtn + ":    ";
+        let action_label = new Label();
+        action_label.Text = dd_ActionRtn + ":";
+        action_label.Left = leftAlign;
+        action_label.Top = rowSep;
+        this.dd_Action = new DropDown();
+        this.dd_Action.Top = rowSep;
+        this.dd_Action.Title = "";
         this.dd_Action.Width = 120;
         let buyRtn = this.langServ.getTranslateInfo(this.languageType, "Buy");
         let sellRtn = this.langServ.getTranslateInfo(this.languageType, "Sell");
         this.dd_Action.addItem({ Text: buyRtn, Value: 0 });
         this.dd_Action.addItem({ Text: sellRtn, Value: 1 });
-        this.tradeContent.addChild(this.dd_Action);
+        action_sevenrow.addChild(action_label).addChild(this.dd_Action);
+        this.tradeContent.addChild(action_sevenrow);
+
         let btn_row = new ComboControl("row");
         let btn_clear = new MetaControl("button");
         btn_clear.Left = leftAlign;
@@ -532,6 +576,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: { type: "sendorder", data: orderPack }
             });
+            this.dialog.hide();
         };
 
         this.commentPage = new TabPage("Comment", this.langServ.getTranslateInfo(this.languageType, "Comment"));
@@ -853,7 +898,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 command: "ss-send", params: { type: "registerAccPos", data: account }
             });
             MessageBox.openFileDialog("Select CSV", function (filenames) {
-                console.log(filenames);
+                // console.log(filenames);
                 if (filenames !== undefined)
                     fs.readFile(filenames[0], function (err, content) {
                         if (err === null) {
@@ -1175,6 +1220,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     handleCommentObj(data: any) {
         let judge = AppComponent.self.judgeObject(this.commentObj);
         let strategyid = data.strategyid;
+        // let getname = this.langServ.getTranslateInfo(this.languageType, data.name); commentparameter
         if (!judge) {
             this.commentObj[strategyid] = {};
             this.commentObj[strategyid][data.key] = { name: data.name, value: data.value };
@@ -2357,6 +2403,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             else
                 alert("no changes!");
         } else if (data.dataSource.text === "comment") {
+            AppComponent.self.commentTable.rows.length = 0;
             let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
             for (let o in this.commentObj) {
                 if (parseInt(o) === strategyId) {
@@ -2442,7 +2489,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showBasketBackInfo(data: any) {
-        console.log(data);
+        // console.log(data);
         let getaccount: number = parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text);
         let account = data[0].account;
         if (account !== getaccount)
