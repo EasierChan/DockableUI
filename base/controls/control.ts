@@ -804,6 +804,14 @@ export class ComboControl extends Control {
         }
         this.styleObj.align = value;
     }
+
+    set left(value: number) {
+        this.styleObj.left = value;
+    }
+
+    set top(value: number) {
+        this.styleObj.top = value;
+    }
 }
 
 export class VBox extends ComboControl {
