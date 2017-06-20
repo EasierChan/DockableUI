@@ -125,7 +125,7 @@ export class UWindow {
 		}
 
 		if (platform.isLinux) {
-			// options.icon = path.join(appRoot, "resources/linux/code.png"); // Windows and Mac are better off using the embedded icon(s)
+			options.icon = path.join(`${__dirname}/../../../`, "images/app.png"); // Windows and Mac are better off using the embedded icon(s)
 		}
 
 		// Create the browser window.

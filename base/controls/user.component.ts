@@ -3,8 +3,8 @@
  * used to created custom user control based on className and dataSource.
  */
 import {
-    Component, AfterContentInit, Input, ElementRef, AfterViewInit,
-    ViewChild, Renderer, HostListener, HostBinding, ChangeDetectorRef
+    Component, Input, ElementRef, AfterViewInit, OnInit,
+    ViewChild, Renderer, HostListener, ChangeDetectorRef
 } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import {
@@ -20,12 +20,12 @@ import {
     templateUrl: "usercontrol.html",
     inputs: ["children", "dataSource", "styleObj"]
 })
-export class UserControlComponent implements AfterContentInit {
+export class UserControlComponent implements AfterViewInit {
     children: any[];
     dataSource: any;
     styleObj: any;
 
-    ngAfterContentInit(): void {
+    ngAfterViewInit(): void {
         // console.log(JSON.stringify(this.children));
     }
 }
@@ -131,6 +131,10 @@ export class DockContainerComponent implements AfterViewInit {
             });
             this.renderer.listen(this.north.nativeElement, "drop", (event: DragEvent) => {
                 this.locateTo(event, 1);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
             this.renderer.listen(this.south.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
@@ -147,6 +151,10 @@ export class DockContainerComponent implements AfterViewInit {
             });
             this.renderer.listen(this.south.nativeElement, "drop", (event: DragEvent) => {
                 this.locateTo(event, 3);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
             this.renderer.listen(this.west.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
@@ -163,6 +171,10 @@ export class DockContainerComponent implements AfterViewInit {
             });
             this.renderer.listen(this.west.nativeElement, "drop", (event: DragEvent) => {
                 this.locateTo(event, 4);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
             this.renderer.listen(this.east.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
@@ -179,6 +191,10 @@ export class DockContainerComponent implements AfterViewInit {
             });
             this.renderer.listen(this.east.nativeElement, "drop", (event: DragEvent) => {
                 this.locateTo(event, 2);
+                this.detector.detectChanges();
+                this.detector.reattach();
+
+                DockContainerComponent.lastEnterEle = null;
             });
         }
 
@@ -223,12 +239,17 @@ export class DockContainerComponent implements AfterViewInit {
         let ev_resize = document.createEvent("CustomEvent");
         ev_resize.initCustomEvent("resize", false, false, null);
 
-        document.onmouseup = (event) => {
+        document.onmousemove = (event) => {
             if (DockContainerComponent.splitter === null)
                 return;
 
             if (DockContainerComponent.splitter.className.includes("vertical")) {
                 let gap = event.pageX - DockContainerComponent.startPoint[0];
+
+                if (DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth + gap < 0
+                    || DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth - gap < 0) {
+                    return;
+                }
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "width",
                     `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth + gap}`);
@@ -238,6 +259,12 @@ export class DockContainerComponent implements AfterViewInit {
 
             } else {
                 let gap = event.pageY - DockContainerComponent.startPoint[1];
+
+                if (DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap < 0
+                    || DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap < 0) {
+                    return;
+                }
+
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "height",
                     `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}`);
 
@@ -251,9 +278,16 @@ export class DockContainerComponent implements AfterViewInit {
             if (leftTb !== null) {
                 leftTb.dispatchEvent(ev_resize);
             }
+
             if (rightTb !== null) {
                 rightTb.dispatchEvent(ev_resize);
             }
+
+            DockContainerComponent.startPoint = [event.pageX, event.pageY];
+            // DockContainerComponent.splitter = null;
+        };
+
+        document.onmouseup = event => {
             DockContainerComponent.splitter = null;
         };
     }
@@ -269,8 +303,43 @@ export class DockContainerComponent implements AfterViewInit {
     styleUrls: ["../css/easier-icons.css"],
     inputs: ["dialog"]
 })
-export class DialogComponent {
+export class DialogComponent implements AfterViewInit {
     dialog: Dialog;
+    @ViewChild("head") head: ElementRef;
+    @ViewChild("holder") holder: ElementRef;
+    bMouseDown: boolean;
+    startPoint: number[];
+
+    constructor(private ele: ElementRef, private render: Renderer) {
+        this.bMouseDown = false;
+    }
+
+    ngAfterViewInit() {
+        this.render.setElementStyle(this.holder.nativeElement, "width", this.dialog.width.toString());
+        this.render.setElementStyle(this.holder.nativeElement, "height", this.dialog.height.toString());
+        this.render.setElementStyle(this.holder.nativeElement, "left", ((this.ele.nativeElement.clientWidth - this.holder.nativeElement.clientWidth) / 2).toString());
+        this.render.setElementStyle(this.holder.nativeElement, "top", ((this.ele.nativeElement.clientHeight - this.holder.nativeElement.clientHeight) / 2).toString());
+        this.render.listen(this.head.nativeElement, "mousedown", (event: MouseEvent) => {
+            this.bMouseDown = true;
+            this.startPoint = [event.pageX, event.pageY];
+        });
+    }
+
+    @HostListener("mousemove", ["$event"])
+    onMouseMove(event: MouseEvent) {
+        if (!this.bMouseDown)
+            return false;
+
+        let [offsetX, offsetY] = [event.pageX - this.startPoint[0], event.pageY - this.startPoint[1]];
+        this.render.setElementStyle(this.holder.nativeElement, "left", (this.holder.nativeElement.offsetLeft + offsetX).toString());
+        this.render.setElementStyle(this.holder.nativeElement, "top", (this.holder.nativeElement.offsetTop + offsetY).toString());
+        this.startPoint = [event.pageX, event.pageY];
+    }
+
+    @HostListener("mouseup")
+    onMouseUp() {
+        this.bMouseDown = false;
+    }
 }
 
 /**

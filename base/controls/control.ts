@@ -786,6 +786,32 @@ export class ComboControl extends Control {
     set MinWidth(value: number) {
         this.styleObj.minWidth = value;
     }
+
+    set align(value: "left" | "right" | "center") {
+        switch (value) {
+            case "left":
+                this.styleObj.align = "flex-start";
+                break;
+            case "right":
+                this.styleObj.align = "flex-end";
+                break;
+            case "center":
+                this.styleObj.align = "center";
+                break;
+            default:
+                console.error(`unvalid align value => ${value}`);
+                break;
+        }
+        this.styleObj.align = value;
+    }
+
+    set left(value: number) {
+        this.styleObj.left = value;
+    }
+
+    set top(value: number) {
+        this.styleObj.top = value;
+    }
 }
 
 export class VBox extends ComboControl {
@@ -824,6 +850,10 @@ export class MetaControl extends Control {
 
     set OnInput(value: Function) {
         this.dataSource.input = value;
+    }
+
+    set onChange(value: Function) {
+        this.dataSource.change = value;
     }
 
     set Class(value: string) {
@@ -1819,10 +1849,10 @@ export class DataTableColumn {
 export class Dialog {
     public content: ComboControl;
     private bshow: boolean;
-    private title: string;
+    title: string;
     private static _instance: Dialog;
-    private width: number;
-    private height: number;
+    width: number = 300;
+    height: number = 300;
 
     private constructor() {
         this.bshow = false;
@@ -1843,8 +1873,8 @@ export class Dialog {
     static popup(owner: any, content: ComboControl, option: DialogOption): void {
         Dialog.instance.content = content;
         Dialog.instance.title = option.title;
-        Dialog.instance.width = option.width;
-        Dialog.instance.height = option.height;
+        option.width ? Dialog.instance.width = option.width : null;
+        option.height ? Dialog.instance.height = option.height : null;
         owner.dialog = Dialog.instance;
         Dialog.instance.show();
     }

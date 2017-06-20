@@ -31,7 +31,7 @@ class Paths {
         // };
 
         if (!fs.existsSync(this.basedir_)) {
-            fs.mkdir(this.basedir_);
+            fs.mkdirSync(this.basedir_);
         }
 
         // if (!fs.existsSync(this.logdir_)) {

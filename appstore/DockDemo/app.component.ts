@@ -2417,7 +2417,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 // AppComponent.self.commentTable.detectChanges();
             }
             let commentRtn = this.langServ.getTranslateInfo(this.languageType, "Comment");
-            Dialog.popup(this, this.commentContent, { title: commentRtn });
+            Dialog.popup(this, this.commentContent, { title: commentRtn, height: 450 });
         } else {
             let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
             if (data.dataSource.text === "start") {
@@ -2736,7 +2736,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let codeRtn = this.langServ.getTranslateInfo(this.languageType, "Code");
         dd_symbol.Title = codeRtn + ": ";
         let self = this;
-        let bookViewTable = new DataTable("table");
+        let bookViewTable = new DataTable("table2");
         bookViewTable.align = "right";
         dd_symbol.SelectChange = () => {
             this.clearBookViewTable(bookViewTable);

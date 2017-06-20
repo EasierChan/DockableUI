@@ -6,7 +6,7 @@
 const fork = require("@node/child_process").fork;
 
 class UWorker {
-    child;
+    child: any;
     onData: Function;
 
     constructor(private pscript: string) {
@@ -31,6 +31,14 @@ class UWorker {
 export class WorkerFactory {
     static createIP20Worker() {
         return new UWorker(`${__dirname}/ip20.worker.js`);
+    }
+
+    static createQTPWorker() {
+        try {
+            return new UWorker(`${__dirname}/qtp.worker.js`);
+        } catch (err) {
+            console.info(err);
+        }
     }
 
     static createWorker(url: string) {

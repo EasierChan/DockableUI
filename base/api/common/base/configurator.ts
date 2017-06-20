@@ -48,32 +48,34 @@ export class UConfig {
 	// static all: UAppSetting;
 
 	static init(name: string, default_cfg_file: string = ""): void {
-		try {
-			UConfig.appdir = path.join(Path.baseDir, name);
-			if (!fs.existsSync(UConfig.appdir))
-				fs.mkdirSync(UConfig.appdir);
+		// try {
+		UConfig.appdir = path.join(Path.baseDir, name);
+		if (!fs.existsSync(UConfig.appdir))
+			fs.mkdirSync(UConfig.appdir);
 
-			if (!fs.existsSync(path.join(UConfig.appdir, "default-setting.json"))) {
-				if (fs.existsSync(default_cfg_file))
-					fs.linkSync(default_cfg_file, path.join(UConfig.appdir, "default-setting.json"));
-				else
-					fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), default_cfg_file, { encoding: "utf-8" });
-			}
-
-			UConfig.default = JSON.parse(stripComments(fs.readFileSync(path.join(UConfig.appdir, "default-setting.json"), "utf-8")));
-			// // DefaultLogger.trace(JSON.stringify(UConfig.default));
-			// if (Paths.configration.settings.user !== null) {
-			// 	UConfig.user = JSON.parse(stripComments(fs.readFileSync(Paths.configration.settings.user, "utf-8")));
-			// 	UConfig.all = _.cloneDeep(UConfig.default);
-			// 	_.assign(UConfig.all, UConfig.user);
-			// }
-		} catch (err) {
-			throw Error("app settings load error!");
+		if (!fs.existsSync(path.join(UConfig.appdir, "default-setting.json"))) {
+			if (fs.existsSync(default_cfg_file))
+				fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), fs.readFileSync(default_cfg_file, "utf-8"), { encoding: "utf-8" });
+			else
+				fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), default_cfg_file, { encoding: "utf-8" });
 		}
+
+		UConfig.default = JSON.parse(stripComments(fs.readFileSync(path.join(UConfig.appdir, "default-setting.json"), "utf-8")));
+		// // DefaultLogger.trace(JSON.stringify(UConfig.default));
+		// if (Paths.configration.settings.user !== null) {
+		// 	UConfig.user = JSON.parse(stripComments(fs.readFileSync(Paths.configration.settings.user, "utf-8")));
+		// 	UConfig.all = _.cloneDeep(UConfig.default);
+		// 	_.assign(UConfig.all, UConfig.user);
+		// }
+		// } catch (err) {
+		// 	throw Error("app settings load error!");
+		// }
 	}
 
 	static saveChanges() {
-		fs.writeFile(path.join(UConfig.appdir, "default-setting.json"), JSON.stringify(UConfig.default, null, 2));
+		fs.writeFile(path.join(UConfig.appdir, "default-setting.json"), JSON.stringify(UConfig.default, null, 2), (err) => {
+			if (err) console.error(err.message);
+		});
 	}
 
 	static reload(name: string): void {
