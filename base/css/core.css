@@ -199,6 +199,10 @@ dock-table2 {
     overflow-y: auto;
 }
 
+table {
+    color: #d0d0d0;
+}
+
 .table > thead > tr > th {
     padding: 2px;
 }
