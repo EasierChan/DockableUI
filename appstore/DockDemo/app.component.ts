@@ -13,7 +13,7 @@ import { ComboControl, MetaControl } from "../../base/controls/control";
 import { WorkerFactory } from "../../base/api/services/uworker.server";
 import {
     MessageBox, fs, AppStateCheckerRef, File, Environment,
-    Sound, SecuMasterService, TranslateService
+    SecuMasterService, TranslateService
 } from "../../base/api/services/backend.service";
 import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
 declare let window: any;
@@ -1431,7 +1431,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let strategyid = data[0].strategyid;
         let ret = data[0].success ? "successfully!" : "unsuccessfully!";
         if (!data[0].success)
-            Sound.play(1);
+            AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
         let row = AppComponent.self.findRowByStrategyId(strategyid);
         for (let i = AppComponent.self.commandIdx + 1; i < AppComponent.self.parameterIdx; ++i) {
             if (AppComponent.self.strategyTable.rows[row].cells[i].Data.key === data[0].key) {
@@ -1452,7 +1452,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.logTable.detectChanges();
     }
     showStrategyInfo(data: any) {
-        // console.log("alarm info,pass", data);
+        console.log("alarm info,pass", data);
         let len = data.length;
         for (let i = 0; i < len; ++i) {
             let getStraId = data[i].key;
@@ -1570,7 +1570,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
 
         if (hasDone) {
-            // Sound.play(0);
+            AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
         }
     }
     deleteUndoneOrder(data: any) {
@@ -1769,7 +1769,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         else if (status === EOrderStatus.ORDER_STATUS_DEALED)
             return "9.已成";
         else {
-            Sound.play(1);
+            AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
             return "10.废单";
         }
     }
@@ -1928,7 +1928,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         tempmark.section = "right";
         tempmark.color = data.connected ? "green" : "red";
         if (!data.connected)
-            Sound.play(1);
+            AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
         tempmark.width = 50;
         AppComponent.self.statusbar.items.push(tempmark);
         let row = AppComponent.self.logTable.newRow();
