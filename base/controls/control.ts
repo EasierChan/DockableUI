@@ -1098,6 +1098,7 @@ export class DropDown extends MetaControl {
     }
 
     showDropdown() {
+        this.curidx = 0;
         this.dataSource.keyup = (event: KeyboardEvent) => {
             if (event.code !== "ArrowDown" && event.code !== "ArrowUp" && event.code !== "Enter")
                 return;
@@ -1114,6 +1115,7 @@ export class DropDown extends MetaControl {
             }
         };
         this.styleObj.dropdown = true;
+        this.SelectedItem = this.dataSource.completelist[0];
     }
 
     hideDropdown() {

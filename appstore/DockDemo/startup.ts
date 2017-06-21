@@ -31,8 +31,8 @@ export class StartUp implements IApplication {
     strategyItem: any;
     sep1: any;
     bookViewItem: any;
-    sep2: any;
-    spreadViewItem: any;
+    // sep2: any;
+    // spreadViewItem: any;
     subWindMenu: any;
     itemsMap: any = {};
     static instanceMap: Object = {};
@@ -45,7 +45,7 @@ export class StartUp implements IApplication {
             label: "File",
             submenu: [
                 { label: "New BookView", click: this.itemClick },
-                { label: "New SpreadView", click: this.itemClick },
+                // { label: "New SpreadView", click: this.itemClick },
                 { type: "separator" },
                 { role: "close" }
             ]
@@ -72,9 +72,9 @@ export class StartUp implements IApplication {
         this.sep1 = new MenuItem({ type: "separator" });
         this.bookViewItem = new MenuItem({ label: "BookView", type: "checkbox", click: this.itemClick });
         this.itemsMap["BookView"] = this.bookViewItem;
-        this.sep2 = new MenuItem({ type: "separator" });
-        this.spreadViewItem = new MenuItem({ label: "SpreadView", type: "checkbox", click: this.itemClick });
-        this.itemsMap["SpreadView"] = this.spreadViewItem;
+        // this.sep2 = new MenuItem({ type: "separator" });
+        // this.spreadViewItem = new MenuItem({ label: "SpreadView", type: "checkbox", click: this.itemClick });
+        // this.itemsMap["SpreadView"] = this.spreadViewItem;
         this.subWindMenu = new Menu();
         this.subWindMenu.append(this.orderstatusItem);
         this.subWindMenu.append(this.doneorderItem);
@@ -87,8 +87,8 @@ export class StartUp implements IApplication {
         this.subWindMenu.append(this.strategyItem);
         this.subWindMenu.append(this.sep1);
         this.subWindMenu.append(this.bookViewItem);
-        this.subWindMenu.append(this.sep2);
-        this.subWindMenu.append(this.spreadViewItem);
+        // this.subWindMenu.append(this.sep2);
+        // this.subWindMenu.append(this.spreadViewItem);
         this._menuTemplate.append(new MenuItem({ label: "Window", submenu: this.subWindMenu }));
         this._menuTemplate.append(new MenuItem({
             label: "Help",
@@ -193,6 +193,12 @@ export class StartUp implements IApplication {
             width: width,
             children: [{
                 type: "h",
+                height: Math.floor(height * 0.2),
+                modules: [
+                    "Strategy"
+                ]
+            }, {
+                type: "h",
                 height: Math.floor(height * 0.3),
                 modules: [
                     "Position",
@@ -203,7 +209,7 @@ export class StartUp implements IApplication {
                 ]
             }, {
                 type: "h",
-                height: Math.floor(height * 0.4),
+                height: height - Math.floor(height * 0.2) - Math.floor(height * 0.3) - 10,
                 children: [{
                     type: "v",
                     width: Math.floor(width * 0.3),
@@ -219,12 +225,6 @@ export class StartUp implements IApplication {
                         "Portfolio"
                     ]
                 }]
-            }, {
-                type: "h",
-                height: height - Math.floor(height * 0.3) - Math.floor(height * 0.4) - 10,
-                modules: [
-                    "Strategy"
-                ]
             }]
         };
         return res;
