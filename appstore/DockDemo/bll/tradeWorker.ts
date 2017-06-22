@@ -4,6 +4,7 @@ import { IP20Factory } from "../../../base/api/services/ip20.worker";
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
 import { ManulTrader } from "./sendorder";
+import { Sound } from "../../../base/api/services/backend.worker";
 const logger = console;
 /**
  * interface for single pro.
@@ -156,6 +157,9 @@ process.on("message", (m: WSIP20, sock) => {
             break;
         case "ss-send":
             ss_sendHandle(m.params);
+            break;
+        case "send":
+            Sound.play(m.params.type);
             break;
         default:
             logger.error(`unvalid command => ${m.command}`);

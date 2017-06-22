@@ -238,6 +238,11 @@ export class StrategyBLL {
     }
 
     handleStartCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        if (msg.success == false) { // tslint:disable-line
+            console.error("operate unsuccesfully!");
+            return;
+        }
+
         this.strategies.forEach(item => {
             if (item.id === msg.strategyid) {
                 item.status = "RUN";
@@ -246,6 +251,11 @@ export class StrategyBLL {
     }
 
     handlePauseCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        if (msg.success == false) { // tslint:disable-line
+            console.error("operate unsuccesfully!");
+            return;
+        }
+
         this.strategies.forEach(item => {
             if (item.id === msg.strategyid) {
                 item.status = "PAUSE";
@@ -254,6 +264,11 @@ export class StrategyBLL {
     }
 
     handleStopCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        if (msg.success == false) { // tslint:disable-line
+            console.error("operate unsuccesfully!");
+            return;
+        }
+
         this.strategies.forEach(item => {
             if (item.id === msg.strategyid) {
                 item.status = "STOP";
@@ -262,6 +277,11 @@ export class StrategyBLL {
     }
 
     handleWatchCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        if (msg.success == false) { // tslint:disable-line
+            console.error("operate unsuccesfully!");
+            return;
+        }
+
         this.strategies.forEach(item => {
             if (item.id === msg.strategyid) {
                 item.status = "WATCH";

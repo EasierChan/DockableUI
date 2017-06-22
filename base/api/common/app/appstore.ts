@@ -3,7 +3,7 @@
  */
 "use strict";
 
-import { ipcMain, Menu, Tray, app } from "electron";
+import { ipcMain, Menu, Tray, app, dialog } from "electron";
 import * as fs from "fs";
 import path = require("path");
 import { ContentWindow, Bound } from "./windows";
@@ -67,7 +67,22 @@ export class AppStore {
 
         contentWindow.win.on("close", (e) => {
             e.preventDefault();
-            contentWindow.win.hide();
+            dialog.showMessageBox(contentWindow.win, {
+                type: "info",
+                title: "Warning",
+                buttons: ["Minimize", "Exit"],
+                message: "Minimize Workbench or Exit Whole Application!"
+            }, (response: number) => {
+                if (response === 0) {
+                    contentWindow.win.minimize();
+                } else {
+                    contentWindow.win.hide();
+                    contentWindow.win.removeAllListeners();
+                    AppStore._config.state = contentWindow.getBounds();
+                    AppStore.saveConfig();
+                    app.quit();
+                }
+            });
         });
 
         IPCManager.register("appstore://get-setting", (event) => {
@@ -152,6 +167,7 @@ export class AppStore {
         });
         // set tray icon
         AppStore._tray = new Tray(path.join(__dirname, "..", "..", "..", "images", "AppStore.png"));
+        let bLang = UConfig.default.language === "zh-cn" ? true : false;
         const contextMenu = Menu.buildFromTemplate([
             {
                 label: "Show Workbench", click() {
@@ -162,6 +178,7 @@ export class AppStore {
             }, {
                 label: "中文",
                 type: "radio",
+                checked: bLang,
                 click() {
                     UConfig.default.language = "zh-cn";
                     UConfig.saveChanges();
@@ -169,6 +186,7 @@ export class AppStore {
             }, {
                 label: "English",
                 type: "radio",
+                checked: !bLang,
                 click() {
                     UConfig.default.language = "en-us";
                     UConfig.saveChanges();
