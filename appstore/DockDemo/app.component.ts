@@ -2218,7 +2218,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         // AppComponent.self.ref.detectChanges();
     }
     showStrategyCfg(data: any) {
-        // console.log("333333333333", data);
+        console.log("333333333333", data);
         if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
             return;
         let addSubCOmFlag: boolean = false;
@@ -2298,7 +2298,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.strategyTable.detectChanges();
 
     }
-    checkTableIndex(strategyid: number, name: String, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
+    checkTableIndex(strategyid: number, name: string, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
         // console.log(strategyid, name, type, preIdx, rearIdx);
         let initLen: number = 10; // init talble column lengths
         let checkcolFlag: boolean = false;
@@ -2324,8 +2324,9 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         for (let j = preIdx; j <= rearIdx; ++j) {
             // console.log("0.0.0.0.0.0.;", rowFlagIdx, j, startIdx, endIdx, AppComponent.self.strategyTable.columns.length);
+            let transfername = this.langServ.getTranslateInfo(this.languageType, name);
             let getName = AppComponent.self.strategyTable.columns[j].Name;
-            if (name === getName) {
+            if (transfername === getName) {
                 checkcolFlag = true;
                 return { row: rowFlagIdx, col: j };
             }
@@ -2449,7 +2450,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                     for (let obj in this.commentObj[o]) {
                         let row = AppComponent.self.commentTable.newRow();
                         // console.log(this.commentObj[o][obj].name, this.commentObj[o][obj].value);
-                        row.cells[0].Text = this.commentObj[o][obj].name;
+                        let nameRtn = this.langServ.getTranslateInfo(this.languageType, this.commentObj[o][obj].name);
+                        row.cells[0].Text = nameRtn;
                         row.cells[1].Text = this.commentObj[o][obj].value;
                     }
                 }
