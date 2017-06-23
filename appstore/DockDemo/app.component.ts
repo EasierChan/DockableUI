@@ -44,6 +44,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private profitPage: TabPage;
     private statarbPage: TabPage;
     private portfolioPage: TabPage;
+    private configPage: TabPage;
 
     private orderstatusTable: DataTable;
     private doneOrdersTable: DataTable;
@@ -57,6 +58,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private statarbTable: DataTable;
     private portfolioTable: DataTable;
     private commentTable: DataTable;
+    private configTable: DataTable;
 
     // profittable textbox
     private totalpnLabel: MetaControl;
@@ -91,6 +93,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private dd_Action: any;
     private tradeContent: any;
     private commentContent: any;
+    private configContent: any;
     // strategy index flag
     private commentIdx: number = 10;
     private commandIdx: number = 10;
@@ -103,6 +106,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     // private bookviewObj = { bookview: 0, code: "" };
     private bookviewArr = [];
     private commentObj = {};
+    private configArr = [];
 
     private statusbar: StatusBar;
     private option: any;
@@ -384,7 +388,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let positionContent = new ComboControl("col");
         this.PositionTable = new DataTable("table2");
         let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
-            "TotalCost", "TodayOpen", "AvgPirce", "StrategyID", "Type"];
+            "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"];
         let positionTableRtnArr: string[] = [];
         let positionTableTittleLen = positionTableArr.length;
         for (let i = 0; i < positionTableTittleLen; ++i) {
@@ -418,7 +422,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
             let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
-            Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+            Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
         let leftAlign = 20;
         let rowSep = 5;
@@ -635,6 +639,26 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.commentTable.columnConfigurable = true;
         this.commentContent.addChild(this.commentTable);
         this.commentPage.setContent(this.commentContent);
+
+        this.configPage = new TabPage("ParameterConfig", this.langServ.getTranslateInfo(this.languageType, "ParameterConfig"));
+        this.configContent = new ComboControl("col");
+        let checkall = new MetaControl("checkbox");
+        let rtnCheckall = this.langServ.getTranslateInfo(this.languageType, "Check");
+        checkall.Title = rtnCheckall;
+        checkall.Text = true;
+        this.configTable = new DataTable("table2");
+        this.configTable.height = 400;
+        this.configTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "parameter"));
+        this.configTable.columnConfigurable = true;
+        this.configContent.addChild(checkall).addChild(this.configTable);
+        this.configPage.setContent(this.configContent);
+        checkall.OnClick = () => {
+            AppComponent.self.configAllCheck(checkall.Text);
+        };
+        this.configTable.OnCellClick = (cellItem, cellidx, rowIdx) => {
+            AppComponent.self.StrategyTitleHide(rowIdx);
+            // console.log();
+        };
 
 
         this.bookviewPage = new TabPage("BookView", this.langServ.getTranslateInfo(this.languageType, "BookView"));
@@ -1099,8 +1123,12 @@ export class AppComponent implements OnInit, AfterViewInit {
             watchall.Text = "Watch All";
         else
             watchall.Text = watchallRtn;
-        // startall.Class = pauseall.Class = stopall.Class = watchall.Class = "primary";
-        strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall);
+
+        let configBtn = new MetaControl("button");
+        let configRtn = this.langServ.getTranslateInfo(this.languageType, "Config");
+        configBtn.Text = configRtn;
+        configBtn.Left = 50;
+        strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall).addChild(configBtn);
 
         startall.OnClick = () => {
             this.controlBtnClick(0);
@@ -1113,6 +1141,16 @@ export class AppComponent implements OnInit, AfterViewInit {
         };
         watchall.OnClick = () => {
             this.controlBtnClick(3);
+        };
+        configBtn.OnClick = () => {
+            let len = this.configArr.length;
+            for (let i = 0; i < len; ++i) {
+                let row = AppComponent.self.configTable.newRow();
+                row.cells[0].Type = "checkbox";
+                row.cells[0].Title = this.configArr[i].name;
+                row.cells[0].Text = this.configArr[i].check;
+            }
+            Dialog.popup(this, this.configContent, { title: this.langServ.getTranslateInfo(this.languageType, "parameter"), height: 450 });
         };
 
         this.profitPage = new TabPage("Profit", this.langServ.getTranslateInfo(this.languageType, "Profit"));
@@ -2298,7 +2336,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.strategyTable.detectChanges();
 
     }
-    checkTableIndex(strategyid: number, name: String, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
+    checkTableIndex(strategyid: number, name: string, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
         // console.log(strategyid, name, type, preIdx, rearIdx);
         let initLen: number = 10; // init talble column lengths
         let checkcolFlag: boolean = false;
@@ -2324,8 +2362,9 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         for (let j = preIdx; j <= rearIdx; ++j) {
             // console.log("0.0.0.0.0.0.;", rowFlagIdx, j, startIdx, endIdx, AppComponent.self.strategyTable.columns.length);
+            let transfername = this.langServ.getTranslateInfo(this.languageType, name);
             let getName = AppComponent.self.strategyTable.columns[j].Name;
-            if (name === getName) {
+            if (transfername === getName) {
                 checkcolFlag = true;
                 return { row: rowFlagIdx, col: j };
             }
@@ -2345,11 +2384,15 @@ export class AppComponent implements OnInit, AfterViewInit {
         let value = data.value;
         let level = data.level;
         if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
-            AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, title), colIdx);  // add col
+            let titleRtn = this.langServ.getTranslateInfo(this.languageType, title);
+            this.configArr.push({ name: titleRtn, check: true });
+            AppComponent.self.strategyTable.insertColumn(titleRtn, colIdx);  // add col
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "default";
         } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
-            AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, title), colIdx);  // add col
+            let titleRtn = this.langServ.getTranslateInfo(this.languageType, title);
+            this.configArr.push({ name: titleRtn, check: true });
+            AppComponent.self.strategyTable.insertColumn(titleRtn, colIdx);  // add col
             // add button
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "button";
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
@@ -2357,7 +2400,9 @@ export class AppComponent implements OnInit, AfterViewInit {
             if (value === 0)
                 AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
         } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
-            AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, title), colIdx);
+            let titleRtn = this.langServ.getTranslateInfo(this.languageType, title);
+            this.configArr.push({ name: titleRtn, check: true });
+            AppComponent.self.strategyTable.insertColumn(titleRtn, colIdx);
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "textbox";
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
             AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "success";
@@ -2449,7 +2494,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                     for (let obj in this.commentObj[o]) {
                         let row = AppComponent.self.commentTable.newRow();
                         // console.log(this.commentObj[o][obj].name, this.commentObj[o][obj].value);
-                        row.cells[0].Text = this.commentObj[o][obj].name;
+                        let nameRtn = this.langServ.getTranslateInfo(this.languageType, this.commentObj[o][obj].name);
+                        row.cells[0].Text = nameRtn;
                         row.cells[1].Text = this.commentObj[o][obj].value;
                     }
                 }
@@ -2854,7 +2900,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
             }
             let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
-            Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+            Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
         let bookViewContent = new ComboControl("col");
         bookViewContent.addChild(bookviewHeader);
@@ -2870,6 +2916,35 @@ export class AppComponent implements OnInit, AfterViewInit {
             bookViewTable.rows[i].cells[1].Text = "";
             bookViewTable.rows[i].cells[2].Text = "";
         }
+    }
+
+    StrategyTitleHide(rowIdx: number) {
+        let title = AppComponent.self.configTable.rows[rowIdx].cells[0].Title;
+        let check = AppComponent.self.configTable.rows[rowIdx].cells[0].Text;
+        AppComponent.self.configTable.rows[rowIdx].cells[0].Text = !check;
+        for (let i = 0; i < AppComponent.self.configArr.length; ++i) {
+            if (AppComponent.self.configArr[i].name === title) {
+                AppComponent.self.configArr[i].check = !check;
+            }
+        }
+        for (let j = 0; j < AppComponent.self.strategyTable.columns.length; ++j) {
+            if (AppComponent.self.strategyTable.columns[j].Name === title) {
+                AppComponent.self.strategyTable.columns[j].hidden = check;
+            }
+        }
+    }
+    configAllCheck(check: boolean) {
+        for (let idx = 0; idx < AppComponent.self.configTable.rows.length; ++idx) {
+            AppComponent.self.configTable.rows[idx].cells[0].Text = !check;
+        }
+        for (let i = 0; i < AppComponent.self.configArr.length; ++i) {
+            AppComponent.self.configArr[i].check = !check;
+            for (let j = 0; j < AppComponent.self.strategyTable.columns.length; ++j) {
+                if (AppComponent.self.strategyTable.columns[j].Name === AppComponent.self.configArr[i].name)
+                    AppComponent.self.strategyTable.columns[j].hidden = check;
+            }
+        }
+
     }
 
     subscribeMarketData(codes: any) {

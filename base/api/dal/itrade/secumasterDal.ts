@@ -30,7 +30,7 @@ class SecuMaster {
             let arr = linestr.split(",");
             let arrLen = arr.length;
             if (arrLen === 4) {
-                SecuMaster.pinyinObj["," + arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
+                SecuMaster.pinyinObj[arr[2] + ","] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
             } else if (arrLen === 5) {
                 SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
             }
@@ -97,7 +97,7 @@ class SecuMaster {
             let upStr: string = "";
             for (let i = 0; i < len; ++i) {
                 let bcheck = (/^[A-Z]+$/).test(pinyin.charAt(i));
-                if (bcheck) {
+                if (!bcheck) {
                     upStr += pinyin.charAt(i).toLocaleUpperCase();
                 }
                 else {
