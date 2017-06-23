@@ -422,7 +422,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
             let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
-            Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+            Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
         let leftAlign = 20;
         let rowSep = 5;
@@ -2900,7 +2900,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
             }
             let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
-            Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+            Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
         let bookViewContent = new ComboControl("col");
         bookViewContent.addChild(bookviewHeader);
