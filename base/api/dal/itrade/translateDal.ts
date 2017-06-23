@@ -9,7 +9,11 @@ class Translate {
     private static englighObj = new Object();
     static init() {
         // load translate file
-        let str = path.join(Path.baseDir, "hanization.csv");
+        let str = path.join(process.execPath, "hanization.csv");
+        if (!fs.existsSync(str)) {
+            str = path.join(__dirname, "../../../../hanization.csv");
+        }
+
         fs.readFile(path.join(str), { encoding: "utf-8" }, (err, data) => {
             if (err) {
                 console.info(err);
