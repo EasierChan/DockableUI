@@ -16,7 +16,7 @@ class SecuMaster {
     static init() {
         // TODO load secuinfo, future info
         let data1 = new Date();
-        let str = path.join(process.execPath, "secumain.csv");
+        let str = path.join(path.dirname(process.execPath), "secumain.csv");
         if (!fs.existsSync(str)) {
             str = path.join(__dirname, "../../../../secumain.csv");
         }
@@ -41,7 +41,7 @@ class SecuMaster {
         });
         let data2 = new Date();
         // console.log("******************", data2.getTime() - data1.getTime());
-        let portStr = path.join(process.execPath, "port.csv");
+        let portStr = path.join(path.dirname(process.execPath), "port.csv");
         if (!fs.existsSync(portStr)) {
             portStr = path.join(__dirname, "../../../../port.csv");
         }

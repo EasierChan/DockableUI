@@ -9,7 +9,7 @@ class Translate {
     private static englighObj = new Object();
     static init() {
         // load translate file
-        let str = path.join(process.execPath, "hanization.csv");
+        let str = path.join(path.dirname(process.execPath), "hanization.csv");
         if (!fs.existsSync(str)) {
             str = path.join(__dirname, "../../../../hanization.csv");
         }
