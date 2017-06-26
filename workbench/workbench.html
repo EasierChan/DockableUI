@@ -50,9 +50,9 @@
                         <button class="square-button bg-transparent fg-white bg-blue no-border" (click)="newlist.hidden=!newlist.hidden">
                             <span class="mif-plus"></span>
                         </button>
-                        <ul #newlist style="position: absolute; top: 25px; right: 0; list-style: none;" hidden="hidden">
-                            <li (click)="onPopup();newlist.hidden='hidden';"><button class="fg-white bg-blue" style="white-space: nowrap">New SS</button></li>
-                            <li (click)="onCreateSpreadViewer();newlist.hidden='hidden';"><button class="fg-white bg-blue" style="white-space: nowrap">New SV</button></li>
+                        <ul #newlist class="rd-menu" hidden="hidden">
+                            <li (click)="onPopup();newlist.hidden='hidden';" class="bg-blue"><a href="#" class="fg-white">New SS</a></li>
+                            <li (click)="onCreateSpreadViewer();newlist.hidden='hidden';" class="bg-blue"><a href="#" class="fg-white">New SV</a></li>
                         </ul>
                     </div>
                 </div>
@@ -416,6 +416,12 @@
                                                         <input type="date" [(ngModel)]="config.loopbackConfig.option.timebegin">
                                                         <span>-</span>
                                                         <input type="date" [(ngModel)]="config.loopbackConfig.option.timeend">
+                                                    </div>
+                                                    <div>
+                                                        Calc Tick:
+                                                        <input type="text" [(ngModel)]="config.loopbackConfig.option.period">
+                                                        <label><input name="unit" type="radio" value="0" [(ngModel)]="config.loopbackConfig.option.unit">分钟</label>
+                                                        <label><input name="unit" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.unit">天</label>
                                                     </div>
                                                     <div>
                                                         Speed:

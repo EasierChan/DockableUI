@@ -1098,6 +1098,7 @@ export class DropDown extends MetaControl {
     }
 
     showDropdown() {
+        this.curidx = 0;
         this.dataSource.keyup = (event: KeyboardEvent) => {
             if (event.code !== "ArrowDown" && event.code !== "ArrowUp" && event.code !== "Enter")
                 return;
@@ -1108,9 +1109,8 @@ export class DropDown extends MetaControl {
                 this.curidx = this.curidx < 0 ? (this.dataSource.completelist.length - 1)
                     : ((this.curidx - 1 + this.dataSource.completelist.length) % this.dataSource.completelist.length);
             } else { // Enter
-                if (this.curidx < 0)
-                    return;
-                this.dataSource.select(this.dataSource.completelist[this.curidx]);
+                console.info(this.curidx);
+                this.dataSource.select(this.dataSource.completelist[this.curidx < 0 ? 0 : this.curidx]);
             }
         };
         this.styleObj.dropdown = true;
@@ -1419,7 +1419,7 @@ export class SpreadViewer {
                         }
                     },
                     tooltip: {
-                        formatter: function (param) {
+                        formatter: function(param) {
                             return JSON.stringify(param);
                         }
                     }

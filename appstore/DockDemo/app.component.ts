@@ -423,7 +423,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
             let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
-            Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+            Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
         let leftAlign = 20;
         let rowSep = 5;
@@ -648,7 +648,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         checkall.Title = rtnCheckall;
         checkall.Text = true;
         this.configTable = new DataTable("table2");
-        this.configTable.height = 400;
+        this.configTable.height = 390;
         this.configTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "parameter"));
         this.configTable.columnConfigurable = true;
         this.configContent.addChild(checkall).addChild(this.configTable);
@@ -2901,7 +2901,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
             }
             let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
-            Dialog.popup(this, this.tradeContent, { title: tradeRtn });
+            Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
         let bookViewContent = new ComboControl("col");
         bookViewContent.addChild(bookviewHeader);
