@@ -647,7 +647,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         checkall.Title = rtnCheckall;
         checkall.Text = true;
         this.configTable = new DataTable("table2");
-        this.configTable.height = 400;
+        this.configTable.height = 390;
         this.configTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "parameter"));
         this.configTable.columnConfigurable = true;
         this.configContent.addChild(checkall).addChild(this.configTable);

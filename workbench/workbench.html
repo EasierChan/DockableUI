@@ -418,6 +418,12 @@
                                                         <input type="date" [(ngModel)]="config.loopbackConfig.option.timeend">
                                                     </div>
                                                     <div>
+                                                        Calc Tick:
+                                                        <input type="text" [(ngModel)]="config.loopbackConfig.option.period">
+                                                        <label><input name="unit" type="radio" value="0" [(ngModel)]="config.loopbackConfig.option.unit">分钟</label>
+                                                        <label><input name="unit" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.unit">天</label>
+                                                    </div>
+                                                    <div>
                                                         Speed:
                                                         <label><input name="speed" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.speed">1</label>
                                                         <label><input name="speed" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.speed">2</label>
