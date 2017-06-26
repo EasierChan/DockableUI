@@ -11,7 +11,7 @@ import {
     VBox, HBox, TextBox, Button, DockContainer
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService } from "../../base/api/services/backend.service";
+import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
 declare let window: any;
 
 @Component({
@@ -24,21 +24,35 @@ declare let window: any;
     providers: [
         IP20Service,
         AppStateCheckerRef,
-        SecuMasterService
+        SecuMasterService,
+        TranslateService
     ]
 })
 export class AppComponent implements OnInit {
     private readonly apptype = "spreadviewer";
+    private languageType = 0;
     main: any;
     option: any;
 
-    constructor(private tgw: IP20Service, private state: AppStateCheckerRef, private secuinfo: SecuMasterService) {
+    constructor(private tgw: IP20Service, private state: AppStateCheckerRef, private secuinfo: SecuMasterService, private langServ: TranslateService) {
         this.state.onInit(this, this.onReady);
     }
 
     onReady(option: any) {
         this.option = option;
         this.tgw.connect(this.option.port, this.option.host);
+        let language = this.option.lang;
+        switch (language) {
+            case "zh-cn":
+                this.languageType = 1;
+                break;
+            case "en-us":
+                this.languageType = 0;
+                break;
+            default:
+                this.languageType = 0;
+                break;
+        }
     }
 
     ngOnInit() {
@@ -46,55 +60,81 @@ export class AppComponent implements OnInit {
         let svHeaderRow1 = new HBox();
         let txt_code1 = new TextBox();
         txt_code1.Text = this.option.details.code1;
-        txt_code1.Title = "Code1:";
+        let code1Rtn = this.langServ.getTranslateInfo(this.languageType, "Code1");
+        if (this.languageType === 0)
+            txt_code1.Title = code1Rtn + ":";
+        else
+            txt_code1.Title = "　" + code1Rtn + ":";
         txt_code1.Left = 100;
         txt_code1.Width = 80;
         txt_code1.ReadOnly = true;
         svHeaderRow1.addChild(txt_code1);
         let txt_code2 = new TextBox();
         txt_code2.Text = this.option.details.code2;
-        txt_code2.Title = "Code2:";
+        let code2Rtn = this.langServ.getTranslateInfo(this.languageType, "Code2");
+        if (this.languageType === 0)
+            txt_code2.Title = code2Rtn + ":";
+        else
+            txt_code2.Title = "　" + code2Rtn + ":";
         txt_code2.Left = 10;
         txt_code2.Width = 80;
         txt_code2.ReadOnly = true;
         svHeaderRow1.addChild(txt_code2);
         let txt_coeff = new TextBox();
         txt_coeff.Text = "";
-        txt_coeff.Title = "Coeff:";
+        let coeffRtn = this.langServ.getTranslateInfo(this.languageType, "Coeff");
+        if (0 === this.languageType)
+            txt_coeff.Title = coeffRtn + ":";
+        else
+            txt_coeff.Title = "　　" + coeffRtn + ":";
         txt_coeff.Left = 10;
         txt_coeff.Width = 80;
         svHeaderRow1.addChild(txt_coeff);
         let btn_init = new Button();
         btn_init.Class = "primary";
-        btn_init.Text = "Initialize";
+        let initRtn = this.langServ.getTranslateInfo(this.languageType, "Initialize");
+        btn_init.Text = initRtn + "";
         btn_init.Left = 10;
         svHeaderRow1.addChild(btn_init);
 
         let svHeaderRow2 = new HBox();
         let txt_min = new TextBox();
         txt_min.Text = "";
-        txt_min.Title = "  Min:";
+        let minRtn = this.langServ.getTranslateInfo(this.languageType, "Min");
+        if (0 === this.languageType)
+            txt_min.Title = "  " + minRtn + ":";
+        else
+            txt_min.Title = minRtn + ":";
         txt_min.Left = 100;
         txt_min.Width = 80;
         txt_min.Disable = true;
         svHeaderRow2.addChild(txt_min);
         let txt_max = new TextBox();
         txt_max.Text = "";
-        txt_max.Title = "  Max:";
+        let maxRtn = this.langServ.getTranslateInfo(this.languageType, "Max");
+        if (0 === this.languageType)
+            txt_max.Title = "  " + maxRtn + ":";
+        else
+            txt_max.Title = maxRtn + ":";
         txt_max.Left = 10;
         txt_max.Width = 80;
         txt_max.Disable = true;
         svHeaderRow2.addChild(txt_max);
         let txt_tick = new TextBox();
         txt_tick.Text = "";
-        txt_tick.Title = " Tick:";
+        let tickRtn = this.langServ.getTranslateInfo(this.languageType, "Tick");
+        if (0 === this.languageType)
+            txt_tick.Title = " " + tickRtn + ":";
+        else
+            txt_tick.Title = tickRtn + ":";
         txt_tick.Left = 10;
         txt_tick.Width = 80;
         txt_tick.Disable = true;
         svHeaderRow2.addChild(txt_tick);
         let btn_dayview = new Button();
         btn_dayview.Class = "primary";
-        btn_dayview.Text = "Change";
+        let changeRtn = this.langServ.getTranslateInfo(this.languageType, "Change");
+        btn_dayview.Text = changeRtn + "　";
         btn_dayview.Left = 10;
         btn_dayview.Disable = true;
         svHeaderRow2.addChild(btn_dayview);

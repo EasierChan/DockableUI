@@ -190,6 +190,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     onReady(option: any) {
         // option.port and option.host and option.name ;
         this.option = option;
+        console.log(option);
         let language = this.option.lang;
         switch (language) {
             case "zh-cn":
@@ -2277,11 +2278,11 @@ export class AppComponent implements OnInit, AfterViewInit {
                     }
                 }
                 if (getId === strategyId && findFlag) {
-                    AppComponent.self.strategyTable.insertColumn("Submit", AppComponent.self.commandIdx);
+                    AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, "Submit"), AppComponent.self.commandIdx);
                     AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Type = "button";
                     AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Text = "submit";
                     AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Class = "primary";
-                    AppComponent.self.strategyTable.insertColumn("Comment", AppComponent.self.parameterIdx);
+                    AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, "Comment"), AppComponent.self.parameterIdx);
                     AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Type = "button";
                     AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Text = "comment";
                     AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Class = "primary";
