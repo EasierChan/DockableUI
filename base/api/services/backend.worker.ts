@@ -14,10 +14,10 @@ export class Sound {
     static play(type: number) {
         switch (type) {
             case 0:
-                Sound.playWav(path.join(__dirname, "/../../sound/good.wav"));
+                Sound.playWav(path.join(path.dirname(process.execPath), "sound/good.wav"));
                 break;
             case 1:
-                Sound.playWav(path.join(__dirname, "/../../sound/bad.wav"));
+                Sound.playWav(path.join(path.dirname(process.execPath), "sound/bad.wav"));
                 break;
             default:
                 console.error(`unvalid type => ${type}`);

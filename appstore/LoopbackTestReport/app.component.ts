@@ -104,6 +104,11 @@ export class AppComponent implements OnInit {
         lbl_duration.Title = "Duration:";
         lbl_duration.Left = 10;
         svHeaderRow1.addChild(lbl_duration);
+        let lbl_tick = new Label();
+        lbl_tick.Title = "Tick:";
+        lbl_tick.Left = 10;
+        lbl_tick.Width = 80;
+        svHeaderRow1.addChild(lbl_tick);
         let btn_query = new Button();
         btn_query.Left = 10;
         btn_query.Text = "Query";
@@ -245,6 +250,7 @@ export class AppComponent implements OnInit {
                 lbl_mode.Text = this.dd_tests.SelectedItem.Value.simlevel;
                 lbl_speed.Text = this.dd_tests.SelectedItem.Value.speed;
                 lbl_duration.Text = this.dd_tests.SelectedItem.Value.timebegin + "-" + this.dd_tests.SelectedItem.Value.timeend;
+                lbl_tick.Text = this.dd_tests.SelectedItem.Value.period.toString() + (this.dd_tests.SelectedItem.Value.unit === 0 ? " min" : " day");
                 this.table.rows.length = 0;
                 this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: 0, end: parseInt(this.txt_pagesize.Text) } });
             }
@@ -299,19 +305,27 @@ export class AppComponent implements OnInit {
                     type: "category",
                     boundaryGap: false,
                     data: (function () {
-                        let beginYear = self.dd_tests.SelectedItem.Value.timebegin / 10000;
-                        let beginMonth = self.dd_tests.SelectedItem.Value.timebegin % 10000 / 100;
-                        let beginDay = self.dd_tests.SelectedItem.Value.timebegin % 100;
-                        let endYear = self.dd_tests.SelectedItem.Value.timeend / 10000;
-                        let endMonth = self.dd_tests.SelectedItem.Value.timeend % 10000 / 100;
-                        let endDay = self.dd_tests.SelectedItem.Value.timeend % 100;
-                        let beginDate = new Date(beginYear, beginMonth - 1, beginDay);
-                        let endDate = new Date(endYear, endMonth - 1, endDay);
+                        // let beginYear = self.dd_tests.SelectedItem.Value.timebegin / 10000;
+                        // let beginMonth = self.dd_tests.SelectedItem.Value.timebegin % 10000 / 100;
+                        // let beginDay = self.dd_tests.SelectedItem.Value.timebegin % 100;
+                        // let endYear = self.dd_tests.SelectedItem.Value.timeend / 10000;
+                        // let endMonth = self.dd_tests.SelectedItem.Value.timeend % 10000 / 100;
+                        // let endDay = self.dd_tests.SelectedItem.Value.timeend % 100;
+                        // let beginDate = new Date(beginYear, beginMonth - 1, beginDay);
+                        // let endDate = new Date(endYear, endMonth - 1, endDay);
+                        // let res = [];
+                        // while (beginDate.valueOf() <= endDate.valueOf()) {
+                        //     res.push(beginDate.toLocaleDateString());
+                        //     beginDate.setDate(++beginDay);
+                        // }
+                        // return res;
                         let res = [];
-                        while (beginDate.valueOf() <= endDate.valueOf()) {
-                            res.push(beginDate.toLocaleDateString());
-                            beginDate.setDate(++beginDay);
-                        }
+                        let time: string = null;
+                        profit.forEach((item, idx) => {
+                            time = (item.time / 10).toFixed(0);
+                            time = [time.slice(-6, -4), time.slice(-4, -2), time.slice(-2)].join(":");
+                            res.push(item.date + " " + time);
+                        });
                         return res;
                     })()
                 }

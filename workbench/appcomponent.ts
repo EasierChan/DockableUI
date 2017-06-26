@@ -277,7 +277,9 @@ export class AppComponent implements OnDestroy {
                 timebegin: idate,
                 timeend: idate,
                 speed: "1",
-                simlevel: "1"
+                simlevel: "1",
+                period: "1",
+                unit: "1"
             };
         }
         // this.ref.detectChanges();
@@ -566,7 +568,9 @@ export class AppComponent implements OnDestroy {
             timebegin: parseInt(this.config.loopbackConfig.option.timebegin.split("-").join("")),
             timeend: parseInt(this.config.loopbackConfig.option.timeend.split("-").join("")),
             speed: parseInt(this.config.loopbackConfig.option.speed),
-            simlevel: parseInt(this.config.loopbackConfig.option.simlevel)
+            simlevel: parseInt(this.config.loopbackConfig.option.simlevel),
+            period: parseInt(this.config.loopbackConfig.option.period),
+            unit: parseInt(this.config.loopbackConfig.option.unit)
         };
 
         this.sendLoopConfigs.push(tmpobj);
