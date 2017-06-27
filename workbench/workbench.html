@@ -314,7 +314,7 @@
                                                         </div>
                                                         <div class="content bg-gray">
                                                             <fieldset>
-                                                                <legend>Params</legend>
+                                                                <legend>Parameters</legend>
                                                                 <div style="max-width: 700px; overflow-x: auto;">
                                                                     <!--<label *ngFor="let param of instance.parameters"><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label>-->
                                                                     <table>
@@ -323,6 +323,34 @@
                                                                         </tr>
                                                                         <tr>
                                                                             <td *ngFor="let param of instance.parameters"><label><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label></td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                            <fieldset>
+                                                                <legend>Comments</legend>
+                                                                <div style="max-width: 700px; overflow-x: auto;">
+                                                                    <!--<label *ngFor="let param of instance.parameters"><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label>-->
+                                                                    <table>
+                                                                        <tr>
+                                                                            <th *ngFor="let comment of instance.comments">{{comment.name}}</th>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td *ngFor="let comment of instance.comments"><label><input type="text" [placeholder]="comment.name" [(ngModel)]="comment.value"></label></td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                            <fieldset>
+                                                                <legend>Instruments</legend>
+                                                                <div style="max-width: 700px; overflow-x: auto;">
+                                                                    <!--<label *ngFor="let param of instance.parameters"><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label>-->
+                                                                    <table>
+                                                                        <tr>
+                                                                            <th *ngFor="let instrument of instance.instruments">{{instrument.name}}</th>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td *ngFor="let instrument of instance.instruments"><label><input type="text" [placeholder]="instrument.name" [(ngModel)]="instrument.value"></label></td>
                                                                         </tr>
                                                                     </table>
                                                                 </div>

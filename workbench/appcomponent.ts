@@ -198,6 +198,12 @@ export class AppComponent implements OnDestroy {
             item.parameters.forEach((iparam: any) => {
                 iparam.value = parseFloat(iparam.value);
             });
+            item.comments.forEach((icomment: any) => {
+                icomment.value = parseFloat(icomment.value);
+            });
+            item.instruments.forEach((instrument: any) => {
+                instrument.value = parseFloat(instrument.value);
+            });
             this.curTemplate.body.data["Strategy"].push(obj);
             this.curTemplate.body.data["PairTrades"][item.name] = {
                 Command: item.commands,
