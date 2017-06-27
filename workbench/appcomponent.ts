@@ -199,7 +199,11 @@ export class AppComponent implements OnDestroy {
                 iparam.value = parseFloat(iparam.value);
             });
             item.comments.forEach((icomment: any) => {
-                icomment.value = parseFloat(icomment.value);
+                if (icomment.value === "false" || icomment.value === "true") { // hack for specified requirement from backend
+                    ;
+                } else {
+                    icomment.value = parseFloat(icomment.value);
+                }
             });
             item.instruments.forEach((instrument: any) => {
                 instrument.value = parseFloat(instrument.value);
