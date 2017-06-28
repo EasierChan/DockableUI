@@ -1,0 +1,9 @@
+<div class="u-action-bar">
+    <ul class="actions-container">
+        <li *ngFor="let item of dataSource.items" class="action-item" [class.active]="item.active" (click)="dataSource?.onClick(item)">
+            <a class="action-label" role="button" [title]="item?.tooltip">
+                <span class="glyphicon glyphicon-{{item.iconName}}"></span>
+            </a>
+        </li>
+    </ul>
+</div>

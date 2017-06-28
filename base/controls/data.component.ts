@@ -5,8 +5,7 @@
  */
 import {
   Component, ViewChild, ContentChild, Input, OnInit, AfterViewInit,
-  Directive, ElementRef, Renderer, HostListener, ChangeDetectorRef,
-  OnChanges, SimpleChanges
+  Directive, ElementRef, Renderer, HostListener, ChangeDetectorRef
 } from "@angular/core";
 import { Control, MetaControl, CssStyle, DataTable } from "./control";
 
@@ -151,4 +150,3 @@ export class EChartComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
   }
 }
-

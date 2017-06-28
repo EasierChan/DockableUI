@@ -824,6 +824,10 @@ export class HBox extends ComboControl {
     constructor() {
         super("row");
     }
+
+    set height(value: string | number) {
+        this.styleObj.height = value;
+    }
 }
 
 export class MetaControl extends Control {
@@ -839,6 +843,7 @@ export class MetaControl extends Control {
         this.dataSource = new Object();
         this.dataSource.click = () => { };
         this.dataSource.input = null;
+        this.dataSource.change = null;
         this.styleObj.left = 2;
         this.styleObj.top = 0;
     }
@@ -1355,7 +1360,14 @@ export class SpreadViewer {
                 text: "SpreadViewer"
             },
             tooltip: {
-                trigger: "axis"
+                trigger: "axis",
+                backgroundColor: "rgba(245, 245, 245, 0.8)",
+                borderWidth: 1,
+                borderColor: "#ccc",
+                padding: 10,
+                textStyle: {
+                    color: "#000"
+                }
             },
             legend: {
                 bottom: 10,
@@ -1371,6 +1383,7 @@ export class SpreadViewer {
                 containLabel: false
             },
             xAxis: {
+                scale: true,
                 type: "category",
                 axisLabel: {
                     textStyle: {
@@ -1386,7 +1399,8 @@ export class SpreadViewer {
                 data: this.timePoints
             },
             yAxis: {
-                type: "value",
+                scale: true,
+                boundaryGap: [0.2, 0.2],
                 axisLabel: {
                     textStyle: {
                         color: "#fff"
@@ -1396,9 +1410,7 @@ export class SpreadViewer {
                     lineStyle: {
                         color: "#fff"
                     }
-                },
-                min: "dataMin",
-                max: "dataMax"
+                }
             },
             dataZoom: [
                 {
@@ -1416,11 +1428,6 @@ export class SpreadViewer {
                         normal: {
                             color: "#0f0",
                             width: 1
-                        }
-                    },
-                    tooltip: {
-                        formatter: function(param) {
-                            return JSON.stringify(param);
                         }
                     }
                 },
@@ -1909,4 +1916,56 @@ export class StatusBarItem {
     constructor(text: string) {
         this.text = text;
     }
+}
+
+export class ActionBar extends Control {
+    private _activeItem: ActionItem = null;
+    private _onClick: Function = null;
+
+    constructor() {
+        super();
+        this.styleObj = {
+            type: "actionbar"
+        };
+
+        let self = this;
+        this.dataSource = {
+            items: [],
+            onClick(item: ActionItem) {
+                self.activeItem = item;
+
+                if (this._onClick)
+                    this._onClick(item);
+            }
+        };
+    }
+
+    addItem(item: ActionItem): void {
+        if (item.active) {
+            this.activeItem = item;
+        }
+        this.dataSource.items.push(item);
+    }
+
+    set backgroundColor(value: string) {
+        this.styleObj.backgroundColor = value;
+    }
+
+    set onClick(value: Function) {
+        this._onClick = value;
+    }
+
+    set activeItem(item: ActionItem) {
+        if (this._activeItem !== null)
+            this._activeItem.active = false;
+
+        item.active = true;
+        this._activeItem = item;
+    }
+}
+
+interface ActionItem {
+    iconName: string;
+    tooltip: string;
+    active?: boolean;
 }

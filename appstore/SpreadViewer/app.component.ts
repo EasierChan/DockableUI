@@ -8,7 +8,7 @@
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
-    VBox, HBox, TextBox, Button, DockContainer
+    VBox, HBox, TextBox, Button, DockContainer, ActionBar
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
 import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService } from "../../base/api/services/backend.service";
@@ -223,3 +223,44 @@ export class AppComponent implements OnInit {
 
     }
 }
+
+/**
+ * for actionBar test
+ */
+// @Component({
+//     moduleId: module.id,
+//     selector: "body",
+//     template: `
+//         <usercontrol [children]="main.children" [dataSource]="main.dataSource" [class]="main.styleObj.type"
+//     style="height: 100%" [style.margin-left.px]="main.styleObj?.left" [style.margin-top.px]="main.styleObj?.top">
+//   </usercontrol>
+//     `
+// })
+// export class AppComponent implements OnInit {
+//     private readonly apptype = "spreadviewer";
+//     main: HBox;
+//     constructor() { }
+
+//     ngOnInit() {
+//         this.main = new HBox();
+//         this.main.left = 0;
+//         let actionBar = new ActionBar();
+//         actionBar.backgroundColor = "#333";
+//         actionBar.addItem({
+//             iconName: "menu-hamburger",
+//             tooltip: "Menu",
+//             active: true
+//         });
+//         actionBar.addItem({
+//             iconName: "search",
+//             tooltip: "Search",
+//             active: false
+//         });
+//         actionBar.addItem({
+//             iconName: "time",
+//             tooltip: "History",
+//             active: false
+//         });
+//         this.main.addChild(actionBar);
+//     }
+// }

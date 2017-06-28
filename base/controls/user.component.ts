@@ -3,7 +3,7 @@
  * used to created custom user control based on className and dataSource.
  */
 import {
-    Component, Input, ElementRef, AfterViewInit, OnInit,
+    Component, Input, ElementRef, AfterViewInit, OnInit, HostBinding,
     ViewChild, Renderer, HostListener, ChangeDetectorRef
 } from "@angular/core";
 import { NgForm } from "@angular/forms";
@@ -353,4 +353,36 @@ export class DialogComponent implements AfterViewInit {
 })
 export class StatusBarComponent {
     statusbar: StatusBar;
+}
+
+
+
+@Component({
+    moduleId: module.id,
+    selector: "action-bar",
+    styleUrls: ["actionbar.css"],
+    templateUrl: "actionbar.html",
+    inputs: ["styleObj", "dataSource"]
+})
+export class ActionBarComponent implements AfterViewInit, OnInit {
+    styleObj: any;
+    dataSource: any;
+
+    @HostBinding("attr.role") role = "navigation";
+    @HostBinding("style.backgroundColor") backgroundColor: string;
+
+    constructor(private ele: ElementRef, private render: Renderer) {
+        this.render.setElementStyle(this.ele.nativeElement, "flex", "none");
+        this.render.setElementStyle(this.ele.nativeElement, "width", "50");
+        this.render.setElementStyle(this.ele.nativeElement, "margin-left", "0");
+        this.render.setElementStyle(this.ele.nativeElement, "min-width", "50");
+    }
+
+    ngOnInit() {
+        if (this.styleObj.backgroundColor)
+            this.backgroundColor = this.styleObj.backgroundColor;
+    }
+
+    ngAfterViewInit() {
+    }
 }

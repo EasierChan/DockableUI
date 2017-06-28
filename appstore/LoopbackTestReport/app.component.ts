@@ -175,13 +175,24 @@ export class AppComponent implements OnInit {
             title: {
                 show: false,
             },
+            animation: false,
             tooltip: {
-                tigger: "axis",
+                trigger: "axis",
                 axisPointer: {
-                    type: "line"
+                    type: "cross"
                 },
-                formatter: params => {
-                    return params.seriesName + "<br />" + params.value.toFixed(3);
+                backgroundColor: "rgba(245, 245, 245, 0.8)",
+                borderWidth: 1,
+                borderColor: "#ccc",
+                padding: 10,
+                textStyle: {
+                    color: "#000"
+                }
+            },
+            axisPointer: {
+                link: { xAxisIndex: "all" },
+                label: {
+                    backgroundColor: "#777"
                 }
             },
             legend: {
@@ -197,21 +208,20 @@ export class AppComponent implements OnInit {
                 {
                     type: "category",
                     boundaryGap: false,
-                    axisLabel: {
-                        textStyle: {
-                            color: "#fff"
-                        }
+                    axisPointer: {
+                        z: 100
                     },
+                    axisLabel: {
+                        textStyle: { color: "#fff" }
+                    },
+                    axisLine: { onZero: false },
                     data: []
                 }
             ],
             yAxis: [
                 {
-                    type: "value",
-                    name: "净值",
-                    nameTextStyle: {
-                        color: "#fff"
-                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2],
                     axisLabel: {
                         formatter: (value, index) => {
                             return value;
@@ -219,19 +229,23 @@ export class AppComponent implements OnInit {
                         textStyle: {
                             color: "#fff"
                         }
-                    },
-                    boundaryGap: [0.2, 0.2],
-                    min: 0.8,
-                    interval: 0.05,
-                    minInterval: 0.05,
-                    splitNumber: 20
+                    }
                 }
             ],
             series: [
                 {
                     name: "净值",
                     type: "line",
-                    data: []
+                    data: [],
+                    label: {
+                        normal: { show: false }
+                    },
+                    tooltip: {
+                        formatter: params => {
+                            return params.name + "<br />" +
+                                params.seriesName + ":" + params.value.toFixed(3);
+                        }
+                    }
                 }
             ]
         });
@@ -378,9 +392,7 @@ export class AppComponent implements OnInit {
                             }
                         });
                         return total_ratios;
-                    })(),
-                    boundaryGap: [0.2, 0.2],
-                    interval: 0.1
+                    })()
                 }
             ]
         });
@@ -406,9 +418,15 @@ export class AppComponent implements OnInit {
 
         // console.info(total_ratios, variance);
         if (variance !== 0) {
-            let value = ((total_ratios.pop() - 1) * 365 / profit.length - parseFloat(this.txt_freeriskrate.Text)) / (Math.sqrt(variance) * 365);
-            // console.info(value);
-            this.lbl_sharpeRatio.Text = value.toFixed(2);
+            let value = null;
+            let multiper;
+            if (this.dd_tests.SelectedItem.Value.unit === 0)
+                multiper = 365 * 24 * 60 / parseInt(this.dd_tests.SelectedItem.Value.period);
+            else
+                multiper = 365 / parseInt(this.dd_tests.SelectedItem.Value.period);
+            value = ((total_ratios.pop() - 1) * multiper / profit.length - parseFloat(this.txt_freeriskrate.Text)) / (Math.sqrt(variance) * multiper);
+            // console.info(value, variance);
+            this.lbl_sharpeRatio.Text = value.toFixed(4);
         } else {
             this.lbl_sharpeRatio.Text = 0;
         }

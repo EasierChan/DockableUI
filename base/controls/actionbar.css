@@ -1,0 +1,33 @@
+.u-action-bar {
+    text-align: center;
+    width: 100%;
+}
+
+.u-action-bar > .actions-container {
+    display: inline-block;
+    margin: 0 auto;
+    padding: 0;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.u-action-bar > .actions-container > .action-item {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    margin: 10px 0;
+    padding-bottom: .1em;
+    height: 40px;
+    line-height: 40px;
+}
+
+.u-action-bar > .actions-container > .action-item > .action-label {
+    overflow: hidden;
+    opacity: .6;
+    color: #fff;
+    text-decoration: none;
+    font-size: 18px;
+}
+.u-action-bar > .actions-container > .action-item.active > .action-label {
+    opacity: 1;
+}
