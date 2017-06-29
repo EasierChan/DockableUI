@@ -151,6 +151,8 @@ export class AppComponent implements OnDestroy {
         // create and modify config.
         if (this.config.activeChannel === "default") {
             this.config.channels.gateway.forEach((gw, index) => {
+                if (index === 0)
+                    this.curTemplate.body.data.SSGW[index].ref = 0;
                 this.curTemplate.body.data.SSGW[index].port = gw.port = parseInt(gw.port);
                 this.curTemplate.body.data.SSGW[index].addr = gw.addr = gw.addr;
             });
@@ -158,6 +160,7 @@ export class AppComponent implements OnDestroy {
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.channels.feedhandler.port);
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.channels.feedhandler.addr;
         } else { // loopback test
+            this.curTemplate.body.data.SSGW[0].ref = 0;
             this.curTemplate.body.data.SSGW.forEach((gw, index) => {
                 gw.port = parseInt(this.config.loopbackConfig.result.port);
                 gw.addr = this.config.loopbackConfig.result.url;
