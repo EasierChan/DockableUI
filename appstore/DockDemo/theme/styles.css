@@ -65,7 +65,7 @@ usercontrol.col{
 ::-webkit-scrollbar{
     width: 5px;
     height: 5px;
-    background-color: rgb(62, 62, 66);
+    background-color: rgba(62, 62, 66, 0);
 }
 ::-webkit-scrollbar-button{
     display: none;
