@@ -85,8 +85,7 @@ export class DockContainer extends Control {
                         this.addChild(dockSouth);
                     } else {
                         this.styleObj.height = this.height - 5 - northHeight;
-                        this.parent.children.unshift(new Splitter("h"));
-                        this.parent.children.unshift(dockNorth);
+                        this.parent.children.splice(this.parent.children.indexOf(this), 0, dockNorth, new Splitter("h"));
                     }
                     break;
                 case 2: // east
@@ -98,8 +97,7 @@ export class DockContainer extends Control {
                     dockEast.addChild(panelEast);
                     if (this.styleObj.type === "v") {
                         this.styleObj.width = this.width - 5 - eastWidth;
-                        let idx = this.parent.children.indexOf(this);
-                        this.parent.children.splice(idx + 1, 0, new Splitter("v"), dockEast);
+                        this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, new Splitter("v"), dockEast);
                     } else {
                         let dockWest = new DockContainer(this, "v", this.width - 5 - eastWidth, null);
                         this.children.forEach(child => {
@@ -133,8 +131,7 @@ export class DockContainer extends Control {
                         this.addChild(dockSouth);
                     } else {
                         this.styleObj.height = this.height - 5 - southHeight;
-                        this.parent.children.push(new Splitter("h"));
-                        this.parent.children.push(dockSouth);
+                        this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, new Splitter("h"), dockSouth);
                     }
                     break;
                 case 4: // west
@@ -147,8 +144,7 @@ export class DockContainer extends Control {
 
                     if (this.styleObj.type === "v") {
                         this.styleObj.width = this.width - 5 - westWidth;
-                        let idx = this.parent.children.indexOf(this);
-                        this.parent.children.splice(idx, 0, dockWest, new Splitter("v"));
+                        this.parent.children.splice(this.parent.children.indexOf(this), 0, dockWest, new Splitter("v"));
                     } else {
                         let dockEast = new DockContainer(this, "v", this.width - 5 - westWidth, null);
                         this.children.forEach(child => {
