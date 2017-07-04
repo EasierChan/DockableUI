@@ -194,7 +194,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     onReady(option: any) {
         // option.port and option.host and option.name ;
         this.option = option;
-        console.log(option);
         let language = this.option.lang;
         switch (language) {
             case "zh-cn":
@@ -272,7 +271,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     AppComponent.self.orderstatusTable.rows[i].hidden = false;
                 }
                 else {
-                    if (AppComponent.self.orderstatusTable.rows[i].cells[9].Text === dd_status.SelectedItem.Text) {
+                    if (AppComponent.self.orderstatusTable.rows[i].cells[10].Text === dd_status.SelectedItem.Text) {
                         AppComponent.self.orderstatusTable.rows[i].hidden = false;
                     }
                     else
@@ -1148,6 +1147,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.controlBtnClick(3);
         };
         configBtn.OnClick = () => {
+            AppComponent.self.configTable.rows.length = 0;
             let len = this.configArr.length;
             for (let i = 0; i < len; ++i) {
                 let row = AppComponent.self.configTable.newRow();
@@ -2073,7 +2073,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         tempmark.color = data.connected ? "green" : "red";
         if (!data.connected)
             AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
-        tempmark.width = 50;
         AppComponent.self.statusbar.items.push(tempmark);
         let row = AppComponent.self.logTable.newRow();
         row.cells[0].Text = AppComponent.self.getCurrentTime();
@@ -2935,6 +2934,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
             let msg = this.secuinfo.getCodeList(sendStr);
+            console.log(msg);
             let rtnArr = [];
             dd_symbol.Items.length = 0;
             let msgLen = msg.length;
