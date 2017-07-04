@@ -86,6 +86,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private portfolio_acc: DropDown;
     private dd_Strategy: DropDown;
     private dd_symbol: DropDown;
+    private checkall: MetaControl;
 
     private txt_UKey: any;
     private txt_Symbol: any;
@@ -109,6 +110,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private configArr = [];
     private configStrObj: Object = new Object;
     private configFlag: boolean = false;
+    private configSel: boolean = true;
 
     private statusbar: StatusBar;
     private option: any;
@@ -645,18 +647,18 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         this.configPage = new TabPage("ParameterConfig", this.langServ.getTranslateInfo(this.languageType, "ParameterConfig"));
         this.configContent = new ComboControl("col");
-        let checkall = new MetaControl("checkbox");
+        this.checkall = new MetaControl("checkbox");
         let rtnCheckall = this.langServ.getTranslateInfo(this.languageType, "Check");
-        checkall.Title = rtnCheckall;
-        checkall.Text = true;
+        this.checkall.Title = rtnCheckall;
+        this.checkall.Text = true;
         this.configTable = new DataTable("table2");
         this.configTable.height = 390;
         this.configTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "parameter"));
         this.configTable.columnConfigurable = true;
-        this.configContent.addChild(checkall).addChild(this.configTable);
+        this.configContent.addChild(this.checkall).addChild(this.configTable);
         this.configPage.setContent(this.configContent);
-        checkall.OnClick = () => {
-            AppComponent.self.configAllCheck(checkall.Text);
+        this.checkall.OnClick = () => {
+            AppComponent.self.configAllCheck(this.checkall.Text);
         };
         this.configTable.OnCellClick = (cellItem, cellidx, rowIdx) => {
             AppComponent.self.StrategyTitleHide(rowIdx);
@@ -1339,13 +1341,14 @@ export class AppComponent implements OnInit, AfterViewInit {
                 let key = AppComponent.self.strategyTable.rows[0].cells[i].Data.key;
                 let name = AppComponent.self.strategyTable.rows[0].cells[i].Data.name;
                 let show = AppComponent.self.getshow(parseInt(key));
+                if (show === false) {
+                    AppComponent.self.checkall.Text = false;
+                }
                 AppComponent.self.strategyTable.columns[i].hidden = !show;
                 // change configArr value
                 AppComponent.self.changeConfigArrVal(name, show);
             }
         }
-        console.log(AppComponent.self.configArr);
-
     }
 
     changeConfigArrVal(name: string, show: boolean) {
@@ -1360,8 +1363,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     getshow(key: any) {
         for (let o in AppComponent.self.configStrObj) {
             if (parseInt(o) === key) {
-                if (parseInt(o) === 7864922)
-                    console.log("print show ", AppComponent.self.configStrObj[o].show);
                 return AppComponent.self.configStrObj[o].show;
             }
         }
@@ -3018,14 +3019,19 @@ export class AppComponent implements OnInit, AfterViewInit {
             if (AppComponent.self.configStrObj[o].name === name) {
                 AppComponent.self.configStrObj[o].show = check;
                 // write in cofig.json
-                let getpath = Environment.getDataPath(this.option.name);
-                fs.writeFile(getpath + "/config.json", JSON.stringify(AppComponent.self.configStrObj), function (err) {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
+                AppComponent.self.writeinconfigJson(JSON.stringify(AppComponent.self.configStrObj));
+                break;
             }
         }
+    }
+
+    writeinconfigJson(data: string) {
+        let getpath = Environment.getDataPath(this.option.name);
+        fs.writeFile(getpath + "/config.json", data, function (err) {
+            if (err) {
+                console.log(err);
+            }
+        });
     }
 
     configAllCheck(check: boolean) {
@@ -3039,7 +3045,10 @@ export class AppComponent implements OnInit, AfterViewInit {
                     AppComponent.self.strategyTable.columns[j].hidden = check;
             }
         }
-
+        for (let o in AppComponent.self.configStrObj) {
+            AppComponent.self.configStrObj[o].show = !check;
+        }
+        AppComponent.self.writeinconfigJson(JSON.stringify(AppComponent.self.configStrObj));
     }
 
     subscribeMarketData(codes: any) {
