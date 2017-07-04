@@ -7,7 +7,7 @@ import { ManulTrader } from "./sendorder";
 import { Sound } from "../../../base/api/services/backend.worker";
 import { ULogger } from "../../../base/api/common/base/logger";
 
-ULogger.init("alert", process.argv[2]);
+ULogger.init("log.out", process.argv[2]);
 const logger = ULogger.console();
 /**
  * interface for single pro.
