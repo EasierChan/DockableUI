@@ -7,7 +7,7 @@ import { ManulTrader } from "./sendorder";
 import { Sound } from "../../../base/api/services/backend.worker";
 import { ULogger } from "../../../base/api/common/base/logger";
 
-ULogger.init("log.out", process.argv[2]);
+ULogger.init("alert", process.argv[2]);
 const logger = ULogger.console();
 /**
  * interface for single pro.
@@ -53,7 +53,6 @@ process.on("message", (m: WSIP20, sock) => {
             IP20Factory.instance.send(17, 41, loginObj);
             break;
         case "ps-send":
-            logger.log(m.params);
             IP20Factory.instance.send(m.params.appid, m.params.packid, m.params.msg);
             break;
         case "ps-stop":
