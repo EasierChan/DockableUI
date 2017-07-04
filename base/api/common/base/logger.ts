@@ -8,16 +8,16 @@ let log4js = require("log4js");
 
 export let DefaultLogger: any;
 export class ULogger {
-    static init(): void {
+    static init(name = "log", logdir = "."): void {
         log4js.configure({
             appenders: [
-                { type: "console", maxLogSize: 20480 }// ,
-                // {
-                //     type: "file",
-                //     filename: Paths.configration.logDir + "/alert.log",
-                //     pattern: "-yyyy-MM-dd",
-                //     category: "alert", maxLogSize: 20480
-                // }
+                { type: "console", maxLogSize: 20480000 },
+                {
+                    type: "file",
+                    filename: `${logdir}/${name}`,
+                    pattern: "-yyyy-MM-dd",
+                    category: "alert", maxLogSize: 20480000
+                }
             ]
         });
         DefaultLogger = ULogger.console();
@@ -27,7 +27,7 @@ export class ULogger {
         return log4js.getLogger();
     }
 
-    static alert(): any {
+    static file(): any {
         return log4js.getLogger("alert");
     }
 }

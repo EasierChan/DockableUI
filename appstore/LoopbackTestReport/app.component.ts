@@ -57,7 +57,7 @@ export class AppComponent implements OnInit {
 
     createWorker() {
         let self = this;
-        this.worker = WorkerFactory.createWorker(`${__dirname}/messageWorker.js`);
+        this.worker = WorkerFactory.createWorker(`${__dirname}/messageWorker.js`, this.option.name);
         this.worker.onData = data => {
             switch (data.event) {
                 case "data":

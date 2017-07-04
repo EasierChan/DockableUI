@@ -5,7 +5,10 @@ import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "
 import { OrderService } from "../../../base/api/services/orderService";
 import { ManulTrader } from "./sendorder";
 import { Sound } from "../../../base/api/services/backend.worker";
-const logger = console;
+import { ULogger } from "../../../base/api/common/base/logger";
+
+ULogger.init("alert", process.argv[2]);
+const logger = ULogger.console();
 /**
  * interface for single pro.
  */
@@ -50,7 +53,7 @@ process.on("message", (m: WSIP20, sock) => {
             IP20Factory.instance.send(17, 41, loginObj);
             break;
         case "ps-send":
-            console.log(m.params);
+            logger.log(m.params);
             IP20Factory.instance.send(m.params.appid, m.params.packid, m.params.msg);
             break;
         case "ps-stop":
@@ -168,19 +171,19 @@ process.on("message", (m: WSIP20, sock) => {
 });
 
 process.on("close", () => {
-    console.info(`process closed`);
+    logger.info(`process closed`);
 });
 
 process.on("disconnect", () => {
-    console.info(`process disconnect`);
+    logger.info(`process disconnect`);
 });
 
 process.on("error", () => {
-    console.info(`process error`);
+    logger.info(`process error`);
 });
 
-process.on("exit", () => {
-    console.info(`process exit`);
+process.on("exit", (code) => {
+    logger.info(`process about exit with code: ${code}.`);
 });
 
 interface WSIP20 {

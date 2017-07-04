@@ -11,8 +11,9 @@ import {
 import { TcpClient } from "../common/base/tcpclient";
 import { Parser } from "../common/base/parser";
 import { Pool } from "../common/base/pool";
+import { ULogger } from "../common/base/logger";
 
-const logger = console;
+const logger = ULogger.file() || console;
 declare var electron: Electron.ElectronMainAndRenderer;
 
 export class OrderService {
@@ -824,7 +825,7 @@ class StrategyParser extends ItradeParser {
                 comOrderRecord.od.signal[j].value = buffer.readUIntLE(offset, 8); offset += 8;
             }
             res.push(comOrderRecord);
-            // console.log("comOrderRecord....:", comOrderRecord);
+            logger.log("comOrderRecord....:", comOrderRecord);
         }
         return res;
     }

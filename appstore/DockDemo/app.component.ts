@@ -120,11 +120,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     constructor(private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef,
         private secuinfo: SecuMasterService, private langServ: TranslateService) {
         AppComponent.self = this;
-        AppComponent.bgWorker = WorkerFactory.createWorker(`${__dirname}/bll/tradeWorker`);
         this.statechecker.onInit(this, this.onReady);
         this.statechecker.onResize(this, this.onResize);
         this.statechecker.onDestory(this, this.onDestroy);
         this.statechecker.onMenuItemClick = this.onMenuItemClick;
+        AppComponent.bgWorker = WorkerFactory.createWorker(`${__dirname}/bll/tradeWorker`, Environment.getDataPath(this.option.name));
         TabPanel.afterAnyPageClosed = this.onTabPageClosed;
     }
 
