@@ -536,3 +536,25 @@ echart{
 .dropdown-menu > li > a {
     padding: 1px 10px;
 }
+
+/* iconfont */
+@font-face {
+    font-family: "Easier Icon Font";
+    src: url("../fonts/easier-icon") format("svg");
+}
+
+.easiericon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Easier Icon Font';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.easiericon-sort:before {
+    content: "\e001";
+}

@@ -257,6 +257,21 @@ export class DockContainerComponent implements AfterViewInit {
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild, "width",
                     `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth - gap}`);
 
+                let leftTb = DockContainerComponent.splitter.ele.nativeElement.previousSibling.querySelectorAll("dock-table2");
+                let rightTb = DockContainerComponent.splitter.ele.nativeElement.nextSibling.querySelectorAll("dock-table2");
+
+                if (leftTb !== null) {
+                    leftTb.forEach(element => {
+                        element.dispatchEvent(ev_resize);
+                    });
+                }
+
+                if (rightTb !== null) {
+                    rightTb.forEach(element => {
+                        element.dispatchEvent(ev_resize);
+                    });
+                }
+
             } else {
                 let gap = event.pageY - DockContainerComponent.startPoint[1];
 
@@ -272,16 +287,6 @@ export class DockContainerComponent implements AfterViewInit {
                     `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap}`);
             }
 
-            let leftTb = DockContainerComponent.splitter.ele.nativeElement.previousSibling.querySelector("dock-table2");
-            let rightTb = DockContainerComponent.splitter.ele.nativeElement.nextSibling.querySelector("dock-table2");
-
-            if (leftTb !== null) {
-                leftTb.dispatchEvent(ev_resize);
-            }
-
-            if (rightTb !== null) {
-                rightTb.dispatchEvent(ev_resize);
-            }
 
             DockContainerComponent.startPoint = [event.pageX, event.pageY];
             // DockContainerComponent.splitter = null;

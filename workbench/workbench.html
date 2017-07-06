@@ -57,7 +57,7 @@
                     </div>
                 </div>
                 <div class="tile-group double" style="width: 40%;">
-                    <span class="tile-group-title">Transanctional</span>
+                    <span class="tile-group-title">Transactional</span>
                     <div class="tile-container">
                         <template ngFor let-item [ngForOf]="configs">
                             <div [class]="detailClass" data-role="tile" (mouseup)="onClick($event, item);">
@@ -439,9 +439,9 @@
                                                     <legend>Preference</legend>
                                                     <div>
                                                         MatchMode:
-                                                        <label><input name="matchmode" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.simlevel">Mode1</label>
-                                                        <label><input name="matchmode" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.simlevel">Mode2</label>
-                                                        <label><input name="matchmode" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.simlevel">Mode3</label>
+                                                        <label><input name="matchmode" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.simlevel">无条件成交</label>
+                                                        <label><input name="matchmode" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.simlevel">按价格成交</label>
+                                                        <label><input name="matchmode" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.simlevel">按价量成交</label>
                                                     </div>
                                                     <div>
                                                         Duration:

@@ -3,9 +3,10 @@
   <thead>
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
       <th *ngIf="styleObj.bRowIndex">#</th>
-      <template ngFor let-col [ngForOf]="dataSource.columns">
-        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment">
+      <template ngFor let-col [ngForOf]="dataSource.columns" let-i="index">
+        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment" (click)="dataSource.sort(col, i)">
           {{col.columnHeader}}
+          <span class="easiericon" [class.easiericon-sort]="col.sortable && col.columnHeader == dataSource.sortKey"></span>
         </th>
       </template>
     </tr>
@@ -39,9 +40,10 @@
   <thead>
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
       <th *ngIf="styleObj.bRowIndex">#</th>
-      <template ngFor let-col [ngForOf]="dataSource.columns">
-        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment">
+      <template ngFor let-col [ngForOf]="dataSource.columns" let-i="index">
+        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment" (click)="dataSource.sort(col, i)">
           {{col.columnHeader}}
+          <span class="easiericon" [class.easiericon-sort]="col.sortable && col.columnHeader == dataSource.sortKey"></span>
         </th>
       </template>
     </tr>

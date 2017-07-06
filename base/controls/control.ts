@@ -1634,6 +1634,7 @@ export class DataTable extends Control {
     public columns: DataTableColumn[] = [];
     public rows: DataTableRow[] = [];
     private _cellclick: Function;
+    private _cellDBClick: Function;
     private _rowclick: Function;
     private _menu: Menu = new Menu();
 
@@ -1654,12 +1655,22 @@ export class DataTable extends Control {
             cellpadding: null,
             bRowIndex: true
         };
+
+        this.dataSource.sort = (col: DataTableColumn, idx: number) => {
+            this.dataSource.sortKey = col.Name;
+            if (col.sortable && col.onCompare) {
+                this.dataSource.rows = this.rows = this.rows.sort((a, b) => {
+                    return col.onCompare(a.cells[idx].Text, b.cells[idx].Text);
+                });
+            }
+        };
     }
 
     newRow(): DataTableRow {
         let row = new DataTableRow(this.columns.length);
-        row.OnCellClick = this._cellclick;
-        row.OnRowClick = this._rowclick;
+        row.onCellClick = this._cellclick;
+        row.onRowClick = this._rowclick;
+        row.onCellDBClick = this._cellDBClick;
         this.rows.push(row);
         this.dataSource.rows = this.rows;
         return row;
@@ -1687,6 +1698,22 @@ export class DataTable extends Control {
         return this;
     }
 
+    addColumn2(column: DataTableColumn): DataTable {
+        this.columns.push(column);
+
+        this._menu.addItem(MenuItem.create(column.Name, (self) => {
+            if (column.Name === self.label) {
+                column.hidden = !self.checked;
+                // this.detectChanges();
+            }
+        }, "checkbox", { visible: !column.hidden, checked: true }), null);
+
+        this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length));
+        this.dataSource.columns = this.columns;
+
+        return this;
+    }
+
     /**
      * insert a column to specified index.
      * @param column columnHeader string
@@ -1698,17 +1725,24 @@ export class DataTable extends Control {
         return this;
     }
 
-    set OnCellClick(value: Function) {
+    set onCellClick(value: Function) {
         this._cellclick = value;
         this.rows.forEach(item => {
-            item.OnCellClick = value;
+            item.onCellClick = value;
         });
     }
 
-    set OnRowClick(value: Function) {
+    set onCellDBClick(value: Function) {
+        this._cellDBClick = value;
+        this.rows.forEach(item => {
+            item.onCellDBClick = value;
+        });
+    }
+
+    set onRowClick(value: Function) {
         this._rowclick = value;
         this.rows.forEach(item => {
-            item.OnRowClick = value;
+            item.onRowClick = value;
         });
     }
 
@@ -1767,6 +1801,7 @@ export class DataTableRow extends Control {
     private parent: DataTable;
     private bHidden: boolean;
     private bgcolor: string;
+    private static _timeout: any;
     constructor(private columns: number) {
         super();
         this.bHidden = false;
@@ -1778,12 +1813,31 @@ export class DataTableRow extends Control {
         for (let i = 0; i < columns; ++i) {
             this.cells.push(new DataTableRowCell());
             this.cells[i].OnClick = (cellIndex, rowIndex) => {
-                if (this.dataSource.cellclick) {
-                    this.dataSource.cellclick(this.cells[cellIndex], cellIndex, rowIndex);
+                if (DataTableRow._timeout) {
+                    clearTimeout(DataTableRow._timeout);
+                    DataTableRow._timeout = null;
+
+                    if (this.dataSource.cellDBClick) {
+                        this.dataSource.cellDBClick(this.cells[cellIndex], cellIndex, rowIndex);
+                    }
+
+                    if (this.dataSource.rowDBClick) {
+                        this.dataSource.rowDBClick(this, rowIndex);
+                    }
+                    return;
                 }
-                if (this.dataSource.rowclick) {
-                    this.dataSource.rowclick(this, rowIndex);
-                }
+
+                DataTableRow._timeout = setTimeout(() => {
+                    DataTableRow._timeout = null;
+
+                    if (this.dataSource.cellclick) {
+                        this.dataSource.cellclick(this.cells[cellIndex], cellIndex, rowIndex);
+                    }
+
+                    if (this.dataSource.rowclick) {
+                        this.dataSource.rowclick(this, rowIndex);
+                    }
+                }, 300); // hack for double click duration;
             };
         }
     }
@@ -1791,21 +1845,48 @@ export class DataTableRow extends Control {
     insertCell(cell: DataTableRowCell, index: number): void {
         this.cells.splice(index, 0, new DataTableRowCell());
         this.cells[index].OnClick = (cellIndex, rowIndex) => {
-            if (this.dataSource.cellclick) {
-                this.dataSource.cellclick(this.cells[cellIndex], cellIndex, rowIndex);
+            if (DataTableRow._timeout) {
+                clearTimeout(DataTableRow._timeout);
+                DataTableRow._timeout = null;
+
+                if (this.dataSource.cellDBClick) {
+                    this.dataSource.cellDBClick(this.cells[cellIndex], cellIndex, rowIndex);
+                }
+
+                if (this.dataSource.rowDBClick) {
+                    this.dataSource.rowDBClick(this, rowIndex);
+                }
+                return;
             }
-            if (this.dataSource.rowclick) {
-                this.dataSource.rowclick(this, rowIndex);
-            }
+
+            DataTableRow._timeout = setTimeout(() => {
+                DataTableRow._timeout = null;
+
+                if (this.dataSource.cellclick) {
+                    this.dataSource.cellclick(this.cells[cellIndex], cellIndex, rowIndex);
+                }
+
+                if (this.dataSource.rowclick) {
+                    this.dataSource.rowclick(this, rowIndex);
+                }
+            }, 300); // hack for double click duration;
         };
     }
 
-    set OnCellClick(value: Function) {
+    set onCellClick(value: Function) {
         this.dataSource.cellclick = value;
     }
 
-    set OnRowClick(value: Function) {
+    set onCellDBClick(value: Function) {
+        this.dataSource.cellDBClick = value;
+    }
+
+    set onRowClick(value: Function) {
         this.dataSource.rowclick = value;
+    }
+
+    set onRowDBClick(value: Function) {
+        this.dataSource.rowDBClick = value;
     }
 
     set hidden(value: boolean) {
@@ -1832,8 +1913,13 @@ export class DataTableRowCell extends MetaControl {
 }
 
 export class DataTableColumn {
-    private bHidden: boolean = false;
-    constructor(private columnHeader: string) {
+    private compare: (prev, next) => number;
+    constructor(private columnHeader: string,
+        private bHidden: boolean = false,
+        private bSortable: boolean = false) {
+        this.compare = (prev: string, next: string) => {
+            return (prev < next) ? -1 : (prev === next ? 0 : 1);
+        };
     }
 
     set hidden(value: boolean) {
@@ -1846,6 +1932,22 @@ export class DataTableColumn {
 
     get Name() {
         return this.columnHeader;
+    }
+
+    set sortable(value: boolean) {
+        this.bSortable = value;
+    }
+
+    get sortable() {
+        return this.bSortable;
+    }
+
+    set onCompare(value: (prev, next) => number) {
+        this.compare = value;
+    }
+
+    get onCompare() {
+        return this.compare;
     }
 }
 

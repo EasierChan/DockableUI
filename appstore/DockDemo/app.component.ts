@@ -334,13 +334,13 @@ export class AppComponent implements OnInit, AfterViewInit {
             orderstatusTableRtnArr.push(orderstatusRtn);
         }
         orderstatusTableRtnArr.forEach(item => {
-            this.orderstatusTable.addColumn(item);
+            this.orderstatusTable.addColumn2(new DataTableColumn(item, false, true));
         });
         this.orderstatusTable.columnConfigurable = true;
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
 
-        this.orderstatusTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+        this.orderstatusTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
             let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
             if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
                 AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
@@ -405,7 +405,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.PositionTable.columnConfigurable = true;
         positionContent.addChild(this.PositionTable);
         this.PositionPage.setContent(positionContent);
-        this.PositionTable.OnRowClick = (rowItem, rowIndex) => {
+        this.PositionTable.onRowClick = (rowItem, rowIndex) => {
             let account = rowItem.cells[0].Text;
             let ukey = rowItem.cells[2].Text;
             let strategyid = rowItem.cells[11].Text;
@@ -659,7 +659,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.checkall.OnClick = () => {
             AppComponent.self.configAllCheck(this.checkall.Text);
         };
-        this.configTable.OnCellClick = (cellItem, cellidx, rowIdx) => {
+        this.configTable.onCellClick = (cellItem, cellidx, rowIdx) => {
             AppComponent.self.StrategyTitleHide(rowIdx);
             // console.log();
         };
@@ -918,7 +918,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.portfolioTable.addColumn(item);
         });
         this.portfolioTable.columnConfigurable = true;
-        this.portfolioTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+        this.portfolioTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
             let ukey = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Data.ukey;
             let account = AppComponent.self.portfolio_acc.SelectedItem.Text;
             if (cellIndex === 10) {
@@ -1233,7 +1233,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         strategyContent.addChild(strategyHeader);
         strategyContent.addChild(this.strategyTable);
         this.strategyPage.setContent(strategyContent);
-        this.strategyTable.OnCellClick = (cellItem, cellIdx, rowIdx) => {
+        this.strategyTable.onCellClick = (cellItem, cellIdx, rowIdx) => {
             // console.log(cellItem, cellIdx, rowIdx);
             AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
         };
@@ -2968,10 +2968,10 @@ export class AppComponent implements OnInit, AfterViewInit {
             row.cells[3].Class = "default";
         }
         let bHead = false;
-        bookViewTable.OnCellClick = (cellItem, cellIndex, rowIndex) => {
+        bookViewTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
             // console.info(cellIndex, rowIndex);
         };
-        bookViewTable.OnRowClick = (rowItem, rowIndex) => {
+        bookViewTable.onRowClick = (rowItem, rowIndex) => {
             if (dd_symbol.SelectedItem !== null) {
                 [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
                 this.txt_Price.Text = rowItem.cells[1].Text;

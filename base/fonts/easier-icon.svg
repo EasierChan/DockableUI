@@ -1,0 +1,12 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg">
+<metadata></metadata>
+<defs>
+<font id="easiericon" horiz-adv-x="1200" >
+<font-face units-per-em="1200" ascent="960" descent="-240" />
+<missing-glyph horiz-adv-x="500" />
+<glyph unicode="&#xe001" d="M212.992 624.64l276.48 280.576c12.288 10.24 32.768 10.24 43.008 0l278.528-280.576c16.384-16.384 4.096-40.96-22.528-40.96H233.472c-24.576 0-38.912 24.576-20.48 40.96zM212.992 399.36L489.472 118.784c12.288-10.24 32.768-10.24 43.008 0l278.528 280.576c16.384 16.384 4.096 40.96-22.528 40.96H233.472c-24.576 0-38.912-24.576-20.48-40.96z" />
+</font>
+</defs>
+</svg>
