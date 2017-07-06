@@ -590,6 +590,20 @@ export class AppComponent implements OnInit, AfterViewInit {
             let volume = txt_Volume.Text;
             let actionValue = this.dd_Action.SelectedItem.Value;
 
+            let ukeyTest = AppComponent.self.TestingInput(ukey);
+            let volumeTest = AppComponent.self.TestingInput(volume);
+
+            let numPrice = Number(price);
+            if (isNaN(numPrice) || numPrice === 0 || numPrice < 0) {
+                return;
+            }
+            if (!volumeTest || !ukeyTest) {
+                return;
+            }
+            if (!parseInt(ukey) || !parseFloat(price) || !parseInt(volume) || parseFloat(price) < 0 || parseFloat(volume) < 0) {
+                return;
+            }
+
             let date = new Date();
             let orderPack = {
                 ordertype: EOrderType.ORDER_TYPE_ORDER,
@@ -1573,6 +1587,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         // add log
         let type = data[0].type;
         let time = AppComponent.self.getCurrentTime();
+        let rowLen = AppComponent.self.logTable.rows.length;
+        if (rowLen > 500)
+            AppComponent.self.logTable.rows.splice(0, 1);
         let row = AppComponent.self.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = data[0].logStr;
@@ -1597,6 +1614,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         let logStr = data[0];
         // console.log(logStr);
         let time = AppComponent.self.getCurrentTime();
+        let rowLen = AppComponent.self.logTable.rows.length;
+        if (rowLen > 500)
+            AppComponent.self.logTable.rows.splice(0, 1);
         let row = AppComponent.self.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = logStr;
@@ -2074,6 +2094,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         if (!data.connected)
             AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
         AppComponent.self.statusbar.items.push(tempmark);
+        let rowLen = AppComponent.self.logTable.rows.length;
+        if (rowLen > 500)
+            AppComponent.self.logTable.rows.splice(0, 1);
         let row = AppComponent.self.logTable.newRow();
         row.cells[0].Text = AppComponent.self.getCurrentTime();
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
@@ -2934,7 +2957,6 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
             let msg = this.secuinfo.getCodeList(sendStr);
-            console.log(msg);
             let rtnArr = [];
             dd_symbol.Items.length = 0;
             let msgLen = msg.length;
