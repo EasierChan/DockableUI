@@ -892,7 +892,7 @@ class StrategyParser extends ItradeParser {
             comConOrderErrorInfo.os.datetime.tv_sec = buffer.readUIntLE(offset, 8); offset += 8;
             comConOrderErrorInfo.os.datetime.tv_usec = buffer.readUIntLE(offset, 8); offset += 8;
             res.push(comConOrderErrorInfo);
-            console.log("comConOrderErrorInfo:", comConOrderErrorInfo);
+            // console.log("comConOrderErrorInfo:", comConOrderErrorInfo);
         }
         return [{ type: 2021, subytpe: 1, logStr: rtnStr }];
     }
