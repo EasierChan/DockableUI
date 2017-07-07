@@ -1636,6 +1636,7 @@ export class DataTable extends Control {
     private _cellclick: Function;
     private _cellDBClick: Function;
     private _rowclick: Function;
+    private _rowDBClick: Function;
     private _menu: Menu = new Menu();
 
     constructor(type: "table" | "table2" = "table") {
@@ -1680,6 +1681,7 @@ export class DataTable extends Control {
         row.onCellClick = this._cellclick;
         row.onRowClick = this._rowclick;
         row.onCellDBClick = this._cellDBClick;
+        row.onRowDBClick = this._rowDBClick;
         this.rows.push(row);
         this.dataSource.rows = this.rows;
         return row;
@@ -1752,6 +1754,13 @@ export class DataTable extends Control {
         this._rowclick = value;
         this.rows.forEach(item => {
             item.onRowClick = value;
+        });
+    }
+
+    set onRowDBClick(value: Function) {
+        this._rowDBClick = value;
+        this.rows.forEach(item => {
+            item.onRowDBClick = value;
         });
     }
 
