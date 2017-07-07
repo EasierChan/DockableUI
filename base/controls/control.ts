@@ -1917,6 +1917,7 @@ export class DataTableRow extends Control {
 }
 
 export class DataTableRowCell extends MetaControl {
+    private color: string;
     constructor(type: "textbox" | "button" | "plaintext" | "checkbox" = "plaintext") {
         super(type);
     }
@@ -1927,6 +1928,14 @@ export class DataTableRowCell extends MetaControl {
 
     get Type() {
         return this.styleObj.type;
+    }
+
+    set Color(value: string) {
+        this.color = value;
+    }
+
+    get Color() {
+        return this.color;
     }
 }
 

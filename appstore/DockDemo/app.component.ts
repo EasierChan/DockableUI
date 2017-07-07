@@ -341,9 +341,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.orderstatusPage.setContent(orderstatusContent);
 
         this.orderstatusTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
+            console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
             let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
             if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
                 AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
+            console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
         };
 
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
@@ -978,10 +980,10 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: { type: "registerAccPos", data: account }
             });
-            MessageBox.openFileDialog("Select CSV", function (filenames) {
+            MessageBox.openFileDialog("Select CSV", function(filenames) {
                 // console.log(filenames);
                 if (filenames !== undefined)
-                    fs.readFile(filenames[0], function (err, content) {
+                    fs.readFile(filenames[0], function(err, content) {
                         if (err === null) {
                             readself.portfolioCount.Text = "0";
                             readself.allChk.Text = false;
@@ -989,7 +991,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                             let codeStr = content.toString();
                             let splitStr = codeStr.split("\n");
                             let initPos = [];
-                            splitStr.forEach(function (item) {
+                            splitStr.forEach(function(item) {
                                 let arr = item.split(",");
                                 if (arr.length === 2 && arr[0]) {
                                     let obj = AppComponent.self.secuinfo.getSecuinfoByCode(arr[0] + "");
@@ -1259,7 +1261,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.subScribeMarketInit(8012, "172.24.51.4");
         // this.init(9082, "172.24.51.4");
         let getpath = Environment.getDataPath(this.option.name);
-        fs.exists(getpath + "/config.json", function (exists) {
+        fs.exists(getpath + "/config.json", function(exists) {
             if (exists) { // file exist
                 fs.readFile(getpath + "/config.json", (err, data) => {
                     if (err) throw err;
@@ -1269,7 +1271,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     }
                 });
             } else {  // nost exist
-                fs.writeFile(getpath + "/config.json", "", function (err) {
+                fs.writeFile(getpath + "/config.json", "", function(err) {
                     if (err) {
                         console.log(err);
                     }
@@ -1342,7 +1344,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         let rtntemp = JSON.stringify(AppComponent.self.configStrObj);
         let getpath = Environment.getDataPath(this.option.name) + "/config.json";
-        fs.writeFile(getpath, rtntemp, function (err) {
+        fs.writeFile(getpath, rtntemp, function(err) {
             if (err) {
                 console.log(err);
             }
@@ -1593,6 +1595,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         let row = AppComponent.self.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = data[0].logStr;
+        if (row.cells[1].Text.startsWith("errorid")) {
+            row.cells[1].Color = "red";
+        }
         AppComponent.self.logTable.detectChanges();
     }
     showGuiCmdAck(data: any) {
@@ -3049,7 +3054,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     writeinconfigJson(data: string) {
         let getpath = Environment.getDataPath(this.option.name);
-        fs.writeFile(getpath + "/config.json", data, function (err) {
+        fs.writeFile(getpath + "/config.json", data, function(err) {
             if (err) {
                 console.log(err);
             }
