@@ -405,7 +405,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.PositionTable.columnConfigurable = true;
         positionContent.addChild(this.PositionTable);
         this.PositionPage.setContent(positionContent);
-        this.PositionTable.onRowClick = (rowItem, rowIndex) => {
+        this.PositionTable.onRowDBClick = (rowItem, rowIndex) => {
             let account = rowItem.cells[0].Text;
             let ukey = rowItem.cells[2].Text;
             let strategyid = rowItem.cells[11].Text;
@@ -2993,7 +2993,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         bookViewTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
             // console.info(cellIndex, rowIndex);
         };
-        bookViewTable.onRowClick = (rowItem, rowIndex) => {
+        bookViewTable.onRowDBClick = (rowItem, rowIndex) => {
             if (dd_symbol.SelectedItem !== null) {
                 [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
                 this.txt_Price.Text = rowItem.cells[1].Text;
