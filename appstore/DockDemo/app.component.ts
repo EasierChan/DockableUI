@@ -360,7 +360,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             doneOrderTableRtnArr.push(doneOrderRtn);
         }
         doneOrderTableRtnArr.forEach(item => {
-            this.doneOrdersTable.addColumn(item);
+            this.doneOrdersTable.addColumn2(new DataTableColumn(item, false, true));
         });
         this.doneOrdersTable.columnConfigurable = true;
         doneOrdersContent.addChild(this.doneOrdersTable);
@@ -722,7 +722,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             statarbTableRtnarr.push(statarbRtn);
         }
         statarbTableRtnarr.forEach(item => {
-            this.statarbTable.addColumn(item);
+            this.statarbTable.addColumn2(new DataTableColumn(item, false, true));
         });
 
         this.statarbTable.columnConfigurable = true;
