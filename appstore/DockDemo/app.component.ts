@@ -2072,7 +2072,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     showComGWNetGuiInfo(data: any) {
         let markLen = AppComponent.self.statusbar.items.length;
         if (markLen === 0) { // add
-            AppComponent.self.addStatusBarMark(data[0]);
+            AppComponent.self.addLog(data[0]);
         } else {
             let markFlag: Boolean = false;
             for (let i = 0; i < markLen; ++i) {
@@ -2082,8 +2082,10 @@ export class AppComponent implements OnInit, AfterViewInit {
                     markFlag = true;
                 }
             }
-            if (!markFlag)
-                AppComponent.self.addStatusBarMark(data[0]);
+            if (!markFlag) {
+                AppComponent.self.addLog(data[0]);
+            }
+
         }
     }
     addStatusBarMark(data: any) {
@@ -2094,6 +2096,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         if (!data.connected)
             AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
         AppComponent.self.statusbar.items.push(tempmark);
+    }
+    addLog(data: any) {
+        let name = data.name;
         let rowLen = AppComponent.self.logTable.rows.length;
         if (rowLen > 500)
             AppComponent.self.logTable.rows.splice(0, 1);
