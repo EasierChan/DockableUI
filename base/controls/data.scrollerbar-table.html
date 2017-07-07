@@ -6,7 +6,8 @@
       <template ngFor let-col [ngForOf]="dataSource.columns" let-i="index">
         <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment" (click)="dataSource.sort(col, i)">
           {{col.columnHeader}}
-          <span class="easiericon" [class.easiericon-sort]="col.sortable && col.columnHeader == dataSource.sortKey"></span>
+          <span class="easiericon" [class.easiericon-sort-asc]="col.sortable&&col.columnHeader==dataSource.sortKey&&dataSource.bAsc"
+             [class.easiericon-sort-desc]="col.sortable&&col.columnHeader==dataSource.sortKey&&!dataSource.bAsc"></span>
         </th>
       </template>
     </tr>
@@ -43,7 +44,8 @@
       <template ngFor let-col [ngForOf]="dataSource.columns" let-i="index">
         <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment" (click)="dataSource.sort(col, i)">
           {{col.columnHeader}}
-          <span class="easiericon" [class.easiericon-sort]="col.sortable && col.columnHeader == dataSource.sortKey"></span>
+          <span class="easiericon" [class.easiericon-sort-asc]="col.sortable && col.columnHeader==dataSource.sortKey&&dataSource.bAsc"
+             [class.easiericon-sort-desc]="col.sortable&&col.columnHeader==dataSource.sortKey&&!dataSource.bAsc"></span>
         </th>
       </template>
     </tr>

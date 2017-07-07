@@ -1645,7 +1645,9 @@ export class DataTable extends Control {
             columns: null,
             rows: null,
             detectChanges: null,
-            tableHeaderClick: () => { }
+            tableHeaderClick: () => { },
+            sortKey: null,
+            bAsc: true,
         };
 
         this.styleObj = {
@@ -1657,11 +1659,18 @@ export class DataTable extends Control {
         };
 
         this.dataSource.sort = (col: DataTableColumn, idx: number) => {
-            this.dataSource.sortKey = col.Name;
-            if (col.sortable && col.onCompare) {
+            if (!col.sortable || !col.onCompare)
+                return;
+
+            if (!col.Name.includes(this.dataSource.sortKey)) {
+                this.dataSource.sortKey = col.Name;
+                this.dataSource.bAsc = true;
                 this.dataSource.rows = this.rows = this.rows.sort((a, b) => {
                     return col.onCompare(a.cells[idx].Text, b.cells[idx].Text);
                 });
+            } else {
+                this.dataSource.bAsc = !this.dataSource.bAsc;
+                this.rows.reverse();
             }
         };
     }

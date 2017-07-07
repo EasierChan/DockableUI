@@ -539,15 +539,19 @@ echart{
 
 /* iconfont */
 @font-face {
-    font-family: "Easier Icon Font";
-    src: url("../fonts/easier-icon") format("svg");
+  font-family: 'Easier icon';
+  src: url('../fonts/iconfont.eot');
+  src: url('../fonts/iconfont.eot?#iefix') format('embedded-opentype'),
+  url('../fonts/iconfont.woff') format('woff'),
+  url('../fonts/iconfont.ttf') format('truetype'),
+  url('../fonts/iconfont.svg#Easiericon') format('svg');
 }
 
 .easiericon {
   position: relative;
   top: 1px;
   display: inline-block;
-  font-family: 'Easier Icon Font';
+  font-family: "Easier icon";
   font-style: normal;
   font-weight: normal;
   line-height: 1;
@@ -555,6 +559,10 @@ echart{
   -moz-osx-font-smoothing: grayscale;
 }
 
-.easiericon-sort:before {
-    content: "\e001";
+.easiericon-sort-asc:before {
+    content: "\e62a";
+}
+
+.easiericon-sort-desc:before {
+    content: "\e624";
 }
