@@ -465,6 +465,7 @@ export class AppComponent implements OnDestroy {
                 if (config) {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
+                    this.configBLL.updateConfig(config);
                     this.strategyContainer.removeItem(config.name);
                     this.strategyContainer.addItem(config);
                     // this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: 1 } });
@@ -602,14 +603,15 @@ export class AppComponent implements OnDestroy {
 
     onStartApp(): void {
         console.info(this.config);
+        let [addr, port] = this.selectedServer.quote_addr.split(":");
         if (!this.appService.startApp(this.config.name, this.config.apptype, {
             port: this.config.port,
             host: this.config.host,
             name: this.config.name,
             lang: this.setting.language,
             feedhandler: {
-                port: this.config.channels.feedhandler.port,
-                host: this.config.channels.feedhandler.addr
+                port: parseInt(port),
+                host: addr
             }
         })) {
             this.showError("Error", `start ${name} app error!`, "alert");
@@ -640,7 +642,7 @@ export class AppComponent implements OnDestroy {
                 lang: this.setting.language,
                 details: item,
             })) {
-                this.showError("Error", `start ${name} app error!`, "alert");
+                this.showError("Error", `Start ${name} app error!`, "alert");
             }
         }
         this.bDetails = false;

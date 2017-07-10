@@ -1258,7 +1258,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.bgWorker.send({
             command: "ss-start", params: { port: this.option.port, host: this.option.host }
         });
-        this.subScribeMarketInit(8012, "172.24.51.4");
+
+        this.subScribeMarketInit(this.option.feedhandler.port, this.option.feedhandler.host);
         // this.init(9082, "172.24.51.4");
         let getpath = Environment.getDataPath(this.option.name);
         fs.exists(getpath + "/config.json", function(exists) {

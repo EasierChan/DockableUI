@@ -1110,7 +1110,6 @@ export class DropDown extends MetaControl {
                 this.curidx = this.curidx < 0 ? (this.dataSource.completelist.length - 1)
                     : ((this.curidx - 1 + this.dataSource.completelist.length) % this.dataSource.completelist.length);
             } else { // Enter
-                console.info(this.curidx);
                 this.dataSource.select(this.dataSource.completelist[this.curidx < 0 ? 0 : this.curidx]);
             }
         };
