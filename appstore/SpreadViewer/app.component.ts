@@ -28,7 +28,7 @@ declare let window: any;
         TranslateService
     ]
 })
-export class AppComponent2 implements OnInit {
+export class AppComponent implements OnInit {
     private readonly apptype = "spreadviewer";
     private languageType = 0;
     main: any;
@@ -278,7 +278,7 @@ import { ActionBar, Label } from "../../base/controls/control";
   </usercontrol>
     `
 })
-export class AppComponent implements OnInit {
+export class AppComponent2 implements OnInit {
     private readonly apptype = "spreadviewer";
     main: HBox;
     constructor() { }
