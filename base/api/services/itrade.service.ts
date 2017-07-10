@@ -395,6 +395,7 @@ export class ItradeService {
         this._client.on("close", () => {
             this._client.sendHeartBeat(0);
             this._timer = setTimeout(() => {
+                clearTimeout(this._timer);
                 this._timer = null;
                 this._client.reconnect(this._port, this._host);
             }, 10000);
@@ -409,6 +410,10 @@ export class ItradeService {
     }
 
     stop(): void {
+        if (this._timer !== null) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
         this._client.dispose();
     }
 
