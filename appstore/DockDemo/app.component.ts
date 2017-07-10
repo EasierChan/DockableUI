@@ -1498,7 +1498,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showStatArbOrder(data: any) {
-        //  console.log("statarb....", data);
+        console.log("statarb....", data);
         for (let i = 0; i < data.length; ++i) {
             let subtype = data[i].subtype;
             let dataArr = data[i].content;
@@ -1522,19 +1522,23 @@ export class AppComponent implements OnInit, AfterViewInit {
                     }
                 }
             } else if (subtype === 1002) { // hide
-                for (let hideIdx = 0; hideIdx < AppComponent.self.statarbTable.rows.length; ++hideIdx) {
-                    let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
-                    let getStrategyid = AppComponent.self.statarbTable.rows[hideIdx].cells[6].Text;
-                    if (getUkey === dataArr[hideIdx].code && getStrategyid === dataArr[hideIdx].strategyid) {
-                        AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
-                        if (dataArr[hideIdx].amount > 0) {
-                            AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[hideIdx].amount / 10000).toString();
-                        } else if (dataArr[hideIdx].amount < 0) {
-                            AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + dataArr[hideIdx].amount / 10000).toString();
+                for (let idx = 0; idx < dataArr.length; ++idx) {
+                    for (let hideIdx = 0; hideIdx < AppComponent.self.statarbTable.rows.length; ++hideIdx) {
+                        let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
+                        let getStrategyid = AppComponent.self.statarbTable.rows[hideIdx].cells[6].Text;
+                        if (getUkey === dataArr[idx].code && getStrategyid === dataArr[idx].strategyid) {
+                            AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
+                            if (dataArr[idx].amount > 0) {
+                                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[idx].amount / 10000).toString();
+                            } else if (dataArr[idx].amount < 0) {
+                                AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + dataArr[idx].amount / 10000).toString();
+                            }
+                            break;
                         }
                     }
                 }
             }
+
         }
     }
 
