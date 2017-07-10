@@ -825,7 +825,7 @@ class StrategyParser extends ItradeParser {
                 comOrderRecord.od.signal[j].value = buffer.readUIntLE(offset, 8); offset += 8;
             }
             res.push(comOrderRecord);
-            logger.log("comOrderRecord....:", comOrderRecord);
+            logger.info(`msginfo::order,info:`, res);
         }
         return res;
     }

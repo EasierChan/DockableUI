@@ -407,7 +407,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.PositionTable.columnConfigurable = true;
         positionContent.addChild(this.PositionTable);
         this.PositionPage.setContent(positionContent);
-        this.PositionTable.onRowClick = (rowItem, rowIndex) => {
+        this.PositionTable.onRowDBClick = (rowItem, rowIndex) => {
             let account = rowItem.cells[0].Text;
             let ukey = rowItem.cells[2].Text;
             let strategyid = rowItem.cells[11].Text;
@@ -1267,8 +1267,10 @@ export class AppComponent implements OnInit, AfterViewInit {
                 fs.readFile(getpath + "/config.json", (err, data) => {
                     if (err) throw err;
                     if (data) {
-                        AppComponent.self.configFlag = true;
-                        AppComponent.self.configStrObj = JSON.parse(data);
+                        if (!data) {
+                            AppComponent.self.configFlag = true;
+                            AppComponent.self.configStrObj = JSON.parse(data);
+                        }
                     }
                 });
             } else {  // nost exist
@@ -1345,7 +1347,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         let rtntemp = JSON.stringify(AppComponent.self.configStrObj);
         let getpath = Environment.getDataPath(this.option.name) + "/config.json";
-        fs.writeFile(getpath, rtntemp, function(err) {
+
+        // judge ss green or red
+        fs.writeFile(getpath, rtntemp, function (err) {
             if (err) {
                 console.log(err);
             }
@@ -1501,7 +1505,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showStatArbOrder(data: any) {
-        //  console.log("statarb....", data);
+        console.log("statarb....", data);
         for (let i = 0; i < data.length; ++i) {
             let subtype = data[i].subtype;
             let dataArr = data[i].content;
@@ -1525,19 +1529,23 @@ export class AppComponent implements OnInit, AfterViewInit {
                     }
                 }
             } else if (subtype === 1002) { // hide
-                for (let hideIdx = 0; hideIdx < AppComponent.self.statarbTable.rows.length; ++hideIdx) {
-                    let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
-                    let getStrategyid = AppComponent.self.statarbTable.rows[hideIdx].cells[6].Text;
-                    if (getUkey === dataArr[hideIdx].code && getStrategyid === dataArr[hideIdx].strategyid) {
-                        AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
-                        if (dataArr[hideIdx].amount > 0) {
-                            AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[hideIdx].amount / 10000).toString();
-                        } else if (dataArr[hideIdx].amount < 0) {
-                            AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + dataArr[hideIdx].amount / 10000).toString();
+                for (let idx = 0; idx < dataArr.length; ++idx) {
+                    for (let hideIdx = 0; hideIdx < AppComponent.self.statarbTable.rows.length; ++hideIdx) {
+                        let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
+                        let getStrategyid = AppComponent.self.statarbTable.rows[hideIdx].cells[6].Text;
+                        if (getUkey === dataArr[idx].code && getStrategyid === dataArr[idx].strategyid) {
+                            AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
+                            if (dataArr[idx].amount > 0) {
+                                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[idx].amount / 10000).toString();
+                            } else if (dataArr[idx].amount < 0) {
+                                AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + dataArr[idx].amount / 10000).toString();
+                            }
+                            break;
                         }
                     }
                 }
             }
+
         }
     }
 
@@ -2078,7 +2086,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     showComGWNetGuiInfo(data: any) {
         let markLen = AppComponent.self.statusbar.items.length;
         if (markLen === 0) { // add
-            AppComponent.self.addStatusBarMark(data[0]);
+            AppComponent.self.addLog(data[0]);
         } else {
             let markFlag: Boolean = false;
             for (let i = 0; i < markLen; ++i) {
@@ -2088,8 +2096,10 @@ export class AppComponent implements OnInit, AfterViewInit {
                     markFlag = true;
                 }
             }
-            if (!markFlag)
-                AppComponent.self.addStatusBarMark(data[0]);
+            if (!markFlag) {
+                AppComponent.self.addLog(data[0]);
+            }
+
         }
     }
     addStatusBarMark(data: any) {
@@ -2100,6 +2110,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         if (!data.connected)
             AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
         AppComponent.self.statusbar.items.push(tempmark);
+    }
+    addLog(data: any) {
+        let name = data.name;
         let rowLen = AppComponent.self.logTable.rows.length;
         if (rowLen > 500)
             AppComponent.self.logTable.rows.splice(0, 1);
@@ -2999,7 +3012,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         bookViewTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
             // console.info(cellIndex, rowIndex);
         };
-        bookViewTable.onRowClick = (rowItem, rowIndex) => {
+        bookViewTable.onRowDBClick = (rowItem, rowIndex) => {
             if (dd_symbol.SelectedItem !== null) {
                 [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
                 this.txt_Price.Text = rowItem.cells[1].Text;
