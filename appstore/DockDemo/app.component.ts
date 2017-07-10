@@ -1264,8 +1264,10 @@ export class AppComponent implements OnInit, AfterViewInit {
                 fs.readFile(getpath + "/config.json", (err, data) => {
                     if (err) throw err;
                     if (data) {
-                        AppComponent.self.configFlag = true;
-                        AppComponent.self.configStrObj = JSON.parse(data);
+                        if (!data) {
+                            AppComponent.self.configFlag = true;
+                            AppComponent.self.configStrObj = JSON.parse(data);
+                        }
                     }
                 });
             } else {  // nost exist
@@ -1342,6 +1344,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         let rtntemp = JSON.stringify(AppComponent.self.configStrObj);
         let getpath = Environment.getDataPath(this.option.name) + "/config.json";
+        // judge ss green or red
         fs.writeFile(getpath, rtntemp, function (err) {
             if (err) {
                 console.log(err);
