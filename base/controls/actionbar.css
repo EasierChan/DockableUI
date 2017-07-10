@@ -12,13 +12,17 @@
 }
 
 .u-action-bar > .actions-container > .action-item {
-    display: block;
     position: relative;
     cursor: pointer;
-    margin: 10px 0;
-    padding-bottom: .1em;
     height: 40px;
     line-height: 40px;
+    text-align: left;
+    padding-left: 15px;
+}
+
+.u-action-bar > .actions-container > .action-item.menu {
+    width: 50px;
+    padding: 0px 16px;
 }
 
 .u-action-bar > .actions-container > .action-item > .action-label {
@@ -28,6 +32,16 @@
     text-decoration: none;
     font-size: 18px;
 }
+
+.u-action-bar > .actions-container > .action-item > .action-label.detail {
+    display: inline-block;
+    width: 100%;
+}
+
+.u-action-bar > .actions-container > .action-item > .action-label > .title {
+    margin-left: 15px;
+}
+
 .u-action-bar > .actions-container > .action-item.active > .action-label {
     opacity: 1;
 }

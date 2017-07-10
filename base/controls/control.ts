@@ -2050,12 +2050,17 @@ export class ActionBar extends Control {
     constructor() {
         super();
         this.styleObj = {
-            type: "actionbar"
+            type: "actionbar",
+            showDetailView: false
         };
 
         let self = this;
         this.dataSource = {
             items: [],
+            menuClick() {
+                self.styleObj.showDetailView = !self.styleObj.showDetailView;
+                self.width = self.styleObj.showDetailView ? 200 : 50;
+            },
             onClick(item: ActionItem) {
                 self.activeItem = item;
 
@@ -2087,10 +2092,27 @@ export class ActionBar extends Control {
         item.active = true;
         this._activeItem = item;
     }
+
+    set left(value: number) {
+        this.styleObj.left = value;
+    }
+
+    get left() {
+        return this.styleObj.left;
+    }
+
+    set width(value: number) {
+        this.styleObj.width = value;
+    }
+
+    get width() {
+        return this.styleObj.width;
+    }
 }
 
 interface ActionItem {
     iconName: string;
     tooltip: string;
+    title: string;
     active?: boolean;
 }

@@ -205,6 +205,7 @@ table {
 
 .table > thead > tr > th {
     padding: 2px;
+    cursor: pointer;
 }
 
 .table > tbody > tr > td {
@@ -535,6 +536,14 @@ echart{
 }
 .dropdown-menu > li > a {
     padding: 1px 10px;
+}
+
+/* action bar */
+action-bar {
+    flex: none;
+    width: 50px;
+    margin-left: 0;
+    min-width: 50px;
 }
 
 /* iconfont */

@@ -369,25 +369,36 @@ export class StatusBarComponent {
     templateUrl: "actionbar.html",
     inputs: ["styleObj", "dataSource"]
 })
-export class ActionBarComponent implements AfterViewInit, OnInit {
+export class ActionBarComponent implements OnInit {
     styleObj: any;
     dataSource: any;
 
     @HostBinding("attr.role") role = "navigation";
-    @HostBinding("style.backgroundColor") backgroundColor: string;
+    @HostBinding("style.backgroundColor") get backgroundColor() {
+        if (this.styleObj.backgroundColor)
+            return this.styleObj.backgroundColor;
+
+        return "#333";
+    };
+
+    @HostBinding("style.margin-left") get left() {
+        if (typeof this.styleObj.left !== "undefined")
+            return this.styleObj.left + "px";
+
+        return "0";
+    }
+
+    @HostBinding("style.width") get width() {
+        if (typeof this.styleObj.width !== "undefined")
+            return this.styleObj.width + "px";
+
+        return "50px";
+    }
 
     constructor(private ele: ElementRef, private render: Renderer) {
-        this.render.setElementStyle(this.ele.nativeElement, "flex", "none");
-        this.render.setElementStyle(this.ele.nativeElement, "width", "50");
-        this.render.setElementStyle(this.ele.nativeElement, "margin-left", "0");
-        this.render.setElementStyle(this.ele.nativeElement, "min-width", "50");
     }
 
     ngOnInit() {
-        if (this.styleObj.backgroundColor)
-            this.backgroundColor = this.styleObj.backgroundColor;
-    }
-
-    ngAfterViewInit() {
+        console.info(this.styleObj);
     }
 }
