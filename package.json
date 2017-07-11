@@ -4,7 +4,7 @@
   "description": "make the controls to be dockable",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && concurrently \"tsc -w\" ",
+    "start": "electron index.js",
     "tsc": "tsc",
     "tsc:w": "tsc -w"
   },
