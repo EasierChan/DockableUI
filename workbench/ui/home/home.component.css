@@ -55,6 +55,7 @@ a.future {
 }
 .content > * {
   flex: auto;
+  width: 100%;
 }
 .content > ul.tabs {
   flex: none;
