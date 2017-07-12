@@ -8,10 +8,15 @@
 </div>
 <div class="content">
   <ul class="tabs">
-    <li class="active"><a>Dashboard</a></li>
-    <li><a>Trading</a></li>
-    <li><a>Simulation</a></li>
-    <li><a>Risk</a></li>
-    <li><a>Admin</a></li>
+    <li [class.active]="activeTab=='Dashboard'" (click)="activeTab='Dashboard'"><a>Dashboard</a></li>
+    <li [class.active]="activeTab=='Trading'" (click)="activeTab='Trading'"><a>Trading</a></li>
+    <li [class.active]="activeTab=='Simulation'" (click)="activeTab='Simulation'"><a>Simulation</a></li>
+    <li [class.active]="activeTab=='Risk'" (click)="activeTab='Risk'"><a>Risk</a></li>
+    <li [class.active]="activeTab=='Admin'" (click)="activeTab='Admin'"><a>Admin</a></li>
   </ul>
+  <dashboard *ngIf="activeTab=='Dashboard'"></dashboard>
+  <trade *ngIf="activeTab=='Trading'"></trade>
+  <simulation *ngIf="activeTab=='Simulation'"></simulation>
+  <risk *ngIf="activeTab=='Risk'"></risk>
+  <admin *ngIf="activeTab=='Admin'"></admin>
 </div>

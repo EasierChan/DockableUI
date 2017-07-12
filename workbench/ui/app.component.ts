@@ -32,6 +32,7 @@ import { ActionBar, Label } from "../../base/controls/control";
 })
 export class AppComponent implements OnInit {
     actionBar: ActionBar;
+    curPage: string;
 
     ngOnInit() {
         this.actionBar = new ActionBar();
@@ -39,13 +40,13 @@ export class AppComponent implements OnInit {
             iconName: "home",
             tooltip: "Home",
             title: "Home",
-            active: true
+            active: true,
         });
 
         this.actionBar.addItem({
             iconName: "search",
-            tooltip: "Search",
-            title: "Search",
+            tooltip: "Security Master",
+            title: "Security Master",
             active: false
         });
 
@@ -56,12 +57,18 @@ export class AppComponent implements OnInit {
             active: false
         });
 
-        let content = new VBox();
-        let header = new CustomControl();
-        header.name = "home-header";
-        content.addChild(header);
-        let footer = new CustomControl();
-        header.name = "home-header";
-        content.addChild(footer);
+        this.actionBar.onClick = (item) => {
+            console.info(item.title);
+            switch (item.title) {
+                case "Security Master":
+                    this.curPage = "security";
+                    break;
+                case "Home":
+                default:
+                    this.curPage = "home";
+                    break;
+            }
+        };
     }
+
 }

@@ -2063,8 +2063,8 @@ export class ActionBar extends Control {
             onClick(item: ActionItem) {
                 self.activeItem = item;
 
-                if (this._onClick)
-                    this._onClick(item);
+                if (self._onClick)
+                    self._onClick(item);
             }
         };
     }
@@ -2090,6 +2090,10 @@ export class ActionBar extends Control {
 
         item.active = true;
         this._activeItem = item;
+    }
+
+    get activeItem() {
+        return this._activeItem;
     }
 
     set left(value: number) {

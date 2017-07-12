@@ -7,6 +7,12 @@ import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
 import { UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent } from "../../base/controls/user.component";
 import { HomeComponent } from "./home/home.component";
+import { AdminComponent } from "./home/admin.component";
+import { DashboardComponent } from "./home/dash.component";
+import { RiskComponent } from "./home/risk.component";
+import { TradeComponent } from "./home/trade.component";
+import { SimulationComponent } from "./home/simulation.component";
+import { SecurityComponent } from "./security/security.component";
 
 @NgModule({
   imports: [
@@ -16,15 +22,14 @@ import { HomeComponent } from "./home/home.component";
   ],
   declarations: [
     AppComponent,
-    DockContainerComponent,
-    DataTableComponent,
-    ScrollerBarTable,
-    EChartComponent,
-    UserControlComponent,
-    StatusBarComponent,
-    DialogComponent,
     ActionBarComponent,
-    HomeComponent
+    HomeComponent,
+    AdminComponent,
+    DashboardComponent,
+    RiskComponent,
+    TradeComponent,
+    SimulationComponent,
+    SecurityComponent
   ],
   bootstrap: [AppComponent]
 })
