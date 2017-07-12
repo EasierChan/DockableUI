@@ -1,15 +1,17 @@
 li > a:hover {
   cursor: pointer;
   opacity: 1;
+  text-decoration: none;
 }
 
 .title {
+  flex: none;
+  padding-top: 20px;
+  padding-left: 1%;
   text-align: left;
   text-transform: uppercase;
-  padding-left: 1%;
   font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
   font-size: 1em;
-  background-color: #333;
   color: #ccc;
 }
 
@@ -21,6 +23,7 @@ li > a:hover {
 
 .title > ul.small {
   display: inline-block;
+  margin-left: 30px;
   line-height: 1.1;
   font-size: 1.5em;
   vertical-align: top;
@@ -44,9 +47,9 @@ a.future {
 }
 
 .content {
+  flex: auto;
   height: 300px;
   padding: 0 1%;
-  background-color: #333;
 }
 .content > ul.tabs {
   text-align: center;
@@ -61,6 +64,9 @@ a.future {
   background-color: #666;
   color: #ccc;
   opacity: .6;
+}
+.content > ul.tabs > li > a {
+  color: #ccc;
 }
 .content > ul.tabs > li.active {
   opacity: 1;

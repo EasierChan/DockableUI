@@ -399,6 +399,5 @@ export class ActionBarComponent implements OnInit {
     }
 
     ngOnInit() {
-        console.info(this.styleObj);
     }
 }

@@ -10,6 +10,11 @@ import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
     VBox, HBox, TextBox, Button, DockContainer
 } from "../../base/controls/control";
+
+import {
+    CustomControl
+} from "./app.controls";
+
 import { IP20Service } from "../../base/api/services/ip20.service";
 import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
 declare let window: any;
@@ -22,36 +27,29 @@ import { ActionBar, Label } from "../../base/controls/control";
 @Component({
     moduleId: module.id,
     selector: "body",
-    template: `
-        <usercontrol [children]="main.children" [dataSource]="main.dataSource" [class]="main.styleObj.type"
-    style="height: 100%">
-  </usercontrol>
-    `
+    templateUrl: "app.component.html",
+    styleUrls: ["app.component.css"]
 })
 export class AppComponent implements OnInit {
-    private readonly apptype = "spreadviewer";
-    main: HBox;
-    constructor() { }
+    actionBar: ActionBar;
 
     ngOnInit() {
-        this.main = new HBox();
-        this.main.left = 0;
-        let actionBar = new ActionBar();
-        actionBar.addItem({
+        this.actionBar = new ActionBar();
+        this.actionBar.addItem({
             iconName: "home",
             tooltip: "Home",
             title: "Home",
             active: true
         });
 
-        actionBar.addItem({
+        this.actionBar.addItem({
             iconName: "search",
             tooltip: "Search",
             title: "Search",
             active: false
         });
 
-        actionBar.addItem({
+        this.actionBar.addItem({
             iconName: "time",
             tooltip: "History",
             title: "History",
@@ -59,11 +57,11 @@ export class AppComponent implements OnInit {
         });
 
         let content = new VBox();
-        let header = new HBox();
-        let lbl_title = new Label();
-        lbl_title.Text = "Home";
-        header.addChild(lbl_title);
+        let header = new CustomControl();
+        header.name = "home-header";
         content.addChild(header);
-        this.main.addChild(actionBar).addChild(content);
+        let footer = new CustomControl();
+        header.name = "home-header";
+        content.addChild(footer);
     }
 }
