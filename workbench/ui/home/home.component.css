@@ -50,8 +50,14 @@ a.future {
   flex: auto;
   height: 300px;
   padding: 0 1%;
+  display: flex;
+  flex-flow: column;
+}
+.content > * {
+  flex: auto;
 }
 .content > ul.tabs {
+  flex: none;
   text-align: center;
   border-bottom: 1px solid #ccc;
 }
