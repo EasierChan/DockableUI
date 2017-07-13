@@ -1539,20 +1539,20 @@ export class SpreadViewer {
         console.info(msg.UKey, this._lastIdx, idx, this._msgs);
         if (this._lastIdx[this._innerCode1] !== -1 && this._lastIdx[this._innerCode2] !== -1) {
             for (let i = this._lastIdx[this._innerCode1] + 1; i < idx; ++i) {
-                if (!this._msgs[this._innerCode1][i])
+                if (!this._msgs[this._innerCode1].hasOwnProperty(idx))
                     this._msgs[this._innerCode1][i] = {};
                 this._msgs[this._innerCode1][i].askPrice1 = this._msgs[this._innerCode1][i - 1].askPrice1;
                 this._msgs[this._innerCode1][i].bidPrice1 = this._msgs[this._innerCode1][i - 1].bidPrice1;
             }
             for (let i = this._lastIdx[this._innerCode2] + 1; i < idx; ++i) {
-                if (!this._msgs[this._innerCode2][i])
+                if (!this._msgs[this._innerCode2].hasOwnProperty(idx))
                     this._msgs[this._innerCode2][i] = {};
                 this._msgs[this._innerCode2][i].askPrice1 = this._msgs[this._innerCode2][i - 1].askPrice1;
                 this._msgs[this._innerCode2][i].bidPrice1 = this._msgs[this._innerCode2][i - 1].bidPrice1;
             }
 
             if (msg.UKey === this._innerCode1 && idx > this._lastIdx[this._innerCode2]) {
-                if (!this._msgs[this._innerCode2][idx])
+                if (!this._msgs[this._innerCode2].hasOwnProperty(idx))
                     this._msgs[this._innerCode2][idx] = {};
                 this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][idx - 1].askPrice1;
                 this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][idx - 1].bidPrice1;
@@ -1568,14 +1568,14 @@ export class SpreadViewer {
             this._firstIdx = idx;
         } else { // only one is -1
             if (msg.UKey === this._innerCode1) {
-                if (!this._msgs[this._innerCode2][idx])
+                if (!this._msgs[this._innerCode2].hasOwnProperty(idx))
                     this._msgs[this._innerCode2][idx] = {};
 
                 this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].askPrice1;
                 this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].bidPrice1;
                 this._curIdx = Math.max(this._lastIdx[this._innerCode2], idx);
             } else {// if (msg.UKey === this._innerCode2)
-                if (!this._msgs[this._innerCode1][idx])
+                if (!this._msgs[this._innerCode1].hasOwnProperty(idx))
                     this._msgs[this._innerCode1][idx] = {};
 
                 this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].askPrice1;
