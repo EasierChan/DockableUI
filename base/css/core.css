@@ -402,7 +402,6 @@ td input {
 usercontrol{
     display: flex;
     position: relative;
-    /*overflow: hidden;*/
 }
 usercontrol.row{
     flex-flow: row nowrap;
