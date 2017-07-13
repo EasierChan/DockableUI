@@ -26,8 +26,17 @@ export class UserControlComponent implements AfterViewInit {
     styleObj: any;
 
     ngAfterViewInit(): void {
-        // console.log(JSON.stringify(this.children));
+
     }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "usercontrol",
+    templateUrl: "usercontrol2.html",
+    inputs: ["children", "dataSource", "styleObj"]
+})
+export class UserControlComponent2 {
 }
 
 @Component({
@@ -399,6 +408,5 @@ export class ActionBarComponent implements OnInit {
     }
 
     ngOnInit() {
-        console.info(this.styleObj);
     }
 }

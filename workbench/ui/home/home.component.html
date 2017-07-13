@@ -1,0 +1,23 @@
+<div class="title">
+  <span class="big">chronos</span>
+  <ul class="small">
+    <li *ngFor="let module of modules" (click)="changeModule(module)"><a [class]="module.name" [class.active]="module.name==curModule.name">{{module.name}}</a></li>
+  </ul>
+</div>
+<div class="content">
+  <ul class="tabs">
+    <li *ngFor="let tab of curModule.tabs" [class.active]="activeTab==tab" (click)="activeTab=tab"><a>{{tab}}</a></li>
+  </ul>
+  <!--<template [ngSwitch]="activeTab">
+    <dashboard [ngSwitchCase]="'Dashboard'"></dashboard>
+    <trade [ngSwitchCase]="'Trading'"></trade>
+    <simulation [ngSwitchCase]="'Simulation'"></simulation>
+    <risk [ngSwitchCase]="'Risk'"></risk>
+    <admin [ngSwitchCase]="'Admin'"></admin>
+  </template>-->
+  <dashboard *ngIf="tab=='Dashboard'"></dashboard>
+  <trade *ngIf="tab=='Trading'"></trade>
+  <simulation *ngIf="tab=='Simulation'"></simulation>
+  <risk *ngIf="tab=='Risk'"></risk>
+  <admin *ngIf="tab=='Admin'"></admin>
+</div>

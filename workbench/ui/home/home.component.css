@@ -1,0 +1,83 @@
+li > a:hover,
+li > a.active {
+  cursor: pointer;
+  opacity: 1;
+  text-decoration: none;
+}
+
+.title {
+  flex: none;
+  padding-top: 20px;
+  padding-left: 1%;
+  text-align: left;
+  text-transform: uppercase;
+  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  font-size: 1em;
+  color: #ccc;
+}
+
+.title > span.big {
+  font-size: 3em;
+  line-height: 1;
+  vertical-align: bottom;
+}
+
+.title > ul.small {
+  display: inline-block;
+  margin-left: 30px;
+  line-height: 1.1;
+  font-size: 1.5em;
+  vertical-align: top;
+}
+
+.title > ul.small li {
+  display: inline;
+  margin-left: 10px;
+}
+
+a.history {
+  color: #e90;
+  opacity: .4;
+}
+a.present {
+  color: #2f2;
+  opacity: .4;
+}
+a.future {
+  color: #0AF;
+  opacity: .4;
+}
+
+.content {
+  flex: auto;
+  height: 300px;
+  padding: 0 1%;
+  display: flex;
+  flex-flow: column;
+}
+.content > * {
+  flex: auto;
+  width: 100%;
+}
+.content > ul.tabs {
+  flex: none;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+}
+.content > ul.tabs > li {
+  display: inline-block;
+  list-style: none;
+  padding: 5px 20px;
+  border: 2px solid #ccc;
+  border-bottom: none;
+  border-radius: 5px 5px 0 0;
+  background-color: #666;
+  color: #ccc;
+  opacity: .6;
+}
+.content > ul.tabs > li > a {
+  color: #ccc;
+}
+.content > ul.tabs > li.active {
+  opacity: 1;
+}

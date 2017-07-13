@@ -1,0 +1,11 @@
+<div class="workbench">
+    <action-bar [styleObj]="actionBar.styleObj" [dataSource]="actionBar.dataSource"></action-bar>
+    <div class="content" [ngSwitch]="curPage">
+        <template [ngSwitchCase]="'security'">
+            <security-master></security-master>
+        </template>
+        <template ngSwitchDefault>
+            <home></home>
+        </template>
+    </div>
+</div>
