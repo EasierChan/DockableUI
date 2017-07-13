@@ -1539,13 +1539,13 @@ export class SpreadViewer {
         console.info(msg.UKey, this._lastIdx, idx, this._msgs);
         if (this._lastIdx[this._innerCode1] !== -1 && this._lastIdx[this._innerCode2] !== -1) {
             for (let i = this._lastIdx[this._innerCode1] + 1; i < idx; ++i) {
-                if (!this._msgs[this._innerCode1].hasOwnProperty(idx))
+                if (!this._msgs[this._innerCode1].hasOwnProperty(i))
                     this._msgs[this._innerCode1][i] = {};
                 this._msgs[this._innerCode1][i].askPrice1 = this._msgs[this._innerCode1][i - 1].askPrice1;
                 this._msgs[this._innerCode1][i].bidPrice1 = this._msgs[this._innerCode1][i - 1].bidPrice1;
             }
             for (let i = this._lastIdx[this._innerCode2] + 1; i < idx; ++i) {
-                if (!this._msgs[this._innerCode2].hasOwnProperty(idx))
+                if (!this._msgs[this._innerCode2].hasOwnProperty(i))
                     this._msgs[this._innerCode2][i] = {};
                 this._msgs[this._innerCode2][i].askPrice1 = this._msgs[this._innerCode2][i - 1].askPrice1;
                 this._msgs[this._innerCode2][i].bidPrice1 = this._msgs[this._innerCode2][i - 1].bidPrice1;
