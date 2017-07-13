@@ -23,6 +23,11 @@ import { SecurityComponent } from "./security/security.component";
   declarations: [
     AppComponent,
     ActionBarComponent,
+    ScrollerBarTable,
+    UserControlComponent,
+    DataTableComponent,
+    DockContainerComponent,
+    EChartComponent,
     HomeComponent,
     AdminComponent,
     DashboardComponent,

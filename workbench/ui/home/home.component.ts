@@ -12,7 +12,6 @@ import { SimulationComponent } from "./simulation.component";
     selector: "home",
     templateUrl: "home.component.html",
     styleUrls: ["home.component.css"],
-    inputs: ["styleObj", "dataSource"],
     viewProviders: [
         AdminComponent,
         DashboardComponent,
@@ -22,12 +21,33 @@ import { SimulationComponent } from "./simulation.component";
     ]
 })
 export class HomeComponent implements OnInit {
-    styleObj: any;
-    dataSource: any;
-    activeTab = "Dashboard";
+    modules: any;
+    curModule: any;
+    activeTab: string;
 
-    constructor(private ele: ElementRef, private render: Renderer) {
+    constructor() {
+        this.modules = [
+            {
+                name: "history",
+                tabs: ["LoopbackTest", "Report"]
+            },
+            {
+                name: "present",
+                tabs: ["Dashboard", "Trading", "Simulation", "Risk", "Admin"]
+            },
+            {
+                name: "future",
+                tabs: ["RiskFactors"]
+            }
+        ];
 
+        this.curModule = this.modules[0];
+        this.activeTab = this.curModule.tabs[0];
+    }
+
+    changeModule(mod) {
+        this.curModule = mod;
+        this.activeTab = this.curModule.tabs[0];
     }
 
     ngOnInit() {
