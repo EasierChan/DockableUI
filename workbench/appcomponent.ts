@@ -148,7 +148,7 @@ export class AppComponent implements OnDestroy {
             return;
         }
 
-        // create and modify config.
+        // create and modify con`fig.
         if (this.config.activeChannel === "default") {
             this.config.channels.gateway.forEach((gw, index) => {
                 if (index === 0)
@@ -489,7 +489,7 @@ export class AppComponent implements OnDestroy {
             }
         });
 
-        // process templates
+        // process templates back
         this.tgw.addSlot({
             appid: 270,
             packid: 194,
@@ -536,7 +536,7 @@ export class AppComponent implements OnDestroy {
         let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": timestamp };
         this.tgw.send(17, 41, loginObj); // login
 
-        this.qtp.addSlot({
+        this.qtp.addSlot({ // back test channal created
             msgtype: 8012,
             callback: (msg) => {
                 console.info(msg);

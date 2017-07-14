@@ -8,7 +8,8 @@ import { IP20Service } from "../../../base/api/services/ip20.service";
     moduleId: module.id,
     selector: "trade",
     templateUrl: "trade.component.html",
-    styleUrls: ["trade.component.css"]
+    styleUrls: ["trade.component.css"],
+    providers: []
 })
 export class TradeComponent implements OnInit {
     areas: TileArea[];
@@ -77,5 +78,9 @@ export class TradeComponent implements OnInit {
         }
 
         this.bDetails = !this.bDetails;
+    }
+    loginTGW(): void {
+        // get template back
+        //  create back test channal
     }
 }
