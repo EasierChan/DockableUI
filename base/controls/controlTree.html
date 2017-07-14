@@ -7,7 +7,8 @@
                 <div class="page-title" draggable="true" (dragstart)="page?.onDrag($event, dataSource.id)" (dragend)="page?.onDragEnd($event)"><span>{{page.title}}</span></div>
                 <div class="page-body">
                     <usercontrol *ngIf="page.content" [class]="page.content.styleObj.type" [children]="page.content.children" [dataSource]="page.content.dataSource"
-                        [style.min-width.px]="page.content.styleObj?.minWidth" [style.min-height.px]="page.content.styleObj?.minHeight">
+                        [style.min-width.px]="page.content.styleObj?.minWidth" [style.min-height.px]="page.content.styleObj?.minHeight"
+                         [style.height.px]="page.content.styleObj?.height">
                     </usercontrol>
                 </div>
             </div>

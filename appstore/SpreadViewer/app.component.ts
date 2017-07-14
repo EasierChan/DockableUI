@@ -287,21 +287,21 @@ export class AppComponent2 implements OnInit {
         this.main = new HBox();
         this.main.left = 0;
         let actionBar = new ActionBar();
-        actionBar.addItem({
+        actionBar.addFeature({
             iconName: "home",
             tooltip: "Home",
             title: "Home",
             active: true
         });
 
-        actionBar.addItem({
+        actionBar.addFeature({
             iconName: "search",
             tooltip: "Search",
             title: "Search",
             active: false
         });
 
-        actionBar.addItem({
+        actionBar.addFeature({
             iconName: "time",
             tooltip: "History",
             title: "History",

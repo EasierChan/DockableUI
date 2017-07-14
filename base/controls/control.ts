@@ -2055,25 +2055,31 @@ export class ActionBar extends Control {
 
         let self = this;
         this.dataSource = {
-            items: [],
+            features: [],
+            settings: [],
             menuClick() {
                 self.styleObj.showDetailView = !self.styleObj.showDetailView;
                 self.width = self.styleObj.showDetailView ? 200 : 50;
             },
             onClick(item: ActionItem) {
-                self.activeItem = item;
-
                 if (self._onClick)
                     self._onClick(item);
             }
         };
     }
 
-    addItem(item: ActionItem): void {
+    addFeature(item: ActionItem): void {
         if (item.active) {
             this.activeItem = item;
         }
-        this.dataSource.items.push(item);
+        this.dataSource.features.push(item);
+    }
+
+    addSettings(item: ActionItem) {
+        if (item.active) {
+            this.activeItem = item;
+        }
+        this.dataSource.settings.push(item);
     }
 
     set backgroundColor(value: string) {
@@ -2118,4 +2124,51 @@ interface ActionItem {
     tooltip: string;
     title: string;
     active?: boolean;
+}
+
+export class TileArea extends Control {
+    constructor() {
+        super();
+        this.styleObj = {
+            type: "tilearea",
+        };
+
+        this.dataSource = {
+            title: "",
+            items: [],
+            click: () => { },
+            create: () => { }
+        };
+    }
+
+    set title(value: string) {
+        this.dataSource.title = value;
+    }
+
+    get title() {
+        return this.dataSource.title;
+    }
+
+    addTile(tile: Tile) {
+        this.dataSource.items.push(tile);
+    }
+
+    set onClick(value: Function) {
+        this.dataSource.click = value;
+    }
+
+    set onCreate(value: Function) {
+        this.dataSource.create = value;
+    }
+
+    set onSettingClick(value: Function) {
+        this.dataSource.setting = value;
+    }
+}
+
+export class Tile {
+    color: string;
+    backgroundColor: string;
+    title: string;
+    iconName: string;
 }

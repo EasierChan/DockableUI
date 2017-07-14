@@ -29,7 +29,7 @@ export class HomeComponent implements OnInit {
         this.modules = [
             {
                 name: "history",
-                tabs: ["LoopbackTest", "Report"]
+                tabs: ["BackTest", "Report"]
             },
             {
                 name: "present",

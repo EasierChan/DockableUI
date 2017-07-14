@@ -409,13 +409,13 @@ usercontrol.row{
     height: 25px;
     vertical-align: middle;
     margin: 0px;
-    padding: 2px 0px;
+    /*padding: 2px 0px;*/
 }
 
 usercontrol.row > * {
     position: relative;
     margin-left: 5px;
-    display: inherit;
+    display: inline-block;
 }
 usercontrol.col > * {
     margin-top: 2px;

@@ -15,9 +15,10 @@
     <risk [ngSwitchCase]="'Risk'"></risk>
     <admin [ngSwitchCase]="'Admin'"></admin>
   </template>-->
-  <dashboard *ngIf="tab=='Dashboard'"></dashboard>
-  <trade *ngIf="tab=='Trading'"></trade>
-  <simulation *ngIf="tab=='Simulation'"></simulation>
-  <risk *ngIf="tab=='Risk'"></risk>
-  <admin *ngIf="tab=='Admin'"></admin>
+  <dashboard *ngIf="activeTab=='Dashboard'"></dashboard>
+  <trade *ngIf="activeTab=='Trading'" class="fill"></trade>
+  <simulation *ngIf="activeTab=='Simulation'"></simulation>
+  <risk *ngIf="activeTab=='Risk'"></risk>
+  <admin *ngIf="activeTab=='Admin'"></admin>
+  <backtest *ngIf="activeTab=='BackTest'" class="fill"></backtest>
 </div>

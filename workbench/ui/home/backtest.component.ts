@@ -1,15 +1,14 @@
 "use strict";
 
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
 
 @Component({
     moduleId: module.id,
-    selector: "simulation",
-    templateUrl: "simulation.component.html",
-    styleUrls: ["home.component.css"]
+    selector: "backtest",
+    templateUrl: "backtest.component.html"
 })
-export class SimulationComponent {
+export class BacktestComponent implements OnInit {
     tileArea: TileArea;
 
     constructor() {
@@ -23,7 +22,8 @@ export class SimulationComponent {
         for (let i = 0; i < 20; ++i) {
             let tile = new Tile();
             tile.title = "hello";
-            tile.iconName = "adjust";
+            tile.iconName = "repeat";
+            tile.backgroundColor = "#aaa";
             this.tileArea.addTile(tile);
         }
 

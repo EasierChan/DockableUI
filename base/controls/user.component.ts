@@ -37,6 +37,9 @@ export class UserControlComponent implements AfterViewInit {
     inputs: ["children", "dataSource", "styleObj"]
 })
 export class UserControlComponent2 {
+    children: any[];
+    dataSource: any;
+    styleObj: any;
 }
 
 @Component({
@@ -408,5 +411,25 @@ export class ActionBarComponent implements OnInit {
     }
 
     ngOnInit() {
+    }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "tilearea",
+    styleUrls: ["tilearea.css"],
+    templateUrl: "tilearea.html",
+    inputs: ["styleObj", "dataSource"]
+})
+export class TileAreaComponent {
+    styleObj: any;
+    dataSource: any;
+
+    @HostBinding("style.display") get display() {
+        return "flex";
+    }
+
+    @HostBinding("style.flex-flow") get flow() {
+        return "column";
     }
 }

@@ -2,6 +2,8 @@
     <span class="title">Security Master</span>
 </div>
 <div class="content">
-    <usercontrol [children]="conditionBox.children" [styleObj]="conditionBox.styleObj" [dataSource]="conditionBox.dataSource"></usercontrol>
+    <usercontrol [children]="conditionBox.children" [styleObj]="conditionBox.styleObj" [dataSource]="conditionBox.dataSource" [class]="conditionBox.styleObj.type"
+    [style.min-width.px]="conditionBox.styleObj?.minWidth" [style.min-height.px]="conditionBox.styleObj?.minHeight" [style.justify-content]="conditionBox.styleObj?.align"
+    [style.margin-left.px]="conditionBox.styleObj?.left" [style.margin-top.px]="conditionBox.styleObj?.top" [style.height.px]="conditionBox.styleObj?.height"></usercontrol>
     <dock-table2 [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
 </div>

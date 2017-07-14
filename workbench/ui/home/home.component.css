@@ -54,14 +54,20 @@ a.future {
   padding: 0 1%;
   display: flex;
   flex-flow: column;
+  overflow: hidden;
 }
 .content > * {
   flex: auto;
   width: 100%;
 }
+.content > .fill {
+  display: flex;
+  flex-flow: column;
+}
 .content > ul.tabs {
   flex: none;
-  text-align: center;
+  text-align: left;
+  padding-left: 225px;
   border-bottom: 1px solid #ccc;
 }
 .content > ul.tabs > li {

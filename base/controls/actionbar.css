@@ -1,12 +1,21 @@
 .u-action-bar {
     text-align: center;
     width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    justify-content: space-between;
 }
 
 .u-action-bar > .actions-container {
+    flex: none;
     display: inline-block;
-    margin: 0 auto;
-    padding: 0;
+    width: 100%;
+    white-space: nowrap;
+}
+.u-action-bar > .actions-container.bottom {
+    flex: none;
+    display: inline-block;
     width: 100%;
     white-space: nowrap;
 }
@@ -22,7 +31,12 @@
 
 .u-action-bar > .actions-container > .action-item.menu {
     width: 50px;
-    padding: 0px 16px;
+    padding-left: 0;
+}
+.u-action-bar > .actions-container > .action-item.menu a {
+    display: inline-block;
+    width: 50px;
+    text-align: center;
 }
 
 .u-action-bar > .actions-container > .action-item > .action-label {
@@ -44,4 +58,7 @@
 
 .u-action-bar > .actions-container > .action-item.active > .action-label {
     opacity: 1;
+}
+.u-action-bar > .actions-container > .action-item.active {
+    background-color: #3a0;
 }
