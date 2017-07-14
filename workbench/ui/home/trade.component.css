@@ -9,7 +9,7 @@ tilearea {
 }
 
 .monitor {
-    max-height: 30px;
+    height: 30px;
 }
 .monitor > .title {
     height: 30px;
