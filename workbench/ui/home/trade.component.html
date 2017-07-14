@@ -7,13 +7,33 @@
     <div class="container">
         <p class="title1">STRATEGY</p>
         <div class="strategy-container">
+            <template ngFor let-item [ngForOf]="configs">
+                <div [class]="detailClass" data-role="tile" (mouseup)="onClick($event, item);">
+                    <div class="tile-content iconic {{item.state===1?'bg-green':''}}">
+                        <!--<span class="icon mif-play"></span>-->
+                        <span class="tile-label">{{ item.name }}</span>
+                        <div>
+
+                        </div>
+                    </div>
+                </div>
+            </template>
         </div>
     </div>
     <div class="container">
         <p class="title1">ANALYTICAL</p>
         <div class="analytical-container">
+            <template ngFor let-app [ngForOf]="svconfigs">
+                <div [class]="detailClass" data-role="tile" (mouseup)="onSVConfigClick($event, app)">
+                    <div class="tile-content">
+                        <!--<span class="icon mif-library"></span>-->
+                        <span class="tile-label">{{ app.name }}</span>
+                    </div>
+                </div>
+            </template>
         </div>
     </div>
+    <div>
     <table class="tradingtable">
         <thead>
             <tr class="tabletitle" border="1">
