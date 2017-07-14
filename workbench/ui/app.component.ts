@@ -58,7 +58,7 @@ export class AppComponent implements OnInit {
         });
 
         this.actionBar.onClick = (item) => {
-            console.info(item.title);
+
             switch (item.title) {
                 case "Security Master":
                     this.curPage = "security";

@@ -1,22 +1,23 @@
 <div class="title">
   <span class="big">chronos</span>
   <ul class="small">
-    <li><a class="history">history</a></li>
-    <li><a class="present">present</a></li>
-    <li><a class="future">future</a></li>
+    <li *ngFor="let module of modules" (click)="changeModule(module)"><a [class]="module.name" [class.active]="module.name==curModule.name">{{module.name}}</a></li>
   </ul>
 </div>
 <div class="content">
   <ul class="tabs">
-    <li [class.active]="activeTab=='Dashboard'" (click)="activeTab='Dashboard'"><a>Dashboard</a></li>
-    <li [class.active]="activeTab=='Trading'" (click)="activeTab='Trading'"><a>Trading</a></li>
-    <li [class.active]="activeTab=='Simulation'" (click)="activeTab='Simulation'"><a>Simulation</a></li>
-    <li [class.active]="activeTab=='Risk'" (click)="activeTab='Risk'"><a>Risk</a></li>
-    <li [class.active]="activeTab=='Admin'" (click)="activeTab='Admin'"><a>Admin</a></li>
+    <li *ngFor="let tab of curModule.tabs" [class.active]="activeTab==tab" (click)="activeTab=tab"><a>{{tab}}</a></li>
   </ul>
-  <dashboard *ngIf="activeTab=='Dashboard'"></dashboard>
-  <trade *ngIf="activeTab=='Trading'"></trade>
-  <simulation *ngIf="activeTab=='Simulation'"></simulation>
-  <risk *ngIf="activeTab=='Risk'"></risk>
-  <admin *ngIf="activeTab=='Admin'"></admin>
+  <!--<template [ngSwitch]="activeTab">
+    <dashboard [ngSwitchCase]="'Dashboard'"></dashboard>
+    <trade [ngSwitchCase]="'Trading'"></trade>
+    <simulation [ngSwitchCase]="'Simulation'"></simulation>
+    <risk [ngSwitchCase]="'Risk'"></risk>
+    <admin [ngSwitchCase]="'Admin'"></admin>
+  </template>-->
+  <dashboard *ngIf="tab=='Dashboard'"></dashboard>
+  <trade *ngIf="tab=='Trading'"></trade>
+  <simulation *ngIf="tab=='Simulation'"></simulation>
+  <risk *ngIf="tab=='Risk'"></risk>
+  <admin *ngIf="tab=='Admin'"></admin>
 </div>
