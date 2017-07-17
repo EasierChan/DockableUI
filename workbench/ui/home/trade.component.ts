@@ -3,7 +3,9 @@
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/controls/control";
 import { IP20Service } from "../../../base/api/services/ip20.service";
+import {ConfigurationBLL} from  "../../bll/strategy.server";
 
+let ip20strs = [];
 @Component({
     moduleId: module.id,
     selector: "trade",
@@ -16,11 +18,13 @@ export class TradeComponent implements OnInit {
     resTable: DataTable;
     monitorHeight: number;
     bDetails: boolean;
+    private configBll = new ConfigurationBLL();
 
     constructor(private tgw: IP20Service) {
     }
 
     ngOnInit() {
+        let self = this;
         this.bDetails = false;
         let productArea = new TileArea();
         productArea.title = "Products";
@@ -60,14 +64,37 @@ export class TradeComponent implements OnInit {
         this.resTable.addColumn2(new DataTableColumn("ReleaseData", false, true));
         this.resTable.addColumn2(new DataTableColumn("OutDate", false, true));
 
-        this.tgw.addSlot({
+        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
+        this.tgw.addSlot({  // template
             appid: 270,
             packid: 194,
             callback: msg => {
                 console.info(msg);
+                if (msg.content.head.pkgCnt > 1) {
+                    if (ip20strs[msg.content.head.pkgId] === undefined)
+                        ip20strs[msg.content.head.pkgId] = "";
+                    if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
+                        // let templatelist = JSON.parse(ip20strs[msg.content.head.pkgId].concat(msg.content.body));
+
+                        // templatelist.body.forEach(template => {
+                        //     this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
+                        // });
+
+                        // self.configs = self.configBll.getAllConfigs();
+                        // self.configs.forEach(config => {
+                        //     self.config = config;
+                        //     self.config.state = 0;
+                        //     self.curTemplate = JSON.parse(JSON.stringify(self.configBll.getTemplateByName(self.config.strategyCoreName)));
+                        //     self.finish();
+                        // });
+                        // delete ip20strs[msg.content.head.pkgId];
+                    } else {
+                        ip20strs[msg.content.head.pkgId] = ip20strs[msg.content.head.pkgId].concat(msg.content.body);
+                    }
+
+                }
             }
         });
-        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
     }
 
     toggleMonitor() {
