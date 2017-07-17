@@ -3,6 +3,7 @@ div.workbench {
     height: 100%;
     display: flex;
     flex-flow: row;
+    background-color: #1A2237;
 }
 
 div.workbench > .content{

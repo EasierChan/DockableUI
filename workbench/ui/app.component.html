@@ -4,8 +4,11 @@
         <template [ngSwitchCase]="'security'">
             <security-master></security-master>
         </template>
+        <template [ngSwitchCase]="'setting'">
+            <setting></setting>
+        </template>
         <template ngSwitchDefault>
-            <home></home>
+            <home [currentMod]="homeMod" [activeTab]="activeTab"></home>
         </template>
     </div>
 </div>

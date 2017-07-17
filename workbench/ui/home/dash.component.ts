@@ -11,7 +11,6 @@ import { Component } from "@angular/core";
 export class DashboardComponent {
     styleObj: any;
     dataSource: any;
-    activeTab = "Dashboard";
 
     constructor() {
 

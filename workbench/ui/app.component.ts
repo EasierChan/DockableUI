@@ -17,10 +17,9 @@ import {
 
 import { AppStoreService } from "../../base/api/services/backend.service";
 import { IP20Service } from "../../base/api/services/ip20.service";
+import { DataSet } from "./home/common";
+
 import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
-declare let window: any;
-
-
 import { ActionBar, Label } from "../../base/controls/control";
 /**
  * for actionBar test
@@ -38,6 +37,8 @@ import { ActionBar, Label } from "../../base/controls/control";
 export class AppComponent implements OnInit {
     actionBar: ActionBar;
     curPage: string;
+    homeMod: string;
+    activeTab: string;
     setting: any;
     curEndpoint: any;
 
@@ -47,12 +48,29 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.homeMod = "present";
+        this.activeTab = DataSet.tabs(this.homeMod)[0];
         this.actionBar = new ActionBar();
+        this.actionBar.backgroundColor = "#383F54";
         this.actionBar.addFeature({
             iconName: "home",
-            tooltip: "Home",
-            title: "Home",
+            tooltip: "Present",
+            title: "Present",
             active: true,
+        });
+
+        this.actionBar.addFeature({
+            iconName: "repeat",
+            tooltip: "History",
+            title: "History",
+            active: false,
+        });
+
+        this.actionBar.addFeature({
+            iconName: "send",
+            tooltip: "Future",
+            title: "Future",
+            active: false,
         });
 
         this.actionBar.addFeature({
@@ -110,8 +128,26 @@ export class AppComponent implements OnInit {
                     this.curPage = "security";
                     this.actionBar.activeItem = item;
                     break;
-                case "Home":
+                case "Present":
                     this.curPage = "home";
+                    this.homeMod = "present";
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "History":
+                    this.curPage = "home";
+                    this.homeMod = "history";
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "Future":
+                    this.curPage = "home";
+                    this.homeMod = "future";
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "Setting":
+                    this.curPage = "setting";
                     this.actionBar.activeItem = item;
                     break;
                 case "Quit":

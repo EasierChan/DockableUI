@@ -1,18 +1,3 @@
 /* date: 20170713
 ** author: chenl
 */
-.titlebar {
-    background-color: #222;
-}
-
-.titlebar > .title {
-    font-size: 1.5em;
-    line-height: 2;
-    margin-left: 20px;
-}
-
-.content {
-    flex: auto;
-    display: flex;
-    flex-flow: column;
-}
