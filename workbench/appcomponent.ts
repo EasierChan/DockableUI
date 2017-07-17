@@ -228,6 +228,7 @@ export class AppComponent implements OnDestroy {
             this.showError("Wrong Config", "check items: <br>1. config name.<br>2. one strategy instance at least.<br>3. account must not be empty.", "alert");
             return;
         }
+
         this.configBLL.updateConfig(this.config);
         this.tgw.send(107, 2000, { routerid: 0, templateid: this.curTemplate.id, body: { name: this.config.name, config: JSON.stringify(this.curTemplate.body.data) } });
         this.closePanel();
