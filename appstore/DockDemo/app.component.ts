@@ -2110,6 +2110,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 let text = AppComponent.self.statusbar.items[i].text;
                 if (text === data[0].name) {
                     AppComponent.self.statusbar.items[i].color = data[0].connected ? "green" : "red";
+                    AppComponent.self.addLog(data[0]);
                     markFlag = true;
                 }
             }
