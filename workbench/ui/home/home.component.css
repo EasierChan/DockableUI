@@ -10,11 +10,18 @@ li > a.active {
   padding-left: 1%;
   text-align: left;
   text-transform: uppercase;
-  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  /*font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;*/
   font-size: 1em;
   background-color: #222A41;
   color: #F3F3F5;
   position: relative;
+}
+
+.title > img.logo {
+  width: 20px;
+  margin-right: 5px;
+  margin-top: 3px;
+  margin-bottom: 8px;
 }
 
 .title > span.big {
@@ -35,7 +42,7 @@ li > a.active {
 .title > ul.tabs > li {
   display: inline-block;
   list-style: none;
-  padding: 5px 20px;
+  padding: 4px 20px;
   border-bottom: none;
   opacity: .6;
 }
@@ -73,7 +80,7 @@ li > a.active {
 .content {
   flex: auto;
   height: 300px;
-  padding: 0 1%;
+  padding: 1% 1% 0 1%;
   display: flex;
   flex-flow: column;
   overflow: hidden;

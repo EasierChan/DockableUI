@@ -16,7 +16,7 @@ import {
 } from "./app.controls";
 
 import { AppStoreService } from "../../base/api/services/backend.service";
-import { IP20Service } from "../../base/api/services/ip20.service";
+import { TradeService, QuoteService, MockService } from "../bll/services";
 import { DataSet } from "./home/common";
 
 import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
@@ -30,7 +30,9 @@ import { ActionBar, Label } from "../../base/controls/control";
     templateUrl: "app.component.html",
     styleUrls: ["app.component.css"],
     providers: [
-        IP20Service,
+        TradeService,
+        QuoteService,
+        MockService,
         AppStoreService
     ]
 })
@@ -42,7 +44,9 @@ export class AppComponent implements OnInit {
     setting: any;
     curEndpoint: any;
 
-    constructor(private tgw: IP20Service, private appService: AppStoreService) {
+    constructor(private tradeEndPoint: TradeService,
+        private mock: MockService,
+        private appService: AppStoreService) {
         this.setting = this.appService.getSetting();
         this.curEndpoint = this.setting.endpoints[0];
     }
@@ -116,6 +120,13 @@ export class AppComponent implements OnInit {
         });
 
         this.actionBar.addSettings({
+            iconName: "info-sign",
+            tooltip: "Support",
+            title: "Support",
+            active: false
+        });
+
+        this.actionBar.addSettings({
             iconName: "off",
             tooltip: "关闭",
             title: "Quit",
@@ -150,6 +161,14 @@ export class AppComponent implements OnInit {
                     this.curPage = "setting";
                     this.actionBar.activeItem = item;
                     break;
+                case "User":
+                    this.curPage = "user";
+                    this.actionBar.activeItem = item;
+                    break;
+                case "Support":
+                    this.curPage = "support";
+                    this.actionBar.activeItem = item;
+                    break;
                 case "Quit":
                     if (confirm("Sure to Quit?")) {
                         // TODO quit application; 
@@ -162,7 +181,7 @@ export class AppComponent implements OnInit {
         };
 
         let self = this;
-        this.tgw.addSlot({ // login success
+        this.tradeEndPoint.addSlot({ // login success
             appid: 17,
             packid: 43,
             callback: msg => {
@@ -170,7 +189,7 @@ export class AppComponent implements OnInit {
             }
         });
 
-        this.tgw.addSlot({ // login failed
+        this.tradeEndPoint.addSlot({ // login failed
             appid: 17,
             packid: 120,
             callback: msg => {
@@ -183,12 +202,12 @@ export class AppComponent implements OnInit {
 
     loginTGW() {
         let [host, port] = this.curEndpoint.trade_addr.split(":");
-        this.tgw.connect(port, host);
+        this.tradeEndPoint.connect(port, host);
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
         let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
-        this.tgw.send(17, 41, loginObj); // login
+        this.tradeEndPoint.send(17, 41, loginObj); // login
     }
 }

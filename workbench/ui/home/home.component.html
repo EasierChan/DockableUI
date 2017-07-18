@@ -1,14 +1,15 @@
 <div class="title">
+  <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
   <span class="big">chronos</span>
   <ul class="tabs">
     <li *ngFor="let tab of curModule.tabs" [class.active]="activeTab==tab" (click)="activeTab=tab"><a>{{tab}}</a></li>
   </ul>
-  <div class="u-input-group">
+  <!--<div class="u-input-group">
     <input type="text" placeholder="Search...">
     <a class="button">
     <span class="glyphicon glyphicon-search"></span>
     </a>
-  </div>
+  </div>-->
 </div>
 <div class="content">
   <!--<template [ngSwitch]="activeTab">
@@ -24,4 +25,5 @@
   <risk *ngIf="activeTab=='Risk'"></risk>
   <admin *ngIf="activeTab=='Admin'"></admin>
   <backtest *ngIf="activeTab=='BackTest'" class="fill"></backtest>
+  <riskfactor *ngIf="activeTab=='RiskFactors'" class="fill"></riskfactor>
 </div>

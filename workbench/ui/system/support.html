@@ -1,0 +1,17 @@
+<div class="title">
+    <img class="logo" src="../base/images/logo-white.png" alt="Chronos">
+    <span class="big">{{name}}</span>
+</div>
+<div class="content">
+    <div class="settings">
+        <h4>支持</h4>
+        <div class="form-group">
+            <label for="exchanges">可支持的交易所:</label>
+            <dock-table [dataSource]="supportTable.dataSource" [styleObj]="supportTable.styleObj" [style.max-height]="supportTable.styleObj?.height"
+                [style.max-width]="supportTable.styleObj?.width" [style.margin-left.px]="supportTable.styleObj?.left" [style.margin-top.px]="supportTable.styleObj?.top"></dock-table>
+            <label for="exchanges">可支持的券商:</label>
+            <dock-table id="broker" [dataSource]="brokerTable.dataSource" [styleObj]="brokerTable.styleObj" [style.max-height]="brokerTable.styleObj?.height"
+                [style.max-width]="brokerTable.styleObj?.width" [style.margin-left.px]="brokerTable.styleObj?.left" [style.margin-top.px]="brokerTable.styleObj?.top"></dock-table>
+        </div>
+    </div>
+</div>

@@ -11,6 +11,7 @@ tilearea {
 .monitor {
     height: 30px;
 }
+
 .monitor > .title {
     height: 30px;
 }

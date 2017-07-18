@@ -16,6 +16,9 @@ import { SimulationComponent } from "./home/simulation.component";
 import { SecurityComponent } from "./security/security.component";
 import { BacktestComponent } from "./home/backtest.component";
 import { SettingComponent } from "./system/setting";
+import { UserComponent } from "./system/user";
+import { SupportComponent } from "./system/support";
+import { RiskFactorComponent } from "./home/riskfactor.component";
 
 @NgModule({
   imports: [
@@ -40,7 +43,10 @@ import { SettingComponent } from "./system/setting";
     SecurityComponent,
     BacktestComponent,
     TileAreaComponent,
-    SettingComponent
+    SettingComponent,
+    UserComponent,
+    RiskFactorComponent,
+    SupportComponent
   ],
   bootstrap: [AppComponent]
 })

@@ -7,6 +7,12 @@
         <template [ngSwitchCase]="'setting'">
             <setting></setting>
         </template>
+        <template [ngSwitchCase]="'user'">
+            <user></user>
+        </template>
+        <template [ngSwitchCase]="'support'">
+            <support></support>
+        </template>
         <template ngSwitchDefault>
             <home [currentMod]="homeMod" [activeTab]="activeTab"></home>
         </template>

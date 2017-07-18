@@ -6,7 +6,7 @@ import { Component } from "@angular/core";
     moduleId: module.id,
     selector: "security-master",
     templateUrl: "security.component.html",
-    styleUrls: ["security.component.css"]
+    styleUrls: ["../home/home.component.css", "security.component.css"]
 })
 export class SecurityComponent {
 

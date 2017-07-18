@@ -2,14 +2,13 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/controls/control";
-import { IP20Service } from "../../../base/api/services/ip20.service";
+import { TradeService } from "../../bll/services";
 
 @Component({
     moduleId: module.id,
     selector: "trade",
     templateUrl: "trade.component.html",
-    styleUrls: ["trade.component.css"],
-    providers: []
+    styleUrls: ["trade.component.css"]
 })
 export class TradeComponent implements OnInit {
     areas: TileArea[];
@@ -17,7 +16,7 @@ export class TradeComponent implements OnInit {
     monitorHeight: number;
     bDetails: boolean;
 
-    constructor(private tgw: IP20Service) {
+    constructor(private tgw: TradeService) {
     }
 
     ngOnInit() {
