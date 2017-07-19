@@ -415,7 +415,7 @@ usercontrol.row{
 usercontrol.row > * {
     position: relative;
     margin-left: 5px;
-    display: inline-block;
+    display: inherit;
 }
 usercontrol.col > * {
     margin-top: 2px;

@@ -1,0 +1,40 @@
+<div class="title">
+    <img class="logo" src="../base/images/logo-white.png" alt="Chronos">
+    <span class="big">{{name}}</span>
+</div>
+<div class="content">
+    <div class="settings">
+        <h4>服务器配置及状态</h4>
+        <div class="form-group">
+            <label for="trade">交易: 已连接！</label>
+            <input id="trade" type="text" class="form-control" [(ngModel)]="setting.endpoints[0].trade_addr" (change)="saveSetting()">
+        </div>
+        <div class="form-group">
+            <label for="quote">行情: 已连接！</label>
+            <input id="quote" type="text" class="form-control" [(ngModel)]="setting.endpoints[0].quote_addr" (change)="saveSetting()">
+        </div>
+        <div class="form-group">
+            <label for="trade">回测仿真: 已连接！</label>
+            <input id="trade" type="text" class="form-control" [(ngModel)]="setting.endpoints[0].loopback_addr" (change)="saveSetting()">
+        </div>
+        <h4>外部程序</h4>
+        <div class="form-group">
+            <label>Time Machine Uri:</label>
+            <input type="text" class="form-control" [(ngModel)]="setting.externalLinks.TimeMachine" (change)="saveSetting()">
+        </div>
+        <div class="form-group">
+            <label>SuperGraph Uri:</label>
+            <input type="text" class="form-control" [(ngModel)]="setting.externalLinks.SuperGraph" (change)="saveSetting()">
+        </div>
+        <div class="form-group">
+            <label>CSP Uri:</label>
+            <input type="text" class="form-control" [(ngModel)]="setting.externalLinks.CSP" (change)="saveSetting()">
+        </div>
+        <h4>关于</h4>
+        <div class="form-group">
+            <label for="verisons">版本信息:</label>
+            <dock-table id="versions" [dataSource]="versionTable.dataSource" [styleObj]="versionTable.styleObj" [style.max-height]="versionTable.styleObj?.height"
+                [style.max-width]="versionTable.styleObj?.width" [style.margin-left.px]="versionTable.styleObj?.left" [style.margin-top.px]="versionTable.styleObj?.top"></dock-table>
+        </div>
+    </div>
+</div>

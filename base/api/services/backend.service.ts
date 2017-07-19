@@ -28,6 +28,10 @@ export class AppStoreService {
     getSetting(): any {
         return electron.ipcRenderer.sendSync("appstore://get-setting");
     }
+
+    saveSetting(setting) {
+        electron.ipcRenderer.send("appstore://save-setting", setting);
+    }
 }
 
 @Injectable()

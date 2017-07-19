@@ -2,10 +2,10 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/controls/control";
-import { IP20Service } from "../../../base/api/services/ip20.service";
 import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer } from "../../bll/strategy.server";
 import { Menu } from "../../../base/api/services/backend.service";
 import { ChangeDetectorRef } from "@angular/core";
+import { TradeService } from "../../bll/services";
 
 declare var window: any;
 let ip20strs = [];
@@ -34,7 +34,7 @@ export class TradeComponent implements OnInit {
     panelTitle: string;
     strategyCores: string[];
 
-    constructor(private tgw: IP20Service, private ref: ChangeDetectorRef) {
+    constructor(private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
         this.contextMenu.addItem("Start", () => {
             this.operateStrategyServer(this.config, 1);
@@ -56,7 +56,6 @@ export class TradeComponent implements OnInit {
                 }
             });
         });
-
     }
 
     ngOnInit() {

@@ -11,7 +11,6 @@ import { Component } from "@angular/core";
 export class RiskComponent {
     styleObj: any;
     dataSource: any;
-    activeTab = "Dashboard";
 
     constructor() {
 

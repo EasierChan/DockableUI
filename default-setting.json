@@ -7,5 +7,10 @@
       "loopback_addr": "172.24.51.1:4801"
     }
   ],
+  "externalLinks": {
+    "CSP": "",
+    "TimeMachine": "",
+    "SuperGraph": ""
+  },
   "language": "zh-cn"
 }

@@ -89,6 +89,11 @@ export class AppStore {
             event.returnValue = UConfig.default;
         });
 
+        IPCManager.register("appstore://save-setting", (event, arg) => {
+            UConfig.default = arg;
+            UConfig.saveChanges();
+        });
+
         IPCManager.register("appstore://startupAnApp", (event, appname, apptype, option) => {
             event.returnValue = AppStore.startupAnApp(appname, apptype, option);
         });
