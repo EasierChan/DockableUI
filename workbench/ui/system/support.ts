@@ -25,6 +25,7 @@ export class SupportComponent implements OnInit {
 
     createSupportTable() {
         this.supportTable = new DataTable();
+        this.supportTable.backgroundColor = "transparent";
         this.supportTable.RowIndex = false;
         this.supportTable.addColumn("名称", "支持");
         let row = this.supportTable.newRow();
@@ -62,6 +63,7 @@ export class SupportComponent implements OnInit {
 
     createBrokerTable() {
         this.brokerTable = new DataTable();
+        this.brokerTable.backgroundColor = "transparent";
         this.brokerTable.addColumn("名称", "股票支持", "期货交易");
         let row = this.brokerTable.newRow();
         row.cells[0].Text = "中信证券";

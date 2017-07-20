@@ -1793,6 +1793,10 @@ export class DataTable extends Control {
         this.styleObj.alignment = value;
     }
 
+    set backgroundColor(value: string) {
+        this.styleObj.bgColor = value;
+    }
+
     detectChanges(): void {
         this.dataSource.detectChanges();
     }
