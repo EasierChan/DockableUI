@@ -202,7 +202,7 @@ export class AppComponent implements OnInit {
                 durations: [{
                     start: {
                         hour: 9,
-                        minute: 30
+                        minute: 0
                     },
                     end: {
                         hour: 11,

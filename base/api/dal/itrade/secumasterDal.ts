@@ -99,7 +99,7 @@ class SecuMaster {
                     }
                 }
                 if (upoStr === UpcodeStr) {
-                    rtnObj[o] = SecuMaster.secuCodeObj[o];
+                    rtnObj[code[i]] = SecuMaster.secuCodeObj[o];
                 }
             }
         }

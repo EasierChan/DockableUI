@@ -1534,7 +1534,7 @@ export class SpreadViewer {
 
         let idx = this.index(msg.Time);
         if (idx > this.timePoints.length || idx < 0) {
-            console.error(`msg time: ${msg.Time} is not valid. idx=${this.timePoints.length}; maxlength=${this.timePoints.length}`);
+            console.error(`msg time: ${msg.Time} is not valid. idx=${idx}; maxlength=${this.timePoints.length}`);
             return;
         }
 
