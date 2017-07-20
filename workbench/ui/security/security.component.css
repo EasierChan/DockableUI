@@ -1,3 +1,80 @@
 /* date: 20170713
 ** author: cl
 */
+.content {
+    overflow-y: auto;
+}
+.content > * {
+    flex: none;
+}
+
+.u-row {
+    margin-top: 10px;
+    display: flex;
+    flex-flow: row;
+}
+
+.u-row > .fill{
+    flex: auto;
+}
+
+.u-row > *:not(*:first-child) {
+    margin-left: 10px; 
+}
+
+section {
+    display: flex;
+    flex-flow: column;
+}
+
+section > p,
+section > table,
+section > .holder {
+    flex: auto;
+    width: 100%;
+    margin: 5px 0;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: #222A41;
+}
+
+section > .holder > table,
+section > .holder > dock-table > table {
+    width: 100%;
+    background-color: transparent;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+section > p > canvas {
+    display: inline-block;
+}
+
+.u-col {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.income {
+    width: 100px;
+    display: inline-block;
+}
+
+.income > .item1:before,
+.income > .item2:before {
+    content: "";
+    width: 30px;
+    height: 15px;
+    background-color: #40f;
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.income > .item2:before {
+    background-color: #0f0;
+}

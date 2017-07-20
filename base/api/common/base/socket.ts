@@ -4,7 +4,7 @@
 "use strict";
 
 import { EventEmitter } from "events";
-import net =  require("net");
+import net = require("net");
 
 const localhost: string = "127.0.0.1";
 const logger = console;
@@ -41,16 +41,18 @@ export class TcpSocket {
         logger.info(`start to connect to ${ip}:${port}...`);
         this._sock = null;
         this._sock = net.connect(port, ip, (e) => {
-            logger.info("connected.");
+            logger.info(`${this._sock.remoteAddress + ":" + this._sock.remotePort} connected.`);
             this.emit("connect", e);
         });
+
+        this._sock.setKeepAlive(true);
 
         this._sock.on("error", (err) => {
             logger.error(err.message);
             try {
                 this.emit("error", err);
-            } catch (error) {
-
+            } catch (e) {
+                console.info(e.message);
             }
         });
 
@@ -59,11 +61,13 @@ export class TcpSocket {
         });
 
         this._sock.on("end", () => {
+            logger.info(`Receive an FIN packet from ${this._sock.remoteAddress + ":" + this._sock.remotePort}`);
             this.emit("end");
         });
 
-        this._sock.on("close", (had_error) => {
-            this.emit("close", had_error);
+        this._sock.on("close", (has_error) => {
+            console.warn(`${this._ip + ":" + this._port} is closed ${has_error ? "successfully" : "unexpected"}!`);
+            this.emit("close", has_error);
         });
     }
     /**

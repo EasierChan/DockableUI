@@ -15,7 +15,7 @@ import {
     CustomControl
 } from "./app.controls";
 
-import { AppStoreService } from "../../base/api/services/backend.service";
+import { AppStoreService, ChildProcess } from "../../base/api/services/backend.service";
 import { TradeService, QuoteService, MockService } from "../bll/services";
 import { DataSet } from "./home/common";
 
@@ -41,17 +41,19 @@ export class AppComponent implements OnInit {
     curPage: string;
     homeMod: string;
     activeTab: string;
-    setting: any;
     curEndpoint: any;
 
     constructor(private tradeEndPoint: TradeService,
         private mock: MockService,
         private appService: AppStoreService) {
-        this.setting = this.appService.getSetting();
-        this.curEndpoint = this.setting.endpoints[0];
+    }
+
+    get setting() {
+        return this.appService.getSetting();
     }
 
     ngOnInit() {
+        this.curEndpoint = this.setting.endpoints[0];
         this.homeMod = "present";
         this.activeTab = DataSet.tabs(this.homeMod)[0];
         this.actionBar = new ActionBar();
@@ -156,6 +158,15 @@ export class AppComponent implements OnInit {
                     this.homeMod = "future";
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
+                    break;
+                case "Time Machine":
+                    ChildProcess.openUrl(this.setting.externalLinks.TimeMachine);
+                    break;
+                case "超级图表":
+                    ChildProcess.openUrl(this.setting.externalLinks.SuperGraph);
+                    break;
+                case "CSP":
+                    ChildProcess.openUrl(this.setting.externalLinks.CSP);
                     break;
                 case "Setting":
                     this.curPage = "setting";

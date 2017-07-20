@@ -1515,8 +1515,18 @@ export class SpreadViewer {
         // let itime = Math.floor(timestamp / 1000);
         let ihour = Math.floor(seconds / 10000);
         let iminute = Math.floor(seconds % 10000 / 100);
-        return (ihour - this._durations[0].start.hour) * 60 * 60 + (iminute - this._durations[0].start.minute) * 60 +
-            + seconds % 10000 % 100;
+        if (ihour * 60 + iminute <= this._durations[0].end.hour * 60 + this._durations[0].end.minute) {
+            return (ihour - this._durations[0].start.hour) * 60 * 60 + (iminute - this._durations[0].start.minute) * 60 +
+                + seconds % 10000 % 100;
+        } else if (this._durations.length === 2) {
+            if (ihour * 60 + iminute >= this._durations[1].start.hour * 60 + this._durations[1].start.minute) {
+                return (ihour - this._durations[1].start.hour) * 60 * 60 + (iminute - this._durations[1].start.minute) * 60 +
+                    + seconds % 10000 % 100 + (this._durations[0].end.hour - this._durations[0].start.hour) * 60 * 60
+                    + (this._durations[0].end.minute - this._durations[0].start.minute) * 60;
+            }
+        }
+
+        return -1;
     }
 
     setMarketData(msg: any): void {
@@ -1524,7 +1534,7 @@ export class SpreadViewer {
 
         let idx = this.index(msg.Time);
         if (idx > this.timePoints.length || idx < 0) {
-            console.error(`msg time: ${msg.Time} is not valid`);
+            console.error(`msg time: ${msg.Time} is not valid. idx=${idx}; maxlength=${this.timePoints.length}`);
             return;
         }
 
@@ -1539,13 +1549,13 @@ export class SpreadViewer {
         console.info(msg.UKey, this._lastIdx, idx, this._msgs);
         if (this._lastIdx[this._innerCode1] !== -1 && this._lastIdx[this._innerCode2] !== -1) {
             for (let i = this._lastIdx[this._innerCode1] + 1; i < idx; ++i) {
-                if (!this._msgs[this._innerCode1].hasOwnProperty(idx))
+                if (!this._msgs[this._innerCode1].hasOwnProperty(i))
                     this._msgs[this._innerCode1][i] = {};
                 this._msgs[this._innerCode1][i].askPrice1 = this._msgs[this._innerCode1][i - 1].askPrice1;
                 this._msgs[this._innerCode1][i].bidPrice1 = this._msgs[this._innerCode1][i - 1].bidPrice1;
             }
             for (let i = this._lastIdx[this._innerCode2] + 1; i < idx; ++i) {
-                if (!this._msgs[this._innerCode2].hasOwnProperty(idx))
+                if (!this._msgs[this._innerCode2].hasOwnProperty(i))
                     this._msgs[this._innerCode2][i] = {};
                 this._msgs[this._innerCode2][i].askPrice1 = this._msgs[this._innerCode2][i - 1].askPrice1;
                 this._msgs[this._innerCode2][i].bidPrice1 = this._msgs[this._innerCode2][i - 1].bidPrice1;
@@ -1567,20 +1577,24 @@ export class SpreadViewer {
         } else if (this._lastIdx[this._innerCode1] === -1 && this._lastIdx[this._innerCode2] === -1) { // first quote data
             this._firstIdx = idx;
         } else { // only one is -1
-            if (msg.UKey === this._innerCode1) {
-                if (!this._msgs[this._innerCode2].hasOwnProperty(idx))
-                    this._msgs[this._innerCode2][idx] = {};
+            if (this._lastIdx[msg.UKey] === -1) {
+                if (msg.UKey === this._innerCode1) {
+                    if (!this._msgs[this._innerCode2].hasOwnProperty(idx))
+                        this._msgs[this._innerCode2][idx] = {};
 
-                this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].askPrice1;
-                this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].bidPrice1;
-                this._curIdx = Math.max(this._lastIdx[this._innerCode2], idx);
-            } else {// if (msg.UKey === this._innerCode2)
-                if (!this._msgs[this._innerCode1].hasOwnProperty(idx))
-                    this._msgs[this._innerCode1][idx] = {};
+                    this._msgs[this._innerCode2][idx].askPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].askPrice1;
+                    this._msgs[this._innerCode2][idx].bidPrice1 = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]].bidPrice1;
+                    this._curIdx = Math.max(this._lastIdx[this._innerCode2], idx);
+                }
 
-                this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].askPrice1;
-                this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].bidPrice1;
-                this._curIdx = Math.max(this._lastIdx[this._innerCode1], idx);
+                if (msg.UKey === this._innerCode2) {
+                    if (!this._msgs[this._innerCode1].hasOwnProperty(idx))
+                        this._msgs[this._innerCode1][idx] = {};
+
+                    this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].askPrice1;
+                    this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]].bidPrice1;
+                    this._curIdx = Math.max(this._lastIdx[this._innerCode1], idx);
+                }
             }
         }
         this._lastIdx[msg.UKey] = idx;
@@ -1791,6 +1805,10 @@ export class DataTable extends Control {
 
     set align(value: string) {
         this.styleObj.alignment = value;
+    }
+
+    set backgroundColor(value: string) {
+        this.styleObj.bgColor = value;
     }
 
     detectChanges(): void {
