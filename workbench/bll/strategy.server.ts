@@ -40,6 +40,20 @@ export class ConfigurationBLL {
 
         this._templates_back = File.parseJSON(this._templatepath_back) || {};
         this._templates_simulation = File.parseJSON(this._templatepath_simulation) || {};
+
+        for (let prop in this._templates_back) {
+            this._names_back.push(prop);
+        }
+        for (let prop in this._templates_simulation) {
+            this._names_simulation.push(prop);
+        }
+
+        this._configpath_back = path.join(this._basedir_back, "instances.json");
+        this._configs_back = WorkspaceConfig.setObject(File.parseJSON(this._configpath_back) || []);
+        this._configpath_simulation = path.join(this._basedir_simulation, "instances.json");
+        this._configs_simulation = WorkspaceConfig.setObject(File.parseJSON(this._configpath_simulation) || []);
+
+
     }
 
     private _basedir: string;
@@ -78,14 +92,32 @@ export class ConfigurationBLL {
     getTemplates(): string[] {
         return this._names;
     }
+    getTemplates_back(): string[] {
+        return this._names_back;
+    }
+    getTemplates_simulation(): string[] {
+        return this._names_simulation;
+    }
 
     getTemplateByName(name: string): any {
         if (this._templates.hasOwnProperty(name)) {
             return this._templates[name];
         }
-
         return null;
     }
+    getTemplate_back_ByName(name: string): any {
+        if (this._templates_back.hasOwnProperty(name)) {
+            return this._templates_back[name];
+        }
+        return null;
+    }
+    getTemplate_simulation_ByName(name: string): any {
+        if (this._templates_simulation.hasOwnProperty(name)) {
+            return this._templates_simulation[name];
+        }
+        return null;
+    }
+
 
     getConfigByName(name: string): WorkspaceConfig {
         this._configs.forEach(item => {
