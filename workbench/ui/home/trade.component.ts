@@ -92,8 +92,8 @@ export class TradeComponent implements OnInit {
         this.resTable.addColumn2(new DataTableColumn("ChineseName", false, true));
         this.resTable.addColumn2(new DataTableColumn("ReleaseData", false, true));
         this.resTable.addColumn2(new DataTableColumn("OutDate", false, true));
-        if (!this.isInit)
-            this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
+        // if (!this.isInit)
+        //     this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
         this.tgw.addSlot({  // template
             appid: 270,
             packid: 194,
@@ -166,6 +166,14 @@ export class TradeComponent implements OnInit {
             }
         });
 
+        this.tgw.send(260, 216, { body: { tblock_type: 2 } });
+        this.tgw.addSlot({
+            appid: 260,
+            packid: 216,
+            callback: msg => {
+                console.log(msg);
+            }
+        });
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {
@@ -258,6 +266,7 @@ export class TradeComponent implements OnInit {
             return;
         }
         this.configBll.updateConfig(this.config);
+        console.log("sned 2000");
         this.tgw.send(107, 2000, {
             routerid: 0, templateid: this.curTemplate.id, body: {
                 name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,

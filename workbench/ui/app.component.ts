@@ -171,7 +171,7 @@ export class AppComponent implements OnInit {
                     break;
                 case "Quit":
                     if (confirm("Sure to Quit?")) {
-                        // TODO quit application; 
+                        // TODO quit application;
                     }
                     break;
                 default:
