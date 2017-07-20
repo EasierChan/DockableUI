@@ -1,5 +1,5 @@
-<div class="areas">
-    <tilearea *ngFor="let area of areas" [dataSource]="area.dataSource" [styleObj]="area.styleObj"></tilearea>
+<div class="areas" >
+    <tilearea *ngFor="let area of areas" (mouseup)="onClick($event, item);" [dataSource]="area.dataSource" [styleObj]="area.styleObj"></tilearea>
 </div>
 <div class="monitor" [style.height.px]="monitorHeight">
     <div class="title">

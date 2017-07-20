@@ -45,6 +45,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private statarbPage: TabPage;
     private portfolioPage: TabPage;
     private configPage: TabPage;
+    private gatewayPage: TabPage;
 
     private orderstatusTable: DataTable;
     private doneOrdersTable: DataTable;
@@ -59,6 +60,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private portfolioTable: DataTable;
     private commentTable: DataTable;
     private configTable: DataTable;
+    private gatewayTable: DataTable;
 
     // profittable textbox
     private totalpnLabel: MetaControl;
@@ -95,6 +97,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private tradeContent: any;
     private commentContent: any;
     private configContent: any;
+    private gatewayContent: any;
     // strategy index flag
     private commentIdx: number = 10;
     private commandIdx: number = 10;
@@ -107,6 +110,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     // private bookviewObj = { bookview: 0, code: "" };
     private bookviewArr = [];
     private commentObj = {};
+    private gatewayObj = {};
     private configArr = [];
     private configStrObj: Object = new Object;
     private configFlag: boolean = false;
@@ -680,6 +684,15 @@ export class AppComponent implements OnInit, AfterViewInit {
             // console.log();
         };
 
+        this.gatewayPage = new TabPage("GateWay", this.langServ.getTranslateInfo(this.languageType, "Gateway"));
+        this.gatewayContent = new ComboControl("col");
+        this.gatewayTable = new DataTable("table2");
+        this.gatewayTable.height = 300;
+        this.gatewayTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "name"));
+        this.gatewayTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "status"));
+        this.gatewayTable.columnConfigurable = true;
+        this.gatewayContent.addChild(this.gatewayTable);
+        this.gatewayPage.setContent(this.gatewayContent);
 
         this.bookviewPage = new TabPage("BookView", this.langServ.getTranslateInfo(this.languageType, "BookView"));
         this.createBookView("BookView");
@@ -1505,7 +1518,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showStatArbOrder(data: any) {
-        console.log("statarb....", data);
         for (let i = 0; i < data.length; ++i) {
             let subtype = data[i].subtype;
             let dataArr = data[i].content;
@@ -1533,12 +1545,13 @@ export class AppComponent implements OnInit, AfterViewInit {
                     for (let hideIdx = 0; hideIdx < AppComponent.self.statarbTable.rows.length; ++hideIdx) {
                         let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
                         let getStrategyid = AppComponent.self.statarbTable.rows[hideIdx].cells[6].Text;
-                        if (getUkey === dataArr[idx].code && getStrategyid === dataArr[idx].strategyid) {
-                            AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
+                        if (parseInt(getUkey) === dataArr[idx].code && parseInt(getStrategyid) === dataArr[idx].strategyid) {
+                            // AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
+                            AppComponent.self.statarbTable.rows.splice(hideIdx, 1);
                             if (dataArr[idx].amount > 0) {
-                                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[idx].amount / 10000).toString();
+                                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[idx].amount / 10000).toFixed(3).toString();
                             } else if (dataArr[idx].amount < 0) {
-                                AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + dataArr[idx].amount / 10000).toString();
+                                AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + dataArr[idx].amount / 10000).toFixed(3).toString();
                             }
                             break;
                         }
@@ -1572,10 +1585,10 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[7].Text = dataArr[0].diffQty;
 
         if (dataArr[0].amount > 0) {
-            AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) + dataArr[0].amount / 10000).toString();
+            AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) + dataArr[0].amount / 10000).toFixed(3).toString();
         }
         else if (dataArr[0].amount < 0)
-            AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toString();
+            AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toFixed(3).toString();
     }
     refreshStatArbInfo(dataArr: any, idx: number) {
         AppComponent.self.statarbTable.rows[idx].cells[2].Text = dataArr[0].pricerate / 100;
@@ -1585,9 +1598,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         if (getamount !== dataArr[0].amount / 10000) {
             AppComponent.self.statarbTable.rows[idx].cells[5].Text = dataArr[0].amount / 10000;
             if (dataArr[0].amount > 0) {
-                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - parseFloat(getamount) + dataArr[0].amount / 10000).toString();
+                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - parseFloat(getamount) + dataArr[0].amount / 10000).toFixed(3).toString();
             } else if (dataArr[0].amount < 0) {
-                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + parseFloat(getamount) - dataArr[0].amount / 10000).toString();
+                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + parseFloat(getamount) - dataArr[0].amount / 10000).toFixed(3).toString();
             }
         }
         AppComponent.self.statarbTable.rows[idx].cells[7].Text = dataArr[0].diffQty;
@@ -2085,6 +2098,10 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
     showComGWNetGuiInfo(data: any) {
         let markLen = AppComponent.self.statusbar.items.length;
+        let name = data[0].name;
+        let connect = data[0].connected;
+        let rtn = AppComponent.self.judgexist(name, AppComponent.self.gatewayObj);
+        AppComponent.self.gatewayObj[name] = connect ? "Connected" : "Disconnected";
         if (markLen === 0) { // add
             AppComponent.self.addLog(data[0]);
         } else {
@@ -2093,6 +2110,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 let text = AppComponent.self.statusbar.items[i].text;
                 if (text === data[0].name) {
                     AppComponent.self.statusbar.items[i].color = data[0].connected ? "green" : "red";
+                    AppComponent.self.addLog(data[0]);
                     markFlag = true;
                 }
             }
@@ -2102,9 +2120,30 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         }
     }
+
+    judgexist(key: string, obj: any) {
+        for (let o in obj) {
+            if (o === key) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     addStatusBarMark(data: any) {
         let name = data.name;
         let tempmark = new StatusBarItem(name);
+        tempmark.click = () => {
+            if (tempmark.text === "SS") {
+                this.gatewayTable.rows.length = 0;
+                for (let o in AppComponent.self.gatewayObj) {
+                    let row = AppComponent.self.gatewayTable.newRow();
+                    row.cells[0].Text = o;
+                    row.cells[1].Text = AppComponent.self.gatewayObj[o];
+                }
+                Dialog.popup(this, this.gatewayContent, { title: this.langServ.getTranslateInfo(this.languageType, "Gateway"), height: 300 });
+            }
+        };
         tempmark.section = "right";
         tempmark.color = data.connected ? "green" : "red";
         if (!data.connected)
