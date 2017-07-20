@@ -28,9 +28,15 @@ export class RiskFactorComponent {
 
         this.loadData();
         //this.calculateRiskFactor(this);
-        this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv",this.riskFactorReturn,this.log);
-        this.readDataFromCsvFile("/home/muxb/project/20090115.csv",this.riskFactorExpose,this.calculateRiskFactor);
-        console.log("riskFactorReturn",this.riskFactorReturn);
+        this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        this.riskFactorExpose=this.readDataFromCsvFile("/home/muxb/project/20090115.csv");
+
+        if(this.riskFactorReturn.length < 2 ||this.riskFactorExpose.length < 2 ||this.groupPosition.length < 2 ){
+            console.log("有数据为空，不能计算数据。");
+            return；
+        }
+        this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExpose,this.groupPosition);
+
     }
 
     ngOnInit() {
@@ -53,21 +59,16 @@ export class RiskFactorComponent {
         console.log("123",this);
     }
 
-    calculateRiskFactor(thisRef){
-      console.log("calculateRiskFactor",thisRef);
-      if(thisRef.riskFactorReturn.length < 2 ||thisRef.riskFactorExpose.length < 2 ||thisRef.groupPosition.length < 2 ){
-          console.log("有数据为空，不能计算数据。");
-          return；
-      }
-      
+    calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition){
+      console.log("calculateRiskFactor");
 
     }
 
 
-    readDataFromCsvFile(csvFilePath,resultData,callback){
+    readDataFromCsvFile(csvFilePath){
 
         console.log("csvFilePath",csvFilePath);
-        const thisRef=this;
+        /*const thisRef=this;
         fs.readFile(csvFilePath,"utf-8",function(err,fileContent){
             if(err){
                 console.log("err",err);
@@ -92,18 +93,33 @@ export class RiskFactorComponent {
             if(callback){
               callback(thisRef);
             }
-        });
+        });*/
 
 
-
-        /*try{
-            let csvData= fs.readFileSync(csvFilePath,"utf-8");
-            console.log("csvData",csvData);
+        let resultData=[],fileContent="";
+        try{
+            fileContent= fs.readFileSync(csvFilePath,"utf-8");
+            console.log("fileContent",fileContent);
         }catch(err){
-            console.log("csvData err",err);
-        }*/
+            console.log("fileContent err",err);
+        }
 
+        let rowDatas=fileContent.split("\r");
 
-        //return resultData;
+        //分割多行数据
+        for(let i=0;i<rowDatas.length;++i){
+            if(rowDatas[i] != ""){
+
+                let splitData=rowDatas[i].split("\n")；
+                for(let j=0;j<splitData.length;++j){
+                    if(splitData[j] != ""){
+                      resultData.push(splitData[j].split(","));
+                    }
+                }
+            }
+        }
+
+        console.log("resultData",resultData);
+        return resultData;
     }
 }
