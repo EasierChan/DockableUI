@@ -42,6 +42,7 @@ export class RiskFactorComponent {
             console.log("有数据为空，不能计算数据。");
             return；
         }
+        this.riskFactorExpose.splice(0,1);//直接删除掉第一列,应该保证风险因子的顺序给的一致
         this.riskFactorExpose.sort( function (perv,next){
                 if(perv[1]>next[1]){
                     return 1;
@@ -76,11 +77,11 @@ export class RiskFactorComponent {
         console.log("calculateRiskFactor");
         let subCodeExpose=[];//保存拥有的所有股票的权重与暴露之乘积
         let sumOfDayExpose=[];//保存风险因子的权重与暴露之乘积的和
-        for(let i=2;i<riskFactorExpose[0].length;++i){
-            sumOfDayExpose.push([ riskFactorExpose[0][i], 0 ]);
+        for(let i=1;i<riskFactorReturn[0].length;++i){
+            sumOfDayExpose.push([ riskFactorReturn[0][i], 0 ]);
         }
 
-        console.log("sumOfDayExpose",sumOfDayExpose);
+
 
         //权重与暴露之乘积
         groupPosition.forEach(function(singleWeight,index,array){
@@ -89,19 +90,26 @@ export class RiskFactorComponent {
                 return;
             }
             else{
-                var singleExpose={};
-                singleExpose.stockCode=singleWeight[ 0 ];
+                //var singleExpose={};
+                //singleExpose.stockCode=singleWeight[ 0 ];
                 for(let i=2;i<riskFactorExpose[binarySearchStock].length;++i){
-                    //console.log(riskFactorExpose[binarySearchStock]);
-                    //singleExpose[ (""+riskFactorExpose[0][i]) ]=riskFactorExpose[binarySearchStock][i] * singleWeight.[1];//这里有一个假设，假定所有数据都不会重复哦
-                    //sumOfDayExpose[i-2][1]+=riskFactorExpose[binarySearchStock][i] * singleWeight.[1];
-                }
 
-                subCodeExpose.push(singleExpose);
+                    //singleExpose[ (""+riskFactorExpose[0][i]) ]=riskFactorExpose[binarySearchStock][i] * singleWeight[1];//这里有一个假设，假定所有数据都不会重复哦
+                    sumOfDayExpose[i-2][1]+=riskFactorExpose[binarySearchStock][i] * singleWeight[1];
+                }
+                console.log("sumOfDayExpose",sumOfDayExpose);
+                //subCodeExpose.push(singleExpose);
             }
 
 
       });
+
+      let riskFactorReturnResult=[];
+      //计算暴露和风险因子的乘积
+      for(let i=1;i<riskFactorReturn[1].length;++i){
+          riskFactorReturnResult[ riskFactorReturn[0][i] ]=riskFactorReturn[1][i] * sumOfDayExpose[i-1][1];
+      }
+      console.log("riskFactorReturnResult",riskFactorReturnResult);
     }
 
 
