@@ -87,6 +87,8 @@ export class RiskFactorComponent {
             sumOfDayExpose.push( 0 );
         }
 
+        console.log("权重与暴露之乘积");
+
         //权重与暴露之乘积
         for(let index=0;index<groupPosition.length;++index){
             const singleWeight=groupPosition[index];
@@ -97,8 +99,9 @@ export class RiskFactorComponent {
                 return;
             }
             else{
-                let singleExpose={};
-                singleExpose.stockCode=singleWeight[this.posStockIndex];
+                let singleExpose=[];
+                singleExpose["stockCode"]=singleWeight[this.posStockIndex];
+                console.log("riskFactorExpose[rfeIndex].length",riskFactorExpose[rfeIndex].length);
                 for(let i=2;i<riskFactorExpose[rfeIndex].length;++i){
                     console.log("riskFactorExpose[rfeIndex][i]",riskFactorExpose[rfeIndex][i]);
                     singleExpose[ i-2 ]=riskFactorExpose[rfeIndex][i] * singleWeight[this.posWeightIndex];//这里有一个假设，假定所有数据都不会重复哦
@@ -112,7 +115,7 @@ export class RiskFactorComponent {
         }
 
 
-      let riskFactorReturnResult=[];
+      let riskFactorReturnResult=[],stockReturnResult=[];//收益归因
       riskFactorReturnResult["date"]=currDate;
       let returnDateIndex=this.binarySearchStock(riskFactorReturn,currDate,0,1);//查找指定日期的风险因子收益
 
@@ -121,11 +124,19 @@ export class RiskFactorComponent {
       }
 
       //计算暴露和风险因子的乘积
-      for(let i=1;i<riskFactorReturn[returnDateIndex].length;++i){
-          riskFactorReturnResult[ riskFactorReturn[0][i] ]=riskFactorReturn[returnDateIndex][i] * sumOfDayExpose[i-1];
+      for(let i=1;i<riskFactorReturn[returnDateIndex].length;++i){    //循环风险因子
+          riskFactorReturnResult[ i-1 ]=riskFactorReturn[returnDateIndex][i] * sumOfDayExpose[i-1];
+
+          //计算对于组合的收益归因
+          let singleStockReturn={stockReturn:0};
+          for(let stockIndex=0;stockIndex<subCodeExpose.length;++stockIndex){
+              singleStockReturn.stockReturn+=riskFactorReturn[returnDateIndex][i] * subCodeExpose[stockIndex][i-1];  //计算单个股票在所有收益因子下的收益归因
+              console.log("singleStockReturn",riskFactorReturn[returnDateIndex][i] , subCodeExpose[stockIndex][i-1]);
+          }
+          stockReturnResult.push(singleStockReturn);
       }
       this.allRfeResult.push(riskFactorReturnResult);
-      console.log("riskFactorReturnResult",riskFactorReturnResult);
+      console.log("riskFactorReturnResult",riskFactorReturnResult,"stockReturnResult",stockReturnResult);
     }
 
 
@@ -196,11 +207,11 @@ export class RiskFactorComponent {
         mid=Math.floor((start+end)/2);
 
         if (arr[mid][member] < source) {
-          return mid+1;
+           start=mid+1;
         }else if (arr[mid][member]>source){
           end=mid-1;
         }else{
-          start=mid;
+          return mid;
         }
       }
       return -1;
