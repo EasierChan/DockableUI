@@ -27,8 +27,8 @@ export class BacktestComponent implements OnInit {
             this.tileArea.addTile(tile);
         }
 
-        this.tileArea.onClick = (item: Tile) => {
-            alert(item.title);
+        this.tileArea.onClick = (event: MouseEvent, item: Tile) => {
+            alert(`${event.button} click ${item.title}`);
         };
 
         this.tileArea.onCreate = () => {
