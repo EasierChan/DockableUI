@@ -2334,11 +2334,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[5].Text = obj.record.date;
         row.cells[6].Text = obj.record.c;
         if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SH)
-            row.cells[7].Text = obj.record.AvlAmount;
+            row.cells[7].Text = obj.record.AvlAmount / 10000;
         else
             row.cells[7].Text = 0;
         if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SZ)
-            row.cells[8].Text = obj.record.AvlAmount;
+            row.cells[8].Text = obj.record.AvlAmount / 10000;
         else
             row.cells[8].Text = 0;
         row.cells[9].Text = 0;
