@@ -19,6 +19,7 @@ import path = require("path");
 })
 
 export class RiskFactorComponent {
+    static self: any;
 
     posStockIndex: number=0;
     posWeightIndex: number=1;
@@ -28,8 +29,8 @@ export class RiskFactorComponent {
 
     styleObj: any;
     dataSource: any;
-    startDate:string;
-    endDate:string;
+    startDate: string="20090115";
+    endDate: string="20090115";
 
     iproducts:string[]=['a','b'];
     iproduct:string='a';
@@ -37,42 +38,30 @@ export class RiskFactorComponent {
     istrategys:string[]=['aa','bb'];
     istrategy:string='aa';
 
+    allRfeResult:  array =[];//所有风险因子的收益
+
     note: string = "hello xiaobo!";
     riskFactorReturn: array =[];
     riskFactorExpose: array =[];
-    groupPosition: array =[["000001.SZ",0.1],["000002.SZ",0.6],["000004.SZ",0.2]];
+    groupPosition: array =[['000001.SZ',0.1],['000002.SZ',0.6]];
 
     constructor(private tradePoint: TradeService,private tgw: IP20Service) {
         //this.tgw.connect(12);
+        RiskFactorComponent.self = this;
+        //this.loadData();
 
-        this.loadData();
-        //this.calculateRiskFactor(this);
         this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
-        this.riskFactorExpose=this.readDataFromCsvFile("/home/muxb/project/20090115.csv");
-
-        if(this.riskFactorReturn.length < 2 ||this.riskFactorExpose.length < 2 ||this.groupPosition.length < 2 ){
-            console.log("有数据为空，不能计算数据。");
-            return；
-        }
-        this.riskFactorExpose.splice(0,1);//直接删除掉第一列,应该保证风险因子的顺序给的一致
-        this.riskFactorExpose.sort( function (perv,next){
-                if(perv[1]>next[1]){
-                    return 1;
-                }else if(perv[1]<next[1]){
-                    return -1;
-                }
-                else
-                    return 0;
-            });
-        this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExpose,this.groupPosition);
-
 
     }
 
     ngOnInit() {
         // receive holdlist
         // this.tradePoint.addSlot({
-        //
+        //    appid: 123,
+        //    packid:   ,
+        //    callback: (msg) =>{
+
+        //      }
         // });
         // request holdlist
         // this.tradePoint.send();
@@ -90,42 +79,52 @@ export class RiskFactorComponent {
     alert("Pl!")
     }
 
-    calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition){
+    calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition,currDate){
         console.log("calculateRiskFactor");
         let subCodeExpose=[];//保存拥有的所有股票的权重与暴露之乘积
         let sumOfDayExpose=[];//保存风险因子的权重与暴露之乘积的和
         for(let i=1;i<riskFactorReturn[0].length;++i){
-            sumOfDayExpose.push([ riskFactorReturn[0][i], 0 ]);
+            sumOfDayExpose.push( 0 );
         }
 
-
-
         //权重与暴露之乘积
-        groupPosition.forEach(function(singleWeight,index,array){
-            var binarySearchStock(riskFactorExpose,singleWeight[0],1,1);
-            if(binarySearchStock === -1){
+        for(let index=0;index<groupPosition.length;++index){
+            const singleWeight=groupPosition[index];
+            let rfeIndex=this.binarySearchStock(riskFactorExpose,singleWeight[this.posStockIndex],1,0);
+            console.log(riskFactorExpose,singleWeight[this.posStockIndex],rfeIndex);
+            if(rfeIndex === -1){
+                alert("没有找到"+singleWeight[this.posStockIndex]+"的暴露,请补全信息!");
                 return;
             }
             else{
-                //var singleExpose={};
-                //singleExpose.stockCode=singleWeight[ 0 ];
-                for(let i=2;i<riskFactorExpose[binarySearchStock].length;++i){
-
-                    //singleExpose[ (""+riskFactorExpose[0][i]) ]=riskFactorExpose[binarySearchStock][i] * singleWeight[1];//这里有一个假设，假定所有数据都不会重复哦
-                    sumOfDayExpose[i-2][1]+=riskFactorExpose[binarySearchStock][i] * singleWeight[1];
+                let singleExpose={};
+                singleExpose.stockCode=singleWeight[this.posStockIndex];
+                for(let i=2;i<riskFactorExpose[rfeIndex].length;++i){
+                    console.log("riskFactorExpose[rfeIndex][i]",riskFactorExpose[rfeIndex][i]);
+                    singleExpose[ i-2 ]=riskFactorExpose[rfeIndex][i] * singleWeight[this.posWeightIndex];//这里有一个假设，假定所有数据都不会重复哦
+                    sumOfDayExpose[i-2]+=riskFactorExpose[rfeIndex][i] * singleWeight[this.posWeightIndex];  //数据可能不是数字哦
                 }
+
+                subCodeExpose.push(singleExpose);
                 console.log("sumOfDayExpose",sumOfDayExpose);
-                //subCodeExpose.push(singleExpose);
+                console.log("subCodeExpose",subCodeExpose);
             }
+        }
 
-
-      });
 
       let riskFactorReturnResult=[];
-      //计算暴露和风险因子的乘积
-      for(let i=1;i<riskFactorReturn[1].length;++i){
-          riskFactorReturnResult[ riskFactorReturn[0][i] ]=riskFactorReturn[1][i] * sumOfDayExpose[i-1][1];
+      riskFactorReturnResult["date"]=currDate;
+      let returnDateIndex=this.binarySearchStock(riskFactorReturn,currDate,0,1);//查找指定日期的风险因子收益
+
+      if(returnDateIndex === -1) {
+          return;
       }
+
+      //计算暴露和风险因子的乘积
+      for(let i=1;i<riskFactorReturn[returnDateIndex].length;++i){
+          riskFactorReturnResult[ riskFactorReturn[0][i] ]=riskFactorReturn[returnDateIndex][i] * sumOfDayExpose[i-1];
+      }
+      this.allRfeResult.push(riskFactorReturnResult);
       console.log("riskFactorReturnResult",riskFactorReturnResult);
     }
 
@@ -191,7 +190,7 @@ export class RiskFactorComponent {
     binarySearchStock(arr,source,member,start,end){
       start=start||0;
       end=end||arr.length-1;
-      var mid=-1;
+      let mid=-1;
 
       while(start<=end){
         mid=Math.floor((start+end)/2);
@@ -207,8 +206,54 @@ export class RiskFactorComponent {
       return -1;
     }
 
-    onClick2(){
+    lookReturn(){
         console.log("OnClick",this,this.startDate,this.endDate);
+        let exposeFile=[],dirFiles=[];
+
+        try{
+            dirFiles=fs.readdirSync("/home/muxb/project/expose");
+        }catch(err){
+            console.log("err",err);
+        }
+        console.log("dirFiles",dirFiles);
+        for(let fileIndex=0;fileIndex<dirFiles.length;++fileIndex){
+            if( (this.startDate !=="" || this.startDate !=="") &&
+                (this.startDate !=="" && dirFiles[fileIndex] >= (this.startDate+".csv")) &&
+                (this.endDate !=="" && dirFiles[fileIndex] <= (this.endDate+".csv")) ){
+                //console.log(dirFiles[fileIndex],fileIndex);
+                exposeFile.push( dirFiles[fileIndex] );
+            }
+
+        }
+        exposeFile.sort();
+        console.log("exposeFile",exposeFile);
+        for(let fileIndex=0;fileIndex<exposeFile.length;++fileIndex){
+
+            this.riskFactorExpose=this.readDataFromCsvFile("/home/muxb/project/expose/"+exposeFile[fileIndex]);
+
+            if(this.riskFactorReturn.length < 2 ||this.riskFactorExpose.length < 2 ||this.groupPosition.length < 2 ){
+                console.log("有数据为空，不能计算数据。");
+                return；
+            }
+            this.riskFactorExpose.splice(0,1);//直接删除掉第一列,应该保证风险因子的顺序给的一致
+            this.riskFactorExpose.sort( function (perv,next){
+                    if(perv[1]>next[1]){
+                        return 1;
+                    }else if(perv[1]<next[1]){
+                        return -1;
+                    }
+                    else
+                        return 0;
+                });
+
+            for(let i=0;i<this.riskFactorExpose.length;++i){
+                this.riskFactorExpose[i][this.rfeStockIndex]=this.riskFactorExpose[i][this.rfeStockIndex].slice(1,this.riskFactorExpose[i][this.rfeStockIndex].length-1);
+            }
+            console.log("modify riskFactorExpose",this.riskFactorExpose);
+            this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExpose,this.groupPosition,exposeFile[fileIndex].split(".")[0]);
+        }
+
+
     }
 
 
