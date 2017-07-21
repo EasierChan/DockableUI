@@ -47,8 +47,8 @@
         <canvas #mainIncomeIMG width="150">
         </canvas>
         <div class="u-col income">
-          <span class="item1">利息收入{{mainIncome.content.a}}</span>
-          <span class="item2">非利息收入:手续费...{{mainIncome.content.b}}</span>
+          <span class="item1">利息收入{{mainIncome.content.a | percent}}</span>
+          <span class="item2">非利息收入:手续费...{{mainIncome.content.b | percent}}</span>
         </div>
       </div>
     </section>
@@ -62,10 +62,9 @@
   <div class="u-row">
     <section class="fill">
       <b>{{marketPerformance.title}}</b>
-      <p>
-        <canvas>
-        </canvas>
-      </p>
+      <div class="holder">
+        <div echarts [options]="marketPerformance.content.option" style="height: 250px"></div>
+      </div>
     </section>
     <section style="width: 300px">
       <b>{{numberInfo.title}}</b>
@@ -77,10 +76,9 @@
   <div class="u-row">
     <section class="fill">
       <b>{{instituteInfo.title}}</b>
-      <p>
-        <canvas>
-        </canvas>
-      </p>
+      <div class="holder">
+        <div echarts [options]="instituteInfo.content.option" style="height: 250px"></div>
+      </div>
     </section>
     <section style="width: 300px">
       <b>{{structureInfo.title}}</b>

@@ -1,7 +1,7 @@
 "use strict";
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
-import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/controls/control";
+import { TileArea, Tile, DataTable, DataTableColumn, ChartViewer } from "../../../base/controls/control";
 
 @Component({
     moduleId: module.id,
@@ -10,7 +10,8 @@ import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/contro
     styleUrls: ["../home/home.component.css", "security.component.css"]
 })
 export class SecurityComponent implements OnInit {
-    codeName: string;
+    symbol: string;
+    code: string;
     summary: Section;
     keyInfo: Section;
     baseInfo: Section;
@@ -26,7 +27,8 @@ export class SecurityComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.codeName = "金证股份[600446.SZ]";
+        this.symbol = "金证股份";
+        this.code = "600446.SZ";
         this.summary = new Section();
         this.summary.title = "公司简介";
         this.summary.content = "金证是最流弊的。";
@@ -114,8 +116,8 @@ export class SecurityComponent implements OnInit {
         this.mainIncome = new Section();
         this.mainIncome.title = "主营构成";
         this.mainIncome.content = {
-            a: "83.25%",
-            b: "16.75%",
+            a: 0.8325,
+            b: 0.1675,
         };
 
         let canvas: HTMLCanvasElement = this.mainIncomeBitmap.nativeElement;
@@ -123,14 +125,14 @@ export class SecurityComponent implements OnInit {
         ctx.fillStyle = "#40f";
         ctx.beginPath();
         ctx.moveTo(80, 80);
-        ctx.arc(80, 80, 50, -Math.PI * 3 / 4, -Math.PI / 2, true);
+        ctx.arc(80, 80, 50, 0, Math.PI * 2 * this.mainIncome.content.b, true);
         ctx.closePath();
         ctx.fill();
 
         ctx.fillStyle = "#0f0";
         ctx.beginPath();
         ctx.moveTo(80, 80);
-        ctx.arc(80, 80, 50, -Math.PI / 2, -Math.PI * 3 / 4, true);
+        ctx.arc(80, 80, 50, Math.PI * 2 * this.mainIncome.content.b, 0, true);
         ctx.closePath();
         ctx.fill();
         ctx.strokeStyle = "#fff";
@@ -151,7 +153,8 @@ export class SecurityComponent implements OnInit {
 
         this.marketPerformance = new Section();
         this.marketPerformance.title = "市场表现";
-        this.marketPerformance.content = "";
+        this.marketPerformance.content = this.createMarketChart();
+
 
         this.numberInfo = new Section();
         this.numberInfo.title = "现任高管";
@@ -167,7 +170,7 @@ export class SecurityComponent implements OnInit {
 
         this.instituteInfo = new Section();
         this.instituteInfo.title = "机构持股";
-        this.instituteInfo.content = "";
+        this.instituteInfo.content = this.createInstituteInfo();
 
         this.structureInfo = new Section();
         this.structureInfo.title = "股本结构";
@@ -180,6 +183,133 @@ export class SecurityComponent implements OnInit {
             row.cells[1].Text = "2,810,376.39";
             row.cells[2].Text = "98.94%";
         }
+    }
+
+    get codeName() {
+        return `${this.symbol}[${this.code}]`;
+    }
+
+    createMarketChart() {
+        return {
+            option: {
+                title: {
+                    show: false,
+                },
+                tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    }
+                },
+                legend: {
+                    data: [{ name: this.symbol, textStyle: { color: "#F3F3F5" } }, { name: "沪深300", textStyle: { color: "#F3F3F5" } }],
+                    textStyle: { color: "#F3F3F5" }
+                },
+                xAxis: [{
+                    data: ["2016-10-01", "2017-01-01", "2017-04-01", "2017-07-01"],
+                    axisLabel: {
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    }
+                }],
+                yAxis: [{
+                    position: "right",
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                }],
+                series: [{
+                    name: this.symbol,
+                    type: "line",
+                    data: [0.05, 0.1, 0.08, 0.15]
+                }, {
+                    name: "沪深300",
+                    type: "line",
+                    data: [0.06, 0.2, 0.18, 0.15]
+                }],
+                color: [
+                    "#00b", "#0b0"
+                ]
+            }
+        };
+    }
+
+    createInstituteInfo() {
+        return {
+            option: {
+                title: {
+                    show: false,
+                },
+                tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    }
+                },
+                legend: {
+                    data: [{ name: "一般法人", textStyle: { color: "#F3F3F5" } }, { name: "收盘价", textStyle: { color: "#F3F3F5" } }],
+                    textStyle: { color: "#F3F3F5" }
+                },
+                xAxis: [{
+                    data: ["2016-10-01", "2017-01-01", "2017-04-01", "2017-07-01"],
+                    axisLabel: {
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    }
+                }],
+                yAxis: [{
+                    name: "一般法人",
+                    position: "left",
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    splitLine: { show: false },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                }, {
+                    name: "收盘价",
+                    position: "right",
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                }],
+                series: [{
+                    name: "一般法人",
+                    type: "line",
+                    data: [0.05, 0.1, 0.08, 0.15]
+                }, {
+                    yAxisIndex: 1,
+                    name: "收盘价",
+                    type: "line",
+                    data: [12, 14, 13, 16]
+                }],
+                color: [
+                    "#00b", "#0b0"
+                ]
+            }
+        };
     }
 }
 
