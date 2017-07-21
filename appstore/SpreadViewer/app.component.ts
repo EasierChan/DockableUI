@@ -215,6 +215,15 @@ export class AppComponent implements OnInit {
                     },
                     end: {
                         hour: 15,
+                        minute: 30
+                    }
+                }, {
+                    start: {
+                        hour: 20,
+                        minute: 0
+                    },
+                    end: {
+                        hour: 24,
                         minute: 0
                     }
                 }],
