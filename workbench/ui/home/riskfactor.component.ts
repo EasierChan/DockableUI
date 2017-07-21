@@ -87,10 +87,10 @@ export class RiskFactorComponent {
     calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition,currDate){
         console.log("calculateRiskFactor");
         let subCodeExpose=[];//保存拥有的所有股票的权重与暴露之乘积
-        let sumOfDayExpose=[];//保存风险因子的权重与暴露之乘积的和
-        for(let i=1;i<riskFactorReturn[0].length;++i){
-            sumOfDayExpose.push( 0 );
-        }
+        //let sumOfDayExpose=[];//保存风险因子的权重与暴露之乘积的和
+        //for(let i=1;i<riskFactorReturn[0].length;++i){
+        //    sumOfDayExpose.push( 0 );
+        //}
 
         console.log("权重与暴露之乘积");
 
@@ -111,18 +111,18 @@ export class RiskFactorComponent {
                     console.log("遍历制定暴露的风险因子的暴露",riskFactorExpose[rfeIndex][i] ,singleWeight[this.posWeightIndex]);
 
                     singleExpose[ i-2 ]=riskFactorExpose[rfeIndex][i] * singleWeight[this.posWeightIndex];//这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
-                    sumOfDayExpose[i-2]+=riskFactorExpose[rfeIndex][i] * singleWeight[this.posWeightIndex];  //所有的股票在风险因子下的暴露,数据可能不是数字哦
+                    //sumOfDayExpose[i-2]+=riskFactorExpose[rfeIndex][i] * singleWeight[this.posWeightIndex];  //所有的股票在风险因子下的暴露,数据可能不是数字哦
                 }
 
                 subCodeExpose.push(singleExpose);
-                console.log("sumOfDayExpose",sumOfDayExpose);
+                //console.log("sumOfDayExpose",sumOfDayExpose);
                 console.log("subCodeExpose",subCodeExpose);
             }
         }
 
 
-      let riskFactorReturnResult=[],stockReturnResult=[];//收益归因
-      riskFactorReturnResult["date"]=currDate;
+      let stockReturnAttr=[];//收益归因 riskFactorReturnResult=[],
+      //riskFactorReturnResult["date"]=currDate;
       let returnDateIndex=this.binarySearchStock(riskFactorReturn,currDate,0,1);//查找指定日期的风险因子收益
 
       if(returnDateIndex === -1) {
@@ -132,7 +132,7 @@ export class RiskFactorComponent {
       //计算单个风险因子在所有股票下暴露和风险因子的乘积--也就是收益归因
       for(let i=1;i<riskFactorReturn[returnDateIndex].length;++i){    //循环风险因子收益
           //计算对于组合的收益归因
-          riskFactorReturnResult[ i-1 ]=riskFactorReturn[returnDateIndex][i] * sumOfDayExpose[i-1];
+          //riskFactorReturnResult[ i-1 ]=riskFactorReturn[returnDateIndex][i] * sumOfDayExpose[i-1];
 
 
           let allStockReturn={stockReturn:0};
@@ -140,10 +140,10 @@ export class RiskFactorComponent {
               allStockReturn.stockReturn+=riskFactorReturn[returnDateIndex][i] * subCodeExpose[stockIndex][i-1];  //计算单个股票在所有收益因子下的收益归因
               console.log("allStockReturn",riskFactorReturn[returnDateIndex][i] , subCodeExpose[stockIndex][i-1]);
           }
-          stockReturnResult.push(allStockReturn);
+          stockReturnAttr.push(allStockReturn);
       }
-      this.allRfeResult.push(riskFactorReturnResult);
-      console.log("riskFactorReturnResult",riskFactorReturnResult,"stockReturnResult",stockReturnResult);
+      //this.allRfeResult.push(riskFactorReturnResult);
+      console.log("stockReturnAttr",stockReturnAttr);
 
       let allStockAttr = this.sumOfStockFactor(subCodeExpose,riskFactorReturn,returnDateIndex);
       console.log("allStockAttr",allStockAttr);
