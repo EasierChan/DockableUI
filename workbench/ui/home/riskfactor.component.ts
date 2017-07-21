@@ -3,6 +3,8 @@
 import { Component } from "@angular/core";
 import { File } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
+import { FormsModule } from "@angular/forms";
+import { CommonModule } from "@angular/common";
 
 @Component({
     moduleId: module.id,
@@ -13,6 +15,11 @@ import { TradeService } from "../../bll/services";
 export class RiskFactorComponent {
     styleObj: any;
     dataSource: any;
+    iproducts:string[]=['a','b'];
+    iproduct:string='a';
+    info:string='';
+    istrategys:string[]=['aa','bb'];
+    istrategy:string='aa';
 
     constructor(private tradePoint: TradeService) {
         this.loadData();
@@ -21,7 +28,7 @@ export class RiskFactorComponent {
     ngOnInit() {
         // receive holdlist
         // this.tradePoint.addSlot({
-        // 
+        //
         // });
         // request holdlist
         // this.tradePoint.send();
@@ -32,5 +39,9 @@ export class RiskFactorComponent {
         // File.readLineByLine("", (linestr) => {
 
         // });
+    }
+
+    nextDropdown(){
+    alert("Pl!")
     }
 }

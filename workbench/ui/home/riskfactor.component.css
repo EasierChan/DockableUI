@@ -1,0 +1,9 @@
+.chart{
+  width: 436px;
+  height: 436px;
+  float: left;
+  text-align: center;
+  line-height: 300px;
+  border: 1px solid white;
+  font-size: 50px
+}
