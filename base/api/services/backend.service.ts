@@ -266,3 +266,13 @@ export class Sound {
         });
     }
 }
+
+export class ChildProcess {
+    static readonly exec = require("@node/child_process").exec;
+    static openUrl(uri: string) {
+        if (os.platform() === "linux")
+            ChildProcess.exec(`firefox ${uri}`);
+        else
+            ChildProcess.exec('"C:\\Program Files\\Internet Explorer\iexplore.exe" www.baidu.com'); // tslint:disable-line
+    }
+}

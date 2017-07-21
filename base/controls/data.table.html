@@ -1,4 +1,4 @@
-<table class="table table-condensed table-hover">
+<table class="table table-condensed table-hover" [style.background-color]="styleObj?.bgColor">
   <thead>
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
       <th *ngIf="styleObj.bRowIndex">#</th>

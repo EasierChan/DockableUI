@@ -98,6 +98,7 @@ class ISONPackParser extends IP20Parser {
 
     init(): void {
         this.registerMsgFunction("17", this, this.processLoginMsg);
+        this.registerMsgFunction("260", this, this.processTemplateMsg);
         this.registerMsgFunction("270", this, this.processTemplateMsg);
         this.registerMsgFunction("107", this, this.processTemplateMsg);
         this._intervalRead = setInterval(() => {
@@ -130,6 +131,7 @@ class ISONPackParser extends IP20Parser {
 
         switch (header.packid) {
             case 194:
+            case 216:
             case 2001:
             case 2003:
                 msg = new ISONPack2();

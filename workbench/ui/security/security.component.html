@@ -4,7 +4,89 @@
   <div class="u-input-group">
     <input type="text" placeholder="Search...">
     <a class="button">
-        <span class="glyphicon glyphicon-search"></span>
+      <span class="glyphicon glyphicon-search"></span>
     </a>
+  </div>
+</div>
+<div class="content">
+  <h6>{{codeName}}</h6>
+  <div class="u-row">
+    <section class="fill">
+      <b>{{summary.title}}</b>
+      <p>
+        {{summary.content}}
+      </p>
+    </section>
+    <section style="width: 300px">
+      <b>{{keyInfo.title}}</b>
+      <div class="holder">
+        <table>
+          <tr *ngFor="let item of keyInfo.content">
+            <td style="width: fit-content">{{item.name}}</td>
+            <td style="text-align: right">{{item.value}}</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="u-row">
+    <section class="fill">
+      <b>{{baseInfo.title}}</b>
+      <div class="holder">
+        <table>
+          <tr *ngFor="let item of baseInfo.content">
+            <td style="width: fit-content">{{item.name}}</td>
+            <td>{{item.value}}</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+    <section style="width: 400px">
+      <b>{{mainIncome.title}}</b>
+      <div class="holder">
+        <canvas #mainIncomeIMG width="150">
+        </canvas>
+        <div class="u-col income">
+          <span class="item1">利息收入{{mainIncome.content.a}}</span>
+          <span class="item2">非利息收入:手续费...{{mainIncome.content.b}}</span>
+        </div>
+      </div>
+    </section>
+    <section style="width: 300px">
+      <b>{{tenInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="tenInfo.content.dataSource" [styleObj]="tenInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>
+  <div class="u-row">
+    <section class="fill">
+      <b>{{marketPerformance.title}}</b>
+      <p>
+        <canvas>
+        </canvas>
+      </p>
+    </section>
+    <section style="width: 300px">
+      <b>{{numberInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="numberInfo.content.dataSource" [styleObj]="numberInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>
+  <div class="u-row">
+    <section class="fill">
+      <b>{{instituteInfo.title}}</b>
+      <p>
+        <canvas>
+        </canvas>
+      </p>
+    </section>
+    <section style="width: 300px">
+      <b>{{structureInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
   </div>
 </div>

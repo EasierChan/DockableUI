@@ -9,7 +9,7 @@ import { Pool } from "../common/base/pool";
 import { ISONPack2Header, ISONPack2 } from "../model/isonpack/isonpack.model";
 import { DefaultLogger } from "../common/base/logger";
 
-const logger = DefaultLogger;
+const logger = console;
 
 class IP20Parser extends Parser {
     private _curHeader: ISONPack2Header = null;
