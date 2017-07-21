@@ -14,3 +14,11 @@
 /appstore/MultipleDemo/
 /index.j*
 
+
+log/
+*~
+
+
+workbench/ui/home/configsetting.html
+xklayout.json
+
