@@ -30,6 +30,7 @@ export class RiskFactorComponent {
     dataSource: any;
     startDate:string;
     endDate:string;
+    hedgeRadio:number;
 
     iproducts:string[]=['a','b'];
     iproduct:string='a';
@@ -87,6 +88,7 @@ export class RiskFactorComponent {
 
 
     nextDropdown(){
+    //get strategies of this product
     alert("Pl!")
     }
 
