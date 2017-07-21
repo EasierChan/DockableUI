@@ -71,12 +71,35 @@ class SecuMaster {
     }
 
     static getSecuinfoByCode(code: string[]) {
-        let codeLen = code.length;
         let rtnObj = new Object();
+        let codeLen = code.length;
         for (let i = 0; i < codeLen; ++i) {
+            let codestr = code[i];
+            let codeLen = codestr.length;
+            let UpcodeStr = "";
+            for (let j = 0; j < codeLen; ++j) {
+                let bCheck = (/^[A-Z]+$/).test(codestr.charAt(j));
+                if (!bCheck) {
+                    UpcodeStr += codestr.charAt(j).toLocaleUpperCase();
+                }
+                else {
+                    UpcodeStr += codestr.charAt(j);
+                }
+            }
             for (let o in SecuMaster.secuCodeObj) {
-                if (o === code[i]) {
-                    rtnObj[o] = SecuMaster.secuCodeObj[o];
+                let oLen = o.length;
+                let upoStr: string = "";
+                for (let j = 0; j < oLen; ++j) {
+                    let bCheck = (/^[A-Z]+$/).test(o.charAt(j));
+                    if (!bCheck) {
+                        upoStr += o.charAt(j).toLocaleUpperCase();
+                    }
+                    else {
+                        upoStr += o.charAt(j);
+                    }
+                }
+                if (upoStr === UpcodeStr) {
+                    rtnObj[code[i]] = SecuMaster.secuCodeObj[o];
                 }
             }
         }
