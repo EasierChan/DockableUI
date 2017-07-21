@@ -28,6 +28,8 @@ export class RiskFactorComponent {
 
     styleObj: any;
     dataSource: any;
+    startDate:string;
+    endDate:string;
 
     iproducts:string[]=['a','b'];
     iproduct:string='a';
@@ -42,7 +44,6 @@ export class RiskFactorComponent {
 
     constructor(private tradePoint: TradeService,private tgw: IP20Service) {
         //this.tgw.connect(12);
-
 
         this.loadData();
         //this.calculateRiskFactor(this);
@@ -204,6 +205,10 @@ export class RiskFactorComponent {
         }
       }
       return -1;
+    }
+
+    onClick2(){
+        console.log("OnClick",this,this.startDate,this.endDate);
     }
 
 

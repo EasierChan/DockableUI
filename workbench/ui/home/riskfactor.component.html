@@ -9,10 +9,10 @@
   <option *ngFor="let item of istrategys" [value]='item'>{{item}}</option>
 </select>
 <strong>date:</strong>
-<input style="width:100px;height:30px" #date1 type="text" size="8" maxlength="8" placeholder="20170701" required>
+<input style="width:100px;height:30px"  [(ngModel)]='startDate' type="text" size="8" maxlength="8" placeholder="20170701" required>
 -
-<input style="width:100px;height:30px" #date2 type="text" size="8" maxlength="8" placeholder="20170701">
-<input style="width:61px;height:30px;background-color:#00b010;color:#eee" type="submit" value="search" (click)="onClick">
+<input style="width:100px;height:30px" [(ngModel)]='endDate' type="text" size="8" maxlength="8" placeholder="20170701" >
+<input style="width:61px;height:30px;background-color:#00b010;color:#eee" type="submit" value="search" (click)="onClick2()">
 </div>
 <div style="position:absolue">
 <div class="chart">chart</div>
