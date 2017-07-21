@@ -11,10 +11,6 @@ import {
     VBox, HBox, TextBox, Button, DockContainer
 } from "../../base/controls/control";
 
-import {
-    CustomControl
-} from "./app.controls";
-
 import { AppStoreService, ChildProcess } from "../../base/api/services/backend.service";
 import { TradeService, QuoteService, MockService } from "../bll/services";
 import { DataSet } from "./home/common";
@@ -182,7 +178,7 @@ export class AppComponent implements OnInit {
                     break;
                 case "Quit":
                     if (confirm("Sure to Quit?")) {
-                        // TODO quit application; 
+                        // TODO quit application;
                     }
                     break;
                 default:

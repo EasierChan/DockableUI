@@ -127,9 +127,31 @@ export class ConfigurationBLL {
         });
         return null;
     }
+    getConfig_backByName(name: string): WorkspaceConfig {
+        this._configs_back.forEach(item => {
+            if (item.name === name) {
+                return item;
+            }
+        });
+        return null;
+    }
+    getConfig_simulationByName(name: string): WorkspaceConfig {
+        this._configs_simulation.forEach(item => {
+            if (item.name === name) {
+                return item;
+            }
+        });
+        return null;
+    }
 
     getAllConfigs(): WorkspaceConfig[] {
         return this._configs;
+    }
+    getAllConfigs_back(): WorkspaceConfig[] {
+        return this._configs_back;
+    }
+    getAllConfigs_simulation(): WorkspaceConfig[] {
+        return this._configs_simulation;
     }
 
     updateConfig(config?: WorkspaceConfig) {
@@ -145,6 +167,32 @@ export class ConfigurationBLL {
         }
         File.writeAsync(this._configpath, JSON.stringify(this._configs));
     }
+    updateConfig_back(config?: WorkspaceConfig) {
+        if (config) {
+            let i = 0;
+            for (; i < this._configs_back.length; ++i) {
+                if (config.name === this._configs_back[i].name)
+                    break;
+            }
+            if (i === this._configs_back.length) {
+                this._configs_back.push(config);
+            }
+        }
+        File.writeAsync(this._configpath_back, JSON.stringify(this._configs_back));
+    }
+    updateConfig_simulation(config?: WorkspaceConfig) {
+        if (config) {
+            let i = 0;
+            for (; i < this._configs_simulation.length; ++i) {
+                if (config.name === this._configs_simulation[i].name)
+                    break;
+            }
+            if (i === this._configs_simulation.length) {
+                this._configs_simulation.push(config);
+            }
+        }
+        File.writeAsync(this._configpath_simulation, JSON.stringify(this._configs_simulation));
+    }
 
     updateTemplate(name: string, template: any) {
         this._templates[name] = template;
@@ -152,6 +200,22 @@ export class ConfigurationBLL {
 
         if (!this._names.includes(name)) {
             this._names.push(name);
+        }
+    }
+    updateTemplate_back(name: string, template: any) {
+        this._templates_back[name] = template;
+        File.writeAsync(this._templatepath_back, JSON.stringify(this._templates_back));
+
+        if (!this._names_back.includes(name)) {
+            this._names_back.push(name);
+        }
+    }
+    updateTemplate_simulation(name: string, template: any) {
+        this._templates_simulation[name] = template;
+        File.writeAsync(this._templatepath_simulation, JSON.stringify(this._templates_simulation));
+
+        if (!this._names_simulation.includes(name)) {
+            this._names_simulation.push(name);
         }
     }
 
@@ -186,6 +250,11 @@ export class ConfigurationBLL {
         });
         File.writeAsync(this._svpath, JSON.stringify(this._svconfigs));
     }
+}
+
+
+export class Product {
+    private _productInfo = {};
 }
 
 export class StrategyBLL {

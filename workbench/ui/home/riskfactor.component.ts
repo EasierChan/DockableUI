@@ -29,8 +29,12 @@ export class RiskFactorComponent {
 
     styleObj: any;
     dataSource: any;
+
     startDate: string="20090115";
     endDate: string="20090115";
+
+    hedgeRadio:number;
+
 
     iproducts:string[]=['a','b'];
     iproduct:string='a';
@@ -76,6 +80,7 @@ export class RiskFactorComponent {
 
 
     nextDropdown(){
+    //get strategies of this product
     alert("Pl!")
     }
 
@@ -278,7 +283,7 @@ export class RiskFactorComponent {
         let allStockAttr=[];
 
         for(let stockIndex=0;stockIndex<holdStockExpose.length;++stockIndex){   //循环持仓股票
-        
+
             let singleStockReturn={stockReturn:0};
             singleStockReturn.stockCode=holdStockExpose[stockIndex].stockCode;
 

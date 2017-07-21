@@ -8,8 +8,7 @@ import {
   Directive, ElementRef, Renderer, HostListener, ChangeDetectorRef
 } from "@angular/core";
 import { Control, MetaControl, CssStyle, DataTable } from "./control";
-
-const echarts: ECharts = require("../script/echart/echarts");
+import * as echarts from "echarts";
 
 @Component({
   moduleId: module.id,
@@ -123,7 +122,7 @@ export class ScrollerBarTable implements OnInit, AfterViewInit {
 export class EChartComponent implements OnInit, AfterViewInit {
   className: string;
   dataSource: any;
-  _echart: EChartsInstance;
+  _echart: echarts.ECharts;
 
   constructor(private el: ElementRef, private render: Renderer) {
   }
@@ -133,7 +132,7 @@ export class EChartComponent implements OnInit, AfterViewInit {
     if (this.dataSource.option) {
       let self = this;
       this.dataSource.init = () => {
-        let myChart: EChartsInstance = echarts.init(self.el.nativeElement);
+        let myChart: echarts.ECharts = echarts.init(self.el.nativeElement);
         myChart.setOption(self.dataSource.option, true);
 
         window.addEventListener("resize", () => {

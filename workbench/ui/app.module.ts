@@ -1,7 +1,7 @@
 import { NgModule } from "@angular/core";
 import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
-import { CommonModule } from "@angular/common";
+import { CommonModule, PercentPipe } from "@angular/common";
 
 import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
@@ -19,6 +19,7 @@ import { SettingComponent } from "./system/setting";
 import { UserComponent } from "./system/user";
 import { SupportComponent } from "./system/support";
 import { RiskFactorComponent } from "./home/riskfactor.component";
+import { EchartsDirective } from "./app.controls";
 
 @NgModule({
   imports: [
@@ -46,7 +47,8 @@ import { RiskFactorComponent } from "./home/riskfactor.component";
     SettingComponent,
     UserComponent,
     RiskFactorComponent,
-    SupportComponent
+    SupportComponent,
+    EchartsDirective
   ],
   bootstrap: [AppComponent]
 })
