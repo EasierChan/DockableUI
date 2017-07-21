@@ -14,7 +14,14 @@ import path = require("path");
     styleUrls: ["home.component.css", "riskfactor.component.css"],
     providers: [IP20Service]
 })
+
 export class RiskFactorComponent {
+
+    posStockIndex: number=0;
+    posWeightIndex: number=1;
+    rfrDateIndex: number=0;
+    rfeDateIndex: number=0;
+    rfeStockIndex: number=1;
 
     styleObj: any;
     dataSource: any;
@@ -35,7 +42,17 @@ export class RiskFactorComponent {
             console.log("有数据为空，不能计算数据。");
             return；
         }
+        this.riskFactorExpose.sort( function (perv,next){
+                if(perv[1]>next[1]){
+                    return 1;
+                }else if(perv[1]<next[1]){
+                    return -1;
+                }
+                else
+                    return 0;
+            });
         this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExpose,this.groupPosition);
+
 
     }
 
@@ -54,14 +71,37 @@ export class RiskFactorComponent {
 
         // });
     }
-    log()
-    {
-        console.log("123",this);
-    }
 
     calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition){
-      console.log("calculateRiskFactor");
+        console.log("calculateRiskFactor");
+        let subCodeExpose=[];//保存拥有的所有股票的权重与暴露之乘积
+        let sumOfDayExpose=[];//保存风险因子的权重与暴露之乘积的和
+        for(let i=2;i<riskFactorExpose[0].length;++i){
+            sumOfDayExpose.push([ riskFactorExpose[0][i], 0 ]);
+        }
 
+        console.log("sumOfDayExpose",sumOfDayExpose);
+
+        //权重与暴露之乘积
+        groupPosition.forEach(function(singleWeight,index,array){
+            var binarySearchStock(riskFactorExpose,singleWeight[0],1,1);
+            if(binarySearchStock === -1){
+                return;
+            }
+            else{
+                var singleExpose={};
+                singleExpose.stockCode=singleWeight[ 0 ];
+                for(let i=2;i<riskFactorExpose[binarySearchStock].length;++i){
+                    //console.log(riskFactorExpose[binarySearchStock]);
+                    //singleExpose[ (""+riskFactorExpose[0][i]) ]=riskFactorExpose[binarySearchStock][i] * singleWeight.[1];//这里有一个假设，假定所有数据都不会重复哦
+                    //sumOfDayExpose[i-2][1]+=riskFactorExpose[binarySearchStock][i] * singleWeight.[1];
+                }
+
+                subCodeExpose.push(singleExpose);
+            }
+
+
+      });
     }
 
 
@@ -122,4 +162,26 @@ export class RiskFactorComponent {
         console.log("resultData",resultData);
         return resultData;
     }
+
+    binarySearchStock(arr,source,member,start,end){
+      start=start||0;
+      end=end||arr.length-1;
+      var mid=-1;
+
+      while(start<=end){
+        mid=Math.floor((start+end)/2);
+
+        if (arr[mid][member] < source) {
+          return mid+1;
+        }else if (arr[mid][member]>source){
+          end=mid-1;
+        }else{
+          start=mid;
+        }
+      }
+      return -1;
+    }
+
+
+
 }
