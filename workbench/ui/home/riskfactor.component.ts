@@ -3,14 +3,12 @@
 import { Component } from "@angular/core";
 import { File } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
-<<<<<<< HEAD
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
-=======
 import { IP20Service } from "../../../base/api/services/ip20.service";
 import fs = require("@node/fs");
 import path = require("path");
->>>>>>> c40a8865438c4b96e92968a5d2509b890259d073
+
 
 @Component({
     moduleId: module.id,
@@ -30,13 +28,13 @@ export class RiskFactorComponent {
 
     styleObj: any;
     dataSource: any;
-<<<<<<< HEAD
+
     iproducts:string[]=['a','b'];
     iproduct:string='a';
     info:string='';
     istrategys:string[]=['aa','bb'];
     istrategy:string='aa';
-=======
+
     note: string = "hello xiaobo!";
     riskFactorReturn: array =[];
     riskFactorExpose: array =[];
@@ -44,7 +42,7 @@ export class RiskFactorComponent {
 
     constructor(private tradePoint: TradeService,private tgw: IP20Service) {
         //this.tgw.connect(12);
->>>>>>> c40a8865438c4b96e92968a5d2509b890259d073
+
 
         this.loadData();
         //this.calculateRiskFactor(this);
@@ -85,11 +83,11 @@ export class RiskFactorComponent {
         // });
     }
 
-<<<<<<< HEAD
+
     nextDropdown(){
     alert("Pl!")
     }
-=======
+
     calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition){
         console.log("calculateRiskFactor");
         let subCodeExpose=[];//保存拥有的所有股票的权重与暴露之乘积
@@ -202,5 +200,5 @@ export class RiskFactorComponent {
 
 
 
->>>>>>> c40a8865438c4b96e92968a5d2509b890259d073
+
 }
