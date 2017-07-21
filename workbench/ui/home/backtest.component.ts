@@ -79,7 +79,7 @@ export class BacktestComponent implements OnInit {
         this.tileArea.onClick = (item: Tile) => {
             alert(item.title);
         };
-
+        // (mouseup)="onClick($event, item);"
         this.tileArea.onCreate = () => {
             alert("onCreate");
         };
@@ -100,7 +100,7 @@ export class BacktestComponent implements OnInit {
                         ip20strs[msg.content.head.pkgId] = "";
                     if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
                         let templatelist = JSON.parse(ip20strs[msg.content.head.pkgId].concat(msg.content.body));
-                         console.log("***", templatelist);
+                        console.log("***", templatelist);
                         templatelist.body.forEach(template => {
                             this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
                         });
@@ -135,9 +135,6 @@ export class BacktestComponent implements OnInit {
                 // console.log(self.config, self.configs);
             }
         });
-
-        // this.tgw.send()
-
     }
 
     onClick(e: MouseEvent, item: WorkspaceConfig) {

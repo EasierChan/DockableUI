@@ -252,6 +252,11 @@ export class ConfigurationBLL {
     }
 }
 
+
+export class Product {
+    private _productInfo = {};
+}
+
 export class StrategyBLL {
     static sessionId = 101;
     private itrade: ItradeService = new ItradeService();

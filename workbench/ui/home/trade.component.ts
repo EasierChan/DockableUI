@@ -2,7 +2,7 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer } from "../../bll/strategy.server";
+import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, Product } from "../../bll/strategy.server";
 import { Menu } from "../../../base/api/services/backend.service";
 import { ChangeDetectorRef } from "@angular/core";
 import { TradeService } from "../../bll/services";
@@ -26,6 +26,7 @@ export class TradeComponent implements OnInit {
     contextMenu: Menu;
     private configBll = new ConfigurationBLL();
     private strategyContainer = new StrategyServerContainer();
+    private product = new Product();
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
     curTemplate: any;
@@ -71,12 +72,21 @@ export class TradeComponent implements OnInit {
             productArea.addTile(tile);
         }
 
+        productArea.onCreate = () => {
+            alert("****");
+        };
         let strategyArea = new TileArea();
         strategyArea.title = "Strategies";
-
+        strategyArea.onCreate = () => {
+            alert("++++");
+            window.showMetroDialog("#config");
+        };
 
         let analyticArea = new TileArea();
         analyticArea.title = "Analytic";
+        analyticArea.onCreate = () => {
+            alert("----");
+        };
 
         for (let i = 0; i < 10; ++i) {
             let tile = new Tile();
@@ -93,7 +103,7 @@ export class TradeComponent implements OnInit {
         this.resTable.addColumn2(new DataTableColumn("ReleaseData", false, true));
         this.resTable.addColumn2(new DataTableColumn("OutDate", false, true));
         // if (!this.isInit)
-        //     this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
+        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
         this.tgw.addSlot({  // template
             appid: 270,
             packid: 194,
@@ -160,7 +170,7 @@ export class TradeComponent implements OnInit {
                         tile.backgroundColor = "#ff3a66";  // 1c57ff
                         tile.iconName = "adjust";
                         strategyArea.addTile(tile);
-                        this.isInit = true;
+                        // this.isInit = true;
                     }
                 }
             }
@@ -171,7 +181,15 @@ export class TradeComponent implements OnInit {
             appid: 260,
             packid: 216,
             callback: msg => {
-                console.log(msg);
+                let data = JSON.parse(msg.content.body);
+                if (data.msret.msgcode === "00") {
+                    for (let i = 0; i < data.body.length; ++i) {
+                        this.product[data.body[i].tblock_id] = data.body[i];
+                    }
+                    console.log(this.product);
+                } else {
+                    alert("Get product info Failed! " + data.msret.msg);
+                }
             }
         });
     }
