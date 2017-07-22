@@ -200,7 +200,7 @@ export class AppComponent implements OnInit {
             appid: 17,
             packid: 120,
             callback: msg => {
-                console.error(`tgw::login ans=>${msg}`);
+                console.error(`tgw::login ans=>${JSON.stringify(msg.content)}`);
             }
         });
 

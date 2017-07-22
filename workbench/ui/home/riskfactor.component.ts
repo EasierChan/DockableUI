@@ -20,37 +20,37 @@ import path = require("path");
 
 export class RiskFactorComponent {
 
-    posStockIndex: number=0;
-    posWeightIndex: number=1;
-    rfrDateIndex: number=0;
-    rfeDateIndex: number=0;
-    rfeStockIndex: number=1;
+    posStockIndex: number = 0;
+    posWeightIndex: number = 1;
+    rfrDateIndex: number = 0;
+    rfeDateIndex: number = 0;
+    rfeStockIndex: number = 1;
 
     styleObj: any;
     dataSource: any;
-    startDate:string;
-    endDate:string;
+    startDate: string;
+    endDate: string;
 
-    iproducts:string[]=['a','b'];
-    iproduct:string='a';
-    info:string='';
-    istrategys:string[]=['aa','bb'];
-    istrategy:string='aa';
+    iproducts: string[] = ['a', 'b'];
+    iproduct: string = 'a';
+    info: string = '';
+    istrategys: string[] = ['aa', 'bb'];
+    istrategy: string = 'aa';
 
     note: string = "hello xiaobo!";
-    riskFactorReturn: array =[];
-    riskFactorExpose: array =[];
-    groupPosition: array =[["000001.SZ",0.1],["000002.SZ",0.6],["000004.SZ",0.2]];
+    riskFactorReturn: array = [];
+    riskFactorExpose: array = [];
+    groupPosition: array = [["000001.SZ", 0.1], ["000002.SZ", 0.6], ["000004.SZ", 0.2]];
 
-    constructor(private tradePoint: TradeService,private tgw: IP20Service) {
+    constructor(private tradePoint: TradeService, private tgw: IP20Service) {
         //this.tgw.connect(12);
 
         this.loadData();
         //this.calculateRiskFactor(this);
-        this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
-        this.riskFactorExpose=this.readDataFromCsvFile("/home/muxb/project/20090115.csv");
+        this.riskFactorReturn = this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        this.riskFactorExpose = this.readDataFromCsvFile("/home/muxb/project/20090115.csv");
 
-        if(this.riskFactorReturn.length < 2 ||this.riskFactorExpose.length < 2 ||this.groupPosition.length < 2 ){
+        if (this.riskFactorReturn.length < 2 || this.riskFactorExpose.length < 2 || this.groupPosition.length < 2) {
             console.log("有数据为空，不能计算数据。");
             return；
         }
@@ -72,10 +72,14 @@ export class RiskFactorComponent {
     ngOnInit() {
         // receive holdlist
         // this.tradePoint.addSlot({
-        //
+        //     appid: 260,
+        //     packid: 218,
+        //     callback: (msg)=> {
+        //         console.info(msg);
+        //     }
         // });
         // request holdlist
-        // this.tradePoint.send();
+        // this.tradePoint.send(260, 218, { body: { tblockid: 201 } });
     }
 
     loadData() {
