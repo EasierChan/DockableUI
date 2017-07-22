@@ -31,9 +31,12 @@ export class RiskFactorComponent {
     dataSource: any;
 
     startDate: string="20090115";
-    endDate: string="20090115";
+    endDate: string="20090116";
 
     hedgeRadio:number;
+
+    riskFactorReturnEchart: any;//echart
+    allDayReturnEchart: any;
 
 
     iproducts:string[]=['a','b'];
@@ -54,7 +57,7 @@ export class RiskFactorComponent {
         RiskFactorComponent.self = this;
         //this.loadData();
 
-        this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        this.readAndHandleRiskReturn();
 
     }
 
@@ -82,6 +85,26 @@ export class RiskFactorComponent {
     nextDropdown(){
     //get strategies of this product
     alert("Pl!")
+    }
+
+    readAndHandleRiskReturn() {
+        this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        //处理获取的风险因子收益数据
+        if(this.riskFactorReturn.length<2){
+            alert("风险因子收益没有数据,请导入数据后重试");
+            return;
+        }
+        for(let i=0; i<this.riskFactorReturn[0].length; ++i ){
+            this.riskFactorReturn[0][i]=this.riskFactorReturn[0][i].slice(1,this.riskFactorReturn[0][i].length-1);
+        }
+
+        for(let i=1; i<this.riskFactorReturn.length; ++i){
+
+            for(let j=1; j<this.riskFactorReturn[0].length; ++j ){
+                this.riskFactorReturn[i][j]=parseFloat(this.riskFactorReturn[i][j]);
+            }
+        }
+        console.log("handled riskFactorReturn",this.riskFactorReturn);
     }
 
     calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition,currDate){
@@ -315,24 +338,37 @@ export class RiskFactorComponent {
           endDateIndex=riskFactorReturn.length-1;
       }
 
-      let chartLegendData=[],xAxisDatas[],series=[];    //分别对应图例组件数组,x坐标数组,和具体每一条曲线的数据
+      let chartLegendData=[],xAxisDatas[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
+
+      let allRiskReturnSeries=[],allRiskReturnXAxis=[];   //统计总共的x坐标数组,和具体每一条曲线的数据
+
+
       for(let riskIndex=1; riskIndex<riskFactorReturn[0].length; ++riskIndex){    //遍历每一个风险因子
 
           let lengendData={name:riskFactorReturn[0][riskIndex],textStyle: { color: "#F3F3F5" }};
           chartLegendData.push(lengendData);
 
+          allRiskReturnXAxis.push( riskFactorReturn[0][riskIndex] );  //柱状图的x轴分类
+
           //具体每一条曲线的数据
           let seriesData={name:riskFactorReturn[0][riskIndex] ,type: "line", data: []};
+          let riskFactorAllDateReturn=0;
+
           for(let i=startDateIndex;i<=endDateIndex;++i){
               seriesData.data.push(riskFactorReturn[i][riskIndex]);
+              riskFactorAllDateReturn+=riskFactorReturn[i][riskIndex];
           }
           series.push(seriesData);
+
+          allRiskReturnSeries.push(riskFactorAllDateReturn);
       }
 
       //设置x坐标日期数组
       for(let i=startDateIndex;i<=endDateIndex;++i){
           xAxisDatas.push(riskFactorReturn[i][this.rfrDateIndex]);
       }
+
+      console.log("allRiskReturnSeries,allRiskReturnXAxis",allRiskReturnSeries,allRiskReturnXAxis)
 
       let option= {
             title: {
@@ -350,7 +386,7 @@ export class RiskFactorComponent {
                 textStyle: { color: "#F3F3F5" }
             },
             xAxis: [{
-                data: ["2016-10-01", "2017-01-01", "2017-04-01", "2017-07-01"],
+                data: xAxisDatas,
                 axisLabel: {
                     textStyle: { color: "#F3F3F5" }
                 },
@@ -376,9 +412,59 @@ export class RiskFactorComponent {
             ]
         }
 
-        let riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
-        riskFactorReturnEchart.setOption(option);
+        this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
+        this.riskFactorReturnEchart.setOption(option);
 
+
+
+        let allDayOption= {
+              title: {
+                  show: false,
+              },
+              tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                      type: "cross",
+                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                  }
+              },
+              legend: {
+                  data: ["风险因子收益"],
+                  textStyle: { color: "#F3F3F5" }
+              },
+              xAxis: {
+                  data: allRiskReturnXAxis,
+                  axisLabel: {
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  }
+              },
+              yAxis: {
+                  position: "right",
+                  axisLabel: {
+                      show: true,
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  },
+                  scale: true,
+                  boundaryGap: [0.2, 0.2]
+              },
+              series: [{
+                      name: "风险因子收益",
+                      type: "bar",
+                      data: allRiskReturnSeries
+                  }
+              ],
+              color: [
+                  "#00b", "#0b0"
+              ]
+          }
+        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
+        this.allDayReturnEchart.setOption(allDayOption);
     }
 
 
