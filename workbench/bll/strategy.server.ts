@@ -27,17 +27,55 @@ export class ConfigurationBLL {
 
         this._svpath = path.join(this._basedir, "svconfigs.json");
         this._svconfigs = File.parseJSON(this._svpath) || [];
+
+        // add by xk
+        this._templates_back = {};
+        this._templates_simulation = {};
+
+        this._basedir_back = path.join(Environment.appDataDir, "ChronosApps/workbench/back");
+        this._basedir_simulation = path.join(Environment.appDataDir, "ChronosApps/workbench/simulation");
+
+        this._templatepath_back = path.join(this._basedir_back, "templates_back.json");
+        this._templatepath_simulation = path.join(this._basedir_simulation, "templates_simulation.json");
+
+        this._templates_back = File.parseJSON(this._templatepath_back) || {};
+        this._templates_simulation = File.parseJSON(this._templatepath_simulation) || {};
+
+        for (let prop in this._templates_back) {
+            this._names_back.push(prop);
+        }
+        for (let prop in this._templates_simulation) {
+            this._names_simulation.push(prop);
+        }
+
+        this._configpath_back = path.join(this._basedir_back, "instances.json");
+        this._configs_back = WorkspaceConfig.setObject(File.parseJSON(this._configpath_back) || []);
+        this._configpath_simulation = path.join(this._basedir_simulation, "instances.json");
+        this._configs_simulation = WorkspaceConfig.setObject(File.parseJSON(this._configpath_simulation) || []);
+
+
     }
 
     private _basedir: string;
+    private _basedir_back: string;
+    private _basedir_simulation: string;
     /**
      * store templates.
      */
     private _templates: Object;
     private _templatepath: string;
+    private _templates_back: Object;
+    private _templatepath_back: string;
+    private _templates_simulation: Object;
+    private _templatepath_simulation: string;
+
 
     private _configs: WorkspaceConfig[];
     private _configpath: string;
+    private _configs_back: WorkspaceConfig[];
+    private _configpath_back: string;
+    private _configs_simulation: WorkspaceConfig[];
+    private _configpath_simulation: string;
 
     private _loopbackItems: any[];
     private _loopbackPath: string;
@@ -46,20 +84,40 @@ export class ConfigurationBLL {
     private _svpath: string;
 
     private _names: string[];
+    private _names_back: string[];
+    private _names_simulation: string[];
     /**
      * @return a list of available strategy templates.
      */
     getTemplates(): string[] {
         return this._names;
     }
+    getTemplates_back(): string[] {
+        return this._names_back;
+    }
+    getTemplates_simulation(): string[] {
+        return this._names_simulation;
+    }
 
     getTemplateByName(name: string): any {
         if (this._templates.hasOwnProperty(name)) {
             return this._templates[name];
         }
-
         return null;
     }
+    getTemplate_back_ByName(name: string): any {
+        if (this._templates_back.hasOwnProperty(name)) {
+            return this._templates_back[name];
+        }
+        return null;
+    }
+    getTemplate_simulation_ByName(name: string): any {
+        if (this._templates_simulation.hasOwnProperty(name)) {
+            return this._templates_simulation[name];
+        }
+        return null;
+    }
+
 
     getConfigByName(name: string): WorkspaceConfig {
         this._configs.forEach(item => {
@@ -377,6 +435,8 @@ export class WorkspaceConfig {
     activeChannel = "default";
     state: number = 0;
     loopbackConfig?: any = {};
+    chinese_name: string = "";
+    strategies: Object;
 
     constructor() {
         this.curstep = 1;

@@ -97,9 +97,10 @@ class ISONPackParser extends IP20Parser {
     }
 
     init(): void {
-        this.registerMsgFunction("17", this, this.processLoginMsg);
-        this.registerMsgFunction("270", this, this.processTemplateMsg);
-        this.registerMsgFunction("107", this, this.processTemplateMsg);
+        // this.registerMsgFunction("17", this, this.processLoginMsg);
+        // this.registerMsgFunction("260", this, this.processTemplateMsg);
+        // this.registerMsgFunction("270", this, this.processTemplateMsg);
+        // this.registerMsgFunction("107", this, this.processTemplateMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -126,20 +127,22 @@ class ISONPackParser extends IP20Parser {
     processTemplateMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
         let all = args[1];
-        let msg;
-
-        switch (header.packid) {
-            case 194:
-            case 2001:
-            case 2003:
-                msg = new ISONPack2();
-                msg.fromBuffer(all);
-                this._client.emit("data", msg);
-                break;
-            default:
-                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
-                break;
-        }
+        let msg = new ISONPack2();
+        msg.fromBuffer(all);
+        this._client.emit("data", msg);
+        // switch (header.packid) {
+        //     case 194:
+        //     case 216:
+        //     case 218:
+        //     case 2001:
+        //     case 2003:
+        //         msg.fromBuffer(all);
+        //         this._client.emit("data", msg);
+        //         break;
+        //     default:
+        //         logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
+        //         break;
+        // }
     }
 
     dispose(): void {
@@ -197,12 +200,14 @@ export class IP20Service {
     private _client: ISONPackClient;
     private _messageMap: Object;
     private _timer: any;
+    private _parser: ISONPackParser;
 
     constructor() {
         this._messageMap = new Object();
         this._client = new ISONPackClient();
         this._client.useSelfBuffer = true;
-        this._client.addParser(new ISONPackParser(this._client));
+        this._parser = new ISONPackParser(this._client);
+        this._client.addParser(this._parser);
     };
 
     connect(port, host = "127.0.0.1") {
@@ -252,9 +257,13 @@ export class IP20Service {
      *
      */
     addSlot(...slots: Slot[]) {
+
         slots.forEach(slot => {
-            if (!this._messageMap.hasOwnProperty(slot.appid))
+            if (!this._messageMap.hasOwnProperty(slot.appid)) {
                 this._messageMap[slot.appid] = new Object();
+                this._parser.registerMsgFunction(slot.appid, this._parser, this._parser.processTemplateMsg);
+            }
+
             this._messageMap[slot.appid][slot.packid] = slot.callback;
         });
     }
@@ -290,18 +299,18 @@ process.on("message", (m: WSIP20, sock) => {
                     console.info(`tgw ans=>${msg}`);
                 }
             }, {
-                appid: 17,
-                packid: 120,
-                callback(msg) {
-                    console.info(`tgw ans=>${msg}`);
-                }
-            }, {
-                appid: 17,
-                packid: 110,
-                callback(msg) {
-                    process.send({ event: "data", content: msg});
-                }
-            });
+                    appid: 17,
+                    packid: 120,
+                    callback(msg) {
+                        console.info(`tgw ans=>${msg}`);
+                    }
+                }, {
+                    appid: 17,
+                    packid: 110,
+                    callback(msg) {
+                        process.send({ event: "data", content: msg });
+                    }
+                });
 
             IP20Factory.instance.connect(m.params.port, m.params.host);
             let timestamp: Date = new Date();

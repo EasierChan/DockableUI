@@ -1,0 +1,10 @@
+<div class="areas" >
+    <tilearea *ngFor="let area of areas" (mouseup)="onClick($event, item);" [dataSource]="area.dataSource" [styleObj]="area.styleObj"></tilearea>
+</div>
+<div class="monitor" [style.height.px]="monitorHeight">
+    <div class="title">
+        <span>Monitor</span>
+        <span class="glyphicon pull-right" [class.glyphicon-menu-up]="!bDetails" [class.glyphicon-menu-down]="bDetails" (click)="toggleMonitor()"></span>
+    </div>
+    <dock-table2 [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
+</div>

@@ -1,0 +1,17 @@
+tilearea {
+    flex: auto;
+}
+
+.areas {
+    flex: auto;
+    display: flex;
+    flex-flow: row;
+}
+
+.monitor {
+    height: 30px;
+}
+
+.monitor > .title {
+    height: 30px;
+}

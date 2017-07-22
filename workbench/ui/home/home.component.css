@@ -7,77 +7,89 @@ li > a.active {
 
 .title {
   flex: none;
-  padding-top: 20px;
   padding-left: 1%;
   text-align: left;
   text-transform: uppercase;
-  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  /*font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;*/
   font-size: 1em;
-  color: #ccc;
+  background-color: #222A41;
+  color: #F3F3F5;
+  position: relative;
+}
+
+.title > img.logo {
+  width: 20px;
+  margin-right: 5px;
+  margin-top: 3px;
+  margin-bottom: 8px;
 }
 
 .title > span.big {
-  font-size: 3em;
-  line-height: 1;
+  font-size: 1.5em;
+  line-height: 2;
+  padding-right: 50px;
   vertical-align: bottom;
 }
 
-.title > ul.small {
+.title > ul.tabs {
+  flex: none;
   display: inline-block;
-  margin-left: 30px;
-  line-height: 1.1;
-  font-size: 1.5em;
-  vertical-align: top;
+  margin-left: 20px;
+  margin-bottom: 0;
+  font-size: 1.2em;
+  line-height: 2;
+}
+.title > ul.tabs > li {
+  display: inline-block;
+  list-style: none;
+  padding: 4px 20px;
+  border-bottom: none;
+  opacity: .6;
+}
+.title > ul.tabs > li > a {
+  color: #ccc;
+}
+.title > ul.tabs > li.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  opacity: 1;
 }
 
-.title > ul.small li {
-  display: inline;
-  margin-left: 10px;
+.u-input-group {
+  display: inline-flex;
+  flex-flow: row;
+  width: 200px;
+  position: absolute;
+  right: 1%;
+  top: 8px;
 }
-
-a.history {
-  color: #e90;
-  opacity: .4;
+.u-input-group input {
+  flex: auto;
+  padding: 2px 5px;
+  color: black;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
 }
-a.present {
-  color: #2f2;
-  opacity: .4;
-}
-a.future {
-  color: #0AF;
-  opacity: .4;
+.u-input-group .button {
+  flex: none;
+  font-size: 1.2em;
+  padding: 0 5px;
+  border-top-right-radius: 3px;
+  border-bottom-right-radius: 3px;
 }
 
 .content {
   flex: auto;
   height: 300px;
-  padding: 0 1%;
+  padding: 1% 1% 0 1%;
   display: flex;
   flex-flow: column;
+  overflow: hidden;
 }
 .content > * {
   flex: auto;
   width: 100%;
 }
-.content > ul.tabs {
-  flex: none;
-  text-align: center;
-  border-bottom: 1px solid #ccc;
-}
-.content > ul.tabs > li {
-  display: inline-block;
-  list-style: none;
-  padding: 5px 20px;
-  border: 2px solid #ccc;
-  border-bottom: none;
-  border-radius: 5px 5px 0 0;
-  background-color: #666;
-  color: #ccc;
-  opacity: .6;
-}
-.content > ul.tabs > li > a {
-  color: #ccc;
-}
-.content > ul.tabs > li.active {
-  opacity: 1;
+.content > .fill {
+  display: flex;
+  flex-flow: column;
 }

@@ -1,0 +1,18 @@
+<div class="area-title">
+    <span>{{ dataSource.title }}</span>
+    <span *ngIf="dataSource.setting" class="setting-button glyphicon glyphicon-cog" (click)="dataSource.setting()"></span>
+</div>
+<div class="area-tiles">
+    <div *ngFor="let item of dataSource.items" class="tile" (mouseup)="dataSource.click($event, item)" [style.background-color]="item?.backgroundColor"
+        [style.color]="item?.color">
+        <div class="icon">
+            <span class="glyphicon glyphicon-{{item.iconName}}"></span>
+        </div>
+        <div class="title">
+            <span>{{ item.title }}</span>
+        </div>
+    </div>
+    <div class="tile create" (click)="dataSource.create($event)">
+        <span class="glyphicon glyphicon-plus"></span>
+    </div>
+</div>

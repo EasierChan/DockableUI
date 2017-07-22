@@ -1,0 +1,49 @@
+/* tilearea */
+
+.area-title {
+    font-size: 1.5em;
+    line-height: 1.5;
+    color: moccasin;
+    margin-left: 5px;
+}
+
+.area-title > .setting-button {
+    float: right;
+    margin-right: 10px;
+}
+
+.area-tiles {
+    flex: auto;
+    overflow-y: auto;    
+}
+
+.area-tiles > .tile {
+    float: left;
+    width: 100px;
+    height: 100px;
+    margin: 5px;
+    background-color: #d50;
+    color: #fff;
+}
+
+.area-tiles > .tile:hover {
+    outline: solid 3px rgba(200, 200, 200, 0.3);
+}
+
+.area-tiles > .tile.create {
+    font-size: 50px;
+    font-weight: lighter;
+    line-height: 2;
+    text-align: center;
+}
+
+.area-tiles > .tile > .icon  {
+    font-size: 30px;
+    font-weight: lighter;
+    line-height: 2.5;
+    text-align: center;
+}
+
+.area-tiles > .tile > .title {
+    text-align: center;
+}

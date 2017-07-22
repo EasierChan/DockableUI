@@ -148,7 +148,7 @@ export class AppComponent implements OnDestroy {
             return;
         }
 
-        // create and modify config.
+        // create and modify con`fig.
         if (this.config.activeChannel === "default") {
             this.config.channels.gateway.forEach((gw, index) => {
                 if (index === 0)
@@ -431,20 +431,6 @@ export class AppComponent implements OnDestroy {
 
         this.svconfigs = this.configBLL.getSVConfigs();
         this.loginTGW();
-        // this.isAuthorized = true;
-        // let config = new WorkspaceConfig();
-        // config.state = 0;
-        // config.name = "test";
-        // config.apptype = "DockDemo";
-        // config.activeChannel = "default";
-        // config.port = 9090;
-        // config.host = "172.24.51.4";
-        // config.channels.feedhandler = {
-        //     port: 10000,
-        //     addr: "172.24.51.4"
-        // };
-        // this.configs = [];
-        // this.configs.push(config);
     }
 
     loginTGW(): void {
@@ -504,7 +490,7 @@ export class AppComponent implements OnDestroy {
             }
         });
 
-        // process templates
+        // process templates back
         this.tgw.addSlot({
             appid: 270,
             packid: 194,
@@ -551,7 +537,7 @@ export class AppComponent implements OnDestroy {
         let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": timestamp };
         this.tgw.send(17, 41, loginObj); // login
 
-        this.qtp.addSlot({
+        this.qtp.addSlot({ // back test channal created
             msgtype: 8012,
             callback: (msg) => {
                 console.info(msg);

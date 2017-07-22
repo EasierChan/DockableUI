@@ -1516,6 +1516,7 @@ export class SpreadViewer {
         let ihour = Math.floor(seconds / 10000);
         let iminute = Math.floor(seconds % 10000 / 100);
         let num = ihour * 60 + iminute;
+
         if (num < this._durations[0].end.hour * 60 + this._durations[0].end.minute) {
             return (num - this._durations[0].start.hour * 60 - this._durations[0].start.minute) * 60 +
                 + seconds % 10000 % 100;
@@ -1829,6 +1830,10 @@ export class DataTable extends Control {
         this.styleObj.alignment = value;
     }
 
+    set backgroundColor(value: string) {
+        this.styleObj.bgColor = value;
+    }
+
     detectChanges(): void {
         this.dataSource.detectChanges();
     }
@@ -2091,25 +2096,31 @@ export class ActionBar extends Control {
 
         let self = this;
         this.dataSource = {
-            items: [],
+            features: [],
+            settings: [],
             menuClick() {
                 self.styleObj.showDetailView = !self.styleObj.showDetailView;
                 self.width = self.styleObj.showDetailView ? 200 : 50;
             },
             onClick(item: ActionItem) {
-                self.activeItem = item;
-
                 if (self._onClick)
                     self._onClick(item);
             }
         };
     }
 
-    addItem(item: ActionItem): void {
+    addFeature(item: ActionItem): void {
         if (item.active) {
             this.activeItem = item;
         }
-        this.dataSource.items.push(item);
+        this.dataSource.features.push(item);
+    }
+
+    addSettings(item: ActionItem) {
+        if (item.active) {
+            this.activeItem = item;
+        }
+        this.dataSource.settings.push(item);
     }
 
     set backgroundColor(value: string) {
@@ -2154,4 +2165,51 @@ interface ActionItem {
     tooltip: string;
     title: string;
     active?: boolean;
+}
+
+export class TileArea extends Control {
+    constructor() {
+        super();
+        this.styleObj = {
+            type: "tilearea",
+        };
+
+        this.dataSource = {
+            title: "",
+            items: [],
+            click: () => { },
+            create: () => { }
+        };
+    }
+
+    set title(value: string) {
+        this.dataSource.title = value;
+    }
+
+    get title() {
+        return this.dataSource.title;
+    }
+
+    addTile(tile: Tile) {
+        this.dataSource.items.push(tile);
+    }
+
+    set onClick(value: Function) {
+        this.dataSource.click = value;
+    }
+
+    set onCreate(value: Function) {
+        this.dataSource.create = value;
+    }
+
+    set onSettingClick(value: Function) {
+        this.dataSource.setting = value;
+    }
+}
+
+export class Tile {
+    color: string;
+    backgroundColor: string;
+    title: string;
+    iconName: string;
 }

@@ -3,19 +3,21 @@ div.workbench {
     height: 100%;
     display: flex;
     flex-flow: row;
+    background-color: #1A2237;
+    overflow: hidden;
 }
 
 div.workbench > .content{
     flex: auto;
     display: flex;
     flex-flow: column;
+    overflow: hidden;
 }
 
 div.workbench > .content > * {
     flex: auto;
     display: flex;
     flex-flow: column;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
 }
 
