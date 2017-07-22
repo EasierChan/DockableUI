@@ -1,7 +1,7 @@
 "use strict";
 
 import { Component } from "@angular/core";
-import { File } from "../../../base/api/services/backend.service"; // File operator
+//import { File } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
@@ -123,7 +123,7 @@ export class RiskFactorComponent {
 
       let stockReturnAttr=[];//收益归因 riskFactorReturnResult=[],
       //riskFactorReturnResult["date"]=currDate;
-      let returnDateIndex=this.binarySearchStock(riskFactorReturn,currDate,0,1);//查找指定日期的风险因子收益
+      let returnDateIndex=this.binarySearchStock(riskFactorReturn,currDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
 
       if(returnDateIndex === -1) {
           return;
@@ -148,6 +148,8 @@ export class RiskFactorComponent {
       let allStockAttr = this.sumOfStockFactor(subCodeExpose,riskFactorReturn,returnDateIndex);
       console.log("allStockAttr",allStockAttr);
 
+
+      this.setriskFactorReturnEchart(riskFactorReturn,this.startDate,this.endDate);
     }
 
 
@@ -293,7 +295,90 @@ export class RiskFactorComponent {
             }
             allStockAttr.push(singleStockReturn);
         }
+
         return allStockAttr;
+
+    }
+
+    setriskFactorReturnEchart(riskFactorReturn,startDate,endDate){
+      console.log("setriskFactorReturnEchart");
+
+      let startDateIndex=this.binarySearchStock(riskFactorReturn,startDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+
+      if(startDateIndex === -1) {
+          startDateIndex=1;
+      }
+
+      let endDateIndex=this.binarySearchStock(riskFactorReturn,endDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+
+      if(endDateIndex === -1) {
+          endDateIndex=riskFactorReturn.length-1;
+      }
+
+      let chartLegendData=[],xAxisDatas[],series=[];    //分别对应图例组件数组,x坐标数组,和具体每一条曲线的数据
+      for(let riskIndex=1; riskIndex<riskFactorReturn[0].length; ++riskIndex){    //遍历每一个风险因子
+
+          let lengendData={name:riskFactorReturn[0][riskIndex],textStyle: { color: "#F3F3F5" }};
+          chartLegendData.push(lengendData);
+
+          //具体每一条曲线的数据
+          let seriesData={name:riskFactorReturn[0][riskIndex] ,type: "line", data: []};
+          for(let i=startDateIndex;i<=endDateIndex;++i){
+              seriesData.data.push(riskFactorReturn[i][riskIndex]);
+          }
+          series.push(seriesData);
+      }
+
+      //设置x坐标日期数组
+      for(let i=startDateIndex;i<=endDateIndex;++i){
+          xAxisDatas.push(riskFactorReturn[i][this.rfrDateIndex]);
+      }
+
+      let option= {
+            title: {
+                show: false,
+            },
+            tooltip: {
+                trigger: "axis",
+                axisPointer: {
+                    type: "cross",
+                    label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                }
+            },
+            legend: {
+                data: chartLegendData,
+                textStyle: { color: "#F3F3F5" }
+            },
+            xAxis: [{
+                data: ["2016-10-01", "2017-01-01", "2017-04-01", "2017-07-01"],
+                axisLabel: {
+                    textStyle: { color: "#F3F3F5" }
+                },
+                axisLine: {
+                    lineStyle: { color: "#F3F3F5" }
+                }
+            }],
+            yAxis: [{
+                position: "right",
+                axisLabel: {
+                    show: true,
+                    textStyle: { color: "#F3F3F5" }
+                },
+                axisLine: {
+                    lineStyle: { color: "#F3F3F5" }
+                },
+                scale: true,
+                boundaryGap: [0.2, 0.2]
+            }],
+            series: series,
+            color: [
+                "#00b", "#0b0"
+            ]
+        }
+
+        let riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
+        riskFactorReturnEchart.setOption(option);
+
     }
 
 
