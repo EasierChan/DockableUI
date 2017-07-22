@@ -409,7 +409,7 @@ usercontrol.row{
     height: 25px;
     vertical-align: middle;
     margin: 0px;
-    /*padding: 2px 0px;*/
+    padding: 2px 0px;
 }
 
 usercontrol.row > * {
