@@ -6,6 +6,7 @@ import { TradeService } from "../../bll/services";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { IP20Service } from "../../../base/api/services/ip20.service";
+import * as echarts from "echarts";
 import fs = require("@node/fs");
 import path = require("path");
 
@@ -21,7 +22,7 @@ import path = require("path");
 export class RiskFactorComponent {
     static self: any;
 
-    posStockIndex: number=0;
+    posStockIndex: number = 0;
     posWeightIndex: number=1;
     rfrDateIndex: number=0;
     rfeDateIndex: number=0;
@@ -36,8 +37,7 @@ export class RiskFactorComponent {
     hedgeRadio:number;
 
 
-    iproducts:string[]=['a','b'];
-    iproduct:string='a';
+    iproducts:string[];
     info:string='';
     istrategys:string[]=['aa','bb'];
     istrategy:string='aa';
@@ -45,30 +45,41 @@ export class RiskFactorComponent {
     allRfeResult:  array =[];//所有风险因子的收益
 
     note: string = "hello xiaobo!";
-    riskFactorReturn: array =[];
-    riskFactorExpose: array =[];
+    riskFactorReturn: any[] =[];
+    riskFactorExpose: any[] = [];
     groupPosition: array =[['000001.SZ',0.1],['000002.SZ',0.6]];
 
     constructor(private tradePoint: TradeService,private tgw: IP20Service) {
         //this.tgw.connect(12);
         RiskFactorComponent.self = this;
         //this.loadData();
-
+        this.iproducts = [];
         this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
 
     }
 
     ngOnInit() {
         // receive holdlist
-        // this.tradePoint.addSlot({
-        //    appid: 123,
-        //    packid:   ,
-        //    callback: (msg) =>{
-
-        //      }
-        // });
+         this.tradePoint.addSlot({
+            appid: 260,
+            packid: 216,
+            callback: (msg) =>{
+            let data = JSON.parse(msg.content.body);
+            if (data.msret.msgcode === "00") {
+                console.log(msg);
+                let productData = data.body;
+                console.log(productData[0].tblock_full_name);
+                for(let i = 0; i < productData.length; i++){
+                  RiskFactorComponent.self.iproducts.push(productData[i].tblock_full_name);
+                }
+            } else {
+                alert("Get product info Failed! " + data.msret.msg);
+            }
+            console.log(RiskFactorComponent.self.iproducts)
+            }
+         });
         // request holdlist
-        // this.tradePoint.send();
+        this.tradePoint.send(260, 216, { body: { tblock_type: 2 } });
     }
 
     loadData() {
@@ -99,11 +110,10 @@ export class RiskFactorComponent {
             const singleWeight=groupPosition[index];
             let rfeIndex=this.binarySearchStock(riskFactorExpose,singleWeight[this.posStockIndex],1,0);
 
-            if(rfeIndex === -1){
+            if(rfeIndex === -1) {
                 alert("没有找到"+singleWeight[this.posStockIndex]+"的暴露,请补全信息!");
                 return;
-            }
-            else{
+            } else {
                 let singleExpose=[];
                 singleExpose["stockCode"]=singleWeight[this.posStockIndex];
 
@@ -117,7 +127,7 @@ export class RiskFactorComponent {
                 subCodeExpose.push(singleExpose);
                 //console.log("sumOfDayExpose",sumOfDayExpose);
                 console.log("subCodeExpose",subCodeExpose);
-            }
+            } //
         }
 
 
@@ -229,6 +239,28 @@ export class RiskFactorComponent {
     }
 
     lookReturn(){
+      // futurehold
+       this.tradePoint.addSlot({
+          appid: 260,
+          packid: 220,
+          callback: (msg) =>{
+          console.log(msg);
+          }
+       });
+
+      this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,trday:date } });
+
+      // stockhold
+       this.tradePoint.addSlot({
+          appid: 260,
+          packid: 222,
+          callback: (msg) =>{
+          console.log(msg);
+          }
+       });
+
+      this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,trday:date } });
+
         console.log("OnClick",this,this.startDate,this.endDate);
         let exposeFile=[],dirFiles=[];
 
