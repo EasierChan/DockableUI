@@ -993,10 +993,10 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: { type: "registerAccPos", data: account }
             });
-            MessageBox.openFileDialog("Select CSV", function(filenames) {
+            MessageBox.openFileDialog("Select CSV", function (filenames) {
                 // console.log(filenames);
                 if (filenames !== undefined)
-                    fs.readFile(filenames[0], function(err, content) {
+                    fs.readFile(filenames[0], function (err, content) {
                         if (err === null) {
                             readself.portfolioCount.Text = "0";
                             readself.allChk.Text = false;
@@ -1004,7 +1004,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                             let codeStr = content.toString();
                             let splitStr = codeStr.split("\n");
                             let initPos = [];
-                            splitStr.forEach(function(item) {
+                            splitStr.forEach(function (item) {
                                 let arr = item.split(",");
                                 if (arr.length === 2 && arr[0]) {
                                     let obj = AppComponent.self.secuinfo.getSecuinfoByCode(arr[0] + "");
@@ -1275,7 +1275,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.subScribeMarketInit(this.option.feedhandler.port, this.option.feedhandler.host);
         // this.init(9082, "172.24.51.4");
         let getpath = Environment.getDataPath(this.option.name);
-        fs.exists(getpath + "/config.json", function(exists) {
+        fs.exists(getpath + "/config.json", function (exists) {
             if (exists) { // file exist
                 fs.readFile(getpath + "/config.json", (err, data) => {
                     if (err) throw err;
@@ -1287,7 +1287,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     }
                 });
             } else {  // nost exist
-                fs.writeFile(getpath + "/config.json", "", function(err) {
+                fs.writeFile(getpath + "/config.json", "", function (err) {
                     if (err) {
                         console.log(err);
                     }
@@ -2334,11 +2334,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[5].Text = obj.record.date;
         row.cells[6].Text = obj.record.c;
         if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SH)
-            row.cells[7].Text = obj.record.AvlAmount;
+            row.cells[7].Text = obj.record.AvlAmount / 10000;
         else
             row.cells[7].Text = 0;
         if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SZ)
-            row.cells[8].Text = obj.record.AvlAmount;
+            row.cells[8].Text = obj.record.AvlAmount / 10000;
         else
             row.cells[8].Text = 0;
         row.cells[9].Text = 0;
@@ -3107,7 +3107,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     writeinconfigJson(data: string) {
         let getpath = Environment.getDataPath(this.option.name);
-        fs.writeFile(getpath + "/config.json", data, function(err) {
+        fs.writeFile(getpath + "/config.json", data, function (err) {
             if (err) {
                 console.log(err);
             }
