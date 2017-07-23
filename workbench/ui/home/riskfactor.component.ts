@@ -46,10 +46,13 @@ export class RiskFactorComponent {
     istrategy:string='aa';
 
     allRfeResult:  array =[];//所有风险因子的收益
+    riskFactorReturnAttr:  array=[];//风险因子收益归因
+    stockReturnAttr:  array=[];//风险因子收益归因
 
     note: string = "hello xiaobo!";
     riskFactorReturn: array =[];
-    riskFactorExpose: array =[];
+    riskFactorExposure: array =[];
+
     groupPosition: array =[['000001.SZ',0.1],['000002.SZ',0.6]];
 
     constructor(private tradePoint: TradeService,private tgw: IP20Service) {
@@ -72,6 +75,12 @@ export class RiskFactorComponent {
         // });
         // request holdlist
         // this.tradePoint.send();
+
+        this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
+        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
+        this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") );
+        this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") );
+
     }
 
     loadData() {
@@ -101,51 +110,97 @@ export class RiskFactorComponent {
         for(let i=1; i<this.riskFactorReturn.length; ++i){
 
             for(let j=1; j<this.riskFactorReturn[0].length; ++j ){
-                this.riskFactorReturn[i][j]=parseFloat(this.riskFactorReturn[i][j]);
+                var value= parseFloat(this.riskFactorReturn[i][j]);
+                if( isNaN(value)){
+                    this.riskFactorReturn[i][j]=0;
+                } else {
+                    this.riskFactorReturn[i][j]=value;
+                }
+
             }
         }
         console.log("handled riskFactorReturn",this.riskFactorReturn);
     }
 
-    calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition,currDate){
+    readAndHandleRiskExposure(exposureFilePath) {
+        this.riskFactorExposure=this.readDataFromCsvFile(exposureFilePath);
+
+        if(this.riskFactorExposure.length < 2 ){
+            console.log("暴露数据为空，不能计算数据。");
+            return；
+        }
+        this.riskFactorExposure.splice(0,1);//直接删除掉第一列,应该保证风险因子的顺序给的一致
+        this.riskFactorExposure.sort( function (perv,next){
+                if(perv[1]>next[1]){
+                    return 1;
+                }else if(perv[1]<next[1]){
+                    return -1;
+                }
+                else
+                    return 0;
+            });
+
+        for(let i=0;i<this.riskFactorExposure.length;++i){
+            this.riskFactorExposure[i][this.rfeStockIndex]=this.riskFactorExposure[i][this.rfeStockIndex].slice(1,this.riskFactorExposure[i][this.rfeStockIndex].length-1);
+
+            for(let j=2; j<this.riskFactorExposure[0].length; ++j ){
+                var value= parseFloat(this.riskFactorExposure[i][j]);
+                if( isNaN(value)){
+                    this.riskFactorExposure[i][j]=0;
+                } else {
+                    this.riskFactorExposure[i][j]=value;
+                }
+
+            }
+
+        }
+        console.log("modify riskFactorExposure",this.riskFactorExposure);
+    }
+
+    calculateRiskFactor(riskFactorReturn,riskFactorExposure,groupPosition,sumOfDayExposure,currDate){
         console.log("calculateRiskFactor");
-        let subCodeExpose=[];//保存拥有的所有股票的权重与暴露之乘积
-        //let sumOfDayExpose=[];//保存风险因子的权重与暴露之乘积的和
-        //for(let i=1;i<riskFactorReturn[0].length;++i){
-        //    sumOfDayExpose.push( 0 );
-        //}
+        let subStockExposure=[];//保存拥有的所有股票的权重与暴露之乘积
 
         console.log("权重与暴露之乘积");
 
         //权重与暴露之乘积
-        for(let index=0;index<groupPosition.length;++index){    //遍历所有的持仓权重
+        for(let index=0; index<groupPosition.length; ++index){    //遍历所有的持仓权重
             const singleWeight=groupPosition[index];
-            let rfeIndex=this.binarySearchStock(riskFactorExpose,singleWeight[this.posStockIndex],1,0);
+            let rfeIndex=this.binarySearchStock(riskFactorExposure,singleWeight[this.posStockIndex],1,0);
 
             if(rfeIndex === -1){
                 alert("没有找到"+singleWeight[this.posStockIndex]+"的暴露,请补全信息!");
                 return;
             }
             else{
-                let singleExpose=[];
-                singleExpose["stockCode"]=singleWeight[this.posStockIndex];
+                let singleExposure=[];
+                singleExposure["stockCode"]=singleWeight[this.posStockIndex];
 
-                for(let i=2;i<riskFactorExpose[rfeIndex].length;++i){   //遍历制定暴露的风险因子的暴露
-                    console.log("遍历制定暴露的风险因子的暴露",riskFactorExpose[rfeIndex][i] ,singleWeight[this.posWeightIndex]);
+                for(let i=2;i<riskFactorExposure[rfeIndex].length;++i){   //遍历指定暴露的风险因子的暴露
+                    console.log("遍历制定暴露的风险因子的暴露",riskFactorExposure[rfeIndex][i] ,singleWeight[this.posWeightIndex]);
 
-                    singleExpose[ i-2 ]=riskFactorExpose[rfeIndex][i] * singleWeight[this.posWeightIndex];//这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
-                    //sumOfDayExpose[i-2]+=riskFactorExpose[rfeIndex][i] * singleWeight[this.posWeightIndex];  //所有的股票在风险因子下的暴露,数据可能不是数字哦
+                    singleExposure[ i-2 ]=riskFactorExposure[rfeIndex][i] * singleWeight[this.posWeightIndex];//这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
                 }
 
-                subCodeExpose.push(singleExpose);
-                //console.log("sumOfDayExpose",sumOfDayExpose);
-                console.log("subCodeExpose",subCodeExpose);
+                subStockExposure.push(singleExposure);
+
+                console.log("subStockExposure",subStockExposure,"index",index);
             }
         }
 
+        // 计算各个风险因子当天的总的暴露
+        for (let i = 2; i < riskFactorExposure[0].length; i++) {    //遍历风险因子的暴露
 
-      let stockReturnAttr=[];//收益归因 riskFactorReturnResult=[],
-      //riskFactorReturnResult["date"]=currDate;
+            for(let stockExpIndex=0; stockExpIndex < subStockExposure.length; ++stockExpIndex){
+              sumOfDayExposure[i-2].exposure += subStockExposure[stockExpIndex][i-2];
+            }
+
+        }
+
+
+
+
+
       let returnDateIndex=this.binarySearchStock(riskFactorReturn,currDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
 
       if(returnDateIndex === -1) {
@@ -155,24 +210,25 @@ export class RiskFactorComponent {
       //计算单个风险因子在所有股票下暴露和风险因子的乘积--也就是收益归因
       for(let i=1;i<riskFactorReturn[returnDateIndex].length;++i){    //循环风险因子收益
           //计算对于组合的收益归因
-          //riskFactorReturnResult[ i-1 ]=riskFactorReturn[returnDateIndex][i] * sumOfDayExpose[i-1];
+          //let allStockReturn={stockReturn:0};
 
-
-          let allStockReturn={stockReturn:0};
-          for(let stockIndex = 0; stockIndex < subCodeExpose.length; ++stockIndex){   //循环持仓股票
-              allStockReturn.stockReturn+=riskFactorReturn[returnDateIndex][i] * subCodeExpose[stockIndex][i-1];  //计算单个股票在所有收益因子下的收益归因
-              console.log("allStockReturn",riskFactorReturn[returnDateIndex][i] , subCodeExpose[stockIndex][i-1]);
+          for(let stockIndex = 0; stockIndex < subStockExposure.length; ++stockIndex){   //循环持仓股票
+              //allStockReturn.stockReturn+=riskFactorReturn[returnDateIndex][i] * subStockExposure[stockIndex][i-1];  //计算单个股票在所有收益因子下的收益归因
+              this.riskFactorReturnAttr[i-1].returnAttr += riskFactorReturn[returnDateIndex][i] * subStockExposure[stockIndex][i-1];
+              console.log("allStockReturn",riskFactorReturn[returnDateIndex][i] , subStockExposure[stockIndex][i-1]);
           }
-          stockReturnAttr.push(allStockReturn);
-      }
-      //this.allRfeResult.push(riskFactorReturnResult);
-      console.log("stockReturnAttr",stockReturnAttr);
 
-      let allStockAttr = this.sumOfStockFactor(subCodeExpose,riskFactorReturn,returnDateIndex);
+          //this.riskFactorReturnAttr.push(allStockReturn);
+      }
+
+      console.log("riskFactorReturnAttr",this.riskFactorReturnAttr);
+
+      let allStockAttr = this.sumOfStockFactor(subStockExposure,riskFactorReturn,returnDateIndex);
       console.log("allStockAttr",allStockAttr);
 
 
       this.setriskFactorReturnEchart(riskFactorReturn,this.startDate,this.endDate);
+
     }
 
 
@@ -255,35 +311,43 @@ export class RiskFactorComponent {
 
     lookReturn(){
         console.log("OnClick",this,this.startDate,this.endDate);
-        let exposeFile=[],dirFiles=[];
+        let exposureFile=[],dirFiles=[];
+        let sumOfDayExposure=[];//保存风险因子的权重与暴露之乘积的和
+
+        for(let i=1; i< this.riskFactorReturn[0].length; ++i){
+            sumOfDayExposure.push( {name: this.riskFactorReturn[0][i], exposure:0} );
+            this.riskFactorReturnAttr.push( {name: this.riskFactorReturn[0][i], returnAttr:0} )
+        }
+
 
         try{
             dirFiles=fs.readdirSync("/home/muxb/project/expose");
         }catch(err){
             console.log("err",err);
+            return;
         }
         console.log("dirFiles",dirFiles);
         for(let fileIndex=0;fileIndex<dirFiles.length;++fileIndex){
             if( (this.startDate !=="" || this.startDate !=="") &&
                 (this.startDate !=="" && dirFiles[fileIndex] >= (this.startDate+".csv")) &&
                 (this.endDate !=="" && dirFiles[fileIndex] <= (this.endDate+".csv")) ){
-                //console.log(dirFiles[fileIndex],fileIndex);
-                exposeFile.push( dirFiles[fileIndex] );
+
+                exposureFile.push( dirFiles[fileIndex] );
             }
 
         }
-        exposeFile.sort();
-        console.log("exposeFile",exposeFile);
-        for(let fileIndex=0;fileIndex<exposeFile.length;++fileIndex){
+        exposureFile.sort();
 
-            this.riskFactorExpose=this.readDataFromCsvFile("/home/muxb/project/expose/"+exposeFile[fileIndex]);
+        for(let fileIndex=0;fileIndex<exposureFile.length;++fileIndex){
 
-            if(this.riskFactorReturn.length < 2 ||this.riskFactorExpose.length < 2 ||this.groupPosition.length < 2 ){
+            /*this.riskFactorExposure=this.readDataFromCsvFile("/home/muxb/project/expose/"+exposureFile[fileIndex]);
+
+            if(this.riskFactorReturn.length < 2 ||this.riskFactorExposure.length < 2 ||this.groupPosition.length < 2 ){
                 console.log("有数据为空，不能计算数据。");
                 return；
             }
-            this.riskFactorExpose.splice(0,1);//直接删除掉第一列,应该保证风险因子的顺序给的一致
-            this.riskFactorExpose.sort( function (perv,next){
+            this.riskFactorExposure.splice(0,1);//直接删除掉第一列,应该保证风险因子的顺序给的一致
+            this.riskFactorExposure.sort( function (perv,next){
                     if(perv[1]>next[1]){
                         return 1;
                     }else if(perv[1]<next[1]){
@@ -293,28 +357,33 @@ export class RiskFactorComponent {
                         return 0;
                 });
 
-            for(let i=0;i<this.riskFactorExpose.length;++i){
-                this.riskFactorExpose[i][this.rfeStockIndex]=this.riskFactorExpose[i][this.rfeStockIndex].slice(1,this.riskFactorExpose[i][this.rfeStockIndex].length-1);
+            for(let i=0;i<this.riskFactorExposure.length;++i){
+                this.riskFactorExposure[i][this.rfeStockIndex]=this.riskFactorExposure[i][this.rfeStockIndex].slice(1,this.riskFactorExposure[i][this.rfeStockIndex].length-1);
             }
-            console.log("modify riskFactorExpose",this.riskFactorExpose);
-            this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExpose,this.groupPosition,exposeFile[fileIndex].split(".")[0]);
+            console.log("modify riskFactorExposure",this.riskFactorExposure);*/
+
+            this.readAndHandleRiskExposure("/home/muxb/project/expose/"+exposureFile[fileIndex]);
+            this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExposure,this.groupPosition,sumOfDayExposure,exposureFile[fileIndex].split(".")[0]);
         }
+        console.log("sumOfDayExposure second",sumOfDayExposure);
+        this.setriskFactorExposureEchart(sumOfDayExposure);
+        this.setRiskFactorAttrEchart(this.riskFactorReturnAttr);
 
 
     }
 
     //计算单个股票在所有风险因子下暴露和风险因子的乘积--也就是收益归因
-    sumOfStockFactor(holdStockExpose,riskFactorReturn,returnDateIndex){
+    sumOfStockFactor(holdStockExposure,riskFactorReturn,returnDateIndex){
         let allStockAttr=[];
 
-        for(let stockIndex=0;stockIndex<holdStockExpose.length;++stockIndex){   //循环持仓股票
+        for(let stockIndex=0;stockIndex<holdStockExposure.length;++stockIndex){   //循环持仓股票
 
             let singleStockReturn={stockReturn:0};
-            singleStockReturn.stockCode=holdStockExpose[stockIndex].stockCode;
+            singleStockReturn.stockCode=holdStockExposure[stockIndex].stockCode;
 
             for(let i=1;i<riskFactorReturn[returnDateIndex].length;++i){    //循环风险因子收益
-                singleStockReturn.stockReturn+=riskFactorReturn[returnDateIndex][i]*holdStockExpose[stockIndex][i-1];   //累加单个股票在所有收益因子下的收益归因
-                console.log("sumOfStockFactor",riskFactorReturn[returnDateIndex][i],holdStockExpose[stockIndex][i-1],riskFactorReturn[returnDateIndex][i]*holdStockExpose[stockIndex][i-1]);
+                singleStockReturn.stockReturn+=riskFactorReturn[returnDateIndex][i]*holdStockExposure[stockIndex][i-1];   //累加单个股票在所有收益因子下的收益归因
+
             }
             allStockAttr.push(singleStockReturn);
         }
@@ -323,6 +392,8 @@ export class RiskFactorComponent {
 
     }
 
+
+    //设置收益的两个图标
     setriskFactorReturnEchart(riskFactorReturn,startDate,endDate){
       console.log("setriskFactorReturnEchart");
 
@@ -412,10 +483,7 @@ export class RiskFactorComponent {
             ]
         }
 
-        this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
         this.riskFactorReturnEchart.setOption(option);
-
-
 
         let allDayOption= {
               title: {
@@ -463,9 +531,130 @@ export class RiskFactorComponent {
                   "#00b", "#0b0"
               ]
           }
-        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
+
         this.allDayReturnEchart.setOption(allDayOption);
     }
 
+    //设置风险因子暴露的两个图表
+    setriskFactorExposureEchart(riskFactorExposure){
+
+        let riskFactorExposureXAxis=[],riskFactorExposureSeries=[];
+
+
+        for (var i = 0; i < riskFactorExposure.length; i++) {
+          riskFactorExposureXAxis.push( riskFactorExposure[i].name );
+          riskFactorExposureSeries.push( riskFactorExposure[i].exposure );
+
+        }
+
+        let riskFactorExposureOption= {
+              title: {
+                  show: false,
+              },
+              tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                      type: "cross",
+                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                  }
+              },
+              legend: {
+                  data: ["风险因子暴露"],
+                  textStyle: { color: "#F3F3F5" }
+              },
+              xAxis: {
+                  data: riskFactorExposureXAxis,
+                  axisLabel: {
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  }
+              },
+              yAxis: {
+                  position: "right",
+                  axisLabel: {
+                      show: true,
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  },
+                  scale: true,
+                  boundaryGap: [0.2, 0.2]
+              },
+              series: [{
+                      name: "风险因子暴露",
+                      type: "bar",
+                      data: riskFactorExposureSeries
+                  }
+              ],
+              color: [
+                  "#00b", "#0b0"
+              ]
+          }
+
+          this.riskFactorExposureEchart.setOption(riskFactorExposureOption);
+    }
+
+    setRiskFactorAttrEchart(riskFactorAttr){
+        let riskFactorAttrXAxis=[],riskFactorAttrSeries=[];
+
+
+        for (var i = 0; i < riskFactorAttr.length; i++) {
+          riskFactorAttrXAxis.push( riskFactorAttr[i].name );
+          riskFactorAttrSeries.push( riskFactorAttr[i].returnAttr );
+
+        }
+
+        let riskFactorAttrOption= {
+              title: {
+                  show: false,
+              },
+              tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                      type: "cross",
+                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                  }
+              },
+              legend: {
+                  data: ["风险因子归因"],
+                  textStyle: { color: "#F3F3F5" }
+              },
+              xAxis: {
+                  data: riskFactorAttrXAxis,
+                  axisLabel: {
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  }
+              },
+              yAxis: {
+                  position: "right",
+                  axisLabel: {
+                      show: true,
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  },
+                  scale: true,
+                  boundaryGap: [0.2, 0.2]
+              },
+              series: [{
+                      name: "风险因子归因",
+                      type: "bar",
+                      data: riskFactorAttrSeries
+                  }
+              ],
+              color: [
+                  "#00b", "#0b0"
+              ]
+          }
+
+          this.riskFactorReturnAttrEchart.setOption(riskFactorAttrOption);
+    }
 
 }
