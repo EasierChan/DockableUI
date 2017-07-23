@@ -159,7 +159,7 @@ export class RiskFactorComponent {
 
     calculateRiskFactor(riskFactorReturn,riskFactorExposure,groupPosition,sumOfDayExposure,currDate){
         console.log("calculateRiskFactor");
-        let subStockExposure=[];//保存拥有的所有股票的权重与暴露之乘积
+        let subStockExposure=[];//保存每一支股票的权重与暴露之乘积
 
         console.log("权重与暴露之乘积");
 
@@ -212,7 +212,7 @@ export class RiskFactorComponent {
           //计算对于组合的收益归因
           //let allStockReturn={stockReturn:0};
 
-          for(let stockIndex = 0; stockIndex < subStockExposure.length; ++stockIndex){   //循环持仓股票
+          for(let stockIndex = 0; stockIndex < subStockExposure.length; ++stockIndex){   //循环持仓股票的暴露
               //allStockReturn.stockReturn+=riskFactorReturn[returnDateIndex][i] * subStockExposure[stockIndex][i-1];  //计算单个股票在所有收益因子下的收益归因
               this.riskFactorReturnAttr[i-1].returnAttr += riskFactorReturn[returnDateIndex][i] * subStockExposure[stockIndex][i-1];
               console.log("allStockReturn",riskFactorReturn[returnDateIndex][i] , subStockExposure[stockIndex][i-1]);
