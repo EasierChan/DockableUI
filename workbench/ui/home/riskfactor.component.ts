@@ -36,8 +36,9 @@ export class RiskFactorComponent {
 
     hedgeRadio:number;
 
-
+    productData:any[];
     iproducts:string[];
+    iproduct:string;
     info:string='';
     istrategys:string[]=['aa','bb'];
     istrategy:string='aa';
@@ -67,15 +68,17 @@ export class RiskFactorComponent {
             let data = JSON.parse(msg.content.body);
             if (data.msret.msgcode === "00") {
                 console.log(msg);
-                let productData = data.body;
-                console.log(productData[0].tblock_full_name);
-                for(let i = 0; i < productData.length; i++){
-                  RiskFactorComponent.self.iproducts.push(productData[i].tblock_full_name);
+                RiskFactorComponent.self.productData = data.body;
+                  console.log(RiskFactorComponent.self.productData);
+                console.log(RiskFactorComponent.self.productData[0].tblock_full_name);
+                for(let i = 0; i < RiskFactorComponent.self.productData.length; i++){
+                  RiskFactorComponent.self.iproducts.push(RiskFactorComponent.self.productData[i].tblock_full_name);
                 }
             } else {
                 alert("Get product info Failed! " + data.msret.msg);
             }
             console.log(RiskFactorComponent.self.iproducts)
+            RiskFactorComponent.self.iproduct = RiskFactorComponent.self.iproducts[0];
             }
          });
         // request holdlist
@@ -93,6 +96,29 @@ export class RiskFactorComponent {
     nextDropdown(){
     //get strategies of this product
     alert("Pl!")
+    console.log(RiskFactorComponent.self.iproduct);
+    var productlist = document.getElementById("product");
+    var productIndex = productlist.selectedIndex;
+    var tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+
+    // strategies
+     this.tradePoint.addSlot({
+        appid: 260,
+        packid: 218,
+        callback: (msg) =>{
+          console.log(msg);
+          let data = JSON.parse(msg.content.body);
+          if (data.msret.msgcode === "00") {
+              console.log(msg);
+          } else {
+                alert("Get product info Failed! " + data.msret.msg);
+            }
+        }
+     });
+    console.log(tblockId);
+    this.tradePoint.send(260, 218, { body: { tblock_id:tblockId } });
+
+
     }
 
     calculateRiskFactor(riskFactorReturn,riskFactorExpose,groupPosition,currDate){
