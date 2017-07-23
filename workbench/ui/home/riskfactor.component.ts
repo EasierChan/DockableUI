@@ -6,6 +6,7 @@ import { TradeService } from "../../bll/services";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 import { IP20Service } from "../../../base/api/services/ip20.service";
+import * as echarts from "echarts";
 import fs = require("@node/fs");
 import path = require("path");
 
@@ -21,7 +22,8 @@ import path = require("path");
 export class RiskFactorComponent {
     static self: any;
 
-    posStockIndex: number=0;
+    posStockIndex: number = 0;
+
     posWeightIndex: number=1;
     rfrDateIndex: number=0;
     rfeDateIndex: number=0;
@@ -30,35 +32,40 @@ export class RiskFactorComponent {
     styleObj: any;
     dataSource: any;
 
-    startDate: string="20090115";
-    endDate: string="20090116";
+    startDate: string = "20090115";
+    endDate: string = "20090116";
 
-    hedgeRadio:number;
+    hedgeRadio: number;
 
     riskFactorReturnEchart: any;//echart
     allDayReturnEchart: any;
 
 
-    iproducts:string[]=['a','b'];
-    iproduct:string='a';
+    iproducts:string[];
     info:string='';
     istrategys:string[]=['aa','bb'];
     istrategy:string='aa';
 
-    allRfeResult:  array =[];//所有风险因子的收益
-    riskFactorReturnAttr:  array=[];//风险因子收益归因
-    stockReturnAttr:  array=[];//风险因子收益归因
+
+
+    allRfeResult: any[] = [];//所有风险因子的收益
+    riskFactorReturnAttr:  any[] = [];//风险因子收益归因
+    stockReturnAttr:  any[] = [];//风险因子收益归因
 
     note: string = "hello xiaobo!";
-    riskFactorReturn: array =[];
-    riskFactorExposure: array =[];
+
+    riskFactorReturn: any[] =[];
+    riskFactorExpose: any[] = [];
 
     groupPosition: array =[['000001.SZ',0.1],['000002.SZ',0.6]];
 
-    constructor(private tradePoint: TradeService,private tgw: IP20Service) {
+    constructor(private tradePoint: TradeService, private tgw: IP20Service) {
         //this.tgw.connect(12);
         RiskFactorComponent.self = this;
         //this.loadData();
+
+        this.iproducts = [];
+        this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
 
         this.readAndHandleRiskReturn();
 
@@ -66,20 +73,34 @@ export class RiskFactorComponent {
 
     ngOnInit() {
         // receive holdlist
-        // this.tradePoint.addSlot({
-        //    appid: 123,
-        //    packid:   ,
-        //    callback: (msg) =>{
-
-        //      }
-        // });
+         this.tradePoint.addSlot({
+            appid: 260,
+            packid: 216,
+            callback: (msg) =>{
+            let data = JSON.parse(msg.content.body);
+            if (data.msret.msgcode === "00") {
+                console.log(msg);
+                let productData = data.body;
+                console.log(productData[0].tblock_full_name);
+                for(let i = 0; i < productData.length; i++){
+                  RiskFactorComponent.self.iproducts.push(productData[i].tblock_full_name);
+                }
+            } else {
+                alert("Get product info Failed! " + data.msret.msg);
+            }
+            console.log(RiskFactorComponent.self.iproducts)
+            }
+         });
         // request holdlist
-        // this.tradePoint.send();
+
 
         this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
         this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
         this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") );
         this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") );
+
+        this.tradePoint.send(260, 216, { body: { tblock_type: 2 } });
+
 
     }
 
@@ -91,23 +112,23 @@ export class RiskFactorComponent {
     }
 
 
-    nextDropdown(){
-    //get strategies of this product
-    alert("Pl!")
+    nextDropdown() {
+        //get strategies of this product
+        alert("Pl!")
     }
 
     readAndHandleRiskReturn() {
-        this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        this.riskFactorReturn = this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
         //处理获取的风险因子收益数据
-        if(this.riskFactorReturn.length<2){
+        if (this.riskFactorReturn.length < 2) {
             alert("风险因子收益没有数据,请导入数据后重试");
             return;
         }
-        for(let i=0; i<this.riskFactorReturn[0].length; ++i ){
-            this.riskFactorReturn[0][i]=this.riskFactorReturn[0][i].slice(1,this.riskFactorReturn[0][i].length-1);
+        for (let i = 0; i < this.riskFactorReturn[0].length; ++i) {
+            this.riskFactorReturn[0][i] = this.riskFactorReturn[0][i].slice(1, this.riskFactorReturn[0][i].length - 1);
         }
 
-        for(let i=1; i<this.riskFactorReturn.length; ++i){
+        for (let i = 1; i < this.riskFactorReturn.length; ++i) {
 
             for(let j=1; j<this.riskFactorReturn[0].length; ++j ){
                 var value= parseFloat(this.riskFactorReturn[i][j]);
@@ -119,8 +140,9 @@ export class RiskFactorComponent {
 
             }
         }
-        console.log("handled riskFactorReturn",this.riskFactorReturn);
+        console.log("handled riskFactorReturn", this.riskFactorReturn);
     }
+
 
     readAndHandleRiskExposure(exposureFilePath) {
         this.riskFactorExposure=this.readDataFromCsvFile(exposureFilePath);
@@ -164,13 +186,17 @@ export class RiskFactorComponent {
         console.log("权重与暴露之乘积");
 
         //权重与暴露之乘积
+
         for(let index=0; index<groupPosition.length; ++index){    //遍历所有的持仓权重
             const singleWeight=groupPosition[index];
             let rfeIndex=this.binarySearchStock(riskFactorExposure,singleWeight[this.posStockIndex],1,0);
 
-            if(rfeIndex === -1){
+
+
+            if(rfeIndex === -1) {
                 alert("没有找到"+singleWeight[this.posStockIndex]+"的暴露,请补全信息!");
                 return;
+
             }
             else{
                 let singleExposure=[];
@@ -186,6 +212,7 @@ export class RiskFactorComponent {
 
                 console.log("subStockExposure",subStockExposure,"index",index);
             }
+
         }
 
         // 计算各个风险因子当天的总的暴露
@@ -197,15 +224,12 @@ export class RiskFactorComponent {
 
         }
 
-
-
-
-
       let returnDateIndex=this.binarySearchStock(riskFactorReturn,currDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
 
-      if(returnDateIndex === -1) {
-          return;
-      }
+
+        if (returnDateIndex === -1) {
+            return;
+        }
 
       //计算单个风险因子在所有股票下暴露和风险因子的乘积--也就是收益归因
       for(let i=1;i<riskFactorReturn[returnDateIndex].length;++i){    //循环风险因子收益
@@ -232,9 +256,9 @@ export class RiskFactorComponent {
     }
 
 
-    readDataFromCsvFile(csvFilePath){
+    readDataFromCsvFile(csvFilePath) {
 
-        console.log("csvFilePath",csvFilePath);
+        console.log("csvFilePath", csvFilePath);
         /*const thisRef=this;
         fs.readFile(csvFilePath,"utf-8",function(err,fileContent){
             if(err){
@@ -263,21 +287,21 @@ export class RiskFactorComponent {
         });*/
 
 
-        let resultData=[],fileContent="";
-        try{
-            fileContent= fs.readFileSync(csvFilePath,"utf-8");
-            console.log("fileContent",fileContent);
-        }catch(err){
-            console.log("fileContent err",err);
+        let resultData = [], fileContent = "";
+        try {
+            fileContent = fs.readFileSync(csvFilePath, "utf-8");
+            console.log("fileContent", fileContent);
+        } catch (err) {
+            console.log("fileContent err", err);
         }
 
-        let rowDatas=fileContent.split("\r");
+        let rowDatas = fileContent.split("\r");
 
         //分割多行数据
-        for(let i=0;i<rowDatas.length;++i){
-            if(rowDatas[i] != ""){
+        for (let i = 0; i < rowDatas.length; ++i) {
+            if (rowDatas[i] != "") {
 
-                let splitData=rowDatas[i].split("\n")；
+                let splitData = rowDatas[i].split("\n")；
                 for(let j=0;j<splitData.length;++j){
                     if(splitData[j] != ""){
                       resultData.push(splitData[j].split(","));
@@ -310,6 +334,28 @@ export class RiskFactorComponent {
     }
 
     lookReturn(){
+      // futurehold
+      //  this.tradePoint.addSlot({
+      //     appid: 260,
+      //     packid: 220,
+      //     callback: (msg) =>{
+      //     console.log(msg);
+      //     }
+      //  });
+      //
+      // this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,trday:date } });
+      //
+      // // stockhold
+      //  this.tradePoint.addSlot({
+      //     appid: 260,
+      //     packid: 222,
+      //     callback: (msg) =>{
+      //     console.log(msg);
+      //     }
+      //  });
+      //
+      // this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,trday:date } });
+
         console.log("OnClick",this,this.startDate,this.endDate);
         let exposureFile=[],dirFiles=[];
         let sumOfDayExposure=[];//保存风险因子的权重与暴露之乘积的和
@@ -339,28 +385,6 @@ export class RiskFactorComponent {
         exposureFile.sort();
 
         for(let fileIndex=0;fileIndex<exposureFile.length;++fileIndex){
-
-            /*this.riskFactorExposure=this.readDataFromCsvFile("/home/muxb/project/expose/"+exposureFile[fileIndex]);
-
-            if(this.riskFactorReturn.length < 2 ||this.riskFactorExposure.length < 2 ||this.groupPosition.length < 2 ){
-                console.log("有数据为空，不能计算数据。");
-                return；
-            }
-            this.riskFactorExposure.splice(0,1);//直接删除掉第一列,应该保证风险因子的顺序给的一致
-            this.riskFactorExposure.sort( function (perv,next){
-                    if(perv[1]>next[1]){
-                        return 1;
-                    }else if(perv[1]<next[1]){
-                        return -1;
-                    }
-                    else
-                        return 0;
-                });
-
-            for(let i=0;i<this.riskFactorExposure.length;++i){
-                this.riskFactorExposure[i][this.rfeStockIndex]=this.riskFactorExposure[i][this.rfeStockIndex].slice(1,this.riskFactorExposure[i][this.rfeStockIndex].length-1);
-            }
-            console.log("modify riskFactorExposure",this.riskFactorExposure);*/
 
             this.readAndHandleRiskExposure("/home/muxb/project/expose/"+exposureFile[fileIndex]);
             this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExposure,this.groupPosition,sumOfDayExposure,exposureFile[fileIndex].split(".")[0]);

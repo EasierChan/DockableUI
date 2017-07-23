@@ -59,7 +59,6 @@ export class EchartsDirective implements OnChanges, OnDestroy {
     }
 
     ngOnChanges(changes: SimpleChanges) {
-        console.info("Hello", changes);
         if (changes["dataset"]) {
             this.onDatasetChange(this.dataset);
         }
