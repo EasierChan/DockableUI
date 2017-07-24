@@ -11,8 +11,7 @@ import {
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
-declare let window: any;
+import { AppStateCheckerRef, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
 
 @Component({
     moduleId: module.id,
@@ -28,16 +27,11 @@ declare let window: any;
         TranslateService
     ]
 })
-export class AppComponent implements OnInit {
+export class AppComponent2 implements OnInit {
     private readonly apptype = "spreadviewer";
     private languageType = 0;
     main: any;
     option: any;
-    xAxisData: any[];
-    lines: any[];
-    codeLastData: any;
-    ukeys: number[];
-    coeff: number;
 
     constructor(private tgw: IP20Service, private state: AppStateCheckerRef, private secuinfo: SecuMasterService, private langServ: TranslateService) {
         this.state.onInit(this, this.onReady);
@@ -87,15 +81,7 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.xAxisData = [];
-        this.lines = new Array<number[]>(2);
-        this.lines[0] = [];
-        this.lines[1] = [];
-        this.codeLastData = {};
         let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
-        this.ukeys = [parseInt(res[this.option.details.code1].ukey), parseInt(res[this.option.details.code2].ukey)];
-        this.codeLastData[this.ukeys[0]] = 0;
-        this.codeLastData[this.ukeys[1]] = 0;
 
         let spreadviewerContent = new VBox();
         let svHeaderRow1 = new HBox();
@@ -268,7 +254,7 @@ export class AppComponent implements OnInit {
                 let stime = ("0" + time.getHours()).slice(-2) + ("0" + time.getMinutes()).slice(-2) + ("0" + time.getSeconds()).slice(-2);
 
                 if (!msg.content.ukey || !chart.hasInstrumentID(msg.content.ukey)) {
-                    console.warn(`unvalid ukey => ${msg.content.ukey}, ${this.ukeys}`);
+                    console.warn(`unvalid ukey => ${msg.content.ukey}`);
                     return;
                 }
 
@@ -276,152 +262,78 @@ export class AppComponent implements OnInit {
             }
         });
     }
+}
 
-    createChart(names: string[]) {
-        let chart = new ChartViewer();
-        chart.setOption({
-            title: {
-                bottom: 10,
-                text: "SpreadViewer"
-            },
-            tooltip: {
-                trigger: "axis",
-                backgroundColor: "rgba(245, 245, 245, 0.8)",
-                borderWidth: 1,
-                borderColor: "#ccc",
-                padding: 10,
-                textStyle: {
-                    color: "#000"
-                }
-            },
-            legend: {
-                bottom: 10,
-                data: names,
-                textStyle: {
-                    color: "#fff"
-                }
-            },
-            grid: {
-                left: 100,
-                right: 80,
-                bottom: 100,
-                containLabel: false
-            },
-            xAxis: {
-                scale: true,
-                type: "category",
-                axisLabel: {
-                    textStyle: {
-                        color: "#fff"
-                    },
-                    formatter: (param) => {
-                        return param;
-                    }
-                },
-                axisLine: {
-                    lineStyle: {
-                        color: "#fff"
-                    }
-                },
-                boundaryGap: [0.2, 0.2],
-                data: []
-            },
-            yAxis: {
-                scale: true,
-                boundaryGap: [0.2, 0.2],
-                axisLabel: {
-                    textStyle: {
-                        color: "#fff"
-                    }
-                },
-                axisLine: {
-                    lineStyle: {
-                        color: "#fff"
-                    }
-                }
-            },
-            dataZoom: [
-                {
-                    type: "inside",
-                    xAxisIndex: 0
-                },
-            ],
-            series: [
-                {
-                    name: names[0],
-                    type: "line",
-                    connectNulls: true,
-                    data: [],
-                    lineStyle: {
-                        normal: {
-                            color: "#0f0",
-                            width: 1
-                        }
-                    }
-                },
-                {
-                    name: names[1],
-                    type: "line",
-                    connectNulls: true,
-                    data: [],
-                    lineStyle: {
-                        normal: {
-                            color: "#f00",
-                            width: 1
-                        }
-                    }
-                }
-            ]
-        });
+/**
+ * date 2017/07/24
+ * author: cl
+ * desc: to draw the lines with EchartDirective 
+ */
+@Component({
+    moduleId: module.id,
+    selector: "body",
+    templateUrl: "spreadviewer.html",
+    styleUrls: ["spreadview.css"],
+    providers: [
+        IP20Service,
+        AppStateCheckerRef,
+        SecuMasterService
+    ]
+})
+export class AppComponent implements OnInit {
+    option: any;
+    languageType = 0;
 
-        this.tgw.addSlot({
+    constructor(private quote: IP20Service, private state: AppStateCheckerRef,
+        private secuinfo: SecuMasterService) {
+        this.state.onInit(this, this.onReady);
+    }
+
+    onReady(option: any) {
+        this.option = option;
+        this.quote.connect(this.option.port, this.option.host);
+        let language = this.option.lang;
+        switch (language) {
+            case "zh-cn":
+                this.languageType = 1;
+                break;
+            case "en-us":
+                this.languageType = 0;
+                break;
+            default:
+                this.languageType = 0;
+                break;
+        }
+
+        this.loginTGW();
+    }
+
+    loginTGW() {
+        let timestamp: Date = new Date();
+        let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
+            ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
+            ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
+        let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
+        this.quote.addSlot({
             appid: 17,
-            packid: 110,
-            callback: (msg) => {
-                let time = new Date(msg.content.time * 1000);
-                let stime = [time.getFullYear(), (time.getMonth() + 1), (time.getDate())].join("/") + " " +
-                    [("0" + time.getHours()).slice(-2), ("0" + time.getMinutes()).slice(-2), ("0" + time.getSeconds()).slice(-2)].join(":");
-
-                // if (!msg.content.ukey || !viewer.hasInstrumentID(msg.content.ukey)) {
-                if (!msg.content.ukey || !(this.ukeys[0] === msg.content.ukey || this.ukeys[1] === msg.content.ukey)) {
-                    console.warn(`unvalid ukey => ${msg.content.ukey}, ${this.ukeys}`);
-                    return;
-                }
-
-                this.xAxisData.push(stime);
-
-                this.codeLastData[msg.content.ukey] = JSON.parse(JSON.stringify(msg.content));
-
-                if (this.codeLastData[this.ukeys[0]] !== 0 && this.codeLastData[this.ukeys[1]] !== 0) {
-                    this.lines[0].push((this.codeLastData[this.ukeys[0]].ask_price[0] - this.coeff * this.codeLastData[this.ukeys[1]].bid_price[0]) / 10000);
-                    this.lines[1].push((this.codeLastData[this.ukeys[0]].bid_price[0] - this.coeff * this.codeLastData[this.ukeys[1]].ask_price[0]) / 10000);
-                }
-
-                chart.changeOption({
-                    xAxis: [
-                        {
-                            type: "category",
-                            boundaryGap: false,
-                            data: this.xAxisData
-                        }
-                    ], series: [
-                        {
-                            name: names[0],
-                            type: "line",
-                            data: this.lines[0]
-                        },
-                        {
-                            name: names[1],
-                            type: "line",
-                            data: this.lines[1]
-                        }
-                    ]
-                });
-
-                // viewer.setMarketData({ UKey: msg.content.ukey, Time: parseInt(stime), AskPrice: msg.content.ask_price[0], BidPrice: msg.content.bid_price[0] });
+            packid: 43,
+            callback: msg => {
+                console.info(`quote ans=>${msg}`);
+                // this.quote.send(17, 101, { topic: 3112, kwlist: [2163460] });
             }
         });
+        this.quote.addSlot({
+            appid: 17,
+            packid: 120,
+            callback: msg => {
+                console.info(msg);
+            }
+        });
+        this.quote.send(17, 41, loginObj);
+    }
 
-        return chart;
+    ngOnInit() {
+        let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
+        console.info("hello");
     }
 }

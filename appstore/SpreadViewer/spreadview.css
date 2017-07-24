@@ -1,0 +1,7 @@
+/*
+* spreadview.css
+*/
+.chart {
+    display: flex;
+    flex: auto;
+}
