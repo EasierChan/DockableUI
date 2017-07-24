@@ -1,7 +1,8 @@
 "use strict";
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
-import { TileArea, Tile, DataTable, DataTableColumn, ChartViewer } from "../../../base/controls/control";
+import { DataTable, DataTableColumn, ChartViewer } from "../../../base/controls/control";
+import { TradeService, QuoteService } from "../../bll/services";
 
 @Component({
     moduleId: module.id,
@@ -23,7 +24,7 @@ export class SecurityComponent implements OnInit {
     structureInfo: Section;
     @ViewChild("mainIncomeIMG") mainIncomeBitmap: ElementRef;
 
-    constructor() {
+    constructor(private quote: QuoteService) {
     }
 
     ngOnInit() {
@@ -183,6 +184,15 @@ export class SecurityComponent implements OnInit {
             row.cells[1].Text = "2,810,376.39";
             row.cells[2].Text = "98.94%";
         }
+
+        this.quote.addSlot({
+            appid: 140,
+            packid: 10,
+            callback: (msg) => {
+                console.info(msg);
+            }
+        });
+        this.quote.send(140, 10, {ukey: 3, reqtype: 2, reqno: 1});
     }
 
     get codeName() {
@@ -199,7 +209,7 @@ export class SecurityComponent implements OnInit {
                     trigger: "axis",
                     axisPointer: {
                         type: "cross",
-                        label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
                     }
                 },
                 legend: {
@@ -253,7 +263,7 @@ export class SecurityComponent implements OnInit {
                     trigger: "axis",
                     axisPointer: {
                         type: "cross",
-                        label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
                     }
                 },
                 legend: {

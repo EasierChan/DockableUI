@@ -40,6 +40,7 @@ export class AppComponent implements OnInit {
     curEndpoint: any;
 
     constructor(private tradeEndPoint: TradeService,
+        private quote: QuoteService,
         private mock: MockService,
         private appService: AppStoreService) {
     }
@@ -200,7 +201,23 @@ export class AppComponent implements OnInit {
             appid: 17,
             packid: 120,
             callback: msg => {
-                console.error(`tgw::login ans=>${msg}`);
+                console.error(`tgw::login ans=>${JSON.stringify(msg.content)}`);
+            }
+        });
+
+        this.quote.addSlot({ // login success
+            appid: 17,
+            packid: 43,
+            callback: msg => {
+                console.info(`tgw::login ans=>${msg.toString()}`);
+            }
+        });
+
+        this.quote.addSlot({ // login failed
+            appid: 17,
+            packid: 120,
+            callback: msg => {
+                console.error(`tgw::login ans=>${JSON.stringify(msg.content)}`);
             }
         });
 
@@ -216,5 +233,9 @@ export class AppComponent implements OnInit {
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
         let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
         this.tradeEndPoint.send(17, 41, loginObj); // login
+
+        let [qhost, qport] = this.curEndpoint.quote_addr.split(":");
+        this.quote.connect(qport, qhost);
+        this.quote.send(17, 41, loginObj);
     }
 }
