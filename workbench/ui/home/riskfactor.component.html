@@ -1,29 +1,29 @@
 <div style="overflow:auto">
-<div style="width:100%;height:90px;font-size:20px;overflow:auto" >
+<div style="width:100%;height:80px;font-size:16px;overflow:auto" >
 <div style="display:block;float:left">
 <font color='#eee'>Product:</font>
-<select id="product" style="width:100px;height:30px;margin:3px" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
+<select id="product" style="width:143px;height:23px;margin:4px" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
   <option *ngFor="let item of iproducts" [value]='item'>{{item}}</option>
 </select>
 </div>
 <div style="display:block;float:left">
 <font color='#eee'>Strategy:</font>
-<select  style="width:100px;height:30px;margin:3px" [(ngModel)]='istrategy'>
+<select  style="width:143px;height:23px;margin:4px" [(ngModel)]='istrategy'>
   <option *ngFor="let item of istrategys" [value]='item'>{{item}}</option>
 </select>
 </div>
 <div style="display:block;float:left">
 <font color='#eee'>Date:</font>
-<input style="width:100px;height:30px;margin:3px"  [(ngModel)]='startDate' type="text" size="8" maxlength="8" placeholder="20170701" required>
+<input style="width:75px;height:23px;margin:4px"  [(ngModel)]='startDate' type="text" size="8" maxlength="8" placeholder="20170701" required>
 -
 
-<input style="width:100px;height:30px;margin:3px" [(ngModel)]='endDate' type="text" size="8" maxlength="8" placeholder="20170701" >
+<input style="width:75px;height:23px;margin:4px" [(ngModel)]='endDate' type="text" size="8" maxlength="8" placeholder="20170701" >
 </div>
 <div style="display:block;float:left">
 <font color='#eee'>HedgeRadio:</font>
-<input style="width:80px;height:30px;margin:3px"  [(ngModel)]='hedgeRadio' type="text" size="8"  placeholder="1" required>
+<input style="width:75px;height:23px;margin:4px"  [(ngModel)]='hedgeRadio' type="text" size="8"  placeholder="1" required>
 </div>
-<input style="width:61px;height:30px;background-color:#00b010;color:#eee;font-size:15px;text-align:center;margin:3px;display:block;float:left" type="submit" value="search" (click)="lookReturn()">
+<input style="width:61px;height:23px;background-color:#00b010;color:#eee;font-size:15px;text-align:center;margin:4px;display:block;float:left" type="submit" value="search" (click)="lookReturn()">
 
 </div>
 <div style="position:absolue">
