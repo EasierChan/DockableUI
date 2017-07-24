@@ -187,12 +187,12 @@ export class SecurityComponent implements OnInit {
 
         this.quote.addSlot({
             appid: 140,
-            packid: 10,
+            packid: 11,
             callback: (msg) => {
                 console.info(msg);
             }
         });
-        this.quote.send(140, 10, {ukey: 3, reqtype: 2, reqno: 1});
+        this.quote.send(140, 10, {ukey: 2163460, reqtype: 2, reqno: 1});
     }
 
     get codeName() {

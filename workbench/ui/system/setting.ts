@@ -21,8 +21,11 @@ export class SettingComponent implements OnInit {
     ngOnInit() {
         this.createVersionTable();
         this.setting = this.appServ.getSetting();
-    }
 
+        if (this.setting.externalLinks === undefined) {
+            this.setting.externalLinks = {};
+        }
+    }
 
     createVersionTable() {
         this.versionTable = new DataTable();
