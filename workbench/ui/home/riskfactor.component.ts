@@ -366,7 +366,7 @@ export class RiskFactorComponent {
 
 
         try{
-            dirFiles=fs.readdirSync("/home/muxb/project/expose");
+            dirFiles=fs.readdirSync("/mnt/dropbox/risk/expo");
         }catch(err){
             console.log("err",err);
             return;
