@@ -68,7 +68,7 @@ export class RiskFactorComponent {
         // receive holdlist
          this.tradePoint.addSlot({
             appid: 260,
-            packid: 216,
+            packid: 224,
             callback: (msg) =>{
             let data = JSON.parse(msg.content.body);
             if (data.msret.msgcode === "00") {
@@ -116,7 +116,7 @@ export class RiskFactorComponent {
         this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") );
         this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") );
 
-        this.tradePoint.send(260, 216, { body: { tblock_type: 2 } });
+        this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
 
 
     }
