@@ -108,7 +108,6 @@ export class RiskFactorComponent {
 
     nextDropdown(){
     //get strategies of this product
-    alert("Pl!")
     console.log(RiskFactorComponent.self.iproduct);
     var productlist = document.getElementById("product");
     var productIndex = productlist.selectedIndex;
