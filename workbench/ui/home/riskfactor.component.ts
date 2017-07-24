@@ -16,10 +16,13 @@ import path = require("path");
     selector: "riskfactor",
     templateUrl: "riskfactor.component.html",
     styleUrls: ["home.component.css", "riskfactor.component.css"],
-    providers: [IP20Service]
+    providers: [IP20Service],
+    inputs: ["activeTab"]
 })
 
 export class RiskFactorComponent {
+    activeTab: string;
+
     static self: any;
 
     posStockIndex: number = 0;
@@ -65,6 +68,7 @@ export class RiskFactorComponent {
     }
 
     ngOnInit() {
+        console.info(this.activeTab);
         // receive holdlist
          this.tradePoint.addSlot({
             appid: 260,
@@ -178,6 +182,21 @@ export class RiskFactorComponent {
 
             }
         }
+
+        let startDateIndex=this.binarySearchStock(this.riskFactorReturn,this.startDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+
+        if(startDateIndex === -1) {
+            startDateIndex=1;
+            this.startDate=this.riskFactorReturn[startDateIndex];
+        }
+
+        let endDateIndex=this.binarySearchStock(this.riskFactorReturn,this.endDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+
+        if(endDateIndex === -1) {
+            endDateIndex=this.riskFactorReturn.length-1;
+            this.endDate=this.riskFactorReturn[endDateIndex];
+        }
+        console.log("this.endDate", this.endDate);
         console.log("handled riskFactorReturn", this.riskFactorReturn);
     }
 
@@ -214,7 +233,7 @@ export class RiskFactorComponent {
             }
 
         }
-        console.log("modify riskFactorExposure",this.riskFactorExposure);
+        console.log("modify riskFactorExposure",exposureFilePath,this.riskFactorExposure);
     }
 
     calculateRiskFactor(riskFactorReturn,riskFactorExposure,groupPosition,sumOfDayExposure,currDate){
@@ -389,6 +408,7 @@ export class RiskFactorComponent {
             exposureFile.push( dirFiles[fileIndex] );
         }
         exposureFile.sort();
+        console.log("exposureFile",exposureFile);
 
         for(let fileIndex=0;fileIndex<exposureFile.length;++fileIndex){
 
@@ -449,7 +469,7 @@ export class RiskFactorComponent {
 
       for(let riskIndex=1; riskIndex<riskFactorReturn[0].length; ++riskIndex){    //遍历每一个风险因子
 
-          let lengendData={name:riskFactorReturn[0][riskIndex],textStyle: { color: "#F3F3F5" }};
+          let lengendData={name:riskFactorReturn[0][riskIndex]}; // ,textStyle: { color: "#F3F3F5" }
           chartLegendData.push(lengendData);
 
           allRiskReturnXAxis.push( riskFactorReturn[0][riskIndex] );  //柱状图的x轴分类
@@ -458,9 +478,9 @@ export class RiskFactorComponent {
           let seriesData={name:riskFactorReturn[0][riskIndex] ,type: "line", data: []};
           let riskFactorAllDateReturn=0;
 
-          for(let i=startDateIndex;i<=endDateIndex;++i){
+          for(let i=startDateIndex; i<=endDateIndex; ++i){
               seriesData.data.push(riskFactorReturn[i][riskIndex]);
-              riskFactorAllDateReturn+=riskFactorReturn[i][riskIndex];
+              riskFactorAllDateReturn += riskFactorReturn[i][riskIndex];
           }
           series.push(seriesData);
 
@@ -511,9 +531,9 @@ export class RiskFactorComponent {
                 boundaryGap: [0.2, 0.2]
             }],
             series: series,
-            color: [
-                "#00b", "#0b0"
-            ]
+            // color: [
+            //     "#00b", "#0b0"
+            // ]
         }
 
         this.riskFactorReturnEchart.setOption(option);
