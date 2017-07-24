@@ -47,28 +47,15 @@ export class RiskFactorComponent {
     istrategys:string[]=['aa','bb'];
     istrategy:string='aa';
 
-    note: string = "hello xiaobo!";
-
-    allRfeResult: any[] = [];//所有风险因子的收益
     riskFactorReturnAttr:  any[] = [];//风险因子收益归因
     riskFactorReturn: any[] =[];
     riskFactorExpose: any[] = [];
 
-    groupPosition: any[] =[['000001.SZ',0.1],['000002.SZ',0.6] ];
+    groupPosition: any[] =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];
 
     constructor(private tradePoint: TradeService, private tgw: IP20Service) {
-        //this.tgw.connect(12);
         RiskFactorComponent.self = this;
         //this.loadData();
-
-        this.groupPosition.forEach(function(element){
-              element.stockExposure=[];
-              element.returnAttr=[];
-              element.allRiskFactorReturnAttr=0;
-            }
-
-        );
-        console.log("this.groupPosition",this.groupPosition);
 
         this.iproducts = [];
         this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
@@ -87,8 +74,9 @@ export class RiskFactorComponent {
             if (data.msret.msgcode === "00") {
                 console.log(msg);
                 let productData = data.body;
-                console.log(productData[0].tblock_full_name);
+
                 for(let i = 0; i < productData.length; i++){
+                  console.log(productData[i].tblock_full_name,productData[i].tblock_id);
                   RiskFactorComponent.self.iproducts.push(productData[i].tblock_full_name);
                 }
             } else {
@@ -98,7 +86,27 @@ export class RiskFactorComponent {
             }
          });
         // request holdlist
-
+        // this.tradePoint.addSlot({
+        //    appid: 260,
+        //    packid: 218,
+        //    callback: (msg) =>{
+        //    let data = JSON.parse(msg.content.body);
+        //    if (data.msret.msgcode === "00") {
+        //        console.log("strategy_id",msg);
+        //        let productData = data.body;
+        //
+        //        for(let i = 0; i < productData.length; i++){
+        //          console.log("strategy_id strategy_id",productData[i].strategy_id,productData[i].strategy_name);
+        //
+        //        }
+        //    } else {
+        //        alert("Get strategy_id info Failed! " + data.msret.msg);
+        //    }
+        //
+        //    }
+        // });
+        //
+        // this.tradePoint.send(260, 218, { body: { tblock_id:203 } });
 
         this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
         this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
@@ -192,17 +200,17 @@ export class RiskFactorComponent {
         //权重与暴露之乘积
         for(let index=0; index<groupPosition.length; ++index){    //遍历所有的持仓权重
             const singleStock=groupPosition[index];
-            let rfeIndex=this.binarySearchStock(riskFactorExposure,singleStock[this.posStockIndex],1,0);
+            let rfeIndex=this.binarySearchStock(riskFactorExposure,singleStock.stockCode,1,0);
 
             if(rfeIndex === -1) {
-                alert("没有找到"+singleStock[this.posStockIndex]+"的暴露,请补全信息!");
+                alert("没有找到"+singleStock.stockCode+"的暴露,请补全信息!");
 
                 return;
             }
             else{
 
                 for(let i=2;i<riskFactorExposure[rfeIndex].length;++i){   //遍历指定暴露的风险因子的暴露
-                    singleStock["stockExposure"][ i-2 ]=riskFactorExposure[rfeIndex][i] * singleStock[this.posWeightIndex];//这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
+                    singleStock["stockExposure"][ i-2 ]=riskFactorExposure[rfeIndex][i] * singleStock.stockWeight;//这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
                 }
 
             }
@@ -231,7 +239,6 @@ export class RiskFactorComponent {
                 this.riskFactorReturnAttr[i-1].returnAttr += riskFactorReturn[returnDateIndex][i] * groupPosition[stockIndex]["stockExposure"][i-1];
             }
 
-            //this.riskFactorReturnAttr.push(allStockReturn);
         }
 
         console.log("riskFactorReturnAttr",this.riskFactorReturnAttr);
@@ -243,33 +250,6 @@ export class RiskFactorComponent {
     readDataFromCsvFile(csvFilePath) {
 
         console.log("csvFilePath", csvFilePath);
-        /*const thisRef=this;
-        fs.readFile(csvFilePath,"utf-8",function(err,fileContent){
-            if(err){
-                console.log("err",err);
-                return;
-            }
-            //console.log("fileContent",fileContent);
-            let rowDatas=fileContent.split("\r");
-
-            //分割多行数据
-            for(let i=0;i<rowDatas.length;++i){
-                if(rowDatas[i] != ""){
-
-                    let splitData=rowDatas[i].split("\n")；
-                    for(let j=0;j<splitData.length;++j){
-                        if(splitData[j] != ""){
-                          resultData.push(splitData[j].split(","));
-                        }
-                    }
-                }
-            }
-            console.log("csvFilePath resultData",resultData);
-            if(callback){
-              callback(thisRef);
-            }
-        });*/
-
 
         let resultData = [], fileContent = "";
         try {
@@ -327,23 +307,36 @@ export class RiskFactorComponent {
       //     }
       //  });
       //
-      // this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,trday:date } });
-      //
-      // // stockhold
-      //  this.tradePoint.addSlot({
-      //     appid: 260,
-      //     packid: 222,
-      //     callback: (msg) =>{
-      //     console.log(msg);
-      //     }
-      //  });
-      //
-      // this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,trday:date } });
+      //this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,trday:date } });
+
+      // stockhold
+       this.tradePoint.addSlot({
+          appid: 260,
+          packid: 222,
+          callback: (msg) =>{
+          console.log('tradePoint.addSlot',msg);
+          }
+       });
+
+      this.tradePoint.send(260, 222, { body: { strategy_id:116,trday:this.startDate } });
+
+
+      this.groupPosition =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
+      this.groupPosition.forEach(function(element){
+            element.stockExposure=[];
+            element.returnAttr=[];
+            element.allRiskFactorReturnAttr=0;
+          }
+
+      );
+
+      console.log("this.groupPosition",this.groupPosition);
 
         console.log("OnClick",this,this.startDate,this.endDate);
         let exposureFile=[],dirFiles=[];
         let sumOfDayExposure=[];//保存风险因子的权重与暴露之乘积的和
 
+        this.riskFactorReturnAttr=[];
         for(let i=1; i< this.riskFactorReturn[0].length; ++i){
             sumOfDayExposure.push( {name: this.riskFactorReturn[0][i], exposure:0} );
             this.riskFactorReturnAttr.push( {name: this.riskFactorReturn[0][i], returnAttr:0} )
@@ -357,14 +350,21 @@ export class RiskFactorComponent {
             return;
         }
         console.log("dirFiles",dirFiles);
-        for(let fileIndex=0;fileIndex<dirFiles.length;++fileIndex){
-            if( (this.startDate !=="" || this.startDate !=="") &&
-                (this.startDate !=="" && dirFiles[fileIndex] >= (this.startDate+".csv")) &&
-                (this.endDate !=="" && dirFiles[fileIndex] <= (this.endDate+".csv")) ){
+        for(let fileIndex=0;fileIndex<dirFiles.length;++fileIndex){   // csv文件在打开时可能还有其他的文件存在
+            if ( (this.startDate =="" && this.startDate =="") ) {
 
-                exposureFile.push( dirFiles[fileIndex] );
+                console.log("请选择时间范围");
+                return ;
             }
 
+            if (this.startDate !=="" && dirFiles[fileIndex] < (this.startDate+".csv")) {
+                continue;
+            }
+
+            if (this.endDate !=="" && dirFiles[fileIndex] > (this.endDate+".csv")) {
+                continue;
+            }
+            exposureFile.push( dirFiles[fileIndex] );
         }
         exposureFile.sort();
 
@@ -673,7 +673,7 @@ export class RiskFactorComponent {
 
 
       for (var i = 0; i < groupPosition.length; i++) {
-        stockAttrXAxis.push( groupPosition[i][this.posStockIndex] );
+        stockAttrXAxis.push( groupPosition[i].stockCode );
         stockAttrSeries.push( groupPosition[i].allRiskFactorReturnAttr );
 
       }
