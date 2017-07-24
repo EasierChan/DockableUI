@@ -58,7 +58,7 @@ export class RiskFactorComponent {
         //this.loadData();
 
         this.iproducts = [];
-        this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        //this.riskFactorReturn=this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
 
         this.readAndHandleRiskReturn();
 
@@ -156,7 +156,7 @@ export class RiskFactorComponent {
     }
 
     readAndHandleRiskReturn() {
-        this.riskFactorReturn = this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        this.riskFactorReturn = this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
         //处理获取的风险因子收益数据
         if (this.riskFactorReturn.length < 2) {
             alert("风险因子收益没有数据,请导入数据后重试");
@@ -277,7 +277,7 @@ export class RiskFactorComponent {
         let resultData = [], fileContent = "";
         try {
             fileContent = fs.readFileSync(csvFilePath, "utf-8");
-            console.log("fileContent", fileContent);
+
         } catch (err) {
             console.log("fileContent err", err);
         }
@@ -297,7 +297,6 @@ export class RiskFactorComponent {
             }
         }
 
-        console.log("resultData",resultData);
         return resultData;
     }
 
@@ -393,7 +392,7 @@ export class RiskFactorComponent {
 
         for(let fileIndex=0;fileIndex<exposureFile.length;++fileIndex){
 
-            this.readAndHandleRiskExposure("/home/muxb/project/expose/"+exposureFile[fileIndex]);
+            this.readAndHandleRiskExposure("/mnt/dropbox/risk/expo/"+exposureFile[fileIndex]);
             this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExposure,this.groupPosition,sumOfDayExposure,exposureFile[fileIndex].split(".")[0]);
         }
         console.log("sumOfDayExposure second",sumOfDayExposure);
