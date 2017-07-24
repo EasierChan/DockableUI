@@ -283,6 +283,7 @@ export class AppComponent2 implements OnInit {
 export class AppComponent implements OnInit {
     option: any;
     languageType = 0;
+    ukeys: number[];
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService) {
@@ -333,7 +334,74 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
+        let curTime = new Date();
+        curTime.getMinutes();
+
         let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
-        console.info("hello");
+        this.ukeys = [parseInt(res[this.option.details.code1].ukey), parseInt(res[this.option.details.code2].ukey)];
+
+        this.quote.addSlot({
+            appid: 17,
+            packid: 110,
+            callback(msg) {
+                let time = new Date(msg.content.time * 1000);
+            }
+        });
+
+        this.quote.send(17, 101, { topic: 3112, kwlist: this.ukeys });
+    }
+
+    createLinesChart(lines: string[], xAxisPoints: any[] = [], dataset: Array<number[]> = []) {
+        return {
+            option: {
+                title: {
+                    show: false,
+                },
+                tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
+                    }
+                },
+                legend: {
+                    data: lines,
+                    textStyle: { color: "#F3F3F5" }
+                },
+                xAxis: [{
+                    data: xAxisPoints,
+                    axisLabel: {
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    }
+                }],
+                yAxis: [{
+                    position: "right",
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                }],
+                series: [{
+                    name: lines[0],
+                    type: "line",
+                    data: [0.05, 0.1, 0.08, 0.15]
+                }, {
+                    name: lines[1],
+                    type: "line",
+                    data: [0.06, 0.2, 0.18, 0.15]
+                }],
+                color: [
+                    "#00b", "#0b0"
+                ]
+            }
+        };
     }
 }
