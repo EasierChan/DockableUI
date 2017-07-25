@@ -49,10 +49,11 @@ export class RiskFactorComponent {
     stockAttrEchart: any;
 
     productData:any[];
+    strategyData:any[];
     iproducts:string[];
     iproduct:string;
     istrategys:string[]=["all"];
-    istrategy:string="all";
+    istrategy:string;
 
     riskFactorReturnAttr:  any[] = [];//风险因子收益归因
     riskFactorReturn: any[] =[];
@@ -83,19 +84,38 @@ export class RiskFactorComponent {
             callback: (msg) =>{
             let data = JSON.parse(msg.content.body);
             if (data.msret.msgcode === "00") {
-                console.log(msg);
                 RiskFactorComponent.self.productData = data.body;
                   console.log(RiskFactorComponent.self.productData);
                 console.log(RiskFactorComponent.self.productData[0].tblock_full_name);
                 for(let i = 0; i < RiskFactorComponent.self.productData.length; i++){
                   RiskFactorComponent.self.iproducts.push(RiskFactorComponent.self.productData[i].tblock_full_name);
-
                 }
             } else {
                 alert("Get product info Failed! " + data.msret.msg);
             }
-            console.log(RiskFactorComponent.self.iproducts)
             RiskFactorComponent.self.iproduct = RiskFactorComponent.self.iproducts[0];
+
+            let tblockId = RiskFactorComponent.self.productData[0].tblock_id;
+            // index strategies
+             this.tradePoint.addSlot({
+                appid: 260,
+                packid: 218,
+                callback: (msg) =>{
+                  console.log(msg);
+                  let data = JSON.parse(msg.content.body);
+                  if (data.msret.msgcode === "00") {
+                      RiskFactorComponent.self.strategyData = data.body;
+                      for(let i = 0; i < RiskFactorComponent.self.strategyData.length; i++){
+                        RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
+                      }
+                  } else {
+                        alert("Get product info Failed! " + data.msret.msg);
+                    }
+                }
+             });
+            console.log(RiskFactorComponent.self.istrategys);
+            RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
+            this.tradePoint.send(260, 218, { body: { tblock_id:tblockId } });
             }
          });
         // request holdlist
@@ -123,7 +143,6 @@ export class RiskFactorComponent {
 
 
 
-
         if (this.activeTab === "RiskFactors") {
             this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLCanvasElement);
             this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
@@ -137,11 +156,10 @@ export class RiskFactorComponent {
             this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") );
             this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") );
             this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") );
-
-            this.lookReturn();
         }
 
         this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
+        this.lookReturn();
 
     }
 
@@ -155,10 +173,11 @@ export class RiskFactorComponent {
 
     nextDropdown(){
     //get strategies of this product
-    console.log(RiskFactorComponent.self.iproduct);
-    var productlist = document.getElementById("product");
-    var productIndex = productlist.selectedIndex;
-    var tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+    RiskFactorComponent.self.istrategys = ["all"];
+    console.log(RiskFactorComponent.self.productData);
+    let productlist = document.getElementById("product");
+    let productIndex = productlist.selectedIndex;
+    let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
 
     // strategies
      this.tradePoint.addSlot({
@@ -168,15 +187,18 @@ export class RiskFactorComponent {
           console.log(msg);
           let data = JSON.parse(msg.content.body);
           if (data.msret.msgcode === "00") {
-              console.log(msg);
+              RiskFactorComponent.self.strategyData = data.body;
+              for(let i = 0; i < RiskFactorComponent.self.strategyData.length; i++){
+                RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
+              }
           } else {
                 alert("Get product info Failed! " + data.msret.msg);
             }
         }
      });
-    console.log(tblockId);
+    console.log(RiskFactorComponent.self.istrategys);
+    RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
     this.tradePoint.send(260, 218, { body: { tblock_id:tblockId } });
-
     }
 
     readAndHandleRiskReturn() {
@@ -364,27 +386,28 @@ export class RiskFactorComponent {
     }
 
     lookReturn(){
-      // futurehold
-      //  this.tradePoint.addSlot({
-      //     appid: 260,
-      //     packid: 220,
-      //     callback: (msg) =>{
-      //     console.log(msg);
-      //     }
-      //  });
-      //
-      //this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,trday:date } });
+      console.log(this.startDate,this.iproduct);
+      // productfuturehold
+       this.tradePoint.addSlot({
+           appid: 260,
+           packid: 228,
+          callback: (msg) =>{
+           console.log(msg);
+           }
+        });
 
-      // stockhold
+       this.tradePoint.send(260, 228, { body: { trday:this.startDate,tblock_id:this.iproduct } });
+
+      // productstockhold
        this.tradePoint.addSlot({
           appid: 260,
-          packid: 222,
+          packid: 230,
           callback: (msg) =>{
-          console.log('tradePoint.addSlot',msg);
+          console.log(msg);
           }
        });
 
-      this.tradePoint.send(260, 222, { body: { strategy_id:116,trday:this.startDate } });
+      this.tradePoint.send(260, 230, { body: { trday:this.startDate,tblock_id:this.iproduct } });
 
 
       this.groupPosition =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
