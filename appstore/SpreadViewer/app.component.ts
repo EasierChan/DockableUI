@@ -12,6 +12,7 @@ import {
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
 import { AppStateCheckerRef, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
+import * as echarts from "echarts";
 
 @Component({
     moduleId: module.id,
@@ -281,9 +282,11 @@ export class AppComponent2 implements OnInit {
     ]
 })
 export class AppComponent implements OnInit {
+    private readonly apptype = "spreadviewer";
     option: any;
     languageType = 0;
     ukeys: number[];
+    chartOption: any;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService) {
@@ -345,9 +348,13 @@ export class AppComponent implements OnInit {
             packid: 110,
             callback(msg) {
                 let time = new Date(msg.content.time * 1000);
+                console.info(msg.content.time, time.toLocaleString());
             }
         });
 
+        let lines = [`${this.option.details.code1}.ask_price[0] - ${this.option.details.code2}.bid_price[0]`,
+        `${this.option.details.code1}.bid_price[0] - ${this.option.details.code2}.ask_price[0]`];
+        this.chartOption = this.createLinesChart(lines);
         this.quote.send(17, 101, { topic: 3112, kwlist: this.ukeys });
     }
 
