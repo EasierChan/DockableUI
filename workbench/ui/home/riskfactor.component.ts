@@ -122,6 +122,7 @@ export class RiskFactorComponent {
 
         this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
 
+        this.lookReturn();
 
     }
 
