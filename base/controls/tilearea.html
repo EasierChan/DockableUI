@@ -12,7 +12,8 @@
             <span>{{ item.title }}</span>
         </div>
     </div>
-    <div class="tile create" (click)="dataSource.create($event)">
+    <div class="tile create" (click)="dataSource.create($event)" [style.background-color]="creater?.backgroundColor"
+        [style.color]="creater?.color">
         <span class="glyphicon glyphicon-plus"></span>
     </div>
 </div>

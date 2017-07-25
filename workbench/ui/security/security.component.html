@@ -2,10 +2,13 @@
   <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
   <span class="big">chronos</span>
   <div class="u-input-group">
-    <input type="text" placeholder="Search...">
+    <input type="text" placeholder="Search..." (input)="onSearch(searcher.value)" #searcher>
     <a class="button">
       <span class="glyphicon glyphicon-search"></span>
     </a>
+    <ul class="dropdown">
+      <li>hello</li>
+    </ul>
   </div>
 </div>
 <div class="content">
@@ -44,12 +47,14 @@
     <section style="width: 400px">
       <b>{{mainIncome.title}}</b>
       <div class="holder">
-        <canvas #mainIncomeIMG width="150">
+        <!--<canvas #mainIncomeIMG width="150">
         </canvas>
         <div class="u-col income">
           <span class="item1">利息收入{{mainIncome.content.a | percent}}</span>
           <span class="item2">非利息收入:手续费...{{mainIncome.content.b | percent}}</span>
-        </div>
+        </div>-->
+
+        <div echarts [options]="mainIncome.content.option" style="height: 250px"></div>
       </div>
     </section>
     <section style="width: 300px">
