@@ -1,13 +1,18 @@
 "use strict";
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
-import { TileArea, Tile, DataTable, DataTableColumn, ChartViewer } from "../../../base/controls/control";
+import { DataTable, DataTableColumn, ChartViewer } from "../../../base/controls/control";
+import { SecuMasterService } from "../../../base/api/services/backend.service";
+import { TradeService, QuoteService } from "../../bll/services";
 
 @Component({
     moduleId: module.id,
     selector: "security-master",
     templateUrl: "security.component.html",
-    styleUrls: ["../home/home.component.css", "security.component.css"]
+    styleUrls: ["../home/home.component.css", "security.component.css"],
+    providers: [
+        SecuMasterService
+    ]
 })
 export class SecurityComponent implements OnInit {
     symbol: string;
@@ -21,9 +26,11 @@ export class SecurityComponent implements OnInit {
     numberInfo: Section;
     instituteInfo: Section;
     structureInfo: Section;
+    resList: Section;
+    selectedValue: string;
     @ViewChild("mainIncomeIMG") mainIncomeBitmap: ElementRef;
 
-    constructor() {
+    constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
     }
 
     ngOnInit() {
@@ -31,22 +38,22 @@ export class SecurityComponent implements OnInit {
         this.code = "600446.SZ";
         this.summary = new Section();
         this.summary.title = "公司简介";
-        this.summary.content = "金证是最流弊的。";
+        this.summary.content = "";
 
         this.keyInfo = new Section();
         this.keyInfo.title = "关键指标";
         this.keyInfo.content = new Array<ListItem>();
         this.keyInfo.content.push({
             name: "总市值(亿元)",
-            value: "3,847,41"
+            value: ""
         });
         this.keyInfo.content.push({
-            name: "总股本(亿股)",
-            value: "281.04"
+            name: "总股本(万股)",
+            value: ""
         });
         this.keyInfo.content.push({
             name: "PE(TM)",
-            value: "7.17"
+            value: ""
         });
         this.keyInfo.content.push({
             name: "PE(2017E)",
@@ -66,7 +73,7 @@ export class SecurityComponent implements OnInit {
         this.baseInfo.content = new Array<ListItem>();
         this.baseInfo.content.push({
             name: "公司名称",
-            value: "深圳金证科技股份有限公司"
+            value: ""
         });
         this.baseInfo.content.push({
             name: "曾用名",
@@ -82,10 +89,10 @@ export class SecurityComponent implements OnInit {
         });
         this.baseInfo.content.push({
             name: "上市日期",
-            value: "2004-10-01"
+            value: "--"
         });
         this.baseInfo.content.push({
-            name: "注册资本",
+            name: "注册资本(万元)",
             value: "28,103,763,899 CNY"
         });
         this.baseInfo.content.push({
@@ -115,29 +122,26 @@ export class SecurityComponent implements OnInit {
 
         this.mainIncome = new Section();
         this.mainIncome.title = "主营构成";
-        this.mainIncome.content = {
-            a: 0.8325,
-            b: 0.1675,
-        };
+        this.mainIncome.content = this.createMainIncome();
 
-        let canvas: HTMLCanvasElement = this.mainIncomeBitmap.nativeElement;
-        let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
-        ctx.fillStyle = "#40f";
-        ctx.beginPath();
-        ctx.moveTo(80, 80);
-        ctx.arc(80, 80, 50, 0, Math.PI * 2 * this.mainIncome.content.b, true);
-        ctx.closePath();
-        ctx.fill();
+        // let canvas: HTMLCanvasElement = this.mainIncomeBitmap.nativeElement;
+        // let ctx: CanvasRenderingContext2D = canvas.getContext("2d");
+        // ctx.fillStyle = "#40f";
+        // ctx.beginPath();
+        // ctx.moveTo(80, 80);
+        // ctx.arc(80, 80, 50, 0, Math.PI * 2 * this.mainIncome.content.b, true);
+        // ctx.closePath();
+        // ctx.fill();
 
-        ctx.fillStyle = "#0f0";
-        ctx.beginPath();
-        ctx.moveTo(80, 80);
-        ctx.arc(80, 80, 50, Math.PI * 2 * this.mainIncome.content.b, 0, true);
-        ctx.closePath();
-        ctx.fill();
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        // ctx.fillStyle = "#0f0";
+        // ctx.beginPath();
+        // ctx.moveTo(80, 80);
+        // ctx.arc(80, 80, 50, Math.PI * 2 * this.mainIncome.content.b, 0, true);
+        // ctx.closePath();
+        // ctx.fill();
+        // ctx.strokeStyle = "#fff";
+        // ctx.lineWidth = 2;
+        // ctx.stroke();
 
         this.tenInfo = new Section();
         this.tenInfo.title = "十大股东";
@@ -183,6 +187,48 @@ export class SecurityComponent implements OnInit {
             row.cells[1].Text = "2,810,376.39";
             row.cells[2].Text = "98.94%";
         }
+
+        this.registerListener();
+    }
+
+    registerListener() {
+        let self = this;
+
+        this.quote.addSlot({
+            appid: 140,
+            packid: 11,
+            callback: (msg) => {
+                console.info(msg);
+                switch (msg.content.type) {
+                    case 1:
+                        self.summary.content = msg.content.S_INFO_CHINESEINTRODUCTION;
+                        self.baseInfo.content[0].value = msg.content.chname;
+                        self.baseInfo.content[3].value = msg.content.S_INFO_FOUNDDATE.substr(0, 4) + "-" + msg.content.S_INFO_FOUNDDATE.substr(4, 2) + "-" + msg.content.S_INFO_FOUNDDATE.substr(6, 2);
+                        self.baseInfo.content[5].value = msg.content.S_INFO_REGCAPITAL;
+                        self.baseInfo.content[6].value = msg.content.S_INFO_OFFICE;
+                        self.baseInfo.content[7].value = msg.content.S_INFO_TOTALEMPLOYEES;
+                        self.baseInfo.content[8].value = msg.content.S_INFO_CHAIRMAN;
+                        self.baseInfo.content[9].value = msg.content.S_INFO_PRESIDENT;
+                        // self.baseInfo.content[10].value = msg.content.S_INFO_PRESIDENT;
+                        self.baseInfo.content[11].value = msg.content.S_INFO_WEBSITE;
+                        break;
+                    case 2:
+                        this.keyInfo.content[1].value = msg.content.TOT_SHR;
+                        break;
+                }
+            }
+        });
+    }
+
+    onSearch(value) {
+        this.resList = this.secuinfo.getCodeList(value);
+    }
+
+    listClick(item) {
+        console.info(item);
+        this.selectedValue = item.symbolCode;
+        this.quote.send(140, 10, { ukey: parseInt(item.ukey), reqtype: 2, reqno: 1 });
+        this.resList = null;
     }
 
     get codeName() {
@@ -199,7 +245,7 @@ export class SecurityComponent implements OnInit {
                     trigger: "axis",
                     axisPointer: {
                         type: "cross",
-                        label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
                     }
                 },
                 legend: {
@@ -253,7 +299,7 @@ export class SecurityComponent implements OnInit {
                     trigger: "axis",
                     axisPointer: {
                         type: "cross",
-                        label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
                     }
                 },
                 legend: {
@@ -308,6 +354,41 @@ export class SecurityComponent implements OnInit {
                 color: [
                     "#00b", "#0b0"
                 ]
+            }
+        };
+    }
+
+    createMainIncome() {
+        return {
+            option: {
+                title: { show: false },
+                tooltip: {
+                    trigger: "item",
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+                legend: {
+                    orient: "vertical",
+                    left: "left",
+                    data: ["利息收入", "非利息收入"],
+                    textStyle: { color: "#F3F3F5" }
+                },
+                series: [{
+                    name: "项目收入",
+                    type: "pie",
+                    radius: "50%",
+                    center: ["50%", "60%"],
+                    data: [
+                        { value: 335, name: "利息收入" },
+                        { value: 135, name: "非利息收入" }
+                    ],
+                    itemStyle: {
+                        emphasis: {
+                            shadowBlur: 10,
+                            shadowOffsetX: 0,
+                            shadowColor: "rgba(0, 0, 0, 0.5)"
+                        }
+                    }
+                }]
             }
         };
     }

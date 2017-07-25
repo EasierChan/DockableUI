@@ -12,7 +12,7 @@ export class DataSet {
         },
         {
             name: "future",
-            tabs: ["RiskFactors"]
+            tabs: ["Profit", "RiskFactors"]
         }
     ];
 

@@ -2145,6 +2145,8 @@ interface ActionItem {
 }
 
 export class TileArea extends Control {
+    creater: Tile;
+
     constructor() {
         super();
         this.styleObj = {
@@ -2157,6 +2159,8 @@ export class TileArea extends Control {
             click: () => { },
             create: () => { }
         };
+
+        this.creater = new Tile();
     }
 
     set title(value: string) {
@@ -2169,6 +2173,19 @@ export class TileArea extends Control {
 
     addTile(tile: Tile) {
         this.dataSource.items.push(tile);
+    }
+
+    removeTile(title: string) {
+        let tileCount = this.dataSource.items.length;
+
+        for (let i = 0; i < tileCount; ++i) {
+            if (this.dataSource.items[i].title === title) {
+                this.dataSource.items.splice(i, 1);
+                break;
+            }
+        }
+
+        tileCount = null;
     }
 
     set onClick(value: Function) {
