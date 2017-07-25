@@ -239,6 +239,12 @@ export class IP20Service {
 
         this._client.on("close", () => {
             console.info("remote closed");
+
+            if (this._timer) {
+                clearTimeout(this._timer);
+                this._timer = null;
+            }
+
             this._timer = setTimeout(() => {
                 this._client.reconnect(port, host);
             }, 10000);

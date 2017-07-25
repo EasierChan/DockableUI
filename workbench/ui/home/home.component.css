@@ -76,6 +76,20 @@ li > a.active {
   border-top-right-radius: 3px;
   border-bottom-right-radius: 3px;
 }
+.u-input-group ul.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  list-style: none;
+  padding: 2px 5px;
+  border-radius: 2px;
+  border: 1px solid;
+  background-color: #222A41;
+}
+.u-input-group ul.dropdown li:hover {
+  background-color: green;
+}
 
 .content {
   flex: auto;
