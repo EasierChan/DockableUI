@@ -19,11 +19,12 @@ import path = require("path");
     providers: [IP20Service],
     inputs: ["activeTab"]
 })
-
+RiskFactorComponent.asd=23;
 export class RiskFactorComponent {
     activeTab: string;
 
     static self: any;
+    static asd: number;
 
     posStockIndex: number = 0;
 
@@ -69,6 +70,7 @@ export class RiskFactorComponent {
 
     ngOnInit() {
         console.info(this.activeTab);
+        console.log("RiskFactorComponent.asd",RiskFactorComponent.asd);
         // receive holdlist
          this.tradePoint.addSlot({
             appid: 260,
