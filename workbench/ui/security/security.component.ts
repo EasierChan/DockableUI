@@ -26,6 +26,8 @@ export class SecurityComponent implements OnInit {
     numberInfo: Section;
     instituteInfo: Section;
     structureInfo: Section;
+    resList: Section;
+    selectedValue: string;
     @ViewChild("mainIncomeIMG") mainIncomeBitmap: ElementRef;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
@@ -187,7 +189,6 @@ export class SecurityComponent implements OnInit {
         }
 
         this.registerListener();
-        this.quote.send(140, 10, { ukey: 2163460, reqtype: 2, reqno: 1 });
     }
 
     registerListener() {
@@ -220,7 +221,14 @@ export class SecurityComponent implements OnInit {
     }
 
     onSearch(value) {
-        console.info(this.secuinfo.getCodeList(value));
+        this.resList = this.secuinfo.getCodeList(value);
+    }
+
+    listClick(item) {
+        console.info(item);
+        this.selectedValue = item.symbolCode;
+        this.quote.send(140, 10, { ukey: parseInt(item.ukey), reqtype: 2, reqno: 1 });
+        this.resList = null;
     }
 
     get codeName() {
@@ -356,7 +364,7 @@ export class SecurityComponent implements OnInit {
                 title: { show: false },
                 tooltip: {
                     trigger: "item",
-                    formatter: "{a} <br/> : {c} ({d}%)"
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
                 },
                 legend: {
                     orient: "vertical",

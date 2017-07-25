@@ -125,7 +125,7 @@ export class RiskFactorComponent {
 
 
         if (this.activeTab === "RiskFactors") {
-            this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
+            this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLCanvasElement);
             this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
             this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") );
             this.allDayYearReturnEchart=echarts.init( document.getElementById("allDayYearReturnEchart") );
