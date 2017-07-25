@@ -1,7 +1,7 @@
 "use strict";
 
 import { Component } from "@angular/core";
-//import { File } from "../../../base/api/services/backend.service"; // File operator
+import { File } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
 import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
@@ -19,13 +19,11 @@ import path = require("path");
     providers: [IP20Service],
     inputs: ["activeTab"]
 })
-// RiskFactorComponent.asd=23;
+
 export class RiskFactorComponent {
     activeTab: string;
 
     static self: any;
-    static asd: number;
-
     posStockIndex: number = 0;
 
     posWeightIndex: number=1;
@@ -62,9 +60,7 @@ export class RiskFactorComponent {
 
     constructor(private tradePoint: TradeService, private tgw: IP20Service) {
         RiskFactorComponent.self = this;
-        //this.loadData();
-
-        console.log("constructor");
+        // this.loadData();
         this.iproducts = [];
         //this.riskFactorReturn=this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
 
@@ -74,7 +70,6 @@ export class RiskFactorComponent {
 
     ngOnInit() {
         console.info(this.activeTab);
-        console.log("RiskFactorComponent.asd",RiskFactorComponent.asd);
 
         // receive holdlist
          this.tradePoint.addSlot({
@@ -124,7 +119,7 @@ export class RiskFactorComponent {
 
 
 
-        if (this.activeTab === "RiskFactors") {
+        if (this.activeTab === "Profit") {
             this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
             this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
             this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") );
@@ -133,9 +128,12 @@ export class RiskFactorComponent {
 
             this.setriskFactorReturnEchart(this.riskFactorReturn,"0000001","0000001");
         }
-        else if (this.activeTab === "Profit") {
+        else if (this.activeTab === "RiskFactors") {
             this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") );
+            this.everyDayRFEEchart=echarts.init( document.getElementById("everyDayRFEEchart") );
             this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") );
+            this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("everyDayRFRAttrEchart") );
+
             this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") );
 
             this.lookReturn();
@@ -147,9 +145,13 @@ export class RiskFactorComponent {
 
     loadData() {
         // to read a file line by line.
-        // File.readLineByLine("", (linestr) => {
+        let arr=[];
+        File.readLineByLine("/mnt/dropbox/risk/riskreturn.csv", (linestr) => {
+          console.log("readLineByLine",linestr);
+          arr.push(linestr);
 
-        // });
+        });
+        console.log("console.log(arr);",arr);
     }
 
 
@@ -185,9 +187,6 @@ export class RiskFactorComponent {
         if (this.riskFactorReturn.length < 2) {
             alert("风险因子收益没有数据,请导入数据后重试");
             return;
-        }
-        for (let i = 0; i < this.riskFactorReturn[0].length; ++i) {
-            this.riskFactorReturn[0][i] = this.riskFactorReturn[0][i].slice(1, this.riskFactorReturn[0][i].length - 1);
         }
 
         for (let i = 1; i < this.riskFactorReturn.length; ++i) {
@@ -245,7 +244,6 @@ export class RiskFactorComponent {
             });
 
         for(let i=0;i<this.riskFactorExposure.length;++i){
-            this.riskFactorExposure[i][this.rfeStockIndex]=this.riskFactorExposure[i][this.rfeStockIndex].slice(1,this.riskFactorExposure[i][this.rfeStockIndex].length-1);
 
             for(let j=2; j<this.riskFactorExposure[0].length; ++j ){
                 var value= parseFloat(this.riskFactorExposure[i][j]);
@@ -378,13 +376,13 @@ export class RiskFactorComponent {
       // stockhold
        this.tradePoint.addSlot({
           appid: 260,
-          packid: 222,
+          packid: 230,
           callback: (msg) =>{
           console.log('tradePoint.addSlot',msg);
           }
        });
 
-      this.tradePoint.send(260, 222, { body: { strategy_id:116,trday:this.startDate } });
+      this.tradePoint.send(260, 230, { body: { tblock_id:101,trday:"20170704" } });
 
 
       this.groupPosition =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
