@@ -25,5 +25,6 @@
   <risk *ngIf="activeTab=='Risk'"></risk>
   <admin *ngIf="activeTab=='Admin'"></admin>
   <backtest *ngIf="activeTab=='BackTest'" class="fill"></backtest>
-  <riskfactor *ngIf="activeTab=='RiskFactors'" class="fill"></riskfactor>
+  <riskfactor *ngIf="activeTab=='Profit'" [activeTab]="activeTab" class="fill"></riskfactor>
+  <riskfactor *ngIf="activeTab=='RiskFactors'" [activeTab]="activeTab" class="fill"></riskfactor>
 </div>

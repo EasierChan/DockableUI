@@ -16,11 +16,15 @@ import path = require("path");
     selector: "riskfactor",
     templateUrl: "riskfactor.component.html",
     styleUrls: ["home.component.css", "riskfactor.component.css"],
-    providers: [IP20Service]
+    providers: [IP20Service],
+    inputs: ["activeTab"]
 })
-
+// RiskFactorComponent.asd=23;
 export class RiskFactorComponent {
+    activeTab: string;
+
     static self: any;
+    static asd: number;
 
     posStockIndex: number = 0;
 
@@ -39,6 +43,9 @@ export class RiskFactorComponent {
 
     riskFactorReturnEchart: any;//echart
     allDayReturnEchart: any;
+    yearReturnEchart: any;
+    allDayYearReturnEchart: any;
+
     stockAttrEchart: any;
 
     productData:any[];
@@ -57,14 +64,18 @@ export class RiskFactorComponent {
         RiskFactorComponent.self = this;
         //this.loadData();
 
+        console.log("constructor");
         this.iproducts = [];
-        this.riskFactorReturn=this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        //this.riskFactorReturn=this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
 
         this.readAndHandleRiskReturn();
 
     }
 
     ngOnInit() {
+        console.info(this.activeTab);
+        console.log("RiskFactorComponent.asd",RiskFactorComponent.asd);
+
         // receive holdlist
          this.tradePoint.addSlot({
             appid: 260,
@@ -110,14 +121,27 @@ export class RiskFactorComponent {
         //
         // this.tradePoint.send(260, 218, { body: { tblock_id:203 } });
 
-        this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
-        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
-        this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") );
-        this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") );
-        this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") );
+
+
+
+        if (this.activeTab === "RiskFactors") {
+            this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") );
+            this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") );
+            this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") );
+            this.allDayYearReturnEchart=echarts.init( document.getElementById("allDayYearReturnEchart") );
+
+
+            this.setriskFactorReturnEchart(this.riskFactorReturn,"0000001","0000001");
+        }
+        else if (this.activeTab === "Profit") {
+            this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") );
+            this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") );
+            this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") );
+
+            this.lookReturn();
+        }
 
         this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
-
 
     }
 
@@ -156,7 +180,7 @@ export class RiskFactorComponent {
     }
 
     readAndHandleRiskReturn() {
-        this.riskFactorReturn = this.readDataFromCsvFile("/home/muxb/project/riskreturn.csv");
+        this.riskFactorReturn = this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
         //处理获取的风险因子收益数据
         if (this.riskFactorReturn.length < 2) {
             alert("风险因子收益没有数据,请导入数据后重试");
@@ -170,14 +194,34 @@ export class RiskFactorComponent {
 
             for(let j=1; j<this.riskFactorReturn[0].length; ++j ){
                 var value= parseFloat(this.riskFactorReturn[i][j]);
+
                 if( isNaN(value)){
                     this.riskFactorReturn[i][j]=0;
                 } else {
                     this.riskFactorReturn[i][j]=value;
                 }
 
+                // if (i>1) {
+                //     this.riskFactorReturn[i][j] += this.riskFactorReturn[i-1][j];
+                // }
+
             }
         }
+
+        let startDateIndex=this.binarySearchStock(this.riskFactorReturn,this.startDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+
+        if(startDateIndex === -1) {
+            startDateIndex=1;
+
+        }
+
+        let endDateIndex=this.binarySearchStock(this.riskFactorReturn,this.endDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+
+        if(endDateIndex === -1) {
+            endDateIndex=this.riskFactorReturn.length-1;
+
+        }
+        console.log("this.endDate", this.endDate);
         console.log("handled riskFactorReturn", this.riskFactorReturn);
     }
 
@@ -214,7 +258,7 @@ export class RiskFactorComponent {
             }
 
         }
-        console.log("modify riskFactorExposure",this.riskFactorExposure);
+        console.log("modify riskFactorExposure",exposureFilePath,this.riskFactorExposure);
     }
 
     calculateRiskFactor(riskFactorReturn,riskFactorExposure,groupPosition,sumOfDayExposure,currDate){
@@ -277,7 +321,7 @@ export class RiskFactorComponent {
         let resultData = [], fileContent = "";
         try {
             fileContent = fs.readFileSync(csvFilePath, "utf-8");
-            console.log("fileContent", fileContent);
+
         } catch (err) {
             console.log("fileContent err", err);
         }
@@ -297,7 +341,6 @@ export class RiskFactorComponent {
             }
         }
 
-        console.log("resultData",resultData);
         return resultData;
     }
 
@@ -367,7 +410,7 @@ export class RiskFactorComponent {
 
 
         try{
-            dirFiles=fs.readdirSync("/home/muxb/project/expose");
+            dirFiles=fs.readdirSync("/mnt/dropbox/risk/expo");
         }catch(err){
             console.log("err",err);
             return;
@@ -390,16 +433,17 @@ export class RiskFactorComponent {
             exposureFile.push( dirFiles[fileIndex] );
         }
         exposureFile.sort();
+        console.log("exposureFile",exposureFile);
 
         for(let fileIndex=0;fileIndex<exposureFile.length;++fileIndex){
 
-            this.readAndHandleRiskExposure("/home/muxb/project/expose/"+exposureFile[fileIndex]);
+            this.readAndHandleRiskExposure("/mnt/dropbox/risk/expo/"+exposureFile[fileIndex]);
             this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExposure,this.groupPosition,sumOfDayExposure,exposureFile[fileIndex].split(".")[0]);
         }
         console.log("sumOfDayExposure second",sumOfDayExposure);
         console.log("this.groupPosition,",this.groupPosition);
 
-        this.setriskFactorReturnEchart(this.riskFactorReturn,this.startDate,this.endDate);
+
         this.setriskFactorExposureEchart(sumOfDayExposure);
         this.setRiskFactorAttrEchart(this.riskFactorReturnAttr);
         this.setStockAttrEchart(this.groupPosition);
@@ -435,14 +479,42 @@ export class RiskFactorComponent {
 
       if(startDateIndex === -1) {
           startDateIndex=1;
+          this.startDate=this.riskFactorReturn[startDateIndex][0];
       }
 
       let endDateIndex=this.binarySearchStock(riskFactorReturn,endDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
 
       if(endDateIndex === -1) {
           endDateIndex=riskFactorReturn.length-1;
+          this.endDate=this.riskFactorReturn[endDateIndex][0];
       }
 
+      this.setReturnEchart(riskFactorReturn,startDateIndex,endDateIndex,this.riskFactorReturnEchart,this.allDayReturnEchart);
+
+      //初始化最近一年的数据
+      let today=new Date(),rfrIndex=0;
+      let thisYearFirstDay=today.getFullYear()+"0101";
+
+      for(let dateIndex=riskFactorReturn.length-1; dateIndex>0; --dateIndex) {
+
+          if(riskFactorReturn[dateIndex][this.rfrDateIndex] < thisYearFirstDay) {
+            rfrIndex=dateIndex+1;
+            break;
+          }
+
+      }
+
+      if (rfrIndex ===0 || rfrIndex === riskFactorReturn.length) {
+          alert("没有找到当年的收益数据");
+          return;
+      }
+
+      this.setReturnEchart(riskFactorReturn,rfrIndex,riskFactorReturn.length-1,this.yearReturnEchart,this.allDayYearReturnEchart);
+
+
+    }
+
+    setReturnEchart(riskFactorReturn,startIndex,endIndex,lineChart,barChart){
       let chartLegendData=[],xAxisDatas[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
 
       let allRiskReturnSeries=[],allRiskReturnXAxis=[];   //统计总共的x坐标数组,和具体每一条曲线的数据
@@ -450,7 +522,7 @@ export class RiskFactorComponent {
 
       for(let riskIndex=1; riskIndex<riskFactorReturn[0].length; ++riskIndex){    //遍历每一个风险因子
 
-          let lengendData={name:riskFactorReturn[0][riskIndex],textStyle: { color: "#F3F3F5" }};
+          let lengendData={name:riskFactorReturn[0][riskIndex]}; // ,textStyle: { color: "#F3F3F5" }
           chartLegendData.push(lengendData);
 
           allRiskReturnXAxis.push( riskFactorReturn[0][riskIndex] );  //柱状图的x轴分类
@@ -459,17 +531,17 @@ export class RiskFactorComponent {
           let seriesData={name:riskFactorReturn[0][riskIndex] ,type: "line", data: []};
           let riskFactorAllDateReturn=0;
 
-          for(let i=startDateIndex;i<=endDateIndex;++i){
-              seriesData.data.push(riskFactorReturn[i][riskIndex]);
-              riskFactorAllDateReturn+=riskFactorReturn[i][riskIndex];
+          for(let i=startIndex; i<=endIndex; ++i){
+
+              riskFactorAllDateReturn += riskFactorReturn[i][riskIndex];
+              seriesData.data.push(riskFactorAllDateReturn);
           }
           series.push(seriesData);
 
           allRiskReturnSeries.push(riskFactorAllDateReturn);
       }
-
       //设置x坐标日期数组
-      for(let i=startDateIndex;i<=endDateIndex;++i){
+      for(let i=startIndex;i<=endIndex;++i){
           xAxisDatas.push(riskFactorReturn[i][this.rfrDateIndex]);
       }
 
@@ -484,6 +556,9 @@ export class RiskFactorComponent {
                 axisPointer: {
                     type: "cross",
                     label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                },
+                textStyle:{
+                    align:"left"
                 }
             },
             legend: {
@@ -493,6 +568,7 @@ export class RiskFactorComponent {
             xAxis: [{
                 data: xAxisDatas,
                 axisLabel: {
+
                     textStyle: { color: "#F3F3F5" }
                 },
                 axisLine: {
@@ -500,7 +576,7 @@ export class RiskFactorComponent {
                 }
             }],
             yAxis: [{
-                position: "right",
+
                 axisLabel: {
                     show: true,
                     textStyle: { color: "#F3F3F5" }
@@ -512,12 +588,12 @@ export class RiskFactorComponent {
                 boundaryGap: [0.2, 0.2]
             }],
             series: series,
-            color: [
-                "#00b", "#0b0"
-            ]
+            // color: [
+            //     "#00b", "#0b0"
+            // ]
         }
 
-        this.riskFactorReturnEchart.setOption(option);
+      lineChart.setOption(option);
 
         let allDayOption= {
               title: {
@@ -536,15 +612,22 @@ export class RiskFactorComponent {
               },
               xAxis: {
                   data: allRiskReturnXAxis,
+                  type: "category",
                   axisLabel: {
+                      rotate: -30,
+                      interval: 0,
                       textStyle: { color: "#F3F3F5" }
                   },
                   axisLine: {
                       lineStyle: { color: "#F3F3F5" }
-                  }
+                  },
+                  axisTick: {
+                      alignWithLabel:true
+                  },
+                  boundaryGap: true
               },
               yAxis: {
-                  position: "right",
+
                   axisLabel: {
                       show: true,
                       textStyle: { color: "#F3F3F5" }
@@ -566,7 +649,9 @@ export class RiskFactorComponent {
               ]
           }
 
-        this.allDayReturnEchart.setOption(allDayOption);
+      barChart.setOption(allDayOption);
+
+
     }
 
     //设置风险因子暴露的两个图表
@@ -574,11 +659,9 @@ export class RiskFactorComponent {
 
         let riskFactorExposureXAxis=[],riskFactorExposureSeries=[];
 
-
         for (var i = 0; i < riskFactorExposure.length; i++) {
           riskFactorExposureXAxis.push( riskFactorExposure[i].name );
           riskFactorExposureSeries.push( riskFactorExposure[i].exposure );
-
         }
 
         let riskFactorExposureOption= {
@@ -598,15 +681,22 @@ export class RiskFactorComponent {
               },
               xAxis: {
                   data: riskFactorExposureXAxis,
+                  type: "category",
                   axisLabel: {
+                      rotate: -30,
+                      interval: 0,
                       textStyle: { color: "#F3F3F5" }
                   },
                   axisLine: {
                       lineStyle: { color: "#F3F3F5" }
-                  }
+                  },
+                  axisTick: {
+                      alignWithLabel:true
+                  },
+                  boundaryGap: true
               },
               yAxis: {
-                  position: "right",
+
                   axisLabel: {
                       show: true,
                       textStyle: { color: "#F3F3F5" }
@@ -658,15 +748,22 @@ export class RiskFactorComponent {
               },
               xAxis: {
                   data: riskFactorAttrXAxis,
+                  type: "category",
                   axisLabel: {
+                      rotate: -30,
+                      interval: 0,
                       textStyle: { color: "#F3F3F5" }
                   },
                   axisLine: {
                       lineStyle: { color: "#F3F3F5" }
-                  }
+                  },
+                  axisTick: {
+                      alignWithLabel:true
+                  },
+                  boundaryGap: true
               },
               yAxis: {
-                  position: "right",
+
                   axisLabel: {
                       show: true,
                       textStyle: { color: "#F3F3F5" }
@@ -718,15 +815,22 @@ export class RiskFactorComponent {
             },
             xAxis: {
                 data: stockAttrXAxis,
+                type: "category",
                 axisLabel: {
+                    rotate: -30,
+                    interval: 0,
                     textStyle: { color: "#F3F3F5" }
                 },
                 axisLine: {
                     lineStyle: { color: "#F3F3F5" }
-                }
+                },
+                axisTick: {
+                    alignWithLabel:true
+                },
+                boundaryGap: true
             },
             yAxis: {
-                position: "right",
+
                 axisLabel: {
                     show: true,
                     textStyle: { color: "#F3F3F5" }
