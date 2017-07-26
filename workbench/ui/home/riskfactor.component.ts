@@ -131,6 +131,9 @@ export class RiskFactorComponent {
 
         this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") as HTMLCanvasElement );
 
+
+        console.log("this.riskFactorReturnEchart",this.riskFactorReturnEchart);
+
         if (this.activeTab === "Profit") {
 
 
@@ -141,6 +144,7 @@ export class RiskFactorComponent {
         }
 
         this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
+        // window.onresize =this.resizeFunction;
 
     }
 
@@ -153,6 +157,20 @@ export class RiskFactorComponent {
 
         });
         console.log("console.log(arr);",arr);
+    }
+    resizeFunction(){
+      this.riskFactorReturnEchart.resize();
+      this.allDayReturnEchart.resize();
+      this.yearReturnEchart.resize();
+      this.allDayYearReturnEchart.resize();
+
+      this.riskFactorExposureEchart.resize();
+      this.everyDayRFEEchart.resize();
+      this.riskFactorReturnAttrEchart.resize();
+      this.everyDayRFRAttrEchart.resize();
+
+      this.stockAttrEchart.resize();
+
     }
 
 
@@ -264,6 +282,8 @@ export class RiskFactorComponent {
         console.log("modify riskFactorExposure",exposureFilePath,this.riskFactorExposure);
     }
 
+
+    //成功返回true,否则返回false
     calculateRiskFactor(riskFactorReturn,riskFactorExposure,groupPosition,sumOfDayExposure,currDate){
         let oneDayExposure=[],oneDayReturnAttr=[];
 
@@ -326,6 +346,8 @@ export class RiskFactorComponent {
 
         this.riskFactorReturnAttr.push(oneDayReturnAttr);
         this.riskFactorReturnAttr[this.riskFactorReturnAttr.length-1].date=currDate;
+
+        return true;
 
     }
 
@@ -489,7 +511,10 @@ export class RiskFactorComponent {
         for(let fileIndex=0;fileIndex<exposureFile.length;++fileIndex){
 
             this.readAndHandleRiskExposure("/mnt/dropbox/risk/expo/"+exposureFile[fileIndex]);
-            this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExposure,this.groupPosition,sumOfDayExposure,exposureFile[fileIndex].split(".")[0]);
+            let result=this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExposure,this.groupPosition,sumOfDayExposure,exposureFile[fileIndex].split(".")[0]);
+            if (!result) {
+              return;
+            }
         }
         console.log("sumOfDayExposure second",sumOfDayExposure);
         console.log("this.groupPosition,",this.groupPosition);
@@ -667,7 +692,9 @@ export class RiskFactorComponent {
 
       lineChart.setOption(option);
 
+
         let allDayOption= {
+            baseOption: {
               title: {
                   show: false,
               },
@@ -711,40 +738,63 @@ export class RiskFactorComponent {
                   boundaryGap: [0.2, 0.2]
               },
               dataZoom: [{
-      					type: 'inside',
-      					xAxisIndex: 0 ,
-      					start: 0,
-      					end: 100
-      				}, {
-      						start: 0,
-      						end: 10,
-      						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-      						handleSize: '60%',
+                type: 'inside',
+                xAxisIndex: 0 ,
+                start: 0,
+                end: 100
+              }, {
+                  start: 0,
+                  end: 10,
+                  handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                  handleSize: '60%',
                   textStyle: {
                     color: "#FFF"
                   }
-      						handleStyle: {
-      								color: '#fff',
-      								shadowBlur: 3,
-      								shadowColor: 'rgba(0, 0, 0, 0.6)',
-      								shadowOffsetX: 2,
-      								shadowOffsetY: 2
-      						}
-      				}],
+                  handleStyle: {
+                      color: '#fff',
+                      shadowBlur: 3,
+                      shadowColor: 'rgba(0, 0, 0, 0.6)',
+                      shadowOffsetX: 2,
+                      shadowOffsetY: 2
+                  }
+              }],
               series: [{
                       name: "风险因子收益",
                       type: "bar",
                       data: allRiskReturnSeries
                   }
               ],
-              color: [
-                  "#00b", "#0b0"
-              ]
+              // color: [
+              //     "#00b", "#0b0"
+              // ],
+              backgroundColor: {
+                color: "blue"
+              }
+            },
+            media: [
+              {
+                  option: {
+                    grid: {
+                      left: "10%",
+                     right: "10%"
+                    }
+                  }
+              },{
+                query: {
+                  maxWidth: 650
+                },
+                option: {
+                  grid: {
+                      left: 65,
+                      right: 65
+                  }
+                }
+              }
+            ]
+
           }
 
       barChart.setOption(allDayOption);
-
-
     }
 
     //设置风险因子暴露的两个图表
@@ -921,9 +971,9 @@ export class RiskFactorComponent {
                       data: riskFactorExposureSeries
                   }
               ],
-              color: [
-                  "#00b", "#0b0"
-              ]
+              // color: [
+              //     "#00b", "#0b0"
+              // ]
           }
 
         this.riskFactorExposureEchart.setOption(riskFactorExposureOption);
@@ -1124,9 +1174,9 @@ export class RiskFactorComponent {
                       data: riskFactorAttrSeries
                   }
               ],
-              color: [
-                  "#00b", "#0b0"
-              ]
+            // color: [
+            //     "#00b", "#0b0"
+            // ]
           }
 
           this.riskFactorReturnAttrEchart.setOption(riskFactorAttrOption);
@@ -1191,12 +1241,14 @@ export class RiskFactorComponent {
                     data: stockAttrSeries
                 }
             ],
-            color: [
-                "#00b", "#0b0"
-            ]
+            // color: [
+            //     "#00b", "#0b0"
+            // ]
         }
 
         this.stockAttrEchart.setOption(stockAttrEchart);
+
+
 
     }
 

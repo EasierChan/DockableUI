@@ -27,18 +27,19 @@
 
 </div>
 <div style="position:absolue">
-<div class="chart1" id="riskFactorReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<div class="chart" id="allDayReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<div class="chart" id="yearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<div class="chart" id="allDayYearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart big_chart" id="riskFactorReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart small_chart" id="allDayReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart big_chart" id="yearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart small_chart" id="allDayYearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
 
-<div class="chart" id="riskFactorExposureEchart" [hidden]="activeTab == 'Profit'">chart</div>
-<div class="chart" id="everyDayRFEEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart big_chart" id="everyDayRFEEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart small_chart" id="riskFactorExposureEchart" [hidden]="activeTab == 'Profit'">chart</div>
 
-<div class="chart" id="riskFactorReturnAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
-<div class="chart" id="everyDayRFRAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart big_chart" id="everyDayRFRAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart small_chart" id="riskFactorReturnAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
 
-<div class="chart" id="stockAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+
+<div class="chart oneline_chart" id="stockAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
 
 </div>
 </div>
