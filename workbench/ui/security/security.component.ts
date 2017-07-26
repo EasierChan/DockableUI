@@ -148,9 +148,7 @@ export class SecurityComponent implements OnInit {
 
         this.structureInfo = new Section();
         this.structureInfo.title = "股本结构";
-        this.structureInfo.content = new DataTable();
-        this.structureInfo.content.backgroundColor = "transparent";
-        this.structureInfo.content.addColumn("股本结构", "股本数量(万股)", "占比");
+        this.structureInfo.content = this.createStructureInfo();
 
         this.registerListener();
     }
@@ -182,6 +180,24 @@ export class SecurityComponent implements OnInit {
                         break;
                     case 2:
                         this.keyInfo.content[1].value = msg.content.array[0].TOT_SHR;
+                        this.structureInfo.content.rows[0].cells[1].Text = msg.content.array[0].FLOAT_SHR;
+                        this.structureInfo.content.rows[0].cells[2].Text = (msg.content.array[0].FLOAT_SHR / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
+                        this.structureInfo.content.rows[1].cells[1].Text = msg.content.array[0].FLOAT_A_SHR;
+                        this.structureInfo.content.rows[1].cells[2].Text = (msg.content.array[0].FLOAT_A_SHR / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
+                        this.structureInfo.content.rows[2].cells[1].Text = msg.content.array[0].FLOAT_B_SHR;
+                        this.structureInfo.content.rows[2].cells[2].Text = (msg.content.array[0].FLOAT_B_SHR / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
+                        this.structureInfo.content.rows[3].cells[1].Text = msg.content.array[0].FLOAT_H_SHR;
+                        this.structureInfo.content.rows[3].cells[2].Text = (msg.content.array[0].FLOAT_H_SHR / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
+                        this.structureInfo.content.rows[4].cells[1].Text = msg.content.array[0].FLOAT_OVERSEAS_SHR;
+                        this.structureInfo.content.rows[4].cells[2].Text = (msg.content.array[0].FLOAT_OVERSEAS_SHR / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
+                        this.structureInfo.content.rows[5].cells[1].Text = msg.content.array[0].RESTRICTED_A_SHR;
+                        this.structureInfo.content.rows[5].cells[2].Text = (msg.content.array[0].RESTRICTED_A_SHR / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
+                        this.structureInfo.content.rows[6].cells[1].Text = msg.content.array[0].S_SHARE_NTRD_PRFSHARE;
+                        this.structureInfo.content.rows[6].cells[2].Text = (msg.content.array[0].S_SHARE_NTRD_PRFSHARE / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
+                        this.structureInfo.content.rows[7].cells[1].Text = msg.content.array[0].NON_TRADABLE_SHR;
+                        this.structureInfo.content.rows[7].cells[2].Text = (msg.content.array[0].NON_TRADABLE_SHR / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
+                        this.structureInfo.content.rows[8].cells[1].Text = msg.content.array[0].TOT_SHR;
+                        this.structureInfo.content.rows[8].cells[2].Text = (msg.content.array[0].TOT_SHR / msg.content.array[0].TOT_SHR).toFixed(2) + "%";
                         break;
                     case 3:
                         this.keyInfo.content[0].value = msg.content.array[0].S_VAL_MV;
@@ -402,6 +418,58 @@ export class SecurityComponent implements OnInit {
                 }]
             }
         };
+    }
+
+    createStructureInfo() {
+        let table = new DataTable();
+        table.backgroundColor = "transparent";
+        table.addColumn("股本结构", "股本数量(万股)", "占比");
+        let row1 = table.newRow();
+        row1.cells[0].Text = "流通股(非限售)";
+        row1.cells[1].Text = "";
+        row1.cells[2].Text = "";
+
+        let row2 = table.newRow();
+        row2.cells[0].Text = "流通A股";
+        row2.cells[1].Text = "";
+        row2.cells[2].Text = "";
+
+        let row3 = table.newRow();
+        row3.cells[0].Text = "流通B股";
+        row3.cells[1].Text = "";
+        row3.cells[2].Text = "";
+
+        let row4 = table.newRow();
+        row4.cells[0].Text = "流通H股";
+        row4.cells[1].Text = "";
+        row4.cells[2].Text = "";
+
+        let row5 = table.newRow();
+        row5.cells[0].Text = "境外流通股";
+        row5.cells[1].Text = "";
+        row5.cells[2].Text = "";
+
+        let row6 = table.newRow();
+        row6.cells[0].Text = "流通股(限售)";
+        row6.cells[1].Text = "";
+        row6.cells[2].Text = "";
+
+        let row7 = table.newRow();
+        row7.cells[0].Text = "优先股";
+        row7.cells[1].Text = "";
+        row7.cells[2].Text = "";
+
+        let row8 = table.newRow();
+        row8.cells[0].Text = "非流通股";
+        row8.cells[1].Text = "";
+        row8.cells[2].Text = "";
+
+        let row9 = table.newRow();
+        row9.cells[0].Text = "总股本（含优先股）";
+        row9.cells[1].Text = "";
+        row9.cells[2].Text = "";
+
+        return table;
     }
 }
 
