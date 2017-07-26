@@ -39,7 +39,7 @@ export class RiskFactorComponent {
 
     hedgeRadio: number;
 
-    riskFactorReturnEchart: any;//echart
+    riskFactorReturnEcharts: any;//echart
     allDayReturnEchart: any;
     yearReturnEchart: any;
     allDayYearReturnEchart: any;
@@ -119,32 +119,30 @@ export class RiskFactorComponent {
          });
 
 
-        this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLCanvasElement );
-        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") as HTMLCanvasElement );
-        this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") as HTMLCanvasElement );
-        this.allDayYearReturnEchart=echarts.init( document.getElementById("allDayYearReturnEchart") as HTMLCanvasElement );
+        this.riskFactorReturnEcharts=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLDivElement );
+        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") as HTMLDivElement );
+        this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") as HTMLDivElement );
+        this.allDayYearReturnEchart=echarts.init( document.getElementById("allDayYearReturnEchart") as HTMLDivElement );
 
-        this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") as HTMLCanvasElement );
-        this.everyDayRFEEchart=echarts.init( document.getElementById("everyDayRFEEchart") as HTMLCanvasElement );
-        this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") as HTMLCanvasElement );
-        this.everyDayRFRAttrEchart=echarts.init( document.getElementById("everyDayRFRAttrEchart") as HTMLCanvasElement );
+        this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") as HTMLDivElement );
+        this.everyDayRFEEchart=echarts.init( document.getElementById("everyDayRFEEchart") as HTMLDivElement );
+        this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") as HTMLDivElement );
+        this.everyDayRFRAttrEchart=echarts.init( document.getElementById("everyDayRFRAttrEchart") as HTMLDivElement );
 
-        this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") as HTMLCanvasElement );
-
-
-        console.log("this.riskFactorReturnEchart",this.riskFactorReturnEchart);
+        this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") as HTMLDivElement );
+        console.log("riskFactorReturnEcharts",this,window);
 
         if (this.activeTab === "Profit") {
 
 
-            this.setriskFactorReturnEchart(this.riskFactorReturn,this.startDate,this.endDate);
+            // this.setriskFactorReturnEchart(this.riskFactorReturn,this.startDate,this.endDate);
         }
         else if (this.activeTab === "RiskFactors") {
 
         }
 
         this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
-        // window.onresize =this.resizeFunction;
+        window.onresize =this.resizeFunction;
 
         this.hedgeRadio = 1;
 
@@ -161,7 +159,10 @@ export class RiskFactorComponent {
         console.log("console.log(arr);",arr);
     }
     resizeFunction(){
-      this.riskFactorReturnEchart.resize();
+
+
+      console.log("this.riskFactorReturnEcharts",this,this.riskFactorReturnEcharts);
+      this.riskFactorReturnEcharts.resize();
       this.allDayReturnEchart.resize();
       this.yearReturnEchart.resize();
       this.allDayYearReturnEchart.resize();
@@ -570,7 +571,7 @@ export class RiskFactorComponent {
           this.endDate=this.riskFactorReturn[endDateIndex][0];
       }
 
-      this.setReturnEchart(riskFactorReturn,startDateIndex,endDateIndex,this.riskFactorReturnEchart,this.allDayReturnEchart);
+      this.setReturnEchart(riskFactorReturn,startDateIndex,endDateIndex,this.riskFactorReturnEcharts,this.allDayReturnEchart);
 
       //初始化最近一年的数据
       let today=new Date(),rfrIndex=0;
