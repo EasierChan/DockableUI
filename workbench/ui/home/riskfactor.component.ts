@@ -409,33 +409,6 @@ export class RiskFactorComponent {
     lookReturn(){
       //console.log(this.hedgeRadio);
       if(!isNaN(this.hedgeRadio)){
-      let productlist = document.getElementById("product");
-      let productIndex = productlist.selectedIndex;
-      let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
-      console.log(this.startDate,tblockId);
-
-      // productfuturehold
-       this.tradePoint.addSlot({
-           appid: 260,
-           packid: 228,
-          callback: (msg) =>{
-           console.log(msg);
-           }
-        });
-
-       this.tradePoint.send(260, 228, { body: { trday:this.startDate,tblock_id:tblockId } });
-
-      // productstockhold
-       this.tradePoint.addSlot({
-          appid: 260,
-          packid: 230,
-          callback: (msg) =>{
-          console.log(msg);
-          }
-       });
-
-      this.tradePoint.send(260, 230, { body: { trday:this.startDate,tblock_id:tblockId } });
-
         let strategylist = document.getElementById("strategy");
         let strategyIndex = strategylist.selectedIndex;
         console.log(strategyIndex);
@@ -463,6 +436,33 @@ export class RiskFactorComponent {
          });
 
         this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,trday:this.startDate } });
+      }  else {
+        let productlist = document.getElementById("product");
+        let productIndex = productlist.selectedIndex;
+        let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+        console.log(this.startDate,tblockId);
+
+        // productfuturehold
+         this.tradePoint.addSlot({
+             appid: 260,
+             packid: 228,
+            callback: (msg) =>{
+             console.log(msg);
+             }
+          });
+
+         this.tradePoint.send(260, 228, { body: { trday:this.startDate,tblock_id:tblockId } });
+
+        // productstockhold
+         this.tradePoint.addSlot({
+            appid: 260,
+            packid: 230,
+            callback: (msg) =>{
+            console.log(msg);
+            }
+         });
+
+        this.tradePoint.send(260, 230, { body: { trday:this.startDate,tblock_id:tblockId } });
       }
 
 
