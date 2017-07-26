@@ -211,6 +211,8 @@ table {
 .table > tbody > tr > td {
     vertical-align: middle;
     word-break: keep-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 td input {
     width: 100%;

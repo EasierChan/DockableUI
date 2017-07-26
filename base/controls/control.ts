@@ -1958,6 +1958,7 @@ export class DataTableRowCell extends MetaControl {
 
 export class DataTableColumn {
     private compare: (prev, next) => number;
+    private limitWidth: string;
     constructor(private columnHeader: string,
         private bHidden: boolean = false,
         private bSortable: boolean = false) {
@@ -1992,6 +1993,14 @@ export class DataTableColumn {
 
     get onCompare() {
         return this.compare;
+    }
+
+    set maxWidth(value: string) {
+        this.limitWidth = value;
+    }
+
+    get maxWidth() {
+        return this.limitWidth;
     }
 }
 
