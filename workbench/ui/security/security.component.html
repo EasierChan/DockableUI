@@ -7,7 +7,7 @@
       <span class="glyphicon glyphicon-search"></span>
     </a>
     <ul *ngIf="resList&&resList.length > 0" class="dropdown">
-      <li *ngFor="let item of resList" (click)="listClick(item)">{{item.symbolCode}}</li>
+      <li *ngFor="let item of resList" (click)="listClick(item)">{{item.symbolCode}} {{item.SecuAbbr}}</li>
     </ul>
   </div>
 </div>
@@ -20,7 +20,7 @@
         {{summary.content}}
       </p>
     </section>
-    <section style="width: 300px">
+    <section style="min-width: 300px">
       <b>{{keyInfo.title}}</b>
       <div class="holder">
         <table>
@@ -44,7 +44,7 @@
         </table>
       </div>
     </section>
-    <section style="width: 400px">
+    <section style="width: 600px">
       <b>{{mainIncome.title}}</b>
       <div class="holder">
         <!--<canvas #mainIncomeIMG width="150">
@@ -54,7 +54,7 @@
           <span class="item2">非利息收入:手续费...{{mainIncome.content.b | percent}}</span>
         </div>-->
 
-        <div echarts [options]="mainIncome.content.option" style="height: 250px"></div>
+        <div echarts [options]="mainIncome.content.option" (chartInit)="mainIncome.content.onInit($event)" style="height: 250px"></div>
       </div>
     </section>
     <section style="width: 300px">

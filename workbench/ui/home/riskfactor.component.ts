@@ -146,6 +146,8 @@ export class RiskFactorComponent {
         this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
         // window.onresize =this.resizeFunction;
 
+        this.hedgeRadio = 1;
+
     }
 
     loadData() {
@@ -402,7 +404,8 @@ export class RiskFactorComponent {
     }
 
     lookReturn(){
-
+      //console.log(this.hedgeRadio);
+      if(!isNaN(this.hedgeRadio)){
       let productlist = document.getElementById("product");
       let productIndex = productlist.selectedIndex;
       let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
@@ -524,7 +527,9 @@ export class RiskFactorComponent {
         this.setRiskFactorAttrEchart(this.riskFactorReturnAttr, this.riskFactorReturn);
         this.setStockAttrEchart(this.groupPosition);
 
-
+     }  else {
+       alert("HedgeRadio must be number!")
+     }
     }
 
     //计算单个股票在所有风险因子下暴露和风险因子的乘积--也就是收益归因
