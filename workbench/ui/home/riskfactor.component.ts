@@ -111,6 +111,7 @@ export class RiskFactorComponent {
                   } else {
                         alert("Get product info Failed! " + data.msret.msg);
                     }
+                  this.lookReturn();
                 }
              });
             console.log(RiskFactorComponent.self.istrategys);
@@ -118,29 +119,6 @@ export class RiskFactorComponent {
             this.tradePoint.send(260, 218, { body: { tblock_id:tblockId } });
             }
          });
-        // request holdlist
-        // this.tradePoint.addSlot({
-        //    appid: 260,
-        //    packid: 218,
-        //    callback: (msg) =>{
-        //    let data = JSON.parse(msg.content.body);
-        //    if (data.msret.msgcode === "00") {
-        //        console.log("strategy_id",msg);
-        //        let productData = data.body;
-        //
-        //        for(let i = 0; i < productData.length; i++){
-        //          console.log("strategy_id strategy_id",productData[i].strategy_id,productData[i].strategy_name);
-        //
-        //        }
-        //    } else {
-        //        alert("Get strategy_id info Failed! " + data.msret.msg);
-        //    }
-        //
-        //    }
-        // });
-        //
-        // this.tradePoint.send(260, 218, { body: { tblock_id:203 } });
-
 
 
         if (this.activeTab === "RiskFactors") {
@@ -159,7 +137,7 @@ export class RiskFactorComponent {
         }
 
         this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
-        this.lookReturn();
+        //this.lookReturn();
 
     }
 
@@ -386,7 +364,10 @@ export class RiskFactorComponent {
     }
 
     lookReturn(){
-      console.log(this.startDate,this.iproduct);
+      let productlist = document.getElementById("product");
+      let productIndex = productlist.selectedIndex;
+      let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+      console.log(this.startDate,tblockId);
       // productfuturehold
        this.tradePoint.addSlot({
            appid: 260,
@@ -396,7 +377,7 @@ export class RiskFactorComponent {
            }
         });
 
-       this.tradePoint.send(260, 228, { body: { trday:this.startDate,tblock_id:this.iproduct } });
+       this.tradePoint.send(260, 228, { body: { trday:this.startDate,tblock_id:tblockId } });
 
       // productstockhold
        this.tradePoint.addSlot({
@@ -407,7 +388,7 @@ export class RiskFactorComponent {
           }
        });
 
-      this.tradePoint.send(260, 230, { body: { trday:this.startDate,tblock_id:this.iproduct } });
+      this.tradePoint.send(260, 230, { body: { trday:this.startDate,tblock_id:tblockId } });
 
 
       this.groupPosition =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
