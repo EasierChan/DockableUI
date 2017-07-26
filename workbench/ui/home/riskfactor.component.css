@@ -1,11 +1,12 @@
 .chart{
-  width: 436px;
+  /*width: 436px;*/
+
   height: 436px;
   float: left;
   text-align: center;
   line-height: 300px;
   font-size: 50px;
-  margin:7px;
+  margin: 7px;
   background-color: #222A41 !important
 }
 .chart1{
@@ -17,4 +18,15 @@
   font-size: 50px;
   margin:7px;
   background-color: #222A41 !important
+}
+
+.big_chart{
+  width: 60%;
+}
+.small_chart{
+  width: calc(40% - 28px);
+}
+
+.oneline_chart{
+  width: calc(100% - 14px);
 }

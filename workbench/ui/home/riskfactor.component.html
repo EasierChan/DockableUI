@@ -21,24 +21,25 @@
 </div>
 <div style="display:block;float:left">
 <font color='#eee'>HedgeRadio:</font>
-<input style="width:75px;height:23px;margin:4px"  [(ngModel)]='hedgeRadio' type="text" size="8"  placeholder="1" required>
+<input style="width:75px;height:23px;margin:4px"  [(ngModel)]='hedgeRadio' type="text" size="8"  placeholder="默认为1" required>
 </div>
 <input style="width:61px;height:23px;background-color:#00b010;color:#eee;font-size:15px;text-align:center;margin:4px;display:block;float:left" type="submit" value="search" (click)="lookReturn()">
 
 </div>
 <div style="position:absolue">
-<div class="chart1" id="riskFactorReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<div class="chart" id="allDayReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<div class="chart" id="yearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<div class="chart" id="allDayYearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart big_chart" id="riskFactorReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart small_chart" id="allDayReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart big_chart" id="yearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart small_chart" id="allDayYearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
 
-<div class="chart" id="riskFactorExposureEchart" [hidden]="activeTab == 'Profit'">chart</div>
-<div class="chart" id="everyDayRFEEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart big_chart" id="everyDayRFEEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart small_chart" id="riskFactorExposureEchart" [hidden]="activeTab == 'Profit'">chart</div>
 
-<div class="chart" id="riskFactorReturnAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
-<div class="chart" id="everyDayRFRAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart big_chart" id="everyDayRFRAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart small_chart" id="riskFactorReturnAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
 
-<div class="chart" id="stockAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+
+<div class="chart oneline_chart" id="stockAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
 
 </div>
 </div>
