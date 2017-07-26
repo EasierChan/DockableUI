@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component } from "@angular/core";
+import { Component, HostListener } from "@angular/core";
 import { File } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
 import { FormsModule } from "@angular/forms";
@@ -26,10 +26,10 @@ export class RiskFactorComponent {
     static self: any;
     posStockIndex: number = 0;
 
-    posWeightIndex: number=1;
-    rfrDateIndex: number=0;
-    rfeDateIndex: number=0;
-    rfeStockIndex: number=1;
+    posWeightIndex: number = 1;
+    rfrDateIndex: number = 0;
+    rfeDateIndex: number = 0;
+    rfeStockIndex: number = 1;
 
     styleObj: any;
     dataSource: any;
@@ -45,28 +45,29 @@ export class RiskFactorComponent {
     allDayYearReturnEchart: any;
     riskFactorExposureEchart: any;
     everyDayRFEEchart: any;
+    riskFactorReturnAttrEchart: any;
     everyDayRFRAttrEchart: any;
 
     stockAttrEchart: any;
 
-    productData:any[];
-    strategyData:any[];
-    iproducts:string[];
-    iproduct:string;
-    istrategys:string[]=["all"];
-    istrategy:string;
+    productData: any[];
+    strategyData: any[];
+    iproducts: string[];
+    iproduct: string;
+    istrategys: string[] = ["all"];
+    istrategy: string;
 
-    riskFactorReturnAttr:  any[] = [];//风险因子收益归因
-    riskFactorReturn: any[] =[];
+    riskFactorReturnAttr: any[] = [];// 风险因子收益归因
+    riskFactorReturn: any[] = [];
     riskFactorExpose: any[] = [];
 
-    groupPosition: any[] =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];
+    groupPosition: any[] = [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }];
 
     constructor(private tradePoint: TradeService, private tgw: IP20Service) {
         RiskFactorComponent.self = this;
         // this.loadData();
         this.iproducts = [];
-        //this.riskFactorReturn=this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
+        // this.riskFactorReturn=this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
 
         this.readAndHandleRiskReturn();
 
@@ -76,139 +77,141 @@ export class RiskFactorComponent {
         console.info(this.activeTab);
 
         // receive holdlist
-         this.tradePoint.addSlot({
+        this.tradePoint.addSlot({
             appid: 260,
             packid: 224,
-            callback: (msg) =>{
-            let data = JSON.parse(msg.content.body);
-            if (data.msret.msgcode === "00") {
-                RiskFactorComponent.self.productData = data.body;
-                  console.log(RiskFactorComponent.self.productData);
-                console.log(RiskFactorComponent.self.productData[0].tblock_full_name);
-                for(let i = 0; i < RiskFactorComponent.self.productData.length; i++){
-                  RiskFactorComponent.self.iproducts.push(RiskFactorComponent.self.productData[i].tblock_full_name);
-                }
-            } else {
-                alert("Get product info Failed! " + data.msret.msg);
-            }
-            RiskFactorComponent.self.iproduct = RiskFactorComponent.self.iproducts[0];
-
-            let tblockId = RiskFactorComponent.self.productData[0].tblock_id;
-            // index strategies
-             this.tradePoint.addSlot({
-                appid: 260,
-                packid: 218,
-                callback: (msg) =>{
-                  console.log(msg);
-                  let data = JSON.parse(msg.content.body);
-                  if (data.msret.msgcode === "00") {
-                      RiskFactorComponent.self.strategyData = data.body;
-                      for(let i = 0; i < RiskFactorComponent.self.strategyData.length; i++){
-                        RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
-                      }
-                  } else {
-                        alert("Get product info Failed! " + data.msret.msg);
+            callback: (msg) => {
+                let data = JSON.parse(msg.content.body);
+                if (data.msret.msgcode === "00") {
+                    RiskFactorComponent.self.productData = data.body;
+                    console.log(RiskFactorComponent.self.productData);
+                    console.log(RiskFactorComponent.self.productData[0].tblock_full_name);
+                    for (let i = 0; i < RiskFactorComponent.self.productData.length; i++) {
+                        RiskFactorComponent.self.iproducts.push(RiskFactorComponent.self.productData[i].tblock_full_name);
                     }
-                  this.lookReturn();
+                } else {
+                    alert("Get product info Failed! " + data.msret.msg);
                 }
-             });
-            console.log(RiskFactorComponent.self.istrategys);
-            RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
-            this.tradePoint.send(260, 218, { body: { tblock_id:tblockId } });
+                RiskFactorComponent.self.iproduct = RiskFactorComponent.self.iproducts[0];
+
+                let tblockId = RiskFactorComponent.self.productData[0].tblock_id;
+                // index strategies
+                this.tradePoint.addSlot({
+                    appid: 260,
+                    packid: 218,
+                    callback: (msg) => {
+                        console.log(msg);
+                        let data = JSON.parse(msg.content.body);
+                        if (data.msret.msgcode === "00") {
+                            RiskFactorComponent.self.strategyData = data.body;
+                            for (let i = 0; i < RiskFactorComponent.self.strategyData.length; i++) {
+                                RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
+                            }
+                        } else {
+                            alert("Get product info Failed! " + data.msret.msg);
+                        }
+                        this.lookReturn();
+                    }
+                });
+                console.log(RiskFactorComponent.self.istrategys);
+                RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
+                this.tradePoint.send(260, 218, { body: { tblock_id: tblockId } });
             }
-         });
+        });
 
 
-        this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLCanvasElement );
-        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") as HTMLCanvasElement );
-        this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") as HTMLCanvasElement );
-        this.allDayYearReturnEchart=echarts.init( document.getElementById("allDayYearReturnEchart") as HTMLCanvasElement );
+        this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLCanvasElement);
+        this.allDayReturnEchart = echarts.init(document.getElementById("allDayReturnEchart") as HTMLCanvasElement);
+        this.yearReturnEchart = echarts.init(document.getElementById("yearReturnEchart") as HTMLCanvasElement);
+        this.allDayYearReturnEchart = echarts.init(document.getElementById("allDayYearReturnEchart") as HTMLCanvasElement);
 
-        this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") as HTMLCanvasElement );
-        this.everyDayRFEEchart=echarts.init( document.getElementById("everyDayRFEEchart") as HTMLCanvasElement );
-        this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") as HTMLCanvasElement );
-        this.everyDayRFRAttrEchart=echarts.init( document.getElementById("everyDayRFRAttrEchart") as HTMLCanvasElement );
+        this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLCanvasElement);
+        this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLCanvasElement);
+        this.riskFactorReturnAttrEchart = echarts.init(document.getElementById("riskFactorReturnAttrEchart") as HTMLCanvasElement);
+        this.everyDayRFRAttrEchart = echarts.init(document.getElementById("everyDayRFRAttrEchart") as HTMLCanvasElement);
 
-        this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") as HTMLCanvasElement );
+        this.stockAttrEchart = echarts.init(document.getElementById("stockAttrEchart") as HTMLCanvasElement);
 
 
-        console.log("this.riskFactorReturnEchart",this.riskFactorReturnEchart);
+        console.log("this.riskFactorReturnEchart", this.riskFactorReturnEchart);
 
         if (this.activeTab === "Profit") {
 
 
-            this.setriskFactorReturnEchart(this.riskFactorReturn,this.startDate,this.endDate);
+            this.setriskFactorReturnEchart(this.riskFactorReturn, this.startDate, this.endDate);
         }
         else if (this.activeTab === "RiskFactors") {
 
         }
 
         this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
-        // window.onresize =this.resizeFunction;
 
         this.hedgeRadio = 1;
-
+        window.onresize = () => {
+            this.resizeFunction();
+        };
     }
 
     loadData() {
         // to read a file line by line.
-        let arr=[];
+        let arr = [];
         File.readLineByLine("/mnt/dropbox/risk/riskreturn.csv", (linestr) => {
-          console.log("readLineByLine",linestr);
-          arr.push(linestr);
+            console.log("readLineByLine", linestr);
+            arr.push(linestr);
 
         });
-        console.log("console.log(arr);",arr);
-    }
-    resizeFunction(){
-      this.riskFactorReturnEchart.resize();
-      this.allDayReturnEchart.resize();
-      this.yearReturnEchart.resize();
-      this.allDayYearReturnEchart.resize();
-
-      this.riskFactorExposureEchart.resize();
-      this.everyDayRFEEchart.resize();
-      this.riskFactorReturnAttrEchart.resize();
-      this.everyDayRFRAttrEchart.resize();
-
-      this.stockAttrEchart.resize();
-
+        console.log("console.log(arr);", arr);
     }
 
+    resizeFunction() {
+        this.riskFactorReturnEchart.resize();
+        this.allDayReturnEchart.resize();
+        this.yearReturnEchart.resize();
+        this.allDayYearReturnEchart.resize();
 
-    nextDropdown(){
-    //get strategies of this product
-    RiskFactorComponent.self.istrategys = ["all"];
-    console.log(RiskFactorComponent.self.productData);
-    let productlist = document.getElementById("product");
-    let productIndex = productlist.selectedIndex;
-    let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
-    console.log(productIndex);
-    // strategies
-     this.tradePoint.addSlot({
-        appid: 260,
-        packid: 218,
-        callback: (msg) =>{
-          console.log(msg);
-          let data = JSON.parse(msg.content.body);
-          if (data.msret.msgcode === "00") {
-              RiskFactorComponent.self.strategyData = data.body;
-              for(let i = 0; i < RiskFactorComponent.self.strategyData.length; i++){
-                RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
-              }
-          } else {
-                alert("Get product info Failed! " + data.msret.msg);
+        this.riskFactorExposureEchart.resize();
+        this.everyDayRFEEchart.resize();
+        this.riskFactorReturnAttrEchart.resize();
+        this.everyDayRFRAttrEchart.resize();
+
+        this.stockAttrEchart.resize();
+
+    }
+
+
+    nextDropdown() {
+        //get strategies of this product
+        RiskFactorComponent.self.istrategys = ["all"];
+        console.log(RiskFactorComponent.self.productData);
+        let productlist = document.getElementById("product");
+        let productIndex = productlist.selectedIndex;
+        let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+        console.log(productIndex);
+        // strategies
+        this.tradePoint.addSlot({
+            appid: 260,
+            packid: 218,
+            callback: (msg) => {
+                console.log(msg);
+                let data = JSON.parse(msg.content.body);
+                if (data.msret.msgcode === "00") {
+                    RiskFactorComponent.self.strategyData = data.body;
+                    for (let i = 0; i < RiskFactorComponent.self.strategyData.length; i++) {
+                        RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
+                    }
+                } else {
+                    alert("Get product info Failed! " + data.msret.msg);
+                }
             }
-        }
-     });
-    console.log(RiskFactorComponent.self.istrategys);
-    RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
-    this.tradePoint.send(260, 218, { body: { tblock_id:tblockId } });
+        });
+        console.log(RiskFactorComponent.self.istrategys);
+        RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
+        this.tradePoint.send(260, 218, { body: { tblock_id: tblockId } });
     }
 
     readAndHandleRiskReturn() {
         this.riskFactorReturn = this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
-        //处理获取的风险因子收益数据
+        // 处理获取的风险因子收益数据
         if (this.riskFactorReturn.length < 2) {
             alert("风险因子收益没有数据,请导入数据后重试");
             return;
@@ -216,13 +219,13 @@ export class RiskFactorComponent {
 
         for (let i = 1; i < this.riskFactorReturn.length; ++i) {
 
-            for(let j=1; j<this.riskFactorReturn[0].length; ++j ){
-                var value= parseFloat(this.riskFactorReturn[i][j]);
+            for (let j = 1; j < this.riskFactorReturn[0].length; ++j) {
+                var value = parseFloat(this.riskFactorReturn[i][j]);
 
-                if( isNaN(value)){
-                    this.riskFactorReturn[i][j]=0;
+                if (isNaN(value)) {
+                    this.riskFactorReturn[i][j] = 0;
                 } else {
-                    this.riskFactorReturn[i][j]=value;
+                    this.riskFactorReturn[i][j] = value;
                 }
 
                 // if (i>1) {
@@ -232,17 +235,17 @@ export class RiskFactorComponent {
             }
         }
 
-        let startDateIndex=this.binarySearchStock(this.riskFactorReturn,this.startDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+        let startDateIndex = this.binarySearchStock(this.riskFactorReturn, this.startDate, this.rfrDateIndex, 1);// 查找指定日期的风险因子收益
 
-        if(startDateIndex === -1) {
-            startDateIndex=1;
+        if (startDateIndex === -1) {
+            startDateIndex = 1;
 
         }
 
-        let endDateIndex=this.binarySearchStock(this.riskFactorReturn,this.endDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+        let endDateIndex = this.binarySearchStock(this.riskFactorReturn, this.endDate, this.rfrDateIndex, 1);// 查找指定日期的风险因子收益
 
-        if(endDateIndex === -1) {
-            endDateIndex=this.riskFactorReturn.length-1;
+        if (endDateIndex === -1) {
+            endDateIndex = this.riskFactorReturn.length - 1;
 
         }
         console.log("this.endDate", this.endDate);
@@ -251,9 +254,9 @@ export class RiskFactorComponent {
 
 
     readAndHandleRiskExposure(exposureFilePath) {
-        this.riskFactorExposure=this.readDataFromCsvFile(exposureFilePath);
+        this.riskFactorExposure = this.readDataFromCsvFile(exposureFilePath);
 
-        if(this.riskFactorExposure.length < 2 ){
+        if (this.riskFactorExposure.length < 2) {
             console.log("暴露数据为空，不能计算数据。");
             return；
         }
@@ -384,7 +387,7 @@ export class RiskFactorComponent {
         return resultData;
     }
 
-    binarySearchStock(arr,source,member,start,end){
+    binarySearchStock(arr,source,member,start,end) {
       start=start||0;
       end=end||arr.length-1;
       let mid=-1;
