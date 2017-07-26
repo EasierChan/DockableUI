@@ -48,6 +48,8 @@ export class RiskFactorComponent {
     riskFactorReturnAttrEchart: any;
     everyDayRFRAttrEchart: any;
 
+    defaultMedia: any;
+
     stockAttrEchart: any;
 
     productData: any[];
@@ -67,9 +69,27 @@ export class RiskFactorComponent {
         RiskFactorComponent.self = this;
         // this.loadData();
         this.iproducts = [];
-        // this.riskFactorReturn=this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
 
         this.readAndHandleRiskReturn();
+
+        this.defaultMedia= [{
+              option: {
+                grid: {
+                  left: "10%",
+                 right: "10%"
+                }
+              }
+          } , {
+            query: {
+              maxWidth: 650
+            },
+            option: {
+              grid: {
+                  left: 65,
+                  right: 65
+              }
+            }
+          }];
 
     }
 
@@ -120,25 +140,22 @@ export class RiskFactorComponent {
         });
 
 
-        this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLCanvasElement);
-        this.allDayReturnEchart = echarts.init(document.getElementById("allDayReturnEchart") as HTMLCanvasElement);
-        this.yearReturnEchart = echarts.init(document.getElementById("yearReturnEchart") as HTMLCanvasElement);
-        this.allDayYearReturnEchart = echarts.init(document.getElementById("allDayYearReturnEchart") as HTMLCanvasElement);
 
-        this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLCanvasElement);
-        this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLCanvasElement);
-        this.riskFactorReturnAttrEchart = echarts.init(document.getElementById("riskFactorReturnAttrEchart") as HTMLCanvasElement);
-        this.everyDayRFRAttrEchart = echarts.init(document.getElementById("everyDayRFRAttrEchart") as HTMLCanvasElement);
+        this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLDivElement );
+        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") as HTMLDivElement );
+        this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") as HTMLDivElement );
+        this.allDayYearReturnEchart=echarts.init( document.getElementById("allDayYearReturnEchart") as HTMLDivElement );
 
-        this.stockAttrEchart = echarts.init(document.getElementById("stockAttrEchart") as HTMLCanvasElement);
+        this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") as HTMLDivElement );
+        this.everyDayRFEEchart=echarts.init( document.getElementById("everyDayRFEEchart") as HTMLDivElement );
+        this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") as HTMLDivElement );
+        this.everyDayRFRAttrEchart=echarts.init( document.getElementById("everyDayRFRAttrEchart") as HTMLDivElement );
 
+        this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") as HTMLDivElement );
 
-        console.log("this.riskFactorReturnEchart", this.riskFactorReturnEchart);
 
         if (this.activeTab === "Profit") {
-
-
-            this.setriskFactorReturnEchart(this.riskFactorReturn, this.startDate, this.endDate);
+            this.setriskFactorReturnEchart(this.riskFactorReturn);
         }
         else if (this.activeTab === "RiskFactors") {
 
@@ -556,22 +573,27 @@ export class RiskFactorComponent {
 
 
     //设置收益的两个图标
-    setriskFactorReturnEchart(riskFactorReturn,startDate,endDate){
-      console.log("setriskFactorReturnEchart");
+    setriskFactorReturnEchart(riskFactorReturn){
 
-      let startDateIndex=this.binarySearchStock(riskFactorReturn,startDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
 
-      if(startDateIndex === -1) {
-          startDateIndex=1;
-          this.startDate=this.riskFactorReturn[startDateIndex][0];
+      // let startDateIndex=this.binarySearchStock(riskFactorReturn,startDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+      //
+      // if(startDateIndex === -1) {
+      //     startDateIndex=1;
+      //     this.startDate=this.riskFactorReturn[startDateIndex][0];
+      // }
+      //
+      // let endDateIndex=this.binarySearchStock(riskFactorReturn,endDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
+      //
+      // if(endDateIndex === -1) {
+      //     endDateIndex=riskFactorReturn.length-1;
+      //     this.endDate=this.riskFactorReturn[endDateIndex][0];
+      // }
+      if (riskFactorReturn.length === 0) {
+          console.log("风险因子收益没有数据,请检查重试!");
+          return ;
       }
-
-      let endDateIndex=this.binarySearchStock(riskFactorReturn,endDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
-
-      if(endDateIndex === -1) {
-          endDateIndex=riskFactorReturn.length-1;
-          this.endDate=this.riskFactorReturn[endDateIndex][0];
-      }
+      let startDateIndex=1,endDateIndex=riskFactorReturn.length-1;
 
       this.setReturnEchart(riskFactorReturn,startDateIndex,endDateIndex,this.riskFactorReturnEchart,this.allDayReturnEchart);
 
@@ -632,70 +654,74 @@ export class RiskFactorComponent {
       console.log("allRiskReturnSeries,allRiskReturnXAxis",allRiskReturnSeries,allRiskReturnXAxis)
 
       let option= {
-            title: {
-                show: false,
-            },
-            tooltip: {
-                trigger: "axis",
-                axisPointer: {
-                    type: "cross",
-                    label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
-                },
-                textStyle:{
-                    align:"left"
-                }
-            },
-            legend: {
-                data: chartLegendData,
-                textStyle: { color: "#F3F3F5" }
-            },
-            xAxis: [{
-                data: xAxisDatas,
-                axisLabel: {
+          baseOption: {
+              title: {
+                  show: false,
+              },
+              tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                      type: "cross",
+                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                  },
+                  textStyle:{
+                      align:"left"
+                  }
+              },
+              legend: {
+                  data: chartLegendData,
+                  textStyle: { color: "#F3F3F5" }
+              },
+              xAxis: [{
+                  data: xAxisDatas,
+                  axisLabel: {
 
-                    textStyle: { color: "#F3F3F5" }
-                },
-                axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
-                }
-            }],
-            yAxis: [{
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  }
+              }],
+              yAxis: [{
 
-                axisLabel: {
-                    show: true,
-                    textStyle: { color: "#F3F3F5" }
-                },
-                axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
-                },
-                scale: true,
-                boundaryGap: [0.2, 0.2]
-            }],
-            dataZoom: [{
-    					type: 'inside',
-    					xAxisIndex: 0 ,
-    					start: 0,
-    					end: 100
-    				}, {
-    						start: 0,
-    						end: 10,
-    						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-    						handleSize: '60%',
-                textStyle: {
-                  color: "#FFF"
-                }
-    						handleStyle: {
-    								color: '#fff',
-    								shadowBlur: 3,
-    								shadowColor: 'rgba(0, 0, 0, 0.6)',
-    								shadowOffsetX: 2,
-    								shadowOffsetY: 2
-    						}
-    				}],
-            series: series
-            // color: [
-            //     "#00b", "#0b0"
-            // ]
+                  axisLabel: {
+                      show: true,
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  },
+                  scale: true,
+                  boundaryGap: [0.2, 0.2]
+              }],
+              dataZoom: [{
+      					type: 'inside',
+      					xAxisIndex: 0 ,
+      					start: 0,
+      					end: 100
+      				}, {
+      						start: 0,
+      						end: 10,
+      						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+      						handleSize: '60%',
+                  textStyle: {
+                    color: "#FFF"
+                  }
+      						handleStyle: {
+      								color: '#fff',
+      								shadowBlur: 3,
+      								shadowColor: 'rgba(0, 0, 0, 0.6)',
+      								shadowOffsetX: 2,
+      								shadowOffsetY: 2
+      						}
+      				}],
+              series: series
+              // color: [
+              //     "#00b", "#0b0"
+              // ]
+          },
+          media: this.defaultMedia
+
         }
 
       lineChart.setOption(option);
@@ -753,6 +779,7 @@ export class RiskFactorComponent {
               }, {
                   start: 0,
                   end: 10,
+                  show: false,
                   handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
                   handleSize: '60%',
                   textStyle: {
@@ -779,26 +806,7 @@ export class RiskFactorComponent {
                 color: "blue"
               }
             },
-            media: [
-              {
-                  option: {
-                    grid: {
-                      left: "10%",
-                     right: "10%"
-                    }
-                  }
-              },{
-                query: {
-                  maxWidth: 650
-                },
-                option: {
-                  grid: {
-                      left: 65,
-                      right: 65
-                  }
-                }
-              }
-            ]
+            media: this.defaultMedia
 
           }
 
@@ -840,148 +848,158 @@ export class RiskFactorComponent {
         }
 
         let everyDayRFEOption= {
-              title: {
-                  show: false,
-              },
-              tooltip: {
-                  trigger: "axis",
-                  axisPointer: {
-                      type: "cross",
-                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
-                  }
-              },
-              legend: {
-                  data: chartLegendData,
-                  textStyle: { color: "#F3F3F5" }
-              },
-              xAxis: {
-                  data: everydayExposureXAxis,
-                  type: "category",
-                  axisLabel: {
-                      textStyle: { color: "#F3F3F5" }
-                  },
-                  axisLine: {
-                      lineStyle: { color: "#F3F3F5" }
-                  },
-                  axisTick: {
-                      alignWithLabel:true
-                  }
-              },
-              yAxis: {
+            baseOption: {
+                title: {
+                    show: false,
+                },
+                tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    }
+                },
+                legend: {
+                    data: chartLegendData,
+                    textStyle: { color: "#F3F3F5" }
+                },
+                xAxis: {
+                    data: everydayExposureXAxis,
+                    type: "category",
+                    axisLabel: {
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    axisTick: {
+                        alignWithLabel:true
+                    }
+                },
+                yAxis: {
 
-                  axisLabel: {
-                      show: true,
-                      textStyle: { color: "#F3F3F5" }
-                  },
-                  axisLine: {
-                      lineStyle: { color: "#F3F3F5" }
-                  },
-                  scale: true,
-                  boundaryGap: [0.2, 0.2]
-              },
-              dataZoom: [{
-      					type: 'inside',
-      					xAxisIndex: 0 ,
-      					start: 0,
-      					end: 100
-      				}, {
-      						start: 0,
-      						end: 10,
-      						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-      						handleSize: '60%',
-                  textStyle: {
-                    color: "#FFF"
-                  }
-      						handleStyle: {
-      								color: '#fff',
-      								shadowBlur: 3,
-      								shadowColor: 'rgba(0, 0, 0, 0.6)',
-      								shadowOffsetX: 2,
-      								shadowOffsetY: 2
-      						}
-      				}],
-              series: everydayExposureSeries
-              // color: [
-              //     "#00b", "#0b0"
-              // ]
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                },
+                dataZoom: [{
+                  type: 'inside',
+                  xAxisIndex: 0 ,
+                  start: 0,
+                  end: 100
+                }, {
+                    start: 0,
+                    end: 10,
+                    show: false,
+                    handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                    handleSize: '60%',
+                    textStyle: {
+                      color: "#FFF"
+                    }
+                    handleStyle: {
+                        color: '#fff',
+                        shadowBlur: 3,
+                        shadowColor: 'rgba(0, 0, 0, 0.6)',
+                        shadowOffsetX: 2,
+                        shadowOffsetY: 2
+                    }
+                }],
+                series: everydayExposureSeries
+                // color: [
+                //     "#00b", "#0b0"
+                // ]
+            },
+            media: this.defaultMedia
+
           }
 
         this.everyDayRFEEchart.setOption(everyDayRFEOption);
 
 
         let riskFactorExposureOption= {
-              title: {
-                  show: false,
-              },
-              tooltip: {
-                  trigger: "axis",
-                  axisPointer: {
-                      type: "cross",
-                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
-                  }
-              },
-              legend: {
-                  data: ["风险因子收益"],
-                  textStyle: { color: "#F3F3F5" }
-              },
-              xAxis: {
-                  data: riskFactorExposureXAxis,
-                  type: "category",
-                  axisLabel: {
-                      rotate: -30,
-                      interval: 0,
+              baseOption: {
+                  title: {
+                      show: false,
+                  },
+                  tooltip: {
+                      trigger: "axis",
+                      axisPointer: {
+                          type: "cross",
+                          label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                      }
+                  },
+                  legend: {
+                      data: ["风险因子收益"],
                       textStyle: { color: "#F3F3F5" }
                   },
-                  axisLine: {
-                      lineStyle: { color: "#F3F3F5" }
+                  xAxis: {
+                      data: riskFactorExposureXAxis,
+                      type: "category",
+                      axisLabel: {
+                          rotate: -30,
+                          interval: 0,
+                          textStyle: { color: "#F3F3F5" }
+                      },
+                      axisLine: {
+                          lineStyle: { color: "#F3F3F5" }
+                      },
+                      axisTick: {
+                          alignWithLabel:true
+                      },
+                      boundaryGap: true
                   },
-                  axisTick: {
-                      alignWithLabel:true
-                  },
-                  boundaryGap: true
-              },
-              yAxis: {
+                  yAxis: {
 
-                  axisLabel: {
-                      show: true,
-                      textStyle: { color: "#F3F3F5" }
+                      axisLabel: {
+                          show: true,
+                          textStyle: { color: "#F3F3F5" }
+                      },
+                      axisLine: {
+                          lineStyle: { color: "#F3F3F5" }
+                      },
+                      scale: true,
+                      boundaryGap: [0.2, 0.2]
                   },
-                  axisLine: {
-                      lineStyle: { color: "#F3F3F5" }
-                  },
-                  scale: true,
-                  boundaryGap: [0.2, 0.2]
+                  dataZoom: [{
+          					type: 'inside',
+          					xAxisIndex: 0 ,
+          					start: 0,
+          					end: 100
+          				}, {
+          						start: 0,
+          						end: 10,
+                      show: false,
+          						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+          						handleSize: '60%',
+                      textStyle: {
+                        color: "#FFF"
+                      }
+          						handleStyle: {
+          								color: '#fff',
+          								shadowBlur: 3,
+          								shadowColor: 'rgba(0, 0, 0, 0.6)',
+          								shadowOffsetX: 2,
+          								shadowOffsetY: 2
+          						}
+          				}],
+                  series: [{
+                          name: "风险因子收益",
+                          type: "bar",
+                          data: riskFactorExposureSeries
+                      }
+                  ],
+                  // color: [
+                  //     "#00b", "#0b0"
+                  // ]
               },
-              dataZoom: [{
-      					type: 'inside',
-      					xAxisIndex: 0 ,
-      					start: 0,
-      					end: 100
-      				}, {
-      						start: 0,
-      						end: 10,
-      						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-      						handleSize: '60%',
-                  textStyle: {
-                    color: "#FFF"
-                  }
-      						handleStyle: {
-      								color: '#fff',
-      								shadowBlur: 3,
-      								shadowColor: 'rgba(0, 0, 0, 0.6)',
-      								shadowOffsetX: 2,
-      								shadowOffsetY: 2
-      						}
-      				}],
-              series: [{
-                      name: "风险因子收益",
-                      type: "bar",
-                      data: riskFactorExposureSeries
-                  }
-              ],
-              // color: [
-              //     "#00b", "#0b0"
-              // ]
+              media: this.defaultMedia
+
           }
 
         this.riskFactorExposureEchart.setOption(riskFactorExposureOption);
@@ -1021,70 +1039,75 @@ export class RiskFactorComponent {
         console.log("everyDayReturnAttrSeries",everyDayRiskFactorAttr,everyDayReturnAttrSeries,riskFactorAttrSeries);
 
         let everyDayRFROption= {
-              title: {
-                  show: false,
-              },
-              tooltip: {
-                  trigger: "axis",
-                  axisPointer: {
-                      type: "cross",
-                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
-                  }
-              },
-              legend: {
-                  data: chartLegendData,
-                  textStyle: { color: "#F3F3F5" }
-              },
-              xAxis: {
-                  data: everyDayReturnAttrXAxis,
-                  type: "category",
-                  axisLabel: {
-                      textStyle: { color: "#F3F3F5" }
-                  },
-                  axisLine: {
-                      lineStyle: { color: "#F3F3F5" }
-                  },
-                  axisTick: {
-                      alignWithLabel:true
-                  }
-              },
-              yAxis: {
+              baseOption: {
+                title: {
+                    show: false,
+                },
+                tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    }
+                },
+                legend: {
+                    data: chartLegendData,
+                    textStyle: { color: "#F3F3F5" }
+                },
+                xAxis: {
+                    data: everyDayReturnAttrXAxis,
+                    type: "category",
+                    axisLabel: {
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    axisTick: {
+                        alignWithLabel:true
+                    }
+                },
+                yAxis: {
 
-                  axisLabel: {
-                      show: true,
-                      textStyle: { color: "#F3F3F5" }
-                  },
-                  axisLine: {
-                      lineStyle: { color: "#F3F3F5" }
-                  },
-                  scale: true,
-                  boundaryGap: [0.2, 0.2]
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                },
+                dataZoom: [{
+                  type: 'inside',
+                  xAxisIndex: 0 ,
+                  start: 0,
+                  end: 100
+                }, {
+                    start: 0,
+                    end: 10,
+                    show: false,
+                    handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                    handleSize: '60%',
+                    textStyle: {
+                      color: "#FFF"
+                    }
+                    handleStyle: {
+                        color: '#fff',
+                        shadowBlur: 3,
+                        shadowColor: 'rgba(0, 0, 0, 0.6)',
+                        shadowOffsetX: 2,
+                        shadowOffsetY: 2
+                    }
+                }],
+                series: everyDayReturnAttrSeries
+                // color: [
+                //     "#00b", "#0b0"
+                // ]
               },
-              dataZoom: [{
-      					type: 'inside',
-      					xAxisIndex: 0 ,
-      					start: 0,
-      					end: 100
-      				}, {
-      						start: 0,
-      						end: 10,
-      						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-      						handleSize: '60%',
-                  textStyle: {
-                    color: "#FFF"
-                  }
-      						handleStyle: {
-      								color: '#fff',
-      								shadowBlur: 3,
-      								shadowColor: 'rgba(0, 0, 0, 0.6)',
-      								shadowOffsetX: 2,
-      								shadowOffsetY: 2
-      						}
-      				}],
-              series: everyDayReturnAttrSeries
-              // color: [
-              //     "#00b", "#0b0"
-              // ]
+              media: this.defaultMedia
+
           }
 
         this.everyDayRFRAttrEchart.setOption(everyDayRFROption);
@@ -1092,6 +1115,120 @@ export class RiskFactorComponent {
 
 
         let riskFactorAttrOption= {
+              baseOption: {
+                  title: {
+                      show: false,
+                  },
+                  tooltip: {
+                      trigger: "axis",
+                      axisPointer: {
+                          type: "cross",
+                          label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                      }
+                  },
+                  legend: {
+                      data: ["风险因子归因"],
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  xAxis: {
+                      data: riskFactorAttrXAxis,
+                      type: "category",
+                      axisLabel: {
+                          rotate: -30,
+                          interval: 0,
+                          textStyle: { color: "#F3F3F5" }
+                      },
+                      axisLine: {
+                          lineStyle: { color: "#F3F3F5" }
+                      },
+                      axisTick: {
+                          alignWithLabel:true
+                      },
+                      boundaryGap: true
+                  },
+                  yAxis: {
+
+                      axisLabel: {
+                          show: true,
+                          textStyle: { color: "#F3F3F5" }
+                      },
+                      axisLine: {
+                          lineStyle: { color: "#F3F3F5" }
+                      },
+                      scale: true,
+                      boundaryGap: [0.2, 0.2]
+                  },
+                  dataZoom: [{
+                    type: 'inside',
+                    xAxisIndex: 0 ,
+                    start: 0,
+                    end: 100
+                  }, {
+                      start: 0,
+                      end: 10,
+                      handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                      handleSize: '60%',
+                      textStyle: {
+                        color: "#FFF"
+                      }
+                      handleStyle: {
+                          color: '#fff',
+                          shadowBlur: 3,
+                          shadowColor: 'rgba(0, 0, 0, 0.6)',
+                          shadowOffsetX: 2,
+                          shadowOffsetY: 2
+                      }
+                  }],
+                  dataZoom: [{
+                    type: 'inside',
+                    xAxisIndex: 0 ,
+                    start: 0,
+                    end: 100
+                  }, {
+                      start: 0,
+                      end: 10,
+                      handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                      handleSize: '60%',
+                      textStyle: {
+                        color: "#FFF"
+                      }
+                      handleStyle: {
+                          color: '#fff',
+                          shadowBlur: 3,
+                          shadowColor: 'rgba(0, 0, 0, 0.6)',
+                          shadowOffsetX: 2,
+                          shadowOffsetY: 2
+                      }
+                  }],
+                  series: [{
+                          name: "风险因子归因",
+                          type: "bar",
+                          data: riskFactorAttrSeries
+                      }
+                  ],
+                // color: [
+                //     "#00b", "#0b0"
+                // ]
+              },
+              media: this.defaultMedia
+
+          }
+
+          this.riskFactorReturnAttrEchart.setOption(riskFactorAttrOption);
+    }
+
+    setStockAttrEchart(groupPosition){
+      let stockAttrXAxis=[],stockAttrSeries=[];
+
+
+      for (var i = 0; i < groupPosition.length; i++) {
+        stockAttrXAxis.push( groupPosition[i].stockCode );
+        stockAttrSeries.push( groupPosition[i].allRiskFactorReturnAttr );
+
+      }
+
+      let stockAttrEchart= {
+          baseOption: {
               title: {
                   show: false,
               },
@@ -1103,11 +1240,11 @@ export class RiskFactorComponent {
                   }
               },
               legend: {
-                  data: ["风险因子归因"],
+                  data: ["股票归因"],
                   textStyle: { color: "#F3F3F5" }
               },
               xAxis: {
-                  data: riskFactorAttrXAxis,
+                  data: stockAttrXAxis,
                   type: "category",
                   axisLabel: {
                       rotate: -30,
@@ -1134,124 +1271,18 @@ export class RiskFactorComponent {
                   scale: true,
                   boundaryGap: [0.2, 0.2]
               },
-              dataZoom: [{
-      					type: 'inside',
-      					xAxisIndex: 0 ,
-      					start: 0,
-      					end: 100
-      				}, {
-      						start: 0,
-      						end: 10,
-      						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-      						handleSize: '60%',
-                  textStyle: {
-                    color: "#FFF"
-                  }
-      						handleStyle: {
-      								color: '#fff',
-      								shadowBlur: 3,
-      								shadowColor: 'rgba(0, 0, 0, 0.6)',
-      								shadowOffsetX: 2,
-      								shadowOffsetY: 2
-      						}
-      				}],
-              dataZoom: [{
-      					type: 'inside',
-      					xAxisIndex: 0 ,
-      					start: 0,
-      					end: 100
-      				}, {
-      						start: 0,
-      						end: 10,
-      						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-      						handleSize: '60%',
-                  textStyle: {
-                    color: "#FFF"
-                  }
-      						handleStyle: {
-      								color: '#fff',
-      								shadowBlur: 3,
-      								shadowColor: 'rgba(0, 0, 0, 0.6)',
-      								shadowOffsetX: 2,
-      								shadowOffsetY: 2
-      						}
-      				}],
               series: [{
-                      name: "风险因子归因",
+                      name: "股票归因",
                       type: "bar",
-                      data: riskFactorAttrSeries
+                      data: stockAttrSeries
                   }
               ],
-            // color: [
-            //     "#00b", "#0b0"
-            // ]
-          }
+              // color: [
+              //     "#00b", "#0b0"
+              // ]
+          },
+          media: this.defaultMedia
 
-          this.riskFactorReturnAttrEchart.setOption(riskFactorAttrOption);
-    }
-
-    setStockAttrEchart(groupPosition){
-      let stockAttrXAxis=[],stockAttrSeries=[];
-
-
-      for (var i = 0; i < groupPosition.length; i++) {
-        stockAttrXAxis.push( groupPosition[i].stockCode );
-        stockAttrSeries.push( groupPosition[i].allRiskFactorReturnAttr );
-
-      }
-
-      let stockAttrEchart= {
-            title: {
-                show: false,
-            },
-            tooltip: {
-                trigger: "axis",
-                axisPointer: {
-                    type: "cross",
-                    label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
-                }
-            },
-            legend: {
-                data: ["股票归因"],
-                textStyle: { color: "#F3F3F5" }
-            },
-            xAxis: {
-                data: stockAttrXAxis,
-                type: "category",
-                axisLabel: {
-                    rotate: -30,
-                    interval: 0,
-                    textStyle: { color: "#F3F3F5" }
-                },
-                axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
-                },
-                axisTick: {
-                    alignWithLabel:true
-                },
-                boundaryGap: true
-            },
-            yAxis: {
-
-                axisLabel: {
-                    show: true,
-                    textStyle: { color: "#F3F3F5" }
-                },
-                axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
-                },
-                scale: true,
-                boundaryGap: [0.2, 0.2]
-            },
-            series: [{
-                    name: "股票归因",
-                    type: "bar",
-                    data: stockAttrSeries
-                }
-            ],
-            // color: [
-            //     "#00b", "#0b0"
-            // ]
         }
 
         this.stockAttrEchart.setOption(stockAttrEchart);
