@@ -239,6 +239,8 @@ export class SecurityComponent implements OnInit {
     listClick(item) {
         console.info(item);
         this.selectedValue = item.symbolCode;
+        this.symbol = item.SecuAbbr;
+        this.code = item.symbolCode;
         this.quote.send(140, 10, { ukey: parseInt(item.ukey), reqtype: 2, reqno: 1 });
         this.resList = null;
     }
