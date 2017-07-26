@@ -149,7 +149,7 @@ export class RiskFactorComponent {
         this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") as HTMLCanvasElement );
         this.everyDayRFEEchart=echarts.init( document.getElementById("everyDayRFEEchart") as HTMLCanvasElement );
         this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") as HTMLCanvasElement );
-        this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("everyDayRFRAttrEchart") as HTMLCanvasElement );
+        this.everyDayRFRAttrEchart=echarts.init( document.getElementById("everyDayRFRAttrEchart") as HTMLCanvasElement );
 
         this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") as HTMLCanvasElement );
 
@@ -486,8 +486,8 @@ export class RiskFactorComponent {
         console.log("this.groupPosition,",this.groupPosition);
 
 
-        this.setriskFactorExposureEchart(sumOfDayExposure,this.groupPosition,this.riskFactorReturn);
-        this.setRiskFactorAttrEchart(this.riskFactorReturnAttr);
+        this.setriskFactorExposureEchart(sumOfDayExposure, this.groupPosition, this.riskFactorReturn);
+        this.setRiskFactorAttrEchart(this.riskFactorReturnAttr, this.riskFactorReturn);
         this.setStockAttrEchart(this.groupPosition);
 
 
@@ -837,14 +837,14 @@ export class RiskFactorComponent {
 
     }
 
-    setRiskFactorAttrEchart(everyDayRiskFactorAttr){
+    setRiskFactorAttrEchart(everyDayRiskFactorAttr, riskFactorReturn){
         let everyDayReturnAttrXAxis=[],everyDayReturnAttrSeries=[],chartLegendData=[];
         let riskFactorAttrXAxis=[],riskFactorAttrSeries=[];
 
-        // for (var i = 0; i < everyDayRiskFactorAttr.length; i++) {
-        //     riskFactorAttrXAxis.push( everyDayRiskFactorAttr[i].name );
-        //     riskFactorAttrSeries.push( everyDayRiskFactorAttr[i].returnAttr );
-        // }
+        for (var i = 0; i < everyDayRiskFactorAttr.length; i++) {
+            everyDayReturnAttrXAxis.push( everyDayRiskFactorAttr[i].date );
+            // riskFactorAttrSeries.push( everyDayRiskFactorAttr[i].returnAttr );
+        }
 
         //计算各种值
         for(let riskIndex=1; riskIndex<riskFactorReturn[0].length; ++riskIndex){    //遍历每一个风险因子
@@ -856,14 +856,67 @@ export class RiskFactorComponent {
 
             //具体每一条曲线的数据
             let seriesData={name:riskFactorReturn[0][riskIndex] ,type: "line", data: []};
+            let allReturnAttr=0;
 
             for (var i = 0; i < everyDayRiskFactorAttr.length; i++) {
-                seriesData.data.push(everyDayRiskFactorAttr[i][riskIndex-1].returnAttr);
+                seriesData.data.push(everyDayRiskFactorAttr[i][riskIndex-1]);
+                allReturnAttr+=everyDayRiskFactorAttr[i][riskIndex-1];
             }
+
+            riskFactorAttrSeries.push( allReturnAttr );
             everyDayReturnAttrSeries.push(seriesData);
         }
 
-        //计算总的风险因子收益归因
+        console.log("everyDayReturnAttrSeries",everyDayRiskFactorAttr,everyDayReturnAttrSeries,riskFactorAttrSeries);
+
+        let everyDayRFROption= {
+              title: {
+                  show: false,
+              },
+              tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                      type: "cross",
+                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                  }
+              },
+              legend: {
+                  data: chartLegendData,
+                  textStyle: { color: "#F3F3F5" }
+              },
+              xAxis: {
+                  data: everyDayReturnAttrXAxis,
+                  type: "category",
+                  axisLabel: {
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  },
+                  axisTick: {
+                      alignWithLabel:true
+                  }
+              },
+              yAxis: {
+
+                  axisLabel: {
+                      show: true,
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  },
+                  scale: true,
+                  boundaryGap: [0.2, 0.2]
+              },
+              series: everyDayReturnAttrSeries
+              // color: [
+              //     "#00b", "#0b0"
+              // ]
+          }
+
+        this.everyDayRFRAttrEchart.setOption(everyDayRFROption);
+
 
 
         let riskFactorAttrOption= {
