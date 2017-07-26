@@ -437,7 +437,8 @@ export class RiskFactorComponent {
             appid: 260,
             packid: 220,
            callback: (msg) =>{
-            console.log(msg);
+              let productStockHold = JSON.parse(msg.content.body);
+              console.log("productStockHold",productStockHold);
             }
          });
 
@@ -448,7 +449,8 @@ export class RiskFactorComponent {
             appid: 260,
             packid: 222,
            callback: (msg) =>{
-            console.log(msg);
+                 let productStockHold = JSON.parse(msg.content.body);
+                 console.log("productStockHold",productStockHold);
             }
          });
 
@@ -464,7 +466,8 @@ export class RiskFactorComponent {
              appid: 260,
              packid: 228,
             callback: (msg) =>{
-             console.log(msg);
+              let productStockHold = JSON.parse(msg.content.body);
+              console.log("productStockHold",productStockHold);
              }
           });
 
@@ -475,7 +478,9 @@ export class RiskFactorComponent {
             appid: 260,
             packid: 230,
             callback: (msg) =>{
-            console.log(msg);
+              console.log("msg",msg);
+              let productStockHold = JSON.parse(msg.content.body);
+              console.log("productStockHold",productStockHold);
             }
          });
 
@@ -857,6 +862,9 @@ export class RiskFactorComponent {
                     axisPointer: {
                         type: "cross",
                         label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    },
+                    textStyle:{
+                        align:"left"
                     }
                 },
                 legend: {
@@ -935,7 +943,7 @@ export class RiskFactorComponent {
                       }
                   },
                   legend: {
-                      data: ["风险因子收益"],
+                      data: ["风险因子暴露"],
                       textStyle: { color: "#F3F3F5" }
                   },
                   xAxis: {
@@ -979,7 +987,7 @@ export class RiskFactorComponent {
           						handleSize: '60%',
                       textStyle: {
                         color: "#FFF"
-                      }
+                      },
           						handleStyle: {
           								color: '#fff',
           								shadowBlur: 3,
@@ -989,7 +997,7 @@ export class RiskFactorComponent {
           						}
           				}],
                   series: [{
-                          name: "风险因子收益",
+                          name: "风险因子暴露",
                           type: "bar",
                           data: riskFactorExposureSeries
                       }
@@ -1048,6 +1056,9 @@ export class RiskFactorComponent {
                     axisPointer: {
                         type: "cross",
                         label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    },
+                    textStyle:{
+                        align:"left"
                     }
                 },
                 legend: {
@@ -1147,7 +1158,6 @@ export class RiskFactorComponent {
                       boundaryGap: true
                   },
                   yAxis: {
-
                       axisLabel: {
                           show: true,
                           textStyle: { color: "#F3F3F5" }
