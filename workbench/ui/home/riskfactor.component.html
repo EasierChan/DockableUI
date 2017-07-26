@@ -1,5 +1,5 @@
 <div style="overflow:auto">
-<div style="width:100%;height:80px;font-size:16px;overflow:auto" [hidden]="activeTab == 'RiskFactors'">
+<div style="width:100%;height:80px;font-size:16px;overflow:auto" [hidden]="activeTab == 'Profit'">
 <div style="display:block;float:left">
 <font color='#eee'>Product:</font>
 <select id="product" style="width:143px;height:23px;margin:4px" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
@@ -27,16 +27,18 @@
 
 </div>
 <div style="position:absolue">
-<div class="chart1" id="riskFactorReturnEchart" [hidden]="activeTab == 'Profit'">chart</div>
-<div class="chart" id="allDayReturnEchart" [hidden]="activeTab == 'Profit'">chart</div>
-<div class="chart" id="yearReturnEchart" [hidden]="activeTab == 'Profit'">chart</div>
-<div class="chart" id="allDayYearReturnEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart1" id="riskFactorReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart" id="allDayReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart" id="yearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
+<div class="chart" id="allDayYearReturnEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
 
-<div class="chart" id="riskFactorExposureEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<div class="chart" id="riskFactorReturnAttrEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<div class="chart" id="stockAttrEchart" [hidden]="activeTab == 'RiskFactors'">chart</div>
-<!--
-<div class="chart">chart</div>
-<div class="chart">chart</div> -->
+<div class="chart" id="riskFactorExposureEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart" id="everyDayRFEEchart" [hidden]="activeTab == 'Profit'">chart</div>
+
+<div class="chart" id="riskFactorReturnAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+<div class="chart" id="everyDayRFRAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+
+<div class="chart" id="stockAttrEchart" [hidden]="activeTab == 'Profit'">chart</div>
+
 </div>
 </div>

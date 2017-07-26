@@ -506,7 +506,7 @@ export class WorkspaceConfig {
     loopbackConfig?: any = {};
     chinese_name: string = "";
     strategies: Object;
-
+    product: string;
     constructor() {
         this.curstep = 1;
         this.tradingUniverse = [];

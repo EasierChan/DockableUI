@@ -34,7 +34,7 @@ export class BacktestComponent implements OnInit {
 
     constructor(private tgw: TradeService, private ref: ChangeDetectorRef) {
 
-
+        this.config.curstep = 1;
         this.contextMenu = new Menu();
         this.contextMenu.addItem("Start", () => {
             this.operateStrategyServer(this.config, 1);

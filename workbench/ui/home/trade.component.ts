@@ -2,7 +2,7 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, Product } from "../../bll/strategy.server";
+import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, Product, StrategyInstance } from "../../bll/strategy.server";
 import { Menu } from "../../../base/api/services/backend.service";
 import { ChangeDetectorRef } from "@angular/core";
 import { TradeService } from "../../bll/services";
@@ -25,7 +25,7 @@ export class TradeComponent implements OnInit {
     bDetails: boolean;
     contextMenu: Menu;
     private configBll = new ConfigurationBLL();
-    private strategyContainer = new StrategyServerContainer();
+    // private strategyContainer = new StrategyServerContainer();
     private product = new Product();
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
@@ -33,10 +33,19 @@ export class TradeComponent implements OnInit {
     isModify: boolean = false;
     isInit: boolean = false;
     panelTitle: string;
+    strategyName: string;
     strategyCores: string[];
+    productsList: string[];
+    ProductMsg: string[];
+    bshow: boolean = false;
+    bcreate: boolean = false;
+    accounts: string;
 
     constructor(private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
+        this.config = new WorkspaceConfig();
+        this.config.curstep = 1;
+        this.productsList = [];
         this.contextMenu.addItem("Start", () => {
             this.operateStrategyServer(this.config, 1);
         });
@@ -48,11 +57,13 @@ export class TradeComponent implements OnInit {
             this.onPopup(1);
         });
         this.contextMenu.addItem("Remove", () => {
+            console.log(this.configs);
             this.configs.forEach((config, index) => {
+                console.log(config, index);
                 if (config.name === this.config.name) {
                     this.configs.splice(index, 1);
                     this.configBll.updateConfig();
-                    this.strategyContainer.removeItem(this.config.name);
+                    // this.strategyContainer.removeItem(this.config.name);
                     this.ref.detectChanges();
                 }
             });
@@ -65,21 +76,30 @@ export class TradeComponent implements OnInit {
         let productArea = new TileArea();
         productArea.title = "Products";
 
-        for (let i = 0; i < 10; ++i) {
-            let tile = new Tile();
-            tile.title = "hello";
-            tile.iconName = "adjust";
-            productArea.addTile(tile);
-        }
-
         productArea.onCreate = () => {
             alert("****");
         };
         let strategyArea = new TileArea();
         strategyArea.title = "Strategies";
         strategyArea.onCreate = () => {
-            alert("++++");
-            window.showMetroDialog("#config");
+            this.bshow = true;
+            this.config.curstep = 1;
+            this.onPopup(0);
+        };
+        strategyArea.onClick = (event: MouseEvent, item: Tile) => {
+            console.log(item, this.configs);
+            let len = this.configs.length;
+            for (let i = 0; i < len; ++i) {
+                if (this.configs[i].name = item.title) {
+                    this.config = this.configs[i];
+                    break;
+                }
+            }
+            if (event.button === 0) {  // left click
+                console.info(this.config);
+            } else if (event.button === 2) { // right click
+                this.contextMenu.popup();
+            }
         };
 
         let analyticArea = new TileArea();
@@ -88,7 +108,7 @@ export class TradeComponent implements OnInit {
             alert("----");
         };
 
-        for (let i = 0; i < 10; ++i) {
+        for (let i = 0; i < 1; ++i) {
             let tile = new Tile();
             tile.title = "hello";
             tile.iconName = "repeat";
@@ -146,7 +166,7 @@ export class TradeComponent implements OnInit {
                         self.finish();
                     });
                 }
-                // console.log(self.config, self.configs);
+                //  console.log(self.config, self.configs);
             }
         });
         this.tgw.addSlot({
@@ -159,8 +179,8 @@ export class TradeComponent implements OnInit {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
                     this.configBll.updateConfig(config);
-                    this.strategyContainer.removeItem(config.name);
-                    this.strategyContainer.addItem(config);
+                    // this.strategyContainer.removeItem(config.name);
+                    // this.strategyContainer.addItem(config);
                     // this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: 1 } });
                     // if()
                     console.log(config);
@@ -183,13 +203,44 @@ export class TradeComponent implements OnInit {
             callback: msg => {
                 let data = JSON.parse(msg.content.body);
                 if (data.msret.msgcode === "00") {
+                    this.ProductMsg = data.body;
                     for (let i = 0; i < data.body.length; ++i) {
                         this.product[data.body[i].tblock_id] = data.body[i];
                     }
-                    console.log(this.product);
+                    for (let o in this.product) {
+                        if (o === "_productInfo")
+                            continue;
+                        this.productsList.push(this.product[o].tblock_full_name);
+                        let tile = new Tile();
+                        tile.title = this.product[o].tblock_full_name;
+                        tile.backgroundColor = "#ff3a66";  // 1c57ff
+                        tile.iconName = "adjust";
+                        productArea.addTile(tile);
+                    }
+                    console.log(this.product, data.body.length); // 还有坑，先留着
                 } else {
                     alert("Get product info Failed! " + data.msret.msg);
                 }
+            }
+        });
+        this.tgw.addSlot({
+            appid: 107,
+            packid: 2003,
+            callback: msg => {
+                console.log(msg);
+            }
+        });
+        this.tgw.addSlot({
+            appid: 107,
+            packid: 2009,
+            callback: msg => {
+                console.log(msg);
+                this.tgw.send(107, 2000, {
+                    routerid: 0, templateid: this.curTemplate.id, body: {
+                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                        strategies: this.config.strategies
+                    }
+                });
             }
         });
     }
@@ -212,6 +263,7 @@ export class TradeComponent implements OnInit {
         // validation
         if (!this.config.name || this.config.name.length === 0 ||
             !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
+            console.log(this.config.name, this.config.name.length, this.config.strategyCoreName, this.config.strategyInstances, this.config.strategyInstances.length);
             this.showError("Wrong Config", "check items: <br>1. config name.<br>2. one strategy instance at least.", "alert");
             return;
         }
@@ -220,12 +272,12 @@ export class TradeComponent implements OnInit {
             this.config.channels.gateway.forEach((gw, index) => {
                 if (index === 0)
                     this.curTemplate.body.data.SSGW[index].ref = 0;
-                this.curTemplate.body.data.SSGW[index].port = gw.port = parseInt(gw.port);
-                this.curTemplate.body.data.SSGW[index].addr = gw.addr = gw.addr;
+                this.curTemplate.body.data.SSGW[index].port = gw.port = 0;
+                this.curTemplate.body.data.SSGW[index].addr = gw.addr = "172.24.51.1";
             });
 
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.channels.feedhandler.port);
-            this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.channels.feedhandler.addr;
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = 8012; // this.config.channels.feedhandler.addr
         }
         // console.info(this.curTemplate, this.config);
 
@@ -236,6 +288,7 @@ export class TradeComponent implements OnInit {
         this.curTemplate.body.data["PairTrades"] = {};
         let hasError = false;
         this.config.strategyInstances.forEach(item => {
+            console.log(item);
             if (!item.accounts || item.accounts.length < 1) {
                 hasError = true;
                 return;
@@ -247,7 +300,8 @@ export class TradeComponent implements OnInit {
             });
             obj.algoes = item.algoes;
             obj.checks = item.checks;
-            obj.cfg = obj.field = obj.name = obj.log = item.name;
+            // obj.cfg = obj.field = obj.name = obj.log = item.name;
+            obj.cfg = obj.field = obj.name = obj.log = this.config.name;
             obj.key = parseInt(item.key);
             obj.status = 2; // RUN;
             // obj.maxorderid = 0;
@@ -267,7 +321,7 @@ export class TradeComponent implements OnInit {
                 instrument.value = parseFloat(instrument.value);
             });
             this.curTemplate.body.data["Strategy"].push(obj);
-            this.curTemplate.body.data["PairTrades"][item.name] = {
+            this.curTemplate.body.data["PairTrades"][this.config.name] = { // item.name
                 Command: item.commands,
                 Comment: item.comments,
                 Instrument: item.instruments,
@@ -275,7 +329,7 @@ export class TradeComponent implements OnInit {
             };
 
             if (item.sendChecks) {
-                this.curTemplate.body.data["PairTrades"][item.name]["SendCheck"] = item.sendChecks;
+                this.curTemplate.body.data["PairTrades"][this.config.name]["SendCheck"] = item.sendChecks; // item.name
             }
         });
 
@@ -285,12 +339,29 @@ export class TradeComponent implements OnInit {
         }
         this.configBll.updateConfig(this.config);
         console.log("sned 2000");
-        this.tgw.send(107, 2000, {
-            routerid: 0, templateid: this.curTemplate.id, body: {
-                name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
-                strategies: this.config.strategies
-            }
-        });
+        this.config.strategies = { name: this.config.name };
+
+        if (!this.bshow) {
+            this.tgw.send(107, 2000, {
+                routerid: 0, templateid: this.curTemplate.id, body: {
+                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                    strategies: this.config.strategies
+                }
+            });
+        }
+        // console.log(JSON.stringify(this.curTemplate.body.data));
+        // console.log(this.curTemplate.id, this.config.name, this.config.strategies, this.config.chinese_name);
+        // console.log(this.curTemplate.body.data);
+        console.log(this.config);
+        if (this.bshow) {
+            console.log("2008 2008 2008 2008 20082008");
+            this.tgw.send(107, 2008, {
+                routerid: 0, body: {
+                    name: this.config.name,
+                    strategies: [{ strategy: { name: this.config.name } }]
+                }
+            });
+        }
         this.closePanel();
     }
 
@@ -303,46 +374,130 @@ export class TradeComponent implements OnInit {
     }
 
     closePanel(e?: any) {
-        // window.hideMetroDialog("#config");
+        console.log(this.bshow);
+        if (this.bshow) {
+            this.config.curstep = 1;
+            this.bshow = false;
+        }
     }
 
+    next() {
+        if (this.config.curstep === 1) {
+            // add instance
+            if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
+                alert("a strategycore needed.");
+                return;
+            }
+            if ((/^[A-Za-z]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
+                alert("please input correct format name");
+                return;
+            }
+            if (this.config.strategyInstances.length === 1) {
+                this.config.strategyInstances.splice(0, this.config.strategyInstances.length);
+            }
+            if (!this.bcreate) {
+                this.config.strategyCoreName = this.strategyCores[0];
+                delete this.curTemplate;
+                this.curTemplate = null;
+                this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+
+                if (this.curTemplate === null) {
+                    this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
+                    return;
+                }
+                // choose product and account
+                this.config.channels.gateway = this.curTemplate.body.data.SSGW;
+                this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+                this.strategyName = "";
+                this.bcreate = true;
+            }
+            let newInstance: StrategyInstance = new StrategyInstance();
+            newInstance.name = this.strategyName;
+            newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
+            newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
+            newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
+            newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+            this.config.strategyInstances.push(newInstance);
+            // GET account info from product msg
+            this.config.strategyInstances[0].accounts = "666600000019";
+            console.log(newInstance, this.config);
+
+        }
+        if (this.config.curstep === 2) {
+            this.config.activeChannel = "default";
+        }
+        ++this.config.curstep;
+    }
+
+    prev() {
+        --this.config.curstep;
+    }
     operateStrategyServer(config: WorkspaceConfig, action: number) {
         console.info(config, action);
         this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
 
+    onSelectStrategy(value: string) {
+        this.bcreate = true;
+        console.log(value);
+        this.config.strategyCoreName = value;
+        delete this.curTemplate;
+        this.curTemplate = null;
+        this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+
+        if (this.curTemplate === null) {
+            this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
+            return;
+        }
+        // choose product and account
+        this.config.channels.gateway = this.curTemplate.body.data.SSGW;
+        this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+        this.strategyName = "";
+    }
+    onSelectProduct(value: string) {
+        console.log(value);
+        // choose product and parse account and channal
+        console.log(this.product, this.ProductMsg);
+        console.log(this.config);
+        this.accounts = "";
+        let len = this.ProductMsg.length;
+        let account_arr = [];
+        for (let i = 0; i < len; ++i) {
+            if (this.ProductMsg[i].tblock_full_name === value) {
+                account_arr.push(this.ProductMsg[i].broker_customer_code);
+            }
+        }
+        for (let j = 0; j < account_arr.length; ++j) {
+            if (j === account_arr.length - 1) {
+                this.accounts += account_arr[j];
+            } else {
+                this.accounts += account_arr[j] + ",";
+            }
+        }
+        console.log(this.accounts);
+    }
     /**
  * @param type 0 is new config, 1 is modify config.
  */
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
         this.strategyCores = this.configBll.getTemplates();
+        console.log(this.strategyCores);
         if (type === 0) {
             this.config = new WorkspaceConfig();
-            this.panelTitle = "New Config";
             this.isModify = false;
+            this.config.strategyCoreName = this.strategyCores[0];
         } else {
-            this.config.curstep = 1;
             this.panelTitle = this.config.name;
             this.curTemplate = null;
             this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
         }
-
-        if (!this.config.loopbackConfig.option) {
-            let idate = new Date().format("yyyy-mm-dd");
-            this.config.loopbackConfig.option = {
-                timebegin: idate,
-                timeend: idate,
-                speed: "1",
-                simlevel: "1",
-                period: "1",
-                unit: "1"
-            };
-        }
-        // this.ref.detectChanges();
-        window.showMetroDialog("#config");
     }
 
+    hide() {
+        this.bshow = false;
+        this.config.curstep = 1;
+    }
     toggleMonitor() {
         if (this.bDetails) {
             this.monitorHeight = 30;
