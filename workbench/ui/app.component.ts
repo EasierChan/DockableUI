@@ -221,6 +221,7 @@ export class AppComponent implements OnInit {
             }
         });
 
+        this.appService.getUserProfile(null);
         this.loginTGW();
     }
 

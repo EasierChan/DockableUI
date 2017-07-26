@@ -15,7 +15,7 @@
         <td *ngIf="styleObj.bRowIndex" [style.padding.px]="styleObj.cellpadding">{{i + 1 + pageSize * curPage}}</td>
         <template ngFor let-cell [ngForOf]="row.cells" let-cellIndex="index">
           <td *ngIf="!dataSource.columns[cellIndex].bHidden" (click)="cell.dataSource.click(cellIndex, i + pageSize * curPage)" [class]="cell.styleObj.type=='plaintext'? 'text-' + cell.className + ' bg-' + cell.className : null"
-            [style.padding.px]="styleObj.cellpadding">
+            [style.padding.px]="styleObj.cellpadding" [style.max-width.px]="dataSource.columns[cellIndex]?.maxWidth">
             <button *ngIf="cell.styleObj.type=='button'" class="btn btn-default btn-{{cell.className}} btn-xs " [disabled]="cell.styleObj.disable"
               [name]="cell.dataSource.name">
             {{cell.dataSource.text}}
