@@ -1,5 +1,5 @@
-<div class="areas" >
-    <tilearea *ngFor="let area of areas"  [dataSource]="area.dataSource" [styleObj]="area.styleObj"></tilearea>
+<div class="areas">
+    <tilearea *ngFor="let area of areas" [dataSource]="area.dataSource" [styleObj]="area.styleObj"></tilearea>
 </div>
 <div class="monitor" [style.height.px]="monitorHeight">
     <div class="title">
@@ -7,4 +7,173 @@
         <span class="glyphicon pull-right" [class.glyphicon-menu-up]="!bDetails" [class.glyphicon-menu-down]="bDetails" (click)="toggleMonitor()"></span>
     </div>
     <dock-table2 [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
+</div>
+<div class="block-shadow-info" *ngIf="bshow" id="config">
+    <button class="button hide" (click)="hide()">hide</button>
+    <div class="pop-center fg-white bg-darker">
+        <div class="header">
+            <a href="#" class="icon mif-home fg-white"></a>
+            <span class="title">{{panelTitle}}</span>
+        </div>
+        <div class="content">
+            <div *ngIf="config.curstep==1" class="page">
+                <div>
+                    <h4>请选择策略和产品</h4>
+                    <hr>
+                </div>
+                <div>
+                    <span class="strategytext">策略：</span>
+                    <select class="strategy-sel" (change)="onSelectStrategy(strategyCores[strategycore.selectedIndex])" #strategycore>
+                                <option  *ngFor="let name of strategyCores" >{{config.strategyCoreName}}</option>
+                            </select>
+                    <span class="strategytext">产品：</span>
+                    <select class="strategy-sel" (change)="onSelectProduct(productsList[productcore.selectedIndex])" #productcore>
+                                <option  *ngFor="let name of productsList" >{{name}}</option>
+                            </select>
+                </div>
+                <div class="name-content">
+                    <div>
+                        <h4>策略服务名与中文标识</h4>
+                        <hr>
+                    </div>
+                    <label class="label-name">服务名:<input type="text" class = "input-col" placeholder="strategy name" [(ngModel)]="config.name"></label>
+                    <label class="label-name">中文名 : <input type="text" class = "input-col" placeholder="Chinese name" [(ngModel)]="config.chinese_name"></label>
+                </div>
+            </div>
+            <div *ngIf="config.curstep==2" class="page">
+                <div>
+                    <h4>策略实例配置</h4>
+                    <hr>
+                </div>
+                <div>
+                    <div style="max-height: 375px; overflow-y: auto;">
+                        <div class="accordion" data-role="accordion" data-close-any="true">
+                            <div *ngFor="let instance of config.strategyInstances;let i = index" class="frame">
+                                <div class="content bg-gray">
+                                    <div class="accordion" data-role="accordion" data-close-any="true">
+                                        <div class="frame">
+                                            <div class="heading bg-grayLight">
+                                                <div class="cell">参数信息</div>
+                                            </div>
+                                            <div>
+                                                <fieldset>
+                                                    <legend>Parameters</legend>
+                                                    <div style="max-width: 700px; overflow-x: auto;">
+                                                        <table>
+                                                            <tr>
+                                                                <th *ngFor="let param of instance.parameters">{{param.name}}</th>
+                                                            </tr>
+                                                            <tr>
+                                                                <td *ngFor="let param of instance.parameters"><label><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label></td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </fieldset>
+                                                <fieldset>
+                                                    <legend>Comments</legend>
+                                                    <div style="max-width: 700px; overflow-x: auto;">
+                                                        <table>
+                                                            <tr>
+                                                                <th *ngFor="let comment of instance.comments">{{comment.name}}</th>
+                                                            </tr>
+                                                            <tr>
+                                                                <td *ngFor="let comment of instance.comments"><label><input type="text" [placeholder]="comment.name" [(ngModel)]="comment.value"></label></td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </fieldset>
+                                                <fieldset>
+                                                    <legend>Instruments</legend>
+                                                    <div style="max-width: 700px; overflow-x: auto;">
+                                                        <table>
+                                                            <tr>
+                                                                <th *ngFor="let instrument of instance.instruments">{{instrument.name}}</th>
+                                                            </tr>
+                                                            <tr>
+                                                                <td *ngFor="let instrument of instance.instruments"><label><input type="text" [placeholder]="instrument.name" [(ngModel)]="instrument.value"></label></td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="config.curstep==3" class="page">
+                <div>
+                    <h4>通道信息</h4>
+                    <hr>
+                </div>
+                <div style="max-height: 375px; overflow-y: auto;">
+                    <div class="accordion" data-role="accordion" data-close-any="true">
+                        <div class="frame active">
+                            <div class="content bg-darker">
+                                <fieldset *ngIf="config.channels.gateway">
+                                    <legend>交易通道</legend>
+                                    <table class="table condensed">
+                                        <thead>
+                                            <tr>
+                                                <th>name</th>
+                                                <th>type</th>
+                                                <th>host</th>
+                                                <th>port</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let channel of config.channels.gateway">
+                                                <td>{{channel.name}}</td>
+                                                <td>{{channel.type === 1 ? "Stock": "Future"}}</td>
+                                                <td><input type="text" [(ngModel)]="channel.addr"></td>
+                                                <td><input type="text" [(ngModel)]="channel.port"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </fieldset>
+                                <fieldset *ngIf="config.channels.feedhandler">
+                                    <legend>行情通道</legend>
+                                    <table class="table condensed">
+                                        <thead>
+                                            <tr>
+                                                <th>name</th>
+                                                <th>host</th>
+                                                <th>port</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{config.channels.feedhandler.name}}</td>
+                                                <td><input type="text" [(ngModel)]="config.channels.feedhandler.addr"></td>
+                                                <td><input type="text" [(ngModel)]="config.channels.feedhandler.port"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div *ngIf="config.curstep==4" class="page">
+                <div>
+                    <h4>Are you Sure?</h4>
+                    <hr>
+                </div>
+                <div class="row">
+                    <label for="maxordersize">Make sure whether you have done a correct setting, then click 'Finish' Or reset them.</label>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="pagebtn">
+                <button class="button" [disabled]="config.curstep==1" (click)="prev()">Prev</button>
+                <button class="button" [disabled]="config.curstep==3" (click)="next()">Next</button>
+                <button class="button" [disabled]="config.curstep!=3" (click)="finish()">Finish</button>
+            </div>
+        </div>
+    </div>
 </div>
