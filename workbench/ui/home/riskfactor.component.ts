@@ -453,7 +453,10 @@ export class RiskFactorComponent {
             appid: 260,
             packid: 222,
            callback: (msg) =>{
-            console.log(msg);
+              console.log("strategystockhold",msg);
+              let strategystockhold=JSON.parse(msg.content.body);
+              console.log("strategystockhold",strategystockhold);
+
             }
          });
 
@@ -469,7 +472,7 @@ export class RiskFactorComponent {
              appid: 260,
              packid: 228,
             callback: (msg) =>{
-             console.log(msg);
+             console.log("productfuturehold",msg);
              }
           });
 
@@ -864,6 +867,9 @@ export class RiskFactorComponent {
                     axisPointer: {
                         type: "cross",
                         label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    },
+                    textStyle:{
+                        align:"left"
                     }
                 },
                 legend: {
@@ -1055,6 +1061,9 @@ export class RiskFactorComponent {
                     axisPointer: {
                         type: "cross",
                         label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    },
+                    textStyle:{
+                        align:"left"
                     }
                 },
                 legend: {
