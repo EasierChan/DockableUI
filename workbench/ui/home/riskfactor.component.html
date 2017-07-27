@@ -1,29 +1,29 @@
 <div style="overflow:auto">
-<div style="width:100%;height:80px;font-size:16px;overflow:auto" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
-<div style="display:block;float:left">
-<font color='#eee'>Product:</font>
-<select id="product" style="width:143px;height:23px;margin:4px" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
+<div class="menu" [hidden]="activeTab == 'Profit'">
+<div class="menuItem">
+<font color='#eee'>产品:</font>
+<select id="product" class="item1" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
   <option *ngFor="let item of iproducts" [value]='item'>{{item}}</option>
 </select>
 </div>
-<div style="display:block;float:left">
-<font color='#eee'>Strategy:</font>
-<select  id="strategy" style="width:143px;height:23px;margin:4px" [(ngModel)]='istrategy'>
+<div class="menuItem">
+<font color='#eee'>策略:</font>
+<select  id="strategy" class="item1" [(ngModel)]='istrategy'>
   <option *ngFor="let item of istrategys" [value]='item'>{{item}}</option>
 </select>
 </div>
-<div style="display:block;float:left">
-<font color='#eee'>Date:</font>
-<input style="width:75px;height:23px;margin:4px"  [(ngModel)]='startDate' type="text" size="8" maxlength="8"  required>
+<div class="menuItem">
+<font color='#eee'>日期:</font>
+<input class="item3" [(ngModel)]='startDate' type="text" size="8" maxlength="8" placeholder="年月日" required>
 -
 
-<input style="width:75px;height:23px;margin:4px" [(ngModel)]='endDate' type="text" size="8" maxlength="8"  >
+<input class="item4" [(ngModel)]='endDate' type="text" size="8" maxlength="8" placeholder="年月日">
 </div>
-<div style="display:block;float:left">
-<font color='#eee'>HedgeRadio:</font>
-<input style="width:75px;height:23px;margin:4px"  [(ngModel)]='hedgeRadio' type="text" size="8"  placeholder="默认为1" required>
+<div class="menuItem">
+<font color='#eee'>对冲比例:</font>
+<input class="item2"  [(ngModel)]='hedgeRadio' type="text" size="8">
 </div>
-<input style="width:61px;height:23px;background-color:#00b010;color:#eee;font-size:15px;text-align:center;margin:4px;display:block;float:left" type="submit" value="search" (click)="lookReturn()">
+<input class="search" type="submit" value="搜索" (click)="lookReturn()">
 
 </div>
 <div>

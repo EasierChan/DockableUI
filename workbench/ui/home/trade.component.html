@@ -24,7 +24,7 @@
                 <div>
                     <span class="strategytext">策略：</span>
                     <select class="strategy-sel" (change)="onSelectStrategy(strategyCores[strategycore.selectedIndex])" #strategycore>
-                                <option  *ngFor="let name of strategyCores" >{{config.strategyCoreName}}</option>
+                                <option  *ngFor="let name of strategyCores" >{{name}}</option>
                             </select>
                     <span class="strategytext">产品：</span>
                     <select class="strategy-sel" (change)="onSelectProduct(productsList[productcore.selectedIndex])" #productcore>
