@@ -34,8 +34,8 @@ export class RiskFactorComponent {
     styleObj: any;
     dataSource: any;
 
-    startDate: string = "20090115";
-    endDate: string = "20090116";
+    startDate: string = "20170704";
+    endDate: string = "20170705";
 
     hedgeRadio: number;
 
@@ -63,10 +63,11 @@ export class RiskFactorComponent {
     riskFactorReturn: any[] = [];
     riskFactorExpose: any[] = [];
 
-    groupPosition: any[] = [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }];
+    groupPosition: any[] = [];
 
-    // groupPosition: any[] =[{stockDate:"20090115",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]},
-    //                        {stockDate:"20090116",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]} ];
+    // this.groupPosition =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
+    // groupPosition: any[] =[{stockDate:"20170704",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]},
+    //                        {stockDate:"20170705",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]} ];
 
 
     constructor(private tradePoint: TradeService, private tgw: IP20Service) {
@@ -328,14 +329,14 @@ export class RiskFactorComponent {
                 return false;
             }
             else{
-
                 for(let i=2;i<riskFactorExposure[rfeIndex].length;++i){   //遍历指定暴露的风险因子的暴露
                     singleStock["stockExposure"][ i-2 ]=riskFactorExposure[rfeIndex][i] * singleStock.stockWeight;//这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
-                }
 
+                }
             }
 
         }
+        console.log("calculateRiskFactor groupPosition",groupPosition);
 
         // 计算各个风险因子当天的总的暴露
         for (let i = 2; i < riskFactorExposure[0].length; i++) {    //遍历风险因子的暴露
@@ -431,7 +432,7 @@ export class RiskFactorComponent {
       let productlist = document.getElementById("product");
       let productIndex = productlist.selectedIndex;
       let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
-      //console.log(this.startDate,tblockId);
+
       if(!isNaN(this.hedgeRadio)){
         let strategylist = document.getElementById("strategy");
         let strategyIndex = strategylist.selectedIndex;
@@ -440,17 +441,27 @@ export class RiskFactorComponent {
         let strategyId = RiskFactorComponent.self.strategyData[strategyIndex-1].strategy_id;
         console.log(this.startDate,strategyId);
         console.log(this.startDate,tblockId);
+
         // strategyfuturehold
+        let strategyFutureHold={};
         this.tradePoint.addSlot({
             appid: 260,
             packid: 220,
            callback: (msg) =>{
-              let productStockHold = JSON.parse(msg.content.body);
-              console.log(msg);
+               console.log("strategyfuturehold",msg);
+               strategyFutureHold = JSON.parse(msg.content.body);
+               if (strategyFutureHold.msret.msgcode === "00") {
+
+               }else {
+                 alert("获取数据失败："+data.msret.msg);
+               }
+
             }
          });
 
+
         this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,begin_date:this.startDate,end_date:this.startDate,product_id:tblockId}});
+
 
         // strategystockhold
         this.tradePoint.addSlot({
@@ -458,21 +469,34 @@ export class RiskFactorComponent {
             packid: 222,
            callback: (msg) =>{
               console.log("strategystockhold",msg);
-              let strategystockhold=JSON.parse(msg.content.body);
-              console.log("strategystockhold",strategystockhold);
+              let strategystockhold = JSON.parse(msg.content.body);
+              if( strategystockhold.msret.msgcode === "00" ){
+                  this.groupPosition=[];
+                  this.getGroupPosition(strategystockhold.body);
+                  this.beginCalculateRiskFactor();
+              } else {
+                  alert("获取数据失败："+strategystockhold.msret.msg);
+              }
+              console.log("strategystockhold",strategystockhold,this.groupPosition);
 
             }
          });
 
         this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,product_id:tblockId,begin_date:this.startDate,end_date:this.startDate}});
-      }  else {
-        console.log(this.startDate,tblockId);
-        // productfuturehold
+      } else {
+          // productfuturehold
          this.tradePoint.addSlot({
              appid: 260,
              packid: 228,
             callback: (msg) =>{
-             console.log("productfuturehold",msg);
+                 console.log("productfuturehold",msg);
+                 let productFutureHold = JSON.parse(msg.content.body);
+                 if( productFutureHold.msret.msgcode === "00" ){
+
+                 } else {
+                     alert("获取数据失败："+productFutureHold.msret.msg);
+                 }
+                 console.log("productFutureHold",productFutureHold,this.groupPosition);
              }
           });
 
@@ -483,37 +507,31 @@ export class RiskFactorComponent {
             appid: 260,
             packid: 230,
             callback: (msg) =>{
-            console.log(msg);
+                console.log("productstockhold",msg);
+                // let productStockHold = JSON.parse(msg.content.body);
+                // if( productStockHold.msret.msgcode === "00" ){
+                //     this.groupPosition=[];
+                //     this.getGroupPosition(productStockHold.body);
+                //     this.beginCalculateRiskFactor();
+                // } else {
+                //     alert("获取数据失败："+productStockHold.msret.msg);
+                // }
+                // console.log("productStockHold",productStockHold,this.groupPosition);
             }
          });
 
         this.tradePoint.send(260, 230, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
       }
 
+     }  else {
+       alert("HedgeRadio must be number!")
+     }
+    }
 
-      this.groupPosition =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
-      // this.groupPosition = [{stockDate:"20090115",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]},
-      //                        {stockDate:"20090116",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]} ];
-      this.groupPosition.forEach(function(element){
-            element.stockExposure=[];
-            element.returnAttr=[];
-            element.allRiskFactorReturnAttr=0;
-          }
-
-      );
-
-      console.log("this.groupPosition",this.groupPosition);
-
-        console.log("OnClick",this,this.startDate,this.endDate);
+    beginCalculateRiskFactor() {
         let exposureFile=[],dirFiles=[];
         let sumOfDayExposure=[];//保存风险因子的权重与暴露之乘积的和
-
         this.riskFactorReturnAttr=[];
-        // for(let i=1; i< this.riskFactorReturn[0].length; ++i){
-        //     // sumOfDayExposure.push( {name: this.riskFactorReturn[0][i], exposure:0} );
-        //     this.riskFactorReturnAttr.push( {name: this.riskFactorReturn[0][i], returnAttr:0} )
-        // }
-
 
         try{
             dirFiles=fs.readdirSync("/mnt/dropbox/risk/expo");
@@ -521,7 +539,12 @@ export class RiskFactorComponent {
             console.log("err",err);
             return;
         }
-        console.log("dirFiles",dirFiles);
+
+        if(dirFiles.length == 0){
+            alter("您选择的范围内没有暴露文件,无法计算");
+            return;
+        }
+
         for(let fileIndex=0;fileIndex<dirFiles.length;++fileIndex){   // csv文件在打开时可能还有其他的文件存在
             if ( (this.startDate =="" && this.startDate =="") ) {
 
@@ -541,7 +564,7 @@ export class RiskFactorComponent {
         exposureFile.sort();
         console.log("exposureFile",exposureFile);
 
-        for(let fileIndex=0;fileIndex<exposureFile.length;++fileIndex){
+        for(let fileIndex=0; fileIndex<exposureFile.length; ++fileIndex){
 
             this.readAndHandleRiskExposure("/mnt/dropbox/risk/expo/"+exposureFile[fileIndex]);
             let result=this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExposure,this.groupPosition,sumOfDayExposure,exposureFile[fileIndex].split(".")[0]);
@@ -556,10 +579,18 @@ export class RiskFactorComponent {
         this.setriskFactorExposureEchart(sumOfDayExposure, this.groupPosition, this.riskFactorReturn);
         this.setRiskFactorAttrEchart(this.riskFactorReturnAttr, this.riskFactorReturn);
         this.setStockAttrEchart(this.groupPosition);
+    }
 
-     }  else {
-       alert("HedgeRadio must be number!")
-     }
+    getGroupPosition(stockHold) {
+
+        stockHold.forEach( (currentValue,index,array) =>{
+            let tmp=parseFloat(currentValue.cost_rate);
+            currentValue.cost_rate = isNaN(tmp)? 0:tmp;
+            let obj={stockCode: currentValue.marketcode.toUpperCase(), stockWeight: currentValue.cost_rate, stockExposure:[], returnAttr:[], allRiskFactorReturnAttr:0};
+            this.groupPosition.push(obj);
+
+        });
+        console.log( "groupPosition", this.groupPosition);
     }
 
     //计算单个股票在所有风险因子下暴露和风险因子的乘积--也就是收益归因
@@ -1242,17 +1273,17 @@ export class RiskFactorComponent {
                   data: stockAttrXAxis,
                   type: "category",
                   axisLabel: {
-                      rotate: -30,
-                      interval: 0,
+                      // rotate: -30,
+                      // interval: 0,
                       textStyle: { color: "#F3F3F5" }
                   },
                   axisLine: {
                       lineStyle: { color: "#F3F3F5" }
                   },
-                  axisTick: {
-                      alignWithLabel:true
-                  },
-                  boundaryGap: true
+                  // axisTick: {
+                  //     alignWithLabel:true
+                  // },
+                  // boundaryGap: true
               },
               yAxis: {
 
@@ -1266,6 +1297,28 @@ export class RiskFactorComponent {
                   scale: true,
                   boundaryGap: [0.2, 0.2]
               },
+              dataZoom: [{
+                type: 'inside',
+                xAxisIndex: 0 ,
+                start: 0,
+                end: 100
+              }, {
+                  start: 0,
+                  end: 10,
+                  // show: false,
+                  handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                  handleSize: '60%',
+                  textStyle: {
+                    color: "#FFF"
+                  }
+                  handleStyle: {
+                      color: '#fff',
+                      shadowBlur: 3,
+                      shadowColor: 'rgba(0, 0, 0, 0.6)',
+                      shadowOffsetX: 2,
+                      shadowOffsetY: 2
+                  }
+              }],
               series: [{
                       name: "股票归因",
                       type: "bar",
