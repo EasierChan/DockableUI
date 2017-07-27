@@ -56,7 +56,7 @@ export class RiskFactorComponent {
     strategyData: any[];
     iproducts: string[];
     iproduct: string;
-    istrategys: string[] = ["all"];
+    istrategys: string[] = ["选择所有策略"];
     istrategy: string;
 
     riskFactorReturnAttr: any[] = [];// 风险因子收益归因
@@ -198,7 +198,7 @@ export class RiskFactorComponent {
 
     nextDropdown() {
         //get strategies of this product
-        RiskFactorComponent.self.istrategys = ["all"];
+        RiskFactorComponent.self.istrategys = ["选择所有策略"];
         console.log(RiskFactorComponent.self.productData);
         let productlist = document.getElementById("product");
         let productIndex = productlist.selectedIndex;
@@ -424,7 +424,10 @@ export class RiskFactorComponent {
     }
 
     lookReturn(){
-      //console.log(this.hedgeRadio);
+      let productlist = document.getElementById("product");
+      let productIndex = productlist.selectedIndex;
+      let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+      //console.log(this.startDate,tblockId);
       if(!isNaN(this.hedgeRadio)){
         let strategylist = document.getElementById("strategy");
         let strategyIndex = strategylist.selectedIndex;
@@ -432,54 +435,56 @@ export class RiskFactorComponent {
         if(strategyIndex>0){
         let strategyId = RiskFactorComponent.self.strategyData[strategyIndex-1].strategy_id;
         console.log(this.startDate,strategyId);
+        console.log(this.startDate,tblockId);
         // strategyfuturehold
         this.tradePoint.addSlot({
             appid: 260,
             packid: 220,
            callback: (msg) =>{
-            console.log(msg);
+              let productStockHold = JSON.parse(msg.content.body);
+              console.log("productStockHold",productStockHold);
             }
          });
 
-        this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,trday:this.startDate } });
+        this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,begin_date:this.startDate,end_date:this.startDate,product_id:tblockId}});
 
         // strategystockhold
         this.tradePoint.addSlot({
             appid: 260,
             packid: 222,
            callback: (msg) =>{
-            console.log(msg);
+                 let productStockHold = JSON.parse(msg.content.body);
+                 console.log("productStockHold",productStockHold);
             }
          });
 
-        this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,trday:this.startDate } });
+        this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,product_id:tblockId,begin_date:this.startDate,end_date:this.startDate}});
       }  else {
-        let productlist = document.getElementById("product");
-        let productIndex = productlist.selectedIndex;
-        let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
         console.log(this.startDate,tblockId);
-
         // productfuturehold
          this.tradePoint.addSlot({
              appid: 260,
              packid: 228,
             callback: (msg) =>{
-             console.log(msg);
+              let productStockHold = JSON.parse(msg.content.body);
+              console.log("productStockHold",productStockHold);
              }
           });
 
-         this.tradePoint.send(260, 228, { body: { trday:this.startDate,tblock_id:tblockId } });
+         this.tradePoint.send(260, 228, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
 
         // productstockhold
          this.tradePoint.addSlot({
             appid: 260,
             packid: 230,
             callback: (msg) =>{
-            console.log(msg);
+              console.log("msg",msg);
+              let productStockHold = JSON.parse(msg.content.body);
+              console.log("productStockHold",productStockHold);
             }
          });
 
-        this.tradePoint.send(260, 230, { body: { trday:this.startDate,tblock_id:tblockId } });
+        this.tradePoint.send(260, 230, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
       }
 
 
@@ -857,6 +862,9 @@ export class RiskFactorComponent {
                     axisPointer: {
                         type: "cross",
                         label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    },
+                    textStyle:{
+                        align:"left"
                     }
                 },
                 legend: {
@@ -935,7 +943,7 @@ export class RiskFactorComponent {
                       }
                   },
                   legend: {
-                      data: ["风险因子收益"],
+                      data: ["风险因子暴露"],
                       textStyle: { color: "#F3F3F5" }
                   },
                   xAxis: {
@@ -979,7 +987,7 @@ export class RiskFactorComponent {
           						handleSize: '60%',
                       textStyle: {
                         color: "#FFF"
-                      }
+                      },
           						handleStyle: {
           								color: '#fff',
           								shadowBlur: 3,
@@ -989,7 +997,7 @@ export class RiskFactorComponent {
           						}
           				}],
                   series: [{
-                          name: "风险因子收益",
+                          name: "风险因子暴露",
                           type: "bar",
                           data: riskFactorExposureSeries
                       }
@@ -1048,6 +1056,9 @@ export class RiskFactorComponent {
                     axisPointer: {
                         type: "cross",
                         label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                    },
+                    textStyle:{
+                        align:"left"
                     }
                 },
                 legend: {
@@ -1147,7 +1158,6 @@ export class RiskFactorComponent {
                       boundaryGap: true
                   },
                   yAxis: {
-
                       axisLabel: {
                           show: true,
                           textStyle: { color: "#F3F3F5" }
@@ -1166,27 +1176,7 @@ export class RiskFactorComponent {
                   }, {
                       start: 0,
                       end: 10,
-                      handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-                      handleSize: '60%',
-                      textStyle: {
-                        color: "#FFF"
-                      }
-                      handleStyle: {
-                          color: '#fff',
-                          shadowBlur: 3,
-                          shadowColor: 'rgba(0, 0, 0, 0.6)',
-                          shadowOffsetX: 2,
-                          shadowOffsetY: 2
-                      }
-                  }],
-                  dataZoom: [{
-                    type: 'inside',
-                    xAxisIndex: 0 ,
-                    start: 0,
-                    end: 100
-                  }, {
-                      start: 0,
-                      end: 10,
+                      show: false,
                       handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
                       handleSize: '60%',
                       textStyle: {

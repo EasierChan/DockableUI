@@ -4,21 +4,8 @@
   <ul class="tabs">
     <li *ngFor="let tab of curModule.tabs" [class.active]="activeTab==tab" (click)="activeTab=tab"><a>{{tab}}</a></li>
   </ul>
-  <!--<div class="u-input-group">
-    <input type="text" placeholder="Search...">
-    <a class="button">
-    <span class="glyphicon glyphicon-search"></span>
-    </a>
-  </div>-->
 </div>
 <div class="content">
-  <!--<template [ngSwitch]="activeTab">
-    <dashboard [ngSwitchCase]="'Dashboard'"></dashboard>
-    <trade [ngSwitchCase]="'Trading'"></trade>
-    <simulation [ngSwitchCase]="'Simulation'"></simulation>
-    <risk [ngSwitchCase]="'Risk'"></risk>
-    <admin [ngSwitchCase]="'Admin'"></admin>
-  </template>-->
   <dashboard *ngIf="activeTab=='Dashboard'"></dashboard>
   <trade *ngIf="activeTab=='Trading'" class="fill"></trade>
   <simulation *ngIf="activeTab=='Simulation'"></simulation>
