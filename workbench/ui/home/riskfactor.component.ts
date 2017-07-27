@@ -424,7 +424,10 @@ export class RiskFactorComponent {
     }
 
     lookReturn(){
-      //console.log(this.hedgeRadio);
+      let productlist = document.getElementById("product");
+      let productIndex = productlist.selectedIndex;
+      let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+      //console.log(this.startDate,tblockId);
       if(!isNaN(this.hedgeRadio)){
         let strategylist = document.getElementById("strategy");
         let strategyIndex = strategylist.selectedIndex;
@@ -432,6 +435,7 @@ export class RiskFactorComponent {
         if(strategyIndex>0){
         let strategyId = RiskFactorComponent.self.strategyData[strategyIndex-1].strategy_id;
         console.log(this.startDate,strategyId);
+        console.log(this.startDate,tblockId);
         // strategyfuturehold
         this.tradePoint.addSlot({
             appid: 260,
@@ -442,7 +446,7 @@ export class RiskFactorComponent {
             }
          });
 
-        this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,trday:this.startDate } });
+        this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,begin_date:this.startDate,end_date:this.startDate,product_id:tblockId}});
 
         // strategystockhold
         this.tradePoint.addSlot({
@@ -454,13 +458,9 @@ export class RiskFactorComponent {
             }
          });
 
-        this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,trday:this.startDate } });
+        this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,product_id:tblockId,begin_date:this.startDate,end_date:this.startDate}});
       }  else {
-        let productlist = document.getElementById("product");
-        let productIndex = productlist.selectedIndex;
-        let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
         console.log(this.startDate,tblockId);
-
         // productfuturehold
          this.tradePoint.addSlot({
              appid: 260,
@@ -471,7 +471,7 @@ export class RiskFactorComponent {
              }
           });
 
-         this.tradePoint.send(260, 228, { body: { trday:this.startDate,tblock_id:tblockId } });
+         this.tradePoint.send(260, 228, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
 
         // productstockhold
          this.tradePoint.addSlot({
@@ -484,7 +484,7 @@ export class RiskFactorComponent {
             }
          });
 
-        this.tradePoint.send(260, 230, { body: { trday:this.startDate,tblock_id:tblockId } });
+        this.tradePoint.send(260, 230, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
       }
 
 
