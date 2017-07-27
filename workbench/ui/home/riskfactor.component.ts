@@ -159,10 +159,10 @@ export class RiskFactorComponent {
         this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") as HTMLDivElement );
 
 
-        if (this.activeTab === "Profit") {
-            this.setriskFactorReturnEchart(this.riskFactorReturn);
+        if (this.activeTab === "Profit" || this.activeTab === "风险因子收益") {
+            this.setriskFactorReturnEchart(this.riskFactorReturn );
         }
-        else if (this.activeTab === "RiskFactors") {
+        else if (this.activeTab === "RiskFactors" || this.activeTab === "风险因子分析") {
 
         }
 

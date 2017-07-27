@@ -461,9 +461,11 @@ export class StrategyServerContainer {
             this.items.push({ name: config.name, conn: bll });
             bll.onConnect = () => {
                 config.state = 1;
+                config.stateChanged();
             };
             bll.addSlot(-1, () => {
                 config.state = 0;
+                config.stateChanged();
                 bll.connState = "INIT";
                 bll.strategies.length = 0;
             });
@@ -507,6 +509,7 @@ export class WorkspaceConfig {
     chinese_name: string = "";
     strategies: Object;
     product: string;
+    stateChanged: Function;
     constructor() {
         this.curstep = 1;
         this.tradingUniverse = [];

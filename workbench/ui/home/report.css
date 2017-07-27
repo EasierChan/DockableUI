@@ -1,0 +1,55 @@
+/* base style */
+.listview,
+.report {
+    flex: auto;
+    display: flex;
+    flex-flow: column;
+}
+
+.u-row,
+.u-col {
+    flex: none;
+    display: flex;
+}
+
+.u-col {
+    flex-flow: column;
+}
+
+.u-row {
+    flex-flow: row;
+}
+
+.fill {
+    flex: auto;
+}
+
+/* variable style */
+.listview {
+    padding: 10px 0;
+}
+
+dock-table2 {
+    background-color: #222A41;
+}
+
+.u-row {
+    height: 50px;
+}
+
+button, input {
+    height: 30px;
+}
+
+button {
+    padding: 5px 20px;
+}
+
+button > span.glyphicon {
+    top: 3px;
+    margin-left: 5px;
+}
+
+input {
+    padding: 5px 10px;
+}
