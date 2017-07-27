@@ -56,7 +56,7 @@ export class RiskFactorComponent {
     strategyData: any[];
     iproducts: string[];
     iproduct: string;
-    istrategys: string[] = ["all"];
+    istrategys: string[] = ["选择所有策略"];
     istrategy: string;
 
     riskFactorReturnAttr: any[] = [];// 风险因子收益归因
@@ -198,7 +198,7 @@ export class RiskFactorComponent {
 
     nextDropdown() {
         //get strategies of this product
-        RiskFactorComponent.self.istrategys = ["all"];
+        RiskFactorComponent.self.istrategys = ["选择所有策略"];
         console.log(RiskFactorComponent.self.productData);
         let productlist = document.getElementById("product");
         let productIndex = productlist.selectedIndex;
