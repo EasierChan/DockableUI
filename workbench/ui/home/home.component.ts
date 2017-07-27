@@ -6,6 +6,7 @@ import { DashboardComponent } from "./dash.component";
 import { RiskComponent } from "./risk.component";
 import { TradeComponent } from "./trade.component";
 import { SimulationComponent } from "./simulation.component";
+import { ReportComponent } from "./report.component";
 import { DataSet } from "./common";
 
 @Component({
@@ -18,7 +19,8 @@ import { DataSet } from "./common";
         DashboardComponent,
         RiskComponent,
         TradeComponent,
-        SimulationComponent
+        SimulationComponent,
+        ReportComponent
     ],
     inputs: ["currentMod", "activeTab"]
 })
