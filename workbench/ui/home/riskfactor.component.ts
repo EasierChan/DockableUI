@@ -65,6 +65,10 @@ export class RiskFactorComponent {
 
     groupPosition: any[] = [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }];
 
+    // groupPosition: any[] =[{stockDate:"20090115",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]},
+    //                        {stockDate:"20090116",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]} ];
+
+
     constructor(private tradePoint: TradeService, private tgw: IP20Service) {
         RiskFactorComponent.self = this;
         // this.loadData();
@@ -438,7 +442,7 @@ export class RiskFactorComponent {
             packid: 220,
            callback: (msg) =>{
               let productStockHold = JSON.parse(msg.content.body);
-              console.log("productStockHold",productStockHold);
+              console.log(msg);
             }
          });
 
@@ -449,8 +453,7 @@ export class RiskFactorComponent {
             appid: 260,
             packid: 222,
            callback: (msg) =>{
-                 let productStockHold = JSON.parse(msg.content.body);
-                 console.log("productStockHold",productStockHold);
+            console.log(msg);
             }
          });
 
@@ -466,8 +469,7 @@ export class RiskFactorComponent {
              appid: 260,
              packid: 228,
             callback: (msg) =>{
-              let productStockHold = JSON.parse(msg.content.body);
-              console.log("productStockHold",productStockHold);
+             console.log(msg);
              }
           });
 
@@ -478,9 +480,7 @@ export class RiskFactorComponent {
             appid: 260,
             packid: 230,
             callback: (msg) =>{
-              console.log("msg",msg);
-              let productStockHold = JSON.parse(msg.content.body);
-              console.log("productStockHold",productStockHold);
+            console.log(msg);
             }
          });
 
@@ -489,6 +489,8 @@ export class RiskFactorComponent {
 
 
       this.groupPosition =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
+      // this.groupPosition = [{stockDate:"20090115",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]},
+      //                        {stockDate:"20090116",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]} ];
       this.groupPosition.forEach(function(element){
             element.stockExposure=[];
             element.returnAttr=[];
@@ -862,9 +864,6 @@ export class RiskFactorComponent {
                     axisPointer: {
                         type: "cross",
                         label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
-                    },
-                    textStyle:{
-                        align:"left"
                     }
                 },
                 legend: {
@@ -943,7 +942,7 @@ export class RiskFactorComponent {
                       }
                   },
                   legend: {
-                      data: ["风险因子暴露"],
+                      data: ["风险因子收益"],
                       textStyle: { color: "#F3F3F5" }
                   },
                   xAxis: {
@@ -987,7 +986,7 @@ export class RiskFactorComponent {
           						handleSize: '60%',
                       textStyle: {
                         color: "#FFF"
-                      },
+                      }
           						handleStyle: {
           								color: '#fff',
           								shadowBlur: 3,
@@ -997,7 +996,7 @@ export class RiskFactorComponent {
           						}
           				}],
                   series: [{
-                          name: "风险因子暴露",
+                          name: "风险因子收益",
                           type: "bar",
                           data: riskFactorExposureSeries
                       }
@@ -1056,9 +1055,6 @@ export class RiskFactorComponent {
                     axisPointer: {
                         type: "cross",
                         label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
-                    },
-                    textStyle:{
-                        align:"left"
                     }
                 },
                 legend: {
