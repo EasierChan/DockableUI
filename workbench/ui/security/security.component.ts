@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from "@angular/core";
 import { DataTable, DataTableColumn, ChartViewer } from "../../../base/controls/control";
 import { SecuMasterService } from "../../../base/api/services/backend.service";
 import { TradeService, QuoteService } from "../../bll/services";
@@ -15,7 +15,7 @@ import { ECharts } from "echarts";
         SecuMasterService
     ]
 })
-export class SecurityComponent implements OnInit {
+export class SecurityComponent implements OnInit, OnDestroy {
     symbol: string;
     code: string;
     summary: Section;
@@ -29,7 +29,9 @@ export class SecurityComponent implements OnInit {
     structureInfo: Section;
     resList: Section;
     selectedValue: string;
-    @ViewChild("mainIncomeIMG") mainIncomeBitmap: ElementRef;
+
+    marketChart: ECharts;
+    mainIncomChart: ECharts;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
     }
@@ -153,12 +155,23 @@ export class SecurityComponent implements OnInit {
         this.registerListener();
     }
 
-    registerListener() {
-        let self = this;
+    ngOnDestroy() {
+        if (this.marketChart) {
+            this.marketChart = null;
+        }
 
-        let mainIncomChart: ECharts;
+        if (this.mainIncomChart) {
+            this.mainIncomChart = null;
+        }
+    }
+
+    registerListener() {
         this.mainIncome.content.onInit = (chart: ECharts) => {
-            mainIncomChart = chart;
+            this.mainIncomChart = chart;
+        };
+
+        this.marketPerformance.content.onInit = (chart: ECharts) => {
+            this.marketChart = chart;
         };
 
         this.quote.addSlot({
@@ -175,8 +188,8 @@ export class SecurityComponent implements OnInit {
                         this.baseInfo.content[7].value = msg.content.array[0].S_INFO_TOTALEMPLOYEES;
                         this.baseInfo.content[8].value = msg.content.array[0].S_INFO_CHAIRMAN;
                         this.baseInfo.content[9].value = msg.content.array[0].S_INFO_PRESIDENT;
-                        // self.baseInfo.content[10].value = msg.content.S_INFO_PRESIDENT;
-                        self.baseInfo.content[11].value = msg.content.array[0].S_INFO_WEBSITE;
+                        // this.baseInfo.content[10].value = msg.content.S_INFO_PRESIDENT;
+                        this.baseInfo.content[11].value = msg.content.array[0].S_INFO_WEBSITE;
                         break;
                     case 2:
                         this.keyInfo.content[1].value = msg.content.array[0].TOT_SHR;
@@ -243,6 +256,15 @@ export class SecurityComponent implements OnInit {
                             row.cells[2].Text = item.S_INFO_MANAGER_STARTDATE;
                         });
                         break;
+                    case 12:
+                        this.marketPerformance.content.option.xAxis.data = [];
+                        msg.content.array.forEach(item => {
+                            this.marketPerformance.content.option.xAxis.data.push(item.TRADE_DT);
+                            this.marketPerformance.content.option.series[0].data.push(item.S_DQ_CLOSE);
+                        });
+
+                        this.marketChart.setOption(this.marketPerformance.content.option);
+                        break;
                 }
             }
         });
@@ -257,6 +279,20 @@ export class SecurityComponent implements OnInit {
         this.selectedValue = item.symbolCode;
         this.symbol = item.SecuAbbr;
         this.code = item.symbolCode;
+
+        this.marketPerformance.content.option.legend.data = [this.symbol, "沪深300"];
+        this.marketPerformance.content.option.series = [{
+            name: this.symbol,
+            type: "line",
+            data: []
+        }, {
+            name: "沪深300",
+            type: "line",
+            data: []
+        }];
+
+        this.marketChart.setOption(this.marketPerformance.content.option);
+
         this.quote.send(140, 10, { ukey: parseInt(item.ukey), reqtype: 2, reqno: 1 });
         this.resList = null;
     }
@@ -279,19 +315,23 @@ export class SecurityComponent implements OnInit {
                     }
                 },
                 legend: {
-                    data: [{ name: this.symbol, textStyle: { color: "#F3F3F5" } }, { name: "沪深300", textStyle: { color: "#F3F3F5" } }],
+                    data: [],
                     textStyle: { color: "#F3F3F5" }
                 },
-                xAxis: [{
-                    data: ["2016-10-01", "2017-01-01", "2017-04-01", "2017-07-01"],
+                xAxis: {
+                    data: [],
                     axisLabel: {
-                        textStyle: { color: "#F3F3F5" }
+                        textStyle: { color: "#F3F3F5" },
+                        interval: (index: number, value: string) => {
+                            if (value)
+                                return value.endsWith("01");
+                        }
                     },
                     axisLine: {
                         lineStyle: { color: "#F3F3F5" }
                     }
-                }],
-                yAxis: [{
+                },
+                yAxis: {
                     position: "right",
                     axisLabel: {
                         show: true,
@@ -302,18 +342,10 @@ export class SecurityComponent implements OnInit {
                     },
                     scale: true,
                     boundaryGap: [0.2, 0.2]
-                }],
-                series: [{
-                    name: this.symbol,
-                    type: "line",
-                    data: [0.05, 0.1, 0.08, 0.15]
-                }, {
-                    name: "沪深300",
-                    type: "line",
-                    data: [0.06, 0.2, 0.18, 0.15]
-                }],
+                },
+                series: [],
                 color: [
-                    "#00b", "#0b0"
+                    "#fd0", "#0b0"
                 ]
             }
         };

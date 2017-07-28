@@ -47,13 +47,6 @@
     <section style="width: 600px">
       <b>{{mainIncome.title}}</b>
       <div class="holder">
-        <!--<canvas #mainIncomeIMG width="150">
-        </canvas>
-        <div class="u-col income">
-          <span class="item1">利息收入{{mainIncome.content.a | percent}}</span>
-          <span class="item2">非利息收入:手续费...{{mainIncome.content.b | percent}}</span>
-        </div>-->
-
         <div echarts [options]="mainIncome.content.option" (chartInit)="mainIncome.content.onInit($event)" style="height: 250px"></div>
       </div>
     </section>
@@ -68,7 +61,7 @@
     <section class="fill">
       <b>{{marketPerformance.title}}</b>
       <div class="holder">
-        <div echarts [options]="marketPerformance.content.option" style="height: 250px"></div>
+        <div echarts [options]="marketPerformance.content.option" (chartInit)="marketPerformance.content.onInit($event)" style="height: 250px"></div>
       </div>
     </section>
     <section style="width: 300px">
