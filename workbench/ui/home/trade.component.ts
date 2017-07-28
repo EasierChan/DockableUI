@@ -26,7 +26,7 @@ export class TradeComponent implements OnInit {
     bDetails: boolean;
     contextMenu: Menu;
     private configBll = new ConfigurationBLL();
-    // private strategyContainer = new StrategyServerContainer();
+    private strategyContainer = new StrategyServerContainer();
     private product = new Product();
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
@@ -65,10 +65,13 @@ export class TradeComponent implements OnInit {
         this.contextMenu.addItem("Remove", () => {
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                this.configs[i].name === this.clickItem.title;
-                this.configs.splice(i, 1);
-                this.configBll.updateConfig();
-                this.strategyArea.removeTile(this.clickItem.title);
+                if (this.configs[i].name === this.clickItem.title) {
+                    this.configs.splice(i, 1);
+                    this.configBll.updateConfig();
+                    this.strategyArea.removeTile(this.clickItem.title);
+                    this.strategyContainer.removeItem(this.config.name);
+                    break;
+                }
             }
         });
     }
@@ -80,7 +83,6 @@ export class TradeComponent implements OnInit {
         productArea.title = "Products";
 
         productArea.onCreate = () => {
-            alert("****");
         };
         this.strategyArea = new TileArea();
         this.strategyArea.title = "Strategies";
@@ -185,6 +187,11 @@ export class TradeComponent implements OnInit {
                         tile.iconName = "adjust";
                         this.strategyArea.addTile(tile);
                         // this.isInit = true;
+                        config.stateChanged = () => {
+                            tile.backgroundColor = config.state ? "#E9B837" : "#f24959";
+                        };
+                        this.strategyContainer.removeItem(config.name);
+                        this.strategyContainer.addItem(config);
                     }
                 }
                 // console.log(this.configs);
@@ -223,8 +230,11 @@ export class TradeComponent implements OnInit {
             appid: 107,
             packid: 2003,
             callback: msg => {
+                console.log(2003, msg);
                 this.config.port = msg.content.strategyserver.port;
                 this.configBll.updateConfig(this.config);
+                this.strategyContainer.removeItem(this.config.name);
+                this.strategyContainer.addItem(this.config);
             }
         });
         this.tgw.addSlot({
@@ -272,7 +282,7 @@ export class TradeComponent implements OnInit {
         if (!this.config.name || this.config.name.length === 0 ||
             !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
             // console.log(this.config.name, this.config.name.length, this.config.strategyCoreName, this.config.strategyInstances, this.config.strategyInstances.length);
-            this.showError("Wrong Config", "check items: <br>1. config name.<br>2. one strategy instance at least.", "alert");
+            alert("Wrong Config check items: <br>1. config name.<br>2. one strategy instance at least");
             return;
         }
         // create and modify con`fig.
@@ -341,9 +351,10 @@ export class TradeComponent implements OnInit {
         });
 
         if (hasError) {
-            this.showError("Wrong Config", "check items: <br>1. config name.<br>2. one strategy instance at least.<br>3. account must not be empty.", "alert");
+            alert("Wrong Config check items: <br>1. config name.<br>2. one strategy instance at least.<br>3. account must not be empty.");
             return;
         }
+
         this.configBll.updateConfig(this.config);
         this.config.strategies = { name: this.config.name };
 
@@ -402,7 +413,7 @@ export class TradeComponent implements OnInit {
                 alert("a strategycore needed.");
                 return;
             }
-            if ((/^[A-Za-z]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
+            if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
                 alert("please input correct format name");
                 return;
             }
@@ -417,7 +428,7 @@ export class TradeComponent implements OnInit {
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
 
                 if (this.curTemplate === null) {
-                    this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
+                    alert("Error: getTemplateByName `not found ${this.config.name}`");
                     return;
                     // get gateway
                 }
@@ -540,10 +551,10 @@ export class TradeComponent implements OnInit {
             this.config = new WorkspaceConfig();
             this.isModify = false;
             this.config.strategyCoreName = this.strategyCores[0];
+            console.log(this.strategyCores);
         } else {
-            this.panelTitle = this.config.name;
-            this.curTemplate = null;
-            this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+            // this.curTemplate = null;
+            // this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
         }
     }
 

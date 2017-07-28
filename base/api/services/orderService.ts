@@ -214,6 +214,15 @@ class ItradeClient extends TcpClient {
     }
 
     sendHeartBeat(interval = 10): void {
+        if (interval === 0) {
+            if (this._intervalHeart !== null) {
+                clearInterval(this._intervalHeart);
+                this._intervalHeart = null;
+            }
+
+            return;
+        }
+
         let header: Header = new Header();
         header.type = 255;
         header.subtype = 0;
@@ -224,10 +233,6 @@ class ItradeClient extends TcpClient {
     }
 
     dispose(): void {
-        if (this._intervalHeart !== null) {
-            clearInterval(this._intervalHeart);
-            this._intervalHeart = null;
-        }
         this._parsers.forEach(parser => {
             parser.dispose();
         });

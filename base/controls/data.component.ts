@@ -99,6 +99,11 @@ export class ScrollerBarTable implements OnInit, AfterViewInit {
     this.resizeHeader();
   }
 
+  @HostListener("window:resize")
+  onWindowResize() {
+      this.resizeHeader();
+  }
+
   resizeHeader() {
     this.head.nativeElement.style.width = this.content.nativeElement.clientWidth + "px";
     let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
