@@ -4,7 +4,7 @@ import { Component, HostListener } from "@angular/core";
 import { File } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
 import { FormsModule } from "@angular/forms";
-import { CommonModule } from "@angular/common";
+import { CommonModule,DatePipe } from "@angular/common";
 import { IP20Service } from "../../../base/api/services/ip20.service";
 import * as echarts from "echarts";
 import fs = require("@node/fs");
@@ -16,7 +16,7 @@ import path = require("path");
     selector: "riskfactor",
     templateUrl: "riskfactor.component.html",
     styleUrls: ["home.component.css", "riskfactor.component.css"],
-    providers: [IP20Service],
+    providers: [IP20Service,DatePipe],
     inputs: ["activeTab"]
 })
 
@@ -58,6 +58,10 @@ export class RiskFactorComponent {
     iproduct: string;
     istrategys: string[] = ["选择所有策略"];
     istrategy: string;
+    productfuturehold:string;
+    productstockhold:string;
+    strategyfuturehold:string;
+    strategystockhold:string;
 
     riskFactorReturnAttr: any[] = [];// 风险因子收益归因
     riskFactorReturn: any[] = [];
@@ -65,10 +69,14 @@ export class RiskFactorComponent {
 
     groupPosition: any[] = [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }];
 
-    constructor(private tradePoint: TradeService, private tgw: IP20Service) {
+    constructor(private tradePoint: TradeService, private tgw: IP20Service, private datePipe: DatePipe) {
         RiskFactorComponent.self = this;
         // this.loadData();
         this.iproducts = [];
+        this.productfuturehold = "";
+        this.productstockhold = "";
+        this.strategyfuturehold = "";
+        this.strategystockhold = "";
 
         this.readAndHandleRiskReturn();
 
@@ -95,7 +103,10 @@ export class RiskFactorComponent {
 
     ngOnInit() {
         console.info(this.activeTab);
-
+         let date1 = new Date().setMonth((new Date().getMonth()-1));
+         let date2 = new Date();
+         this.startDate = this.datePipe.transform(date1,'yyyyMMdd');
+         this.endDate = this.datePipe.transform(date2,'yyyyMMdd');
         // receive holdlist
         this.tradePoint.addSlot({
             appid: 260,
@@ -440,24 +451,34 @@ export class RiskFactorComponent {
         this.tradePoint.addSlot({
             appid: 260,
             packid: 220,
-           callback: (msg) =>{
-              let productStockHold = JSON.parse(msg.content.body);
-              console.log("productStockHold",productStockHold);
+            callback: (msg) =>{
+              console.log("msg",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
+              this.strategyfuturehold += msg.content.body;
+              if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
+                //let productStockHold = JSON.parse(msg.content.body);
+                //console.log("productStockHold",productStockHold);
+                console.log(this.strategyfuturehold);
+              }
             }
          });
-
+         this.strategyfuturehold="";
         this.tradePoint.send(260, 220, { body: { strategy_id:strategyId,begin_date:this.startDate,end_date:this.startDate,product_id:tblockId}});
 
         // strategystockhold
         this.tradePoint.addSlot({
             appid: 260,
             packid: 222,
-           callback: (msg) =>{
-                 let productStockHold = JSON.parse(msg.content.body);
-                 console.log("productStockHold",productStockHold);
+            callback: (msg) =>{
+              console.log("msg",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
+              this.strategystockhold += msg.content.body;
+              if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
+                //let productStockHold = JSON.parse(msg.content.body);
+                //console.log("productStockHold",productStockHold);
+                console.log(this.strategystockhold);
+              }
             }
          });
-
+         this.strategystockhold="";
         this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,product_id:tblockId,begin_date:this.startDate,end_date:this.startDate}});
       }  else {
         console.log(this.startDate,tblockId);
@@ -465,12 +486,17 @@ export class RiskFactorComponent {
          this.tradePoint.addSlot({
              appid: 260,
              packid: 228,
-            callback: (msg) =>{
-              let productStockHold = JSON.parse(msg.content.body);
-              console.log("productStockHold",productStockHold);
+             callback: (msg) =>{
+               console.log("msg",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
+               this.productfuturehold += msg.content.body;
+               if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
+                 //let productStockHold = JSON.parse(msg.content.body);
+                 //console.log("productStockHold",productStockHold);
+                 console.log(this.productfuturehold);
+               }
              }
           });
-
+          this.productfuturehold="";
          this.tradePoint.send(260, 228, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
 
         // productstockhold
@@ -478,12 +504,16 @@ export class RiskFactorComponent {
             appid: 260,
             packid: 230,
             callback: (msg) =>{
-              console.log("msg",msg);
-              let productStockHold = JSON.parse(msg.content.body);
-              console.log("productStockHold",productStockHold);
+              console.log("msg",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
+              this.productstockhold += msg.content.body;
+              if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
+                //let productStockHold = JSON.parse(msg.content.body);
+                //console.log("productStockHold",productStockHold);
+                console.log(this.productstockhold);
+              }
             }
          });
-
+         this.productstockhold="";
         this.tradePoint.send(260, 230, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
       }
 
@@ -553,7 +583,7 @@ export class RiskFactorComponent {
         this.setStockAttrEchart(this.groupPosition);
 
      }  else {
-       alert("HedgeRadio must be number!")
+       alert("对冲比例必须为数字或空!")
      }
     }
 
