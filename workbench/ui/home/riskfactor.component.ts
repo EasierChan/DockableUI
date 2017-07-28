@@ -66,6 +66,7 @@ export class RiskFactorComponent {
     productstockhold:string;
     strategyfuturehold:string;
     strategystockhold:string;
+    netValueString:string;
 
     riskFactorReturnAttr: any[] = [];// 风险因子收益归因
     riskFactorReturn: any[] = [];
@@ -390,9 +391,10 @@ export class RiskFactorComponent {
             oneDayReturnAttr.push(returnAttr);
         }
 
+        let netIndex=this.binarySearchStock(this.netTableValue,currDate,"trday");
         //计算残差
-        if (this.netTableValue.length > 0) {
-            oneDayReturnAttr.push(this.netTableValue[0].netvalue - dayOfAllAttr);
+        if (netIndex !== -1) {
+            oneDayReturnAttr.push(this.netTableValue[netIndex].netvalue - dayOfAllAttr);
         }else {
             oneDayReturnAttr.push(0);
         }
@@ -625,28 +627,44 @@ export class RiskFactorComponent {
               packid: 226,
               callback: (msg) =>{
                   console.log("setNetTableValue",msg);
-                  this.hadNetData=true;
-                  if(msg.content.msret.msgcode !== "00") {
-                      alert("获取净值数据失败："+msg.content.msret.msg);
-                      return;
-                  }
-                  let netTableValue = JSON.parse(msg.content.body);
-                  if( netTableValue.msret.msgcode === "00" ){
-                      this.netTableValue=netTableValue.body;
-                      console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures&&this.hadFutureHold),this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold));
+                  this.netValueString+=msg.content.body;
 
-                      if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
-                          this.beginCalculateRiskFactor();
+                  if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
+                      msg.content.body = this.netValueString;
+                      this.hadNetData=true;
+                      if(msg.content.msret.msgcode !== "00") {
+                          alert("获取净值数据失败："+msg.content.msret.msg);
+                          return;
                       }
 
-                  } else {
-                      alert("获取净值数据失败："+netTableValue.msret.msg);
+                      let netTableValue = JSON.parse(msg.content.body);
+                      if( netTableValue.msret.msgcode === "00" ){
+                          this.netTableValue=netTableValue.body;
+
+                          this.netTableValue.forEach( (currentValue,index,array)=>{
+                              let netvalue=parseFloat(currentValue.netvalue);
+                              if ( isNaN(netvalue) ) {
+                                  currentValue.netvalue=0;
+                              } else {
+                                  currentValue.netvalue=netvalue;
+                              }
+                          });
+
+                          if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
+                              this.beginCalculateRiskFactor();
+                          }
+
+                      } else {
+                          alert("获取净值数据失败："+netTableValue.msret.msg);
+                      }
                   }
+
               }
            });
            this.hadNetData=false;
            this.netTableValue=[];
-           this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, trday:this.startDate, begin_date:this.startDate, end_date:this.startDate}});
+           this.netValueString="";
+           this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
        }  else {
          alert("对冲比例必须为数字或空！")
        }
@@ -940,28 +958,28 @@ export class RiskFactorComponent {
                   scale: true,
                   boundaryGap: [0.2, 0.2]
               },
-              dataZoom: [{
-                type: 'inside',
-                xAxisIndex: 0 ,
-                start: 0,
-                end: 100
-              }, {
-                  start: 0,
-                  end: 10,
-                  show: false,
-                  handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-                  handleSize: '60%',
-                  textStyle: {
-                    color: "#FFF"
-                  }
-                  handleStyle: {
-                      color: '#fff',
-                      shadowBlur: 3,
-                      shadowColor: 'rgba(0, 0, 0, 0.6)',
-                      shadowOffsetX: 2,
-                      shadowOffsetY: 2
-                  }
-              }],
+              // dataZoom: [{
+              //   type: 'inside',
+              //   xAxisIndex: 0 ,
+              //   start: 0,
+              //   end: 100
+              // }, {
+              //     start: 0,
+              //     end: 10,
+              //     show: false,
+              //     handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+              //     handleSize: '60%',
+              //     textStyle: {
+              //       color: "#FFF"
+              //     }
+              //     handleStyle: {
+              //         color: '#fff',
+              //         shadowBlur: 3,
+              //         shadowColor: 'rgba(0, 0, 0, 0.6)',
+              //         shadowOffsetX: 2,
+              //         shadowOffsetY: 2
+              //     }
+              // }],
               series: [{
                       name: "风险因子收益",
                       type: "bar",
@@ -1068,7 +1086,7 @@ export class RiskFactorComponent {
                 }, {
                     start: 0,
                     end: 10,
-                    show: false,
+                    // show: false,
                     handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
                     handleSize: '60%',
                     textStyle: {
@@ -1138,28 +1156,28 @@ export class RiskFactorComponent {
                       scale: true,
                       boundaryGap: [0.2, 0.2]
                   },
-                  dataZoom: [{
-          					type: 'inside',
-          					xAxisIndex: 0 ,
-          					start: 0,
-          					end: 100
-          				}, {
-          						start: 0,
-          						end: 10,
-                      show: false,
-          						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-          						handleSize: '60%',
-                      textStyle: {
-                        color: "#FFF"
-                      }
-          						handleStyle: {
-          								color: '#fff',
-          								shadowBlur: 3,
-          								shadowColor: 'rgba(0, 0, 0, 0.6)',
-          								shadowOffsetX: 2,
-          								shadowOffsetY: 2
-          						}
-          				}],
+                  // dataZoom: [{
+          				// 	type: 'inside',
+          				// 	xAxisIndex: 0 ,
+          				// 	start: 0,
+          				// 	end: 100
+          				// }, {
+          				// 		start: 0,
+          				// 		end: 10,
+                  //     show: false,
+          				// 		handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+          				// 		handleSize: '60%',
+                  //     textStyle: {
+                  //       color: "#FFF"
+                  //     }
+          				// 		handleStyle: {
+          				// 				color: '#fff',
+          				// 				shadowBlur: 3,
+          				// 				shadowColor: 'rgba(0, 0, 0, 0.6)',
+          				// 				shadowOffsetX: 2,
+          				// 				shadowOffsetY: 2
+          				// 		}
+          				// }],
                   series: [{
                           name: "风险因子收益",
                           type: "bar",
@@ -1197,7 +1215,7 @@ export class RiskFactorComponent {
             riskFactorAttrXAxis.push( riskFactorReturn[0][riskIndex] );  //柱状图的x轴分类
 
             //具体每一条曲线的数据
-            let seriesData={name:riskFactorReturn[0][riskIndex] ,type: "line", data: []};
+            let seriesData={name:riskFactorReturn[0][riskIndex], type: "line", data: []};
             let allReturnAttr=0;
 
             for (var i = 0; i < everyDayRiskFactorAttr.length; i++) {
@@ -1276,7 +1294,7 @@ export class RiskFactorComponent {
                 }, {
                     start: 0,
                     end: 10,
-                    show: false,
+                    // show: false,
                     handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
                     handleSize: '60%',
                     textStyle: {
@@ -1346,28 +1364,28 @@ export class RiskFactorComponent {
                       scale: true,
                       boundaryGap: [0.2, 0.2]
                   },
-                  dataZoom: [{
-                    type: 'inside',
-                    xAxisIndex: 0 ,
-                    start: 0,
-                    end: 100
-                  }, {
-                      start: 0,
-                      end: 10,
-                      show: false,
-                      handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
-                      handleSize: '60%',
-                      textStyle: {
-                        color: "#FFF"
-                      }
-                      handleStyle: {
-                          color: '#fff',
-                          shadowBlur: 3,
-                          shadowColor: 'rgba(0, 0, 0, 0.6)',
-                          shadowOffsetX: 2,
-                          shadowOffsetY: 2
-                      }
-                  }],
+                  // dataZoom: [{
+                  //   type: 'inside',
+                  //   xAxisIndex: 0 ,
+                  //   start: 0,
+                  //   end: 100
+                  // }, {
+                  //     start: 0,
+                  //     end: 10,
+                  //     show: false,
+                  //     handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                  //     handleSize: '60%',
+                  //     textStyle: {
+                  //       color: "#FFF"
+                  //     }
+                  //     handleStyle: {
+                  //         color: '#fff',
+                  //         shadowBlur: 3,
+                  //         shadowColor: 'rgba(0, 0, 0, 0.6)',
+                  //         shadowOffsetX: 2,
+                  //         shadowOffsetY: 2
+                  //     }
+                  // }],
                   series: [{
                           name: "风险因子归因",
                           type: "bar",
