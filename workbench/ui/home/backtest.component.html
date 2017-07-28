@@ -186,3 +186,30 @@
         </div>
     </div>
 </div>
+<div class="change" *ngIf="bChangeShow">
+    <div class="content bg-darker ">
+        <fieldset class= "pricefield" *ngIf="config.channels.feedhandler">
+            <legend class = "changelengend">切换行情通道</legend>
+            <table class="table condensed">
+                <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>地址</th>
+                        <th>端口</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{{config.channels.feedhandler.name}}</td>
+                        <td><input type="text" [(ngModel)]="config.channels.feedhandler.addr"></td>
+                        <td><input type="text" [(ngModel)]="config.channels.feedhandler.port"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </fieldset>
+    </div>
+    <div class="changefooter">
+        <button class="button" (click)="hideChange()">隐藏</button>
+        <button class="button" (click)="lookbackTosimulation()">确定</button>
+    </div>
+</div>
