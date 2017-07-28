@@ -17,6 +17,9 @@ export class ReportComponent implements OnInit {
     bLoading: boolean;
     chart: ECharts;
     chartOption: any;
+    retraceRatio: any;
+    percentProfitable: any;
+    sharpeRatio: any;
 
     constructor(private mock: QtpService) {
     }
@@ -146,13 +149,15 @@ export class ReportComponent implements OnInit {
             });
         }
 
+        this.retraceRatio = (drawdown * 100).toFixed(2) + "%";
+        this.percentProfitable = (winCount * 100 / profit.length).toFixed(2) + "%";
         // this.lbl_maxRetracementRatio.Text = (drawdown * 100).toFixed(2) + "%";
         // this.lbl_percentProfitable.Text = (winCount * 100 / profit.length).toFixed(2) + "%";
-        // let avgratio = sumratio / profit.length;
-        // let variance = 0;
-        // total_ratios.forEach(ratio => {
-        //     variance += Math.pow(ratio - avgratio, 2);
-        // });
+        let avgratio = sumratio / profit.length;
+        let variance = 0;
+        total_ratios.forEach(ratio => {
+            variance += Math.pow(ratio - avgratio, 2);
+        });
 
         // // console.info(total_ratios, variance);
         // if (variance !== 0) {
