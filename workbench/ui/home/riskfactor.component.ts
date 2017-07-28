@@ -390,9 +390,10 @@ export class RiskFactorComponent {
             oneDayReturnAttr.push(returnAttr);
         }
 
+        let netIndex=this.binarySearchStock(this.netTableValue,currDate,"trday");
         //计算残差
-        if (this.netTableValue.length > 0) {
-            oneDayReturnAttr.push(this.netTableValue[0].netvalue - dayOfAllAttr);
+        if (netIndex !== -1) {
+            oneDayReturnAttr.push(this.netTableValue[netIndex].netvalue - dayOfAllAttr);
         }else {
             oneDayReturnAttr.push(0);
         }
@@ -633,6 +634,16 @@ export class RiskFactorComponent {
                   let netTableValue = JSON.parse(msg.content.body);
                   if( netTableValue.msret.msgcode === "00" ){
                       this.netTableValue=netTableValue.body;
+
+                      this.netTableValue.forEach( (currentValue,index,array)=>{
+                          let netvalue=parseFloat(currentValue.netvalue);
+                          if ( isNaN(netvalue) ) {
+                              currentValue.netvalue=0;
+                          } else {
+                              currentValue.netvalue=netvalue;
+                          }
+                      } );
+
                       console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures&&this.hadFutureHold),this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold));
 
                       if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
@@ -646,7 +657,7 @@ export class RiskFactorComponent {
            });
            this.hadNetData=false;
            this.netTableValue=[];
-           this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, trday:this.startDate, begin_date:this.startDate, end_date:this.startDate}});
+           this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
        }  else {
          alert("对冲比例必须为数字或空！")
        }
