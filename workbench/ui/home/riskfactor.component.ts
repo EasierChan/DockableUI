@@ -660,11 +660,11 @@ export class RiskFactorComponent {
                   }
 
               }
-           });
-           this.hadNetData=false;
-           this.netTableValue=[];
-           this.netValueString="";
-           this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
+          });
+          this.hadNetData=false;
+          this.netTableValue=[];
+          this.netValueString="";
+          this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
        }  else {
          alert("对冲比例必须为数字或空！")
        }
