@@ -1,4 +1,4 @@
-<div class="listview" *ngIf="page==0">
+<div class="listview u-col" *ngIf="page==0">
     <div class="u-row">
         <button>全选</button>
         <button>全不选</button>
@@ -12,9 +12,23 @@
     </div>
     <dock-table2 [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
 </div>
-<div class="report" *ngIf="page==1">
-    <div>
+<div class="report u-row" *ngIf="page==1">
+    <div class="u-col">
         <button (click)="back()">返回</button>
+        <table class="index">
+            <tr>
+                <td>最大回撤：</td>
+                <td>{{retraceRatio}}</td>
+            </tr>
+            <tr>
+                <td>胜率：</td>
+                <td>{{percentProfitable}}</td>
+            </tr>
+            <tr>
+                <td>夏普率：</td>
+                <td>{{sharpeRatio}}</td>
+            </tr>
+        </table>
     </div>
     <div echarts [options]="chartOption" [loading]="bLoading" (chartInit)="chartInit($event)" class="fill"></div>
 </div>

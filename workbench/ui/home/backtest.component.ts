@@ -14,7 +14,6 @@ let ip20strs = [];
     moduleId: module.id,
     selector: "backtest",
     templateUrl: "backtest.component.html",
-    styleUrls: ["backtest.component.css"],
     providers: [
         Menu
     ]

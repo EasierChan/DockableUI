@@ -1,11 +1,4 @@
 /* base style */
-.listview,
-.report {
-    flex: auto;
-    display: flex;
-    flex-flow: column;
-}
-
 .u-row,
 .u-col {
     flex: none;
@@ -20,10 +13,18 @@
     flex-flow: row;
 }
 
+.content-align-center {
+    justify-content: center;
+}
+
 .fill {
     flex: auto;
 }
 
+.listview,
+.report {
+    flex: auto;
+}
 /* variable style */
 .listview {
     padding: 10px 0;
@@ -43,6 +44,7 @@ button, input {
 
 button {
     padding: 5px 20px;
+    text-align: center;
 }
 
 button > span.glyphicon {
@@ -52,4 +54,13 @@ button > span.glyphicon {
 
 input {
     padding: 5px 10px;
+}
+
+table.index {
+    margin-top: 20px;
+    background-color: transparent;
+}
+
+table.index > tbody > tr > td:first-child {
+    text-align: right;
 }
