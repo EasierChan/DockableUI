@@ -34,8 +34,10 @@ export class RiskFactorComponent {
     styleObj: any;
     dataSource: any;
 
-    startDate: string = "20170704";
-    endDate: string = "20170705";
+    startdate:string;
+    enddate:string;
+    startDate: string;
+    endDate: string;
 
     hedgeRadio: number;
 
@@ -116,8 +118,8 @@ export class RiskFactorComponent {
         console.info(this.activeTab);
          let date1 = new Date().setMonth((new Date().getMonth()-1));
          let date2 = new Date();
-         this.startDate = this.datePipe.transform(date1,'yyyyMMdd');
-         this.endDate = this.datePipe.transform(date2,'yyyyMMdd');
+         this.startdate = this.datePipe.transform(date1,'yyyy-MM-dd');
+         this.enddate = this.datePipe.transform(date2,'yyyy-MM-dd');
         // receive holdlist
         this.tradePoint.addSlot({
             appid: 260,
@@ -455,6 +457,10 @@ export class RiskFactorComponent {
     }
 
     lookReturn(){
+      //console.log(this.startdate,this.enddate);
+      this.startDate = this.startdate.replace(/-/g,"");
+      this.endDate = this.enddate.replace(/-/g,"");
+      //console.log(this.startDate,this.endDate);
         let productlist = document.getElementById("product");
         let productIndex = productlist.selectedIndex;
         let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
