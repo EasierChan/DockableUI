@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from "@angular/core";
 import { DataTable, DataTableColumn, ChartViewer } from "../../../base/controls/control";
 import { SecuMasterService } from "../../../base/api/services/backend.service";
 import { TradeService, QuoteService } from "../../bll/services";
@@ -15,7 +15,7 @@ import { ECharts } from "echarts";
         SecuMasterService
     ]
 })
-export class SecurityComponent implements OnInit {
+export class SecurityComponent implements OnInit, OnDestroy {
     symbol: string;
     code: string;
     summary: Section;
@@ -31,6 +31,7 @@ export class SecurityComponent implements OnInit {
     selectedValue: string;
 
     marketChart: ECharts;
+    mainIncomChart: ECharts;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
     }
@@ -154,12 +155,19 @@ export class SecurityComponent implements OnInit {
         this.registerListener();
     }
 
-    registerListener() {
-        let self = this;
+    ngOnDestroy() {
+        if (this.marketChart) {
+            this.marketChart = null;
+        }
 
-        let mainIncomChart: ECharts;
+        if (this.mainIncomChart) {
+            this.mainIncomChart = null;
+        }
+    }
+
+    registerListener() {
         this.mainIncome.content.onInit = (chart: ECharts) => {
-            mainIncomChart = chart;
+            this.mainIncomChart = chart;
         };
 
         this.marketPerformance.content.onInit = (chart: ECharts) => {
@@ -180,8 +188,8 @@ export class SecurityComponent implements OnInit {
                         this.baseInfo.content[7].value = msg.content.array[0].S_INFO_TOTALEMPLOYEES;
                         this.baseInfo.content[8].value = msg.content.array[0].S_INFO_CHAIRMAN;
                         this.baseInfo.content[9].value = msg.content.array[0].S_INFO_PRESIDENT;
-                        // self.baseInfo.content[10].value = msg.content.S_INFO_PRESIDENT;
-                        self.baseInfo.content[11].value = msg.content.array[0].S_INFO_WEBSITE;
+                        // this.baseInfo.content[10].value = msg.content.S_INFO_PRESIDENT;
+                        this.baseInfo.content[11].value = msg.content.array[0].S_INFO_WEBSITE;
                         break;
                     case 2:
                         this.keyInfo.content[1].value = msg.content.array[0].TOT_SHR;
