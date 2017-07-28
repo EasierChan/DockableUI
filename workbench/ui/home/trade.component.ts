@@ -70,6 +70,7 @@ export class TradeComponent implements OnInit {
                     this.configBll.updateConfig();
                     this.strategyArea.removeTile(this.clickItem.title);
                     this.strategyContainer.removeItem(this.config.name);
+                    break;
                 }
             }
         });
@@ -82,7 +83,6 @@ export class TradeComponent implements OnInit {
         productArea.title = "Products";
 
         productArea.onCreate = () => {
-            alert("****");
         };
         this.strategyArea = new TileArea();
         this.strategyArea.title = "Strategies";

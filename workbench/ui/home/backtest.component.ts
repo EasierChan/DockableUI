@@ -2,11 +2,10 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
-import { QtpService } from "../../../base/api/services/qtp.service";
 import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, StrategyInstance } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { ChangeDetectorRef } from "@angular/core";
-import { TradeService } from "../../bll/services";
+import { TradeService, QtpService } from "../../bll/services";
 
 declare var window: any;
 let ip20strs = [];
@@ -15,10 +14,10 @@ let ip20strs = [];
     moduleId: module.id,
     selector: "backtest",
     templateUrl: "backtest.component.html",
+    // styleUrls: ["backtest.component.css"],
+
     providers: [
-        Menu,
-        AppStoreService,
-        QtpService,
+        Menu
     ]
 })
 export class BacktestComponent implements OnInit {
@@ -36,7 +35,6 @@ export class BacktestComponent implements OnInit {
     panelTitle: string;
     strategyName: string;
     strategyCores: string[];
-    productsList: string[];
     ProductMsg: string[];
     bshow: boolean = false;
     bcreate: boolean = false;
@@ -45,6 +43,7 @@ export class BacktestComponent implements OnInit {
     setting: any;
     clickItem: any;
     backTestArea: any;
+    bChangeShow: boolean = false;
 
     sendLoopConfigs: any[] = [];
 
@@ -52,7 +51,6 @@ export class BacktestComponent implements OnInit {
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
-        this.productsList = [];
         this.setting = this.appService.getSetting();
         this.contextMenu.addItem("Start", () => {
             this.operateStrategyServer(this.config, 1);
@@ -72,11 +70,13 @@ export class BacktestComponent implements OnInit {
                     this.configBll.updateConfig();
                     this.backTestArea.removeTile(this.clickItem.title);
                     this.strategyContainer.removeItem(this.config.name);
+                    break;
                 }
             }
         });
         this.contextMenu.addItem("Turn Simulation", () => {
-
+            console.log(this.config);
+            this.bChangeShow = true;
         });
     }
 
@@ -217,7 +217,6 @@ export class BacktestComponent implements OnInit {
             msgtype: 8012,
             callback: (msg) => {
                 console.info("receive 8012:", msg);
-                alert("Generate Successfully!");
                 this.config.loopbackConfig.result = msg;
                 let item = this.sendLoopConfigs.find((item, idx) => {
                     return item.reqsn === msg.reqsn;
@@ -351,6 +350,10 @@ export class BacktestComponent implements OnInit {
         console.log("send 8010:", tmpobj);
         this.qtp.send(8010, tmpobj);
     }
+
+    hideChange() {
+        this.bChangeShow = false;
+    }
     next() {
         if (this.config.curstep === 1) {
             if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
@@ -415,8 +418,18 @@ export class BacktestComponent implements OnInit {
         }
         // choose product and account
         this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-        this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+        // this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
         this.strategyName = "";
+    }
+    lookbackTosimulation() {
+        let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
+        console.log(getTmp, this.config);
+        this.config.channels.feedhandler.filename = getTmp.body.data.SSFeed.detailview.PriceServer.filename;
+        this.config.activeChannel = "simulation";
+        this.configBll.updateConfig(this.config);
+        this.backTestArea.removeTile(this.clickItem.title);
+        this.strategyContainer.removeItem(this.config.name);
+        this.bChangeShow = false;
     }
     closePanel(e?: any) {
         if (this.bshow) {
@@ -463,8 +476,8 @@ export class BacktestComponent implements OnInit {
         }
         if (!this.config.loopbackConfig.option) {
             let year = new Date().getFullYear();
-            let month = new Date().getMonth() + 1;
-            let day = new Date().getDay();
+            let month = ("0" + (new Date().getMonth() + 1)).slice(-2);
+            let day = ("0" + new Date().getDate()).slice(-2);
             let idate = year + "-" + month + "-" + day;
             console.log("idate:", idate);
             this.config.loopbackConfig.option = {
