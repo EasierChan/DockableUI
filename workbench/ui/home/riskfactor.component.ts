@@ -7,8 +7,7 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule, DatePipe } from "@angular/common";
 import { IP20Service } from "../../../base/api/services/ip20.service";
 import * as echarts from "echarts";
-import fs = require("@node/fs");
-import path = require("path");
+const fs = require("@node/fs");
 
 
 @Component({
@@ -34,8 +33,10 @@ export class RiskFactorComponent implements OnDestroy {
     styleObj: any;
     dataSource: any;
 
-    startDate: string = "20170704";
-    endDate: string = "20170705";
+    startdate:string;
+    enddate:string;
+    startDate: string;
+    endDate: string;
 
     hedgeRadio: number;
 
@@ -51,10 +52,10 @@ export class RiskFactorComponent implements OnDestroy {
 
     defaultMedia: any;
 
-    hadStockHold: bool = false;
-    hadFutureHold: bool = false;
-    hadNetData: bool = false;
-    needFutures: bool = false;
+    hadStockHold: boolean = false;
+    hadFutureHold: boolean = false;
+    hadNetData: boolean = false;
+    needFutures: boolean = false;
 
     productData: any[];
     strategyData: any[];
@@ -115,10 +116,10 @@ export class RiskFactorComponent implements OnDestroy {
 
     ngOnInit() {
         console.info(this.activeTab);
-        let date1 = new Date().setMonth((new Date().getMonth() - 1));
+        let date1 = new Date().setMonth((new Date().getMonth()-1));
         let date2 = new Date();
-        this.startDate = this.datePipe.transform(date1, 'yyyyMMdd');
-        this.endDate = this.datePipe.transform(date2, 'yyyyMMdd');
+        this.startdate = this.datePipe.transform(date1,'yyyy-MM-dd');
+        this.enddate = this.datePipe.transform(date2,'yyyy-MM-dd');
         // receive holdlist
         this.tradePoint.addSlot({
             appid: 260,
@@ -220,7 +221,7 @@ export class RiskFactorComponent implements OnDestroy {
 
 
     nextDropdown() {
-        //get strategies of this product
+        // get strategies of this product
         RiskFactorComponent.self.istrategys = ["选择所有策略"];
         console.log(RiskFactorComponent.self.productData);
         let productlist = document.getElementById("product");
@@ -457,6 +458,10 @@ export class RiskFactorComponent implements OnDestroy {
     }
 
     lookReturn(){
+      //console.log(this.startdate,this.enddate);
+      this.startDate = this.startdate.replace(/-/g,"");
+      this.endDate = this.enddate.replace(/-/g,"");
+      //console.log(this.startDate,this.endDate);
         let productlist = document.getElementById("product");
         let productIndex = productlist.selectedIndex;
         let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
@@ -660,11 +665,11 @@ export class RiskFactorComponent implements OnDestroy {
                   }
 
               }
-           });
-           this.hadNetData=false;
-           this.netTableValue=[];
-           this.netValueString="";
-           this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
+          });
+          this.hadNetData=false;
+          this.netTableValue=[];
+          this.netValueString="";
+          this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
        }  else {
          alert("对冲比例必须为数字或空！")
        }

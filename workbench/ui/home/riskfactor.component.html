@@ -1,5 +1,5 @@
 <div style="overflow:auto">
-<div class="menu" [hidden]="activeTab == 'Profit'">
+<div class="menu" [hidden]="activeTab === 'Profit'|| activeTab === '风险因子收益'">
 <div class="menuItem">
 <font color='#eee'>产品:</font>
 <select id="product" class="item1" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
@@ -14,10 +14,9 @@
 </div>
 <div class="menuItem">
 <font color='#eee'>日期:</font>
-<input class="item3" [(ngModel)]='startDate' type="text" size="8" maxlength="8" placeholder="年月日" required>
+<input  class="item3" [(ngModel)]='startdate' type="date"  required>
 -
-
-<input class="item4" [(ngModel)]='endDate' type="text" size="8" maxlength="8" placeholder="年月日">
+<input  class="item4" [(ngModel)]='enddate' type="date"  required>
 </div>
 <div class="menuItem">
 <font color='#eee'>对冲比例:</font>

@@ -31,7 +31,7 @@
   width: calc(100% - 14px);
 }
 .menu{
-  width:100%;
+  width: calc(100% - 14px);
   height:80px;
   font-size:16px;
   overflow:auto;
@@ -71,7 +71,7 @@
   margin-right: 25px
 }
 .item3{
-  width:75px;
+  width:137px;
   height:23px;
   //margin-left:7px;
   margin-top: 4px;
@@ -79,7 +79,7 @@
   margin-right: 4px
 }
 .item4{
-  width:75px;
+  width:137px;
   height:23px;
   margin-left:4px;
   margin-top: 4px;
