@@ -1,10 +1,10 @@
 "use strict";
 
-import { Component, HostListener } from "@angular/core";
+import { Component, HostListener, OnDestroy } from "@angular/core";
 import { File } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
 import { FormsModule } from "@angular/forms";
-import { CommonModule,DatePipe } from "@angular/common";
+import { CommonModule, DatePipe } from "@angular/common";
 import { IP20Service } from "../../../base/api/services/ip20.service";
 import * as echarts from "echarts";
 import fs = require("@node/fs");
@@ -16,11 +16,11 @@ import path = require("path");
     selector: "riskfactor",
     templateUrl: "riskfactor.component.html",
     styleUrls: ["home.component.css", "riskfactor.component.css"],
-    providers: [IP20Service,DatePipe],
+    providers: [IP20Service, DatePipe],
     inputs: ["activeTab"]
 })
 
-export class RiskFactorComponent {
+export class RiskFactorComponent implements OnDestroy {
     activeTab: string;
 
     static self: any;
@@ -51,10 +51,10 @@ export class RiskFactorComponent {
 
     defaultMedia: any;
 
-    hadStockHold: bool =false;
-    hadFutureHold: bool =false;
-    hadNetData: bool =false;
-    needFutures: bool =false;
+    hadStockHold: bool = false;
+    hadFutureHold: bool = false;
+    hadNetData: bool = false;
+    needFutures: bool = false;
 
     productData: any[];
     strategyData: any[];
@@ -62,11 +62,11 @@ export class RiskFactorComponent {
     iproduct: string;
     istrategys: string[] = ["选择所有策略"];
     istrategy: string;
-    productfuturehold:string;
-    productstockhold:string;
-    strategyfuturehold:string;
-    strategystockhold:string;
-    netValueString:string;
+    productfuturehold: string;
+    productstockhold: string;
+    strategyfuturehold: string;
+    strategystockhold: string;
+    netValueString: string;
 
     riskFactorReturnAttr: any[] = [];// 风险因子收益归因
     riskFactorReturn: any[] = [];
@@ -92,33 +92,33 @@ export class RiskFactorComponent {
 
         this.readAndHandleRiskReturn();
 
-        this.defaultMedia= [{
-              option: {
+        this.defaultMedia = [{
+            option: {
                 grid: {
-                  left: "10%",
-                 right: "10%"
+                    left: "10%",
+                    right: "10%"
                 }
-              }
-          } , {
+            }
+        }, {
             query: {
-              maxWidth: 650
+                maxWidth: 650
             },
             option: {
-              grid: {
-                  left: 65,
-                  right: 65
-              }
+                grid: {
+                    left: 65,
+                    right: 65
+                }
             }
-          }];
+        }];
 
     }
 
     ngOnInit() {
         console.info(this.activeTab);
-         let date1 = new Date().setMonth((new Date().getMonth()-1));
-         let date2 = new Date();
-         this.startDate = this.datePipe.transform(date1,'yyyyMMdd');
-         this.endDate = this.datePipe.transform(date2,'yyyyMMdd');
+        let date1 = new Date().setMonth((new Date().getMonth() - 1));
+        let date2 = new Date();
+        this.startDate = this.datePipe.transform(date1, 'yyyyMMdd');
+        this.endDate = this.datePipe.transform(date2, 'yyyyMMdd');
         // receive holdlist
         this.tradePoint.addSlot({
             appid: 260,
@@ -164,21 +164,21 @@ export class RiskFactorComponent {
 
 
 
-        this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLDivElement );
-        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") as HTMLDivElement );
-        this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") as HTMLDivElement );
-        this.allDayYearReturnEchart=echarts.init( document.getElementById("allDayYearReturnEchart") as HTMLDivElement );
+        this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLDivElement);
+        this.allDayReturnEchart = echarts.init(document.getElementById("allDayReturnEchart") as HTMLDivElement);
+        this.yearReturnEchart = echarts.init(document.getElementById("yearReturnEchart") as HTMLDivElement);
+        this.allDayYearReturnEchart = echarts.init(document.getElementById("allDayYearReturnEchart") as HTMLDivElement);
 
-        this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") as HTMLDivElement );
-        this.everyDayRFEEchart=echarts.init( document.getElementById("everyDayRFEEchart") as HTMLDivElement );
-        this.riskFactorReturnAttrEchart=echarts.init( document.getElementById("riskFactorReturnAttrEchart") as HTMLDivElement );
-        this.everyDayRFRAttrEchart=echarts.init( document.getElementById("everyDayRFRAttrEchart") as HTMLDivElement );
+        this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLDivElement);
+        this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLDivElement);
+        this.riskFactorReturnAttrEchart = echarts.init(document.getElementById("riskFactorReturnAttrEchart") as HTMLDivElement);
+        this.everyDayRFRAttrEchart = echarts.init(document.getElementById("everyDayRFRAttrEchart") as HTMLDivElement);
 
-        this.stockAttrEchart=echarts.init( document.getElementById("stockAttrEchart") as HTMLDivElement );
+        this.stockAttrEchart = echarts.init(document.getElementById("stockAttrEchart") as HTMLDivElement);
 
 
         if (this.activeTab === "Profit" || this.activeTab === "风险因子收益") {
-            this.setriskFactorReturnEchart(this.riskFactorReturn );
+            this.setriskFactorReturnEchart(this.riskFactorReturn);
         }
         else if (this.activeTab === "RiskFactors" || this.activeTab === "风险因子分析") {
 
@@ -1494,9 +1494,12 @@ export class RiskFactorComponent {
         }
 
         this.stockAttrEchart.setOption(stockAttrEchart);
-
-
-
     }
 
+    /**
+     * disp
+     */
+    ngOnDestroy() {
+        // TODO dispose resource.
+    }
 }

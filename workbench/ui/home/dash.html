@@ -1,0 +1,32 @@
+<div class="dash-body">
+    <div class="banner">
+    </div>
+    <div class="u-row marketdata">
+        <section class="fill">
+            <b>{{codeTableSection.title}}</b>
+            <div class="holder">
+                <dock-table2 [dataSource]="codeTableSection.content.dataSource" [styleObj]="codeTableSection.content.styleObj"></dock-table2>
+            </div>
+        </section>
+        <section class="fill">
+            <b>{{codeChartSection.title}}</b>
+            <div class="holder">
+                <div echarts [options]="codeChartSection.content.option" (chartInit)="onChartInit($event)" style="height: 250px"></div>
+            </div>
+        </section>
+    </div>
+    <div class="u-row other">
+        <section class="fill">
+            <b>{{eventSection.title}}</b>
+            <div class="holder">
+                <dock-table2 [dataSource]="eventSection.content.dataSource" [styleObj]="eventSection.content.styleObj"></dock-table2>
+            </div>
+        </section>
+        <section class="fill">
+            <b>{{todoSection.title}}</b>
+            <div class="holder">
+                <dock-table2 [dataSource]="todoSection.content.dataSource" [styleObj]="todoSection.content.styleObj"></dock-table2>
+            </div>
+        </section>
+    </div>
+</div>

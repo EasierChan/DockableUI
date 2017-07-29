@@ -1,0 +1,5 @@
+<div class="sliders">
+    <img *ngFor="let item of slider.pictures; let i = index;" [class.prev]="slider.curIdx==(i + slider.length - 1) % slider.length"
+        [class.curr]="slider.curIdx==(i + slider.length) % slider.length" [class.next]="slider.curIdx==(i + slider.length + 1) % slider.length"
+        [src]="item" />
+</div>

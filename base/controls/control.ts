@@ -2216,3 +2216,43 @@ export class Tile {
     title: string;
     iconName: string;
 }
+
+class Slider {
+    private pictures: string[];
+    private curIdx: number;
+
+    constructor() {
+        this.pictures = [];
+        this.curIdx = 0;
+    }
+
+    set present(value: number) {
+        this.curIdx = (value - 1) % this.length;
+    }
+
+    get present() {
+        return (this.curIdx + 1) % this.length;
+    }
+
+    addPicture(uri: string) {
+        this.pictures.push(uri);
+    }
+
+    removePictureAt(idx: number) {
+        this.pictures.splice(idx - 1, 1);
+    }
+
+    get length() {
+        return this.pictures.length;
+    }
+}
+
+export class Section {
+    title: string;
+    content: string | DataTable | ListItem[] | any;
+}
+
+export class ListItem {
+    name: string;
+    value: string;
+}
