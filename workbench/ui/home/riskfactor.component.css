@@ -2,11 +2,11 @@
   /*width: 436px;*/
 
   height: 436px;
-  float: left;
+
   text-align: center;
   line-height: 300px;
   font-size: 50px;
-  margin: 7px;
+  margin: 5px 0; 
   background-color: #222A41 !important
 }
 .chart1{
@@ -21,13 +21,18 @@
 }
 
 .big_chart{
+  margin: 7px;
   width: 60%;
+  float: left;
 }
 .small_chart{
+  margin: 7px;
   width: calc(40% - 28px);
+  float: left;
 }
 
 .oneline_chart{
+  margin: 7px;
   width: calc(100% - 14px);
 }
 .menu{

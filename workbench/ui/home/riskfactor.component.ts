@@ -473,7 +473,11 @@ export class RiskFactorComponent {
 
         let productlist = document.getElementById("product");
         let productIndex = productlist.selectedIndex;
+        if(productIndex === -1){
+            return;
+        }
         let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+
 
         if(!isNaN(this.hedgeRadio)){
             let strategylist = document.getElementById("strategy");
@@ -767,17 +771,16 @@ export class RiskFactorComponent {
 
     }
 
-
-    //设置收益的两个图标
+    //设置收益的两个图表
     setriskFactorReturnEchart(riskFactorReturn){
 
       if (riskFactorReturn.length === 0) {
           console.log("风险因子收益没有数据,请检查重试!");
           return ;
       }
-      let startDateIndex=1,endDateIndex=riskFactorReturn.length-1;
+      let startDateIndex=1,endDateIndex=riskFactorReturn.length-2;
 
-      this.setReturnEchart(riskFactorReturn,startDateIndex,endDateIndex,this.riskFactorReturnEchart,this.everyDayReturnEchart);
+      this.setReturnEchart(riskFactorReturn,startDateIndex,endDateIndex,this.everyDayReturnEchart,this.riskFactorReturnEchart);
 
       //初始化最近一年的数据
       let today=new Date(),rfrIndex=0;
@@ -806,15 +809,11 @@ export class RiskFactorComponent {
     // 设置收益的两个图表,有被复用
     setReturnEchart(riskFactorReturn,startIndex,endIndex,lineChart,barChart){
       let chartLegendData=[],xAxisDatas[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
-
-      let allRiskReturnSeries=[],allRiskReturnXAxis=[];   //统计总共的x坐标数组,和具体每一条曲线的数据
-
+      let allRiskReturnXAxis=[],allRiskReturnSeries=[];   //统计总共的x坐标数组,和具体每一条曲线的数据
 
       for(let riskIndex=1; riskIndex<riskFactorReturn[0].length; ++riskIndex){    //遍历每一个风险因子
-
           let lengendData={name:riskFactorReturn[0][riskIndex]}; // ,textStyle: { color: "#F3F3F5" }
           chartLegendData.push(lengendData);
-
           allRiskReturnXAxis.push( riskFactorReturn[0][riskIndex] );  //柱状图的x轴分类
 
           //具体每一条曲线的数据
@@ -822,20 +821,18 @@ export class RiskFactorComponent {
           let riskFactorAllDateReturn=0;
 
           for(let i=startIndex; i<=endIndex; ++i){
-
               riskFactorAllDateReturn += riskFactorReturn[i][riskIndex];
               seriesData.data.push(riskFactorAllDateReturn);
           }
-          series.push(seriesData);
 
+          series.push(seriesData);
           allRiskReturnSeries.push(riskFactorAllDateReturn);
       }
+
       //设置x坐标日期数组
       for(let i=startIndex;i<=endIndex;++i){
           xAxisDatas.push(riskFactorReturn[i][this.rfrDateIndex]);
       }
-
-      console.log("allRiskReturnSeries,allRiskReturnXAxis",allRiskReturnSeries,allRiskReturnXAxis)
 
       let option= {
           baseOption: {
@@ -859,7 +856,6 @@ export class RiskFactorComponent {
               xAxis: [{
                   data: xAxisDatas,
                   axisLabel: {
-
                       textStyle: { color: "#F3F3F5" }
                   },
                   axisLine: {
@@ -867,7 +863,6 @@ export class RiskFactorComponent {
                   }
               }],
               yAxis: [{
-
                   axisLabel: {
                       show: true,
                       textStyle: { color: "#F3F3F5" }
@@ -890,7 +885,7 @@ export class RiskFactorComponent {
       						handleSize: '60%',
                   textStyle: {
                     color: "#FFF"
-                  }
+                  },
       						handleStyle: {
       								color: '#fff',
       								shadowBlur: 3,
@@ -899,7 +894,8 @@ export class RiskFactorComponent {
       								shadowOffsetY: 2
       						}
       				}],
-              series: series
+              series: series,
+              animationThreshold: 10000
               // color: [
               //     "#00b", "#0b0"
               // ]
@@ -1400,11 +1396,9 @@ export class RiskFactorComponent {
     setStockAttrEchart(groupPosition){
       let stockAttrXAxis=[],stockAttrSeries=[];
 
-
       for (var i = 0; i < groupPosition.length; i++) {
         stockAttrXAxis.push( groupPosition[i].stockCode );
         stockAttrSeries.push( groupPosition[i].allRiskFactorReturnAttr );
-
       }
 
       let stockAttrEchart= {
