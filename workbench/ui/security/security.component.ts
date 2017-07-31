@@ -1,7 +1,7 @@
 "use strict";
 
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from "@angular/core";
-import { DataTable, DataTableColumn, ChartViewer } from "../../../base/controls/control";
+import { DataTable, DataTableColumn, ChartViewer, Section, ListItem } from "../../../base/controls/control";
 import { SecuMasterService } from "../../../base/api/services/backend.service";
 import { TradeService, QuoteService } from "../../bll/services";
 import { ECharts } from "echarts";
@@ -10,10 +10,7 @@ import { ECharts } from "echarts";
     moduleId: module.id,
     selector: "security-master",
     templateUrl: "security.component.html",
-    styleUrls: ["../home/home.component.css", "security.component.css"],
-    providers: [
-        SecuMasterService
-    ]
+    styleUrls: ["../home/home.component.css", "security.component.css"]
 })
 export class SecurityComponent implements OnInit, OnDestroy {
     symbol: string;
@@ -37,8 +34,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.symbol = "金证股份";
-        this.code = "600446.SZ";
+        this.symbol = "--";
+        this.code = "--";
         this.summary = new Section();
         this.summary.title = "公司简介";
         this.summary.content = "";
@@ -228,7 +225,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                             this.mainIncome.content.option.series[0].data.push({ value: item.S_SEGMENT_SALES / 1000, name: item.S_SEGMENT_ITEM });
                         });
 
-                        mainIncomChart.setOption(this.mainIncome.content.option);
+                        this.mainIncomChart.setOption(this.mainIncome.content.option);
                         break;
                     case 6:
                         this.baseInfo.content[4].value = msg.content.array[0].S_INFO_LISTDATE.substr(0, 4) + "-" + msg.content.array[0].S_INFO_LISTDATE.substr(4, 2) + "-" + msg.content.array[0].S_INFO_LISTDATE.substr(6, 2);
@@ -503,14 +500,4 @@ export class SecurityComponent implements OnInit, OnDestroy {
 
         return table;
     }
-}
-
-export class Section {
-    title: string;
-    content: string | DataTable | ListItem[] | any;
-}
-
-export class ListItem {
-    name: string;
-    value: string;
 }
