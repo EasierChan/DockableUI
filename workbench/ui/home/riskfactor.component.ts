@@ -124,6 +124,7 @@ export class RiskFactorComponent implements OnDestroy {
         let date2 = new Date();
         this.startdate = this.datePipe.transform(date1,'yyyy-MM-dd');
         this.enddate = this.datePipe.transform(date2,'yyyy-MM-dd');
+        if(this.activeTab == "风险因子分析"){
         // receive holdlist
         this.tradePoint.addSlot({
             appid: 260,
@@ -166,7 +167,8 @@ export class RiskFactorComponent implements OnDestroy {
                 this.tradePoint.send(260, 218, { body: { tblock_id: tblockId } });
             }
         });
-
+        this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
+      }
 
 
         this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLDivElement );
@@ -188,8 +190,6 @@ export class RiskFactorComponent implements OnDestroy {
         else if (this.activeTab === "RiskFactors" || this.activeTab === "风险因子分析") {
 
         }
-
-        this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
 
         this.hedgeRadio = 1;
         window.onresize = () => {
@@ -474,6 +474,7 @@ export class RiskFactorComponent implements OnDestroy {
 
         let productlist = document.getElementById("product");
         let productIndex = productlist.selectedIndex;
+
         if(productIndex === -1){
             return;
         }
