@@ -18,6 +18,7 @@ export class RiskComponent {
     }
 
     ngOnInit() {
+        this.registerListeners();
         this.trade.send(130, 2001, {});
     }
 
