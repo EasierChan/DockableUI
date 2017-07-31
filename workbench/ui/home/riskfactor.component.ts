@@ -415,9 +415,6 @@ export class RiskFactorComponent implements OnDestroy {
 
     // 同步读取csv数据文件
     readDataFromCsvFile(csvFilePath) {
-
-        console.log("csvFilePath", csvFilePath);
-
         let resultData = [], fileContent = "";
         try {
             fileContent = fs.readFileSync(csvFilePath, "utf-8");
@@ -480,11 +477,51 @@ export class RiskFactorComponent implements OnDestroy {
         }
         let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
 
-
         if(!isNaN(this.hedgeRadio)){
             let strategylist = document.getElementById("strategy");
             let strategyIndex = strategylist.selectedIndex;
-            console.log(strategyIndex);
+
+            // setNetTableValue
+            this.tradePoint.addSlot({
+                appid: 260,
+                packid: 226,
+                callback: (msg) =>{
+                    console.log("receive setNetTableValue",msg);
+                    this.netValueString+=msg.content.body;
+
+                    if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
+                        msg.content.body = this.netValueString;
+                        this.hadNetData=true;
+                        if(msg.content.msret.msgcode !== "00") {
+                            alert("获取净值数据失败："+msg.content.msret.msg);
+                            return;
+                        }
+
+                        let netTableValue = JSON.parse(msg.content.body);
+                        if( netTableValue.msret.msgcode === "00" ){
+                            this.netTableValue=netTableValue.body;
+
+                            this.netTableValue.forEach( (currentValue,index,array)=>{
+                                let netvalue=parseFloat(currentValue.netvalue);
+                                if ( isNaN(netvalue) ) {
+                                    currentValue.netvalue=0;
+                                } else {
+                                    currentValue.netvalue=netvalue;
+                                }
+                            });
+                            console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures&&this.hadFutureHold),this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold));
+                            if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
+                                this.beginCalculateRiskFactor();
+                            }
+
+                        } else {
+                            alert("获取净值数据失败："+netTableValue.msret.msg);
+                        }
+                    }
+
+                }
+            });
+
             if(strategyIndex>0){
                 let strategyId = RiskFactorComponent.self.strategyData[strategyIndex-1].strategy_id;
                 console.log(this.startDate,strategyId);
@@ -494,7 +531,7 @@ export class RiskFactorComponent implements OnDestroy {
                     appid: 260,
                     packid: 220,
                     callback: (msg) =>{
-                      console.log("msg",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
+                      console.log("strategyfuturehold",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
                       this.strategyfuturehold += msg.content.body;
                       if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
                         msg.content.body = this.strategyfuturehold;
@@ -532,11 +569,11 @@ export class RiskFactorComponent implements OnDestroy {
                     appid: 260,
                     packid: 222,
                     callback: (msg) =>{
-                      console.log("msg",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
+                      console.log("strategystockhold",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
                       this.strategystockhold += msg.content.body;
                       if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
                         msg.content.body = this.strategystockhold
-                        //console.log(this.strategystockhold);
+
                         console.log("strategystockhold",msg);
                         this.hadStockHold=true;
 
@@ -549,6 +586,7 @@ export class RiskFactorComponent implements OnDestroy {
 
                         if( strategystockhold.msret.msgcode === "00" ){
                            this.getGroupPosition(strategystockhold.body);
+                           console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures&&this.hadFutureHold),this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold));
                            if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
 
                                this.beginCalculateRiskFactor();
@@ -563,7 +601,13 @@ export class RiskFactorComponent implements OnDestroy {
                  this.strategystockhold="";
                  this.hadStockHold=false;
                  this.groupPosition=[];
-                this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,product_id:tblockId,begin_date:this.startDate,end_date:this.startDate}});
+                 this.tradePoint.send(260, 222, { body: { strategy_id:strategyId,product_id:tblockId,begin_date:this.startDate,end_date:this.startDate}});
+
+                 this.hadNetData=false;
+                 this.netTableValue=[];
+                 this.netValueString="";
+                 this.tradePoint.send(260, 226, { body: { type:1, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
+                 console.log("send setNetTableValue strategy",tblockId,this.startDate,this.endDate);
            }  else {
             console.log(this.startDate,tblockId);
             // productfuturehold
@@ -585,7 +629,6 @@ export class RiskFactorComponent implements OnDestroy {
                      if( productFutureHold.msret.msgcode === "00" ){
                          this.futurePosition=productFutureHold.body;
                          console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures&&this.hadFutureHold),this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold));
-
                          if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
                              this.beginCalculateRiskFactor();
                          }
@@ -619,10 +662,9 @@ export class RiskFactorComponent implements OnDestroy {
                       }
                       let productStockHold = JSON.parse(msg.content.body);
                       if( productStockHold.msret.msgcode === "00" ){
-
                           this.getGroupPosition(productStockHold.body);
+                          console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures&&this.hadFutureHold),this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold));
                           if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
-
                               this.beginCalculateRiskFactor();
                           }
 
@@ -638,52 +680,12 @@ export class RiskFactorComponent implements OnDestroy {
              this.groupPosition=[];
              this.tradePoint.send(260, 230, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
 
+             this.hadNetData=false;
+             this.netTableValue=[];
+             this.netValueString="";
+             this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
+             console.log("send setNetTableValue",tblockId,this.startDate,this.endDate);
           }
-
-          // setNetTableValue
-          this.tradePoint.addSlot({
-              appid: 260,
-              packid: 226,
-              callback: (msg) =>{
-                  console.log("setNetTableValue",msg);
-                  this.netValueString+=msg.content.body;
-
-                  if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
-                      msg.content.body = this.netValueString;
-                      this.hadNetData=true;
-                      if(msg.content.msret.msgcode !== "00") {
-                          alert("获取净值数据失败："+msg.content.msret.msg);
-                          return;
-                      }
-
-                      let netTableValue = JSON.parse(msg.content.body);
-                      if( netTableValue.msret.msgcode === "00" ){
-                          this.netTableValue=netTableValue.body;
-
-                          this.netTableValue.forEach( (currentValue,index,array)=>{
-                              let netvalue=parseFloat(currentValue.netvalue);
-                              if ( isNaN(netvalue) ) {
-                                  currentValue.netvalue=0;
-                              } else {
-                                  currentValue.netvalue=netvalue;
-                              }
-                          });
-
-                          if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
-                              this.beginCalculateRiskFactor();
-                          }
-
-                      } else {
-                          alert("获取净值数据失败："+netTableValue.msret.msg);
-                      }
-                  }
-
-              }
-          });
-          this.hadNetData=false;
-          this.netTableValue=[];
-          this.netValueString="";
-          this.tradePoint.send(260, 226, { body: { type:0, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
        }  else {
          alert("对冲比例必须为数字或空！")
        }
