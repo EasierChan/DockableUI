@@ -128,7 +128,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         let data = [];
         let option: any = {};
         data.forEach(item => {
-            option.xAxis.data.push(item.time / 1000);
+            option.xAxis.data.push(item.time / 100000);
+            option.series.data.push(item.close);
         });
 
         this.codeChartSection.content.chart.setOption(option);
