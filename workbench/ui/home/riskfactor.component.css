@@ -6,7 +6,7 @@
   text-align: center;
   line-height: 300px;
   font-size: 50px;
-  margin: 5px 0; 
+  margin: 5px 0;
   background-color: #222A41 !important
 }
 .chart1{
@@ -37,7 +37,7 @@
 }
 .menu{
   width: calc(100% - 14px);
-  height:80px;
+  height:45px;
   font-size:16px;
   overflow:auto;
   margin: 7px
