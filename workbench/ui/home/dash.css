@@ -27,13 +27,16 @@ table {
     height: 200px;
     min-height: 200px;
     background-color: #222A41;
+    background-image: url('../base/images/banner.jpg');
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .dash-body > .marketdata,
 .dash-body > .other {
     margin-top: 10px;
-    height: 400px;
-    min-height: 300px;
+    height: 250px;
+    min-height: 250px;
     flex: none;
 }
 

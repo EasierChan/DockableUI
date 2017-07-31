@@ -24,11 +24,14 @@ export class SecurityComponent implements OnInit, OnDestroy {
     numberInfo: Section;
     instituteInfo: Section;
     structureInfo: Section;
+    currentInfo: Section;
+    standardInfo: Section;
     resList: Section;
     selectedValue: string;
 
     marketChart: ECharts;
     mainIncomChart: ECharts;
+    isStock: boolean;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
     }
@@ -149,6 +152,23 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.structureInfo.title = "股本结构";
         this.structureInfo.content = this.createStructureInfo();
 
+        this.currentInfo = new Section();
+        this.currentInfo.title = "当前合约";
+        this.currentInfo.content = new DataTable();
+        this.currentInfo.content.addColumn("合约名称", "合约代码", "合约交割月份", "合约上市日", "最后交易日期", "最后交割日"); // "涨跌幅限制(%)", "交易保证金(%)",
+
+        this.standardInfo = new Section();
+        this.standardInfo.title = "标准合约";
+        this.standardInfo.content = [];
+        this.standardInfo.content.push(["交易品种", "", "最后交易日期", ""]);
+        this.standardInfo.content.push(["交易单位", "", "交割日期", ""]);
+        this.standardInfo.content.push(["报价单位", "", "交割地点", ""]);
+        this.standardInfo.content.push(["最小变动价位", "", "最初交易保证金", ""]);
+        this.standardInfo.content.push(["涨跌停板幅度", "", "交割方式", ""]);
+        this.standardInfo.content.push(["合约交割月份", "", "交易代码", ""]);
+        this.standardInfo.content.push(["交易时间", "", "上市交易所", ""]);
+
+        this.isStock = true;
         this.registerListener();
     }
 
@@ -262,6 +282,36 @@ export class SecurityComponent implements OnInit, OnDestroy {
 
                         this.marketChart.setOption(this.marketPerformance.content.option);
                         break;
+                    case 100:
+                        this.currentInfo.content.rows.length = 0;
+                        msg.content.array.forEach(item => {
+                            let row = this.currentInfo.content.newRow();
+                            row.cells[0].Text = item.S_INFO_FULLNAME;
+                            row.cells[1].Text = item.S_INFO_CODE;
+                            row.cells[2].Text = item.FS_INFO_DLMONTH;
+                            // row.cells[3].Text = item.FS_INFO_DLMONTH;
+                            // row.cells[4].Text = item.S_INFO_FULLNAME;
+                            row.cells[3].Text = item.S_INFO_LISTDATE;
+                            row.cells[4].Text = item.S_INFO_DELISTDATE;
+                            row.cells[5].Text = item.FS_INFO_LTDLDATE;
+                        });
+                        break;
+                    case 101:
+                        this.standardInfo.content[0][1] = msg.content.array[0].S_INFO_NAME;
+                        this.standardInfo.content[0][3] = msg.content.array[0].S_INFO_LTDATED;
+                        this.standardInfo.content[1][1] = msg.content.array[0].S_INFO_PUNIT + msg.content.array[0].S_INFO_TUNIT;
+                        this.standardInfo.content[1][3] = msg.content.array[0].S_INFO_DDATE;
+                        this.standardInfo.content[2][1] = msg.content.array[0].FS_INFO_PUNIT;
+                        this.standardInfo.content[2][3] = msg.content.array[0].S_INFO_DSITE;
+                        this.standardInfo.content[3][1] = msg.content.array[0].S_INFO_MFPRICE;
+                        this.standardInfo.content[3][3] = msg.content.array[0].S_INFO_FTMARGINS;
+                        this.standardInfo.content[4][1] = msg.content.array[0].S_INFO_MAXPRICEFLUCT;
+                        this.standardInfo.content[4][3] = msg.content.array[0].S_INFO_DMEAN;
+                        this.standardInfo.content[5][1] = msg.content.array[0].S_INFO_CDMONTHS;
+                        this.standardInfo.content[5][3] = msg.content.array[0].S_INFO_CODE;
+                        this.standardInfo.content[6][1] = msg.content.array[0].S_INFO_LTDATEHOUR;
+                        this.standardInfo.content[6][3] = msg.content.array[0].S_INFO_EXNAME;
+                        break;
                 }
             }
         });
@@ -276,6 +326,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.selectedValue = item.symbolCode;
         this.symbol = item.SecuAbbr;
         this.code = item.symbolCode;
+        this.isStock = (item.ukey & 0x0100) > 0 ? true : false;
 
         this.marketPerformance.content.option.legend.data = [this.symbol, "沪深300"];
         this.marketPerformance.content.option.series = [{
@@ -325,7 +376,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         }
                     },
                     axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
+                        lineStyle: { color: "#8AA4E6" }
                     }
                 },
                 yAxis: {
@@ -371,7 +422,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         textStyle: { color: "#F3F3F5" }
                     },
                     axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
+                        lineStyle: { color: "#8AA4E6" }
                     }
                 }],
                 yAxis: [{
@@ -382,7 +433,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         textStyle: { color: "#F3F3F5" }
                     },
                     axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
+                        lineStyle: { color: "#8AA4E6" }
                     },
                     splitLine: { show: false },
                     scale: true,
@@ -395,8 +446,9 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         textStyle: { color: "#F3F3F5" }
                     },
                     axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
+                        lineStyle: { color: "#8AA4E6" }
                     },
+                    splitLine: { show: false },
                     scale: true,
                     boundaryGap: [0.2, 0.2]
                 }],

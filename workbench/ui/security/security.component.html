@@ -11,7 +11,7 @@
     </ul>
   </div>
 </div>
-<div class="content">
+<div *ngIf="isStock" class="content">
   <h6>{{codeName}}</h6>
   <div class="u-row">
     <section class="fill">
@@ -82,6 +82,31 @@
       <b>{{structureInfo.title}}</b>
       <div class="holder">
         <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>
+</div>
+<div *ngIf="!isStock" class="content">
+  <div class="u-row">
+    <section class="fill">
+      <b>{{currentInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="currentInfo.content.dataSource" [styleObj]="currentInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>
+  <div class="u-row">
+    <section class="fill">
+      <b>{{standardInfo.title}}</b>
+      <div class="holder">
+        <table align="left">
+          <tr *ngFor="let row of standardInfo.content">
+            <td>{{row[0]}}</td>
+            <td>{{row[1]}}</td>
+            <td>{{row[2]}}</td>
+            <td>{{row[3]}}</td>
+          </tr>
+        </table>
       </div>
     </section>
   </div>

@@ -39,7 +39,7 @@ export class ReportComponent implements OnInit {
             row.cells[4].Text = "查看";
             row.cells[4].OnClick = () => {
                 this.chartOption = this.generateOption();
-                this.mock.send(8014, { nId: 120 });
+                this.mock.send(8014, { nId: 230 });
                 this.page = 1;
                 this.bLoading = true;
             };
@@ -66,7 +66,7 @@ export class ReportComponent implements OnInit {
     }
 
     chartInit(chart) {
-        console.info(chart);
+        // console.info(chart);
         this.chart = chart;
     }
 

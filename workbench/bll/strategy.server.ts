@@ -165,7 +165,7 @@ export class ConfigurationBLL {
                 this._configs.push(config);
             }
         }
-        File.writeAsync(this._configpath, JSON.stringify(this._configs));
+        File.writeSync(this._configpath, JSON.stringify(this._configs));
     }
     updateConfig_back(config?: WorkspaceConfig) {
         if (config) {
@@ -178,7 +178,7 @@ export class ConfigurationBLL {
                 this._configs_back.push(config);
             }
         }
-        File.writeAsync(this._configpath_back, JSON.stringify(this._configs_back));
+        File.writeSync(this._configpath_back, JSON.stringify(this._configs_back));
     }
     updateConfig_simulation(config?: WorkspaceConfig) {
         if (config) {
@@ -191,7 +191,7 @@ export class ConfigurationBLL {
                 this._configs_simulation.push(config);
             }
         }
-        File.writeAsync(this._configpath_simulation, JSON.stringify(this._configs_simulation));
+        File.writeSync(this._configpath_simulation, JSON.stringify(this._configs_simulation));
     }
 
     updateTemplate(name: string, template: any) {
