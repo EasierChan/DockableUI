@@ -4,6 +4,8 @@ import { Component, OnInit } from "@angular/core";
 import { DataTable } from "../../../base/controls/control";
 import { QtpService } from "../../bll/services";
 import { ECharts } from "echarts";
+import { ConfigurationBLL } from "../../bll/strategy.server";
+
 
 @Component({
     moduleId: module.id,
@@ -20,6 +22,11 @@ export class ReportComponent implements OnInit {
     retraceRatio: any;
     percentProfitable: any;
     sharpeRatio: any;
+    freeriskrate = 0.3;
+    _unit: any;
+    _period: any;
+    Sel_arr = [];
+    private configBll = new ConfigurationBLL();
 
     constructor(private mock: QtpService) {
     }
@@ -29,23 +36,41 @@ export class ReportComponent implements OnInit {
         this.resTable.addColumn("选中", "名称", "开始时间", "结束时间", "查看");
         this.resTable.columns[0].maxWidth = 20;
         this.resTable.columns[4].maxWidth = 50;
-        for (let i = 0; i < 50; ++i) {
+        this.Sel_arr = [];
+
+        let allItem = this.configBll.getLoopbackItems();
+        let len = allItem.length;
+        for (let i = 0; i < len; ++i) {
             let row = this.resTable.newRow();
             row.cells[0].Type = "checkbox";
-            row.cells[1].Text = "ss-pair-20170727-001";
-            row.cells[2].Text = new Date().toLocaleDateString();
-            row.cells[3].Text = new Date().toLocaleDateString();
+            row.cells[0].Data = { nId: allItem[i].id, unit: allItem[i].unit, period: allItem[i].period };
+            row.cells[0].OnClick = () => {
+                this.Sel_arr.push(allItem[i].id);
+                console.log(this.Sel_arr);
+            };
+            row.cells[1].Text = allItem[i].name + "-" + allItem[i].id;
+            row.cells[2].Text = this.parseDate(allItem[i].timebegin + "");
+            row.cells[3].Text = this.parseDate(allItem[i].timeend + "");
             row.cells[4].Type = "button";
             row.cells[4].Text = "查看";
             row.cells[4].OnClick = () => {
+                this._unit = allItem[i].unit;
+                this._period = allItem[i].period;
                 this.chartOption = this.generateOption();
-                this.mock.send(8014, { nId: 120 });
+                this.mock.send(8014, { nId: this.resTable.rows[i].cells[0].Data.nId });
                 this.page = 1;
                 this.bLoading = true;
             };
         }
-
         this.registerListener();
+    }
+
+    parseDate(data: string) {
+        let day = data.substr(6, 2);
+        let month = data.substr(4, 2);
+        let year = data.substr(0, 4);
+        return (parseInt(month) + "/" + parseInt(day) + "/" + year);
+
     }
 
     registerListener() {
@@ -63,6 +88,19 @@ export class ReportComponent implements OnInit {
 
     back() {
         this.page = 0;
+    }
+
+    chooseAll() {
+
+    }
+    unChoose() {
+
+    }
+    search() {
+
+    }
+    remove() {
+
     }
 
     chartInit(chart) {
@@ -151,28 +189,26 @@ export class ReportComponent implements OnInit {
 
         this.retraceRatio = (drawdown * 100).toFixed(2) + "%";
         this.percentProfitable = (winCount * 100 / profit.length).toFixed(2) + "%";
-        // this.lbl_maxRetracementRatio.Text = (drawdown * 100).toFixed(2) + "%";
-        // this.lbl_percentProfitable.Text = (winCount * 100 / profit.length).toFixed(2) + "%";
         let avgratio = sumratio / profit.length;
         let variance = 0;
         total_ratios.forEach(ratio => {
             variance += Math.pow(ratio - avgratio, 2);
         });
 
-        // // console.info(total_ratios, variance);
-        // if (variance !== 0) {
-        //     let value = null;
-        //     let multiper;
-        //     if (this.dd_tests.SelectedItem.Value.unit === 0)
-        //         multiper = 365 * 24 * 60 / parseInt(this.dd_tests.SelectedItem.Value.period);
-        //     else
-        //         multiper = 365 / parseInt(this.dd_tests.SelectedItem.Value.period);
-        //     value = ((total_ratios.pop() - 1) * multiper / profit.length - parseFloat(this.txt_freeriskrate.Text)) / (Math.sqrt(variance) * multiper);
-        //     // console.info(value, variance);
-        //     this.lbl_sharpeRatio.Text = value.toFixed(4);
-        // } else {
-        //     this.lbl_sharpeRatio.Text = 0;
-        // }
+        // console.info(total_ratios, variance);
+        if (variance !== 0) {
+            let value = null;
+            let multiper;
+            if (this._unit === 0)
+                multiper = 365 * 24 * 60 / parseInt(this._period);
+            else
+                multiper = 365 / parseInt(this._period);
+            value = ((total_ratios.pop() - 1) * multiper / profit.length - this.freeriskrate) / (Math.sqrt(variance) * multiper);
+            // console.info(value, variance);
+            this.sharpeRatio = value.toFixed(4);
+        } else {
+            this.sharpeRatio = 0;
+        }
     }
 
     generateOption() {

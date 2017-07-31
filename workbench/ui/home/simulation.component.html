@@ -16,7 +16,7 @@
                 </div>
                 <div>
                     <span class="strategytext">策略：</span>
-                    <select class="strategy-sel" (change)="onSelectStrategy(strategyCores[strategycore.selectedIndex])" #strategycore>
+                    <select class="strategy-sel" (change)="onSelectStrategy(strategyCores[strategycore.selectedIndex])" #strategycore [disabled]="bRead"> 
                                 <option  *ngFor="let name of strategyCores" >{{name}}</option>
                             </select>
                 </div>
@@ -25,7 +25,7 @@
                         <h4>策略服务名与中文标识</h4>
                         <hr>
                     </div>
-                    <label class="label-name">服务名:<input type="text" class = "input-col" placeholder="strategy name" [(ngModel)]="config.name"></label>
+                    <label class="label-name">服务名:<input type="text" class = "input-col" placeholder="strategy name" [(ngModel)]="config.name" [readonly]= "bRead"></label>
                     <label class="label-name">中文名 : <input type="text" class = "input-col" placeholder="Chinese name" [(ngModel)]="config.chinese_name"></label>
                 </div>
             </div>
@@ -131,22 +131,23 @@
                     <h4>Are you Sure?</h4>
                     <hr>
                 </div>
-                <div class="row">
+                <div >
                     <label for="maxordersize">Make sure whether you have done a correct setting, then click 'Finish' Or reset them.</label>
                 </div>
             </div>
         </div>
         <div class="footer">
             <div class="pagebtn">
+                <button class="button" (click)="hide()">hide</button>
                 <button class="button" [disabled]="config.curstep==1" (click)="prev()">Prev</button>
-                <button class="button" [disabled]="config.curstep==3" (click)="next()">Next</button>
-                <button class="button" [disabled]="config.curstep!=3" (click)="finish()">Finish</button>
+                <button class="button" [disabled]="config.curstep==4" (click)="next()">Next</button>
+                <button class="button" [disabled]="config.curstep!=4" (click)="finish()">Finish</button>
             </div>
         </div>
     </div>
 </div>
 <div class="change" *ngIf="bChangeShow">
-    <legend class="changelengend">切换行情通道</legend>
+    <legend class="changelengend">选择产品、切换交易通道</legend>
     <span class="strategytext">产品：</span>
     <select class="strategy-sel" (change)="onSelectProduct(productsList[productcore.selectedIndex])" #productcore>
                                 <option  *ngFor="let name of productsList" >{{name}}</option>

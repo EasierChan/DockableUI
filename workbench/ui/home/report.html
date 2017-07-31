@@ -1,14 +1,14 @@
 <div class="listview u-col" *ngIf="page==0">
     <div class="u-row">
-        <button>全选</button>
-        <button>全不选</button>
+        <button (click)="chooseAll()">全选</button>
+        <button (click)="unChoose()">全不选</button>
         <button>
             <span>ALL</span>
             <span class="glyphicon glyphicon-triangle-bottom"></span>
         </button>
         <input type="text" class="fill">
-        <button>查询</button>
-        <button>删除</button>
+        <button (click)="search()">查询</button>
+        <button (click)="remove()">删除</button>
     </div>
     <dock-table2 [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
 </div>
