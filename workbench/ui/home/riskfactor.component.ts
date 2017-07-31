@@ -8,8 +8,6 @@ import { CommonModule,DatePipe } from "@angular/common";
 import { IP20Service } from "../../../base/api/services/ip20.service";
 import * as echarts from "echarts";
 import fs = require("@node/fs");
-import path = require("path");
-
 
 @Component({
     moduleId: module.id,
@@ -24,12 +22,8 @@ export class RiskFactorComponent {
     activeTab: string;
 
     static self: any;
-    posStockIndex: number = 0;
 
-    posWeightIndex: number = 1;
-    rfrDateIndex: number = 0;
-    rfeDateIndex: number = 0;
-    rfeStockIndex: number = 1;
+    rfrDateIndex: number = 0; // 保存风险因子收益日期的索引
 
     styleObj: any;
     dataSource: any;
@@ -42,17 +36,20 @@ export class RiskFactorComponent {
     hedgeRadio: number;
 
     riskFactorReturnEchart: any;//echart
-    allDayReturnEchart: any;
-    yearReturnEchart: any;
-    allDayYearReturnEchart: any;
-    riskFactorExposureEchart: any;
-    everyDayRFEEchart: any;
-    riskFactorReturnAttrEchart: any;
-    everyDayRFRAttrEchart: any;
-    stockAttrEchart: any;
+    everyDayReturnEchart: any;
+    everyDayYearReturnEchart: any;    // 一年中每一天的风险因子收益折线图
+    lastDayYearReturnEchart: any;  // 一年中最后一天的风险因子收益柱状图图
+    riskFactorExposureEchart: any;  //最后选中天风险因子暴露柱状图
+    everyDayRFEEchart: any;         //每一天的风险因子的暴露折线图
+    riskFactorReturnAttrEchart: any;  // 风险因子收益归因柱状图
+    everyDayRFRAttrEchart: any;   // 每一天风险因子归因折线图
+    stockAttrEchart: any;   // 股票归因柱状图
 
     defaultMedia: any;
 
+    /* 当选择了期货对冲时,hadStockHold,hadFutureHold,hadNetData,必须全为true才能计算.
+    *   没有选择时,hadFutureHold可以为false
+    */
     hadStockHold: bool =false;
     hadFutureHold: bool =false;
     hadNetData: bool =false;
@@ -74,6 +71,11 @@ export class RiskFactorComponent {
     riskFactorReturn: any[] = [];
     riskFactorExpose: any[] = [];
 
+    /* 保存所有的股票持仓数组
+    * 每一个数组元素为对象,对象包含一下元素
+    * stockCode,stockWeight,stockExposure,returnAttr --保存股票在每一个风险因子下的归因,allRiskFactorReturnAttr--单个股票在所有风险因子下的归因,
+    * 这是一个初始化实例  let obj={stockCode: currentValue.marketcode.toUpperCase(), stockWeight: currentValue.cost_rate, stockExposure:[], returnAttr:[], allRiskFactorReturnAttr:0};
+    */
     groupPosition: any[] = [];
     futurePosition: any[] = [];
     netTableValue: any[] = [];
@@ -167,9 +169,9 @@ export class RiskFactorComponent {
 
 
         this.riskFactorReturnEchart=echarts.init( document.getElementById("riskFactorReturnEchart") as HTMLDivElement );
-        this.allDayReturnEchart=echarts.init( document.getElementById("allDayReturnEchart") as HTMLDivElement );
-        this.yearReturnEchart=echarts.init( document.getElementById("yearReturnEchart") as HTMLDivElement );
-        this.allDayYearReturnEchart=echarts.init( document.getElementById("allDayYearReturnEchart") as HTMLDivElement );
+        this.everyDayReturnEchart=echarts.init( document.getElementById("everyDayReturnEchart") as HTMLDivElement );
+        this.everyDayYearReturnEchart=echarts.init( document.getElementById("everyDayYearReturnEchart") as HTMLDivElement );
+        this.lastDayYearReturnEchart=echarts.init( document.getElementById("lastDayYearReturnEchart") as HTMLDivElement );
 
         this.riskFactorExposureEchart=echarts.init( document.getElementById("riskFactorExposureEchart") as HTMLDivElement );
         this.everyDayRFEEchart=echarts.init( document.getElementById("everyDayRFEEchart") as HTMLDivElement );
@@ -205,11 +207,12 @@ export class RiskFactorComponent {
         console.log("console.log(arr);", arr);
     }
 
+    //界面变化时,重置而echart的大小
     resizeFunction() {
         this.riskFactorReturnEchart.resize();
-        this.allDayReturnEchart.resize();
-        this.yearReturnEchart.resize();
-        this.allDayYearReturnEchart.resize();
+        this.everyDayReturnEchart.resize();
+        this.everyDayYearReturnEchart.resize();
+        this.lastDayYearReturnEchart.resize();
 
         this.riskFactorExposureEchart.resize();
         this.everyDayRFEEchart.resize();
@@ -251,6 +254,7 @@ export class RiskFactorComponent {
         this.tradePoint.send(260, 218, { body: { tblock_id: tblockId } });
     }
 
+    // 读取风险因子收益并格式化数据
     readAndHandleRiskReturn() {
         this.riskFactorReturn = this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
         // 处理获取的风险因子收益数据
@@ -294,7 +298,7 @@ export class RiskFactorComponent {
         console.log("handled riskFactorReturn", this.riskFactorReturn);
     }
 
-
+    // 读取股票暴露并格式化数据         ---注意 这里删除了第一列,也就是风险因子名称列,所有的风险因子名称和顺序都依赖与风险因子收益表
     readAndHandleRiskExposure(exposureFilePath) {
         this.riskFactorExposure = this.readDataFromCsvFile(exposureFilePath);
 
@@ -326,11 +330,12 @@ export class RiskFactorComponent {
             }
 
         }
-        console.log("modify riskFactorExposure",exposureFilePath,this.riskFactorExposure);
+
     }
 
-
-    //成功返回true,否则返回false
+    /*计算各种结果并绘图
+    *成功返回true,否则返回false
+    */
     calculateRiskFactor(riskFactorReturn,riskFactorExposure,groupPosition,sumOfDayExposure,currDate){
         let oneDayExposure=[],oneDayReturnAttr=[];
 
@@ -356,7 +361,6 @@ export class RiskFactorComponent {
             }
 
         }
-        console.log("calculateRiskFactor groupPosition",groupPosition);
 
         // 计算各个风险因子当天的总的暴露
         for (let i = 2; i < riskFactorExposure[0].length; i++) {    //遍历风险因子的暴露
@@ -408,7 +412,7 @@ export class RiskFactorComponent {
 
     }
 
-
+    // 同步读取csv数据文件
     readDataFromCsvFile(csvFilePath) {
 
         console.log("csvFilePath", csvFilePath);
@@ -439,6 +443,9 @@ export class RiskFactorComponent {
         return resultData;
     }
 
+    /* 二分查看法
+    * arr表示要查找的数组,source表示要查找的目标,member表示要在数组中对比的具体的属性,start,end表示查找范围[start,end],包括end
+    */
     binarySearchStock(arr,source,member,start,end) {
       start=start||0;
       end=end||arr.length-1;
@@ -458,15 +465,16 @@ export class RiskFactorComponent {
       return -1;
     }
 
+    //点击搜索按钮后的操作
     lookReturn(){
-      //console.log(this.startdate,this.enddate);
-      this.startDate = this.startdate.replace(/-/g,"");
-      this.endDate = this.enddate.replace(/-/g,"");
-      //console.log(this.startDate,this.endDate);
+
+        this.startDate = this.startdate.replace(/-/g,"");
+        this.endDate = this.enddate.replace(/-/g,"");
+
         let productlist = document.getElementById("product");
         let productIndex = productlist.selectedIndex;
         let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
-        //console.log(this.startDate,tblockId);
+
         if(!isNaN(this.hedgeRadio)){
             let strategylist = document.getElementById("strategy");
             let strategyIndex = strategylist.selectedIndex;
@@ -534,7 +542,6 @@ export class RiskFactorComponent {
                         let strategystockhold = JSON.parse(msg.content.body);
 
                         if( strategystockhold.msret.msgcode === "00" ){
-                           console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures&&this.hadFutureHold),this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold));
                            this.getGroupPosition(strategystockhold.body);
                            if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
 
@@ -558,12 +565,11 @@ export class RiskFactorComponent {
                  appid: 260,
                  packid: 228,
                  callback: (msg) =>{
-                   console.log("msg",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
+
                    this.productfuturehold += msg.content.body;
                    if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
                      msg.content.body = this.productfuturehold;
-                     //console.log(this.productfuturehold);
-                     console.log("productfuturehold",msg);
+
                      this.hadFutureHold=true;
                      if(msg.content.msret.msgcode !== "00") {
                          alert("获取数据失败："+msg.content.msret.msg);
@@ -587,18 +593,18 @@ export class RiskFactorComponent {
               this.productfuturehold="";
               this.hadFutureHold=false;
               this.futurePosition=[];
-             this.tradePoint.send(260, 228, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
+              this.tradePoint.send(260, 228, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
 
-            // productstockhold
+             // productstockhold
              this.tradePoint.addSlot({
                 appid: 260,
                 packid: 230,
                 callback: (msg) =>{
-                  console.log("msg",msg,msg.content.head.pkgCnt,msg.content.head.pkgIdx);
+
                   this.productstockhold += msg.content.body;
                   if(msg.content.head.pkgIdx == (msg.content.head.pkgCnt-1)){
                       msg.content.body = this.productstockhold;
-                      //console.log(this.productstockhold);
+
                       console.log("productstockhold",msg);
                       this.hadStockHold=true;
                       if(msg.content.msret.msgcode !== "00") {
@@ -607,8 +613,8 @@ export class RiskFactorComponent {
                       }
                       let productStockHold = JSON.parse(msg.content.body);
                       if( productStockHold.msret.msgcode === "00" ){
-                     console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures&&this.hadFutureHold),this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold));
-                              this.getGroupPosition(productStockHold.body);
+
+                          this.getGroupPosition(productStockHold.body);
                           if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures&&this.hadFutureHold) ) {
 
                               this.beginCalculateRiskFactor();
@@ -625,6 +631,7 @@ export class RiskFactorComponent {
              this.hadStockHold=false;
              this.groupPosition=[];
              this.tradePoint.send(260, 230, { body: { begin_date:this.startDate,end_date:this.startDate,tblock_id:tblockId } });
+
           }
 
           // setNetTableValue
@@ -676,6 +683,7 @@ export class RiskFactorComponent {
        }
      }
 
+    // 开始读取并计算数据
     beginCalculateRiskFactor() {
         let exposureFile=[],dirFiles=[];
         let sumOfDayExposure=[];//保存风险因子的权重与暴露之乘积的和
@@ -695,8 +703,8 @@ export class RiskFactorComponent {
 
         for(let fileIndex=0;fileIndex<dirFiles.length;++fileIndex){   // csv文件在打开时可能还有其他的文件存在
             if ( (this.startDate =="" && this.startDate =="") ) {
+                alert("请选择时间范围");
 
-                console.log("请选择时间范围");
                 return ;
             }
 
@@ -720,18 +728,13 @@ export class RiskFactorComponent {
               return;
             }
         }
-        console.log("sumOfDayExposure second",sumOfDayExposure);
-        console.log("this.groupPosition,",this.groupPosition);
-
 
         this.setriskFactorExposureEchart(sumOfDayExposure, this.groupPosition, this.riskFactorReturn);
         this.setRiskFactorAttrEchart(this.riskFactorReturnAttr, this.riskFactorReturn);
         this.setStockAttrEchart(this.groupPosition);
-
-
     }
 
-
+    // 初始化组合的持仓数据
     getGroupPosition(stockHold) {
 
         stockHold.forEach( (currentValue,index,array) =>{
@@ -756,7 +759,7 @@ export class RiskFactorComponent {
                 }
 
                 holdStockExposure[stockIndex]["allRiskFactorReturnAttr"] += riskFactorReturn[returnDateIndex][i] * holdStockExposure[stockIndex]["stockExposure"][i-1];   //累加单个股票在所有收益因子下的收益归因
-                holdStockExposure[stockIndex]["returnAttr"][i-1] += riskFactorReturn[returnDateIndex][i] * holdStockExposure[stockIndex]["stockExposure"][i-1];   //累加单个股票在所有收益因子下的收益归因
+                holdStockExposure[stockIndex]["returnAttr"][i-1] += riskFactorReturn[returnDateIndex][i] * holdStockExposure[stockIndex]["stockExposure"][i-1];   //保存单个股票在各个收益因子下的收益归因
             }
 
         }
@@ -768,27 +771,13 @@ export class RiskFactorComponent {
     //设置收益的两个图标
     setriskFactorReturnEchart(riskFactorReturn){
 
-
-      // let startDateIndex=this.binarySearchStock(riskFactorReturn,startDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
-      //
-      // if(startDateIndex === -1) {
-      //     startDateIndex=1;
-      //     this.startDate=this.riskFactorReturn[startDateIndex][0];
-      // }
-      //
-      // let endDateIndex=this.binarySearchStock(riskFactorReturn,endDate,this.rfrDateIndex,1);//查找指定日期的风险因子收益
-      //
-      // if(endDateIndex === -1) {
-      //     endDateIndex=riskFactorReturn.length-1;
-      //     this.endDate=this.riskFactorReturn[endDateIndex][0];
-      // }
       if (riskFactorReturn.length === 0) {
           console.log("风险因子收益没有数据,请检查重试!");
           return ;
       }
       let startDateIndex=1,endDateIndex=riskFactorReturn.length-1;
 
-      this.setReturnEchart(riskFactorReturn,startDateIndex,endDateIndex,this.riskFactorReturnEchart,this.allDayReturnEchart);
+      this.setReturnEchart(riskFactorReturn,startDateIndex,endDateIndex,this.riskFactorReturnEchart,this.everyDayReturnEchart);
 
       //初始化最近一年的数据
       let today=new Date(),rfrIndex=0;
@@ -808,11 +797,13 @@ export class RiskFactorComponent {
           return;
       }
 
-      this.setReturnEchart(riskFactorReturn,rfrIndex,riskFactorReturn.length-1,this.yearReturnEchart,this.allDayYearReturnEchart);
+      this.setReturnEchart(riskFactorReturn,rfrIndex,riskFactorReturn.length-1,this.everyDayYearReturnEchart,this.lastDayYearReturnEchart);
 
 
     }
 
+
+    // 设置收益的两个图表,有被复用
     setReturnEchart(riskFactorReturn,startIndex,endIndex,lineChart,barChart){
       let chartLegendData=[],xAxisDatas[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
 
@@ -1208,9 +1199,7 @@ export class RiskFactorComponent {
 
         for (var i = 0; i < everyDayRiskFactorAttr.length; i++) {
             everyDayReturnAttrXAxis.push( everyDayRiskFactorAttr[i].date );
-            // riskFactorAttrSeries.push( everyDayRiskFactorAttr[i].returnAttr );
         }
-        console.log("everyDayRiskFactorAttr",everyDayRiskFactorAttr);
 
         //计算各种值
         for(let riskIndex=1; riskIndex<riskFactorReturn[0].length; ++riskIndex) {    //遍历每一个风险因子
@@ -1239,14 +1228,13 @@ export class RiskFactorComponent {
         let allReturnAttr=0;
 
         for (var i = 0; i < everyDayRiskFactorAttr.length; i++) {
-            console.log("残差", everyDayRiskFactorAttr[i][everyDayRiskFactorAttr[0].length-1]);
+
             seriesData.data.push(everyDayRiskFactorAttr[i][everyDayRiskFactorAttr[0].length-1]);
             allReturnAttr += everyDayRiskFactorAttr[i][everyDayRiskFactorAttr[0].length-1];
         }
 
         riskFactorAttrSeries.push(allReturnAttr);
         everyDayReturnAttrSeries.push(seriesData);
-        console.log("everyDayReturnAttrSeries",everyDayRiskFactorAttr,everyDayReturnAttrSeries,riskFactorAttrSeries);
 
         let everyDayRFROption= {
               baseOption: {
