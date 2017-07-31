@@ -37,6 +37,10 @@ table {
     flex: none;
 }
 
+.dash-body > .other {
+    height: 300px;
+}
+
 section {
     display: flex;
     flex-flow: column;

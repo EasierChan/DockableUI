@@ -10,10 +10,7 @@ import { ECharts } from "echarts";
     moduleId: module.id,
     selector: "security-master",
     templateUrl: "security.component.html",
-    styleUrls: ["../home/home.component.css", "security.component.css"],
-    providers: [
-        SecuMasterService
-    ]
+    styleUrls: ["../home/home.component.css", "security.component.css"]
 })
 export class SecurityComponent implements OnInit, OnDestroy {
     symbol: string;
@@ -37,8 +34,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.symbol = "金证股份";
-        this.code = "600446.SZ";
+        this.symbol = "--";
+        this.code = "--";
         this.summary = new Section();
         this.summary.title = "公司简介";
         this.summary.content = "";
