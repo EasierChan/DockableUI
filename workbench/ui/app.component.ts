@@ -29,7 +29,8 @@ import { ActionBar, Label } from "../../base/controls/control";
         TradeService,
         QuoteService,
         QtpService,
-        AppStoreService
+        AppStoreService,
+        SecuMasterService
     ]
 })
 export class AppComponent implements OnInit {

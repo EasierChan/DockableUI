@@ -281,6 +281,6 @@ export class ChildProcess {
         if (os.platform() === "linux")
             ChildProcess.exec(`firefox ${uri}`);
         else
-            ChildProcess.exec('"C:\\Program Files\\Internet Explorer\iexplore.exe" www.baidu.com'); // tslint:disable-line
+            ChildProcess.exec(`cmd /c "C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe" ${uri}`); // tslint:disable-line
     }
 }

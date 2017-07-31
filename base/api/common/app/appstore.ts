@@ -77,10 +77,12 @@ export class AppStore {
                     contentWindow.win.minimize();
                 } else {
                     contentWindow.win.hide();
-                    contentWindow.win.removeAllListeners();
-                    AppStore._config.state = contentWindow.getBounds();
-                    AppStore.saveConfig();
-                    app.quit();
+                    setTimeout(() => {
+                        contentWindow.win.removeAllListeners();
+                        AppStore._config.state = contentWindow.getBounds();
+                        AppStore.saveConfig();
+                        app.quit();
+                    }, 500);
                 }
             });
         });

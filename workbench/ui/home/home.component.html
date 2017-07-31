@@ -6,7 +6,7 @@
   </ul>
 </div>
 <div class="content">
-  <dashboard *ngIf="activeTab=='Dashboard'||activeTab=='首页'"></dashboard>
+  <dashboard *ngIf="activeTab=='Dashboard'||activeTab=='首页'" class="fill"></dashboard>
   <trade *ngIf="activeTab=='Trading'||activeTab=='实盘交易'" class="fill"></trade>
   <simulation *ngIf="activeTab=='Simulation'||activeTab=='仿真交易'"></simulation>
   <risk *ngIf="activeTab=='Risk'||activeTab=='风控'"></risk>

@@ -1,5 +1,5 @@
 <div style="overflow:auto">
-<div class="menu" [hidden]="activeTab == 'Profit'">
+<div class="menu" [hidden]="activeTab === 'Profit'|| activeTab === '风险因子收益'">
 <div class="menuItem">
 <font color='#eee'>产品:</font>
 <select id="product" class="item1" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
@@ -14,10 +14,9 @@
 </div>
 <div class="menuItem">
 <font color='#eee'>日期:</font>
-<input class="item3" [(ngModel)]='startDate' type="text" size="8" maxlength="8" placeholder="年月日" required>
+<input  class="item3" [(ngModel)]='startdate' type="date"  required>
 -
-
-<input class="item4" [(ngModel)]='endDate' type="text" size="8" maxlength="8" placeholder="年月日">
+<input  class="item4" [(ngModel)]='enddate' type="date"  required>
 </div>
 <div class="menuItem">
 <font color='#eee'>对冲比例:</font>
@@ -27,19 +26,61 @@
 
 </div>
 <div>
-<div class="chart big_chart" id="riskFactorReturnEchart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">chart</div>
-<div class="chart small_chart" id="allDayReturnEchart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">chart</div>
-<div class="chart big_chart" id="yearReturnEchart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">chart</div>
-<div class="chart small_chart" id="allDayYearReturnEchart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">chart</div>
+  <div class="big_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">
+    <b>所有风险因子每天收益</b>
+    <div class="chart  " id="everyDayReturnEchart" >chart</div>
+  </div>
 
-<div class="chart big_chart" id="everyDayRFEEchart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">chart</div>
-<div class="chart small_chart" id="riskFactorExposureEchart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">chart</div>
+  <div class="small_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">
+    <b>所有风险因子累计收益</b>
+    <div class="chart " id="riskFactorReturnEchart" >chart</div>
+  </div>
 
-<div class="chart big_chart" id="everyDayRFRAttrEchart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">chart</div>
-<div class="chart small_chart" id="riskFactorReturnAttrEchart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">chart</div>
+  <div class="big_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">
+    <b>今年风险因子每天收益</b>
+    <div class="chart " id="everyDayYearReturnEchart" >chart</div>
+  </div>
+
+  <div class="small_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">
+    <b>今年风险因子累计收益</b>
+    <div class="chart " id="lastDayYearReturnEchart" >chart</div>
+  </div>
 
 
-<div class="chart oneline_chart" id="stockAttrEchart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">chart</div>
+
+  <div class="big_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+    <b>风险因子每天暴露</b>
+    <div class="chart " id="everyDayRFEEchart" >chart</div>
+  </div>
+
+  <div class="small_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+    <b>风险因子最后一天暴露</b>
+    <div class="chart " id="riskFactorExposureEchart" >chart</div>
+  </div>
+
+  <div class="big_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+    <b>风险因子每天收益归因</b>
+    <div class="chart " id="everyDayRFRAttrEchart" >chart</div>
+  </div>
+
+  <div class="small_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+    <b>风险因子累计收益归因</b>
+    <div class="chart " id="riskFactorReturnAttrEchart" >chart</div>
+  </div>
+
+  <div class="oneline_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+    <b>股票累计收益归因</b>
+    <div class="chart " id="stockAttrEchart" >chart</div>
+  </div>
+
+
+
+
+
+
+
+
+
 
 </div>
 </div>
