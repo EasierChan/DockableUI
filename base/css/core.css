@@ -30,7 +30,7 @@ body > .statusbar {
     flex: none;
     height: 25px;
     line-height: 1.5;
-    background-color: #3F3E3A;
+    background-color: #1b2437;
     padding: 0 10px;
 }
 body > .statusbar {
@@ -411,7 +411,7 @@ usercontrol.row{
     height: 25px;
     vertical-align: middle;
     margin: 0px;
-    /*padding: 2px 0px;*/
+    padding: 2px 0px;
 }
 
 usercontrol.row > * {

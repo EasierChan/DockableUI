@@ -3041,11 +3041,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         });
         for (let i = 0; i < 20; ++i) {
             let row = bookViewTable.newRow();
-            row.cells[0].Class = "warning";
+            row.cells[0].bgColor = "#FE6635";
             row.cells[0].Text = "";
-            row.cells[1].Class = "info";
-            row.cells[2].Class = "danger";
-            row.cells[3].Class = "default";
+            row.cells[1].bgColor = "#5895ca";
+            row.cells[2].bgColor = "#D31d45";
+            row.cells[3].bgColor = "transparent";
         }
         let bHead = false;
         bookViewTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
