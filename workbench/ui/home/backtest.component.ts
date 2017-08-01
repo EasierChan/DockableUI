@@ -14,8 +14,7 @@ let ip20strs = [];
     moduleId: module.id,
     selector: "backtest",
     templateUrl: "backtest.component.html",
-    // styleUrls: ["backtest.component.css"],
-
+    styleUrls: ["backtest.component.css"],
     providers: [
         Menu
     ]
@@ -30,7 +29,6 @@ export class BacktestComponent implements OnInit {
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
     curTemplate: any;
-    isModify: boolean = false;
     isInit: boolean = false;
     panelTitle: string;
     strategyName: string;
@@ -38,14 +36,17 @@ export class BacktestComponent implements OnInit {
     ProductMsg: string[];
     bshow: boolean = false;
     bcreate: boolean = false;
+    bRead: boolean = false;
+    bModify: boolean = false;
     accounts: string;
     gatewayObj: Object;
     setting: any;
     clickItem: any;
     backTestArea: any;
     bChangeShow: boolean = false;
-
+    tileArr: string[] = [];
     sendLoopConfigs: any[] = [];
+    lookbackItem: any;
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
@@ -59,13 +60,17 @@ export class BacktestComponent implements OnInit {
             this.operateStrategyServer(this.config, 0);
         });
         this.contextMenu.addItem("Modify", () => {
-            this.isModify = true;
+            this.config.curstep = 1;
+            this.bRead = true;
+            this.bshow = true;
+            this.bModify = true;
             this.onPopup(1);
         });
         this.contextMenu.addItem("Remove", () => {
+            console.log(this.clickItem, this.configs);
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].name === this.clickItem.title) {
+                if (this.configs[i].chinese_name === this.clickItem.title) {
                     this.configs.splice(i, 1);
                     this.configBll.updateConfig();
                     this.backTestArea.removeTile(this.clickItem.title);
@@ -160,11 +165,13 @@ export class BacktestComponent implements OnInit {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
                     this.configBll.updateConfig(config);
-                    if (config.activeChannel === "lookback") {
+                    let rtn = this.tileArr.indexOf(config.name);
+                    if (config.activeChannel === "lookback" && rtn === -1) {
                         let tile = new Tile();
-                        tile.title = config.name;
+                        tile.title = config.chinese_name;
                         tile.iconName = "adjust";
                         this.backTestArea.addTile(tile);
+                        this.tileArr.push(config.name);
                         // this.isInit = true;
                         config.stateChanged = () => {
                             tile.backgroundColor = config.state ? "#E9B837" : "#f24959";
@@ -223,11 +230,13 @@ export class BacktestComponent implements OnInit {
                 });
                 if (item) {
                     item.id = msg.nId;
-                    item.name = this.config.name;
+                    item.name = this.config.chinese_name;
                     let today = new Date();
                     item.date = today.getFullYear() + ("0" + (today.getMonth() + 1)).slice(-2) +
                         ("0" + today.getDate()).slice(-2);
-                    this.configBll.addLoopbackItems(item);
+                    this.lookbackItem = item;
+
+                    this.configBll.addLoopbackItems(this.lookbackItem);
                 } else {
                     console.error(`unvalid message. ${msg}`);
                 }
@@ -333,6 +342,8 @@ export class BacktestComponent implements OnInit {
         }
         console.log(this.config);
         this.bcreate = false;
+        this.bRead = false;
+        this.bModify = false;
         this.closePanel();
     }
     static reqnum = 1;
@@ -364,10 +375,7 @@ export class BacktestComponent implements OnInit {
                 alert("please input correct format name");
                 return;
             }
-            if (this.config.strategyInstances.length === 1) {
-                this.config.strategyInstances.splice(0, this.config.strategyInstances.length);
-            }
-            if (!this.bcreate) {
+            if (!this.bcreate && !this.bModify) {
                 // get template
                 this.config.strategyCoreName = this.strategyCores[0];
                 delete this.curTemplate;
@@ -383,26 +391,30 @@ export class BacktestComponent implements OnInit {
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
                 this.strategyName = "";
                 this.bcreate = true;
+                let newInstance: StrategyInstance = new StrategyInstance();
+                newInstance.name = this.config.name;
+                newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
+                newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
+                newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
+                newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+                this.config.strategyInstances[0] = newInstance;
+                // GET account info from product msg
+                this.config.strategyInstances[0].accounts = "666600000011";
             }
-            let newInstance: StrategyInstance = new StrategyInstance();
-            newInstance.name = this.config.name;
-            newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
-            newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
-            newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
-            newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-            this.config.strategyInstances.push(newInstance);
-            // GET account info from product msg
-            this.config.strategyInstances[0].accounts = "666600000019";
             console.log(this.config);
         }
         if (this.config.curstep === 2) {
             this.config.activeChannel = "lookback";
-            this.createLoopbackTest();
             console.log(this.config);
+        }
+        if (this.config.curstep === 3) {
+            this.createLoopbackTest();
         }
         ++this.config.curstep;
     }
     prev() {
+        if (this.config.curstep === 2)
+            this.bcreate = false;
         --this.config.curstep;
     }
     onSelectStrategy(value: string) {
@@ -418,8 +430,19 @@ export class BacktestComponent implements OnInit {
         }
         // choose product and account
         this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-        // this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+        this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
         this.strategyName = "";
+        let newInstance: StrategyInstance = new StrategyInstance();
+        newInstance.name = this.config.name;
+        newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
+        newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
+        newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
+        newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+        console.log(newInstance);
+        this.config.strategyInstances[0] = newInstance;
+        // GET account info from product msg
+        this.config.strategyInstances[0].accounts = "666600000011";
+        console.log(this.config);
     }
     lookbackTosimulation() {
         let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
@@ -467,12 +490,12 @@ export class BacktestComponent implements OnInit {
         this.strategyCores = this.configBll.getTemplates();
         if (type === 0) {
             this.config = new WorkspaceConfig();
-            this.isModify = false;
             this.config.strategyCoreName = this.strategyCores[0];
             console.log(this.strategyCores);
         } else {
-            // this.curTemplate = null;
-            // this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+            this.config.curstep = 1;
+            this.curTemplate = null;
+            this.curTemplate = this.configBll.getConfigByName(this.config.strategyCoreName);
         }
         if (!this.config.loopbackConfig.option) {
             let year = new Date().getFullYear();
@@ -496,6 +519,8 @@ export class BacktestComponent implements OnInit {
     }
     hide() {
         this.bshow = false;
+        this.bRead = false;
+        this.bModify = false;
         this.config.curstep = 1;
     }
 
