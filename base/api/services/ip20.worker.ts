@@ -18,8 +18,11 @@ class IP20Parser extends Parser {
     }
 
     processRead(): void {
-        while (this.processMsgHeader() && this.processMsg() && this._oPool.length > 0) {
+        while (this.processMsgHeader() && this.processMsg()) {
             this._curHeader = null;
+
+            if (this._oPool.length === 0)
+                break;
         }
     }
     /**
