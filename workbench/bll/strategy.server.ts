@@ -88,7 +88,7 @@ export class ConfigurationBLL {
                 this._configs.push(config);
             }
         }
-        File.writeAsync(this._configpath, JSON.stringify(this._configs));
+        File.writeSync(this._configpath, JSON.stringify(this._configs));
     }
 
     updateTemplate(name: string, template: any) {

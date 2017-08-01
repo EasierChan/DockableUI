@@ -104,7 +104,7 @@ export class ReportComponent implements OnInit {
     }
 
     chartInit(chart) {
-        console.info(chart);
+        // console.info(chart);
         this.chart = chart;
     }
 

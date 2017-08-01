@@ -1,6 +1,6 @@
 <div class="dash-body">
     <div class="banner">
-        <img src="../base/images/banner.jpg" alt="量化科技金融" style="width: 100%; height: 100%; objet-fit: cover;">
+        <!--<img src="../base/images/banner.jpg" alt="量化科技金融" style="width: 100%; height: 100%; objet-fit: contain;">-->
     </div>
     <div class="u-row marketdata">
         <section class="fill">
@@ -12,7 +12,7 @@
         <section class="fill">
             <b>{{codeChartSection.title}}</b>
             <div class="holder">
-                <div echarts [options]="codeChartSection.content.option" (chartInit)="onChartInit($event)" style="height: 250px"></div>
+                <div echarts [options]="codeChartSection.content.option" (chartInit)="onChartInit($event)"></div>
             </div>
         </section>
     </div>
