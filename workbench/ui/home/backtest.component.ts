@@ -14,7 +14,7 @@ let ip20strs = [];
     moduleId: module.id,
     selector: "backtest",
     templateUrl: "backtest.component.html",
-    // styleUrls: ["backtest.component.css"],
+    styleUrls: ["backtest.component.css"],
     providers: [
         Menu
     ]
@@ -338,7 +338,7 @@ export class BacktestComponent implements OnInit {
                 routerid: 0, body: {
                     name: this.config.name,
                     strategies: [{ strategy: { name: this.config.name } }]
-                }
+            }
             });
         }
         console.log(this.config);
