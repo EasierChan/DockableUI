@@ -34,7 +34,7 @@ export class SimulationComponent implements OnInit {
     strategyName: string;
     strategyCores: string[];
     productsList: string[];
-    ProductMsg: string[];
+    ProductMsg: any[];
     bshow: boolean = false;
     bcreate: boolean = false;
     bRead: boolean = false;
@@ -103,7 +103,7 @@ export class SimulationComponent implements OnInit {
             this.clickItem = item;
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].name === item.title) {
+                if (this.configs[i].chinese_name === item.title) {
                     this.config = this.configs[i];
                     break;
                 }
@@ -113,6 +113,7 @@ export class SimulationComponent implements OnInit {
             } else if (event.button === 2) { // right click
                 this.contextMenu.popup();
             }
+            console.log(this.config, this.clickItem);
         };
         this.areas = [this.simulationArea];
         this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates

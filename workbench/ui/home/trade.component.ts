@@ -38,7 +38,7 @@ export class TradeComponent implements OnInit {
     strategyCores: string[];
     productsList: string[];
     tileArr: string[] = [];
-    ProductMsg: string[];
+    ProductMsg: any[];
     bshow: boolean = false;
     bcreate: boolean = false;
     bRead: boolean = false;
@@ -99,7 +99,7 @@ export class TradeComponent implements OnInit {
             this.clickItem = item;
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].name === item.title) {
+                if (this.configs[i].chinese_name === item.title) {
                     this.config = this.configs[i];
                     break;
                 }
@@ -109,6 +109,7 @@ export class TradeComponent implements OnInit {
             } else if (event.button === 2) { // right click
                 this.contextMenu.popup();
             }
+            console.log(this.config, this.clickItem);
         };
 
         let analyticArea = new TileArea();
@@ -193,7 +194,7 @@ export class TradeComponent implements OnInit {
                     let rtn = this.tileArr.indexOf(config.name);
                     if (config.activeChannel === "default" && rtn === -1) {
                         let tile = new Tile();
-                        tile.title = config.name;
+                        tile.title = config.chinese_name;
                         tile.iconName = "adjust";
                         this.strategyArea.addTile(tile);
                         this.tileArr.push(config.name);
@@ -431,7 +432,9 @@ export class TradeComponent implements OnInit {
                 }
                 // choose product and account
                 this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-                this.onSelectProduct(this.productsList[0]);
+                if (this.accounts === "") {
+                    this.onSelectProduct(this.productsList[0]);
+                }
                 for (let i = 0; i < this.config.channels.gateway.length; ++i) {
                     for (let obj in this.gatewayObj) {
                         if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
@@ -513,7 +516,10 @@ export class TradeComponent implements OnInit {
         this.newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
         this.newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
         this.newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        this.config.strategyInstances[0] = this.newInstance;
+        if (this.accounts === "")
+            this.onSelectProduct(this.productsList[0]);
+        else
+            this.config.strategyInstances[0] = this.newInstance;
         this.config.strategyInstances[0].accounts = this.accounts;
         let bEmpty = this.isEmpty(this.gatewayObj);
         if (!bEmpty) {
