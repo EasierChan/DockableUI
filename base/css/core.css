@@ -18,7 +18,7 @@ body {
     height: 100%;
     width: 100%;
     font-size: 12px;
-    font-family: "Segoe UI", "Open Sans", sans-serif, serif;
+    font-family: "Microsoft YaHei", "Segoe UI", "Open Sans", sans-serif, serif;
     -webkit-user-select: none;
     user-select: none;
     -webkit-user-drag: none;
@@ -30,7 +30,7 @@ body > .statusbar {
     flex: none;
     height: 25px;
     line-height: 1.5;
-    background-color: #1b2437;
+    background-color: #424B62;
     padding: 0 10px;
 }
 body > .statusbar {
