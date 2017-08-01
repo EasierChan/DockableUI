@@ -23,6 +23,8 @@ class IP20Parser extends Parser {
 
             if (this._oPool.length === 0)
                 break;
+
+            logger.info(`pool length: ${this._oPool.length}`);
         }
     }
     /**
@@ -44,30 +46,36 @@ class IP20Parser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].byteLength;
             if (buflen >= ISONPack2Header.len) {
                 this._curHeader = new ISONPack2Header();
+                let tempBuffer = null;
+
                 if (bufCount > 1) {
-                    let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
+                    tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
+
                     this._curHeader.fromBuffer(tempBuffer);
+                } else {
+                    this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0]);
+                    tempBuffer = this._oPool.peek(bufCount + 1)[0];
+                }
 
-                    if (this._curHeader.packlen === 0) {
-                        this._oPool.remove(bufCount + 1);
-                        restLen = buflen - ISONPack2Header.len;
-                        if (restLen > 0) {
-                            let restBuf = Buffer.alloc(restLen);
-                            tempBuffer.copy(restBuf, 0, buflen - restLen);
-                            this._oPool.prepend(restBuf);
-                            restBuf = null;
-                        }
+                //  remove unvalid message header
+                if (this._curHeader.packlen === 0) {
+                    this._oPool.remove(bufCount + 1);
+                    restLen = buflen - ISONPack2Header.len;
 
-                        tempBuffer = null;
-                        this._curHeader = null;
-                        ret = false;
-                        break;
+                    if (restLen > 0) {
+                        let restBuf = Buffer.alloc(restLen);
+                        tempBuffer.copy(restBuf, 0, buflen - restLen);
+                        this._oPool.prepend(restBuf);
+                        restBuf = null;
                     }
 
                     tempBuffer = null;
-                } else {
-                    this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0]);
+                    this._curHeader = null;
+                    ret = false;
+                    break;
                 }
+
+                tempBuffer = null;
                 ret = true;
                 break;
             }
@@ -101,6 +109,7 @@ class IP20Parser extends Parser {
                     this._oPool.prepend(restBuf);
                     restBuf = null;
                 }
+
                 this._curHeader = null;
                 tempBuffer = null;
                 ret = true;
