@@ -175,7 +175,7 @@ export class BacktestComponent implements OnInit {
                         this.tileArr.push(config.name);
                         // this.isInit = true;
                         config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#E9B837" : "#f24959";
+                            tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
                         };
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
@@ -215,7 +215,7 @@ export class BacktestComponent implements OnInit {
                 console.log(this.config, this.curTemplate.body.data);
                 this.tgw.send(107, 2000, {
                     routerid: 0, templateid: this.curTemplate.id, body: {
-                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
                         strategies: this.config.strategies
                     }
                 });
@@ -327,7 +327,7 @@ export class BacktestComponent implements OnInit {
         if (!this.bshow) {
             this.tgw.send(107, 2000, {
                 routerid: 0, templateid: this.curTemplate.id, body: {
-                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
                     strategies: this.config.strategies
                 }
             });
@@ -338,7 +338,7 @@ export class BacktestComponent implements OnInit {
                 routerid: 0, body: {
                     name: this.config.name,
                     strategies: [{ strategy: { name: this.config.name } }]
-            }
+                }
             });
         }
         console.log(this.config);
