@@ -2165,8 +2165,7 @@ export class TileArea extends Control {
         this.dataSource = {
             title: "",
             items: [],
-            click: () => { },
-            create: () => { }
+            click: () => { }
         };
 
         this.creater = new Tile();
