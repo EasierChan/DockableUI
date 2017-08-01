@@ -33,7 +33,7 @@ export class BacktestComponent implements OnInit {
     panelTitle: string;
     strategyName: string;
     strategyCores: string[];
-    ProductMsg: string[];
+    ProductMsg: any[];
     bshow: boolean = false;
     bcreate: boolean = false;
     bRead: boolean = false;
@@ -100,7 +100,7 @@ export class BacktestComponent implements OnInit {
             this.clickItem = item;
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].name === item.title) {
+                if (this.configs[i].chinese_name === item.title) {
                     this.config = this.configs[i];
                     break;
                 }
@@ -110,6 +110,7 @@ export class BacktestComponent implements OnInit {
             } else if (event.button === 2) { // right click
                 this.contextMenu.popup();
             }
+            console.log(this.config, this.clickItem);
         };
 
         this.areas = [this.backTestArea];
