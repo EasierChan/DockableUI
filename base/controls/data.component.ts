@@ -4,108 +4,113 @@
  * desc: components for acesss data, such as datatable, treeview, charts
  */
 import {
-  Component, ViewChild, ContentChild, Input, Output, OnInit, AfterViewInit,
-  Directive, ElementRef, Renderer, HostListener, ChangeDetectorRef, NgZone,
-  SimpleChanges, EventEmitter, OnChanges, OnDestroy
+    Component, ViewChild, ContentChild, Input, Output, OnInit, AfterViewInit,
+    Directive, ElementRef, Renderer, HostListener, ChangeDetectorRef, NgZone,
+    SimpleChanges, EventEmitter, OnChanges, OnDestroy
 } from "@angular/core";
 import { Control, MetaControl, CssStyle, DataTable } from "./control";
 import * as echarts from "echarts";
 
 @Component({
-  moduleId: module.id,
-  selector: "dock-table",
-  templateUrl: "data.table.html",
-  inputs: ["className", "dataSource", "styleObj"]
+    moduleId: module.id,
+    selector: "dock-table",
+    templateUrl: "data.table.html",
+    inputs: ["className", "dataSource", "styleObj"]
 })
 export class DataTableComponent implements OnInit, AfterViewInit {
-  className: string;
-  dataSource: any;
-  styleObj: any;
-  curData: any;
-  pageSize: number;
-  curPage: number;
+    className: string;
+    dataSource: any;
+    styleObj: any;
+    curData: any;
+    pageSize: number;
+    curPage: number;
 
-  constructor(private render: Renderer, private ele: ElementRef, private ref: ChangeDetectorRef) {
-    // this.render.listen(this.ele.nativeElement, "mousewheel", (e) => {
-    //   this.curData = new DataTable();
-    //   if (!this.dataSource.rows || this.dataSource.rows.length === 0)
-    //     return;
-    //   // e.deltaY < 0  move up
-    //   if (e.deltaY < 0 && this.curPage > 0) {
-    //     --this.curPage;
-    //   } else if (e.deltaY > 0 && this.dataSource.rows.length / this.pageSize - 1 > this.curPage) {
-    //     ++this.curPage;
-    //   }
+    constructor(private render: Renderer, private ele: ElementRef, private ref: ChangeDetectorRef) {
+        // this.render.listen(this.ele.nativeElement, "mousewheel", (e) => {
+        //   this.curData = new DataTable();
+        //   if (!this.dataSource.rows || this.dataSource.rows.length === 0)
+        //     return;
+        //   // e.deltaY < 0  move up
+        //   if (e.deltaY < 0 && this.curPage > 0) {
+        //     --this.curPage;
+        //   } else if (e.deltaY > 0 && this.dataSource.rows.length / this.pageSize - 1 > this.curPage) {
+        //     ++this.curPage;
+        //   }
 
-    //   this.curData.rows = this.dataSource.rows.slice(this.curPage * this.pageSize);
-    //   // e.deltaY > 0 move down
-    //   // console.log(this.curData);
-    // });
-  }
+        //   this.curData.rows = this.dataSource.rows.slice(this.curPage * this.pageSize);
+        //   // e.deltaY > 0 move down
+        //   // console.log(this.curData);
+        // });
+    }
 
 
-  ngOnInit(): void {
-    // console.info(this.dataSource.columns);
-    this.curPage = 0;
-    this.pageSize = 10;
-    this.curData = this.dataSource;
-    this.dataSource.detectChanges = () => {
-      this.ref.detectChanges();
-    };
-  }
+    ngOnInit(): void {
+        // console.info(this.dataSource.columns);
+        this.curPage = 0;
+        this.pageSize = 10;
+        this.curData = this.dataSource;
+        this.dataSource.detectChanges = () => {
+            this.ref.detectChanges();
+        };
+    }
 
-  ngAfterViewInit(): void {
-  }
+    ngAfterViewInit(): void {
+    }
 }
 
 @Component({
-  moduleId: module.id,
-  selector: "dock-table2",
-  templateUrl: "data.scrollerbar-table.html",
-  inputs: ["className", "dataSource", "styleObj"]
+    moduleId: module.id,
+    selector: "dock-table2",
+    templateUrl: "data.scrollerbar-table.html",
+    inputs: ["className", "dataSource", "styleObj"]
 })
 export class ScrollerBarTable implements OnInit, AfterViewInit {
-  className: string;
-  dataSource: any;
-  styleObj: any;
+    className: string;
+    dataSource: any;
+    styleObj: any;
 
-  @ViewChild("content") content: ElementRef;
-  @ViewChild("head") head: ElementRef;
+    @ViewChild("content") content: ElementRef;
+    @ViewChild("head") head: ElementRef;
 
-  constructor(private ele: ElementRef, private render: Renderer,
-    private ref: ChangeDetectorRef) {
-  }
+    constructor(private ele: ElementRef, private render: Renderer,
+        private ref: ChangeDetectorRef) {
+    }
 
-  ngOnInit() {
-    this.dataSource.detectChanges = () => {
-      this.ref.detectChanges();
-      this.resizeHeader();
-    };
-  }
+    ngOnInit() {
+        this.dataSource.detectChanges = () => {
+            this.ref.detectChanges();
+            this.resizeHeader();
+        };
+    }
 
-  ngAfterViewInit() {
-    this.resizeHeader();
-  }
+    ngAfterViewInit() {
+        this.resizeHeader();
+    }
 
-  @HostListener("scroll")
-  onScroll() {
-    this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
-    this.head.nativeElement.style.display = "table";
-    this.resizeHeader();
-  }
+    @HostListener("scroll")
+    onScroll() {
+        this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
+        this.head.nativeElement.style.display = "table";
+        this.resizeHeader();
+    }
 
-  @HostListener("resize")
-  onResize() {
-    this.resizeHeader();
-  }
+    @HostListener("resize")
+    onResize() {
+        this.resizeHeader();
+    }
 
-  resizeHeader() {
-    this.head.nativeElement.style.width = this.content.nativeElement.clientWidth + "px";
-    let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
-    this.content.nativeElement.querySelectorAll("thead > tr:first-child > th").forEach((th, index) => {
-      headCells[index].style.width = th.clientWidth + "px";
-    });
-  }
+    @HostListener("window:resize")
+    onWindowResize() {
+        this.resizeHeader();
+    }
+
+    resizeHeader() {
+        this.head.nativeElement.style.width = this.content.nativeElement.clientWidth + "px";
+        let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
+        this.content.nativeElement.querySelectorAll("thead > tr:first-child > th").forEach((th, index) => {
+            headCells[index].style.width = th.clientWidth + "px";
+        });
+    }
 }
 
 
@@ -113,42 +118,51 @@ export class ScrollerBarTable implements OnInit, AfterViewInit {
  * chart components created by chenlei
  */
 @Component({
-  selector: "echart",
-  template: "",
-  inputs: [
-    "className",
-    "dataSource"
-  ]
+    selector: "echart",
+    template: "",
+    inputs: [
+        "className",
+        "dataSource"
+    ]
 })
 export class EChartComponent implements OnInit, AfterViewInit {
-  className: string;
-  dataSource: any;
-  _echart: echarts.ECharts;
+    className: string;
+    dataSource: any;
+    _echart: echarts.ECharts;
 
-  constructor(private el: ElementRef, private render: Renderer) {
-  }
-
-  ngOnInit(): void {
-    // console.info(this.dataSource.option);
-    if (this.dataSource.option) {
-      let self = this;
-      this.dataSource.init = () => {
-        let myChart: echarts.ECharts = echarts.init(self.el.nativeElement);
-        myChart.setOption(self.dataSource.option, true);
-
-        window.addEventListener("resize", () => {
-          myChart.resize();
-        });
-
-        self.dataSource.setOption = (option, notMerge) => {
-          myChart.setOption(option, notMerge);
-        };
-      };
+    constructor(private el: ElementRef, private render: Renderer) {
     }
-  }
 
-  ngAfterViewInit(): void {
-  }
+    ngOnInit(): void {
+        // console.info(this.dataSource.option);
+        if (this.dataSource.option) {
+            let self = this;
+            this.dataSource.init = () => {
+                let myChart: echarts.ECharts = echarts.init(self.el.nativeElement);
+                myChart.setOption(self.dataSource.option, true);
+
+                window.addEventListener("resize", () => {
+                    myChart.resize();
+                });
+
+                self.dataSource.setOption = (option, notMerge) => {
+                    myChart.setOption(option, notMerge);
+                };
+            };
+        }
+    }
+
+    ngAfterViewInit(): void {
+    }
+}
+
+@Component({
+    selector: "echart",
+    templateUrl: "sliders.html",
+    styleUrls: ["sliders.css"]
+})
+export class SliderComponent {
+
 }
 
 

@@ -44,8 +44,14 @@
         defaultExtension: 'js'
       },
       echarts: {
+        defaultExtension: 'js',
         main: 'dist/echarts.min.js',
-        defaultExtension: 'js'
+        meta: {
+          './*.js': {
+            format: 'global',
+            exports: 'echarts'
+          }
+        }
       }
     }
   });

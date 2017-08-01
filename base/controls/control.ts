@@ -1981,6 +1981,7 @@ export class DataTableRowCell extends MetaControl {
 
 export class DataTableColumn {
     private compare: (prev, next) => number;
+    private limitWidth: number;
     constructor(private columnHeader: string,
         private bHidden: boolean = false,
         private bSortable: boolean = false) {
@@ -2015,6 +2016,14 @@ export class DataTableColumn {
 
     get onCompare() {
         return this.compare;
+    }
+
+    set maxWidth(value: number) {
+        this.limitWidth = value;
+    }
+
+    get maxWidth() {
+        return this.limitWidth;
     }
 }
 
@@ -2168,6 +2177,8 @@ interface ActionItem {
 }
 
 export class TileArea extends Control {
+    creater: Tile;
+
     constructor() {
         super();
         this.styleObj = {
@@ -2180,6 +2191,8 @@ export class TileArea extends Control {
             click: () => { },
             create: () => { }
         };
+
+        this.creater = new Tile();
     }
 
     set title(value: string) {
@@ -2192,6 +2205,19 @@ export class TileArea extends Control {
 
     addTile(tile: Tile) {
         this.dataSource.items.push(tile);
+    }
+
+    removeTile(title: string) {
+        let tileCount = this.dataSource.items.length;
+
+        for (let i = 0; i < tileCount; ++i) {
+            if (this.dataSource.items[i].title === title) {
+                this.dataSource.items.splice(i, 1);
+                break;
+            }
+        }
+
+        tileCount = null;
     }
 
     set onClick(value: Function) {
@@ -2212,4 +2238,44 @@ export class Tile {
     backgroundColor: string;
     title: string;
     iconName: string;
+}
+
+class Slider {
+    private pictures: string[];
+    private curIdx: number;
+
+    constructor() {
+        this.pictures = [];
+        this.curIdx = 0;
+    }
+
+    set present(value: number) {
+        this.curIdx = (value - 1) % this.length;
+    }
+
+    get present() {
+        return (this.curIdx + 1) % this.length;
+    }
+
+    addPicture(uri: string) {
+        this.pictures.push(uri);
+    }
+
+    removePictureAt(idx: number) {
+        this.pictures.splice(idx - 1, 1);
+    }
+
+    get length() {
+        return this.pictures.length;
+    }
+}
+
+export class Section {
+    title: string;
+    content: string | DataTable | ListItem[] | any;
+}
+
+export class ListItem {
+    name: string;
+    value: string;
 }

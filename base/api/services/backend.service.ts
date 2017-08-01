@@ -227,6 +227,14 @@ export class File {
                 fs.write(fd, JSON.stringify(content));
         });
     }
+
+    public static readdir(fpath: string, callback: (filenames) => void) {
+        fs.readdir(fpath, "utf-8", callback);
+    }
+
+    public static readdirSync(fpath: string) {
+        return fs.readdirSync(fpath, "utf-8");
+    }
 }
 
 export class Environment {
@@ -273,6 +281,6 @@ export class ChildProcess {
         if (os.platform() === "linux")
             ChildProcess.exec(`firefox ${uri}`);
         else
-            ChildProcess.exec('"C:\\Program Files\\Internet Explorer\iexplore.exe" www.baidu.com'); // tslint:disable-line
+            ChildProcess.exec(`cmd /c "C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe" ${uri}`); // tslint:disable-line
     }
 }

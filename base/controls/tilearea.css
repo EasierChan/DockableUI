@@ -22,8 +22,9 @@
     width: 100px;
     height: 100px;
     margin: 5px;
-    background-color: #d50;
-    color: #fff;
+    background-color: #394054;
+    color: #a5acbe;
+    border-radius: 5px;
 }
 
 .area-tiles > .tile:hover {
@@ -35,6 +36,8 @@
     font-weight: lighter;
     line-height: 2;
     text-align: center;
+    background-color: #ff7f00;
+    color: #1b2437;
 }
 
 .area-tiles > .tile > .icon  {

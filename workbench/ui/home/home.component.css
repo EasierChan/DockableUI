@@ -50,7 +50,7 @@ li > a.active {
   color: #ccc;
 }
 .title > ul.tabs > li.active {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: #394054;
   opacity: 1;
 }
 
@@ -75,6 +75,21 @@ li > a.active {
   padding: 0 5px;
   border-top-right-radius: 3px;
   border-bottom-right-radius: 3px;
+  color: #ffbf00;
+}
+.u-input-group ul.dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  list-style: none;
+  padding: 2px 5px;
+  border-radius: 2px;
+  border: 1px solid;
+  background-color: #222A41;
+}
+.u-input-group ul.dropdown li:hover {
+  background-color: green;
 }
 
 .content {

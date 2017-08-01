@@ -2,13 +2,16 @@
   <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
   <span class="big">chronos</span>
   <div class="u-input-group">
-    <input type="text" placeholder="Search...">
+    <input type="text" placeholder="Search..." (input)="onSearch(searcher.value)" [ngModel]="selectedValue" #searcher>
     <a class="button">
       <span class="glyphicon glyphicon-search"></span>
     </a>
+    <ul *ngIf="resList&&resList.length > 0" class="dropdown">
+      <li *ngFor="let item of resList" (click)="listClick(item)">{{item.symbolCode}} {{item.SecuAbbr}}</li>
+    </ul>
   </div>
 </div>
-<div class="content">
+<div *ngIf="isStock" class="content">
   <h6>{{codeName}}</h6>
   <div class="u-row">
     <section class="fill">
@@ -17,7 +20,7 @@
         {{summary.content}}
       </p>
     </section>
-    <section style="width: 300px">
+    <section style="min-width: 300px">
       <b>{{keyInfo.title}}</b>
       <div class="holder">
         <table>
@@ -41,15 +44,10 @@
         </table>
       </div>
     </section>
-    <section style="width: 400px">
+    <section style="width: 600px">
       <b>{{mainIncome.title}}</b>
       <div class="holder">
-        <canvas #mainIncomeIMG width="150">
-        </canvas>
-        <div class="u-col income">
-          <span class="item1">利息收入{{mainIncome.content.a | percent}}</span>
-          <span class="item2">非利息收入:手续费...{{mainIncome.content.b | percent}}</span>
-        </div>
+        <div echarts [options]="mainIncome.content.option" (chartInit)="mainIncome.content.onInit($event)" style="height: 250px"></div>
       </div>
     </section>
     <section style="width: 300px">
@@ -63,7 +61,7 @@
     <section class="fill">
       <b>{{marketPerformance.title}}</b>
       <div class="holder">
-        <div echarts [options]="marketPerformance.content.option" style="height: 250px"></div>
+        <div echarts [options]="marketPerformance.content.option" (chartInit)="marketPerformance.content.onInit($event)" style="height: 250px"></div>
       </div>
     </section>
     <section style="width: 300px">
@@ -84,6 +82,31 @@
       <b>{{structureInfo.title}}</b>
       <div class="holder">
         <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>
+</div>
+<div *ngIf="!isStock" class="content">
+  <div class="u-row">
+    <section class="fill">
+      <b>{{currentInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="currentInfo.content.dataSource" [styleObj]="currentInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>
+  <div class="u-row">
+    <section class="fill">
+      <b>{{standardInfo.title}}</b>
+      <div class="holder">
+        <table align="left">
+          <tr *ngFor="let row of standardInfo.content">
+            <td>{{row[0]}}</td>
+            <td>{{row[1]}}</td>
+            <td>{{row[2]}}</td>
+            <td>{{row[3]}}</td>
+          </tr>
+        </table>
       </div>
     </section>
   </div>

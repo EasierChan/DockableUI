@@ -12,7 +12,7 @@ import {
 } from "../../base/controls/control";
 
 import { AppStoreService, ChildProcess } from "../../base/api/services/backend.service";
-import { TradeService, QuoteService, MockService } from "../bll/services";
+import { TradeService, QuoteService, QtpService } from "../bll/services";
 import { DataSet } from "./home/common";
 
 import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
@@ -28,8 +28,9 @@ import { ActionBar, Label } from "../../base/controls/control";
     providers: [
         TradeService,
         QuoteService,
-        MockService,
-        AppStoreService
+        QtpService,
+        AppStoreService,
+        SecuMasterService
     ]
 })
 export class AppComponent implements OnInit {
@@ -41,7 +42,7 @@ export class AppComponent implements OnInit {
 
     constructor(private tradeEndPoint: TradeService,
         private quote: QuoteService,
-        private mock: MockService,
+        private mock: QtpService,
         private appService: AppStoreService) {
     }
 
@@ -221,6 +222,7 @@ export class AppComponent implements OnInit {
             }
         });
 
+        this.appService.getUserProfile(null);
         this.loginTGW();
     }
 
@@ -237,5 +239,8 @@ export class AppComponent implements OnInit {
         let [qhost, qport] = this.curEndpoint.quote_addr.split(":");
         this.quote.connect(qport, qhost);
         this.quote.send(17, 41, loginObj);
+
+        let [lhost, lport] = this.curEndpoint.loopback_addr.split(":");
+        this.mock.connect(lport, lhost);
     }
 }

@@ -1,0 +1,66 @@
+/* base style */
+.u-row,
+.u-col {
+    flex: none;
+    display: flex;
+}
+
+.u-col {
+    flex-flow: column;
+}
+
+.u-row {
+    flex-flow: row;
+}
+
+.content-align-center {
+    justify-content: center;
+}
+
+.fill {
+    flex: auto;
+}
+
+.listview,
+.report {
+    flex: auto;
+}
+/* variable style */
+.listview {
+    padding: 10px 0;
+}
+
+dock-table2 {
+    background-color: #222A41;
+}
+
+.u-row {
+    height: 50px;
+}
+
+button, input {
+    height: 30px;
+}
+
+button {
+    padding: 5px 20px;
+    text-align: center;
+}
+
+button > span.glyphicon {
+    top: 3px;
+    margin-left: 5px;
+}
+
+input {
+    padding: 5px 10px;
+}
+
+table.index {
+    margin-top: 20px;
+    background-color: transparent;
+}
+
+table.index > tbody > tr > td:first-child {
+    text-align: right;
+}

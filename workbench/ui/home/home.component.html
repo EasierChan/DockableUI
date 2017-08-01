@@ -4,26 +4,15 @@
   <ul class="tabs">
     <li *ngFor="let tab of curModule.tabs" [class.active]="activeTab==tab" (click)="activeTab=tab"><a>{{tab}}</a></li>
   </ul>
-  <!--<div class="u-input-group">
-    <input type="text" placeholder="Search...">
-    <a class="button">
-    <span class="glyphicon glyphicon-search"></span>
-    </a>
-  </div>-->
 </div>
 <div class="content">
-  <!--<template [ngSwitch]="activeTab">
-    <dashboard [ngSwitchCase]="'Dashboard'"></dashboard>
-    <trade [ngSwitchCase]="'Trading'"></trade>
-    <simulation [ngSwitchCase]="'Simulation'"></simulation>
-    <risk [ngSwitchCase]="'Risk'"></risk>
-    <admin [ngSwitchCase]="'Admin'"></admin>
-  </template>-->
-  <dashboard *ngIf="activeTab=='Dashboard'"></dashboard>
-  <trade *ngIf="activeTab=='Trading'" class="fill"></trade>
-  <simulation *ngIf="activeTab=='Simulation'"></simulation>
-  <risk *ngIf="activeTab=='Risk'"></risk>
-  <admin *ngIf="activeTab=='Admin'"></admin>
-  <backtest *ngIf="activeTab=='BackTest'" class="fill"></backtest>
-  <riskfactor *ngIf="activeTab=='RiskFactors'" class="fill"></riskfactor>
+  <dashboard *ngIf="activeTab=='Dashboard'||activeTab=='首页'" class="fill"></dashboard>
+  <trade *ngIf="activeTab=='Trading'||activeTab=='实盘交易'" class="fill"></trade>
+  <simulation *ngIf="activeTab=='Simulation'||activeTab=='仿真交易'"></simulation>
+  <risk *ngIf="activeTab=='Risk'||activeTab=='风控'"></risk>
+  <admin *ngIf="activeTab=='Admin'||activeTab=='管理'"></admin>
+  <backtest *ngIf="activeTab=='BackTest'||activeTab=='回测'" class="fill"></backtest>
+  <riskfactor *ngIf="activeTab=='Profit'||activeTab=='风险因子收益'" [activeTab]="activeTab" class="fill"></riskfactor>
+  <riskfactor *ngIf="activeTab=='RiskFactors'||activeTab=='风险因子分析'" [activeTab]="activeTab" class="fill"></riskfactor>
+  <report *ngIf="activeTab=='Report'||activeTab=='回测报表'" class="fill"></report>
 </div>

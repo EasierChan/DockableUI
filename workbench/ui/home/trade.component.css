@@ -15,3 +15,73 @@ tilearea {
 .monitor > .title {
     height: 30px;
 }
+
+.block-shadow-info {
+    width: 700px;
+    height: 450px;
+    margin:auto;
+    background-color:#725533;
+    position:absolute;
+    left:25%;
+    top:20%;
+}
+.footer{
+    right: 5%;
+    bottom: 5%;
+}
+
+.hide{
+    width: 20px;
+    height: 15px;
+}
+
+.strategyList{
+    width: 100px;
+    height: 30px;
+    overflow: hidden;
+    border: solid 1px #692f2f;
+    background-color: #ffffff;
+}
+
+.strategy-sel{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: #ffffff;
+    border: none;
+    width: 130px;
+    height: 21px;
+}
+.strategyname{
+    margin-left: 20px;
+    margin-top: 30px;
+}
+.title-name{
+    font-size:24px;
+    color: #fff;
+}
+
+.label-name {
+    color: #fff;
+    font-size: 15px;
+}
+.pagebtn{
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+}
+
+.page{
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+.name-content{
+    margin-top: 40px;
+}
+.strategytext{
+    font-size: 15px;
+    color: #fff
+}
+.input-col{
+    color: #8a8c92;
+}
