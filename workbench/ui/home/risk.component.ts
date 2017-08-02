@@ -56,10 +56,10 @@ export class RiskComponent implements OnInit {
                             row.cells[5].Text = "等于";
                             break;
                         case 4:
-                            row.cells[5].Text = "小于";
+                            row.cells[5].Text = "小于等于";
                             break;
                         case 5:
-                            row.cells[5].Text = "小于等于";
+                            row.cells[5].Text = "小于";
                             break;
                     }
 
