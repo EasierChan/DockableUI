@@ -15,6 +15,7 @@ export class RiskComponent implements OnInit {
     accountTable: DataTable;
     risk_indexs: any[];
     account_info: any[];
+    tblock_info: any[];
 
     constructor(private trade: TradeService) {
 
@@ -39,33 +40,63 @@ export class RiskComponent implements OnInit {
             callback: (msg) => {
                 console.info(msg);
                 msg.content.data.trade_account.forEach(item => {
-                    let row = this.accountTable.newRow();
-                    row.cells[0].Text = this.account_info.find(value => { return value.account_id === item.group_id; }).broker_customer_code;
-                    row.cells[1].Text = this.risk_indexs.find(value => { return value.riskid === item.risk_id; }).riskname;
-                    row.cells[2].Text = item.ukey;
-                    row.cells[3].Text = item.used_v1;
-                    row.cells[4].Text = item.limit_v1;
-                    switch (item.operate) {
-                        case 1:
-                            row.cells[5].Text = "大于";
-                            break;
-                        case 2:
-                            row.cells[5].Text = "大于等于";
-                            break;
-                        case 3:
-                            row.cells[5].Text = "等于";
-                            break;
-                        case 4:
-                            row.cells[5].Text = "小于等于";
-                            break;
-                        case 5:
-                            row.cells[5].Text = "小于";
-                            break;
-                    }
+                    if (this.account_info.find(value => { return value.account_id === item.group_id; }) !== undefined && item.ukey !== 0) {
+                        let row = this.accountTable.newRow();
+                        row.cells[0].Text = this.account_info.find(value => { return value.account_id === item.group_id; }).broker_customer_code;
+                        row.cells[1].Text = this.risk_indexs.find(value => { return value.riskid === item.risk_id; }).riskname;
+                        row.cells[2].Text = item.ukey;
+                        row.cells[3].Text = item.used_v1;
+                        row.cells[4].Text = item.limit_v1;
+                        switch (item.operate) {
+                            case 1:
+                                row.cells[5].Text = "大于";
+                                break;
+                            case 2:
+                                row.cells[5].Text = "大于等于";
+                                break;
+                            case 3:
+                                row.cells[5].Text = "等于";
+                                break;
+                            case 4:
+                                row.cells[5].Text = "小于等于";
+                                break;
+                            case 5:
+                                row.cells[5].Text = "小于";
+                                break;
+                        }
 
-                    row.cells[6].Text = item.risk_stat === 1 ? "启用" : "禁用";
+                        row.cells[6].Text = item.risk_stat === 1 ? "启用" : "禁用";
+                    }
                 });
 
+                msg.content.data.trade_block.forEach(item => {
+                    if (this.tblock_info.find(value => { return value.tblock_id === item.group_id; }) !== undefined) {
+                        let row = this.strategyTable.newRow();
+                        row.cells[0].Text = this.tblock_info.find(value => { return value.tblock_id === item.group_id; }).name;
+                        row.cells[1].Text = this.risk_indexs.find(value => { return value.riskid === item.risk_id; }).riskname;
+                        row.cells[2].Text = item.used_v1;
+                        row.cells[3].Text = item.limit_v1;
+                        switch (item.operate) {
+                            case 1:
+                                row.cells[4].Text = "大于";
+                                break;
+                            case 2:
+                                row.cells[4].Text = "大于等于";
+                                break;
+                            case 3:
+                                row.cells[4].Text = "等于";
+                                break;
+                            case 4:
+                                row.cells[4].Text = "小于等于";
+                                break;
+                            case 5:
+                                row.cells[4].Text = "小于";
+                                break;
+                        }
+
+                        row.cells[5].Text = item.risk_stat === 1 ? "启用" : "禁用";
+                    }
+                });
             }
         });
     }
@@ -234,6 +265,29 @@ export class RiskComponent implements OnInit {
             {
                 "account_id": 201,
                 "broker_customer_code": "16039"
+            }
+        ];
+
+        this.tblock_info = [
+            {
+                tblock_id: 101,
+                name: "弘金华银"
+            },
+            {
+                tblock_id: 102,
+                name: "弘金世纪1号"
+            },
+            {
+                tblock_id: 103,
+                name: "南华自营"
+            },
+            {
+                tblock_id: 104,
+                name: "博益安盈精英4号"
+            },
+            {
+                tblock_id: 105,
+                name: "弘金世纪3号"
             }
         ];
     }

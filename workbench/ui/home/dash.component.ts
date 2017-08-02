@@ -135,7 +135,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     registerListeners() {
         this.quote.addSlot({
             appid: 141,
-            packid: 10001,
+            packid: 10005,
             callback: (msg) => {
                 console.info(msg);
                 // let data = [];

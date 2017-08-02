@@ -140,6 +140,12 @@ export class AppStore {
                     name: "hello spread",
                     desc: "TradeMonitor",
                     category: "Transanctional"
+                },
+                {
+                    id: "Dialog",
+                    name: "hello spread",
+                    desc: "TradeMonitor",
+                    category: "Transanctional"
                 }
             ];
             let appIds = [];
