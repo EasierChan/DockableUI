@@ -48,6 +48,9 @@ export class SimulationComponent implements OnInit {
     bChangeShow: boolean = false;
     tileArr: string[] = [];
     sendLoopConfigs: any[] = [];
+    frame_host: any;
+    frame_port: any;
+
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
@@ -88,6 +91,9 @@ export class SimulationComponent implements OnInit {
     }
 
     ngOnInit() {
+        let setting = this.appService.getSetting();
+        this.frame_host = setting.endpoints[0].quote_addr.split(":")[0];
+        this.frame_port = setting.endpoints[0].quote_addr.split(":")[1];
         let self = this;
         this.bDetails = false;
         this.simulationArea = new TileArea();
@@ -255,7 +261,9 @@ export class SimulationComponent implements OnInit {
                     // console.log(this.product, data.body.length); // 还有坑，先留着
                 } else {
                     alert("Get product info Failed! " + data.msret.msg);
+                    return;
                 }
+                this.simulationToTruly();
             }
         });
     }
@@ -421,6 +429,10 @@ export class SimulationComponent implements OnInit {
         if (!this.bSelProduct) {
             this.onSelectProduct(this.productsList[0]);
         }
+        else {
+            alert("还未获取到产品信息");
+            return;
+        }
         for (let i = 0; i < this.config.channels.gateway.length; ++i) {
             for (let obj in this.gatewayObj) {
                 if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
@@ -542,8 +554,8 @@ export class SimulationComponent implements OnInit {
             name: this.config.name,
             lang: this.setting.language,
             feedhandler: {
-                port: this.config.channels.feedhandler.port,
-                host: this.config.channels.feedhandler.addr
+                host: this.frame_host,
+                port: parseInt(this.frame_port)
             }
         })) {
             alert(`start ${this.config.name} app error!`);
@@ -560,7 +572,7 @@ export class SimulationComponent implements OnInit {
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
-            this.curTemplate = this.configBll.getConfigByName(this.config.strategyCoreName);
+            this.curTemplate = this.configBll.getTemplateByName(this.config.strategyCoreName);
         }
         if (!this.config.loopbackConfig.option) {
             let year = new Date().getFullYear();
