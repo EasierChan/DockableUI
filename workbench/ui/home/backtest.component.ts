@@ -413,6 +413,7 @@ export class BacktestComponent implements OnInit {
                 newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
                 newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
                 newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+                newInstance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
                 this.config.strategyInstances[0] = newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = "666600000011";
