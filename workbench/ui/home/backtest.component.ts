@@ -38,6 +38,7 @@ export class BacktestComponent implements OnInit {
     bcreate: boolean = false;
     bRead: boolean = false;
     bModify: boolean = false;
+    bSelStrategy: boolean = false;
     accounts: string;
     gatewayObj: Object;
     setting: any;
@@ -47,6 +48,7 @@ export class BacktestComponent implements OnInit {
     tileArr: string[] = [];
     sendLoopConfigs: any[] = [];
     lookbackItem: any;
+    strategymap: any;
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
@@ -90,7 +92,17 @@ export class BacktestComponent implements OnInit {
         let self = this;
         this.bDetails = false;
         this.backTestArea = new TileArea();
-        this.backTestArea.title = "BackTest";
+        this.backTestArea.title = "回测";
+
+        this.strategymap = {
+            PairTrade: "统计套利",
+            ManualTrader: "手工交易",
+            PortfolioTrader: "组合交易",
+            IndexSpreader: "做市策略",
+            SimpleSpreader: "跨期套利",
+            BasketSpreader: "期现套利",
+            BlockTrader: "大宗交易"
+        };
 
         this.backTestArea.onCreate = () => {
             this.bshow = true;
@@ -166,7 +178,6 @@ export class BacktestComponent implements OnInit {
                 if (config) {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
-                    this.configBll.updateConfig(config);
                     let rtn = this.tileArr.indexOf(config.name);
                     if (config.activeChannel === "lookback" && rtn === -1) {
                         let tile = new Tile();
@@ -180,6 +191,7 @@ export class BacktestComponent implements OnInit {
                         };
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
+                        this.configBll.updateConfig(config);
                     }
                 }
                 // console.log(this.configs);
@@ -377,9 +389,11 @@ export class BacktestComponent implements OnInit {
                 alert("please input correct format name");
                 return;
             }
-            if (!this.bcreate && !this.bModify) {
+            // if (!this.bcreate && !this.bModify) {
+            if (!this.bModify) {
                 // get template
-                this.config.strategyCoreName = this.strategyCores[0];
+                if (!this.bSelStrategy)
+                    this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
                 delete this.curTemplate;
                 this.curTemplate = null;
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
@@ -394,6 +408,7 @@ export class BacktestComponent implements OnInit {
                 this.strategyName = "";
                 this.bcreate = true;
                 let newInstance: StrategyInstance = new StrategyInstance();
+                console.log(this.config);
                 newInstance.name = this.config.name;
                 newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
                 newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
@@ -420,31 +435,33 @@ export class BacktestComponent implements OnInit {
         --this.config.curstep;
     }
     onSelectStrategy(value: string) {
-        this.bcreate = true;
-        this.config.strategyCoreName = value;
-        delete this.curTemplate;
-        this.curTemplate = null;
-        this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-
-        if (this.curTemplate === null) {
-            alert("Error: getTemplateByName `not found ${this.config.name}`");
-            return;
-        }
-        // choose product and account
-        this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-        this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
-        this.strategyName = "";
-        let newInstance: StrategyInstance = new StrategyInstance();
-        newInstance.name = this.config.name;
-        newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
-        newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
-        newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
-        newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        console.log(newInstance);
-        this.config.strategyInstances[0] = newInstance;
-        // GET account info from product msg
-        this.config.strategyInstances[0].accounts = "666600000011";
         console.log(this.config);
+        this.bcreate = true;
+        this.bSelStrategy = true;
+        this.config.strategyCoreName = this.getStrategyNameByChinese(value);
+        // delete this.curTemplate;
+        // this.curTemplate = null;
+        // this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+
+        // if (this.curTemplate === null) {
+        //     alert("Error: getTemplateByName `not found ${this.config.name}`");
+        //     return;
+        // }
+        // // choose product and account
+        // this.config.channels.gateway = this.curTemplate.body.data.SSGW;
+        // this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+        // this.strategyName = "";
+        // let newInstance: StrategyInstance = new StrategyInstance();
+        // newInstance.name = this.config.name;
+        // newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
+        // newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
+        // newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
+        // newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+        // console.log(newInstance);
+        // this.config.strategyInstances[0] = newInstance;
+        // // GET account info from product msg
+        // this.config.strategyInstances[0].accounts = "666600000011";
+        // console.log(this.config);
     }
     lookbackTosimulation() {
         let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
@@ -488,11 +505,12 @@ export class BacktestComponent implements OnInit {
     }
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
-        this.strategyCores = this.configBll.getTemplates();
+        // this.strategyCores = this.configBll.getTemplates();
+        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
-            this.config.strategyCoreName = this.strategyCores[0];
-            console.log(this.strategyCores);
+            this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
+            // console.log(this.strategyCores);
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
@@ -514,6 +532,14 @@ export class BacktestComponent implements OnInit {
             };
         }
     }
+
+    getStrategyNameByChinese(data: any) {
+        for (let o in this.strategymap) {
+            if (this.strategymap[o] === data)
+                return o;
+        }
+    }
+
     operateStrategyServer(config: WorkspaceConfig, action: number) {
         console.info(config, action);
         this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });

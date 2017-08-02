@@ -24,8 +24,8 @@
                         <h4>策略服务名与中文标识</h4>
                         <hr>
                     </div>
-                    <label class="label-name">服务名:<input type="text" class = "input-col" placeholder="strategy name" [(ngModel)]="config.name" [readonly]= "bRead"></label>
-                    <label class="label-name">中文名 : <input type="text" class = "input-col" placeholder="Chinese name" [(ngModel)]="config.chinese_name"></label>
+                    <label class="label-name">服务名:<input type="text" class = "input-col"  [(ngModel)]="config.name" [readonly]= "bRead"></label>
+                    <label class="label-name">别名 : <input type="text" class = "input-col" [(ngModel)]="config.chinese_name"></label>
                 </div>
             </div>
             <div *ngIf="config.curstep==2" class="page">
@@ -102,27 +102,27 @@
                         <div class="frame">
                             <div class="content bg-darker">
                                 <fieldset *ngIf="config.channels.gateway">
-                                    <legend>Preference</legend>
+                                    <legend>选项</legend>
                                     <div>
-                                        MatchMode:
+                                        匹配类型:
                                         <label><input name="matchmode" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.simlevel">无条件成交</label>
                                         <label><input name="matchmode" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.simlevel">按价格成交</label>
                                         <label><input name="matchmode" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.simlevel">按价量成交</label>
                                     </div>
                                     <div>
-                                        Duration:
+                                        起始日期:
                                         <input type="date" [(ngModel)]="config.loopbackConfig.option.timebegin">
                                         <span>-</span>
                                         <input type="date" [(ngModel)]="config.loopbackConfig.option.timeend">
                                     </div>
                                     <div>
-                                        Calc Tick:
+                                        计算时间间隔:
                                         <input type="text" [(ngModel)]="config.loopbackConfig.option.period">
                                         <label><input name="unit" type="radio" value="0" [(ngModel)]="config.loopbackConfig.option.unit">分钟</label>
                                         <label><input name="unit" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.unit">天</label>
                                     </div>
                                     <div>
-                                        Speed:
+                                        速度:
                                         <label><input name="speed" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.speed">1</label>
                                         <label><input name="speed" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.speed">2</label>
                                         <label><input name="speed" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.speed">3</label>
@@ -142,20 +142,20 @@
             </div>
             <div *ngIf="config.curstep==4" class="page">
                 <div>
-                    <h4>Are you Sure?</h4>
+                    <h4>是否完成操作?</h4>
                     <hr>
                 </div>
                 <div>
-                    <label >Make sure whether you have done a correct setting, then click 'Finish' Or reset them.</label>
+                    <label>如果您已确定完成所有配置，请点击“完成”结束策略服务配置。</label>
                 </div>
             </div>
         </div>
         <div class="footer">
             <div class="pagebtn">
-                <button class="button" (click)="hide()">hide</button>
-                <button class="button" [disabled]="config.curstep==1" (click)="prev()">Prev</button>
-                <button class="button" [disabled]="config.curstep==4" (click)="next()">Next</button>
-                <button class="button" [disabled]="config.curstep!=4" (click)="finish()">Finish</button>
+                <button class="button" (click)="hide()">取消</button>
+                <button class="button" [disabled]="config.curstep==1" (click)="prev()">上一步</button>
+                <button class="button" [disabled]="config.curstep==4" (click)="next()">下一步</button>
+                <button class="button" [disabled]="config.curstep!=4" (click)="finish()">完成</button>
             </div>
         </div>
     </div>
