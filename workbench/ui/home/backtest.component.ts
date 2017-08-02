@@ -82,6 +82,7 @@ export class BacktestComponent implements OnInit {
         this.contextMenu.addItem("Turn Simulation", () => {
             console.log(this.config);
             this.bChangeShow = true;
+            this.lookbackTosimulation();
         });
     }
 
@@ -246,7 +247,7 @@ export class BacktestComponent implements OnInit {
     }
 
     finish() {
-        // validation
+        console.log(this.config);
         if (!this.config.name || this.config.name.length === 0 ||
             !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
             // console.log(this.config.name, this.config.name.length, this.config.strategyCoreName, this.config.strategyInstances, this.config.strategyInstances.length);
@@ -447,7 +448,6 @@ export class BacktestComponent implements OnInit {
     }
     lookbackTosimulation() {
         let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
-        console.log(getTmp, this.config);
         this.config.channels.feedhandler.filename = getTmp.body.data.SSFeed.detailview.PriceServer.filename;
         this.config.activeChannel = "simulation";
         this.configBll.updateConfig(this.config);
@@ -479,8 +479,8 @@ export class BacktestComponent implements OnInit {
             name: this.config.name,
             lang: this.setting.language,
             feedhandler: {
-                port: this.config.channels.feedhandler.port,
-                host: this.config.channels.feedhandler.addr
+                port: 0,
+                host: ""
             }
         })) {
             alert(`start ${this.config.name} app error!`);
@@ -496,7 +496,7 @@ export class BacktestComponent implements OnInit {
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
-            this.curTemplate = this.configBll.getConfigByName(this.config.strategyCoreName);
+            this.curTemplate = this.configBll.getTemplateByName(this.config.strategyCoreName);
         }
         if (!this.config.loopbackConfig.option) {
             let year = new Date().getFullYear();

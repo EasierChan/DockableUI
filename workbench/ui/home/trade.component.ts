@@ -48,6 +48,9 @@ export class TradeComponent implements OnInit {
     setting: any;
     clickItem: any;
     strategyArea: any;
+    frame_host: any;
+    frame_port: any;
+
 
     constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
@@ -83,6 +86,9 @@ export class TradeComponent implements OnInit {
     }
 
     ngOnInit() {
+        let setting = this.appService.getSetting();
+        this.frame_host = setting.endpoints[0].quote_addr.split(":")[0];
+        this.frame_port = setting.endpoints[0].quote_addr.split(":")[1];
         let self = this;
         this.bDetails = false;
         let productArea = new TileArea();
@@ -115,7 +121,7 @@ export class TradeComponent implements OnInit {
         let analyticArea = new TileArea();
         analyticArea.title = "Analytic";
         analyticArea.onCreate = () => {
-            alert("----");
+
         };
 
         for (let i = 0; i < 1; ++i) {
@@ -277,7 +283,6 @@ export class TradeComponent implements OnInit {
     }
 
     finish() {
-        // validation
         if (!this.config.name || this.config.name.length === 0 ||
             !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
             // console.log(this.config.name, this.config.name.length, this.config.strategyCoreName, this.config.strategyInstances, this.config.strategyInstances.length);
@@ -491,8 +496,8 @@ export class TradeComponent implements OnInit {
             name: this.config.name,
             lang: this.setting.language,
             feedhandler: {
-                port: this.config.channels.feedhandler.port,
-                host: this.config.channels.feedhandler.addr
+                host: this.frame_host,
+                port: parseInt(this.frame_port)
             }
         })) {
             alert(`start ${this.config.name} app error!`);
@@ -606,7 +611,8 @@ export class TradeComponent implements OnInit {
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
-            this.curTemplate = this.configBll.getConfigByName(this.config.strategyCoreName);
+            this.curTemplate = this.configBll.getTemplateByName(this.config.strategyCoreName);
+            console.log("this.config.strategyCoreName:", this.config.strategyCoreName, "template:", this.curTemplate);
         }
     }
 
