@@ -738,7 +738,7 @@ export class RiskFactorComponent implements OnDestroy {
                   break;
                 }
               }
-              if(IFflag = 0){
+              if(IFflag == 0){
                 let addIFObj = {stockCode: this.HedgeRatioData[i][1], stockWeight: -parseFloat(this.HedgeRatioData[i][2]), stockExposure:[], returnAttr:[], allRiskFactorReturnAttr:0};
                 for(let k = 0; k < this.groupPosition.length; k++){
                   if(this.groupPosition[k].stockCode > this.HedgeRatioData[i][1]){
@@ -765,7 +765,7 @@ export class RiskFactorComponent implements OnDestroy {
                   break;
                 }
               }
-              if(ICflag = 0){
+              if(ICflag == 0){
                 let addICObj = {stockCode: this.HedgeRatioData[i][1], stockWeight: -parseFloat(this.HedgeRatioData[i][3]), stockExposure:[], returnAttr:[], allRiskFactorReturnAttr:0};
                 for(let k = 0; k < this.groupPosition.length; k++){
                   if(this.groupPosition[k].stockCode > this.HedgeRatioData[i][1]){
@@ -792,7 +792,7 @@ export class RiskFactorComponent implements OnDestroy {
                   break;
                 }
               }
-              if(IHflag = 0){
+              if(IHflag == 0){
                 let addIHObj = {stockCode: this.HedgeRatioData[i][1], stockWeight: -parseFloat(this.HedgeRatioData[i][4]), stockExposure:[], returnAttr:[], allRiskFactorReturnAttr:0};
                 for(let k = 0; k < this.groupPosition.length; k++){
                   if(this.groupPosition[k].stockCode > this.HedgeRatioData[i][1]){
@@ -1339,8 +1339,8 @@ export class RiskFactorComponent implements OnDestroy {
         }
 
         let seriesData={name: "残差" ,type: "line", data: []};
-        chartLegendData.push(name: "残差"); // 加入残差
-        riskFactorAttrXAxis.push( "残差" );
+        //chartLegendData.push(name: "残差"); // 加入残差
+        //riskFactorAttrXAxis.push( "残差" );
         let allReturnAttr=0;
 
         for (var i = 0; i < everyDayRiskFactorAttr.length; i++) {
@@ -1349,8 +1349,8 @@ export class RiskFactorComponent implements OnDestroy {
             allReturnAttr += everyDayRiskFactorAttr[i][everyDayRiskFactorAttr[0].length-1];
         }
 
-        riskFactorAttrSeries.push(allReturnAttr);
-        everyDayReturnAttrSeries.push(seriesData);
+        // riskFactorAttrSeries.push(allReturnAttr);
+        //everyDayReturnAttrSeries.push(seriesData);
 
         let everyDayRFROption= {
               baseOption: {

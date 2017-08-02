@@ -117,12 +117,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.todoSection.content = new DataTable("table2");
         this.todoSection.content.addColumn("日期", "标题");
         row = this.todoSection.content.newRow();
-        row.cells[1].Text = "制定交易计划",
-            row.cells[0].Text = "08:28";
+        row.cells[1].Text = "制定交易计划";
+        row.cells[0].Text = "08:28";
         row = null;
         row = this.todoSection.content.newRow();
-        row.cells[1].Text = "卖出货币基金",
-            row.cells[0].Text = "08:28";
+        row.cells[1].Text = "卖出货币基金";
+        row.cells[0].Text = "08:28";
         row = null;
         row = this.todoSection.content.newRow();
         row.cells[1].Text = "买入货币基金";
@@ -135,19 +135,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     registerListeners() {
         this.quote.addSlot({
             appid: 141,
-            packid: 10001,
+            packid: 10002,
             callback: (msg) => {
                 console.info(msg);
-                // let data = [];
-                // let option: any = {};
-                // data.forEach(item => {
-                //     option.xAxis.data.push(item.time / 100000);
-                //     option.series.data.push(item.close);
-                // });
+                this.codeChartSection.content.option.xAxis.data = [];
+                msg.content.data.forEach(item => {
+                    this.codeChartSection.content.option.xAxis.data.push(item.time / 100000);
+                    this.codeChartSection.content.option.series.data.push(item.close);
+                });
 
-                // this.codeChartSection.content.chart.setOption(option);
-                // option = null;
-                // data = null;
+                this.codeChartSection.content.chart.setOption(this.codeChartSection.content.option);
             }
         });
     }

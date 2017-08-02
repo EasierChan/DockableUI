@@ -93,6 +93,12 @@ export class TradeComponent implements OnInit {
         this.bDetails = false;
         let productArea = new TileArea();
         productArea.title = "Products";
+        productArea.onClick = (event: MouseEvent, item: Tile) => {
+            this.appService.startApp("product-tt", "Dialog", {
+                dlg_name: "product",
+                productID: item.data
+            });
+        };
 
         this.strategyArea = new TileArea();
         this.strategyArea.title = "Strategies";
@@ -236,6 +242,7 @@ export class TradeComponent implements OnInit {
                         tile.title = this.product[o].tblock_full_name;
                         tile.backgroundColor = "#ff3a66";  // 1c57ff
                         tile.iconName = "adjust";
+                        tile.data = this.product[o].tblock_id;
                         productArea.addTile(tile);
                     }
                     // console.log(this.product, data.body.length); // 还有坑，先留着
