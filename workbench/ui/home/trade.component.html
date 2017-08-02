@@ -148,10 +148,10 @@
         </div>
         <div class="footer">
             <div class="pagebtn">
-                <button class="button" (click)="hide()">hide</button>
-                <button class="button" [disabled]="config.curstep==1" (click)="prev()">Prev</button>
-                <button class="button" [disabled]="config.curstep==4" (click)="next()">Next</button>
-                <button class="button" [disabled]="config.curstep!=4" (click)="finish()">Finish</button>
+                <button class="button" (click)="hide()">取消</button>
+                <button class="button" [disabled]="config.curstep==1" (click)="prev()">上一步</button>
+                <button class="button" [disabled]="config.curstep==4" (click)="next()">下一步</button>
+                <button class="button" [disabled]="config.curstep!=4" (click)="finish()">完成</button>
             </div>
         </div>
     </div>

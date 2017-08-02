@@ -25,8 +25,8 @@
                         <h4>策略服务名与中文标识</h4>
                         <hr>
                     </div>
-                    <label class="label-name">服务名:<input type="text" class = "input-col" placeholder="strategy name" [(ngModel)]="config.name" [readonly]= "bRead"></label>
-                    <label class="label-name">中文名 : <input type="text" class = "input-col" placeholder="Chinese name" [(ngModel)]="config.chinese_name"></label>
+                    <label class="label-name">服务名:<input type="text" class = "input-col"  [(ngModel)]="config.name" [readonly]= "bRead"></label>
+                    <label class="label-name">别名 : <input type="text" class = "input-col" [(ngModel)]="config.chinese_name"></label>
                 </div>
             </div>
             <div *ngIf="config.curstep==2" class="page">
@@ -128,20 +128,20 @@
             </div>
             <div *ngIf="config.curstep==4" class="page">
                 <div>
-                    <h4>Are you Sure?</h4>
+                    <h4>是否完成操作?</h4>
                     <hr>
                 </div>
                 <div >
-                    <label for="maxordersize">Make sure whether you have done a correct setting, then click 'Finish' Or reset them.</label>
+                    <label for="maxordersize">如果您已确定完成所有配置，请点击“完成”结束策略服务配置。</label>
                 </div>
             </div>
         </div>
         <div class="footer">
             <div class="pagebtn">
-                <button class="button" (click)="hide()">hide</button>
-                <button class="button" [disabled]="config.curstep==1" (click)="prev()">Prev</button>
-                <button class="button" [disabled]="config.curstep==4" (click)="next()">Next</button>
-                <button class="button" [disabled]="config.curstep!=4" (click)="finish()">Finish</button>
+                <button class="button" (click)="hide()">取消</button>
+                <button class="button" [disabled]="config.curstep==1" (click)="prev()">上一步</button>
+                <button class="button" [disabled]="config.curstep==4" (click)="next()">下一步</button>
+                <button class="button" [disabled]="config.curstep!=4" (click)="finish()">完成</button>
             </div>
         </div>
     </div>
