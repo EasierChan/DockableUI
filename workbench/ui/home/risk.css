@@ -1,0 +1,36 @@
+.content {
+    flex: auto;
+    padding-bottom: 10px;
+}
+
+.u-row,
+.u-col {
+    flex: none;
+    display: flex;
+}
+
+.u-col {
+    flex-flow: column;
+}
+
+.fill {
+    flex: auto;
+}
+
+.section {
+    background-color: #222A41;
+}
+
+.section > .title {
+    background-color: #1A2237;
+}
+
+.section > .holder {
+    flex: auto;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+dock-table2 {
+    width: auto;
+}

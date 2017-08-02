@@ -1,16 +1,16 @@
 <div class="content">
     <div class="u-row">
-        <section class="fill">
-            <b>策略风控</b>
-            <div class="holder">
+        <div class="u-col fill section">
+            <div class="title"><b>产品风控</b></div>
+            <div class="u-col holder">
                 <dock-table2 [dataSource]="strategyTable.dataSource" [styleObj]="strategyTable.styleObj"></dock-table2>
             </div>
-        </section>
-        <section class="fill">
-            <b>账户风控</b>
-            <div class="holder">
+        </div>
+        <div class="u-col fill section">
+            <div class="title"><b>账户风控</b></div>
+            <div class="u-col holder">
                 <dock-table2 [dataSource]="accountTable.dataSource" [styleObj]="accountTable.styleObj"></dock-table2>
             </div>
-        </section>
+        </div>
     </div>
 </div>
