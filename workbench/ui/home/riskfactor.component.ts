@@ -32,7 +32,8 @@ export class RiskFactorComponent implements OnDestroy {
     enddate: string;
     startDate: string;
     endDate: string;
-
+    hedges:string[] = ["沪深300","中证500","上证50"];
+    hedge:string = "沪深300"；
     hedgeRadio: number;
 
     riskFactorReturnEchart: any;//echart
@@ -264,6 +265,16 @@ export class RiskFactorComponent implements OnDestroy {
             alert("风险因子收益没有数据,请导入数据后重试");
             return;
         }
+        this.riskFactorReturn[0][1] = "贝塔(市场)风险"；
+        this.riskFactorReturn[0][2] = "账面价值比"；
+        this.riskFactorReturn[0][3] = "盈利"；
+        this.riskFactorReturn[0][4] = "成长性"；
+        this.riskFactorReturn[0][5] = "杠杆"；
+        this.riskFactorReturn[0][6] = "流动性"；
+        this.riskFactorReturn[0][7] = "动量"；
+        this.riskFactorReturn[0][8] = "残差波动率"；
+        this.riskFactorReturn[0][9] = "市值"；
+        this.riskFactorReturn[0][10] = "非线性市值"；
 
         for (let i = 1; i < this.riskFactorReturn.length; ++i) {
 
@@ -333,6 +344,21 @@ export class RiskFactorComponent implements OnDestroy {
 
         }
 
+    }
+
+    //读取对冲比率并格式化数据
+    readAndHandleHedgeRatio(exposureFilePath) {
+        this.HedgeRatioData = this.readDataFromCsvFile(exposureFilePath);
+        this.HedgeRatioData.splice(0,1);
+        this.HedgeRatioData.sort( function (perv,next){
+                if(perv[1]>next[1]){
+                    return 1;
+                }else if(perv[1]<next[1]){
+                    return -1;
+                }
+                else
+                    return 0;
+            });
     }
 
     /*计算各种结果并绘图
@@ -694,6 +720,95 @@ export class RiskFactorComponent implements OnDestroy {
 
     // 开始读取并计算数据
     beginCalculateRiskFactor() {
+        //计算对冲
+        this.readAndHandleHedgeRatio("/mnt/dropbox/risk/idxmbr/"+this.startDate+".csv");
+        console.log(this.groupPosition);
+        console.log(this.HedgeRatioData);
+        switch (this.hedge) {
+          case "沪深300":
+          for(let i = 0; i < this.HedgeRatioData.length; i++){
+            if(parseFloat(this.HedgeRatioData[i][2]) == 0){
+              continue;
+            }  else{
+              let IFflag = 0;
+              for(let j = 0; j < this.groupPosition.length; j++){
+                if(this.groupPosition[j].stockCode == this.HedgeRatioData[i][1]){
+                  this.groupPosition[j].stockWeight -= parseFloat(this.HedgeRatioData[i][2])*this.hedgeRadio;
+                  IFflag++;
+                  break;
+                }
+              }
+              if(IFflag == 0){
+                let addIFObj = {stockCode: this.HedgeRatioData[i][1], stockWeight: -parseFloat(this.HedgeRatioData[i][2]), stockExposure:[], returnAttr:[], allRiskFactorReturnAttr:0};
+                for(let k = 0; k < this.groupPosition.length; k++){
+                  if(this.groupPosition[k].stockCode > this.HedgeRatioData[i][1]){
+                    this.groupPosition.splice(k, 0, addIFObj);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+
+          break;
+
+          case "中证500":
+          for(let i = 0; i < this.HedgeRatioData.length; i++){
+            if(parseFloat(this.HedgeRatioData[i][3]) == 0){
+              continue;
+            }  else{
+              let ICflag = 0;
+              for(let j = 0; j < this.groupPosition.length; j++){
+                if(this.groupPosition[j].stockCode == this.HedgeRatioData[i][1]){
+                  this.groupPosition[j].stockWeight -= parseFloat(this.HedgeRatioData[i][3])*this.hedgeRadio;
+                  ICflag++;
+                  break;
+                }
+              }
+              if(ICflag == 0){
+                let addICObj = {stockCode: this.HedgeRatioData[i][1], stockWeight: -parseFloat(this.HedgeRatioData[i][3]), stockExposure:[], returnAttr:[], allRiskFactorReturnAttr:0};
+                for(let k = 0; k < this.groupPosition.length; k++){
+                  if(this.groupPosition[k].stockCode > this.HedgeRatioData[i][1]){
+                    this.groupPosition.splice(k, 0, addICObj);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+
+          break;
+
+          case "上证50":
+          for(let i = 0; i < this.HedgeRatioData.length; i++){
+            if(parseFloat(this.HedgeRatioData[i][4]) == 0){
+              continue;
+            }  else{
+              let IHflag = 0;
+              for(let j = 0; j < this.groupPosition.length; j++){
+                if(this.groupPosition[j].stockCode == this.HedgeRatioData[i][1]){
+                  this.groupPosition[j].stockWeight -= parseFloat(this.HedgeRatioData[i][4])*this.hedgeRadio;
+                  IHflag++;
+                  break;
+                }
+              }
+              if(IHflag == 0){
+                let addIHObj = {stockCode: this.HedgeRatioData[i][1], stockWeight: -parseFloat(this.HedgeRatioData[i][4]), stockExposure:[], returnAttr:[], allRiskFactorReturnAttr:0};
+                for(let k = 0; k < this.groupPosition.length; k++){
+                  if(this.groupPosition[k].stockCode > this.HedgeRatioData[i][1]){
+                    this.groupPosition.splice(k, 0, addIHObj);
+                    break;
+                  }
+                }
+              }
+            }
+          }
+
+          break;
+        }
+
+        console.log(this.groupPosition);
+
         let exposureFile=[],dirFiles=[];
         let sumOfDayExposure=[];//保存风险因子的权重与暴露之乘积的和
         this.riskFactorReturnAttr=[];
@@ -1123,7 +1238,7 @@ export class RiskFactorComponent implements OnDestroy {
                       }
                   },
                   legend: {
-                      data: ["风险因子收益"],
+                      data: ["风险因子暴露"],
                       textStyle: { color: "#F3F3F5" }
                   },
                   xAxis: {
@@ -1177,7 +1292,7 @@ export class RiskFactorComponent implements OnDestroy {
           				// 		}
           				// }],
                   series: [{
-                          name: "风险因子收益",
+                          name: "风险因子暴露",
                           type: "bar",
                           data: riskFactorExposureSeries
                       }
@@ -1224,8 +1339,8 @@ export class RiskFactorComponent implements OnDestroy {
         }
 
         let seriesData={name: "残差" ,type: "line", data: []};
-        chartLegendData.push(name: "残差"); // 加入残差
-        riskFactorAttrXAxis.push( "残差" );
+        //chartLegendData.push(name: "残差"); // 加入残差
+        //riskFactorAttrXAxis.push( "残差" );
         let allReturnAttr=0;
 
         for (var i = 0; i < everyDayRiskFactorAttr.length; i++) {
@@ -1234,8 +1349,8 @@ export class RiskFactorComponent implements OnDestroy {
             allReturnAttr += everyDayRiskFactorAttr[i][everyDayRiskFactorAttr[0].length-1];
         }
 
-        riskFactorAttrSeries.push(allReturnAttr);
-        everyDayReturnAttrSeries.push(seriesData);
+        // riskFactorAttrSeries.push(allReturnAttr);
+        //everyDayReturnAttrSeries.push(seriesData);
 
         let everyDayRFROption= {
               baseOption: {
