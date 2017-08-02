@@ -1,0 +1,39 @@
+.u-row {
+    display: flex;
+    flex-flow: row;
+}
+
+.u-col {
+    display: flex;
+    flex-flow: column;
+}
+
+.fill {
+    flex: auto;
+}
+
+table.header {
+    width: 100%;
+}
+
+table.header > tbody > tr > td:nth-child(odd) {
+    text-align: right;
+}
+
+div.holder {
+    background-color: #222A41;
+    padding: 5px;
+}
+
+div.holds > dock-table2:nth-child(2) {
+    margin-left: 10px;
+}
+
+dock-table2 {
+    flex: auto;
+    background-color: #222A41;
+}
+
+.holds {
+    margin-top: 10px;
+}

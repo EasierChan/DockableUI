@@ -3,11 +3,18 @@
     height: 100%;
     padding: 5px;
     background-color: #1A2237;
+    font-size: 12px;
 }
 
 product {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-flow: column;
+}
+
+div.holder {
+    padding: 5px;
 }
 
 .u-col {
