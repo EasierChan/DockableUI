@@ -27,7 +27,8 @@
 
       // other libraries
       'controls/dockmanager': 'base:script/docklayout-core.js',
-      'rxjs':                      'npm:rxjs'
+      'rxjs':                      'npm:rxjs',
+      'echarts': 'npm:echarts'
       //'angular-in-memory-web-api': 'npm:angular-in-memory-web-api/bundles/in-memory-web-api.umd.js'
     },
     // packages tells the System loader how to load when no filename and/or no extension
@@ -41,6 +42,16 @@
       },
       base: {
         defaultExtension: 'js'
+      },
+      echarts: {
+        defaultExtension: 'js',
+        main: 'dist/echarts.js',
+        meta: {
+          './*.js': {
+            format: 'global',
+            exports: 'echarts'
+          }
+        }
       }
     }
   });

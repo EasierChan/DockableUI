@@ -2206,6 +2206,20 @@ export class TileArea extends Control {
         tileCount = null;
     }
 
+    getTileAt(idx: string) {
+        return this.dataSource.items[idx];
+    }
+
+    getTile(name: string) {
+        let tileCount = this.dataSource.items.length;
+
+        for (let i = 0; i < tileCount; ++i) {
+            if (this.dataSource.items[i].title === name) {
+                return this.dataSource.items[i];
+            }
+        }
+    }
+
     set onClick(value: Function) {
         this.dataSource.click = value;
     }
@@ -2224,6 +2238,7 @@ export class Tile {
     backgroundColor: string;
     title: string;
     iconName: string;
+    data: any;
 }
 
 class Slider {

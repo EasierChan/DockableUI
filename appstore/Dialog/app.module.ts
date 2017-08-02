@@ -19,11 +19,11 @@ import { ProductComponent } from "./product/product";
     DockContainerComponent,
     DataTableComponent,
     ScrollerBarTable,
-    EChartComponent,
     UserControlComponent,
     StatusBarComponent,
     DialogComponent,
     ActionBarComponent,
+    EChartComponent,
     ProductComponent
   ],
   bootstrap: [AppComponent]

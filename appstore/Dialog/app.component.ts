@@ -6,24 +6,23 @@
 "use strict";
 
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
-import {
-    Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
-    VBox, HBox, TextBox, Button, DockContainer, ChartViewer
-} from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
-declare let window: any;
+import { AppStateCheckerRef, AppStoreService, TranslateService } from "../../base/api/services/backend.service";
+import { ProductComponent } from "./product/product";
 
 @Component({
     moduleId: module.id,
     selector: "body",
     templateUrl: "dialog.html",
     styleUrls: ["app.component.css"],
+    viewProviders: [
+        ProductComponent
+    ],
     providers: [
-        IP20Service,
         AppStateCheckerRef,
-        SecuMasterService,
-        TranslateService
+        TranslateService,
+        IP20Service,
+        AppStoreService
     ]
 })
 export class AppComponent implements OnInit {
@@ -32,7 +31,8 @@ export class AppComponent implements OnInit {
     main: any;
     option: any;
 
-    constructor(private tgw: IP20Service, private state: AppStateCheckerRef, private secuinfo: SecuMasterService, private langServ: TranslateService) {
+    constructor(private state: AppStateCheckerRef, private langServ: TranslateService,
+        private trade: IP20Service, private appsrv: AppStoreService) {
         this.state.onInit(this, this.onReady);
     }
 
@@ -51,28 +51,29 @@ export class AppComponent implements OnInit {
                 this.languageType = 0;
                 break;
         }
-
-        this.loginTGW();
     }
 
-    loginTGW() {
-        this.tgw.connect(this.option.port, this.option.host);
+    loginTGW(afterLogin?: Function) {
+        let [addr, port] = this.appsrv.getSetting().endpoints[0].trade_addr.split(":");
+        this.trade.connect(port, addr);
 
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
+        let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
 
-        this.tgw.addSlot({
+        this.trade.addSlot({
             appid: 17,
             packid: 43,
             callback: msg => {
                 console.info(`tgw ans=>${msg}`);
+                if (afterLogin)
+                    afterLogin();
             }
         });
 
-        this.tgw.addSlot({
+        this.trade.addSlot({
             appid: 17,
             packid: 120,
             callback: msg => {
@@ -80,12 +81,24 @@ export class AppComponent implements OnInit {
             }
         });
 
-        this.tgw.send(17, 41, loginObj);
+        this.trade.send(17, 41, loginObj);
     }
 
     ngOnInit() {
-        if (this.option.dlg_name) {
-            
+        this.registerListeners();
+
+        switch (this.option.dlg_name) {
+            case "product":
+                this.loginTGW(() => {
+                    this.trade.send(260, 232, { body: { productID: parseInt(this.option.productID) } });
+                });
+                break;
+            default:
+                console.error(`unknown dialog name => ${this.option.dlg_name}`);
+                break;
         }
+    }
+
+    registerListeners() {
     }
 }
