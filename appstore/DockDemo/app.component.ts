@@ -1340,7 +1340,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             for (let i = 0; i < markLen; ++i) {
                 let text = AppComponent.self.statusbar.items[i].text;
                 if (text === mark) {
-                    AppComponent.self.statusbar.items[i].color = data ? "green" : "red";
+                    AppComponent.self.statusbar.items[i].color = data ? "#26d288" : "#ff5564";
                     markFlag = true;
                 }
             }
@@ -2145,7 +2145,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         };
         tempmark.section = "right";
-        tempmark.color = data.connected ? "green" : "red";
+        tempmark.color = data.connected ? "#26d288" : "#ff5564";
         if (!data.connected)
             AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
         AppComponent.self.statusbar.items.push(tempmark);
