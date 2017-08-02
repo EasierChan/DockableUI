@@ -34,7 +34,7 @@ export class SimulationComponent implements OnInit {
     strategyName: string;
     strategyCores: string[];
     productsList: string[];
-    ProductMsg: string[];
+    ProductMsg: any[];
     bshow: boolean = false;
     bcreate: boolean = false;
     bRead: boolean = false;
@@ -48,6 +48,9 @@ export class SimulationComponent implements OnInit {
     bChangeShow: boolean = false;
     tileArr: string[] = [];
     sendLoopConfigs: any[] = [];
+    frame_host: any;
+    frame_port: any;
+
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
@@ -88,6 +91,9 @@ export class SimulationComponent implements OnInit {
     }
 
     ngOnInit() {
+        let setting = this.appService.getSetting();
+        this.frame_host = setting.endpoints[0].quote_addr.split(":")[0];
+        this.frame_port = setting.endpoints[0].quote_addr.split(":")[1];
         let self = this;
         this.bDetails = false;
         this.simulationArea = new TileArea();
@@ -103,7 +109,7 @@ export class SimulationComponent implements OnInit {
             this.clickItem = item;
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].name === item.title) {
+                if (this.configs[i].chinese_name === item.title) {
                     this.config = this.configs[i];
                     break;
                 }
@@ -113,6 +119,7 @@ export class SimulationComponent implements OnInit {
             } else if (event.button === 2) { // right click
                 this.contextMenu.popup();
             }
+            console.log(this.config, this.clickItem);
         };
         this.areas = [this.simulationArea];
         this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
@@ -176,7 +183,7 @@ export class SimulationComponent implements OnInit {
                         this.tileArr.push(config.name);
                         // this.isInit = true;
                         config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#E9B837" : "#f24959";
+                            tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
                         };
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
@@ -215,7 +222,7 @@ export class SimulationComponent implements OnInit {
                 console.log(this.config, this.curTemplate.body.data);
                 this.tgw.send(107, 2000, {
                     routerid: 0, templateid: this.curTemplate.id, body: {
-                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
                         strategies: this.config.strategies
                     }
                 });
@@ -254,7 +261,9 @@ export class SimulationComponent implements OnInit {
                     // console.log(this.product, data.body.length); // 还有坑，先留着
                 } else {
                     alert("Get product info Failed! " + data.msret.msg);
+                    return;
                 }
+                this.simulationToTruly();
             }
         });
     }
@@ -392,7 +401,7 @@ export class SimulationComponent implements OnInit {
         if (!this.bshow) {
             this.tgw.send(107, 2000, {
                 routerid: 0, templateid: this.curTemplate.id, body: {
-                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
                     strategies: this.config.strategies
                 }
             });
@@ -419,6 +428,10 @@ export class SimulationComponent implements OnInit {
     simulationToTruly() {
         if (!this.bSelProduct) {
             this.onSelectProduct(this.productsList[0]);
+        }
+        else {
+            alert("还未获取到产品信息");
+            return;
         }
         for (let i = 0; i < this.config.channels.gateway.length; ++i) {
             for (let obj in this.gatewayObj) {
@@ -541,8 +554,8 @@ export class SimulationComponent implements OnInit {
             name: this.config.name,
             lang: this.setting.language,
             feedhandler: {
-                port: this.config.channels.feedhandler.port,
-                host: this.config.channels.feedhandler.addr
+                host: this.frame_host,
+                port: parseInt(this.frame_port)
             }
         })) {
             alert(`start ${this.config.name} app error!`);
@@ -559,7 +572,7 @@ export class SimulationComponent implements OnInit {
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
-            this.curTemplate = this.configBll.getConfigByName(this.config.strategyCoreName);
+            this.curTemplate = this.configBll.getTemplateByName(this.config.strategyCoreName);
         }
         if (!this.config.loopbackConfig.option) {
             let year = new Date().getFullYear();

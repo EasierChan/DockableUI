@@ -52,42 +52,31 @@ export class AppComponent implements OnInit {
 
     ngOnInit() {
         this.curEndpoint = this.setting.endpoints[0];
-        this.homeMod = "present";
+        this.homeMod = DataSet.modules[0].name;
         this.activeTab = DataSet.tabs(this.homeMod)[0];
         this.actionBar = new ActionBar();
         this.actionBar.backgroundColor = "#383F54";
-        this.actionBar.addFeature({
-            iconName: "home",
-            tooltip: "Present",
-            title: "Present",
-            active: true,
-        });
 
-        this.actionBar.addFeature({
-            iconName: "repeat",
-            tooltip: "History",
-            title: "History",
-            active: false,
-        });
-
-        this.actionBar.addFeature({
-            iconName: "send",
-            tooltip: "Future",
-            title: "Future",
-            active: false,
+        DataSet.modules.forEach((item, index) => {
+            this.actionBar.addFeature({
+                iconName: item.icon,
+                tooltip: item.name,
+                title: item.name,
+                active: index === 0,
+            });
         });
 
         this.actionBar.addFeature({
             iconName: "search",
-            tooltip: "Security Master",
-            title: "Security Master",
+            tooltip: "证券信息",
+            title: "证券信息",
             active: false
         });
 
         this.actionBar.addFeature({
             iconName: "time",
-            tooltip: "Time Machine",
-            title: "Time Machine",
+            tooltip: "时间回溯",
+            title: "时间回溯",
             active: false
         });
 
@@ -100,88 +89,86 @@ export class AppComponent implements OnInit {
 
         this.actionBar.addFeature({
             iconName: "wrench",
-            tooltip: "CSP",
-            title: "CSP",
+            tooltip: "产品监控",
+            title: "产品监控",
             active: false
         });
 
         this.actionBar.addSettings({
             iconName: "user",
-            tooltip: "User",
-            title: "User",
+            tooltip: "个人中心",
+            title: "个人中心",
             active: false
         });
 
         this.actionBar.addSettings({
             iconName: "cog",
-            tooltip: "Setting",
-            title: "Setting",
+            tooltip: "设置",
+            title: "设置",
             active: false
         });
 
         this.actionBar.addSettings({
             iconName: "info-sign",
-            tooltip: "Support",
-            title: "Support",
+            tooltip: "支持",
+            title: "支持",
             active: false
         });
 
         this.actionBar.addSettings({
             iconName: "off",
-            tooltip: "关闭",
-            title: "Quit",
+            tooltip: "退出",
+            title: "退出",
             active: false
         });
 
         this.actionBar.onClick = (item) => {
             switch (item.title) {
-                case "Security Master":
+                case "主页":
+                    this.curPage = "home";
+                    this.homeMod = item.title;
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "回测平台":
+                    this.curPage = "home";
+                    this.homeMod = item.title;
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "趋势分析":
+                    this.curPage = "home";
+                    this.homeMod = item.title;
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "证券信息":
                     this.curPage = "security";
                     this.actionBar.activeItem = item;
                     break;
-                case "Present":
-                    this.curPage = "home";
-                    this.homeMod = "present";
-                    this.activeTab = DataSet.tabs(this.homeMod)[0];
-                    this.actionBar.activeItem = item;
-                    break;
-                case "History":
-                    this.curPage = "home";
-                    this.homeMod = "history";
-                    this.activeTab = DataSet.tabs(this.homeMod)[0];
-                    this.actionBar.activeItem = item;
-                    break;
-                case "Future":
-                    this.curPage = "home";
-                    this.homeMod = "future";
-                    this.activeTab = DataSet.tabs(this.homeMod)[0];
-                    this.actionBar.activeItem = item;
-                    break;
-                case "Time Machine":
+                case "时间回溯":
                     ChildProcess.openUrl(this.setting.externalLinks.TimeMachine);
                     break;
                 case "超级图表":
                     ChildProcess.openUrl(this.setting.externalLinks.SuperGraph);
                     break;
-                case "CSP":
+                case "产品监控":
                     ChildProcess.openUrl(this.setting.externalLinks.CSP);
                     break;
-                case "Setting":
+                case "设置":
                     this.curPage = "setting";
                     this.actionBar.activeItem = item;
                     break;
-                case "User":
+                case "个人中心":
                     this.curPage = "user";
                     this.actionBar.activeItem = item;
                     break;
-                case "Support":
+                case "支持":
                     this.curPage = "support";
                     this.actionBar.activeItem = item;
                     break;
-                case "Quit":
-                    if (confirm("Sure to Quit?")) {
-                        // TODO quit application;
-                    }
+                case "退出":
+                    this.appService.quitAll();
                     break;
                 default:
                     alert(`unhandler module: ${item.title}`);

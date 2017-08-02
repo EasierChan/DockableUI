@@ -397,7 +397,7 @@ export class WorkspaceConfig {
         this.tradingUniverse = [];
         this.strategyInstances = [];
         this.channels = { gateway: null, feedhandler: null };
-        this._port = "9000";
+        this._port = "0";
         this.host = "172.24.51.4";
     }
 

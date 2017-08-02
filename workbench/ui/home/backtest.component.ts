@@ -14,7 +14,7 @@ let ip20strs = [];
     moduleId: module.id,
     selector: "backtest",
     templateUrl: "backtest.component.html",
-    // styleUrls: ["backtest.component.css"],
+    styleUrls: ["backtest.component.css"],
     providers: [
         Menu
     ]
@@ -33,11 +33,12 @@ export class BacktestComponent implements OnInit {
     panelTitle: string;
     strategyName: string;
     strategyCores: string[];
-    ProductMsg: string[];
+    ProductMsg: any[];
     bshow: boolean = false;
     bcreate: boolean = false;
     bRead: boolean = false;
     bModify: boolean = false;
+    bSelStrategy: boolean = false;
     accounts: string;
     gatewayObj: Object;
     setting: any;
@@ -47,6 +48,7 @@ export class BacktestComponent implements OnInit {
     tileArr: string[] = [];
     sendLoopConfigs: any[] = [];
     lookbackItem: any;
+    strategymap: any;
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
@@ -89,7 +91,17 @@ export class BacktestComponent implements OnInit {
         let self = this;
         this.bDetails = false;
         this.backTestArea = new TileArea();
-        this.backTestArea.title = "BackTest";
+        this.backTestArea.title = "回测";
+
+        this.strategymap = {
+            PairTrade: "统计套利",
+            ManualTrader: "手工交易",
+            PortfolioTrader: "组合交易",
+            IndexSpreader: "做市策略",
+            SimpleSpreader: "跨期套利",
+            BasketSpreader: "期现套利",
+            BlockTrader: "大宗交易"
+        };
 
         this.backTestArea.onCreate = () => {
             this.bshow = true;
@@ -100,7 +112,7 @@ export class BacktestComponent implements OnInit {
             this.clickItem = item;
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].name === item.title) {
+                if (this.configs[i].chinese_name === item.title) {
                     this.config = this.configs[i];
                     break;
                 }
@@ -110,6 +122,7 @@ export class BacktestComponent implements OnInit {
             } else if (event.button === 2) { // right click
                 this.contextMenu.popup();
             }
+            console.log(this.config, this.clickItem);
         };
 
         this.areas = [this.backTestArea];
@@ -164,7 +177,6 @@ export class BacktestComponent implements OnInit {
                 if (config) {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
-                    this.configBll.updateConfig(config);
                     let rtn = this.tileArr.indexOf(config.name);
                     if (config.activeChannel === "lookback" && rtn === -1) {
                         let tile = new Tile();
@@ -174,10 +186,11 @@ export class BacktestComponent implements OnInit {
                         this.tileArr.push(config.name);
                         // this.isInit = true;
                         config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#E9B837" : "#f24959";
+                            tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
                         };
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
+                        this.configBll.updateConfig(config);
                     }
                 }
                 // console.log(this.configs);
@@ -214,7 +227,7 @@ export class BacktestComponent implements OnInit {
                 console.log(this.config, this.curTemplate.body.data);
                 this.tgw.send(107, 2000, {
                     routerid: 0, templateid: this.curTemplate.id, body: {
-                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
                         strategies: this.config.strategies
                     }
                 });
@@ -245,7 +258,7 @@ export class BacktestComponent implements OnInit {
     }
 
     finish() {
-        // validation
+        console.log(this.config);
         if (!this.config.name || this.config.name.length === 0 ||
             !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
             // console.log(this.config.name, this.config.name.length, this.config.strategyCoreName, this.config.strategyInstances, this.config.strategyInstances.length);
@@ -326,7 +339,7 @@ export class BacktestComponent implements OnInit {
         if (!this.bshow) {
             this.tgw.send(107, 2000, {
                 routerid: 0, templateid: this.curTemplate.id, body: {
-                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
                     strategies: this.config.strategies
                 }
             });
@@ -375,9 +388,11 @@ export class BacktestComponent implements OnInit {
                 alert("please input correct format name");
                 return;
             }
-            if (!this.bcreate && !this.bModify) {
+            // if (!this.bcreate && !this.bModify) {
+            if (!this.bModify) {
                 // get template
-                this.config.strategyCoreName = this.strategyCores[0];
+                if (!this.bSelStrategy)
+                    this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
                 delete this.curTemplate;
                 this.curTemplate = null;
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
@@ -392,6 +407,7 @@ export class BacktestComponent implements OnInit {
                 this.strategyName = "";
                 this.bcreate = true;
                 let newInstance: StrategyInstance = new StrategyInstance();
+                console.log(this.config);
                 newInstance.name = this.config.name;
                 newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
                 newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
@@ -418,41 +434,48 @@ export class BacktestComponent implements OnInit {
         --this.config.curstep;
     }
     onSelectStrategy(value: string) {
-        this.bcreate = true;
-        this.config.strategyCoreName = value;
-        delete this.curTemplate;
-        this.curTemplate = null;
-        this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-
-        if (this.curTemplate === null) {
-            alert("Error: getTemplateByName `not found ${this.config.name}`");
-            return;
-        }
-        // choose product and account
-        this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-        this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
-        this.strategyName = "";
-        let newInstance: StrategyInstance = new StrategyInstance();
-        newInstance.name = this.config.name;
-        newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
-        newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
-        newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
-        newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        console.log(newInstance);
-        this.config.strategyInstances[0] = newInstance;
-        // GET account info from product msg
-        this.config.strategyInstances[0].accounts = "666600000011";
         console.log(this.config);
+        this.bcreate = true;
+        this.bSelStrategy = true;
+        this.config.strategyCoreName = this.getStrategyNameByChinese(value);
+        // delete this.curTemplate;
+        // this.curTemplate = null;
+        // this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+
+        // if (this.curTemplate === null) {
+        //     alert("Error: getTemplateByName `not found ${this.config.name}`");
+        //     return;
+        // }
+        // // choose product and account
+        // this.config.channels.gateway = this.curTemplate.body.data.SSGW;
+        // this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+        // this.strategyName = "";
+        // let newInstance: StrategyInstance = new StrategyInstance();
+        // newInstance.name = this.config.name;
+        // newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
+        // newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
+        // newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
+        // newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+        // console.log(newInstance);
+        // this.config.strategyInstances[0] = newInstance;
+        // // GET account info from product msg
+        // this.config.strategyInstances[0].accounts = "666600000011";
+        // console.log(this.config);
     }
     lookbackTosimulation() {
         let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
-        console.log(getTmp, this.config);
         this.config.channels.feedhandler.filename = getTmp.body.data.SSFeed.detailview.PriceServer.filename;
+        // temporary setting
+        for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+            this.config.channels.gateway[i].addr = "172.24.50.10";
+            this.config.channels.gateway[i].port = 8000;
+        }
         this.config.activeChannel = "simulation";
         this.configBll.updateConfig(this.config);
         this.backTestArea.removeTile(this.clickItem.title);
         this.strategyContainer.removeItem(this.config.name);
         this.bChangeShow = false;
+        console.log(this.config);
     }
     closePanel(e?: any) {
         if (this.bshow) {
@@ -478,8 +501,8 @@ export class BacktestComponent implements OnInit {
             name: this.config.name,
             lang: this.setting.language,
             feedhandler: {
-                port: this.config.channels.feedhandler.port,
-                host: this.config.channels.feedhandler.addr
+                port: 0,
+                host: ""
             }
         })) {
             alert(`start ${this.config.name} app error!`);
@@ -487,15 +510,16 @@ export class BacktestComponent implements OnInit {
     }
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
-        this.strategyCores = this.configBll.getTemplates();
+        // this.strategyCores = this.configBll.getTemplates();
+        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
-            this.config.strategyCoreName = this.strategyCores[0];
-            console.log(this.strategyCores);
+            this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
+            // console.log(this.strategyCores);
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
-            this.curTemplate = this.configBll.getConfigByName(this.config.strategyCoreName);
+            this.curTemplate = this.configBll.getTemplateByName(this.config.strategyCoreName);
         }
         if (!this.config.loopbackConfig.option) {
             let year = new Date().getFullYear();
@@ -513,6 +537,14 @@ export class BacktestComponent implements OnInit {
             };
         }
     }
+
+    getStrategyNameByChinese(data: any) {
+        for (let o in this.strategymap) {
+            if (this.strategymap[o] === data)
+                return o;
+        }
+    }
+
     operateStrategyServer(config: WorkspaceConfig, action: number) {
         console.info(config, action);
         this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });

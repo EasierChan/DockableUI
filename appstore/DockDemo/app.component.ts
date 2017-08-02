@@ -1340,7 +1340,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             for (let i = 0; i < markLen; ++i) {
                 let text = AppComponent.self.statusbar.items[i].text;
                 if (text === mark) {
-                    AppComponent.self.statusbar.items[i].color = data ? "green" : "red";
+                    AppComponent.self.statusbar.items[i].color = data ? "#26d288" : "#ff5564";
                     markFlag = true;
                 }
             }
@@ -2145,7 +2145,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         };
         tempmark.section = "right";
-        tempmark.color = data.connected ? "green" : "red";
+        tempmark.color = data.connected ? "#26d288" : "#ff5564";
         if (!data.connected)
             AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
         AppComponent.self.statusbar.items.push(tempmark);
@@ -3041,11 +3041,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         });
         for (let i = 0; i < 20; ++i) {
             let row = bookViewTable.newRow();
-            row.cells[0].Class = "warning";
+            row.cells[0].bgColor = "#FE6635";
             row.cells[0].Text = "";
-            row.cells[1].Class = "info";
-            row.cells[2].Class = "danger";
-            row.cells[3].Class = "default";
+            row.cells[1].bgColor = "#5895ca";
+            row.cells[2].bgColor = "#D31d45";
+            row.cells[3].bgColor = "transparent";
         }
         let bHead = false;
         bookViewTable.onCellClick = (cellItem, cellIndex, rowIndex) => {

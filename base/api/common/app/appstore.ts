@@ -87,6 +87,10 @@ export class AppStore {
             });
         });
 
+        IPCManager.register("appstore://quit-all", (event) => {
+            contentWindow.close();
+        });
+
         IPCManager.register("appstore://get-setting", (event) => {
             event.returnValue = UConfig.default;
         });

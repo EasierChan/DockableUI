@@ -72,12 +72,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
         });
 
         this.codeTableSection.content.onRowDBClick = (row, rowIdx) => {
-            this.codeChartSection.content.chart.setOption({
-                legend: { data: [`${indexs[rowIdx].chname}`] },
-                yAxis: { name: `${indexs[rowIdx].chname}` },
-                series: { name: `${indexs[rowIdx].chname}` }
-            })
+            this.codeChartSection.content.option.legend.data = [`${indexs[rowIdx].chname}`];
+            this.codeChartSection.content.option.yAxis.name = `${indexs[rowIdx].chname}`;
+            this.codeChartSection.content.option.series.name = `${indexs[rowIdx].chname}`;
+
+            this.codeChartSection.content.chart.setOption(this.codeChartSection.content.option);
             // TODO request minutedata with indexs[rowIdx].ukey
+            console.info(indexs[rowIdx].ukey);
+
+            this.quote.send(141, 10001, {
+                requestId: 1,
+                dataType: 107001,
+                ukeyCode: parseInt(indexs[rowIdx].ukey)
+            });
         };
 
         this.codeChartSection = new Section();
@@ -118,23 +125,31 @@ export class DashboardComponent implements OnInit, OnDestroy {
             row.cells[0].Text = "08:28";
         row = null;
         row = this.todoSection.content.newRow();
-        row.cells[1].Text = "买入货币基金",
-            row.cells[0].Text = "08:28";
+        row.cells[1].Text = "买入货币基金";
+        row.cells[0].Text = "08:28";
         row = null;
+
+        this.registerListeners();
     }
 
     registerListeners() {
-        // this.quote.addSlot({});
-        let data = [];
-        let option: any = {};
-        data.forEach(item => {
-            option.xAxis.data.push(item.time / 100000);
-            option.series.data.push(item.close);
-        });
+        this.quote.addSlot({
+            appid: 141,
+            packid: 10001,
+            callback: (msg) => {
+                console.info(msg);
+                // let data = [];
+                // let option: any = {};
+                // data.forEach(item => {
+                //     option.xAxis.data.push(item.time / 100000);
+                //     option.series.data.push(item.close);
+                // });
 
-        this.codeChartSection.content.chart.setOption(option);
-        option = null;
-        data = null;
+                // this.codeChartSection.content.chart.setOption(option);
+                // option = null;
+                // data = null;
+            }
+        });
     }
 
     ngOnDestroy() {

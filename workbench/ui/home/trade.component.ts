@@ -38,7 +38,7 @@ export class TradeComponent implements OnInit {
     strategyCores: string[];
     productsList: string[];
     tileArr: string[] = [];
-    ProductMsg: string[];
+    ProductMsg: any[];
     bshow: boolean = false;
     bcreate: boolean = false;
     bRead: boolean = false;
@@ -48,6 +48,9 @@ export class TradeComponent implements OnInit {
     setting: any;
     clickItem: any;
     strategyArea: any;
+    frame_host: any;
+    frame_port: any;
+
 
     constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
@@ -83,6 +86,9 @@ export class TradeComponent implements OnInit {
     }
 
     ngOnInit() {
+        let setting = this.appService.getSetting();
+        this.frame_host = setting.endpoints[0].quote_addr.split(":")[0];
+        this.frame_port = setting.endpoints[0].quote_addr.split(":")[1];
         let self = this;
         this.bDetails = false;
         let productArea = new TileArea();
@@ -99,7 +105,7 @@ export class TradeComponent implements OnInit {
             this.clickItem = item;
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].name === item.title) {
+                if (this.configs[i].chinese_name === item.title) {
                     this.config = this.configs[i];
                     break;
                 }
@@ -109,12 +115,13 @@ export class TradeComponent implements OnInit {
             } else if (event.button === 2) { // right click
                 this.contextMenu.popup();
             }
+            console.log(this.config, this.clickItem);
         };
 
         let analyticArea = new TileArea();
         analyticArea.title = "Analytic";
         analyticArea.onCreate = () => {
-            alert("----");
+
         };
 
         for (let i = 0; i < 1; ++i) {
@@ -193,13 +200,13 @@ export class TradeComponent implements OnInit {
                     let rtn = this.tileArr.indexOf(config.name);
                     if (config.activeChannel === "default" && rtn === -1) {
                         let tile = new Tile();
-                        tile.title = config.name;
+                        tile.title = config.chinese_name;
                         tile.iconName = "adjust";
                         this.strategyArea.addTile(tile);
                         this.tileArr.push(config.name);
                         // this.isInit = true;
                         config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#E9B837" : "#f24959";
+                            tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
                         };
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
@@ -267,7 +274,7 @@ export class TradeComponent implements OnInit {
                 console.log(this.config, this.curTemplate.body.data);
                 this.tgw.send(107, 2000, {
                     routerid: 0, templateid: this.curTemplate.id, body: {
-                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
                         strategies: this.config.strategies
                     }
                 });
@@ -276,7 +283,6 @@ export class TradeComponent implements OnInit {
     }
 
     finish() {
-        // validation
         if (!this.config.name || this.config.name.length === 0 ||
             !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
             // console.log(this.config.name, this.config.name.length, this.config.strategyCoreName, this.config.strategyInstances, this.config.strategyInstances.length);
@@ -359,7 +365,7 @@ export class TradeComponent implements OnInit {
         if (!this.bshow) {
             this.tgw.send(107, 2000, {
                 routerid: 0, templateid: this.curTemplate.id, body: {
-                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: this.config.chinese_name,
+                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
                     strategies: this.config.strategies
                 }
             });
@@ -431,7 +437,9 @@ export class TradeComponent implements OnInit {
                 }
                 // choose product and account
                 this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-                this.onSelectProduct(this.productsList[0]);
+                if (this.accounts === "") {
+                    this.onSelectProduct(this.productsList[0]);
+                }
                 for (let i = 0; i < this.config.channels.gateway.length; ++i) {
                     for (let obj in this.gatewayObj) {
                         if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
@@ -459,6 +467,9 @@ export class TradeComponent implements OnInit {
         if (this.config.curstep === 2) {
             this.config.activeChannel = "default";
         }
+        if (this.config.curstep === 3) {
+            console.log(this.config);
+        }
         ++this.config.curstep;
     }
 
@@ -485,8 +496,8 @@ export class TradeComponent implements OnInit {
             name: this.config.name,
             lang: this.setting.language,
             feedhandler: {
-                port: this.config.channels.feedhandler.port,
-                host: this.config.channels.feedhandler.addr
+                host: this.frame_host,
+                port: parseInt(this.frame_port)
             }
         })) {
             alert(`start ${this.config.name} app error!`);
@@ -513,7 +524,10 @@ export class TradeComponent implements OnInit {
         this.newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
         this.newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
         this.newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        this.config.strategyInstances[0] = this.newInstance;
+        if (this.accounts === "")
+            this.onSelectProduct(this.productsList[0]);
+        else
+            this.config.strategyInstances[0] = this.newInstance;
         this.config.strategyInstances[0].accounts = this.accounts;
         let bEmpty = this.isEmpty(this.gatewayObj);
         if (!bEmpty) {
@@ -597,7 +611,8 @@ export class TradeComponent implements OnInit {
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
-            this.curTemplate = this.configBll.getConfigByName(this.config.strategyCoreName);
+            this.curTemplate = this.configBll.getTemplateByName(this.config.strategyCoreName);
+            console.log("this.config.strategyCoreName:", this.config.strategyCoreName, "template:", this.curTemplate);
         }
     }
 

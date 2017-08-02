@@ -32,6 +32,10 @@ export class AppStoreService {
     saveSetting(setting) {
         electron.ipcRenderer.send("appstore://save-setting", setting);
     }
+
+    quitAll() {
+        electron.ipcRenderer.send("appstore://quit-all");
+    }
 }
 
 @Injectable()

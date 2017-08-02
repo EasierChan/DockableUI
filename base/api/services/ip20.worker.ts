@@ -18,37 +18,69 @@ class IP20Parser extends Parser {
     }
 
     processRead(): void {
-        if (this.processMsgHeader() && this.processMsg() && this._oPool.length > 0) {
+        while (this.processMsgHeader() && this.processMsg()) {
             this._curHeader = null;
-            this.processRead();
+
+            if (this._oPool.length === 0)
+                break;
+
+            logger.info(`pool length: ${this._oPool.length}`);
         }
     }
     /**
      * process message head.
      */
     processMsgHeader(): boolean {
-        if (this._oPool.length === 0 || this._curHeader !== null)
+        if (this._oPool.length === 0)
             return false;
+
+        if (this._curHeader !== null)
+            return true;
 
         let ret = false;
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+
         for (; bufCount < this._oPool.length; ++bufCount) {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].byteLength;
             if (buflen >= ISONPack2Header.len) {
                 this._curHeader = new ISONPack2Header();
+                let tempBuffer = null;
+
                 if (bufCount > 1) {
-                    let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
+                    tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
+
                     this._curHeader.fromBuffer(tempBuffer);
-                    tempBuffer = null;
                 } else {
                     this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0]);
+                    tempBuffer = this._oPool.peek(bufCount + 1)[0];
                 }
+
+                //  remove unvalid message header
+                if (this._curHeader.packlen === 0) {
+                    this._oPool.remove(bufCount + 1);
+                    restLen = buflen - ISONPack2Header.len;
+
+                    if (restLen > 0) {
+                        let restBuf = Buffer.alloc(restLen);
+                        tempBuffer.copy(restBuf, 0, buflen - restLen);
+                        this._oPool.prepend(restBuf);
+                        restBuf = null;
+                    }
+
+                    tempBuffer = null;
+                    this._curHeader = null;
+                    ret = false;
+                    break;
+                }
+
+                tempBuffer = null;
                 ret = true;
                 break;
             }
         }
+
         restLen = null;
         buflen = null;
         bufCount = null;
@@ -62,6 +94,7 @@ class IP20Parser extends Parser {
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+
         for (; bufCount < this._oPool.length; ++bufCount) {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.packlen) {
@@ -76,12 +109,14 @@ class IP20Parser extends Parser {
                     this._oPool.prepend(restBuf);
                     restBuf = null;
                 }
+
                 this._curHeader = null;
                 tempBuffer = null;
                 ret = true;
                 break;
             }
         }
+
         restLen = null;
         buflen = null;
         bufCount = null;

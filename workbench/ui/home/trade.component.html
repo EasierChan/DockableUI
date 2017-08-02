@@ -26,7 +26,7 @@
                                 <option  *ngFor="let name of strategyCores" >{{name}}</option>
                             </select>
                     <span class="strategytext">产品：</span>
-                    <select class="strategy-sel" (change)="onSelectProduct(productsList[productcore.selectedIndex])" #productcore >
+                    <select class="strategy-sel" (change)="onSelectProduct(productsList[productcore.selectedIndex])" #productcore>
                                 <option  *ngFor="let name of productsList" >{{name}}</option>
                             </select>
                 </div>
@@ -152,6 +152,31 @@
                 <button class="button" [disabled]="config.curstep==1" (click)="prev()">Prev</button>
                 <button class="button" [disabled]="config.curstep==4" (click)="next()">Next</button>
                 <button class="button" [disabled]="config.curstep!=4" (click)="finish()">Finish</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="block-shadow-info"  *ngIf = "bSpread" id="svconfig"  data-close-button="true" data-width="600"
+    data-height="400">
+    <div class="pop-center fg-white bg-darker">
+        <div class="header">
+            <a href="#" class="icon mif-home fg-white"></a>
+            <span class="title">SpreadViewerConfig</span>
+        </div>
+        <div class="content">
+            <div>
+                <div>
+                    Name: <input type="text" [(ngModel)]="svconfig.name">
+                </div>
+                <br> Code1: <input type="text" [(ngModel)]="svconfig.code1"> Code2: <input type="text" [(ngModel)]="svconfig.code2">
+                <br>
+                <h5>Formula:</h5>
+                <textarea name="formula" style="width: 100%; line-height: 20px;" cols="30" rows="10" [(ngModel)]="svconfig.formula"></textarea>
+            </div>
+        </div>
+        <div class="footer">
+            <div class="place-right">
+                <button class="button" (click)="onCloseSVConfig();">Finish</button>
             </div>
         </div>
     </div>
