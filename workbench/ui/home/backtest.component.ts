@@ -84,7 +84,6 @@ export class BacktestComponent implements OnInit {
         this.contextMenu.addItem("Turn Simulation", () => {
             console.log(this.config);
             this.bChangeShow = true;
-            this.lookbackTosimulation();
         });
     }
 
@@ -466,11 +465,17 @@ export class BacktestComponent implements OnInit {
     lookbackTosimulation() {
         let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
         this.config.channels.feedhandler.filename = getTmp.body.data.SSFeed.detailview.PriceServer.filename;
+        // temporary setting
+        for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+            this.config.channels.gateway[i].addr = "172.24.50.10";
+            this.config.channels.gateway[i].port = 8000;
+        }
         this.config.activeChannel = "simulation";
         this.configBll.updateConfig(this.config);
         this.backTestArea.removeTile(this.clickItem.title);
         this.strategyContainer.removeItem(this.config.name);
         this.bChangeShow = false;
+        console.log(this.config);
     }
     closePanel(e?: any) {
         if (this.bshow) {
