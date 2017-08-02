@@ -49,39 +49,49 @@ export class BacktestComponent implements OnInit {
     sendLoopConfigs: any[] = [];
     lookbackItem: any;
     strategymap: any;
+    selectStrategyName: any;
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
         this.setting = this.appService.getSetting();
-        this.contextMenu.addItem("Start", () => {
+        this.contextMenu.addItem("启动", () => {
             this.operateStrategyServer(this.config, 1);
         });
-        this.contextMenu.addItem("Stop", () => {
+        this.contextMenu.addItem("停止", () => {
             this.operateStrategyServer(this.config, 0);
         });
-        this.contextMenu.addItem("Modify", () => {
+        this.contextMenu.addItem("修改", () => {
             this.config.curstep = 1;
             this.bRead = true;
             this.bshow = true;
             this.bModify = true;
             this.onPopup(1);
         });
-        this.contextMenu.addItem("Remove", () => {
-            console.log(this.clickItem, this.configs);
-            let len = this.configs.length;
-            for (let i = 0; i < len; ++i) {
-                if (this.configs[i].chinese_name === this.clickItem.title) {
-                    this.configs.splice(i, 1);
-                    this.configBll.updateConfig();
-                    this.backTestArea.removeTile(this.clickItem.title);
-                    this.strategyContainer.removeItem(this.config.name);
-                    break;
+        this.contextMenu.addItem("删除", () => {
+            if (!confirm("确定删除？")) {
+                return;
+            } else {
+                console.log(this.clickItem, this.configs);
+                let len = this.configs.length;
+                for (let i = 0; i < len; ++i) {
+                    if (this.configs[i].chinese_name === this.clickItem.title) {
+                        this.configs.splice(i, 1);
+                        this.configBll.updateConfig();
+                        this.backTestArea.removeTile(this.clickItem.title);
+                        this.strategyContainer.removeItem(this.config.name);
+                        let tileIdx = this.tileArr.indexOf(this.config.name);
+                        if (tileIdx !== -1) {
+                            this.tileArr.splice(tileIdx, 1);
+                        }
+                        break;
+                    }
                 }
             }
+
         });
-        this.contextMenu.addItem("Turn Simulation", () => {
+        this.contextMenu.addItem("移动到仿真", () => {
             console.log(this.config);
             this.bChangeShow = true;
         });
@@ -379,11 +389,12 @@ export class BacktestComponent implements OnInit {
         this.bChangeShow = false;
     }
     next() {
+        console.log(this.config);
         if (this.config.curstep === 1) {
-            if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
-                alert("a strategycore needed.");
-                return;
-            }
+            // if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
+            //     alert("a strategycore needed.");
+            //     return;
+            // }
             if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
                 alert("please input correct format name");
                 return;
@@ -414,6 +425,7 @@ export class BacktestComponent implements OnInit {
                 newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
                 newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
                 newInstance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
+                newInstance.algoes = [100, 101, 102, 103, 104];
                 this.config.strategyInstances[0] = newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = "666600000011";
@@ -515,7 +527,7 @@ export class BacktestComponent implements OnInit {
         this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
-            this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
+            this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));
             // console.log(this.strategyCores);
         } else {
             this.config.curstep = 1;

@@ -465,6 +465,7 @@ export class TradeComponent implements OnInit {
                 this.newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
                 this.newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
                 this.newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+                this.newInstance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
                 this.config.strategyInstances[0] = this.newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = this.accounts;
@@ -611,10 +612,10 @@ export class TradeComponent implements OnInit {
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
         this.strategyCores = this.configBll.getTemplates();
+        // this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
             this.config.strategyCoreName = this.strategyCores[0];
-            console.log(this.strategyCores);
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
@@ -622,6 +623,8 @@ export class TradeComponent implements OnInit {
             console.log("this.config.strategyCoreName:", this.config.strategyCoreName, "template:", this.curTemplate);
         }
     }
+
+
 
     hide() {
         this.bshow = false;

@@ -2260,7 +2260,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showComAccountPos(data: any) {
-        //  console.log("***********", data);
+        console.log("***********", data);
         for (let i = 0; i < data.length; ++i) {
             let accTableRows: number = AppComponent.self.accountTable.rows.length;
             let accData: number = data[i].record.account;
@@ -2325,6 +2325,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
     addAccountEquitInfo(obj: any) {
         // console.info(AppComponent.self.accountTable);
+        // console.log("equit:", obj);
         let row = AppComponent.self.accountTable.newRow();
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
@@ -2352,6 +2353,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         // AppComponent.self.ref.detectChanges();
     }
     addAccountFutureInfo(obj: any) {
+        // console.log("future:", obj);
         let row = AppComponent.self.accountTable.newRow();
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
@@ -2373,17 +2375,17 @@ export class AppComponent implements OnInit, AfterViewInit {
         // AppComponent.self.ref.detectChanges();
     }
     refreshAccountEquiteInfo(obj: any, idx: number) {
+        // console.log("refresh acc equit:", obj, idx);
         if (obj.market === SECU_MARKET.SM_SH)
             AppComponent.self.accountTable.rows[idx].cells[7].Text = obj.record.AvlAmount / 10000;
         else if (obj.market === SECU_MARKET.SM_SZ)
             AppComponent.self.accountTable.rows[idx].cells[8].Text = obj.record.AvlAmount / 10000;
-        else {
-            AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount / 10000;
-            AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount / 10000;
-            AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount / 10000;
-            AppComponent.self.accountTable.rows[idx].cells[5].Text = obj.record.date;
-            AppComponent.self.accountTable.rows[idx].cells[6].Text = obj.record.c;
-        }
+
+        AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount / 10000;
+        AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount / 10000;
+        AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount / 10000;
+        AppComponent.self.accountTable.rows[idx].cells[5].Text = obj.record.date;
+        AppComponent.self.accountTable.rows[idx].cells[6].Text = obj.record.c;
         // AppComponent.self.ref.detectChanges();
     }
     refreshAccountFutureInfo(obj: any, idx: number) {

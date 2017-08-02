@@ -28,7 +28,6 @@ export class SimulationComponent implements OnInit {
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
     curTemplate: any;
-    isModify: boolean = false;
     isInit: boolean = false;
     panelTitle: string;
     strategyName: string;
@@ -40,6 +39,7 @@ export class SimulationComponent implements OnInit {
     bRead: boolean = false;
     bSelProduct: boolean = false;
     bModify: boolean = false;
+    bSelStrategy: boolean = false;
     accounts: string;
     gatewayObj: Object;
     setting: any;
@@ -50,6 +50,7 @@ export class SimulationComponent implements OnInit {
     sendLoopConfigs: any[] = [];
     frame_host: any;
     frame_port: any;
+    strategymap: any;
 
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
@@ -58,32 +59,40 @@ export class SimulationComponent implements OnInit {
         this.config.curstep = 1;
         this.productsList = [];
         this.setting = this.appService.getSetting();
-        this.contextMenu.addItem("Start", () => {
+        this.contextMenu.addItem("启动", () => {
             this.operateStrategyServer(this.config, 1);
         });
-        this.contextMenu.addItem("Stop", () => {
+        this.contextMenu.addItem("停止", () => {
             this.operateStrategyServer(this.config, 0);
         });
-        this.contextMenu.addItem("Modify", () => {
+        this.contextMenu.addItem("修改", () => {
             this.config.curstep = 1;
             this.bRead = true;
             this.bshow = true;
             this.bModify = true;
             this.onPopup(1);
         });
-        this.contextMenu.addItem("Remove", () => {
-            let len = this.configs.length;
-            for (let i = 0; i < len; ++i) {
-                if (this.configs[i].chinese_name === this.clickItem.title) {
-                    this.configs.splice(i, 1);
-                    this.configBll.updateConfig();
-                    this.simulationArea.removeTile(this.clickItem.title);
-                    this.strategyContainer.removeItem(this.config.name);
-                    break;
+        this.contextMenu.addItem("删除", () => {
+            if (!confirm("确定删除？")) {
+                return;
+            } else {
+                let len = this.configs.length;
+                for (let i = 0; i < len; ++i) {
+                    if (this.configs[i].chinese_name === this.clickItem.title) {
+                        this.configs.splice(i, 1);
+                        this.configBll.updateConfig();
+                        this.simulationArea.removeTile(this.clickItem.title);
+                        this.strategyContainer.removeItem(this.config.name);
+                        let tileIdx = this.tileArr.indexOf(this.config.name);
+                        if (tileIdx !== -1) {
+                            this.tileArr.splice(tileIdx, 1);
+                        }
+                        break;
+                    }
                 }
             }
         });
-        this.contextMenu.addItem("Turn Ture", () => {
+        this.contextMenu.addItem("移动到实盘", () => {
             console.log(this.config);
             this.bChangeShow = true;
             this.tgw.send(260, 216, { body: { tblock_type: 2 } });
@@ -97,7 +106,18 @@ export class SimulationComponent implements OnInit {
         let self = this;
         this.bDetails = false;
         this.simulationArea = new TileArea();
-        this.simulationArea.title = "Simulation";
+        this.simulationArea.title = "仿真";
+
+        this.strategymap = {
+            PairTrade: "统计套利",
+            ManualTrader: "手工交易",
+            PortfolioTrader: "组合交易",
+            IndexSpreader: "做市策略",
+            SimpleSpreader: "跨期套利",
+            BasketSpreader: "期现套利",
+            BlockTrader: "大宗交易"
+        };
+
 
         this.simulationArea.onCreate = () => {
             console.log("*****");
@@ -173,7 +193,6 @@ export class SimulationComponent implements OnInit {
                 if (config) {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
-                    this.configBll.updateConfig(config);
                     let rtn = this.tileArr.indexOf(config.name);
                     if (config.activeChannel === "simulation" && rtn === -1) {
                         let tile = new Tile();
@@ -187,6 +206,9 @@ export class SimulationComponent implements OnInit {
                         };
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
+                        this.configBll.updateConfig(config);
+                    } else {
+
                     }
                 }
                 // console.log(this.configs);
@@ -322,6 +344,7 @@ export class SimulationComponent implements OnInit {
         console.log(this.accounts, this.gatewayObj);
     }
     finish() {
+        console.log(this.config);
         // validation
         if (!this.config.name || this.config.name.length === 0 ||
             !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
@@ -453,18 +476,18 @@ export class SimulationComponent implements OnInit {
     }
     next() {
         if (this.config.curstep === 1) {
-            if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
-                alert("a strategycore needed.");
-                return;
-            }
+            // if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
+            //     alert("a strategycore needed.");
+            //     return;
+            // }
             if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
                 alert("please input correct format name");
                 return;
             }
-            if (!this.bcreate && !this.bModify) {
-                console.log("in bcreat");
+            if (!this.bModify) {
                 // get template
-                this.config.strategyCoreName = this.strategyCores[0];
+                if (!this.bSelStrategy)
+                    this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
                 delete this.curTemplate;
                 this.curTemplate = null;
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
@@ -485,6 +508,8 @@ export class SimulationComponent implements OnInit {
                 newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
                 newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
                 newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+                newInstance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
+                newInstance.algoes = [100, 101, 102, 103, 104];
                 this.config.strategyInstances[0] = newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = "666600000011";
@@ -503,32 +528,41 @@ export class SimulationComponent implements OnInit {
             this.bcreate = false;
         --this.config.curstep;
     }
-    onSelectStrategy(value: string) {
-        this.bcreate = true;
-        this.config.strategyCoreName = value;
-        delete this.curTemplate;
-        this.curTemplate = null;
-        this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-
-        if (this.curTemplate === null) {
-            alert("Error: getTemplateByName `not found ${this.config.name}`");
-            return;
+    getStrategyNameByChinese(data: any) {
+        for (let o in this.strategymap) {
+            console.log(o, this.strategymap[o], data);
+            if (this.strategymap[o] === data)
+                return o;
         }
-        // choose product and account
-        this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-        this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
-        this.strategyName = "";
-
-        let newInstance: StrategyInstance = new StrategyInstance();
-        newInstance.name = this.config.name;
-        newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
-        newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
-        newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
-        newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        this.config.strategyInstances[0] = newInstance;
-        // GET account info from product msg
-        this.config.strategyInstances[0].accounts = "666600000011";
+    }
+    onSelectStrategy(value: string) {
         console.log(this.config);
+        this.bcreate = true;
+        this.bSelStrategy = true;
+        this.config.strategyCoreName = this.getStrategyNameByChinese(value);
+        // delete this.curTemplate;
+        // this.curTemplate = null;
+        // this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+
+        // if (this.curTemplate === null) {
+        //     alert("Error: getTemplateByName `not found ${this.config.name}`");
+        //     return;
+        // }
+        // // choose product and account
+        // this.config.channels.gateway = this.curTemplate.body.data.SSGW;
+        // this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+        // this.strategyName = "";
+
+        // let newInstance: StrategyInstance = new StrategyInstance();
+        // newInstance.name = this.config.name;
+        // newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
+        // newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
+        // newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
+        // newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+        // this.config.strategyInstances[0] = newInstance;
+        // // GET account info from product msg
+        // this.config.strategyInstances[0].accounts = "666600000011";
+        // console.log(this.config);
     }
     closePanel(e?: any) {
         if (this.bshow) {
@@ -563,12 +597,12 @@ export class SimulationComponent implements OnInit {
     }
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
-        this.strategyCores = this.configBll.getTemplates();
+        // this.strategyCores = this.configBll.getTemplates();
+        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
-            this.isModify = false;
-            this.config.strategyCoreName = this.strategyCores[0];
-            console.log(this.strategyCores);
+            this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));
+            // console.log(this.strategyCores);
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
