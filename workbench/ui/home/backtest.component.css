@@ -128,7 +128,7 @@ tilearea {
     color: #ffffff;
     font-size: 14px;
 }
-.backrefer{
+/*.backrefer{
     margin: 8px;
 }
 .backrefer label {
@@ -141,4 +141,22 @@ tilearea {
     color: #fff;
     font-size: 14px;
     float: left;
+}*/
+.backprefer{
+    width: 100%;
+}
+.backprefer tbody tr {
+    height: 30px;
+    vertical-align: middle;
+}
+.backprefer tbody tr > td:nth-child(odd) {
+    text-align: right;
+}
+.backprefer tbody tr > td:nth-child(even) {
+    text-align: left;
+    margin-left: 10px;
+}
+
+td input {
+    width: auto;
 }
