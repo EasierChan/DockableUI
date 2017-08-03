@@ -165,7 +165,7 @@
         <div class="content">
             <div>
                 <div>
-                    名称: <input type="text" [(ngModel)]="svconfig.name">
+                    名称: <input type="text" [disabled]="bNameRead" [(ngModel)]="svconfig.name">
                 </div>
                 <br> 标的1: <input type="text" [(ngModel)]="svconfig.code1"> 标的2: <input type="text" [(ngModel)]="svconfig.code2">
                 <br>

@@ -50,6 +50,7 @@ export class TradeComponent implements OnInit {
     bSelStrategy: boolean = false;
     bSpread: boolean = false;
     bSelProduct: boolean = false;
+    bNameRead: boolean = false;
     accounts: string = "";
     gatewayObj: Object;
     setting: any;
@@ -360,7 +361,7 @@ export class TradeComponent implements OnInit {
             let tile = new Tile();
             tile.title = this.svconfigs[i].name;
             this.analyticArr.push(this.svconfigs[i].name);
-            tile.iconName = "repeat";
+            tile.iconName = "object-align-bottom";
             this.analyticArea.addTile(tile);
         }
     }
@@ -470,6 +471,7 @@ export class TradeComponent implements OnInit {
 
     onModifySpreadViewer() {
         this.bSpread = true;
+        this.bNameRead = true;
     }
 
     closePanel(e?: any) {
@@ -485,16 +487,20 @@ export class TradeComponent implements OnInit {
             return;
         }
         let rtn = this.analyticArr.indexOf(this.svconfig.name);
-        if (rtn !== -1) {
+        if (rtn !== -1 && !this.bNameRead) {
             alert("已存在同名价差分析");
             return;
         }
+        if (!this.bNameRead) {
+            let tile = new Tile();
+            tile.title = this.svconfig.name;
+            tile.iconName = "object-align-bottom";
+            this.analyticArea.addTile(tile);
+        }
+        console.log(this.svconfigs);
         this.configBll.addSVConfigItem(this.svconfig);
-        let tile = new Tile();
-        tile.title = this.svconfig.name;
-        tile.iconName = "object-align-bottom";
-        this.analyticArea.addTile(tile);
         this.bSpread = false;
+        this.bNameRead = false;
     }
 
     duplicateRemove(data: any) {
