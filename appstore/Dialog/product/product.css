@@ -18,6 +18,12 @@ table.header {
 
 table.header > tbody > tr > td:nth-child(odd) {
     text-align: right;
+    padding: 2px 5px;
+}
+
+table.header > tbody > tr > td:nth-child(even) {
+    background-color: #1A2237;
+    color: #71a9d6;
 }
 
 div.holder {
