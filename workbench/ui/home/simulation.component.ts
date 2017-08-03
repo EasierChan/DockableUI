@@ -54,6 +54,10 @@ export class SimulationComponent implements OnInit {
 
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    }
+
+    ngOnInit() {
+        this.configs = this.configBll.getAllConfigs();
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
@@ -97,12 +101,9 @@ export class SimulationComponent implements OnInit {
             this.bChangeShow = true;
             this.tgw.send(260, 216, { body: { tblock_type: 2 } });
         });
-    }
 
-    ngOnInit() {
-        let setting = this.appService.getSetting();
-        this.frame_host = setting.endpoints[0].quote_addr.split(":")[0];
-        this.frame_port = setting.endpoints[0].quote_addr.split(":")[1];
+        this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
+        this.frame_port = this.setting.endpoints[0].quote_addr.split(":")[1];
         let self = this;
         this.bDetails = false;
         this.simulationArea = new TileArea();
@@ -140,8 +141,8 @@ export class SimulationComponent implements OnInit {
             }
             console.log(this.config, this.clickItem);
         };
+
         this.areas = [this.simulationArea];
-        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
         this.tgw.addSlot({  // template
             appid: 270,
             packid: 194,
@@ -155,7 +156,7 @@ export class SimulationComponent implements OnInit {
                         templatelist.body.forEach(template => {
                             this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
                         });
-                        self.configs = self.configBll.getAllConfigs();
+
                         self.configs.forEach(config => {
                             self.config = config;
                             self.config.state = 0;
@@ -287,6 +288,8 @@ export class SimulationComponent implements OnInit {
                 this.simulationToTruly();
             }
         });
+
+        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
     }
 
     static reqnum = 1;

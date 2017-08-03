@@ -52,6 +52,10 @@ export class BacktestComponent implements OnInit {
     selectStrategyName: any;
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    }
+
+    ngOnInit() {
+        this.configs = this.configBll.getAllConfigs();
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
@@ -95,9 +99,7 @@ export class BacktestComponent implements OnInit {
             console.log(this.config);
             this.bChangeShow = true;
         });
-    }
 
-    ngOnInit() {
         let self = this;
         this.bDetails = false;
         this.backTestArea = new TileArea();
@@ -150,7 +152,7 @@ export class BacktestComponent implements OnInit {
                         templatelist.body.forEach(template => {
                             this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
                         });
-                        self.configs = self.configBll.getAllConfigs();
+
                         self.configs.forEach(config => {
                             self.config = config;
                             self.config.state = 0;

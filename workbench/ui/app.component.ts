@@ -13,6 +13,7 @@ import {
 
 import { AppStoreService, ChildProcess, Http } from "../../base/api/services/backend.service";
 import { TradeService, QuoteService, QtpService } from "../bll/services";
+// import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
 import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
@@ -39,6 +40,8 @@ export class AppComponent implements OnInit {
     homeMod: string;
     activeTab: string;
     curEndpoint: any;
+    quoteHeart: any;
+    tradeHeart: any;
 
     constructor(private tradeEndPoint: TradeService,
         private quote: QuoteService,
@@ -182,6 +185,13 @@ export class AppComponent implements OnInit {
             packid: 43,
             callback: msg => {
                 console.info(`tgw::login ans=>${msg.toString()}`);
+
+                if (this.tradeHeart)
+                    clearTimeout(this.tradeHeart);
+
+                this.tradeHeart = setTimeout(() => {
+                    this.quote.send(17, 0, {});
+                }, 60000);
             }
         });
 
@@ -198,6 +208,13 @@ export class AppComponent implements OnInit {
             packid: 43,
             callback: msg => {
                 console.info(`tgw::login ans=>${msg.toString()}`);
+
+                if (this.quoteHeart)
+                    clearTimeout(this.quoteHeart);
+
+                setTimeout(() => {
+                    this.quote.send(17, 0, {});
+                }, 60000);
             }
         });
 

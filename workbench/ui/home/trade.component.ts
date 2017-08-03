@@ -64,6 +64,10 @@ export class TradeComponent implements OnInit {
 
 
     constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    }
+
+    ngOnInit() {
+        this.configs = this.configBll.getAllConfigs();
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
@@ -121,12 +125,9 @@ export class TradeComponent implements OnInit {
             }
             this.configBll.removeSVConfigItem(this.svconfig);
         });
-    }
 
-    ngOnInit() {
-        let setting = this.appService.getSetting();
-        this.frame_host = setting.endpoints[0].quote_addr.split(":")[0];
-        this.frame_port = setting.endpoints[0].quote_addr.split(":")[1];
+        this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
+        this.frame_port = this.setting.endpoints[0].quote_addr.split(":")[1];
 
         this.strategymap = {
             PairTrade: "统计套利",
@@ -215,7 +216,6 @@ export class TradeComponent implements OnInit {
         this.resTable.addColumn2(new DataTableColumn("总盈亏", false, true));
         this.resTable.addColumn2(new DataTableColumn("总仓位", false, true));
         // if (!this.isInit)
-        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
         this.tgw.addSlot({  // template
             appid: 270,
             packid: 194,
@@ -247,7 +247,6 @@ export class TradeComponent implements OnInit {
                         this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
                     });
 
-                    self.configs = self.configBll.getAllConfigs();
                     self.configs.forEach(config => {
                         self.config = config;
                         self.config.state = 0;
@@ -259,38 +258,38 @@ export class TradeComponent implements OnInit {
             }
 
         });
+
         this.tgw.addSlot({
             appid: 107,
             packid: 2001,
             callback: msg => {
                 console.info(msg.content.body, this.config);
-                let config = this.configs.find(item => { return item.name === msg.content.body.name; });
+                let config = self.configs.find(item => { return item.name === msg.content.body.name; });
                 if (config) {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
-                    let rtn = this.tileArr.indexOf(config.name);
+                    let rtn = self.tileArr.indexOf(config.name);
                     if (config.activeChannel === "default" && rtn === -1) {
                         let tile = new Tile();
                         tile.title = config.chinese_name;
                         tile.iconName = "tasks";
-                        this.strategyArea.addTile(tile);
-                        this.tileArr.push(config.name);
-                        // this.isInit = true;
+                        self.strategyArea.addTile(tile);
+                        self.tileArr.push(config.name);
+                        // self.isInit = true;
                         config.stateChanged = () => {
                             tile.backgroundColor = config.state ? "#1d9661" : null;
                         };
-                        this.strategyContainer.removeItem(config.name);
-                        this.strategyContainer.addItem(config);
-                        this.configBll.updateConfig(config);
+                        self.strategyContainer.removeItem(config.name);
+                        self.strategyContainer.addItem(config);
+                        self.configBll.updateConfig(config);
                     } else if (config.activeChannel === "default" && rtn !== -1) {
-                        this.strategyArea.getTileAt(rtn).title = config.chinese_name;
+                        self.strategyArea.getTileAt(rtn).title = config.chinese_name;
                     }
                 }
                 // console.log(this.configs);
             }
         });
 
-        this.tgw.send(260, 216, { body: { tblock_type: 2 } });
         this.tgw.addSlot({
             appid: 260,
             packid: 216,
@@ -354,6 +353,7 @@ export class TradeComponent implements OnInit {
                 });
             }
         });
+
         this.svconfigs = this.configBll.getSVConfigs();
         console.log(this.svconfigs);
         let svLen = this.svconfigs.length;
@@ -364,6 +364,9 @@ export class TradeComponent implements OnInit {
             tile.iconName = "object-align-bottom";
             this.analyticArea.addTile(tile);
         }
+
+        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
+        this.tgw.send(260, 216, { body: { tblock_type: 2 } });
     }
 
     finish() {
