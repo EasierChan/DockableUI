@@ -27,7 +27,7 @@ export class ProductComponent implements OnInit {
         this.productDetail.rows.push(["股票及股指期货总敞口", "1000", "商品期货总合约价值", "1000", "商品期货总合约轧差", "1000", "期货账户风险度"]);
 
         this.futureTable = new DataTable("table2");
-        this.futureTable.addColumn("代码", "名称", "持仓量", "持仓金额");
+        this.futureTable.addColumn("代码", "名称", "持仓方向", "持仓量", "合约价值");
         this.futureTable.backgroundColor = "transparent";
         this.stockTable = new DataTable("table2");
         this.stockTable.addColumn("代码", "名称", "持仓量", "持仓金额");
@@ -68,7 +68,6 @@ export class ProductComponent implements OnInit {
             appid: 260,
             packid: 230,
             callback: (msg) => {
-
                 if (msg.content.head.pkgCnt === msg.content.head.pkgIdx + 1) {
                     let stockArr = msg.content.head.pkgCnt === 1 ? JSON.parse(msg.content.body).body
                         : JSON.parse(this.isonpack[msg.content.head.pkgId] + msg.content.body).body;
@@ -95,7 +94,6 @@ export class ProductComponent implements OnInit {
             appid: 260,
             packid: 228,
             callback: (msg) => {
-
                 if (msg.content.head.pkgCnt === msg.content.head.pkgIdx + 1) {
                     let futureArr = msg.content.head.pkgCnt === 1 ? JSON.parse(msg.content.body).body
                         : JSON.parse(this.isonpack[msg.content.head.pkgId] + msg.content.body).body;
@@ -105,8 +103,9 @@ export class ProductComponent implements OnInit {
                         let row = this.futureTable.newRow();
                         row.cells[0].Text = item.marketcode;
                         row.cells[1].Text = item.chabbr;
-                        row.cells[2].Text = item.total_vol;
-                        row.cells[3].Text = item.total_cost;
+                        row.cells[2].Text = item.direction === "B" ? "多仓" : "空仓";
+                        row.cells[3].Text = item.total_vol;
+                        row.cells[4].Text = item.total_cost;
                     });
 
                     futureArr = null;
