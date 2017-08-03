@@ -247,12 +247,12 @@ export class TradeComponent implements OnInit {
                     if (config.activeChannel === "default" && rtn === -1) {
                         let tile = new Tile();
                         tile.title = config.chinese_name;
-                        tile.iconName = "adjust";
+                        tile.iconName = "tasks";
                         this.strategyArea.addTile(tile);
                         this.tileArr.push(config.name);
                         // this.isInit = true;
                         config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
+                            tile.backgroundColor = config.state ? "#1d9661" : null;
                         };
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
@@ -283,8 +283,7 @@ export class TradeComponent implements OnInit {
                         this.productsList.push(this.product[o].tblock_full_name);
                         let tile = new Tile();
                         tile.title = this.product[o].tblock_full_name;
-                        tile.backgroundColor = "#ff3a66";  // 1c57ff
-                        tile.iconName = "adjust";
+                        tile.iconName = "folder-close";
                         tile.data = this.product[o].tblock_id;
                         productArea.addTile(tile);
                     }
@@ -455,7 +454,7 @@ export class TradeComponent implements OnInit {
         this.configBll.addSVConfigItem(this.svconfig);
         let tile = new Tile();
         tile.title = this.svconfig.name;
-        tile.iconName = "repeat";
+        tile.iconName = "object-align-bottom";
         this.analyticArea.addTile(tile);
         this.bSpread = false;
     }

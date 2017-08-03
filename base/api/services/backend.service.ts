@@ -8,6 +8,7 @@ export const os = require("@node/os");
 export const path = require("@node/path");
 export const fs = require("@node/fs");
 export const readline = require("@node/readline");
+export const Http = require("@node/http");
 
 @Injectable()
 export class AppStoreService {

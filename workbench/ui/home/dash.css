@@ -23,11 +23,11 @@ table {
 }
 
 .dash-body > .banner {
-    flex: none;
-    height: 200px;
-    min-height: 200px;
+    flex: auto;
+    /*height: 200px;
+    min-height: 200px;*/
     background-color: #222A41;
-    background-image: url('../base/images/banner.jpg');
+    background-image: url('../base/images/main.jpg');
     background-position: center;
     background-repeat: no-repeat;
 }

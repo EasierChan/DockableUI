@@ -14,6 +14,7 @@ export class ProductComponent implements OnInit {
     productDetail: Table;
     futureTable: DataTable;
     stockTable: DataTable;
+    isonpack: any;
 
     constructor(private tgw: IP20Service) {
     }
@@ -31,6 +32,8 @@ export class ProductComponent implements OnInit {
         this.stockTable = new DataTable("table2");
         this.stockTable.addColumn("代码", "名称", "持仓量", "持仓金额");
         this.stockTable.backgroundColor = "transparent";
+
+        this.isonpack = {};
         this.registerListener();
     }
 
@@ -65,16 +68,20 @@ export class ProductComponent implements OnInit {
             appid: 260,
             packid: 230,
             callback: (msg) => {
-                let stockArr = JSON.parse(msg.content.body).body;
+                console.info(msg);
 
-                stockArr.forEach(item => {
-                    let row = this.stockTable.newRow();
-                    row.cells[0].Text = item.marketcode;
-                    row.cells[1].Text = item.chabbr;
-                    row.cells[3].Text = item.total_cost;
-                });
+                if (msg.head.pkgCnt === msg.head.pkgIdx + 1) {
+                    // let stockArr = JSON.parse(msg.content.body).body;
 
-                stockArr = null;
+                    // stockArr.forEach(item => {
+                    //     let row = this.stockTable.newRow();
+                    //     row.cells[0].Text = item.marketcode;
+                    //     row.cells[1].Text = item.chabbr;
+                    //     row.cells[3].Text = item.total_cost;
+                    // });
+
+                    // stockArr = null;
+                }
             }
         });
 
@@ -83,16 +90,17 @@ export class ProductComponent implements OnInit {
             appid: 260,
             packid: 228,
             callback: (msg) => {
-                let futureArr = JSON.parse(msg.content.body).body;
+                console.info(msg);
+                // let futureArr = JSON.parse(msg.content.body).body;
 
-                futureArr.forEach(item => {
-                    let row = this.futureTable.newRow();
-                    row.cells[0].Text = item.marketcode;
-                    row.cells[1].Text = item.chabbr;
-                    row.cells[3].Text = item.total_cost;
-                });
+                // futureArr.forEach(item => {
+                //     let row = this.futureTable.newRow();
+                //     row.cells[0].Text = item.marketcode;
+                //     row.cells[1].Text = item.chabbr;
+                //     row.cells[3].Text = item.total_cost;
+                // });
 
-                futureArr = null;
+                // futureArr = null;
             }
         });
     }
