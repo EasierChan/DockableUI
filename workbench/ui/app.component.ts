@@ -227,7 +227,6 @@ export class AppComponent implements OnInit {
         let [qhost, qport] = this.curEndpoint.quote_addr.split(":");
         this.quote.connect(qport, qhost);
         this.quote.send(17, 41, loginObj);
-        this.quote.send(17, 11, { kwlist: [1] });
 
         let [lhost, lport] = this.curEndpoint.loopback_addr.split(":");
         this.mock.connect(lport, lhost);
