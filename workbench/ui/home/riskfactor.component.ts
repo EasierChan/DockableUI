@@ -1,11 +1,11 @@
 "use strict";
 
 import { Component, HostListener, OnDestroy } from "@angular/core";
-import { File } from "../../../base/api/services/backend.service"; // File operator
+import { File, path } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DatePipe } from "@angular/common";
-import { IP20Service } from "../../../base/api/services/ip20.service";
+import { AppStoreService } from "../../../base/api/services/backend.service";
 import * as echarts from "echarts";
 const fs = require("@node/fs");
 
@@ -14,7 +14,7 @@ const fs = require("@node/fs");
     selector: "riskfactor",
     templateUrl: "riskfactor.component.html",
     styleUrls: ["home.component.css", "riskfactor.component.css"],
-    providers: [IP20Service, DatePipe],
+    providers: [DatePipe],
     inputs: ["activeTab"]
 })
 
@@ -32,8 +32,8 @@ export class RiskFactorComponent implements OnDestroy {
     enddate: string;
     startDate: string;
     endDate: string;
-    hedges:string[] = ["沪深300","中证500","上证50"];
-    hedge:string = "沪深300"；
+    hedges: string[] = ["沪深300", "中证500", "上证50"];
+    hedge: string = "沪深300";
     hedgeRadio: number;
 
     riskFactorReturnEchart: any;//echart
@@ -82,12 +82,13 @@ export class RiskFactorComponent implements OnDestroy {
     futurePosition: any[] = [];
     netTableValue: any[] = [];
 
+    dataDir: string; // added by cl
     // this.groupPosition =[ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
     // groupPosition: any[] =[{stockDate:"20170704",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]},
     //                        {stockDate:"20170705",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]} ];
 
 
-    constructor(private tradePoint: TradeService, private tgw: IP20Service, private datePipe: DatePipe) {
+    constructor(private tradePoint: TradeService, private appsrv: AppStoreService, private datePipe: DatePipe) {
         RiskFactorComponent.self = this;
         // this.loadData();
         this.iproducts = [];
@@ -95,6 +96,12 @@ export class RiskFactorComponent implements OnDestroy {
         this.productstockhold = "";
         this.strategyfuturehold = "";
         this.strategystockhold = "";
+
+    }
+
+    ngOnInit() {
+        this.dataDir = this.appsrv.getSetting().riskDataDir ? this.appsrv.getSetting().riskDataDir : "/mnt/dropbox/risk";
+        console.info(this.activeTab, this.dataDir);
 
         this.readAndHandleRiskReturn();
 
@@ -117,10 +124,6 @@ export class RiskFactorComponent implements OnDestroy {
             }
         }];
 
-    }
-
-    ngOnInit() {
-        console.info(this.activeTab);
         let date1 = new Date().setMonth((new Date().getMonth() - 1));
         let date2 = new Date();
         this.startdate = this.datePipe.transform(date1, 'yyyy-MM-dd');
@@ -172,7 +175,6 @@ export class RiskFactorComponent implements OnDestroy {
             this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
         }
 
-
         this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLDivElement);
         this.everyDayReturnEchart = echarts.init(document.getElementById("everyDayReturnEchart") as HTMLDivElement);
         this.everyDayYearReturnEchart = echarts.init(document.getElementById("everyDayYearReturnEchart") as HTMLDivElement);
@@ -202,7 +204,7 @@ export class RiskFactorComponent implements OnDestroy {
     loadData() {
         // to read a file line by line.
         let arr = [];
-        File.readLineByLine("/mnt/dropbox/risk/riskreturn.csv", (linestr) => {
+        File.readLineByLine(path.join(this.dataDir, "riskreturn.csv"), (linestr) => {
             console.log("readLineByLine", linestr);
             arr.push(linestr);
 
@@ -231,7 +233,7 @@ export class RiskFactorComponent implements OnDestroy {
         // get strategies of this product
         RiskFactorComponent.self.istrategys = ["选择所有策略"];
         console.log(RiskFactorComponent.self.productData);
-        let productlist = document.getElementById("product");
+        let productlist = document.getElementById("product") as HTMLSelectElement;
         let productIndex = productlist.selectedIndex;
         let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
         console.log(productIndex);
@@ -259,7 +261,7 @@ export class RiskFactorComponent implements OnDestroy {
 
     // 读取风险因子收益并格式化数据
     readAndHandleRiskReturn() {
-        this.riskFactorReturn = this.readDataFromCsvFile("/mnt/dropbox/risk/riskreturn.csv");
+        this.riskFactorReturn = this.readDataFromCsvFile(path.join(this.dataDir, "riskreturn.csv"));
         // 处理获取的风险因子收益数据
         if (this.riskFactorReturn.length < 2) {
             alert("风险因子收益没有数据,请导入数据后重试");
@@ -721,7 +723,7 @@ export class RiskFactorComponent implements OnDestroy {
     // 开始读取并计算数据
     beginCalculateRiskFactor() {
         //计算对冲
-        this.readAndHandleHedgeRatio("/mnt/dropbox/risk/idxmbr/"+this.startDate+".csv");
+        this.readAndHandleHedgeRatio(path.join(this.dataDir, "idxmbr", this.startDate + ".csv"));
         console.log(this.groupPosition);
         console.log(this.HedgeRatioData);
         switch (this.hedge) {
@@ -814,7 +816,7 @@ export class RiskFactorComponent implements OnDestroy {
         this.riskFactorReturnAttr=[];
 
         try{
-            dirFiles=fs.readdirSync("/mnt/dropbox/risk/expo");
+            dirFiles=fs.readdirSync(path.join(this.dataDir, "expo"));
         }catch(err){
             console.log("err",err);
             return;
@@ -846,7 +848,7 @@ export class RiskFactorComponent implements OnDestroy {
 
         for(let fileIndex=0; fileIndex<exposureFile.length; ++fileIndex){
 
-            this.readAndHandleRiskExposure("/mnt/dropbox/risk/expo/"+exposureFile[fileIndex]);
+            this.readAndHandleRiskExposure(path.join(this.dataDir,"expo" , exposureFile[fileIndex]));
             let result=this.calculateRiskFactor(this.riskFactorReturn,this.riskFactorExposure,this.groupPosition,sumOfDayExposure,exposureFile[fileIndex].split(".")[0]);
             if (!result) {
               return;
