@@ -91,10 +91,10 @@ export class AppComponent implements OnInit {
             case "product":
                 this.loginTGW(() => {
                     let today = new Date();
-                    let dateStr = [today.getFullYear(), ("0" + (today.getMonth() + 1)).slice(-2, 0), ("0" + today.getDate() + 1).slice(-2, 0)].join("");
+                    let dateStr = today.getFullYear() * 10000 +  (today.getMonth() + 1) * 100 +  (today.getDate());
                     this.trade.send(260, 232, { body: { productID: this.option.productID } });
-                    this.trade.send(260, 228, { body: { tblock_id: this.option.productID, begin_date: dateStr, end_date: dateStr } });
-                    this.trade.send(260, 230, { body: { tblock_id: this.option.productID, begin_date: dateStr, end_date: dateStr } });
+                    this.trade.send(260, 228, { body: { tblock_id: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
+                    this.trade.send(260, 230, { body: { tblock_id: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
                 });
                 break;
             default:
