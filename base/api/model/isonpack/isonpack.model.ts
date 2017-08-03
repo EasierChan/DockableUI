@@ -42,7 +42,7 @@ export class ISONPack2Header extends Message {
 
     fromBuffer(buf: Buffer, offset: number = 0): number {
         if (buf.length < ISONPack2Header.len) {
-            logger.warn("ISONPack2Header: buffer length less than header len.");
+            logger.warn(`ISONPack2Header: buffer length = ${buf.length} less than header len = ${ISONPack2Header.len}.`);
             return;
         }
 
