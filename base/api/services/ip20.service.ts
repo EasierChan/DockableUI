@@ -70,6 +70,7 @@ class IP20Parser extends Parser {
                         restBuf = null;
                     }
 
+                    console.warn(`remove unvalid message => packlen=${this._curHeader.packlen}, restLen=${restLen}`);
                     tempBuffer = null;
                     this._curHeader = null;
                     ret = false;
@@ -110,6 +111,7 @@ class IP20Parser extends Parser {
                     this._oPool.prepend(restBuf);
                     restBuf = null;
                 }
+
                 this._curHeader = null;
                 tempBuffer = null;
                 ret = true;
