@@ -39,6 +39,7 @@ export class TradeComponent implements OnInit {
     strategyCores: string[];
     productsList: string[];
     tileArr: string[] = [];
+    analyticArr: string[] = [];
     ProductMsg: any[];
     svconfigs: SpreadViewConfig[];
     svconfig: SpreadViewConfig;
@@ -58,6 +59,7 @@ export class TradeComponent implements OnInit {
     frame_host: any;
     strategymap: any;
     frame_port: any;
+    svClickItem: any;
 
 
     constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef) {
@@ -102,6 +104,20 @@ export class TradeComponent implements OnInit {
             this.onModifySpreadViewer();
         });
         this.svMenu.addItem("删除", () => {
+            if (!confirm("确定删除？")) {
+                return;
+            } else {
+                let len = this.svconfigs.length;
+                for (let i = 0; i < len; ++i) {
+                    if (this.svconfigs[i].name === this.svClickItem.title) {
+                        // this.svconfigs.splice(i, 1);
+                        this.configBll.removeSVConfigItem(this.svconfig);
+                        console.log(this.svconfigs);
+                        this.analyticArea.removeTile(this.svClickItem.title);
+                        break;
+                    }
+                }
+            }
             this.configBll.removeSVConfigItem(this.svconfig);
         });
     }
@@ -163,6 +179,14 @@ export class TradeComponent implements OnInit {
             this.bSpread = true;
         };
         this.analyticArea.onClick = (event: MouseEvent, item: Tile) => {
+            this.svClickItem = item;
+            let len = this.svconfigs.length;
+            for (let i = 0; i < len; ++i) {
+                if (this.svconfigs[i].name === item.title) {
+                    this.svconfig = this.svconfigs[i];
+                    break;
+                }
+            }
             if (event.button === 0) {
                 if (!this.appService.startApp(this.svconfig.name, this.svconfig.apptype, {
                     port: parseInt(this.frame_port),
@@ -331,6 +355,15 @@ export class TradeComponent implements OnInit {
             }
         });
         this.svconfigs = this.configBll.getSVConfigs();
+        console.log(this.svconfigs);
+        let svLen = this.svconfigs.length;
+        for (let i = 0; i < svLen; ++i) {
+            let tile = new Tile();
+            tile.title = this.svconfigs[i].name;
+            this.analyticArr.push(this.svconfigs[i].name);
+            tile.iconName = "repeat";
+            this.analyticArea.addTile(tile);
+        }
     }
 
     finish() {
@@ -452,6 +485,11 @@ export class TradeComponent implements OnInit {
             alert("必要参数缺失！");
             return;
         }
+        let rtn = this.analyticArr.indexOf(this.svconfig.name);
+        if (rtn !== -1) {
+            alert("已存在同名价差分析");
+            return;
+        }
         this.configBll.addSVConfigItem(this.svconfig);
         let tile = new Tile();
         tile.title = this.svconfig.name;
@@ -525,6 +563,7 @@ export class TradeComponent implements OnInit {
                 this.config.strategyInstances[0].accounts = this.accounts;
             }
             console.log(this.config);
+            this.bSelProduct = false;
         }
         if (this.config.curstep === 2) {
             this.config.activeChannel = "default";

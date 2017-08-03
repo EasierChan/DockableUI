@@ -497,6 +497,11 @@ export class SimulationComponent implements OnInit {
                     // get gateway
                 }
                 this.config.channels.gateway = this.curTemplate.body.data.SSGW;
+                let gatewayLen = this.config.channels.gateway.length;
+                for (let i = 0; i < gatewayLen; ++i) {
+                    this.config.channels.gateway[i].addr = "172.24.50.10";
+                    this.config.channels.gateway[i].port = 8000;
+                }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
                 this.strategyName = "";
                 this.bcreate = true;
