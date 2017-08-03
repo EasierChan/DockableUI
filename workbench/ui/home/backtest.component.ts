@@ -431,6 +431,30 @@ export class BacktestComponent implements OnInit {
                 this.config.strategyInstances[0] = newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = "666600000011";
+
+                if (this.config.strategyCoreName === "IndexSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008321;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+
+                        }
+                    }
+                }
+
+                if (this.config.strategyCoreName === "SimpleSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008295;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+
+                        }
+                    }
+                }
             }
             console.log(this.config);
         }
