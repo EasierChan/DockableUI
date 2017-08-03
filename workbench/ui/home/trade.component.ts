@@ -553,6 +553,9 @@ export class TradeComponent implements OnInit {
                     }
                 }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+                this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
+                this.config.channels.feedhandler.addr = "127.0.0.1";
+                this.config.channels.feedhandler.port = 9200;
                 this.strategyName = "";
                 this.bcreate = true;
 

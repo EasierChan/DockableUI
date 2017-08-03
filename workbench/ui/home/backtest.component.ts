@@ -485,6 +485,7 @@ export class BacktestComponent implements OnInit {
             this.config.channels.gateway[i].addr = "172.24.50.10";
             this.config.channels.gateway[i].port = 8000;
         }
+        this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
         this.config.activeChannel = "simulation";
         this.configBll.updateConfig(this.config);
         this.backTestArea.removeTile(this.clickItem.title);
