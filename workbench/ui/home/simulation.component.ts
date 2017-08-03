@@ -196,7 +196,7 @@ export class SimulationComponent implements OnInit {
                     if (config.activeChannel === "simulation" && rtn === -1) {
                         let tile = new Tile();
                         tile.title = config.chinese_name;
-                        tile.iconName = "adjust";
+                        tile.iconName = "tasks";
                         this.simulationArea.addTile(tile);
                         this.tileArr.push(config.name);
                         // this.isInit = true;
