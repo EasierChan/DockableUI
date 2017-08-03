@@ -35,8 +35,8 @@
                         <h4>策略服务名与中文标识</h4>
                         <hr>
                     </div>
-                    <label class="label-name">服务名:<input type="text" class = "input-col" placeholder="strategy name" [(ngModel)]="config.name" [readonly]= "bRead" ></label>
-                    <label class="label-name">别名 : <input type="text" class = "input-col" placeholder="Chinese name" [(ngModel)]="config.chinese_name"></label>
+                    <label class="label-name">服务名:<input type="text" class = "input-col"  [(ngModel)]="config.name" [readonly]= "bRead" ></label>
+                    <label class="label-name">别名 : <input type="text" class = "input-col"  [(ngModel)]="config.chinese_name"></label>
                 </div>
             </div>
             <div *ngIf="config.curstep==2" class="page">

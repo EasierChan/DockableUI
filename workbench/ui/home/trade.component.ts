@@ -134,7 +134,7 @@ export class TradeComponent implements OnInit {
             ManualTrader: "手工交易",
             PortfolioTrader: "组合交易",
             IndexSpreader: "做市策略",
-            SimpleSpreader: "跨期套利",
+            SimpleSpreader: "配对交易",
             BasketSpreader: "期现套利",
             BlockTrader: "大宗交易"
         };
@@ -556,6 +556,9 @@ export class TradeComponent implements OnInit {
                     }
                 }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+                this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
+                this.config.channels.feedhandler.addr = "127.0.0.1";
+                this.config.channels.feedhandler.port = 9200;
                 this.strategyName = "";
                 this.bcreate = true;
 
@@ -569,6 +572,30 @@ export class TradeComponent implements OnInit {
                 this.config.strategyInstances[0] = this.newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = this.accounts;
+
+                if (this.config.strategyCoreName === "IndexSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008321;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+
+                        }
+                    }
+                }
+
+                if (this.config.strategyCoreName === "SimpleSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008295;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+
+                        }
+                    }
+                }
             }
             console.log(this.config);
             this.bSelProduct = false;
@@ -713,7 +740,7 @@ export class TradeComponent implements OnInit {
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
         // this.strategyCores = this.configBll.getTemplates();
-        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
+        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
             this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));
