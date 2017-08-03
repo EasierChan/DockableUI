@@ -95,7 +95,7 @@ tilearea {
     color: #ffffff;
     border-radius: 4px;
     height: 25px;
-    width: 50px;
+    line-height: 25px;
 }
 .maxordersize{
     margin-left: 15px;

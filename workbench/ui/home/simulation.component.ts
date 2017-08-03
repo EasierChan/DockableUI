@@ -450,6 +450,7 @@ export class SimulationComponent implements OnInit {
         this.bcreate = false;
         this.bRead = false;
         this.bModify = false;
+        this.bSelStrategy = false;
         this.closePanel();
     }
     hideChange() {
@@ -551,7 +552,7 @@ export class SimulationComponent implements OnInit {
                             this.config.strategyInstances[0].instruments[i].value = 2008295;
                         }
                         if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+                            this.config.strategyInstances[0].instruments[i].value = 2008589;
 
                         }
                     }

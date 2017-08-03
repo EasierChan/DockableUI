@@ -371,6 +371,7 @@ export class BacktestComponent implements OnInit {
         this.bcreate = false;
         this.bRead = false;
         this.bModify = false;
+        this.bSelStrategy = false;
         this.closePanel();
     }
     static reqnum = 1;
@@ -452,7 +453,7 @@ export class BacktestComponent implements OnInit {
                             this.config.strategyInstances[0].instruments[i].value = 2008295;
                         }
                         if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+                            this.config.strategyInstances[0].instruments[i].value = 2008589;
 
                         }
                     }
@@ -572,10 +573,10 @@ export class BacktestComponent implements OnInit {
             this.config.loopbackConfig.option = {
                 timebegin: idate,
                 timeend: idate,
-                speed: "1",
-                simlevel: "1",
-                period: "1",
-                unit: "1"
+                speed: "3",
+                simlevel: "2",
+                period: "30",
+                unit: "0"
             };
         }
     }
