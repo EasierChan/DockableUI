@@ -187,10 +187,10 @@ export class AppComponent implements OnInit {
                 console.info(`tgw::login ans=>${msg.toString()}`);
 
                 if (this.tradeHeart)
-                    clearTimeout(this.tradeHeart);
+                    clearInterval(this.tradeHeart);
 
-                this.tradeHeart = setTimeout(() => {
-                    this.quote.send(17, 0, {});
+                this.tradeHeart = setInterval(() => {
+                    this.tradeEndPoint.send(17, 0, {});
                 }, 60000);
             }
         });
@@ -210,9 +210,9 @@ export class AppComponent implements OnInit {
                 console.info(`tgw::login ans=>${msg.toString()}`);
 
                 if (this.quoteHeart)
-                    clearTimeout(this.quoteHeart);
+                    clearInterval(this.quoteHeart);
 
-                setTimeout(() => {
+                this.quoteHeart = setInterval(() => {
                     this.quote.send(17, 0, {});
                 }, 60000);
             }
