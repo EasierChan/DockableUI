@@ -191,7 +191,7 @@ export class BacktestComponent implements OnInit {
                     if (config.activeChannel === "lookback" && rtn === -1) {
                         let tile = new Tile();
                         tile.title = config.chinese_name;
-                        tile.iconName = "adjust";
+                        tile.iconName = "retweet";
                         this.backTestArea.addTile(tile);
                         this.tileArr.push(config.name);
                         // this.isInit = true;

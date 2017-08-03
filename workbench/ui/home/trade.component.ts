@@ -360,7 +360,7 @@ export class TradeComponent implements OnInit {
             let tile = new Tile();
             tile.title = this.svconfigs[i].name;
             this.analyticArr.push(this.svconfigs[i].name);
-            tile.iconName = "repeat";
+            tile.iconName = "object-align-bottom";
             this.analyticArea.addTile(tile);
         }
     }
