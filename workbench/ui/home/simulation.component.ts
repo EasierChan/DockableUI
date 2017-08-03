@@ -113,7 +113,7 @@ export class SimulationComponent implements OnInit {
             ManualTrader: "手工交易",
             PortfolioTrader: "组合交易",
             IndexSpreader: "做市策略",
-            SimpleSpreader: "跨期套利",
+            SimpleSpreader: "配对交易",
             BasketSpreader: "期现套利",
             BlockTrader: "大宗交易"
         };
@@ -228,17 +228,19 @@ export class SimulationComponent implements OnInit {
             appid: 107,
             packid: 2009,
             callback: msg => {
+                console.log(this.config);
                 let strategy_key = 0;
                 let len = msg.content.body.strategies.length;
                 for (let i = 0; i < len; ++i) {
                     // console.log(msg.content.body.strategies[i].strategy.name, this.config.name, msg.content.body.strategies[i].strategy.strategy_key);
                     if (msg.content.body.strategies[i].strategy.name === this.config.name) {
+                        console.log("find config.name,insert key:", this.config, strategy_key);
                         strategy_key = msg.content.body.strategies[i].strategy.strategy_key;
                         break;
                     }
                 }
                 this.config.strategyInstances[0].key = strategy_key + "";
-                this.configBll.updateConfig(this.config);
+                // this.configBll.updateConfig(this.config);
                 this.curTemplate.body.data.Strategy[0].key = strategy_key;
                 console.log(this.config, this.curTemplate.body.data);
                 this.tgw.send(107, 2000, {
@@ -302,7 +304,7 @@ export class SimulationComponent implements OnInit {
         };
         this.sendLoopConfigs.push(tmpobj);
         console.log("send 8010:", tmpobj);
-        this.qtp.send(8010, tmpobj);
+        // this.qtp.send(8010, tmpobj);
     }
 
     onSelectProduct(value: string) {
@@ -353,6 +355,7 @@ export class SimulationComponent implements OnInit {
         }
         if (this.config.activeChannel === "simulation") {
             this.config.channels.gateway.forEach((gw, index) => {
+                console.log("print gw:", gw);
                 if (index === 0)
                     this.curTemplate.body.data.SSGW[index].ref = 0;
                 this.curTemplate.body.data.SSGW[index].port = gw.port = parseInt(gw.port);
@@ -419,8 +422,10 @@ export class SimulationComponent implements OnInit {
             return;
         }
         this.configBll.updateConfig(this.config);
+        console.log(this.config.channels.gateway[0].port, this.config.channels.gateway[0].addr);
         this.config.strategies = { name: this.config.name };
         if (!this.bshow) {
+            console.log("in usual model send 2000");
             this.tgw.send(107, 2000, {
                 routerid: 0, templateid: this.curTemplate.id, body: {
                     name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
@@ -430,6 +435,7 @@ export class SimulationComponent implements OnInit {
         }
         // console.log(this.config);
         if (this.bshow) {
+            console.log("send 2008 get key");
             this.tgw.send(107, 2008, {
                 routerid: 0, body: {
                     name: this.config.name,
@@ -484,6 +490,7 @@ export class SimulationComponent implements OnInit {
                 return;
             }
             if (!this.bModify) {
+                console.log(".....................");
                 // get template
                 if (!this.bSelStrategy)
                     this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
@@ -498,11 +505,14 @@ export class SimulationComponent implements OnInit {
                 }
                 this.config.channels.gateway = this.curTemplate.body.data.SSGW;
                 let gatewayLen = this.config.channels.gateway.length;
+                console.log("in simulation model,ready inset addr and port:", gatewayLen, this.config);
                 for (let i = 0; i < gatewayLen; ++i) {
+                    console.log("insert gateway addr & port");
                     this.config.channels.gateway[i].addr = "172.24.50.10";
                     this.config.channels.gateway[i].port = 8000;
                 }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+                this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
                 this.strategyName = "";
                 this.bcreate = true;
 
@@ -517,14 +527,39 @@ export class SimulationComponent implements OnInit {
                 this.config.strategyInstances[0] = newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = "666600000011";
+
+                if (this.config.strategyCoreName === "IndexSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008321;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+
+                        }
+                    }
+                }
+
+                if (this.config.strategyCoreName === "SimpleSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008295;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+
+                        }
+                    }
+                }
+
                 console.log(this.config);
             }
         }
         if (this.config.curstep === 2) {
             this.config.activeChannel = "simulation";
-            this.createLoopbackTest();
-            console.log(this.config);
+            // this.createLoopbackTest();
         }
+
         ++this.config.curstep;
     }
     prev() {
@@ -534,7 +569,6 @@ export class SimulationComponent implements OnInit {
     }
     getStrategyNameByChinese(data: any) {
         for (let o in this.strategymap) {
-            console.log(o, this.strategymap[o], data);
             if (this.strategymap[o] === data)
                 return o;
         }
@@ -602,7 +636,7 @@ export class SimulationComponent implements OnInit {
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
         // this.strategyCores = this.configBll.getTemplates();
-        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
+        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
             this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));

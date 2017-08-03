@@ -108,7 +108,7 @@ export class BacktestComponent implements OnInit {
             ManualTrader: "手工交易",
             PortfolioTrader: "组合交易",
             IndexSpreader: "做市策略",
-            SimpleSpreader: "跨期套利",
+            SimpleSpreader: "配对交易",
             BasketSpreader: "期现套利",
             BlockTrader: "大宗交易"
         };
@@ -526,7 +526,7 @@ export class BacktestComponent implements OnInit {
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
         // this.strategyCores = this.configBll.getTemplates();
-        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
+        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
             this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));
