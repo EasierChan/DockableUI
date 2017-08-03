@@ -214,9 +214,9 @@ export class File {
 
     public static writeAsync(fpath: string, content: string | Object) {
         if (typeof (content) === "string")
-            fs.writeFile(fpath, content, { encoding: "utf8" });
+            fs.writeFile(fpath, content, { encoding: "utf8" }, (err) => { });
         else
-            fs.writeFile(fpath, JSON.stringify(content), { encoding: "utf8" });
+            fs.writeFile(fpath, JSON.stringify(content), { encoding: "utf8" }, (err) => { });
     }
 
     public static appendAsync(fpath: string, content: string) {
