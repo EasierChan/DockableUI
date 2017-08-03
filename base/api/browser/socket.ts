@@ -56,6 +56,7 @@ export class TcpSocket {
 
         this._sock.on("data", (data) => {
             this.emit("data", data);
+            console.info(`[read from  ${this._ip}:${this._port}]: length=${data.length}`);
         });
 
         this._sock.on("end", () => {
@@ -72,8 +73,10 @@ export class TcpSocket {
     send(data: any): void {
         if (this._sock && this._sock.writable) {
             this._sock.write(data);
+            console.info(`[write to ${this._ip}:${this._port}]: length=${data.length}`);
             return;
         }
+
         logger.error("connection is not writable.");
         this.connect(this._port, this._ip);
         this._sock.on("connect", (e) => {

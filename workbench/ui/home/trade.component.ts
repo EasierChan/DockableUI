@@ -126,7 +126,7 @@ export class TradeComponent implements OnInit {
         let productArea = new TileArea();
         productArea.title = "产品";
         productArea.onClick = (event: MouseEvent, item: Tile) => {
-            this.appService.startApp("product-tt", "Dialog", {
+            this.appService.startApp("产品信息", "Dialog", {
                 dlg_name: "product",
                 productID: item.data
             });

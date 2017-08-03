@@ -90,7 +90,11 @@ export class AppComponent implements OnInit {
         switch (this.option.dlg_name) {
             case "product":
                 this.loginTGW(() => {
-                    this.trade.send(260, 232, { body: { productID: parseInt(this.option.productID) } });
+                    let today = new Date();
+                    let dateStr = [today.getFullYear(), ("0" + (today.getMonth() + 1)).slice(-2, 0), ("0" + today.getDate() + 1).slice(-2, 0)].join("");
+                    this.trade.send(260, 232, { body: { productID: this.option.productID } });
+                    this.trade.send(260, 228, { body: { tblock_id: this.option.productID, begin_date: dateStr, end_date: dateStr } });
+                    this.trade.send(260, 230, { body: { tblock_id: this.option.productID, begin_date: dateStr, end_date: dateStr } });
                 });
                 break;
             default:
