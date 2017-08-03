@@ -222,7 +222,6 @@ export class AppComponent implements OnInit {
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
         let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
         this.tradeEndPoint.send(17, 41, loginObj); // login
-        this.tradeEndPoint.send(17, 11, { kwlist: [1] });
 
         let [qhost, qport] = this.curEndpoint.quote_addr.split(":");
         this.quote.connect(qport, qhost);
