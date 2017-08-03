@@ -36,7 +36,7 @@
                         <hr>
                     </div>
                     <label class="label-name">服务名:<input type="text" class = "input-col" placeholder="strategy name" [(ngModel)]="config.name" [readonly]= "bRead" ></label>
-                    <label class="label-name">中文名 : <input type="text" class = "input-col" placeholder="Chinese name" [(ngModel)]="config.chinese_name"></label>
+                    <label class="label-name">别名 : <input type="text" class = "input-col" placeholder="Chinese name" [(ngModel)]="config.chinese_name"></label>
                 </div>
             </div>
             <div *ngIf="config.curstep==2" class="page">
@@ -138,11 +138,11 @@
             </div>
             <div *ngIf="config.curstep==4" class="page">
                 <div>
-                    <h4>Are you Sure?</h4>
+                    <h4>是否完成操作?</h4>
                     <hr>
                 </div>
                 <div class="row">
-                    <label for="maxordersize">Make sure whether you have done a correct setting, then click 'Finish' Or reset them.</label>
+                    <label for="maxordersize">如果您已确定完成所有配置，请点击“完成”结束策略服务配置。</label>
                 </div>
             </div>
         </div>
@@ -161,22 +161,22 @@
     <div class="pop-center fg-white bg-darker">
         <div class="header">
             <a href="#" class="icon mif-home fg-white"></a>
-            <span class="title">SpreadViewerConfig</span>
+            <span class="title">价差分析</span>
         </div>
         <div class="content">
             <div>
                 <div>
-                    Name: <input type="text" [(ngModel)]="svconfig.name">
+                    名称: <input type="text" [(ngModel)]="svconfig.name">
                 </div>
-                <br> Code1: <input type="text" [(ngModel)]="svconfig.code1"> Code2: <input type="text" [(ngModel)]="svconfig.code2">
+                <br> 标的1: <input type="text" [(ngModel)]="svconfig.code1"> 标的2: <input type="text" [(ngModel)]="svconfig.code2">
                 <br>
-                <h5>Formula:</h5>
+                <h5>公式:</h5>
                 <textarea name="formula" style="width: 100%; line-height: 20px;" cols="30" rows="10" [(ngModel)]="svconfig.formula"></textarea>
             </div>
         </div>
         <div class="footer">
             <div class="place-right">
-                <button class="button" (click)="onCloseSVConfig();">Finish</button>
+                <button class="button" (click)="onCloseSVConfig();">完成</button>
             </div>
         </div>
     </div>

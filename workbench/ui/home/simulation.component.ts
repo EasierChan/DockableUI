@@ -44,7 +44,7 @@ export class SimulationComponent implements OnInit {
     gatewayObj: Object;
     setting: any;
     clickItem: any;
-    simulationArea: any;
+    simulationArea: TileArea;
     bChangeShow: boolean = false;
     tileArr: string[] = [];
     sendLoopConfigs: any[] = [];
@@ -120,7 +120,6 @@ export class SimulationComponent implements OnInit {
 
 
         this.simulationArea.onCreate = () => {
-            console.log("*****");
             this.bshow = true;
             this.config.curstep = 1;
             this.onPopup(0);
@@ -207,8 +206,8 @@ export class SimulationComponent implements OnInit {
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
                         this.configBll.updateConfig(config);
-                    } else {
-
+                    } else if (config.activeChannel === "simulation" && rtn !== -1) {
+                        this.simulationArea.getTileAt(rtn).title = config.chinese_name;
                     }
                 }
                 // console.log(this.configs);

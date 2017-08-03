@@ -201,6 +201,8 @@ export class BacktestComponent implements OnInit {
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
                         this.configBll.updateConfig(config);
+                    } else if (config.activeChannel === "lookback" && rtn !== -1) {
+                        this.backTestArea.getTileAt(rtn).title = config.chinese_name;
                     }
                 }
                 // console.log(this.configs);

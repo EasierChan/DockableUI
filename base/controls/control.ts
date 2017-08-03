@@ -2206,7 +2206,7 @@ export class TileArea extends Control {
         tileCount = null;
     }
 
-    getTileAt(idx: string) {
+    getTileAt(idx: number) {
         return this.dataSource.items[idx];
     }
 
