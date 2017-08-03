@@ -68,19 +68,24 @@ export class ProductComponent implements OnInit {
             appid: 260,
             packid: 230,
             callback: (msg) => {
-                console.info(msg);
 
-                if (msg.head.pkgCnt === msg.head.pkgIdx + 1) {
-                    // let stockArr = JSON.parse(msg.content.body).body;
+                if (msg.content.head.pkgCnt === msg.content.head.pkgIdx + 1) {
+                    let stockArr = msg.content.head.pkgCnt === 1 ? JSON.parse(msg.content.body).body
+                        : JSON.parse(this.isonpack[msg.content.head.pkgId] + msg.content.body).body;
 
-                    // stockArr.forEach(item => {
-                    //     let row = this.stockTable.newRow();
-                    //     row.cells[0].Text = item.marketcode;
-                    //     row.cells[1].Text = item.chabbr;
-                    //     row.cells[3].Text = item.total_cost;
-                    // });
+                    console.info(stockArr);
+                    stockArr.forEach(item => {
+                        let row = this.stockTable.newRow();
+                        row.cells[0].Text = item.marketcode;
+                        row.cells[1].Text = item.chabbr;
+                        row.cells[2].Text = item.total_vol;
+                        row.cells[3].Text = item.total_cost;
+                    });
 
-                    // stockArr = null;
+                    stockArr = null;
+                } else {
+                    this.isonpack[msg.content.head.pkgId] = this.isonpack.hasOwnProperty(msg.content.head.pkgId)
+                        ? this.isonpack[msg.content.head.pkgId] + msg.content.body : msg.content.body;
                 }
             }
         });
@@ -90,17 +95,25 @@ export class ProductComponent implements OnInit {
             appid: 260,
             packid: 228,
             callback: (msg) => {
-                console.info(msg);
-                // let futureArr = JSON.parse(msg.content.body).body;
 
-                // futureArr.forEach(item => {
-                //     let row = this.futureTable.newRow();
-                //     row.cells[0].Text = item.marketcode;
-                //     row.cells[1].Text = item.chabbr;
-                //     row.cells[3].Text = item.total_cost;
-                // });
+                if (msg.content.head.pkgCnt === msg.content.head.pkgIdx + 1) {
+                    let futureArr = msg.content.head.pkgCnt === 1 ? JSON.parse(msg.content.body).body
+                        : JSON.parse(this.isonpack[msg.content.head.pkgId] + msg.content.body).body;
 
-                // futureArr = null;
+                    console.info(futureArr);
+                    futureArr.forEach(item => {
+                        let row = this.futureTable.newRow();
+                        row.cells[0].Text = item.marketcode;
+                        row.cells[1].Text = item.chabbr;
+                        row.cells[2].Text = item.total_vol;
+                        row.cells[3].Text = item.total_cost;
+                    });
+
+                    futureArr = null;
+                } else {
+                    this.isonpack[msg.content.head.pkgId] = this.isonpack.hasOwnProperty(msg.content.head.pkgId)
+                        ? this.isonpack[msg.content.head.pkgId] + msg.content.body : msg.content.body;
+                }
             }
         });
     }
