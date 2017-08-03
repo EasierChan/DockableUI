@@ -287,7 +287,6 @@ export class SimulationComponent implements OnInit {
                     alert("Get product info Failed! " + data.msret.msg);
                     return;
                 }
-                this.simulationToTruly();
             }
         });
 
@@ -458,12 +457,10 @@ export class SimulationComponent implements OnInit {
         this.bSelProduct = false;
     }
     simulationToTruly() {
+        console.log("simulationToTruly");
         if (!this.bSelProduct) {
+            console.log("select change product 0");
             this.onSelectProduct(this.productsList[0]);
-        }
-        else {
-            alert("还未获取到产品信息");
-            return;
         }
         for (let i = 0; i < this.config.channels.gateway.length; ++i) {
             for (let obj in this.gatewayObj) {

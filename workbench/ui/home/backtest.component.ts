@@ -255,6 +255,13 @@ export class BacktestComponent implements OnInit {
                 let item = this.sendLoopConfigs.find((item, idx) => {
                     return item.reqsn === msg.reqsn;
                 });
+                this.config.channels.feedhandler.addr = msg.hqurl;
+                this.config.channels.feedhandler.port = msg.hqport;
+                for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+                    this.config.channels.gateway[i].addr = msg.url;
+                    this.config.channels.gateway[i].port = msg.port;
+                }
+
                 if (item) {
                     item.id = msg.nId;
                     item.name = this.config.chinese_name;
@@ -514,9 +521,11 @@ export class BacktestComponent implements OnInit {
         }
         this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
         this.config.activeChannel = "simulation";
-        this.configBll.updateConfig(this.config);
         this.backTestArea.removeTile(this.clickItem.title);
         this.strategyContainer.removeItem(this.config.name);
+        let tmpPort = this.config.channels.feedhandler.port;
+        this.config.channels.feedhandler.port = parseInt(tmpPort);
+        this.configBll.updateConfig(this.config);
         this.bChangeShow = false;
         console.log(this.config);
     }

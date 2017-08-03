@@ -94,7 +94,7 @@ tilearea {
     width: 700px;
     height: 300px;
     margin:auto;
-    background-color:#725533;
+    background-color:#394054;
     position:absolute;
     left:25%;
     top:20%;
@@ -103,6 +103,13 @@ tilearea {
     position: absolute;
     right: 10px;
     bottom: 10px;
+}
+.changefooter button{
+    background-color: #1F273E;
+    color: #ffffff;
+    border-radius: 4px;
+    height: 25px;
+    line-height: 25px;
 }
 .changelengend{
     color: #fff;
