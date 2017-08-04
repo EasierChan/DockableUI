@@ -1,5 +1,5 @@
 <div style="overflow:auto">
-<div class="menu" [hidden]="activeTab === 'Profit'|| activeTab === '风险因子收益'">
+<div class="menu" [hidden]="activeTab === 'Profit'|| activeTab === '风险因子收益'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
 <div class="menuItem">
 <font color='#A5ACBE'>产品:</font>
 <select id="product" class="item1" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
@@ -28,52 +28,69 @@
 <input class="search" type="submit" value="搜索" (click)="lookReturn()">
 
 </div>
+<div class="menu" [hidden]="activeTab === 'Profit'|| activeTab === '风险因子收益'||activeTab === 'RiskFactors'|| activeTab === '风险因子分析'">
+<div class="menuItem">
+<font color='#A5ACBE'>请选择日期:</font>
+<input  class="item3" [(ngModel)]='opendate' type="date"  required>
+-
+<input  class="item4" [(ngModel)]='closedate' type="date"  required>
+</div>
+<input class="search" type="submit" value="搜索" (click)="searchresult()">
+</div>
 <div>
-  <div class="big_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">
+  <div class="big_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>所有风险因子每天收益</font>
     <div class="chart  " id="everyDayReturnEchart" >chart</div>
   </div>
 
-  <div class="small_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">
+  <div class="small_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>所有风险因子累计收益</font>
     <div class="chart " id="riskFactorReturnEchart" >chart</div>
   </div>
 
-  <div class="big_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">
+  <div class="big_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>今年风险因子每天收益</font>
     <div class="chart " id="everyDayYearReturnEchart" >chart</div>
   </div>
 
-  <div class="small_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'">
+  <div class="small_chart" [hidden]="activeTab=='RiskFactors'||activeTab=='风险因子分析'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>今年风险因子累计收益</font>
     <div class="chart " id="lastDayYearReturnEchart" >chart</div>
   </div>
 
 
 
-  <div class="big_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+  <div class="big_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>风险因子每天暴露</font>
     <div class="chart " id="everyDayRFEEchart" >chart</div>
   </div>
 
-  <div class="small_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+  <div class="small_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>风险因子最后一天暴露</font>
     <div class="chart " id="riskFactorExposureEchart" >chart</div>
   </div>
 
-  <div class="big_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+  <div class="big_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>风险因子每天收益归因</font>
     <div class="chart " id="everyDayRFRAttrEchart" >chart</div>
   </div>
 
-  <div class="small_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+  <div class="small_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>风险因子累计收益归因</font>
     <div class="chart " id="riskFactorReturnAttrEchart" >chart</div>
   </div>
 
-  <div class="oneline_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'">
+  <div class="oneline_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'||activeTab === 'alpha'|| activeTab === 'Alpha因子'">
     <font color='#A5ACBE'>股票累计收益归因</font>
     <div class="chart " id="stockAttrEchart" >chart</div>
+  </div>
+  <div class="big_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'||activeTab === 'RiskFactors'|| activeTab === '风险因子分析'">
+    <font color='#A5ACBE'>alpha因子累加图</font>
+    <div class="chart " id="alphachart" >chart</div>
+  </div>
+  <div class="small_chart" [hidden]="activeTab=='Profit'||activeTab=='风险因子收益'||activeTab === 'RiskFactors'|| activeTab === '风险因子分析'">
+    <font color='#A5ACBE'>alpha因子相关性</font>
+      <div class="chart1 " id="alphahotchart" >chart</div>
   </div>
 
 
