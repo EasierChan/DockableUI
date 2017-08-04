@@ -32,6 +32,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     marketChart: ECharts;
     mainIncomChart: ECharts;
     isStock: boolean;
+    timeout: any;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
     }
@@ -319,6 +320,16 @@ export class SecurityComponent implements OnInit, OnDestroy {
 
     onSearch(value) {
         this.resList = this.secuinfo.getCodeList(value);
+    }
+
+    autoHide() {
+        this.resList = null;
+        // if (this.timeout)
+        //     clearTimeout(this.timeout);
+
+        // this.timeout = setTimeout(() => {
+        //     this.resList = null;
+        // }, 1000);
     }
 
     listClick(item) {
