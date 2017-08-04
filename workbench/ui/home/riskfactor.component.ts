@@ -32,6 +32,10 @@ export class RiskFactorComponent implements OnDestroy {
     enddate: string;
     startDate: string;
     endDate: string;
+    opendate: string;
+    closedate: string;
+    openDate: string;
+    closeDate:string;
     hedges: string[] = ["沪深300", "中证500", "上证50"];
     hedge: string = "沪深300";
     hedgeRadio: number;
@@ -45,6 +49,8 @@ export class RiskFactorComponent implements OnDestroy {
     riskFactorReturnAttrEchart: any;  // 风险因子收益归因柱状图
     everyDayRFRAttrEchart: any;   // 每一天风险因子归因折线图
     stockAttrEchart: any;   // 股票归因柱状图
+    alphaHotChart: any;
+    alphaChart: any;
 
     defaultMedia: any;
 
@@ -72,6 +78,10 @@ export class RiskFactorComponent implements OnDestroy {
     riskFactorReturnAttr: any[] = [];// 风险因子收益归因
     riskFactorReturn: any[] = [];
     riskFactorExpose: any[] = [];
+    alphaRelevance: any[] = []; // alpha相关性
+    alphaRelevanceResult: any[] = []; // alpha相关性结果
+    hotChartData: any[] = []; // 存放图标的data
+    alphaData: any[] = []; // alpha
 
     /* 保存所有的股票持仓数组
     * 每一个数组元素为对象,对象包含一下元素
@@ -128,6 +138,9 @@ export class RiskFactorComponent implements OnDestroy {
         let date2 = new Date();
         this.startdate = this.datePipe.transform(date1, 'yyyy-MM-dd');
         this.enddate = this.datePipe.transform(date2, 'yyyy-MM-dd');
+          this.opendate = "2017-06-26";
+          this.closedate = "2017-07-26";
+
         if (this.activeTab === "风险因子分析") {
             // receive holdlist
             this.tradePoint.addSlot({
@@ -186,6 +199,9 @@ export class RiskFactorComponent implements OnDestroy {
         this.everyDayRFRAttrEchart = echarts.init(document.getElementById("everyDayRFRAttrEchart") as HTMLDivElement);
 
         this.stockAttrEchart = echarts.init(document.getElementById("stockAttrEchart") as HTMLDivElement);
+        //alpha
+        this.alphaHotChart = echarts.init(document.getElementById("alphahotchart") as HTMLDivElement);
+        this.alphaChart = echarts.init(document.getElementById("alphachart") as HTMLDivElement);
 
 
         if (this.activeTab === "Profit" || this.activeTab === "风险因子收益") {
@@ -194,7 +210,10 @@ export class RiskFactorComponent implements OnDestroy {
         else if (this.activeTab === "RiskFactors" || this.activeTab === "风险因子分析") {
 
         }
-
+        if(this.activeTab === "Alpha因子"){
+          console.log(this.activeTab);
+             this.searchresult();
+        }
         this.hedgeRadio = 1;
         window.onresize = () => {
             this.resizeFunction();
@@ -225,6 +244,8 @@ export class RiskFactorComponent implements OnDestroy {
         this.everyDayRFRAttrEchart.resize();
 
         this.stockAttrEchart.resize();
+        this.alphaHotChart.resize();
+        this.alphaChart.resize();
 
     }
 
@@ -363,6 +384,42 @@ export class RiskFactorComponent implements OnDestroy {
             });
     }
 
+    //读取alpha相关性数据
+    readAndHandleAlphaRelevance(exposureFilePath) {
+        this.alphaRelevance = this.readDataFromCsvFile(exposureFilePath);
+
+
+    }
+
+    //读取alpha因子数据
+    readAndHandleAlpha(){
+      this.alphaData = this.readDataFromCsvFile(path.join(this.dataDir, "alpha", "alpha_ret.csv"));
+      // 处理获取的风险因子收益数据
+      if (this.riskFactorReturn.length < 2) {
+          alert("风险因子收益没有数据,请导入数据后重试");
+          return;
+      }
+
+      for (let i = 1; i < this.alphaData.length; ++i) {
+
+          for (let j = 1; j < this.alphaData[0].length; ++j) {
+              var value = parseFloat(this.alphaData[i][j]);
+
+              if (isNaN(value)) {
+                  this.alphaData[i][j] = 0;
+              } else {
+                  this.alphaData[i][j] = value;
+              }
+
+              // if (i>1) {
+              //     this.riskFactorReturn[i][j] += this.riskFactorReturn[i-1][j];
+              // }
+
+          }
+      }
+      console.log(this.alphaData);
+    }
+
     /*计算各种结果并绘图
     *成功返回true,否则返回false
     */
@@ -494,7 +551,7 @@ export class RiskFactorComponent implements OnDestroy {
 
     //点击搜索按钮后的操作
     lookReturn(){
-
+        console.log(this.activeTab);
         this.startDate = this.startdate.replace(/-/g,"");
         this.endDate = this.enddate.replace(/-/g,"");
 
@@ -720,6 +777,82 @@ export class RiskFactorComponent implements OnDestroy {
        }
      }
 
+      searchresult(){
+       console.log(this.activeTab);
+       this.openDate = this.opendate.replace(/-/g,"");
+       this.closeDate = this.closedate.replace(/-/g,"");
+       console.log(this.openDate,this.closeDate);
+
+       this.readAndHandleAlpha();
+       let startDateIndex=1,endDateIndex=this.alphaData.length-2;
+       for(let i = 0;i < this.alphaData.length; i++ ){
+         if(this.alphaData[i][0] == this.openDate) {
+           startDateIndex = i;
+         }
+         if(this.alphaData[i][0] == this.closeDate){
+           endDateIndex = i;
+         }
+       }
+       console.log(startDateIndex,endDateIndex);
+       this.setAlphaEchart(this.alphaData,startDateIndex,endDateIndex,this.alphaChart);
+
+       let alphaRelevanceFile=[],dirAlphaFiles=[];
+
+       try{
+           dirAlphaFiles=fs.readdirSync(path.join(this.dataDir, "correlation_matrix"));
+       }catch(err){
+           console.log("err",err);
+           return;
+       }
+
+       if(dirAlphaFiles.length == 0){
+           alter("您选择的路径内没有文件,无法计算");
+           return;
+       }
+       for(let fileIndex=0;fileIndex<dirAlphaFiles.length;++fileIndex){   // csv文件在打开时可能还有其他的文件存在
+           if ( (this.openDate =="" || this.closeDate =="") ) {
+               alert("请选择时间范围");
+               return ;
+           }
+           if (this.openDate !=="" && dirAlphaFiles[fileIndex] < (this.openDate+".csv")) {
+               continue;
+           }
+           if (this.closeDate !=="" && dirAlphaFiles[fileIndex] > (this.closeDate+".csv")) {
+               continue;
+           }
+           alphaRelevanceFile.push( dirAlphaFiles[fileIndex] );
+       }
+       console.log("alphaRelevanceFile",alphaRelevanceFile);
+       for(let fileIndex=0; fileIndex<alphaRelevanceFile.length; ++fileIndex){
+           this.readAndHandleAlphaRelevance(path.join(this.dataDir,"correlation_matrix" , alphaRelevanceFile[fileIndex]));
+           if(fileIndex == 0){
+             this.alphaRelevanceResult = this.alphaRelevance;
+           }
+           this.alphaRelevanceResult = this.averageValue(this.alphaRelevanceResult，this.alphaRelevance);
+       }
+        this.setAlphaHotEchart(this.alphaRelevanceResult,this.alphaHotChart);
+
+     }
+
+    //计算平均值
+    averageValue(arrA,arrB){
+      for(let i = 1; i < arrB.length; i++){
+        for(let j = 1; j < arrB[i].length; j++){
+          arrA[i][j] = parseFloat(arrA[i][j]);
+          arrB[i][j] = parseFloat(arrB[i][j]);
+          if(isNaN(arrA[i][j])) {
+            arrA[i][j] = 0;
+          }
+          if(isNaN(arrB[i][j])) {
+            arrB[i][j] = 0;
+          }
+          arrA[i][j] = (arrA[i][j] + arrB[i][j])/2 ;
+          arrA[i][j] = arrA[i][j].toFixed(2);
+      }
+    }
+      return arrA;
+  }
+
     // 开始读取并计算数据
     beginCalculateRiskFactor() {
         //计算对冲
@@ -823,7 +956,7 @@ export class RiskFactorComponent implements OnDestroy {
         }
 
         if(dirFiles.length == 0){
-            alter("您选择的范围内没有暴露文件,无法计算");
+            alter("您选择的路径内没有暴露文件,无法计算");
             return;
         }
 
@@ -927,6 +1060,191 @@ export class RiskFactorComponent implements OnDestroy {
 
     }
 
+    //设置alpha因子展示
+     setAlphaEchart(alphaData,startIndex,endIndex,lineChart){
+      let chartLegendData=[],xAxisDatas[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
+      let allRiskReturnXAxis=[],allRiskReturnSeries=[];   //统计总共的x坐标数组,和具体每一条曲线的数据
+
+      for(let riskIndex=1; riskIndex<alphaData[0].length; ++riskIndex){    //遍历每一个风险因子
+          let lengendData={name:alphaData[0][riskIndex]}; // ,textStyle: { color: "#F3F3F5" }
+          chartLegendData.push(lengendData);
+          allRiskReturnXAxis.push( alphaData[0][riskIndex] );  //柱状图的x轴分类
+
+          //具体每一条曲线的数据
+          let seriesData={name:alphaData[0][riskIndex] ,type: "line", data: []};
+          let riskFactorAllDateReturn=0;
+
+          for(let i=startIndex; i<=endIndex; ++i){
+              riskFactorAllDateReturn += alphaData[i][riskIndex];
+              seriesData.data.push(riskFactorAllDateReturn);
+          }
+
+          series.push(seriesData);
+          allRiskReturnSeries.push(riskFactorAllDateReturn);
+      }
+
+      //设置x坐标日期数组
+      for(let i=startIndex;i<=endIndex;++i){
+          xAxisDatas.push(alphaData[i][this.rfrDateIndex]);
+      }
+     console.log(chartLegendData,xAxisDatas,series);
+      let option= {
+          baseOption: {
+              title: {
+                  show: false,
+              },
+              tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                      type: "cross",
+                      label: { show: true, backgroundColor: "rgba(0,0,0,1)"}
+                  },
+                  textStyle:{
+                      align:"left"
+                  }
+              },
+              legend: {
+                  data: chartLegendData,
+                  textStyle: { color: "#F3F3F5" }
+              },
+              xAxis: [{
+                  data: xAxisDatas,
+                  axisLabel: {
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  }
+              }],
+              yAxis: [{
+                  axisLabel: {
+                      show: true,
+                      textStyle: { color: "#F3F3F5" }
+                  },
+                  axisLine: {
+                      lineStyle: { color: "#F3F3F5" }
+                  },
+                  scale: true,
+                  boundaryGap: [0.2, 0.2]
+              }],
+              dataZoom: [{
+      					type: 'inside',
+      					xAxisIndex: 0 ,
+      					start: 0,
+      					end: 100
+      				}, {
+      						start: 0,
+      						end: 10,
+      						handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+      						handleSize: '60%',
+                  textStyle: {
+                    color: "#FFF"
+                  },
+      						handleStyle: {
+      								color: '#fff',
+      								shadowBlur: 3,
+      								shadowColor: 'rgba(0, 0, 0, 0.6)',
+      								shadowOffsetX: 2,
+      								shadowOffsetY: 2
+      						}
+      				}],
+              series: series,
+              animationThreshold: 10000
+              // color: [
+              //     "#00b", "#0b0"
+              // ]
+          },
+          media: this.defaultMedia
+
+        }
+
+      lineChart.setOption(option);
+}
+
+    //设置热力图
+    setAlphaHotEchart(alphaArr,hotchart){
+      console.log(alphaArr);
+       let xdata = [];
+       let ydata = [];
+       xdata.push(alphaArr[0][1],alphaArr[0][2],alphaArr[0][3],alphaArr[0][4],alphaArr[0][5],alphaArr[0][6],alphaArr[0][7],alphaArr[0][8],alphaArr[0][9]);
+       ydata = xdata;
+
+      for(let i = 0; i < alphaArr.length-1; i++){
+        for(let j = 0; j < alphaArr[0].length-1; j++){
+          this.hotChartData.push([i,j,alphaArr[i+1][j+1]]);
+        }
+      }
+      console.log(xdata,ydata,this.hotChartData);
+       this.hotChartData = this.hotChartData.map(function(item){
+         return [item[1],item[0],item[2] || '-'];
+       });
+
+
+      let option = {
+        tooltip:{
+          position: 'top'
+        },
+        animation: false,
+        grid: {
+          height: '78%',
+          y: '5%'
+        },
+        xAxis: {
+          type: 'category',
+          data: xdata,
+          splitArea: {
+            show: true;
+          },
+          axisLabel: {
+              textStyle: { color: "#F3F3F5" }
+          },
+          axisLine: {
+              lineStyle: { color: "#F3F3F5" }
+          }
+        },
+        yAxis: {
+          type: 'category',
+          data: ydata,
+          splitArea: {
+            show: true;
+          },
+          axisLabel: {
+              textStyle: { color: "#F3F3F5" }
+          },
+          axisLine: {
+              lineStyle: { color: "#F3F3F5" }
+          }
+        },
+        visualMap: {
+          min: -1,
+          max: 1,
+          calculable: true,
+          orient: 'horizontal',
+          left: 'center',
+          bottom: '2%'
+        },
+        series : [{
+          name: 'Punch Card',
+          type: 'heatmap',
+          data: this.hotChartData,
+          label: {
+            normal:{
+              show: true,
+              textStyle: {
+                color: "black";
+              }
+            }
+          },
+          itemStyle: {
+            emphasis: {
+              shadowBlur: 10,
+              shadowColor: 'rgba(0,0,0,0.5)'
+            }
+          }
+        }]
+      };
+         hotchart.setOption(option);
+    }
 
     // 设置收益的两个图表,有被复用
     setReturnEchart(riskFactorReturn,startIndex,endIndex,lineChart,barChart){

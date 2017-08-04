@@ -20,7 +20,7 @@ export class DataSet {
             name: "趋势分析",
             icon: "send",
             // tabs: ["Profit", "RiskFactors"]
-            tabs: ["风险因子收益", "风险因子分析"]
+            tabs: ["风险因子收益", "风险因子分析", "Alpha因子"]
         }
     ];
 
