@@ -102,3 +102,19 @@ tilearea {
     color: #ffffff;
     font-size: 14px;
 }
+
+.title{
+    font-size: 22px;
+    color: #ffffff;
+    margin-left: 10px;
+}
+
+.sptitle span{
+    margin-left: 10px;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.content {
+    margin-top: 10px;
+}
