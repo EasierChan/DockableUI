@@ -67,12 +67,15 @@ export class DockContainer extends Control {
                     break;
                 case 1: // north
                     let northHeight = Math.round(this.height / 2);
-                    let dockNorth = new DockContainer(this, "h", null, northHeight);
+                    let dockNorth;
                     let panelNorth = new TabPanel();
                     panelNorth.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
                     panelNorth.setActive(pageid);
-                    dockNorth.addChild(panelNorth);
+
                     if (this.styleObj.type === "v") {
+                        dockNorth = new DockContainer(this, "h", null, northHeight);
+                        dockNorth.addChild(panelNorth);
+
                         let dockSouth = new DockContainer(this, "h", null, this.height - 5 - northHeight);
                         this.children.forEach(child => {
                             dockSouth.addChild(child);
@@ -85,21 +88,30 @@ export class DockContainer extends Control {
                         this.addChild(new Splitter("h"));
                         this.addChild(dockSouth);
                     } else {
+                        dockNorth = new DockContainer(this.parent, "h", null, northHeight);
+                        dockNorth.addChild(panelNorth);
+
                         this.styleObj.height = this.height - 5 - northHeight;
                         this.parent.children.splice(this.parent.children.indexOf(this), 0, dockNorth, new Splitter("h"));
                     }
                     break;
                 case 2: // east
                     let eastWidth = Math.round(this.width / 2);
-                    let dockEast = new DockContainer(this, "v", eastWidth, null);
+                    let dockEast;
                     let panelEast = new TabPanel();
                     panelEast.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
                     panelEast.setActive(pageid);
-                    dockEast.addChild(panelEast);
+
                     if (this.styleObj.type === "v") {
+                        dockEast = new DockContainer(this.parent, "v", eastWidth, null);
+                        dockEast.addChild(panelEast);
+
                         this.styleObj.width = this.width - 5 - eastWidth;
                         this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, new Splitter("v"), dockEast);
                     } else {
+                        dockEast = new DockContainer(this, "v", eastWidth, null);
+                        dockEast.addChild(panelEast);
+
                         let dockWest = new DockContainer(this, "v", this.width - 5 - eastWidth, null);
                         this.children.forEach(child => {
                             dockWest.addChild(child);
@@ -114,12 +126,15 @@ export class DockContainer extends Control {
                     break;
                 case 3: // south
                     let southHeight = Math.round(this.height / 2);
-                    let dockSouth = new DockContainer(this, "h", null, southHeight);
+                    let dockSouth;
                     let panelSouth = new TabPanel();
                     panelSouth.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
                     panelSouth.setActive(pageid);
-                    dockSouth.addChild(panelSouth);
+
                     if (this.styleObj.type === "v") {
+                        dockSouth = new DockContainer(this, "h", null, southHeight);
+                        dockSouth.addChild(panelSouth);
+
                         let dockNorth = new DockContainer(this, "h", null, this.height - 5 - southHeight);
                         this.children.forEach(child => {
                             dockNorth.addChild(child);
@@ -131,22 +146,30 @@ export class DockContainer extends Control {
                         this.addChild(new Splitter("h"));
                         this.addChild(dockSouth);
                     } else {
+                        dockSouth = new DockContainer(this.parent, "h", null, southHeight);
+                        dockSouth.addChild(panelSouth);
+
                         this.styleObj.height = this.height - 5 - southHeight;
                         this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, new Splitter("h"), dockSouth);
                     }
                     break;
                 case 4: // west
                     let westWidth = Math.round(this.width / 2);
-                    let dockWest = new DockContainer(this, "v", westWidth, null);
+                    let dockWest: DockContainer;
                     let panelWest = new TabPanel();
                     panelWest.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
                     panelWest.setActive(pageid);
-                    dockWest.addChild(panelWest);
 
                     if (this.styleObj.type === "v") {
+                        dockWest = new DockContainer(this.parent, "v", westWidth, null);
+                        dockWest.addChild(panelWest);
                         this.styleObj.width = this.width - 5 - westWidth;
                         this.parent.children.splice(this.parent.children.indexOf(this), 0, dockWest, new Splitter("v"));
+                        console.info(this.id, this.parent);
                     } else {
+                        dockWest = new DockContainer(this, "v", westWidth, null);
+                        dockWest.addChild(panelWest);
+
                         let dockEast = new DockContainer(this, "v", this.width - 5 - westWidth, null);
                         this.children.forEach(child => {
                             dockEast.addChild(child);
@@ -163,6 +186,7 @@ export class DockContainer extends Control {
                     break;
             }
 
+            console.info(pageid, pageid, location);
             if (TabPanel.fromPanelId(panelId).getAllTabs().length === 0) {
                 DockContainer.clearUnvalidUp(this, panelId);
             }
