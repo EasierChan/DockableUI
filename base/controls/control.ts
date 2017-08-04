@@ -2,6 +2,7 @@
  * created by chenlei
  */
 import { Menu, MenuItem } from "../api/services/backend.service";
+import { DockContainerComponent } from "./user.component";
 
 export interface CssStyle {
     type: string;
@@ -683,7 +684,15 @@ export class TabPage extends Control {
     }
 
     onDragEnd(event: DragEvent) {
-        // console.info(`drag end`);
+        if (DockContainerComponent.hasActive && DockContainerComponent.lastEnterEle !== null) {
+            DockContainerComponent.lastEnterEle.dataSource.hideNavbar();
+            DockContainerComponent.lastEnterEle.dataSource.hideCover();
+            DockContainerComponent.lastEnterEle.detector.detectChanges();
+            DockContainerComponent.lastEnterEle.detector.reattach();
+
+            DockContainerComponent.hasActive = false;
+            DockContainerComponent.lastEnterEle = null;
+        }
     }
 
     get id(): string {
