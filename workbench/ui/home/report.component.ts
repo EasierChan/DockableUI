@@ -44,7 +44,9 @@ export class ReportComponent implements OnInit {
             let row = this.resTable.newRow();
             row.cells[0].Type = "checkbox";
             row.cells[0].Data = { nId: allItem[i].id, unit: allItem[i].unit, period: allItem[i].period };
-            row.cells[0].OnClick = () => {
+            row.cells[0].Text = false;
+            row.cells[0].OnClick = (item) => {
+                console.log(row.cells[0].Text, item);
                 this.Sel_arr.push(allItem[i].id);
                 console.log(this.Sel_arr);
             };
@@ -62,6 +64,9 @@ export class ReportComponent implements OnInit {
                 this.bLoading = true;
             };
         }
+        this.resTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
+            console.log(cellItem, cellIndex, rowIndex);
+        };
         this.registerListener();
     }
 
