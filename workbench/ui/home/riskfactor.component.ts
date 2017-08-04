@@ -832,7 +832,7 @@ export class RiskFactorComponent implements OnDestroy {
        }
        for(let i = 1; i < this.alphaRelevanceResult.length; i++){
          for(let j = 1; j < this.alphaRelevanceResult[1].length; j++){
-           this.alphaRelevanceResult[i][j] = this.alphaRelevanceResult[i][j].toFixed(2);
+           this.alphaRelevanceResult[i][j] = this.alphaRelevanceResult[i][j].toFixed(4);
          }
        }
         this.setAlphaHotEchart(this.alphaRelevanceResult,this.alphaHotChart);
