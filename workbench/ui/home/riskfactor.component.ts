@@ -830,6 +830,11 @@ export class RiskFactorComponent implements OnDestroy {
            }
            this.alphaRelevanceResult = this.averageValue(this.alphaRelevanceResult，this.alphaRelevance);
        }
+       for(let i = 1; i < this.alphaRelevanceResult.length; i++){
+         for(let j = 1; j < this.alphaRelevanceResult[1].length; j++){
+           this.alphaRelevanceResult[i][j] = this.alphaRelevanceResult[i][j].toFixed(2);
+         }
+       }
         this.setAlphaHotEchart(this.alphaRelevanceResult,this.alphaHotChart);
 
      }
@@ -847,7 +852,7 @@ export class RiskFactorComponent implements OnDestroy {
             arrB[i][j] = 0;
           }
           arrA[i][j] = (arrA[i][j] + arrB[i][j])/2 ;
-          arrA[i][j] = arrA[i][j].toFixed(2);
+          //arrA[i][j] = arrA[i][j].toFixed(2);
       }
     }
       return arrA;
