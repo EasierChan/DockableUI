@@ -44,10 +44,12 @@ export class ReportComponent implements OnInit {
             let row = this.resTable.newRow();
             row.cells[0].Type = "checkbox";
             row.cells[0].Data = { nId: allItem[i].id, unit: allItem[i].unit, period: allItem[i].period };
-            row.cells[0].OnClick = () => {
-                this.Sel_arr.push(allItem[i].id);
-                console.log(this.Sel_arr);
-            };
+            row.cells[0].Name = "hello";
+            row.cells[0].Text = false;
+            // row.cells[0].OnClick = () => {
+            //     this.Sel_arr.push(allItem[i].id);
+            //     console.log(this.Sel_arr);
+            // };
             row.cells[1].Text = allItem[i].name + "-" + allItem[i].id;
             row.cells[2].Text = this.parseDate(allItem[i].timebegin + "");
             row.cells[3].Text = this.parseDate(allItem[i].timeend + "");
@@ -62,6 +64,11 @@ export class ReportComponent implements OnInit {
                 this.bLoading = true;
             };
         }
+
+        this.resTable.onCellClick = (cellitem) => {
+            console.info(cellitem);
+        };
+
         this.registerListener();
     }
 
