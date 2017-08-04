@@ -87,6 +87,7 @@ li > a.active {
   border-radius: 2px;
   border: 1px solid;
   background-color: #222A41;
+  z-index: 99;
 }
 .u-input-group ul.dropdown li:hover {
   background-color: green;

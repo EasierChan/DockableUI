@@ -2,7 +2,7 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, Product, StrategyInstance } from "../../bll/strategy.server";
+import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, Product, StrategyInstance, SpreadViewConfig } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { ChangeDetectorRef } from "@angular/core";
 import { TradeService } from "../../bll/services";
@@ -25,6 +25,7 @@ export class TradeComponent implements OnInit {
     monitorHeight: number;
     bDetails: boolean;
     contextMenu: Menu;
+    svMenu: Menu;
     private configBll = new ConfigurationBLL();
     private strategyContainer = new StrategyServerContainer();
     newInstance = new StrategyInstance();
@@ -38,61 +39,110 @@ export class TradeComponent implements OnInit {
     strategyCores: string[];
     productsList: string[];
     tileArr: string[] = [];
+    analyticArr: string[] = [];
     ProductMsg: any[];
+    svconfigs: SpreadViewConfig[];
+    svconfig: SpreadViewConfig;
     bshow: boolean = false;
     bcreate: boolean = false;
     bRead: boolean = false;
     bModify: boolean = false;
+    bSelStrategy: boolean = false;
+    bSpread: boolean = false;
+    bSelProduct: boolean = false;
+    bNameRead: boolean = false;
     accounts: string = "";
     gatewayObj: Object;
     setting: any;
     clickItem: any;
-    strategyArea: any;
+    strategyArea: TileArea;
+    analyticArea: TileArea;
     frame_host: any;
+    strategymap: any;
     frame_port: any;
+    svClickItem: any;
 
 
     constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    }
+
+    ngOnInit() {
+        this.configs = this.configBll.getAllConfigs();
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
         this.productsList = [];
         this.setting = this.appService.getSetting();
-        this.contextMenu.addItem("Start", () => {
+        this.contextMenu.addItem("启动", () => {
             this.operateStrategyServer(this.config, 1);
         });
-        this.contextMenu.addItem("Stop", () => {
+        this.contextMenu.addItem("停止", () => {
             this.operateStrategyServer(this.config, 0);
         });
-        this.contextMenu.addItem("Modify", () => {
+        this.contextMenu.addItem("修改", () => {
             this.config.curstep = 1;
             this.bshow = true;
             this.bRead = true;
             this.bModify = true;
             this.onPopup(1);
         });
-        this.contextMenu.addItem("Remove", () => {
-            let len = this.configs.length;
-            for (let i = 0; i < len; ++i) {
-                if (this.configs[i].chinese_name === this.clickItem.title) {
-                    this.configs.splice(i, 1);
-                    this.configBll.updateConfig();
-                    this.strategyArea.removeTile(this.clickItem.title);
-                    this.strategyContainer.removeItem(this.config.name);
-                    break;
+        this.contextMenu.addItem("删除", () => {
+            if (!confirm("确定删除？")) {
+                return;
+            } else {
+                let len = this.configs.length;
+                for (let i = 0; i < len; ++i) {
+                    if (this.configs[i].chinese_name === this.clickItem.title) {
+                        this.configs.splice(i, 1);
+                        this.configBll.updateConfig();
+                        this.strategyArea.removeTile(this.clickItem.title);
+                        this.strategyContainer.removeItem(this.config.name);
+                        break;
+                    }
                 }
             }
         });
-    }
 
-    ngOnInit() {
-        let setting = this.appService.getSetting();
-        this.frame_host = setting.endpoints[0].quote_addr.split(":")[0];
-        this.frame_port = setting.endpoints[0].quote_addr.split(":")[1];
+        this.svMenu = new Menu();
+        this.svMenu.addItem("修改", () => {
+            console.log(this.svconfig);
+            this.onModifySpreadViewer();
+        });
+        this.svMenu.addItem("删除", () => {
+            if (!confirm("确定删除？")) {
+                return;
+            } else {
+                let len = this.svconfigs.length;
+                for (let i = 0; i < len; ++i) {
+                    if (this.svconfigs[i].name === this.svClickItem.title) {
+                        // this.svconfigs.splice(i, 1);
+                        this.configBll.removeSVConfigItem(this.svconfig);
+                        console.log(this.svconfigs);
+                        this.analyticArea.removeTile(this.svClickItem.title);
+                        break;
+                    }
+                }
+            }
+            this.configBll.removeSVConfigItem(this.svconfig);
+        });
+
+        this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
+        this.frame_port = this.setting.endpoints[0].quote_addr.split(":")[1];
+
+        this.strategymap = {
+            PairTrade: "统计套利",
+            ManualTrader: "手工交易",
+            PortfolioTrader: "组合交易",
+            IndexSpreader: "做市策略",
+            SimpleSpreader: "配对交易",
+            BasketSpreader: "期现套利",
+            BlockTrader: "大宗交易"
+        };
+
         let self = this;
         this.bDetails = false;
         let productArea = new TileArea();
-        productArea.title = "Products";
+        productArea.title = "产品";
         productArea.onClick = (event: MouseEvent, item: Tile) => {
             this.appService.startApp("产品信息", "Dialog", {
                 dlg_name: "product",
@@ -101,7 +151,7 @@ export class TradeComponent implements OnInit {
         };
 
         this.strategyArea = new TileArea();
-        this.strategyArea.title = "Strategies";
+        this.strategyArea.title = "策略";
         this.strategyArea.onCreate = () => {
             this.bshow = true;
             this.config.curstep = 1;
@@ -124,32 +174,48 @@ export class TradeComponent implements OnInit {
             console.log(this.config, this.clickItem);
         };
 
-        let analyticArea = new TileArea();
-        analyticArea.title = "Analytic";
-        analyticArea.onCreate = () => {
-
+        this.analyticArea = new TileArea();
+        this.analyticArea.title = "分析";
+        this.analyticArea.onCreate = () => {
+            this.svconfig = new SpreadViewConfig();
+            this.bSpread = true;
+        };
+        this.analyticArea.onClick = (event: MouseEvent, item: Tile) => {
+            this.svClickItem = item;
+            let len = this.svconfigs.length;
+            for (let i = 0; i < len; ++i) {
+                if (this.svconfigs[i].name === item.title) {
+                    this.svconfig = this.svconfigs[i];
+                    break;
+                }
+            }
+            if (event.button === 0) {
+                if (!this.appService.startApp(this.svconfig.name, this.svconfig.apptype, {
+                    port: parseInt(this.frame_port),
+                    host: this.frame_host,
+                    lang: this.setting.language,
+                    details: this.svconfig,
+                })) {
+                    alert("Error `Start ${name} app error!`");
+                }
+            } else if (event.button === 2) {
+                console.log(this.svconfig, "item:", item);
+                this.svMenu.popup();
+            }
         };
 
-        for (let i = 0; i < 1; ++i) {
-            let tile = new Tile();
-            tile.title = "hello";
-            tile.iconName = "repeat";
-            analyticArea.addTile(tile);
-        }
-
-        this.areas = [productArea, this.strategyArea, analyticArea];
+        this.areas = [productArea, this.strategyArea, this.analyticArea];
         this.resTable = new DataTable("table2");
-        this.resTable.addColumn2(new DataTableColumn("StrategyID", false, true));
-        this.resTable.addColumn2(new DataTableColumn("Name", false, true));
-        this.resTable.addColumn2(new DataTableColumn("Stauts", false, true));
-        this.resTable.addColumn2(new DataTableColumn("start", false, true));
-        this.resTable.addColumn2(new DataTableColumn("pause", false, true));
-        this.resTable.addColumn2(new DataTableColumn("stop", false, true));
-        this.resTable.addColumn2(new DataTableColumn("watch", false, true));
-        this.resTable.addColumn2(new DataTableColumn("TotalPnl", false, true));
-        this.resTable.addColumn2(new DataTableColumn("TotalPosition", false, true));
+        this.resTable.addColumn2(new DataTableColumn("策略ID", false, true));
+        this.resTable.addColumn2(new DataTableColumn("策略名", false, true));
+        this.resTable.addColumn2(new DataTableColumn("状态", false, true));
+        this.resTable.addColumn2(new DataTableColumn("启动", false, true));
+        this.resTable.addColumn2(new DataTableColumn("暂停", false, true));
+        this.resTable.addColumn2(new DataTableColumn("停止", false, true));
+        this.resTable.addColumn2(new DataTableColumn("监听", false, true));
+        this.resTable.addColumn2(new DataTableColumn("总盈亏", false, true));
+        this.resTable.addColumn2(new DataTableColumn("总仓位", false, true));
         // if (!this.isInit)
-        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
         this.tgw.addSlot({  // template
             appid: 270,
             packid: 194,
@@ -181,7 +247,6 @@ export class TradeComponent implements OnInit {
                         this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
                     });
 
-                    self.configs = self.configBll.getAllConfigs();
                     self.configs.forEach(config => {
                         self.config = config;
                         self.config.state = 0;
@@ -193,36 +258,38 @@ export class TradeComponent implements OnInit {
             }
 
         });
+
         this.tgw.addSlot({
             appid: 107,
             packid: 2001,
             callback: msg => {
                 console.info(msg.content.body, this.config);
-                let config = this.configs.find(item => { return item.name === msg.content.body.name; });
+                let config = self.configs.find(item => { return item.name === msg.content.body.name; });
                 if (config) {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
-                    this.configBll.updateConfig(config);
-                    let rtn = this.tileArr.indexOf(config.name);
+                    let rtn = self.tileArr.indexOf(config.name);
                     if (config.activeChannel === "default" && rtn === -1) {
                         let tile = new Tile();
                         tile.title = config.chinese_name;
-                        tile.iconName = "adjust";
-                        this.strategyArea.addTile(tile);
-                        this.tileArr.push(config.name);
-                        // this.isInit = true;
+                        tile.iconName = "tasks";
+                        self.strategyArea.addTile(tile);
+                        self.tileArr.push(config.name);
+                        // self.isInit = true;
                         config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
+                            tile.backgroundColor = config.state ? "#1d9661" : null;
                         };
-                        this.strategyContainer.removeItem(config.name);
-                        this.strategyContainer.addItem(config);
+                        self.strategyContainer.removeItem(config.name);
+                        self.strategyContainer.addItem(config);
+                        self.configBll.updateConfig(config);
+                    } else if (config.activeChannel === "default" && rtn !== -1) {
+                        self.strategyArea.getTileAt(rtn).title = config.chinese_name;
                     }
                 }
                 // console.log(this.configs);
             }
         });
 
-        this.tgw.send(260, 216, { body: { tblock_type: 2 } });
         this.tgw.addSlot({
             appid: 260,
             packid: 216,
@@ -240,8 +307,7 @@ export class TradeComponent implements OnInit {
                         this.productsList.push(this.product[o].tblock_full_name);
                         let tile = new Tile();
                         tile.title = this.product[o].tblock_full_name;
-                        tile.backgroundColor = "#ff3a66";  // 1c57ff
-                        tile.iconName = "adjust";
+                        tile.iconName = "folder-close";
                         tile.data = this.product[o].tblock_id;
                         productArea.addTile(tile);
                     }
@@ -287,6 +353,20 @@ export class TradeComponent implements OnInit {
                 });
             }
         });
+
+        this.svconfigs = this.configBll.getSVConfigs();
+        console.log(this.svconfigs);
+        let svLen = this.svconfigs.length;
+        for (let i = 0; i < svLen; ++i) {
+            let tile = new Tile();
+            tile.title = this.svconfigs[i].name;
+            this.analyticArr.push(this.svconfigs[i].name);
+            tile.iconName = "object-align-bottom";
+            this.analyticArea.addTile(tile);
+        }
+
+        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
+        this.tgw.send(260, 216, { body: { tblock_type: 2 } });
     }
 
     finish() {
@@ -389,15 +469,13 @@ export class TradeComponent implements OnInit {
         this.bcreate = false;
         this.bRead = false;
         this.bModify = false;
+        this.bSelStrategy = false;
         this.closePanel();
     }
 
-    showError(caption: string, content: string, type: string): void {
-        window.$.Notify({
-            caption: caption,
-            content: content,
-            type: type
-        });
+    onModifySpreadViewer() {
+        this.bSpread = true;
+        this.bNameRead = true;
     }
 
     closePanel(e?: any) {
@@ -405,6 +483,28 @@ export class TradeComponent implements OnInit {
             this.config.curstep = 1;
             this.bshow = false;
         }
+    }
+    onCloseSVConfig() {
+        console.log(this.svconfig, this.svconfigs);
+        if (!this.svconfig.code1 || !this.svconfig.code2 || !this.svconfig.name) {
+            alert("必要参数缺失！");
+            return;
+        }
+        let rtn = this.analyticArr.indexOf(this.svconfig.name);
+        if (rtn !== -1 && !this.bNameRead) {
+            alert("已存在同名价差分析");
+            return;
+        }
+        if (!this.bNameRead) {
+            let tile = new Tile();
+            tile.title = this.svconfig.name;
+            tile.iconName = "object-align-bottom";
+            this.analyticArea.addTile(tile);
+        }
+        console.log(this.svconfigs);
+        this.configBll.addSVConfigItem(this.svconfig);
+        this.bSpread = false;
+        this.bNameRead = false;
     }
 
     duplicateRemove(data: any) {
@@ -422,17 +522,20 @@ export class TradeComponent implements OnInit {
     next() {
         if (this.config.curstep === 1) {
             // add instance
-            if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
-                alert("a strategycore needed.");
-                return;
-            }
+            // if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
+            //     alert("a strategycore needed.");
+            //     return;
+            // }
             if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
                 alert("please input correct format name");
                 return;
             }
-            if (!this.bcreate && !this.bModify) {
+            if (!this.bModify) {
                 // get template
-                this.config.strategyCoreName = this.strategyCores[0];
+                if (!this.bSelStrategy)
+                    this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
+                if (!this.bSelProduct)
+                    this.onSelectProduct(this.productsList[0]);
                 delete this.curTemplate;
                 this.curTemplate = null;
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
@@ -444,9 +547,6 @@ export class TradeComponent implements OnInit {
                 }
                 // choose product and account
                 this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-                if (this.accounts === "") {
-                    this.onSelectProduct(this.productsList[0]);
-                }
                 for (let i = 0; i < this.config.channels.gateway.length; ++i) {
                     for (let obj in this.gatewayObj) {
                         if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
@@ -457,6 +557,9 @@ export class TradeComponent implements OnInit {
                     }
                 }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+                this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
+                this.config.channels.feedhandler.addr = "127.0.0.1";
+                this.config.channels.feedhandler.port = 9200;
                 this.strategyName = "";
                 this.bcreate = true;
 
@@ -466,11 +569,37 @@ export class TradeComponent implements OnInit {
                 this.newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
                 this.newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
                 this.newInstance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
+                this.newInstance.algoes = [100, 101, 102, 103, 104];
                 this.config.strategyInstances[0] = this.newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = this.accounts;
+
+                if (this.config.strategyCoreName === "IndexSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008321;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+
+                        }
+                    }
+                }
+
+                if (this.config.strategyCoreName === "SimpleSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008295;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008589;
+
+                        }
+                    }
+                }
             }
             console.log(this.config);
+            this.bSelProduct = false;
         }
         if (this.config.curstep === 2) {
             this.config.activeChannel = "default";
@@ -513,49 +642,49 @@ export class TradeComponent implements OnInit {
     }
 
     onSelectStrategy(value: string) {
+        console.log(this.config);
         this.bcreate = true;
-        this.config.strategyCoreName = value;
-        delete this.curTemplate;
-        this.curTemplate = null;
-        this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+        this.bSelStrategy = true;
+        this.config.strategyCoreName = this.getStrategyNameByChinese(value);
+        // delete this.curTemplate;
+        // this.curTemplate = null;
+        // this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
 
-        if (this.curTemplate === null) {
-            this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
-            return;
-        }
-        // choose product and account
-        this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-        this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
-        this.strategyName = "";
-        this.newInstance.name = this.config.name;
-        this.newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
-        this.newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
-        this.newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
-        this.newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        if (this.accounts === "")
-            this.onSelectProduct(this.productsList[0]);
-        else
-            this.config.strategyInstances[0] = this.newInstance;
-        this.config.strategyInstances[0].accounts = this.accounts;
-        let bEmpty = this.isEmpty(this.gatewayObj);
-        if (!bEmpty) {
-            for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-                for (let obj in this.gatewayObj) {
-                    if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
-                        this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
-                        this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
-                        break;
-                    }
-                }
-            }
-        }
-        console.log(this.config, this.accounts, this.gatewayObj);
+        // if (this.curTemplate === null) {
+        //     this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
+        //     return;
+        // }
+        // // choose product and account
+        // this.config.channels.gateway = this.curTemplate.body.data.SSGW;
+        // this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
+        // this.strategyName = "";
+        // this.newInstance.name = this.config.name;
+        // this.newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
+        // this.newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
+        // this.newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
+        // this.newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
+        // if (this.accounts === "")
+        //     this.onSelectProduct(this.productsList[0]);
+        // else
+        //     this.config.strategyInstances[0] = this.newInstance;
+        // this.config.strategyInstances[0].accounts = this.accounts;
+        // let bEmpty = this.isEmpty(this.gatewayObj);
+        // if (!bEmpty) {
+        //     for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+        //         for (let obj in this.gatewayObj) {
+        //             if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
+        //                 this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
+        //                 this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
+        // console.log(this.config, this.accounts, this.gatewayObj);
     }
     onSelectProduct(value: string) {
         console.log(value);
-        console.log(this.config);
-        // choose product and parse account and channal
-        // console.log(this.product, this.ProductMsg);
+        this.bSelProduct = true;
         this.accounts = "";
         let len = this.ProductMsg.length;
         let account_arr = [];
@@ -590,20 +719,20 @@ export class TradeComponent implements OnInit {
             combine[tmp[2]] = { addr: tmp[0], port: parseInt(tmp[1]) };
         }
         this.gatewayObj = combine;
-        if (this.config.strategyInstances.length !== 0) {
-            this.config.strategyInstances[0].accounts = this.accounts;
-        }
-        if (this.config.channels.gateway) {
-            for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-                for (let obj in this.gatewayObj) {
-                    if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
-                        this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
-                        this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
-                        break;
-                    }
-                }
-            }
-        }
+        // if (this.config.strategyInstances.length !== 0) {
+        //     this.config.strategyInstances[0].accounts = this.accounts;
+        // }
+        // if (this.config.channels.gateway) {
+        //     for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+        //         for (let obj in this.gatewayObj) {
+        //             if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
+        //                 this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
+        //                 this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
         console.log("account:", this.accounts, "gateway:", this.gatewayObj, "config:", this.config);
     }
     /**
@@ -611,11 +740,11 @@ export class TradeComponent implements OnInit {
  */
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
-        this.strategyCores = this.configBll.getTemplates();
-        // this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
+        // this.strategyCores = this.configBll.getTemplates();
+        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
-            this.config.strategyCoreName = this.strategyCores[0];
+            this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
@@ -624,8 +753,12 @@ export class TradeComponent implements OnInit {
         }
     }
 
-
-
+    getStrategyNameByChinese(data: any) {
+        for (let o in this.strategymap) {
+            if (this.strategymap[o] === data)
+                return o;
+        }
+    }
     hide() {
         this.bshow = false;
         this.bRead = false;

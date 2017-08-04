@@ -8,6 +8,7 @@ export const os = require("@node/os");
 export const path = require("@node/path");
 export const fs = require("@node/fs");
 export const readline = require("@node/readline");
+export const Http = require("@node/http");
 
 @Injectable()
 export class AppStoreService {
@@ -213,9 +214,9 @@ export class File {
 
     public static writeAsync(fpath: string, content: string | Object) {
         if (typeof (content) === "string")
-            fs.writeFile(fpath, content, { encoding: "utf8" });
+            fs.writeFile(fpath, content, { encoding: "utf8" }, (err) => { });
         else
-            fs.writeFile(fpath, JSON.stringify(content), { encoding: "utf8" });
+            fs.writeFile(fpath, JSON.stringify(content), { encoding: "utf8" }, (err) => { });
     }
 
     public static appendAsync(fpath: string, content: string) {

@@ -52,6 +52,10 @@ export class BacktestComponent implements OnInit {
     selectStrategyName: any;
 
     constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    }
+
+    ngOnInit() {
+        this.configs = this.configBll.getAllConfigs();
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
@@ -95,9 +99,7 @@ export class BacktestComponent implements OnInit {
             console.log(this.config);
             this.bChangeShow = true;
         });
-    }
 
-    ngOnInit() {
         let self = this;
         this.bDetails = false;
         this.backTestArea = new TileArea();
@@ -108,7 +110,7 @@ export class BacktestComponent implements OnInit {
             ManualTrader: "手工交易",
             PortfolioTrader: "组合交易",
             IndexSpreader: "做市策略",
-            SimpleSpreader: "跨期套利",
+            SimpleSpreader: "配对交易",
             BasketSpreader: "期现套利",
             BlockTrader: "大宗交易"
         };
@@ -150,7 +152,7 @@ export class BacktestComponent implements OnInit {
                         templatelist.body.forEach(template => {
                             this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
                         });
-                        self.configs = self.configBll.getAllConfigs();
+
                         self.configs.forEach(config => {
                             self.config = config;
                             self.config.state = 0;
@@ -191,7 +193,7 @@ export class BacktestComponent implements OnInit {
                     if (config.activeChannel === "lookback" && rtn === -1) {
                         let tile = new Tile();
                         tile.title = config.chinese_name;
-                        tile.iconName = "adjust";
+                        tile.iconName = "retweet";
                         this.backTestArea.addTile(tile);
                         this.tileArr.push(config.name);
                         // this.isInit = true;
@@ -201,6 +203,8 @@ export class BacktestComponent implements OnInit {
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
                         this.configBll.updateConfig(config);
+                    } else if (config.activeChannel === "lookback" && rtn !== -1) {
+                        this.backTestArea.getTileAt(rtn).title = config.chinese_name;
                     }
                 }
                 // console.log(this.configs);
@@ -251,6 +255,13 @@ export class BacktestComponent implements OnInit {
                 let item = this.sendLoopConfigs.find((item, idx) => {
                     return item.reqsn === msg.reqsn;
                 });
+                this.config.channels.feedhandler.addr = msg.hqurl;
+                this.config.channels.feedhandler.port = msg.hqport;
+                for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+                    this.config.channels.gateway[i].addr = msg.url;
+                    this.config.channels.gateway[i].port = msg.port;
+                }
+
                 if (item) {
                     item.id = msg.nId;
                     item.name = this.config.chinese_name;
@@ -367,6 +378,7 @@ export class BacktestComponent implements OnInit {
         this.bcreate = false;
         this.bRead = false;
         this.bModify = false;
+        this.bSelStrategy = false;
         this.closePanel();
     }
     static reqnum = 1;
@@ -429,6 +441,30 @@ export class BacktestComponent implements OnInit {
                 this.config.strategyInstances[0] = newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = "666600000011";
+
+                if (this.config.strategyCoreName === "IndexSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008321;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2007116;
+
+                        }
+                    }
+                }
+
+                if (this.config.strategyCoreName === "SimpleSpreader") {
+                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
+                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008295;
+                        }
+                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
+                            this.config.strategyInstances[0].instruments[i].value = 2008589;
+
+                        }
+                    }
+                }
             }
             console.log(this.config);
         }
@@ -483,10 +519,13 @@ export class BacktestComponent implements OnInit {
             this.config.channels.gateway[i].addr = "172.24.50.10";
             this.config.channels.gateway[i].port = 8000;
         }
+        this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
         this.config.activeChannel = "simulation";
-        this.configBll.updateConfig(this.config);
         this.backTestArea.removeTile(this.clickItem.title);
         this.strategyContainer.removeItem(this.config.name);
+        let tmpPort = this.config.channels.feedhandler.port;
+        this.config.channels.feedhandler.port = parseInt(tmpPort);
+        this.configBll.updateConfig(this.config);
         this.bChangeShow = false;
         console.log(this.config);
     }
@@ -524,7 +563,7 @@ export class BacktestComponent implements OnInit {
     onPopup(type: number = 0) {
         // this.bPopPanel = true;
         // this.strategyCores = this.configBll.getTemplates();
-        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "跨期套利", "期现套利", "大宗交易"];
+        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
             this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));
@@ -543,10 +582,10 @@ export class BacktestComponent implements OnInit {
             this.config.loopbackConfig.option = {
                 timebegin: idate,
                 timeend: idate,
-                speed: "1",
-                simlevel: "1",
-                period: "1",
-                unit: "1"
+                speed: "3",
+                simlevel: "2",
+                period: "30",
+                unit: "0"
             };
         }
     }

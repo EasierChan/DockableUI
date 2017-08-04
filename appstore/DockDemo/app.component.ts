@@ -2004,20 +2004,20 @@ export class AppComponent implements OnInit, AfterViewInit {
                 for (let j = 0; j < equityPosTableRows; ++j) {
                     let getUkey = AppComponent.self.PositionTable.rows[j].cells[2].Text;
                     let getSec = AppComponent.self.PositionTable.rows[j].cells[1].Text;
-                    if (getUkey === ukey) { // refresh
+                    if (parseInt(getUkey) === ukey) { // refresh
                         checkFlag = true;
-                        if (getSec === 1) {
+                        if (parseInt(getSec) === 1) {
                             AppComponent.self.refreshEquitPosInfo(data[i], j);
-                        }
-                        else if (getSec === 2) {
+                        } else if (getSec === 2) {
                             let getType = AppComponent.self.PositionTable.rows[j].cells[12].Text;
-                            if (getType === type)
+                            if (parseInt(getType) === type)
                                 AppComponent.self.refreshFuturePosInfo(data[i], j);
                             else
                                 AppComponent.self.addFuturePosInfo(data[i]);
                         }
                     }
                 }
+
                 if (!checkFlag) {  // add
                     if (equityposSec === 1) {
                         AppComponent.self.addEquityPosInfo(data[i]);

@@ -70,12 +70,12 @@ export class AppStore {
             dialog.showMessageBox(contentWindow.win, {
                 type: "info",
                 title: "Warning",
-                buttons: ["Minimize", "Exit"],
+                buttons: ["Cancel", "Minimize", "Exit"],
                 message: "Minimize Workbench or Exit Whole Application!"
             }, (response: number) => {
-                if (response === 0) {
+                if (response === 1) {
                     contentWindow.win.minimize();
-                } else {
+                } else if (response === 2) {
                     contentWindow.win.hide();
                     setTimeout(() => {
                         contentWindow.win.removeAllListeners();

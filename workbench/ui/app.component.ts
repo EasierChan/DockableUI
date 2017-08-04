@@ -11,8 +11,9 @@ import {
     VBox, HBox, TextBox, Button, DockContainer
 } from "../../base/controls/control";
 
-import { AppStoreService, ChildProcess } from "../../base/api/services/backend.service";
+import { AppStoreService, ChildProcess, Http } from "../../base/api/services/backend.service";
 import { TradeService, QuoteService, QtpService } from "../bll/services";
+// import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
 import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
@@ -39,6 +40,8 @@ export class AppComponent implements OnInit {
     homeMod: string;
     activeTab: string;
     curEndpoint: any;
+    quoteHeart: any;
+    tradeHeart: any;
 
     constructor(private tradeEndPoint: TradeService,
         private quote: QuoteService,
@@ -81,14 +84,14 @@ export class AppComponent implements OnInit {
         });
 
         this.actionBar.addFeature({
-            iconName: "picture",
+            iconName: "stats",
             tooltip: "超级图表",
             title: "超级图表",
             active: false
         });
 
         this.actionBar.addFeature({
-            iconName: "wrench",
+            iconName: "eye-open",
             tooltip: "产品监控",
             title: "产品监控",
             active: false
@@ -130,13 +133,13 @@ export class AppComponent implements OnInit {
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
-                case "回测平台":
+                case "历史回测":
                     this.curPage = "home";
                     this.homeMod = item.title;
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
-                case "趋势分析":
+                case "未来预测":
                     this.curPage = "home";
                     this.homeMod = item.title;
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
@@ -147,10 +150,10 @@ export class AppComponent implements OnInit {
                     this.actionBar.activeItem = item;
                     break;
                 case "时间回溯":
-                    ChildProcess.openUrl(this.setting.externalLinks.TimeMachine);
+                    Http.get(this.setting.externalLinks.TimeMachine);
                     break;
                 case "超级图表":
-                    ChildProcess.openUrl(this.setting.externalLinks.SuperGraph);
+                    Http.get(this.setting.externalLinks.SuperGraph);
                     break;
                 case "产品监控":
                     ChildProcess.openUrl(this.setting.externalLinks.CSP);
@@ -182,6 +185,13 @@ export class AppComponent implements OnInit {
             packid: 43,
             callback: msg => {
                 console.info(`tgw::login ans=>${msg.toString()}`);
+
+                if (this.tradeHeart)
+                    clearInterval(this.tradeHeart);
+
+                this.tradeHeart = setInterval(() => {
+                    this.tradeEndPoint.send(17, 0, {});
+                }, 60000);
             }
         });
 
@@ -198,6 +208,13 @@ export class AppComponent implements OnInit {
             packid: 43,
             callback: msg => {
                 console.info(`tgw::login ans=>${msg.toString()}`);
+
+                if (this.quoteHeart)
+                    clearInterval(this.quoteHeart);
+
+                this.quoteHeart = setInterval(() => {
+                    this.quote.send(17, 0, {});
+                }, 60000);
             }
         });
 

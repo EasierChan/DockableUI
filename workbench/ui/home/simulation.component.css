@@ -20,10 +20,14 @@ tilearea {
     width: 700px;
     height: 450px;
     margin:auto;
-    background-color:#725533;
+    background-color:#394054;
     position:absolute;
     left:25%;
     top:20%;
+}
+.block-shadow-info input,
+.block-shadow-info button{
+     padding: 2px 5px;
 }
 .footer{
     right: 5%;
@@ -90,7 +94,7 @@ tilearea {
     width: 700px;
     height: 300px;
     margin:auto;
-    background-color:#725533;
+    background-color:#394054;
     position:absolute;
     left:25%;
     top:20%;
@@ -100,9 +104,29 @@ tilearea {
     right: 10px;
     bottom: 10px;
 }
+.changefooter button{
+    background-color: #1F273E;
+    color: #ffffff;
+    border-radius: 4px;
+    height: 25px;
+    line-height: 25px;
+}
 .changelengend{
     color: #fff;
     font-size: 22px;
     margin-top: 20px;
     margin-left: 10px;
+}
+
+.pagebtn button{
+    background-color: #1F273E;
+    color: #ffffff;
+    border-radius: 4px;
+    height: 25px;
+    line-height: 25px;
+}
+.maxordersize{
+    margin-left: 15px;
+    color: #ffffff;
+    font-size: 14px;
 }

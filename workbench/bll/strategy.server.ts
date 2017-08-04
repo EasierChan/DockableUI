@@ -1,10 +1,12 @@
 "use strict";
 
+import { Injectable } from "@angular/core";
 import { Header } from "../../base/api/model/itrade/message.model";
 import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy, ComStrategyCfg } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
 import { File, Environment, path } from "../../base/api/services/backend.service";
 
+@Injectable()
 export class ConfigurationBLL {
     private readonly kTemplateExt: string = ".json";
 

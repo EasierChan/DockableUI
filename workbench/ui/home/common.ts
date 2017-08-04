@@ -11,14 +11,14 @@ export class DataSet {
             tabs: ["首页", "实盘交易", "仿真交易", "风控"] // , "管理"
         },
         {
-            name: "回测平台",
-            icon: "repeat",
+            name: "历史回测",
+            icon: "retweet",
             // tabs: ["BackTest", "Report"]
             tabs: ["回测", "回测报表"]
         },
         {
-            name: "趋势分析",
-            icon: "send",
+            name: "未来预测",
+            icon: "road",
             // tabs: ["Profit", "RiskFactors"]
             tabs: ["风险因子收益", "风险因子分析", "Alpha因子"]
         }

@@ -1,6 +1,8 @@
 .content {
     flex: auto;
     padding-bottom: 10px;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .u-row,

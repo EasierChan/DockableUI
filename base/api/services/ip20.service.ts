@@ -70,6 +70,7 @@ class IP20Parser extends Parser {
                         restBuf = null;
                     }
 
+                    console.warn(`remove unvalid message => packlen=${this._curHeader.packlen}, restLen=${restLen}`);
                     tempBuffer = null;
                     this._curHeader = null;
                     ret = false;
@@ -100,7 +101,7 @@ class IP20Parser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.packlen) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                console.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
+                console.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}, buflen=${tempBuffer.length}`);
                 this.emit(this._curHeader.appid.toString(), this._curHeader, tempBuffer);
 
                 restLen = buflen - this._curHeader.packlen;
@@ -109,7 +110,9 @@ class IP20Parser extends Parser {
                     tempBuffer.copy(restBuf, 0, buflen - restLen);
                     this._oPool.prepend(restBuf);
                     restBuf = null;
+                    console.warn(`restLen=${restLen}, tempBuffer=${tempBuffer.length}`);
                 }
+
                 this._curHeader = null;
                 tempBuffer = null;
                 ret = true;
@@ -358,7 +361,7 @@ process.on("message", (m: WSIP20, sock) => {
             let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
                 ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
                 ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-            let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
+            let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
             IP20Factory.instance.send(17, 41, loginObj);
             break;
         case "sendMsg":

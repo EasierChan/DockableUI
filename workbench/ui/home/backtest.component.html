@@ -103,26 +103,66 @@
                             <div class="content bg-darker">
                                 <fieldset *ngIf="config.channels.gateway">
                                     <legend>选项</legend>
-                                    <div>
-                                        匹配类型:
+                                    <table class="backprefer">
+                                        <tr>
+                                            <td><label>匹配类型:</label></td>
+                                            <td colspan="2"> <label><input name="matchmode" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.simlevel">无条件成交</label><label><input name="matchmode" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.simlevel">按价格成交</label><label><input name="matchmode" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.simlevel">按价量成交</label>                                                </td>
+                                        </tr>
+                                        <tr>
+                                            <td><label>起始日期:</label></td>
+                                            <td colspan="2"><input type="date" [(ngModel)]="config.loopbackConfig.option.timebegin">-
+                                                <input type="date" [(ngModel)]="config.loopbackConfig.option.timeend"></td>
+                                        </tr>
+                                        <tr>
+                                            <td><label>计算时间间隔:</label></td>
+                                            <td>
+                                                <input type="text" [(ngModel)]="config.loopbackConfig.option.period">
+                                                <div style="display: inline-block;vertical-align: middle">
+                                                <label><input name="unit" type="radio" value="0" [(ngModel)]="config.loopbackConfig.option.unit">分钟</label>
+                                                <label><input name="unit" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.unit">天</label>
+                                                </div>
+                                            </td>
+                                            <td style="text-align: left">
+                                            </td>
+
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <label>速度:</label>
+                                            </td>
+                                            <td colspan="2">
+                                                <label><input name="speed" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.speed">1</label>
+                                                <label><input name="speed" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.speed">2</label>
+                                                <label><input name="speed" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.speed">3</label>
+                                                <label><input name="speed" type="radio" value="4" [(ngModel)]="config.loopbackConfig.option.speed">4</label>
+                                                <label><input name="speed" type="radio" value="5" [(ngModel)]="config.loopbackConfig.option.speed">5</label>
+                                                <label><input name="speed" type="radio" value="6" [(ngModel)]="config.loopbackConfig.option.speed">6</label>
+                                                <label><input name="speed" type="radio" value="7" [(ngModel)]="config.loopbackConfig.option.speed">7</label>
+                                                <label><input name="speed" type="radio" value="8" [(ngModel)]="config.loopbackConfig.option.speed">8</label>
+                                                <label><input name="speed" type="radio" value="9" [(ngModel)]="config.loopbackConfig.option.speed">9</label>
+                                                <label><input name="speed" type="radio" value="10" [(ngModel)]="config.loopbackConfig.option.speed">10</label>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!--<div  class  = "backrefer">
+                                        <label>匹配类型:</label>
                                         <label><input name="matchmode" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.simlevel">无条件成交</label>
                                         <label><input name="matchmode" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.simlevel">按价格成交</label>
                                         <label><input name="matchmode" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.simlevel">按价量成交</label>
-                                    </div>
-                                    <div>
-                                        起始日期:
+                                    </div>-->
+                                    <!--<div class="backrefer">
+                                        <label>起始日期:</label>
                                         <input type="date" [(ngModel)]="config.loopbackConfig.option.timebegin">
-                                        <span>-</span>
+                                        <label>-</label>
                                         <input type="date" [(ngModel)]="config.loopbackConfig.option.timeend">
                                     </div>
-                                    <div>
-                                        计算时间间隔:
-                                        <input type="text" [(ngModel)]="config.loopbackConfig.option.period">
+                                    <div class="backrefer">
+                                        <label>计算时间间隔:</label><input type="text" [(ngModel)]="config.loopbackConfig.option.period">
                                         <label><input name="unit" type="radio" value="0" [(ngModel)]="config.loopbackConfig.option.unit">分钟</label>
                                         <label><input name="unit" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.unit">天</label>
                                     </div>
-                                    <div>
-                                        速度:
+                                    <div class="backrefer">
+                                        <label>速度:</label>
                                         <label><input name="speed" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.speed">1</label>
                                         <label><input name="speed" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.speed">2</label>
                                         <label><input name="speed" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.speed">3</label>
@@ -133,7 +173,7 @@
                                         <label><input name="speed" type="radio" value="8" [(ngModel)]="config.loopbackConfig.option.speed">8</label>
                                         <label><input name="speed" type="radio" value="9" [(ngModel)]="config.loopbackConfig.option.speed">9</label>
                                         <label><input name="speed" type="radio" value="10" [(ngModel)]="config.loopbackConfig.option.speed">10</label>
-                                    </div>
+                                    </div>-->
                                 </fieldset>
                             </div>
                         </div>
@@ -146,7 +186,7 @@
                     <hr>
                 </div>
                 <div>
-                    <label>如果您已确定完成所有配置，请点击“完成”结束策略服务配置。</label>
+                    <label class="maxordersize">如果您已确定完成所有配置，请点击“完成”结束策略服务配置。</label>
                 </div>
             </div>
         </div>

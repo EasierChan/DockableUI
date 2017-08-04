@@ -2,7 +2,7 @@
   <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
   <span class="big">chronos</span>
   <div class="u-input-group">
-    <input type="text" placeholder="Search..." (input)="onSearch(searcher.value)" [ngModel]="selectedValue" #searcher>
+    <input type="text" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedValue" #searcher>
     <a class="button">
       <span class="glyphicon glyphicon-search"></span>
     </a>
@@ -70,8 +70,14 @@
         <dock-table [dataSource]="numberInfo.content.dataSource" [styleObj]="numberInfo.content.styleObj"></dock-table>
       </div>
     </section>
+    <section style="width: 300px">
+      <b>{{structureInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
   </div>
-  <div class="u-row">
+  <!--<div class="u-row">
     <section class="fill">
       <b>{{instituteInfo.title}}</b>
       <div class="holder">
@@ -84,7 +90,7 @@
         <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
       </div>
     </section>
-  </div>
+  </div>-->
 </div>
 <div *ngIf="!isStock" class="content">
   <div class="u-row">
