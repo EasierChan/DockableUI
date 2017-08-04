@@ -323,7 +323,9 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     autoHide() {
-        this.resList = null;
+        setTimeout(() => {
+            this.resList = null;
+        }, 1000);
         // if (this.timeout)
         //     clearTimeout(this.timeout);
 
