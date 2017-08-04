@@ -328,18 +328,20 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.code = item.symbolCode;
         this.isStock = (item.ukey & 0x00010000) > 0 ? true : false;
 
-        this.marketPerformance.content.option.legend.data = [this.symbol, "沪深300"];
-        this.marketPerformance.content.option.series = [{
-            name: this.symbol,
-            type: "line",
-            data: []
-        }, {
-            name: "沪深300",
-            type: "line",
-            data: []
-        }];
+        if (this.isStock) {
+            this.marketPerformance.content.option.legend.data = [this.symbol, "沪深300"];
+            this.marketPerformance.content.option.series = [{
+                name: this.symbol,
+                type: "line",
+                data: []
+            }, {
+                name: "沪深300",
+                type: "line",
+                data: []
+            }];
 
-        this.marketChart.setOption(this.marketPerformance.content.option);
+            this.marketChart.setOption(this.marketPerformance.content.option);
+        }
 
         this.quote.send(140, 10, { ukey: parseInt(item.ukey), reqtype: 2, reqno: 1 });
         this.resList = null;
