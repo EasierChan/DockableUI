@@ -5,7 +5,7 @@
  */
 "use strict";
 
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
     VBox, HBox, TextBox, Button, DockContainer
@@ -13,7 +13,7 @@ import {
 
 import { AppStoreService, ChildProcess, Http } from "../../base/api/services/backend.service";
 import { TradeService, QuoteService, QtpService } from "../bll/services";
-// import { ConfigurationBLL } from "../bll/strategy.server";
+import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
 import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
@@ -31,10 +31,11 @@ import { ActionBar, Label } from "../../base/controls/control";
         QuoteService,
         QtpService,
         AppStoreService,
-        SecuMasterService
+        SecuMasterService,
+        ConfigurationBLL
     ]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
     actionBar: ActionBar;
     curPage: string;
     homeMod: string;
@@ -42,11 +43,13 @@ export class AppComponent implements OnInit {
     curEndpoint: any;
     quoteHeart: any;
     tradeHeart: any;
+    isonpacks: any;
 
     constructor(private tradeEndPoint: TradeService,
         private quote: QuoteService,
         private mock: QtpService,
-        private appService: AppStoreService) {
+        private appService: AppStoreService,
+        private configBll: ConfigurationBLL) {
     }
 
     get setting() {
@@ -54,6 +57,7 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.isonpacks = {};
         this.curEndpoint = this.setting.endpoints[0];
         this.homeMod = DataSet.modules[0].name;
         this.activeTab = DataSet.tabs(this.homeMod)[0];
@@ -179,12 +183,19 @@ export class AppComponent implements OnInit {
             }
         };
 
+        this.appService.getUserProfile(null);
+        this.loginTGW();
+    }
+
+    registerListeners() {
         let self = this;
         this.tradeEndPoint.addSlot({ // login success
             appid: 17,
             packid: 43,
             callback: msg => {
                 console.info(`tgw::login ans=>${msg.toString()}`);
+                // to request template
+                this.tradeEndPoint.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
 
                 if (this.tradeHeart)
                     clearInterval(this.tradeHeart);
@@ -200,6 +211,33 @@ export class AppComponent implements OnInit {
             packid: 120,
             callback: msg => {
                 console.error(`tgw::login ans=>${JSON.stringify(msg.content)}`);
+            }
+        });
+
+        this.tradeEndPoint.addSlot({  // template
+            appid: 270,
+            packid: 194,
+            callback: msg => {
+                // console.info(msg);
+                if (msg.content.head.pkgCnt > 1) {
+                    if (this.isonpacks[msg.content.head.pkgId] === undefined)
+                        this.isonpacks[msg.content.head.pkgId] = "";
+                    if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
+                        let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
+                        templatelist.body.forEach(template => {
+                            this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
+                        });
+
+                        delete this.isonpacks[msg.content.head.pkgId];
+                    } else {
+                        this.isonpacks[msg.content.head.pkgId] = this.isonpacks[msg.content.head.pkgId].concat(msg.content.body);
+                    }
+                } else {
+                    let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
+                    templatelist.body.forEach(template => {
+                        this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
+                    });
+                }
             }
         });
 
@@ -225,9 +263,6 @@ export class AppComponent implements OnInit {
                 console.error(`tgw::login ans=>${JSON.stringify(msg.content)}`);
             }
         });
-
-        this.appService.getUserProfile(null);
-        this.loginTGW();
     }
 
     loginTGW() {
@@ -246,5 +281,10 @@ export class AppComponent implements OnInit {
 
         let [lhost, lport] = this.curEndpoint.loopback_addr.split(":");
         this.mock.connect(lport, lhost);
+    }
+
+    ngOnDestroy() {
+        this.isonpacks = null;
+        delete this.isonpacks;
     }
 }
