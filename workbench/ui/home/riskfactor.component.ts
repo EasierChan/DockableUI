@@ -77,7 +77,8 @@ export class RiskFactorComponent implements OnDestroy {
 
     riskFactorReturnAttr: any[] = [];// 风险因子收益归因
     riskFactorReturn: any[] = [];
-    riskFactorExpose: any[] = [];
+    riskFactorExposure: any[] = [];
+    HedgeRatioData: any[] = [];
     alphaRelevance: any[] = []; // alpha相关性
     alphaRelevanceResult: any[] = []; // alpha相关性结果
     hotChartData: any[] = []; // 存放图标的data
@@ -288,16 +289,16 @@ export class RiskFactorComponent implements OnDestroy {
             alert("风险因子收益没有数据,请导入数据后重试");
             return;
         }
-        this.riskFactorReturn[0][1] = "贝塔(市场)风险"；
-        this.riskFactorReturn[0][2] = "账面价值比"；
-        this.riskFactorReturn[0][3] = "盈利"；
-        this.riskFactorReturn[0][4] = "成长性"；
-        this.riskFactorReturn[0][5] = "杠杆"；
-        this.riskFactorReturn[0][6] = "流动性"；
-        this.riskFactorReturn[0][7] = "动量"；
-        this.riskFactorReturn[0][8] = "残差波动率"；
-        this.riskFactorReturn[0][9] = "市值"；
-        this.riskFactorReturn[0][10] = "非线性市值"；
+        this.riskFactorReturn[0][1] = "贝塔(市场)风险";
+        this.riskFactorReturn[0][2] = "账面价值比";
+        this.riskFactorReturn[0][3] = "盈利";
+        this.riskFactorReturn[0][4] = "成长性";
+        this.riskFactorReturn[0][5] = "杠杆";
+        this.riskFactorReturn[0][6] = "流动性";
+        this.riskFactorReturn[0][7] = "动量";
+        this.riskFactorReturn[0][8] = "残差波动率";
+        this.riskFactorReturn[0][9] = "市值";
+        this.riskFactorReturn[0][10] = "非线性市值";
 
         for (let i = 1; i < this.riskFactorReturn.length; ++i) {
 
@@ -340,7 +341,7 @@ export class RiskFactorComponent implements OnDestroy {
 
         if (this.riskFactorExposure.length < 2) {
             console.log("暴露数据为空，不能计算数据。");
-            return；
+            return;
         }
         this.riskFactorExposure.splice(0,1);//直接删除掉第一列,应该保证风险因子的顺序给的一致
         this.riskFactorExposure.sort( function (perv,next){
@@ -515,7 +516,7 @@ export class RiskFactorComponent implements OnDestroy {
         for (let i = 0; i < rowDatas.length; ++i) {
             if (rowDatas[i] != "") {
 
-                let splitData = rowDatas[i].split("\n")；
+                let splitData = rowDatas[i].split("\n");
                 for(let j=0;j<splitData.length;++j){
                     if(splitData[j] != ""){
                       resultData.push(splitData[j].split(","));
@@ -530,9 +531,8 @@ export class RiskFactorComponent implements OnDestroy {
     /* 二分查看法
     * arr表示要查找的数组,source表示要查找的目标,member表示要在数组中对比的具体的属性,start,end表示查找范围[start,end],包括end
     */
-    binarySearchStock(arr,source,member,start,end) {
-      start=start||0;
-      end=end||arr.length-1;
+    binarySearchStock(arr,source,member,start=0,end=arr.length-1) {
+
       let mid=-1;
 
       while(start<=end){
@@ -555,7 +555,7 @@ export class RiskFactorComponent implements OnDestroy {
         this.startDate = this.startdate.replace(/-/g,"");
         this.endDate = this.enddate.replace(/-/g,"");
 
-        let productlist = document.getElementById("product");
+        let productlist = document.getElementById("product") as HTMLSelectElement;
         let productIndex = productlist.selectedIndex;
 
         if(productIndex === -1){
@@ -564,7 +564,7 @@ export class RiskFactorComponent implements OnDestroy {
         let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
 
         if(!isNaN(this.hedgeRadio)){
-            let strategylist = document.getElementById("strategy");
+            let strategylist = document.getElementById("strategy") as HTMLSelectElement;
             let strategyIndex = strategylist.selectedIndex;
 
             // setNetTableValue
@@ -640,7 +640,7 @@ export class RiskFactorComponent implements OnDestroy {
                                 this.beginCalculateRiskFactor();
                             }
                         }else {
-                          alert("获取期货数据失败："+data.msret.msg);
+                          alert("获取期货数据失败："+msg.content.msret.msg);
                         }
                       }
                     }
@@ -806,7 +806,7 @@ export class RiskFactorComponent implements OnDestroy {
        }
 
        if(dirAlphaFiles.length == 0){
-           alter("您选择的路径内没有文件,无法计算");
+           alert("您选择的路径内没有文件,无法计算");
            return;
        }
        for(let fileIndex=0;fileIndex<dirAlphaFiles.length;++fileIndex){   // csv文件在打开时可能还有其他的文件存在
@@ -828,7 +828,7 @@ export class RiskFactorComponent implements OnDestroy {
            if(fileIndex == 0){
              this.alphaRelevanceResult = this.alphaRelevance;
            }
-           this.alphaRelevanceResult = this.averageValue(this.alphaRelevanceResult，this.alphaRelevance);
+           this.alphaRelevanceResult = this.averageValue(this.alphaRelevanceResult,this.alphaRelevance);
        }
        for(let i = 1; i < this.alphaRelevanceResult.length; i++){
          for(let j = 1; j < this.alphaRelevanceResult[1].length; j++){
@@ -961,7 +961,7 @@ export class RiskFactorComponent implements OnDestroy {
         }
 
         if(dirFiles.length == 0){
-            alter("您选择的路径内没有暴露文件,无法计算");
+            alert("您选择的路径内没有暴露文件,无法计算");
             return;
         }
 
@@ -1067,7 +1067,7 @@ export class RiskFactorComponent implements OnDestroy {
 
     //设置alpha因子展示
      setAlphaEchart(alphaData,startIndex,endIndex,lineChart){
-      let chartLegendData=[],xAxisDatas[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
+      let chartLegendData=[],xAxisDatas=[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
       let allRiskReturnXAxis=[],allRiskReturnSeries=[];   //统计总共的x坐标数组,和具体每一条曲线的数据
 
       for(let riskIndex=1; riskIndex<alphaData[0].length; ++riskIndex){    //遍历每一个风险因子
@@ -1198,7 +1198,7 @@ export class RiskFactorComponent implements OnDestroy {
           type: 'category',
           data: xdata,
           splitArea: {
-            show: true;
+            show: true
           },
           axisLabel: {
               textStyle: { color: "#F3F3F5" }
@@ -1211,7 +1211,7 @@ export class RiskFactorComponent implements OnDestroy {
           type: 'category',
           data: ydata,
           splitArea: {
-            show: true;
+            show: true
           },
           axisLabel: {
               textStyle: { color: "#F3F3F5" }
@@ -1236,7 +1236,7 @@ export class RiskFactorComponent implements OnDestroy {
             normal:{
               show: true,
               textStyle: {
-                color: "black";
+                color: "black"
               }
             }
           },
@@ -1253,7 +1253,7 @@ export class RiskFactorComponent implements OnDestroy {
 
     // 设置收益的两个图表,有被复用
     setReturnEchart(riskFactorReturn,startIndex,endIndex,lineChart,barChart){
-      let chartLegendData=[],xAxisDatas[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
+      let chartLegendData=[],xAxisDatas=[],series=[];    //分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
       let allRiskReturnXAxis=[],allRiskReturnSeries=[];   //统计总共的x坐标数组,和具体每一条曲线的数据
 
       for(let riskIndex=1; riskIndex<riskFactorReturn[0].length; ++riskIndex){    //遍历每一个风险因子
@@ -1529,7 +1529,7 @@ export class RiskFactorComponent implements OnDestroy {
                     handleSize: '60%',
                     textStyle: {
                       color: "#FFF"
-                    }
+                    },
                     handleStyle: {
                         color: '#fff',
                         shadowBlur: 3,
@@ -1734,7 +1734,7 @@ export class RiskFactorComponent implements OnDestroy {
                     handleSize: '60%',
                     textStyle: {
                       color: "#FFF"
-                    }
+                    },
                     handleStyle: {
                         color: '#fff',
                         shadowBlur: 3,
@@ -1903,7 +1903,7 @@ export class RiskFactorComponent implements OnDestroy {
                   handleSize: '60%',
                   textStyle: {
                     color: "#FFF"
-                  }
+                  },
                   handleStyle: {
                       color: '#fff',
                       shadowBlur: 3,
