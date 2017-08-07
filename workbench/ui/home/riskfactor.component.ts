@@ -626,7 +626,7 @@ export class RiskFactorComponent implements OnDestroy {
                         this.hadFutureHold=true;
 
                         if(msg.content.msret.msgcode !== "00") {
-                            alert("获取期货数据失败："+msg.content.msret.msg);
+                            alert("获取策略期货持仓失败："+msg.content.msret.msg);
                             return;
                         }
 
@@ -640,7 +640,7 @@ export class RiskFactorComponent implements OnDestroy {
                                 this.beginCalculateRiskFactor();
                             }
                         }else {
-                          alert("获取期货数据失败："+msg.content.msret.msg);
+                          alert("获取策略期货持仓失败："+msg.content.msret.msg);
                         }
                       }
                     }
@@ -664,7 +664,7 @@ export class RiskFactorComponent implements OnDestroy {
                         this.hadStockHold=true;
 
                         if(msg.content.msret.msgcode !== "00") {
-                            alert("获取净值数据失败："+msg.content.msret.msg);
+                            alert("获取策略股票持仓失败："+msg.content.msret.msg);
                             return;
                         }
 
@@ -678,7 +678,7 @@ export class RiskFactorComponent implements OnDestroy {
                                this.beginCalculateRiskFactor();
                            }
                         } else {
-                            alert("获取数据失败："+strategystockhold.msret.msg);
+                            alert("获取策略股票持仓失败："+strategystockhold.msret.msg);
                         }
                         console.log("strategystockhold",strategystockhold,this.groupPosition);
                       }
@@ -692,7 +692,7 @@ export class RiskFactorComponent implements OnDestroy {
                  this.hadNetData=false;
                  this.netTableValue=[];
                  this.netValueString="";
-                 this.tradePoint.send(260, 226, { body: { type:1, id:tblockId, begin_date:this.startDate, end_date:this.endDate}});
+                 this.tradePoint.send(260, 226, { body: { type:1, id:strategyId, begin_date:this.startDate, end_date:this.endDate}});
                  console.log("send setNetTableValue strategy",tblockId,this.startDate,this.endDate);
            }  else {
             console.log(this.startDate,tblockId);
@@ -708,7 +708,7 @@ export class RiskFactorComponent implements OnDestroy {
 
                      this.hadFutureHold=true;
                      if(msg.content.msret.msgcode !== "00") {
-                         alert("获取数据失败："+msg.content.msret.msg);
+                         alert("获取产品期货持仓失败："+msg.content.msret.msg);
                          return;
                      }
                      let productFutureHold = JSON.parse(msg.content.body);
@@ -719,7 +719,7 @@ export class RiskFactorComponent implements OnDestroy {
                              this.beginCalculateRiskFactor();
                          }
                      } else {
-                         alert("获取数据失败："+productFutureHold.msret.msg);
+                         alert("获取产品期货持仓失败："+productFutureHold.msret.msg);
                      }
                      console.log("productFutureHold",productFutureHold,this.groupPosition);
                    }
@@ -743,7 +743,7 @@ export class RiskFactorComponent implements OnDestroy {
                       console.log("productstockhold",msg);
                       this.hadStockHold=true;
                       if(msg.content.msret.msgcode !== "00") {
-                          alert("获取数据失败："+msg.content.msret.msg);
+                          alert("获取产品股票持仓失败："+msg.content.msret.msg);
                           return;
                       }
                       let productStockHold = JSON.parse(msg.content.body);
@@ -755,7 +755,7 @@ export class RiskFactorComponent implements OnDestroy {
                           }
 
                       } else {
-                          alert("获取数据失败："+productStockHold.msret.msg);
+                          alert("获取产品股票持仓失败："+productStockHold.msret.msg);
                       }
                       console.log("productStockHold",productStockHold,this.groupPosition);
                   }
