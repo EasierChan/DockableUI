@@ -1934,5 +1934,84 @@ export class RiskFactorComponent implements OnDestroy {
      */
     ngOnDestroy() {
         // TODO dispose resource.
+        console.log("destroy");
+        if (this.productData) {
+          this.productData = null;
+        }
+        if (this.strategyData) {
+          this.strategyData = null;
+        }
+        if (this.iproducts) {
+          this.iproducts = null;
+        }
+        if (this.istrategys) {
+          this.istrategys = null;
+        }
+        if (this.riskFactorReturnAttr) {
+          this.riskFactorReturnAttr = null;
+        }
+        if (this.riskFactorReturn) {
+          this.riskFactorReturn = null;
+        }
+        if (this.riskFactorExposure) {
+          this.riskFactorExposure = null;
+        }
+        if (this.HedgeRatioData) {
+          this.HedgeRatioData = null;
+        }
+        if (this.alphaRelevance) {
+          this.alphaRelevance = null;
+        }
+        if (this.alphaRelevanceResult) {
+          this.alphaRelevanceResult = null;
+        }
+        if (this.hotChartData) {
+          this.hotChartData = null;
+        }
+        if (this.alphaData) {
+          this.alphaData = null;
+        }
+        if (this.groupPosition) {
+          this.groupPosition = null;
+        }
+        if (this.futurePosition) {
+          this.futurePosition = null;
+        }
+        if (this.netTableValue) {
+          this.netTableValue = null;
+        }
+        if (this.riskFactorReturnEchart) {
+          this.riskFactorReturnEchart = null;
+        }
+        if (this.everyDayReturnEchart) {
+          this.everyDayReturnEchart = null;
+        }
+        if (this.everyDayYearReturnEchart) {
+          this.everyDayYearReturnEchart = null;
+        }
+        if (this.lastDayYearReturnEchart) {
+          this.lastDayYearReturnEchart = null;
+        }
+        if (this.riskFactorExposureEchart) {
+          this.riskFactorExposureEchart = null;
+        }
+        if (this.everyDayRFEEchart) {
+          this.everyDayRFEEchart = null;
+        }
+        if (this.riskFactorReturnAttrEchart) {
+          this.riskFactorReturnAttrEchart = null;
+        }
+        if (this.everyDayRFRAttrEchart) {
+          this.everyDayRFRAttrEchart = null;
+        }
+        if (this.stockAttrEchart) {
+          this.stockAttrEchart = null;
+        }
+        if (this.alphaHotChart) {
+          this.alphaHotChart = null;
+        }
+        if (this.alphaChart) {
+          this.alphaChart = null;
+        }
     }
 }
