@@ -536,30 +536,6 @@ export class TradeComponent implements OnInit {
                 this.config.strategyInstances[0] = this.newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = this.accounts;
-
-                if (this.config.strategyCoreName === "IndexSpreader") {
-                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
-                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008321;
-                        }
-                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2007116;
-
-                        }
-                    }
-                }
-
-                if (this.config.strategyCoreName === "SimpleSpreader") {
-                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
-                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008295;
-                        }
-                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008589;
-
-                        }
-                    }
-                }
             }
             console.log(this.config);
             this.bSelProduct = false;
