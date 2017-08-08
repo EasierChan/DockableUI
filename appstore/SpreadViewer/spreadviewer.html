@@ -1,1 +1,4 @@
-<div echarts [options]="chartOption" (chartInit)="onChartInit($event)" class="chart"></div>
+<div class="charts">
+    <div echarts [options]="spreadChart.chartOption" (chartInit)="onChartInit($event, 0)" class="chart"></div>
+    <!--<div echarts [options]="timeLineChart.instance" (chartInit)="onChartInit($event, 1)" class="chart"></div>-->
+</div>

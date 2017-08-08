@@ -286,8 +286,8 @@ export class AppComponent implements OnInit, OnDestroy {
     option: any;
     languageType = 0;
     ukeys: number[];
-    chartOption: any;
-    chart: echarts.ECharts;
+    spreadChart: any;
+    timeLineChart: any;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService) {
@@ -338,6 +338,8 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.spreadChart = {};
+        this.timeLineChart = {};
         this.registerListeners();
 
         let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
@@ -345,7 +347,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         let lines = [`${this.option.details.code1}.ask_price[0] - ${this.option.details.code2}.bid_price[0]`,
         `${this.option.details.code1}.bid_price[0] - ${this.option.details.code2}.ask_price[0]`];
-        this.chartOption = this.createLinesChart(lines);
+        this.spreadChart.chartOption = this.createLinesChart(lines);
 
         this.loginTGW(() => {
             this.quote.send(17, 101, { topic: 3112, kwlist: this.ukeys });
@@ -360,7 +362,7 @@ export class AppComponent implements OnInit, OnDestroy {
         let beg = null;
         let end = null;
 
-        this.durations.push([9, 30, 11, 30], [13, 0, 15, 0], [21, 30, 2, 30]);
+        this.durations.push([21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]);
 
         this.quote.addSlot({
             appid: 17,
@@ -373,19 +375,19 @@ export class AppComponent implements OnInit, OnDestroy {
                     beg = msg.content.time / 100 * 100;
 
                     for (let i = beg - 600; i < beg + 600; ++i) {
-                        self.chartOption.xAxis.data.push(new Date(i * 1000));
+                        self.spreadChart.chartOption.xAxis.data.push(new Date(i * 1000));
                     }
 
-                    self.chartOption.series[0].data.length = 600;
-                    self.chartOption.series[1].data.length = 600;
+                    self.spreadChart.chartOption.series[0].data.length = 600;
+                    self.spreadChart.chartOption.series[1].data.length = 600;
                 }
 
                 if (self.latestItem.hasOwnProperty(self.ukeys[0]) && self.latestItem.hasOwnProperty(self.ukeys[1])) {
-                    self.chartOption.series[0].data.push(eval(`self.code(${self.ukeys[0]}).ask_price[0] - self.code(${self.ukeys[1]}).bid_price[0]`) / 10000); // tslint:disable-line
-                    self.chartOption.series[1].data.push(eval(`self.code(${self.ukeys[0]}).bid_price[0] - self.code(${self.ukeys[1]}).ask_price[0]`) / 10000); // tslint:disable-line
+                    self.spreadChart.chartOption.series[0].data.push(eval(`self.code(${self.ukeys[0]}).ask_price[0] - self.code(${self.ukeys[1]}).bid_price[0]`) / 10000); // tslint:disable-line
+                    self.spreadChart.chartOption.series[1].data.push(eval(`self.code(${self.ukeys[0]}).bid_price[0] - self.code(${self.ukeys[1]}).ask_price[0]`) / 10000); // tslint:disable-line
                 }
 
-                self.chart.setOption(self.chartOption);
+                self.spreadChart.instance.setOption(self.spreadChart.chartOption);
             }
         });
     }
@@ -395,14 +397,21 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        if (this.chart) {
-            this.chart.dispose();
-            this.chart = null;
+        if (this.spreadChart.instance) {
+            this.spreadChart.instance.dispose();
+            this.spreadChart.instance = null;
         }
     }
 
-    onChartInit(chart: echarts.ECharts) {
-        this.chart = chart;
+    onChartInit(chart: echarts.ECharts, type: number) {
+        switch (type) {
+            case 0:
+                this.spreadChart.instance = chart;
+                break;
+            case 1:
+                this.timeLineChart.instance = chart;
+                break;
+        }
     }
 
     createLinesChart(lines: string[], xAxisPoints: any[] = [], dataset: Array<number[]> = []) {
