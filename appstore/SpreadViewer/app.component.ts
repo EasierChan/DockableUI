@@ -5,7 +5,7 @@
  */
 "use strict";
 
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer
@@ -281,12 +281,13 @@ export class AppComponent2 implements OnInit {
         SecuMasterService
     ]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
     private readonly apptype = "spreadviewer";
     option: any;
     languageType = 0;
     ukeys: number[];
     chartOption: any;
+    chart: echarts.ECharts;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService) {
@@ -337,20 +338,10 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
-        let curTime = new Date();
-        curTime.getMinutes();
+        this.registerListeners();
 
         let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
         this.ukeys = [parseInt(res[this.option.details.code1].ukey), parseInt(res[this.option.details.code2].ukey)];
-
-        this.quote.addSlot({
-            appid: 17,
-            packid: 110,
-            callback(msg) {
-                let time = new Date(msg.content.time * 1000);
-                console.info(msg.content.time, time.toLocaleString());
-            }
-        });
 
         let lines = [`${this.option.details.code1}.ask_price[0] - ${this.option.details.code2}.bid_price[0]`,
         `${this.option.details.code1}.bid_price[0] - ${this.option.details.code2}.ask_price[0]`];
@@ -358,57 +349,135 @@ export class AppComponent implements OnInit {
         this.quote.send(17, 101, { topic: 3112, kwlist: this.ukeys });
     }
 
+    latestItem: any = {};
+    durations = [];
+
+    registerListeners() {
+        let self = this;
+        let beg = null;
+        let end = null;
+
+        this.durations.push([9, 30, 11, 30], [13, 0, 15, 0], [21, 30, 2, 30]);
+
+        this.quote.addSlot({
+            appid: 17,
+            packid: 110,
+            callback(msg) {
+                console.info(msg.content);
+                self.latestItem[msg.content.ukey] = msg.content;
+
+                if (beg === null) {
+                    beg = msg.content.time / 100 * 100;
+
+                    for (let i = beg - 600; i < beg + 600; ++i) {
+                        self.chartOption.xAxis.data.push(new Date(i * 1000));
+                    }
+
+                    self.chartOption.series[0].data.length = 600;
+                    self.chartOption.series[1].data.length = 600;
+                }
+
+                if (self.latestItem.hasOwnProperty(self.ukeys[0]) && self.latestItem.hasOwnProperty(self.ukeys[1])) {
+                    self.chartOption.series[0].data.push(eval(`self.code(${self.ukeys[0]}).ask_price[0] - self.code(${self.ukeys[1]}).bid_price[0]`) / 10000); // tslint:disable-line
+                    self.chartOption.series[1].data.push(eval(`self.code(${self.ukeys[0]}).bid_price[0] - self.code(${self.ukeys[1]}).ask_price[0]`) / 10000); // tslint:disable-line
+                }
+
+                self.chart.setOption(self.chartOption);
+            }
+        });
+    }
+
+    code(ukey: number) {
+        return this.latestItem[ukey];
+    }
+
+    ngOnDestroy() {
+        if (this.chart) {
+            this.chart.dispose();
+            this.chart = null;
+        }
+    }
+
+    onChartInit(chart: echarts.ECharts) {
+        this.chart = chart;
+    }
+
     createLinesChart(lines: string[], xAxisPoints: any[] = [], dataset: Array<number[]> = []) {
         return {
-            option: {
-                title: {
-                    show: false,
-                },
-                tooltip: {
-                    trigger: "axis",
-                    axisPointer: {
-                        type: "cross",
-                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
+            title: {
+                show: false,
+            },
+            tooltip: {
+                trigger: "axis",
+                axisPointer: {
+                    type: "cross",
+                    label: {
+                        show: true, backgroundColor: "rgba(0,0,0,1)",
+                        formatter: (params) => {
+                            if (typeof params.value === "string") {
+                                let cur = new Date(params.value);
+                                return [cur.getFullYear(), cur.getMonth() + 1, cur.getDate()].join("/") + " " + [cur.getHours(), cur.getMinutes(), cur.getSeconds()].join(":");
+                            }
+
+                            return params.value.toFixed(2);
+                        }
+                    }
+                }
+            },
+            legend: {
+                data: lines,
+                textStyle: { color: "#F3F3F5" }
+            },
+            xAxis: {
+                data: xAxisPoints,
+                axisLabel: {
+                    textStyle: { color: "#F3F3F5" },
+                    formatter: function (value, index) {
+                        let date = new Date(value);
+                        let hms = [date.getHours(), date.getMinutes(), date.getSeconds()];
+
+                        if (index === 0) {
+                            let ymd = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+                            return ymd.join("/") + " " + hms.join(":");
+                        }
+
+                        return hms.join(":");
+                    },
+                    interval: (index: number, value: string) => {
+                        let date = new Date(value);
+                        return date.getSeconds() === 0 && date.getMinutes() % 5 === 0;
                     }
                 },
-                legend: {
-                    data: lines,
+                axisLine: {
+                    lineStyle: { color: "#F3F3F5" }
+                }
+            },
+            yAxis: {
+                axisLabel: {
+                    show: true,
                     textStyle: { color: "#F3F3F5" }
                 },
-                xAxis: [{
-                    data: xAxisPoints,
-                    axisLabel: {
-                        textStyle: { color: "#F3F3F5" }
-                    },
-                    axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
-                    }
-                }],
-                yAxis: [{
-                    position: "right",
-                    axisLabel: {
-                        show: true,
-                        textStyle: { color: "#F3F3F5" }
-                    },
-                    axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
-                    },
-                    scale: true,
-                    boundaryGap: [0.2, 0.2]
-                }],
-                series: [{
-                    name: lines[0],
-                    type: "line",
-                    data: [0.05, 0.1, 0.08, 0.15]
-                }, {
-                    name: lines[1],
-                    type: "line",
-                    data: [0.06, 0.2, 0.18, 0.15]
-                }],
-                color: [
-                    "#00b", "#0b0"
-                ]
-            }
+                axisLine: {
+                    lineStyle: { color: "#F3F3F5" }
+                },
+                scale: true,
+                boundaryGap: [0.2, 0.2]
+            },
+            series: [{
+                name: lines[0],
+                type: "line",
+                data: []
+            }, {
+                name: lines[1],
+                type: "line",
+                data: []
+            }],
+            color: [
+                "#f00", "#0b0"
+            ],
+            dataZoom: [{
+                type: "inside"
+            }]
         };
     }
 }
