@@ -309,11 +309,9 @@ export class AppComponent implements OnInit, OnDestroy {
                 this.languageType = 0;
                 break;
         }
-
-        this.loginTGW();
     }
 
-    loginTGW() {
+    loginTGW(afterLogin?: Function) {
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
@@ -324,6 +322,8 @@ export class AppComponent implements OnInit, OnDestroy {
             packid: 43,
             callback: msg => {
                 console.info(`quote ans=>${msg}`);
+                if (afterLogin)
+                    afterLogin.call(this);
                 // this.quote.send(17, 101, { topic: 3112, kwlist: [2163460] });
             }
         });
@@ -346,7 +346,10 @@ export class AppComponent implements OnInit, OnDestroy {
         let lines = [`${this.option.details.code1}.ask_price[0] - ${this.option.details.code2}.bid_price[0]`,
         `${this.option.details.code1}.bid_price[0] - ${this.option.details.code2}.ask_price[0]`];
         this.chartOption = this.createLinesChart(lines);
-        this.quote.send(17, 101, { topic: 3112, kwlist: this.ukeys });
+
+        this.loginTGW(() => {
+            this.quote.send(17, 101, { topic: 3112, kwlist: this.ukeys });
+        });
     }
 
     latestItem: any = {};
