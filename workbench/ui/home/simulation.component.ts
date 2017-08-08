@@ -15,7 +15,8 @@ let ip20strs = [];
     templateUrl: "simulation.component.html",
     styleUrls: ["simulation.component.css"],
     providers: [
-        Menu
+        Menu,
+        ConfigurationBLL
     ]
 })
 export class SimulationComponent implements OnInit {
@@ -58,6 +59,13 @@ export class SimulationComponent implements OnInit {
 
     ngOnInit() {
         this.configs = this.configBll.getAllConfigs();
+        this.configs.forEach(config => {
+            this.config = config;
+            this.config.state = 0;
+            this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+            this.finish();
+        });
+
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
@@ -143,47 +151,7 @@ export class SimulationComponent implements OnInit {
         };
 
         this.areas = [this.simulationArea];
-        this.tgw.addSlot({  // template
-            appid: 270,
-            packid: 194,
-            callback: msg => {
-                // console.info(msg);
-                if (msg.content.head.pkgCnt > 1) {
-                    if (ip20strs[msg.content.head.pkgId] === undefined)
-                        ip20strs[msg.content.head.pkgId] = "";
-                    if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
-                        let templatelist = JSON.parse(ip20strs[msg.content.head.pkgId].concat(msg.content.body));
-                        templatelist.body.forEach(template => {
-                            this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
-                        });
 
-                        self.configs.forEach(config => {
-                            self.config = config;
-                            self.config.state = 0;
-                            self.curTemplate = JSON.parse(JSON.stringify(self.configBll.getTemplateByName(self.config.strategyCoreName)));
-                            self.finish();
-                        });
-                        delete ip20strs[msg.content.head.pkgId];
-                    } else {
-                        ip20strs[msg.content.head.pkgId] = ip20strs[msg.content.head.pkgId].concat(msg.content.body);
-                    }
-                } else {
-                    let templatelist = JSON.parse(ip20strs[msg.content.head.pkgId].concat(msg.content.body));
-                    templatelist.body.forEach(template => {
-                        this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
-                    });
-
-                    self.configs = self.configBll.getAllConfigs();
-                    self.configs.forEach(config => {
-                        self.config = config;
-                        self.config.state = 0;
-                        self.curTemplate = JSON.parse(JSON.stringify(self.configBll.getTemplateByName(self.config.strategyCoreName)));
-                        self.finish();
-                    });
-                }
-                //  console.log(self.config, self.configs);
-            }
-        });
         this.tgw.addSlot({
             appid: 107,
             packid: 2001,
@@ -289,8 +257,6 @@ export class SimulationComponent implements OnInit {
                 }
             }
         });
-
-        this.tgw.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 }); // process templates
     }
 
     static reqnum = 1;
