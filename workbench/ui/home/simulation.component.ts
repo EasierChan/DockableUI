@@ -509,7 +509,7 @@ export class SimulationComponent implements OnInit {
                 console.log("in simulation model,ready inset addr and port:", gatewayLen, this.config);
                 for (let i = 0; i < gatewayLen; ++i) {
                     console.log("insert gateway addr & port");
-                    this.config.channels.gateway[i].addr = "172.24.50.10";
+                    this.config.channels.gateway[i].addr = "172.24.51.1"; // "172.24.50.10";
                     this.config.channels.gateway[i].port = 8000;
                 }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;

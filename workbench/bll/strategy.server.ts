@@ -109,6 +109,10 @@ export class ConfigurationBLL {
             File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
         }
     }
+    updateLoopbackItems(item: any) { // write once
+        this._loopbackItems = item;
+        File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
+    }
 
     getLoopbackItems() {
         return this._loopbackItems;

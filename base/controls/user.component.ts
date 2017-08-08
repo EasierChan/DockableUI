@@ -42,6 +42,9 @@ export class UserControlComponent2 {
     styleObj: any;
 }
 
+
+
+
 @Component({
     moduleId: module.id,
     selector: "dock-control",
@@ -53,6 +56,8 @@ export class DockContainerComponent implements AfterViewInit {
     children: Control[];
     styleObj: any;
     dataSource: any;
+    static timeouter: any = null;
+    static hasActive: boolean;
     static splitter: any = null;
     static startPoint: any = [0, 0];
     static lastEnterEle = null;
@@ -79,6 +84,7 @@ export class DockContainerComponent implements AfterViewInit {
             this.renderer.listen(this.container.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
                 event.stopPropagation();
+                DockContainerComponent.hasActive = true;
 
                 // if (event.srcElement.className !== "dock-cover" && event.srcElement.className !== "panel-title")
                 //     return;
@@ -146,6 +152,7 @@ export class DockContainerComponent implements AfterViewInit {
                 this.detector.detectChanges();
                 this.detector.reattach();
 
+                DockContainerComponent.hasActive = false;
                 DockContainerComponent.lastEnterEle = null;
             });
             this.renderer.listen(this.south.nativeElement, "dragenter", (event: DragEvent) => {

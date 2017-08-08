@@ -27,7 +27,7 @@ export class ReportComponent implements OnInit {
     _period: any;
     Sel_arr = [];
     private configBll = new ConfigurationBLL();
-
+    private allItem: any[];
     constructor(private mock: QtpService) {
     }
 
@@ -37,27 +37,22 @@ export class ReportComponent implements OnInit {
         this.resTable.columns[0].maxWidth = 20;
         this.resTable.columns[4].maxWidth = 50;
         this.Sel_arr = [];
-
-        let allItem = this.configBll.getLoopbackItems();
-        let len = allItem.length;
+        this.allItem = this.configBll.getLoopbackItems();
+        console.log(this.allItem);
+        let len = this.allItem.length;
         for (let i = 0; i < len; ++i) {
             let row = this.resTable.newRow();
             row.cells[0].Type = "checkbox";
-            row.cells[0].Data = { nId: allItem[i].id, unit: allItem[i].unit, period: allItem[i].period };
+            row.cells[0].Data = { nId: this.allItem[i].id, unit: this.allItem[i].unit, period: this.allItem[i].period };
             row.cells[0].Text = false;
-            row.cells[0].OnClick = (item) => {
-                console.log(row.cells[0].Text, item);
-                this.Sel_arr.push(allItem[i].id);
-                console.log(this.Sel_arr);
-            };
-            row.cells[1].Text = allItem[i].name + "-" + allItem[i].id;
-            row.cells[2].Text = this.parseDate(allItem[i].timebegin + "");
-            row.cells[3].Text = this.parseDate(allItem[i].timeend + "");
+            row.cells[1].Text = this.allItem[i].name + "-" + this.allItem[i].id;
+            row.cells[2].Text = this.parseDate(this.allItem[i].timebegin + "");
+            row.cells[3].Text = this.parseDate(this.allItem[i].timeend + "");
             row.cells[4].Type = "button";
             row.cells[4].Text = "查看";
             row.cells[4].OnClick = () => {
-                this._unit = allItem[i].unit;
-                this._period = allItem[i].period;
+                this._unit = this.allItem[i].unit;
+                this._period = this.allItem[i].period;
                 this.chartOption = this.generateOption();
                 this.mock.send(8014, { nId: this.resTable.rows[i].cells[0].Data.nId });
                 this.page = 1;
@@ -65,9 +60,33 @@ export class ReportComponent implements OnInit {
             };
         }
         this.resTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
-            console.log(cellItem, cellIndex, rowIndex);
+            // console.log(cellItem, cellIndex, rowIndex);
+            if (cellIndex !== 0)
+                return;
+            let tmpNid = cellItem.Data.nId;
+            let rtn = this.findReportIndex(tmpNid);
+            if (cellItem.Text) {
+                if (rtn === -1) {
+                    this.Sel_arr.push({ nid: tmpNid, idx: rowIndex });
+                }
+            } else {
+                if (rtn !== -1) {
+                    this.Sel_arr.splice(rtn, 1);
+                }
+            }
+            console.log(this.Sel_arr);
         };
         this.registerListener();
+    }
+
+    findReportIndex(nid: number) {
+        let arrLen = this.Sel_arr.length;
+        for (let i = 0; i < arrLen; ++i) {
+            if (this.Sel_arr[i].nid === nid) {
+                return this.Sel_arr[i].idx;
+            }
+        }
+        return -1;
     }
 
     parseDate(data: string) {
@@ -75,7 +94,6 @@ export class ReportComponent implements OnInit {
         let month = data.substr(4, 2);
         let year = data.substr(0, 4);
         return (parseInt(month) + "/" + parseInt(day) + "/" + year);
-
     }
 
     registerListener() {
@@ -96,16 +114,53 @@ export class ReportComponent implements OnInit {
     }
 
     chooseAll() {
-
+        let len = this.resTable.rows.length;
+        this.Sel_arr.splice(0, this.Sel_arr.length);
+        for (let i = 0; i < len; ++i) {
+            this.resTable.rows[i].cells[0].Text = true;
+            this.Sel_arr.push({ nid: this.resTable.rows[i].cells[0].Data.nId, idx: i });
+        }
+        console.log(this.Sel_arr);
     }
     unChoose() {
-
+        let len = this.resTable.rows.length;
+        for (let i = 0; i < len; ++i) {
+            this.resTable.rows[i].cells[0].Text = false;
+        }
+        this.Sel_arr.splice(0, this.Sel_arr.length);
+        console.log(this.Sel_arr);
     }
     search() {
 
     }
     remove() {
-
+        console.log(this.allItem, this.Sel_arr);
+        if (this.Sel_arr.length === 0)
+            return;
+        let tableLen = this.resTable.rows.length;
+        for (let i = 0; i < tableLen; ++i) {
+            let nid = this.resTable.rows[i].cells[0].Data.nId;
+            for (let j = 0; j < this.Sel_arr.length; ++j) {
+                if (nid === this.Sel_arr[j].nid) {
+                    this.resTable.rows.splice(i, 1);
+                    tableLen--;
+                }
+            }
+        }
+        let itemLen = this.allItem.length;
+        for (let i = 0; i < itemLen; ++i) {
+            let nid = this.allItem[i].id;
+            let selArrLen = this.Sel_arr.length;
+            for (let j = 0; j < this.Sel_arr.length; ++j) {
+                if (nid === this.Sel_arr[j].nid) {
+                    this.allItem.splice(i, 1);
+                    itemLen--;
+                }
+            }
+        }
+        this.configBll.updateLoopbackItems(this.allItem);
+        this.Sel_arr = [];
+        console.log(this.allItem, this.Sel_arr);
     }
 
     chartInit(chart) {
