@@ -23,7 +23,6 @@ export class SimulationComponent implements OnInit {
     areas: TileArea[];
     bDetails: boolean;
     contextMenu: Menu;
-    private configBll = new ConfigurationBLL();
     private strategyContainer = new StrategyServerContainer();
     private product = new Product();
     configs: Array<WorkspaceConfig>;
@@ -54,7 +53,8 @@ export class SimulationComponent implements OnInit {
     strategymap: any;
 
 
-    constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef,
+        private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {

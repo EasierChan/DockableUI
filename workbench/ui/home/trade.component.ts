@@ -16,7 +16,8 @@ let ip20strs = [];
     styleUrls: ["trade.component.css"],
     providers: [
         Menu,
-        AppStoreService
+        AppStoreService,
+        ConfigurationBLL
     ]
 })
 export class TradeComponent implements OnInit {
@@ -26,7 +27,6 @@ export class TradeComponent implements OnInit {
     bDetails: boolean;
     contextMenu: Menu;
     svMenu: Menu;
-    private configBll = new ConfigurationBLL();
     private strategyContainer = new StrategyServerContainer();
     newInstance = new StrategyInstance();
     private product = new Product();
@@ -63,7 +63,8 @@ export class TradeComponent implements OnInit {
     svClickItem: any;
 
 
-    constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef,
+        private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {
