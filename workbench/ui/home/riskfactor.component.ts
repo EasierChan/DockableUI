@@ -935,6 +935,10 @@ export class RiskFactorComponent implements OnDestroy {
     // 开始读取并计算数据
     beginCalculateRiskFactor() {
         //计算对冲
+        console.log(this.hedgeRadio);
+        if (!this.hedgeRadio) {
+          this.hedgeRadio = 0;
+        }
         this.readAndHandleHedgeRatio(path.join(this.dataDir, "idxmbr", this.startDate + ".csv"));
         console.log(this.groupPosition);
         console.log(this.HedgeRatioData);
@@ -2035,7 +2039,7 @@ export class RiskFactorComponent implements OnDestroy {
         if (this.hedgeRadio) {
           RiskFactorComponent.hedgeratioStat = this.hedgeRadio;
         }  else {
-          RiskFactorComponent.hedgeratioStat = null;
+          RiskFactorComponent.hedgeratioStat = 0;
         }
       }
         //保存用户设置
