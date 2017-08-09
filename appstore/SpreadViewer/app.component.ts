@@ -340,18 +340,21 @@ export class AppComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.spreadChart = {};
         this.timeLineChart = {};
-        this.registerListeners();
 
         let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
         this.ukeys = [parseInt(res[this.option.details.code1].ukey), parseInt(res[this.option.details.code2].ukey)];
 
         let lines = [`${this.option.details.code1}.ask_price[0] - ${this.option.details.code2}.bid_price[0]`,
-        `${this.option.details.code1}.bid_price[0] - ${this.option.details.code2}.ask_price[0]`];
+        `${this.option.details.code1}.bid_price[0] - ${this.option.details.code2}.ask_price[0]`, this.option.details.code1, this.option.details.code2];
+
+        this.durations.push([21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]);
         this.spreadChart.chartOption = this.createLinesChart(lines);
 
         this.loginTGW(() => {
             this.quote.send(17, 101, { topic: 3112, kwlist: this.ukeys });
         });
+
+        this.registerListeners();
     }
 
     latestItem: any = {};
@@ -361,8 +364,7 @@ export class AppComponent implements OnInit, OnDestroy {
         let self = this;
         let beg = null;
         let end = null;
-
-        this.durations.push([21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]);
+        let option = { series: this.spreadChart.chartOption.series };
 
         this.quote.addSlot({
             appid: 17,
@@ -375,19 +377,25 @@ export class AppComponent implements OnInit, OnDestroy {
                     beg = msg.content.time / 100 * 100;
 
                     for (let i = beg - 600; i < beg + 600; ++i) {
-                        self.spreadChart.chartOption.xAxis.data.push(new Date(i * 1000));
+                        self.spreadChart.chartOption.xAxis[0].data.push(new Date(i * 1000));
+                        self.spreadChart.chartOption.xAxis[1].data.push(new Date(i * 1000));
                     }
 
                     self.spreadChart.chartOption.series[0].data.length = 600;
                     self.spreadChart.chartOption.series[1].data.length = 600;
+                    self.spreadChart.chartOption.series[2].data.length = 600;
+                    self.spreadChart.chartOption.series[3].data.length = 600;
+                    (self.spreadChart.instance as echarts.ECharts).setOption(self.spreadChart.chartOption, true);
                 }
 
                 if (self.latestItem.hasOwnProperty(self.ukeys[0]) && self.latestItem.hasOwnProperty(self.ukeys[1])) {
-                    self.spreadChart.chartOption.series[0].data.push(eval(`self.code(${self.ukeys[0]}).ask_price[0] - self.code(${self.ukeys[1]}).bid_price[0]`) / 10000); // tslint:disable-line
-                    self.spreadChart.chartOption.series[1].data.push(eval(`self.code(${self.ukeys[0]}).bid_price[0] - self.code(${self.ukeys[1]}).ask_price[0]`) / 10000); // tslint:disable-line
+                    option.series[0].data.push(eval(`self.code(${self.ukeys[0]}).ask_price[0] - self.code(${self.ukeys[1]}).bid_price[0]`) / 10000); // tslint:disable-line
+                    option.series[1].data.push(eval(`self.code(${self.ukeys[0]}).bid_price[0] - self.code(${self.ukeys[1]}).ask_price[0]`) / 10000); // tslint:disable-line
+                    option.series[2].data.push(self.code(self.ukeys[0]).bid_price[0] / self.code(self.ukeys[0]).pre_close - 1); // tslint:disable-line
+                    option.series[3].data.push(self.code(self.ukeys[1]).bid_price[0] / self.code(self.ukeys[1]).pre_close - 1); // tslint:disable-line
                 }
 
-                self.spreadChart.instance.setOption(self.spreadChart.chartOption);
+                (self.spreadChart.instance as echarts.ECharts).setOption(option, false);
             }
         });
     }
@@ -414,7 +422,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }
     }
 
-    createLinesChart(lines: string[], xAxisPoints: any[] = [], dataset: Array<number[]> = []) {
+    createLinesChart(lines: string[], xAxisPoints: any[] = []) {
         return {
             title: {
                 show: false,
@@ -428,7 +436,7 @@ export class AppComponent implements OnInit, OnDestroy {
                         formatter: (params) => {
                             if (typeof params.value === "string") {
                                 let cur = new Date(params.value);
-                                return [cur.getFullYear(), cur.getMonth() + 1, cur.getDate()].join("/") + " " + [cur.getHours(), cur.getMinutes(), cur.getSeconds()].join(":");
+                                return [cur.getFullYear(), cur.getMonth() + 1, cur.getDate()].join("/") + " " + [cur.getHours(), cur.getMinutes()].join(":");
                             }
 
                             return params.value.toFixed(2);
@@ -436,11 +444,48 @@ export class AppComponent implements OnInit, OnDestroy {
                     }
                 }
             },
+            axisPointer: {
+                link: { xAxisIndex: "all" }
+            },
             legend: {
                 data: lines,
                 textStyle: { color: "#F3F3F5" }
             },
-            xAxis: {
+            grid: [{
+                show: true,
+                left: "10%",
+                right: "8%",
+                height: "40%"
+            }, {
+                show: true,
+                left: "10%",
+                right: "8%",
+                top: "55%",
+                height: "40%"
+            }],
+            xAxis: [{
+                data: xAxisPoints,
+                axisLabel: {
+                    show: false
+                    // textStyle: { color: "#F3F3F5" },
+                    // formatter: function (value, index) {
+                    //     let date = new Date(value);
+                    //     let hms = [date.getHours(), date.getMinutes(), date.getSeconds()];
+
+                    //     if (index === 0) {
+                    //         let ymd = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+                    //         return ymd.join("/") + " " + hms.join(":");
+                    //     }
+
+                    //     return hms.join(":");
+                    // },
+                    // interval: (index: number, value: string) => {
+                    //     let date = new Date(value);
+                    //     return date.getSeconds() === 0 && date.getMinutes() % 5 === 0;
+                    // }
+                }
+            }, {
+                gridIndex: 1,
                 data: xAxisPoints,
                 axisLabel: {
                     textStyle: { color: "#F3F3F5" },
@@ -459,22 +504,28 @@ export class AppComponent implements OnInit, OnDestroy {
                         let date = new Date(value);
                         return date.getSeconds() === 0 && date.getMinutes() % 5 === 0;
                     }
-                },
-                axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
                 }
-            },
-            yAxis: {
+            }],
+            yAxis: [{
                 axisLabel: {
                     show: true,
                     textStyle: { color: "#F3F3F5" }
                 },
-                axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
-                },
+                splitLine: { lineStyle: { color: "#1a0000" } },
                 scale: true,
                 boundaryGap: [0.2, 0.2]
-            },
+            }, {
+                gridIndex: 1,
+                axisLabel: {
+                    textStyle: { color: "#F3F3F5" },
+                    formatter: (value) => {
+                        return (value * 100).toFixed(2) + "%";
+                    }
+                },
+                splitLine: { lineStyle: { color: "#1a0000" } },
+                scale: true,
+                boundaryGap: [0.2, 0.2]
+            }],
             series: [{
                 name: lines[0],
                 type: "line",
@@ -483,12 +534,25 @@ export class AppComponent implements OnInit, OnDestroy {
                 name: lines[1],
                 type: "line",
                 data: []
+            }, {
+                xAxisIndex: 1,
+                yAxisIndex: 1,
+                name: lines[2],
+                type: "line",
+                data: []
+            }, {
+                xAxisIndex: 1,
+                yAxisIndex: 1,
+                name: lines[3],
+                type: "line",
+                data: []
             }],
             color: [
                 "#f00", "#0b0"
             ],
             dataZoom: [{
-                type: "inside"
+                type: "inside",
+                xAxisIndex: [0, 1]
             }]
         };
     }
