@@ -23,7 +23,6 @@ export class SimulationComponent implements OnInit {
     areas: TileArea[];
     bDetails: boolean;
     contextMenu: Menu;
-    private configBll = new ConfigurationBLL();
     private strategyContainer = new StrategyServerContainer();
     private product = new Product();
     configs: Array<WorkspaceConfig>;
@@ -54,7 +53,8 @@ export class SimulationComponent implements OnInit {
     strategymap: any;
 
 
-    constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef,
+        private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {
@@ -475,7 +475,7 @@ export class SimulationComponent implements OnInit {
                 console.log("in simulation model,ready inset addr and port:", gatewayLen, this.config);
                 for (let i = 0; i < gatewayLen; ++i) {
                     console.log("insert gateway addr & port");
-                    this.config.channels.gateway[i].addr = "172.24.50.10";
+                    this.config.channels.gateway[i].addr = "172.24.51.1"; // "172.24.50.10";
                     this.config.channels.gateway[i].port = 8000;
                 }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
@@ -496,31 +496,6 @@ export class SimulationComponent implements OnInit {
                 this.config.strategyInstances[0] = newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = "666600000011";
-
-                if (this.config.strategyCoreName === "IndexSpreader") {
-                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
-                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008321;
-                        }
-                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2007116;
-
-                        }
-                    }
-                }
-
-                if (this.config.strategyCoreName === "SimpleSpreader") {
-                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
-                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008295;
-                        }
-                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008589;
-
-                        }
-                    }
-                }
-
                 console.log(this.config);
             }
         }

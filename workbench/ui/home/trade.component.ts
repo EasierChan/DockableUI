@@ -16,7 +16,8 @@ let ip20strs = [];
     styleUrls: ["trade.component.css"],
     providers: [
         Menu,
-        AppStoreService
+        AppStoreService,
+        ConfigurationBLL
     ]
 })
 export class TradeComponent implements OnInit {
@@ -26,7 +27,6 @@ export class TradeComponent implements OnInit {
     bDetails: boolean;
     contextMenu: Menu;
     svMenu: Menu;
-    private configBll = new ConfigurationBLL();
     private strategyContainer = new StrategyServerContainer();
     newInstance = new StrategyInstance();
     private product = new Product();
@@ -51,6 +51,7 @@ export class TradeComponent implements OnInit {
     bSpread: boolean = false;
     bSelProduct: boolean = false;
     bNameRead: boolean = false;
+    bcreateSuss: boolean = false;
     accounts: string = "";
     gatewayObj: Object;
     setting: any;
@@ -63,27 +64,23 @@ export class TradeComponent implements OnInit {
     svClickItem: any;
 
 
-    constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef) {
+    constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef,
+        private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {
-        this.configs = this.configBll.getAllConfigs();
-        this.configs.forEach(config => {
-            this.config = config;
-            this.config.state = 0;
-            this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-            this.finish();
-        });
-
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
         this.productsList = [];
         this.setting = this.appService.getSetting();
         this.contextMenu.addItem("启动", () => {
+            this.strategyContainer.removeItem(this.config.name);
+            this.strategyContainer.addItem(this.config);
             this.operateStrategyServer(this.config, 1);
         });
         this.contextMenu.addItem("停止", () => {
+            this.strategyContainer.removeItem(this.config.name);
             this.operateStrategyServer(this.config, 0);
         });
         this.contextMenu.addItem("修改", () => {
@@ -160,6 +157,7 @@ export class TradeComponent implements OnInit {
         this.strategyArea = new TileArea();
         this.strategyArea.title = "策略";
         this.strategyArea.onCreate = () => {
+            this.bcreateSuss = true;
             this.bshow = true;
             this.config.curstep = 1;
             this.onPopup(0);
@@ -223,34 +221,60 @@ export class TradeComponent implements OnInit {
         this.resTable.addColumn2(new DataTableColumn("总盈亏", false, true));
         this.resTable.addColumn2(new DataTableColumn("总仓位", false, true));
 
+        this.configs = this.configBll.getAllConfigs();
+        this.configs.forEach(config => {
+            if (config.activeChannel === "default") {
+                this.config = config;
+                this.config.state = 0;
+                this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+
+                let rtn = this.tileArr.indexOf(config.name);
+                if (config.activeChannel === "default" && rtn === -1) {
+                    let tile = new Tile();
+                    tile.title = config.chinese_name;
+                    tile.iconName = "tasks";
+                    this.strategyArea.addTile(tile);
+                    this.tileArr.push(config.name);
+                    // self.isInit = true;
+                    config.stateChanged = () => {
+                        tile.backgroundColor = config.state ? "#1d9661" : null;
+                    };
+                    this.configBll.updateConfig(config);
+                } else if (config.activeChannel === "default" && rtn !== -1) {
+                    this.strategyArea.getTileAt(rtn).title = config.chinese_name;
+                }
+                this.finish();
+            }
+        });
+
         this.tgw.addSlot({
             appid: 107,
             packid: 2001,
             callback: msg => {
                 console.info(msg.content.body, this.config);
                 let config = self.configs.find(item => { return item.name === msg.content.body.name; });
-                if (config) {
-                    config.name = msg.content.body.name;
-                    config.host = msg.content.body.address;
-                    let rtn = self.tileArr.indexOf(config.name);
-                    if (config.activeChannel === "default" && rtn === -1) {
-                        let tile = new Tile();
-                        tile.title = config.chinese_name;
-                        tile.iconName = "tasks";
-                        self.strategyArea.addTile(tile);
-                        self.tileArr.push(config.name);
-                        // self.isInit = true;
-                        config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#1d9661" : null;
-                        };
-                        self.strategyContainer.removeItem(config.name);
-                        self.strategyContainer.addItem(config);
-                        self.configBll.updateConfig(config);
-                    } else if (config.activeChannel === "default" && rtn !== -1) {
-                        self.strategyArea.getTileAt(rtn).title = config.chinese_name;
+                if (this.bcreateSuss) {
+                    if (config) {
+                        config.name = msg.content.body.name;
+                        config.host = msg.content.body.address;
+                        let rtn = self.tileArr.indexOf(config.name);
+                        if (config.activeChannel === "default" && rtn === -1) {
+                            let tile = new Tile();
+                            tile.title = config.chinese_name;
+                            tile.iconName = "tasks";
+                            self.strategyArea.addTile(tile);
+                            self.tileArr.push(config.name);
+                            // self.isInit = true;
+                            config.stateChanged = () => {
+                                tile.backgroundColor = config.state ? "#1d9661" : null;
+                            };
+                            self.configBll.updateConfig(config);
+                        } else if (config.activeChannel === "default" && rtn !== -1) {
+                            self.strategyArea.getTileAt(rtn).title = config.chinese_name;
+                        }
                     }
+                    this.bcreateSuss = false;
                 }
-                // console.log(this.configs);
             }
         });
 
@@ -312,7 +336,7 @@ export class TradeComponent implements OnInit {
                 this.tgw.send(107, 2000, {
                     routerid: 0, templateid: this.curTemplate.id, body: {
                         name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
-                        strategies: this.config.strategies
+                        strategies: { name: this.config.name }
                     }
                 });
             }
@@ -354,6 +378,7 @@ export class TradeComponent implements OnInit {
         // console.info(this.curTemplate, this.config);
 
         this.curTemplate.body.data["SSNet"]["TSServer.port"] = this.config.port;
+        console.log(this.config.port);
         this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;
         let sobj = Object.assign({}, this.curTemplate.body.data["Strategy"][0]);
         this.curTemplate.body.data["Strategy"].length = 0;
@@ -412,11 +437,13 @@ export class TradeComponent implements OnInit {
         this.configBll.updateConfig(this.config);
         this.config.strategies = { name: this.config.name };
 
+
+
         if (!this.bshow) {
             this.tgw.send(107, 2000, {
                 routerid: 0, templateid: this.curTemplate.id, body: {
                     name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
-                    strategies: this.config.strategies
+                    strategies: { name: this.config.name }
                 }
             });
         }
@@ -536,30 +563,6 @@ export class TradeComponent implements OnInit {
                 this.config.strategyInstances[0] = this.newInstance;
                 // GET account info from product msg
                 this.config.strategyInstances[0].accounts = this.accounts;
-
-                if (this.config.strategyCoreName === "IndexSpreader") {
-                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
-                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008321;
-                        }
-                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2007116;
-
-                        }
-                    }
-                }
-
-                if (this.config.strategyCoreName === "SimpleSpreader") {
-                    for (let i = 0; i < this.config.strategyInstances[0].instruments.length; ++i) {
-                        if (this.config.strategyInstances[0].instruments[i].name === "backInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008295;
-                        }
-                        if (this.config.strategyInstances[0].instruments[i].name === "frontInnerCode") {
-                            this.config.strategyInstances[0].instruments[i].value = 2008589;
-
-                        }
-                    }
-                }
             }
             console.log(this.config);
             this.bSelProduct = false;

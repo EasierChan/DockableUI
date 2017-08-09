@@ -109,6 +109,10 @@ export class ConfigurationBLL {
             File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
         }
     }
+    updateLoopbackItems(item: any) { // write once
+        this._loopbackItems = item;
+        File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
+    }
 
     getLoopbackItems() {
         return this._loopbackItems;
@@ -343,10 +347,12 @@ export class StrategyServerContainer {
             let bll = new StrategyBLL();
             this.items.push({ name: config.name, conn: bll });
             bll.onConnect = () => {
+                console.log(config.state, " set 1", config.chinese_name);
                 config.state = 1;
                 config.stateChanged();
             };
             bll.addSlot(-1, () => {
+                console.log(config.state, " set 0", config.chinese_name);
                 config.state = 0;
                 config.stateChanged();
                 bll.connState = "INIT";
