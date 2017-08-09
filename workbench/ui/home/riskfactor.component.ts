@@ -23,6 +23,19 @@ export class RiskFactorComponent implements OnDestroy {
 
     static self: any;
 
+    static productStat: string;
+    static strategyStat: string;
+    static startdateStat: string;
+    static enddateStat: string;
+    static hedgeStat: string;
+    static hedgeratioStat: number;
+    static productsStat:string[];
+    static strategiesStat:string[];
+    static opendateStat:string;
+    static closedateStat:string;
+    static productIndex:number;
+    static strategyIndex:number;
+
     rfrDateIndex: number = 0; // 保存风险因子收益日期的索引
 
     styleObj: any;
@@ -139,8 +152,7 @@ export class RiskFactorComponent implements OnDestroy {
         let date2 = new Date();
         this.startdate = this.datePipe.transform(date1, 'yyyy-MM-dd');
         this.enddate = this.datePipe.transform(date2, 'yyyy-MM-dd');
-          this.opendate = "2017-06-26";
-          this.closedate = "2017-07-26";
+        this.hedgeRadio = 1;
 
         if (this.activeTab === "风险因子分析") {
             // receive holdlist
@@ -160,8 +172,13 @@ export class RiskFactorComponent implements OnDestroy {
                         alert("Get product info Failed! " + data.msret.msg);
                     }
                     RiskFactorComponent.self.iproduct = RiskFactorComponent.self.iproducts[0];
-
-                    let tblockId = RiskFactorComponent.self.productData[0].tblock_id;
+                    let tblockId = 0;
+                    if (RiskFactorComponent.productIndex == undefined) {
+                      tblockId = RiskFactorComponent.self.productData[0].tblock_id;
+                    }  else {
+                      tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
+                    }
+                    console.log(tblockId);
                     console.log(RiskFactorComponent.self.istrategys);
                     RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
                     this.tradePoint.send(260, 218, { body: { tblock_id: tblockId } });
@@ -183,6 +200,40 @@ export class RiskFactorComponent implements OnDestroy {
                     } else {
                         alert("Get product info Failed! " + data.msret.msg);
                     }
+
+                    if(RiskFactorComponent.startdateStat != undefined){
+                      console.log(RiskFactorComponent.startdateStat);
+                    this.startdate = RiskFactorComponent.startdateStat;
+                    }
+                    if(RiskFactorComponent.enddateStat != undefined){
+                      console.log(RiskFactorComponent.enddateStat);
+                    this.enddate = RiskFactorComponent.enddateStat;
+                    }
+                    if(RiskFactorComponent.hedgeStat != undefined){
+                      console.log(RiskFactorComponent.hedgeStat);
+                    this.hedge = RiskFactorComponent.hedgeStat;
+                    }
+                    if(RiskFactorComponent.hedgeratioStat != undefined){
+                      console.log(RiskFactorComponent.hedgeratioStat);
+                    this.hedgeRadio = RiskFactorComponent.hedgeratioStat;
+                    }
+                    if(RiskFactorComponent.productsStat != undefined){
+                      console.log(RiskFactorComponent.productsStat);
+                    this.iproducts = RiskFactorComponent.productsStat;
+                    }
+                    if(RiskFactorComponent.strategiesStat != undefined){
+                      console.log(RiskFactorComponent.strategiesStat);
+                    this.istrategys = RiskFactorComponent.strategiesStat;
+                    }
+                    if(RiskFactorComponent.productStat != undefined){
+                      console.log(RiskFactorComponent.productStat);
+                    this.iproduct = RiskFactorComponent.productStat;
+                    }
+                    if(RiskFactorComponent.strategyStat != undefined){
+                      console.log(RiskFactorComponent.strategyStat);
+                    this.istrategy = RiskFactorComponent.strategyStat;
+                    }
+
                     this.lookReturn();
                 }
             });
@@ -213,9 +264,19 @@ export class RiskFactorComponent implements OnDestroy {
         }
         if(this.activeTab === "Alpha因子"){
           console.log(this.activeTab);
+          this.opendate = "2017-06-26";
+          this.closedate = "2017-07-26";
+          if(RiskFactorComponent.opendateStat != undefined){
+            console.log(RiskFactorComponent.opendateStat);
+          this.opendate = RiskFactorComponent.opendateStat;
+          }
+          if(RiskFactorComponent.closedateStat != undefined){
+            console.log(RiskFactorComponent.closedateStat);
+          this.closedate = RiskFactorComponent.closedateStat;
+          }
              this.searchresult();
         }
-        this.hedgeRadio = 1;
+
         window.onresize = () => {
             this.resizeFunction();
         };
@@ -256,9 +317,9 @@ export class RiskFactorComponent implements OnDestroy {
         RiskFactorComponent.self.istrategys = ["选择所有策略"];
         console.log(RiskFactorComponent.self.productData);
         let productlist = document.getElementById("product") as HTMLSelectElement;
-        let productIndex = productlist.selectedIndex;
-        let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
-        console.log(productIndex);
+        RiskFactorComponent.productIndex = productlist.selectedIndex;
+        let tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
+        console.log(RiskFactorComponent.productIndex);
         // strategies
         this.tradePoint.addSlot({
             appid: 260,
@@ -279,6 +340,12 @@ export class RiskFactorComponent implements OnDestroy {
         console.log(RiskFactorComponent.self.istrategys);
         RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
         this.tradePoint.send(260, 218, { body: { tblock_id: tblockId } });
+        RiskFactorComponent.strategyIndex = 0;
+    }
+
+    nextStrategyDropdown(){
+      let strategylist = document.getElementById("strategy") as HTMLSelectElement;
+      RiskFactorComponent.strategyIndex = strategylist.selectedIndex;
     }
 
     // 读取风险因子收益并格式化数据
@@ -556,17 +623,23 @@ export class RiskFactorComponent implements OnDestroy {
         this.endDate = this.enddate.replace(/-/g,"");
 
         let productlist = document.getElementById("product") as HTMLSelectElement;
-        let productIndex = productlist.selectedIndex;
-
-        if(productIndex === -1){
+        if (RiskFactorComponent.productIndex == undefined) {
+        RiskFactorComponent.productIndex = productlist.selectedIndex;
+        }
+        console.log(this.iproduct);
+        console.log(RiskFactorComponent.productIndex);
+        if(RiskFactorComponent.productIndex === -1){
             return;
         }
-        let tblockId = RiskFactorComponent.self.productData[productIndex].tblock_id;
+        let tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
 
         if(!isNaN(this.hedgeRadio)){
             let strategylist = document.getElementById("strategy") as HTMLSelectElement;
-            let strategyIndex = strategylist.selectedIndex;
-
+            if (RiskFactorComponent.strategyIndex == undefined) {
+            RiskFactorComponent.strategyIndex = strategylist.selectedIndex;
+            }
+            console.log(this.istrategy);
+            console.log(RiskFactorComponent.strategyIndex);
             // setNetTableValue
             this.tradePoint.addSlot({
                 appid: 260,
@@ -608,8 +681,9 @@ export class RiskFactorComponent implements OnDestroy {
                 }
             });
 
-            if(strategyIndex>0){
-                let strategyId = RiskFactorComponent.self.strategyData[strategyIndex-1].strategy_id;
+            if(RiskFactorComponent.strategyIndex>0){
+                console.log(RiskFactorComponent.strategyIndex-1);
+                let strategyId = RiskFactorComponent.self.strategyData[RiskFactorComponent.strategyIndex-1].strategy_id;
                 console.log(this.startDate,strategyId);
                 console.log(this.startDate,tblockId);
                 // strategyfuturehold
@@ -1935,17 +2009,50 @@ export class RiskFactorComponent implements OnDestroy {
     ngOnDestroy() {
         // TODO dispose resource.
         console.log("destroy");
+        //保存用户设置
+      if (this.activeTab === "风险因子分析") {
+        if (this.iproduct) {
+          RiskFactorComponent.productStat = this.iproduct;
+        }
+        if (this.istrategy) {
+          RiskFactorComponent.strategyStat = this.istrategy;
+        }
+        if (this.iproducts) {
+          RiskFactorComponent.productsStat = this.iproducts;
+        }
+        if (this.istrategys) {
+          RiskFactorComponent.strategiesStat = this.istrategys;
+        }
+        if (this.startdate) {
+          RiskFactorComponent.startdateStat = this.startdate;
+        }
+        if (this.enddate) {
+          RiskFactorComponent.enddateStat = this.enddate;
+        }
+        if (this.hedge) {
+          RiskFactorComponent.hedgeStat = this.hedge;
+        }
+        if (this.hedgeRadio) {
+          RiskFactorComponent.hedgeratioStat = this.hedgeRadio;
+        }  else {
+          RiskFactorComponent.hedgeratioStat = null;
+        }
+      }
+        //保存用户设置
+      if (this.activeTab === "Alpha因子") {
+        if (this.opendate) {
+          RiskFactorComponent.opendateStat = this.opendate;
+        }
+        if (this.closedate) {
+          RiskFactorComponent.closedateStat = this.closedate;
+        }
+      }
+        //垃圾回收
         if (this.productData) {
           this.productData = null;
         }
         if (this.strategyData) {
           this.strategyData = null;
-        }
-        if (this.iproducts) {
-          this.iproducts = null;
-        }
-        if (this.istrategys) {
-          this.istrategys = null;
         }
         if (this.riskFactorReturnAttr) {
           this.riskFactorReturnAttr = null;
