@@ -5,16 +5,17 @@
 
 import { Path } from "./paths";
 let log4js = require("log4js");
+let path = require("path");
 
 export let DefaultLogger: any;
 export class ULogger {
-    static init(name = "log", logdir = "."): void {
+    static init(name = "log", logdir = Path.baseDir): void {
         log4js.configure({
             appenders: [
                 { type: "console", maxLogSize: 20480000 },
                 {
                     type: "file",
-                    filename: `${logdir}/${name}`,
+                    filename: path.join(logdir, name),
                     pattern: "-yyyy-MM-dd",
                     category: "alert", maxLogSize: 20480000
                 }
