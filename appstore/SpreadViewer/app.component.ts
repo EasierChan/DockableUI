@@ -376,15 +376,15 @@ export class AppComponent implements OnInit, OnDestroy {
                 if (beg === null) {
                     beg = msg.content.time / 100 * 100;
 
-                    for (let i = beg - 600; i < beg + 600; ++i) {
+                    for (let i = beg - 300; i < beg + 300; ++i) {
                         self.spreadChart.chartOption.xAxis[0].data.push(new Date(i * 1000));
                         self.spreadChart.chartOption.xAxis[1].data.push(new Date(i * 1000));
                     }
 
-                    self.spreadChart.chartOption.series[0].data.length = 600;
-                    self.spreadChart.chartOption.series[1].data.length = 600;
-                    self.spreadChart.chartOption.series[2].data.length = 600;
-                    self.spreadChart.chartOption.series[3].data.length = 600;
+                    self.spreadChart.chartOption.series[0].data.length = 300;
+                    self.spreadChart.chartOption.series[1].data.length = 300;
+                    self.spreadChart.chartOption.series[2].data.length = 300;
+                    self.spreadChart.chartOption.series[3].data.length = 300;
                     (self.spreadChart.instance as echarts.ECharts).setOption(self.spreadChart.chartOption, true);
                 }
 
