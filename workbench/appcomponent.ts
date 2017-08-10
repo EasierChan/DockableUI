@@ -534,7 +534,7 @@ export class AppComponent implements OnDestroy {
             }
         });
 
-        let loginObj = { "cellid": "1", "userid": "1.1", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": timestamp };
+        let loginObj = { "cellid": "1", "userid": "8.999", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": timestamp };
         this.tgw.send(17, 41, loginObj); // login
 
         this.qtp.addSlot({ // back test channal created
