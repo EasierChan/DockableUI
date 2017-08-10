@@ -43,10 +43,16 @@
 .area-tiles > .tile > .icon  {
     font-size: 30px;
     font-weight: lighter;
-    line-height: 2.5;
+    line-height: 2;
     text-align: center;
 }
 
 .area-tiles > .tile > .title {
     text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.area-tiles > .tile > .title > span {
+    white-space: normal;
 }
