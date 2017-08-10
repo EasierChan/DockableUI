@@ -363,6 +363,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     registerListeners() {
         this.worker = new Worker("spreadWorker.js");
+        this.worker.postMessage({ type: "init", legs: this.ukeys });
 
         let self = this;
         let beg = null;
@@ -373,7 +374,9 @@ export class AppComponent implements OnInit, OnDestroy {
             appid: 17,
             packid: 110,
             callback(msg) {
-                console.info(msg.content);
+                // console.info(msg.content);
+                self.worker.postMessage({ type: "add", ukey: msg.content.ukey, value: msg.content });
+                self.worker.postMessage({ type: "get", time: msg.content.time });
                 self.latestItem[msg.content.ukey] = msg.content;
 
                 if (beg === null) {
@@ -390,17 +393,16 @@ export class AppComponent implements OnInit, OnDestroy {
                     self.spreadChart.chartOption.series[3].data.length = 300;
                     (self.spreadChart.instance as echarts.ECharts).setOption(self.spreadChart.chartOption, true);
                 }
-
-                if (self.latestItem.hasOwnProperty(self.ukeys[0]) && self.latestItem.hasOwnProperty(self.ukeys[1])) {
-                    option.series[0].data.push(eval(`self.code(${self.ukeys[1]}).ask_price[0] - self.code(${self.ukeys[0]}).bid_price[0]`) / 10000); // tslint:disable-line
-                    option.series[1].data.push(eval(`self.code(${self.ukeys[1]}).bid_price[0] - self.code(${self.ukeys[0]}).ask_price[0]`) / 10000); // tslint:disable-line
-                    option.series[2].data.push(self.code(self.ukeys[0]).bid_price[0] / 10000); // tslint:disable-line
-                    option.series[3].data.push(self.code(self.ukeys[1]).bid_price[0] / 10000); // tslint:disable-line
-                }
-
-                (self.spreadChart.instance as echarts.ECharts).setOption(option, false);
             }
         });
+
+        this.worker.onmessage = (ev: MessageEvent) => {
+            option.series[0].data.push(ev.data[0]); // tslint:disable-line
+            option.series[1].data.push(ev.data[1]); // tslint:disable-line
+            option.series[2].data.push(ev.data[2]); // tslint:disable-line
+            option.series[3].data.push(ev.data[3]); // tslint:disable-line
+            (self.spreadChart.instance as echarts.ECharts).setOption(option, false);
+        };
     }
 
     code(ukey: number) {
