@@ -288,6 +288,7 @@ export class AppComponent implements OnInit, OnDestroy {
     ukeys: number[];
     spreadChart: any;
     timeLineChart: any;
+    worker: Worker;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService) {
@@ -344,8 +345,8 @@ export class AppComponent implements OnInit, OnDestroy {
         let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
         this.ukeys = [parseInt(res[this.option.details.code1].ukey), parseInt(res[this.option.details.code2].ukey)];
 
-        let lines = [`${this.option.details.code1}.ask_price[0] - ${this.option.details.code2}.bid_price[0]`,
-        `${this.option.details.code1}.bid_price[0] - ${this.option.details.code2}.ask_price[0]`, this.option.details.code1, this.option.details.code2];
+        let lines = [`${this.option.details.code2}.ask_price[0] - ${this.option.details.code1}.bid_price[0]`,
+        `${this.option.details.code2}.bid_price[0] - ${this.option.details.code1}.ask_price[0]`, this.option.details.code1, this.option.details.code2];
 
         this.durations.push([21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]);
         this.spreadChart.chartOption = this.createLinesChart(lines);
@@ -361,6 +362,8 @@ export class AppComponent implements OnInit, OnDestroy {
     durations = [];
 
     registerListeners() {
+        this.worker = new Worker("spreadWorker.js");
+
         let self = this;
         let beg = null;
         let end = null;
@@ -389,10 +392,10 @@ export class AppComponent implements OnInit, OnDestroy {
                 }
 
                 if (self.latestItem.hasOwnProperty(self.ukeys[0]) && self.latestItem.hasOwnProperty(self.ukeys[1])) {
-                    option.series[0].data.push(eval(`self.code(${self.ukeys[0]}).ask_price[0] - self.code(${self.ukeys[1]}).bid_price[0]`) / 10000); // tslint:disable-line
-                    option.series[1].data.push(eval(`self.code(${self.ukeys[0]}).bid_price[0] - self.code(${self.ukeys[1]}).ask_price[0]`) / 10000); // tslint:disable-line
-                    option.series[2].data.push(self.code(self.ukeys[0]).bid_price[0] / self.code(self.ukeys[0]).pre_close - 1); // tslint:disable-line
-                    option.series[3].data.push(self.code(self.ukeys[1]).bid_price[0] / self.code(self.ukeys[1]).pre_close - 1); // tslint:disable-line
+                    option.series[0].data.push(eval(`self.code(${self.ukeys[1]}).ask_price[0] - self.code(${self.ukeys[0]}).bid_price[0]`) / 10000); // tslint:disable-line
+                    option.series[1].data.push(eval(`self.code(${self.ukeys[1]}).bid_price[0] - self.code(${self.ukeys[0]}).ask_price[0]`) / 10000); // tslint:disable-line
+                    option.series[2].data.push(self.code(self.ukeys[0]).bid_price[0] / 10000); // tslint:disable-line
+                    option.series[3].data.push(self.code(self.ukeys[1]).bid_price[0] / 10000); // tslint:disable-line
                 }
 
                 (self.spreadChart.instance as echarts.ECharts).setOption(option, false);
@@ -408,6 +411,10 @@ export class AppComponent implements OnInit, OnDestroy {
         if (this.spreadChart.instance) {
             this.spreadChart.instance.dispose();
             this.spreadChart.instance = null;
+        }
+
+        if (this.worker) {
+            this.worker.terminate();
         }
     }
 
@@ -489,7 +496,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 data: xAxisPoints,
                 axisLabel: {
                     textStyle: { color: "#F3F3F5" },
-                    formatter: function (value, index) {
+                    formatter: function(value, index) {
                         let date = new Date(value);
                         let hms = [date.getHours(), date.getMinutes(), date.getSeconds()];
 
@@ -517,10 +524,18 @@ export class AppComponent implements OnInit, OnDestroy {
             }, {
                 gridIndex: 1,
                 axisLabel: {
-                    textStyle: { color: "#F3F3F5" },
-                    formatter: (value) => {
-                        return (value * 100).toFixed(2) + "%";
-                    }
+                    show: true,
+                    textStyle: { color: "#F3F3F5" }
+                },
+                splitLine: { lineStyle: { color: "#1a0000" } },
+                scale: true,
+                boundaryGap: [0.2, 0.2]
+            }, {
+                gridIndex: 1,
+                position: "right",
+                axisLabel: {
+                    show: true,
+                    textStyle: { color: "#F3F3F5" }
                 },
                 splitLine: { lineStyle: { color: "#1a0000" } },
                 scale: true,
@@ -542,14 +557,11 @@ export class AppComponent implements OnInit, OnDestroy {
                 data: []
             }, {
                 xAxisIndex: 1,
-                yAxisIndex: 1,
+                yAxisIndex: 2,
                 name: lines[3],
                 type: "line",
                 data: []
             }],
-            color: [
-                "#f00", "#0b0"
-            ],
             dataZoom: [{
                 type: "inside",
                 xAxisIndex: [0, 1]
