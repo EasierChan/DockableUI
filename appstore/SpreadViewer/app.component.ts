@@ -377,11 +377,12 @@ export class AppComponent implements OnInit, OnDestroy {
             callback(msg) {
                 console.info(msg.content.time);
                 self.worker.postMessage({ type: "add", ukey: msg.content.ukey, value: msg.content });
-                self.worker.postMessage({ type: "get", time: msg.content.time });
+
                 self.latestItem[msg.content.ukey] = msg.content;
 
                 if (beg === null) {
                     beg = msg.content.time;
+                    end = msg.content.time;
 
                     for (let i = beg - offset; i < beg + offset; ++i) {
                         self.spreadChart.chartOption.xAxis[0].data.push(new Date(i * 1000));
@@ -397,20 +398,54 @@ export class AppComponent implements OnInit, OnDestroy {
             }
         });
 
+        setInterval(() => {
+            self.worker.postMessage({ type: "get", time: end++ });
+        }, 1000);
+
+        let lastIdx = 0;
+        let lastTime = 0;
+
         this.worker.onmessage = (ev: MessageEvent) => {
+            if (lastIdx !== 0 && ev.data.index > lastIdx + 1) {
+                for (let i = lastIdx + 1; i < ev.data.index; ++i) {
+                    option.series[0].data[i] = option.series[0].data[lastIdx + 1]; // tslint:disable-line
+                    option.series[1].data[i] = option.series[1].data[lastIdx + 1]; // tslint:disable-line
+                    option.series[2].data[i] = option.series[2].data[lastIdx + 1]; // tslint:disable-line
+                    option.series[3].data[i] = option.series[3].data[lastIdx + 1]; // tslint:disable-line
+                    option.series.forEach(serie => {
+                        serie.data.push(null);
+                    });
+
+                    option.xAxis.forEach(axis => {
+                        axis.data.push(new Date((lastTime + offset + 1) * 1000));
+                    });
+                }
+            }
+
             option.series[0].data[ev.data.index] = ev.data.value[0]; // tslint:disable-line
             option.series[1].data[ev.data.index] = ev.data.value[1]; // tslint:disable-line
             option.series[2].data[ev.data.index] = ev.data.value[2]; // tslint:disable-line
             option.series[3].data[ev.data.index] = ev.data.value[3]; // tslint:disable-line
-            option.series.forEach(serie => {
-                serie.data.push(null);
-            });
 
-            option.xAxis.forEach(axis => {
-                axis.data.push(new Date((ev.data.time + offset) * 1000));
-            });
+            if (ev.data.index > lastIdx) {
+                option.series.forEach(serie => {
+                    serie.data.push(null);
+                });
+
+                option.xAxis.forEach(axis => {
+                    axis.data.push(new Date((ev.data.time + offset) * 1000));
+                });
+
+                lastIdx = ev.data.index;
+                lastTime = ev.data.time;
+            }
 
             (self.spreadChart.instance as echarts.ECharts).setOption(option, false);
+
+            // fix only once;
+            if (ev.data.type < 2 && ev.data.index > lastIdx) {
+                end = ev.data.time;
+            }
         };
     }
 

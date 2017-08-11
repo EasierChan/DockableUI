@@ -10,6 +10,8 @@
     let ukeys = [];
     let offset: number[];
     let firstItemTime: number = null;
+    let caches = {};
+    let limitMax = 10;
 
     onmessage = (ev: MessageEvent) => {
         let db: IDBDatabase;
@@ -22,6 +24,9 @@
         switch (ev.data.type) {
             case "init":
                 ukeys = ev.data.legs;
+                ukeys.forEach(ukey => {
+                    caches[ukey] = { last: null, values: [] };
+                });
                 indexedDB.deleteDatabase(DB_NAME);
                 request = indexedDB.open(DB_NAME, DB_VERSION) as IDBOpenDBRequest;
                 request.onsuccess = (ev: any) => {
@@ -47,39 +52,78 @@
                 offset = ev.data.offset;
                 break;
             case "get":
-                indexedDB.open(DB_NAME, DB_VERSION).onsuccess = (event: any) => {
-                    console.info(ukeys);
-                    data = [];
-                    data.length = 4;
-                    transaction = event.currentTarget.result.transaction(ukeys, "readonly");
-                    get_request = transaction.objectStore(ukeys[0]).get(ev.data.time);
-                    get_request.onerror = (ev_err) => {
-                        console.info("Database get error: ");
-                    };
-                    get_request.onsuccess = (ev_suc: any) => {
-                        data[2] = ev_suc.target.result;
-                        // console.info(ev_suc.target.result);
+                if (caches[ukeys[0]].last === null || caches[ukeys[1]].last === null)
+                    return;
 
-                        if (data[2] && data[3]) {
-                            calc(data, ev.origin);
-                        }
-                    };
+                data = [];
+                data.length = 4;
+                if (ev.data.time <= caches[ukeys[0]].last && ev.data.time <= caches[ukeys[1]].last) {
+                    data[2] = caches[ukeys[0]].values[0];
+                    data[3] = caches[ukeys[1]].values[0];
+                    calc(data, 2);
+                } else if (ev.data.time > caches[ukeys[0]].last && ev.data.time > caches[ukeys[1]].last) {
+                    if ((caches[ukeys[0]].last - ev.data.time > limitMax) || (caches[ukeys[1]].last - ev.data.time) > limitMax)
+                        return;
 
-                    get_request = transaction.objectStore(ukeys[1]).get(ev.data.time);
-                    get_request.onerror = (ev_err) => {
-                        console.info("Database get error: ");
-                    };
-                    get_request.onsuccess = (ev_suc: any) => {
-                        data[3] = ev_suc.target.result;
-                        // console.info(ev_suc.target.result);
+                    data[2] = caches[ukeys[0]].values[0];
+                    data[3] = caches[ukeys[1]].values[0];
+                    calc(data, 0);
+                } else if (ev.data.time > caches[ukeys[0]].last) {
+                    if (caches[ukeys[0]].last - ev.data.time > limitMax)
+                        return;
 
-                        if (data[2] && data[3]) {
-                            calc(data, ev.origin);
-                        }
-                    };
-                };
+                    data[2] = caches[ukeys[0]].values[0];
+                    data[3] = caches[ukeys[1]].values[0];
+                    calc(data, 1);
+                } else {
+                    if (caches[ukeys[1]].last - ev.data.time > limitMax)
+                        return;
+
+                    data[2] = caches[ukeys[0]].values[0];
+                    data[3] = caches[ukeys[1]].values[0];
+                    calc(data, 1);
+                }
+                // get from IDB
+                // indexedDB.open(DB_NAME, DB_VERSION).onsuccess = (event: any) => {
+                //     data = [];
+                //     data.length = 4;
+                //     transaction = event.currentTarget.result.transaction(ukeys, "readonly");
+                //     get_request = transaction.objectStore(ukeys[0]).get(ev.data.time);
+
+                //     get_request.onerror = (ev_err) => {
+                //         console.info("Database get error: ");
+                //     };
+
+                //     get_request.onsuccess = (ev_suc: any) => {
+                //         data[2] = ev_suc.target.result;
+
+                //         if (data[2] && data[3]) {
+                //             calc(data, ev.origin);
+                //         }
+                //     };
+
+                //     get_request = transaction.objectStore(ukeys[1]).get(ev.data.time);
+
+                //     get_request.onerror = (ev_err) => {
+                //         console.info("Database get error: ");
+                //     };
+
+                //     get_request.onsuccess = (ev_suc: any) => {
+                //         data[3] = ev_suc.target.result;
+
+                //         if (data[2] && data[3]) {
+                //             calc(data, ev.origin);
+                //         }
+                //     };
+                // };
                 break;
             case "add":
+                if (caches[ev.data.ukey].values.length > 20)
+                    caches[ev.data.ukey].values.pop();
+
+                caches[ev.data.ukey].last = ev.data.value.time;
+                caches[ev.data.ukey].values.unshift(ev.data.value);
+
                 if (firstItemTime === null)
                     firstItemTime = ev.data.value.time;
 
@@ -118,13 +162,27 @@
         }
     };
 
-    function calc(data, origin) {
+    function calc(data, type) {
+        console.info(type);
         let index = data[3].time - firstItemTime + offset[0];
         let time = data[3].time;
         data[0] = (data[3].ask_price[0] - data[2].bid_price[0]) / 10000; // tslint:disable-line
         data[1] = (data[3].bid_price[0] - data[2].ask_price[0]) / 10000; // tslint:disable-line
         data[2] = data[2].last / 10000; // tslint:disable-line
         data[3] = data[3].last / 10000; // tslint:disable-line
-        postMessage({ index: index, time: time, value: data });
+        postMessage({ index: index, time: time, value: data, type: type });
+
+        // switch (type) {
+        //     case 0:
+
+        //         break;
+        //     case 1:
+
+        //         break;
+        //     case 2:
+        //         break;
+        //     default:
+        //         break;
+        // }
     }
 })();
