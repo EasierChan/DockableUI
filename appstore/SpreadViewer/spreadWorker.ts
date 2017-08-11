@@ -8,6 +8,8 @@
     let DB_VERSION = 1;
     let DB_STORE_NAME = "tickData";
     let ukeys = [];
+    let offset: number[];
+    let firstItemTime: number = null;
 
     onmessage = (ev: MessageEvent) => {
         let db: IDBDatabase;
@@ -41,6 +43,8 @@
                 request.onerror = (ev: any) => {
                     console.error("Database open error: " + ev.currentTarget.errorCode);
                 };
+
+                offset = ev.data.offset;
                 break;
             case "get":
                 indexedDB.open(DB_NAME, DB_VERSION).onsuccess = (event: any) => {
@@ -54,7 +58,7 @@
                     };
                     get_request.onsuccess = (ev_suc: any) => {
                         data[2] = ev_suc.target.result;
-                        console.info(ev_suc.target.result);
+                        // console.info(ev_suc.target.result);
 
                         if (data[2] && data[3]) {
                             calc(data, ev.origin);
@@ -67,7 +71,7 @@
                     };
                     get_request.onsuccess = (ev_suc: any) => {
                         data[3] = ev_suc.target.result;
-                        console.info(ev_suc.target.result);
+                        // console.info(ev_suc.target.result);
 
                         if (data[2] && data[3]) {
                             calc(data, ev.origin);
@@ -76,6 +80,9 @@
                 };
                 break;
             case "add":
+                if (firstItemTime === null)
+                    firstItemTime = ev.data.value.time;
+
                 indexedDB.open(DB_NAME, DB_VERSION).onsuccess = (event: any) => {
                     if ((event.currentTarget.result as IDBDatabase).objectStoreNames.contains(ev.data.ukey)) {
                         transaction = event.currentTarget.result.transaction(ev.data.ukey, "readwrite");
@@ -112,10 +119,12 @@
     };
 
     function calc(data, origin) {
+        let index = data[3].time - firstItemTime + offset[0];
+        let time = data[3].time;
         data[0] = (data[3].ask_price[0] - data[2].bid_price[0]) / 10000; // tslint:disable-line
         data[1] = (data[3].bid_price[0] - data[2].ask_price[0]) / 10000; // tslint:disable-line
-        data[2] = data[2].last; // tslint:disable-line
-        data[3] = data[3].last; // tslint:disable-line
-        postMessage(data);
+        data[2] = data[2].last / 10000; // tslint:disable-line
+        data[3] = data[3].last / 10000; // tslint:disable-line
+        postMessage({ index: index, time: time, value: data });
     }
 })();

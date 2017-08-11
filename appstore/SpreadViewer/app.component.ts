@@ -363,44 +363,53 @@ export class AppComponent implements OnInit, OnDestroy {
 
     registerListeners() {
         this.worker = new Worker("spreadWorker.js");
-        this.worker.postMessage({ type: "init", legs: this.ukeys });
+        let offset = 300;
+        this.worker.postMessage({ type: "init", legs: this.ukeys, offset: [offset] });
 
         let self = this;
         let beg = null;
         let end = null;
-        let option = { series: this.spreadChart.chartOption.series };
+        let option = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis };
 
         this.quote.addSlot({
             appid: 17,
             packid: 110,
             callback(msg) {
-                // console.info(msg.content);
+                console.info(msg.content.time);
                 self.worker.postMessage({ type: "add", ukey: msg.content.ukey, value: msg.content });
                 self.worker.postMessage({ type: "get", time: msg.content.time });
                 self.latestItem[msg.content.ukey] = msg.content;
 
                 if (beg === null) {
-                    beg = msg.content.time / 100 * 100;
+                    beg = msg.content.time;
 
-                    for (let i = beg - 300; i < beg + 300; ++i) {
+                    for (let i = beg - offset; i < beg + offset; ++i) {
                         self.spreadChart.chartOption.xAxis[0].data.push(new Date(i * 1000));
                         self.spreadChart.chartOption.xAxis[1].data.push(new Date(i * 1000));
                     }
 
-                    self.spreadChart.chartOption.series[0].data.length = 300;
-                    self.spreadChart.chartOption.series[1].data.length = 300;
-                    self.spreadChart.chartOption.series[2].data.length = 300;
-                    self.spreadChart.chartOption.series[3].data.length = 300;
+                    self.spreadChart.chartOption.series[0].data.length = 600;
+                    self.spreadChart.chartOption.series[1].data.length = 600;
+                    self.spreadChart.chartOption.series[2].data.length = 600;
+                    self.spreadChart.chartOption.series[3].data.length = 600;
                     (self.spreadChart.instance as echarts.ECharts).setOption(self.spreadChart.chartOption, true);
                 }
             }
         });
 
         this.worker.onmessage = (ev: MessageEvent) => {
-            option.series[0].data.push(ev.data[0]); // tslint:disable-line
-            option.series[1].data.push(ev.data[1]); // tslint:disable-line
-            option.series[2].data.push(ev.data[2]); // tslint:disable-line
-            option.series[3].data.push(ev.data[3]); // tslint:disable-line
+            option.series[0].data[ev.data.index] = ev.data.value[0]; // tslint:disable-line
+            option.series[1].data[ev.data.index] = ev.data.value[1]; // tslint:disable-line
+            option.series[2].data[ev.data.index] = ev.data.value[2]; // tslint:disable-line
+            option.series[3].data[ev.data.index] = ev.data.value[3]; // tslint:disable-line
+            option.series.forEach(serie => {
+                serie.data.push(null);
+            });
+
+            option.xAxis.forEach(axis => {
+                axis.data.push(new Date((ev.data.time + offset) * 1000));
+            });
+
             (self.spreadChart.instance as echarts.ECharts).setOption(option, false);
         };
     }
@@ -445,7 +454,7 @@ export class AppComponent implements OnInit, OnDestroy {
                         formatter: (params) => {
                             if (typeof params.value === "string") {
                                 let cur = new Date(params.value);
-                                return [cur.getFullYear(), cur.getMonth() + 1, cur.getDate()].join("/") + " " + [cur.getHours(), cur.getMinutes()].join(":");
+                                return [cur.getFullYear(), cur.getMonth() + 1, cur.getDate()].join("/") + " " + [cur.getHours(), cur.getMinutes(), cur.getSeconds()].join(":");
                             }
 
                             return params.value.toFixed(2);
@@ -502,12 +511,12 @@ export class AppComponent implements OnInit, OnDestroy {
                         let date = new Date(value);
                         let hms = [date.getHours(), date.getMinutes(), date.getSeconds()];
 
-                        if (index === 0) {
-                            let ymd = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
-                            return ymd.join("/") + " " + hms.join(":");
-                        }
+                        // if (index === 0) {
+                        let ymd = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+                        return hms.join(":") + "\n" + ymd.join("/");
+                        // }
 
-                        return hms.join(":");
+                        // return hms.join(":");
                     },
                     interval: (index: number, value: string) => {
                         let date = new Date(value);
@@ -546,22 +555,26 @@ export class AppComponent implements OnInit, OnDestroy {
             series: [{
                 name: lines[0],
                 type: "line",
+                connectNulls: true,
                 data: []
             }, {
                 name: lines[1],
                 type: "line",
+                connectNulls: true,
                 data: []
             }, {
                 xAxisIndex: 1,
                 yAxisIndex: 1,
                 name: lines[2],
                 type: "line",
+                connectNulls: true,
                 data: []
             }, {
                 xAxisIndex: 1,
                 yAxisIndex: 2,
                 name: lines[3],
                 type: "line",
+                connectNulls: true,
                 data: []
             }],
             dataZoom: [{
