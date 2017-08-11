@@ -1271,8 +1271,8 @@ export class RiskFactorComponent implements OnDestroy {
         },
         animation: false,
         grid: {
-          height: "78%",
-          y: "5%"
+          height: "80%",
+          y: "11%"
         },
         xAxis: {
           type: "category",
@@ -1306,7 +1306,8 @@ export class RiskFactorComponent implements OnDestroy {
           calculable: true,
           orient: "horizontal",
           left: "center",
-          bottom: "2%"
+          top: "1%",
+          textStyle: { color: "#F3F3F5" }
         },
         series : [{
           name: "alpha因子相关性",
