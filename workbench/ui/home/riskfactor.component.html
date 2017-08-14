@@ -8,7 +8,7 @@
 </div>
 <div class="menuItem">
 <font color='#A5ACBE'>策略:</font>
-<select  id="strategy" class="item1" [(ngModel)]='istrategy'>
+<select  id="strategy" class="item1" [(ngModel)]='istrategy' (ngModelChange)="istrategy=$event;nextStrategyDropdown()">
   <option *ngFor="let item of istrategys" [value]='item'>{{item}}</option>
 </select>
 </div>
