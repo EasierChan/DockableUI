@@ -150,8 +150,10 @@ export class RiskFactorComponent implements OnDestroy {
 
         let date1 = new Date().setMonth((new Date().getMonth() - 1));
         let date2 = new Date();
-        this.startdate = this.datePipe.transform(date1, "yyyy-MM-dd");
-        this.enddate = this.datePipe.transform(date2, "yyyy-MM-dd");
+        // this.startdate = this.datePipe.transform(date1, "yyyy-MM-dd");
+        // this.enddate = this.datePipe.transform(date2, "yyyy-MM-dd");
+        this.startdate = "2017-06-26";
+        this.enddate = "2017-07-26";
         this.hedgeRadio = 1;
 
         if (this.activeTab === "风险因子分析") {
