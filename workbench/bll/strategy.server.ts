@@ -150,6 +150,7 @@ export class StrategyBLL {
     strategies: StrategyItem[] = [];
     connState: string;
     onConnect: Function;
+    onStatusChanged: Function;
 
     constructor() {
         this.itrade.sessionID = StrategyBLL.sessionId;
@@ -224,6 +225,7 @@ export class StrategyBLL {
                             msg.status === 3 ? "PAUSE" :
                                 msg.status === 4 ? "STOP" :
                                     msg.status === 5 ? "WATCH" : "ERROR";
+                this.onStatusChanged();
                 break;
             }
         }
@@ -252,6 +254,7 @@ export class StrategyBLL {
     }
 
     handleStartCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        console.info(msg);
         if (msg.success == false) { // tslint:disable-line
             console.error("operate unsuccesfully!");
             return;
@@ -265,6 +268,7 @@ export class StrategyBLL {
     }
 
     handlePauseCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        console.info(msg);
         if (msg.success == false) { // tslint:disable-line
             console.error("operate unsuccesfully!");
             return;
@@ -278,6 +282,7 @@ export class StrategyBLL {
     }
 
     handleStopCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        console.info(msg);
         if (msg.success == false) { // tslint:disable-line
             console.error("operate unsuccesfully!");
             return;
@@ -291,6 +296,7 @@ export class StrategyBLL {
     }
 
     handleWatchCommand(msg: ComGuiAckStrategy, sessionId: number) {
+        console.info(msg);
         if (msg.success == false) { // tslint:disable-line
             console.error("operate unsuccesfully!");
             return;
@@ -347,12 +353,10 @@ export class StrategyServerContainer {
             let bll = new StrategyBLL();
             this.items.push({ name: config.name, conn: bll });
             bll.onConnect = () => {
-                console.log(config.state, " set 1", config.chinese_name);
                 config.state = 1;
                 config.stateChanged();
             };
             bll.addSlot(-1, () => {
-                console.log(config.state, " set 0", config.chinese_name);
                 config.state = 0;
                 config.stateChanged();
                 bll.connState = "INIT";

@@ -45,7 +45,6 @@ export class TradeComponent implements OnInit {
     svconfig: SpreadViewConfig;
     bshow: boolean = false;
     bcreate: boolean = false;
-    bRead: boolean = false;
     bModify: boolean = false;
     bSelStrategy: boolean = false;
     bSpread: boolean = false;
@@ -86,7 +85,6 @@ export class TradeComponent implements OnInit {
         this.contextMenu.addItem("修改", () => {
             this.config.curstep = 1;
             this.bshow = true;
-            this.bRead = true;
             this.bModify = true;
             this.onPopup(1);
         });
@@ -332,7 +330,7 @@ export class TradeComponent implements OnInit {
                 this.config.strategyInstances[0].key = strategy_key + "";
                 this.configBll.updateConfig(this.config);
                 this.curTemplate.body.data.Strategy[0].key = strategy_key;
-                console.log(this.config, this.curTemplate.body.data);
+                // console.log(this.config, this.curTemplate.body.data);
                 this.tgw.send(107, 2000, {
                     routerid: 0, templateid: this.curTemplate.id, body: {
                         name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
@@ -352,7 +350,6 @@ export class TradeComponent implements OnInit {
             tile.iconName = "object-align-bottom";
             this.analyticArea.addTile(tile);
         }
-
         this.tgw.send(260, 216, { body: { tblock_type: 2 } });
     }
 
@@ -378,7 +375,6 @@ export class TradeComponent implements OnInit {
         // console.info(this.curTemplate, this.config);
 
         this.curTemplate.body.data["SSNet"]["TSServer.port"] = this.config.port;
-        console.log(this.config.port);
         this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;
         let sobj = Object.assign({}, this.curTemplate.body.data["Strategy"][0]);
         this.curTemplate.body.data["Strategy"].length = 0;
@@ -399,10 +395,8 @@ export class TradeComponent implements OnInit {
             // obj.cfg = obj.field = obj.name = obj.log = item.name;
             obj.cfg = obj.field = obj.name = obj.log = this.config.name;
             obj.key = parseInt(item.key);
-            obj.status = 2; // RUN;
-            // obj.maxorderid = 0;
-            // obj.minorderid
-            // obj.orderstep
+            obj.status = 2; // RUN;  maxorderid  minorderid orderstep
+
             item.parameters.forEach((iparam: any) => {
                 iparam.value = parseFloat(iparam.value);
             });
@@ -437,8 +431,6 @@ export class TradeComponent implements OnInit {
         this.configBll.updateConfig(this.config);
         this.config.strategies = { name: this.config.name };
 
-
-
         if (!this.bshow) {
             this.tgw.send(107, 2000, {
                 routerid: 0, templateid: this.curTemplate.id, body: {
@@ -457,7 +449,6 @@ export class TradeComponent implements OnInit {
             });
         }
         this.bcreate = false;
-        this.bRead = false;
         this.bModify = false;
         this.bSelStrategy = false;
         this.closePanel();
@@ -511,11 +502,6 @@ export class TradeComponent implements OnInit {
 
     next() {
         if (this.config.curstep === 1) {
-            // add instance
-            // if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
-            //     alert("a strategycore needed.");
-            //     return;
-            // }
             if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
                 alert("please input correct format name");
                 return;
@@ -533,7 +519,6 @@ export class TradeComponent implements OnInit {
                 if (this.curTemplate === null) {
                     alert("Error: getTemplateByName `not found ${this.config.name}`");
                     return;
-                    // get gateway
                 }
                 // choose product and account
                 this.config.channels.gateway = this.curTemplate.body.data.SSGW;
@@ -547,9 +532,6 @@ export class TradeComponent implements OnInit {
                     }
                 }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
-                this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
-                this.config.channels.feedhandler.addr = "127.0.0.1";
-                this.config.channels.feedhandler.port = 9200;
                 this.strategyName = "";
                 this.bcreate = true;
 
@@ -559,6 +541,7 @@ export class TradeComponent implements OnInit {
                 this.newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
                 this.newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
                 this.newInstance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
+                console.log(this.curTemplate.body.data);
                 this.newInstance.algoes = [100, 101, 102, 103, 104];
                 this.config.strategyInstances[0] = this.newInstance;
                 // GET account info from product msg
@@ -612,41 +595,6 @@ export class TradeComponent implements OnInit {
         this.bcreate = true;
         this.bSelStrategy = true;
         this.config.strategyCoreName = this.getStrategyNameByChinese(value);
-        // delete this.curTemplate;
-        // this.curTemplate = null;
-        // this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-
-        // if (this.curTemplate === null) {
-        //     this.showError("Error: getTemplateByName", `not found ${this.config.name}`, "alert");
-        //     return;
-        // }
-        // // choose product and account
-        // this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-        // this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
-        // this.strategyName = "";
-        // this.newInstance.name = this.config.name;
-        // this.newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
-        // this.newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
-        // this.newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
-        // this.newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        // if (this.accounts === "")
-        //     this.onSelectProduct(this.productsList[0]);
-        // else
-        //     this.config.strategyInstances[0] = this.newInstance;
-        // this.config.strategyInstances[0].accounts = this.accounts;
-        // let bEmpty = this.isEmpty(this.gatewayObj);
-        // if (!bEmpty) {
-        //     for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-        //         for (let obj in this.gatewayObj) {
-        //             if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
-        //                 this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
-        //                 this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
-        // console.log(this.config, this.accounts, this.gatewayObj);
     }
     onSelectProduct(value: string) {
         console.log(value);
@@ -685,28 +633,24 @@ export class TradeComponent implements OnInit {
             combine[tmp[2]] = { addr: tmp[0], port: parseInt(tmp[1]) };
         }
         this.gatewayObj = combine;
-        // if (this.config.strategyInstances.length !== 0) {
-        //     this.config.strategyInstances[0].accounts = this.accounts;
-        // }
-        // if (this.config.channels.gateway) {
-        //     for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-        //         for (let obj in this.gatewayObj) {
-        //             if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
-        //                 this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
-        //                 this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
-        //                 break;
-        //             }
-        //         }
-        //     }
-        // }
         console.log("account:", this.accounts, "gateway:", this.gatewayObj, "config:", this.config);
+        if (this.bModify) {  // in modify strategy, if select product ,change account info and gateway;
+            for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+                for (let obj in this.gatewayObj) {
+                    if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
+                        this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
+                        this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
+                        break;
+                    }
+                }
+            }
+            this.config.strategyInstances[0].accounts = this.accounts;
+        }
     }
     /**
  * @param type 0 is new config, 1 is modify config.
  */
     onPopup(type: number = 0) {
-        // this.bPopPanel = true;
-        // this.strategyCores = this.configBll.getTemplates();
         this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
@@ -727,7 +671,6 @@ export class TradeComponent implements OnInit {
     }
     hide() {
         this.bshow = false;
-        this.bRead = false;
         this.bModify = false;
         this.config.curstep = 1;
     }
@@ -739,8 +682,11 @@ export class TradeComponent implements OnInit {
             this.monitorHeight = 300;
         }
         this.bDetails = !this.bDetails;
-
-        for (let i = 0; i < this.strategyContainer.items.length; ++i) {
+        this.resTable.rows.length = 0;
+        let itemLen = this.strategyContainer.items.length;
+        if (itemLen === 0)
+            return;
+        for (let i = 0; i < itemLen; ++i) {
             let row = this.resTable.newRow();
             let strategyid = this.strategyContainer.items[i].conn.strategies[0].id;
             row.cells[0].Text = strategyid;
@@ -772,6 +718,35 @@ export class TradeComponent implements OnInit {
             row.cells[6].Disable = (this.strategyContainer.items[i].conn.strategies[0].status === "WATCH") ? true : false;
             row.cells[7].Text = this.strategyContainer.items[i].conn.strategies[0].totalpnl;
             row.cells[8].Text = this.strategyContainer.items[i].conn.strategies[0].totalposition;
+
+            this.strategyContainer.items[i].conn.onStatusChanged = () => {
+                let getChangedStatus = this.strategyContainer.items[i].conn.strategies[0].status;
+                if (getChangedStatus === "RUN") {
+                    row.cells[2].Text = "RUN";
+                    row.cells[3].Disable = true;
+                    row.cells[4].Disable = false;
+                    row.cells[5].Disable = false;
+                    row.cells[6].Disable = false;
+                } else if (getChangedStatus === "PAUSE") {
+                    row.cells[2].Text = "PAUSE";
+                    row.cells[3].Disable = false;
+                    row.cells[4].Disable = true;
+                    row.cells[5].Disable = false;
+                    row.cells[6].Disable = false;
+                } else if (getChangedStatus === "STOP") {
+                    row.cells[2].Text = "STOP";
+                    row.cells[3].Disable = false;
+                    row.cells[4].Disable = true;
+                    row.cells[5].Disable = true;
+                    row.cells[6].Disable = false;
+                } else if (getChangedStatus === "WATCH") {
+                    row.cells[2].Text = "WATCH";
+                    row.cells[3].Disable = false;
+                    row.cells[4].Disable = false;
+                    row.cells[5].Disable = false;
+                    row.cells[6].Disable = true;
+                }
+            };
         }
     }
 }
