@@ -99,6 +99,10 @@ export class TradeComponent implements OnInit {
                         this.configBll.updateConfig();
                         this.strategyArea.removeTile(this.clickItem.title);
                         this.strategyContainer.removeItem(this.config.name);
+                        let tileIdx = this.tileArr.indexOf(this.config.name);
+                        if (tileIdx !== -1) {
+                            this.tileArr.splice(tileIdx, 1);
+                        }
                         break;
                     }
                 }
