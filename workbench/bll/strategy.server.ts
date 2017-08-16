@@ -95,7 +95,7 @@ export class ConfigurationBLL {
 
     updateTemplate(name: string, template: any) {
         this._templates[name] = template;
-        File.writeAsync(this._templatepath, JSON.stringify(this._templates));
+        File.writeSync(this._templatepath, JSON.stringify(this._templates));
 
         if (!this._names.includes(name)) {
             this._names.push(name);
