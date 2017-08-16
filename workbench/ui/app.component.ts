@@ -184,6 +184,7 @@ export class AppComponent implements OnInit, OnDestroy {
         };
 
         this.appService.getUserProfile(null);
+        this.registerListeners();
         this.loginTGW();
     }
 

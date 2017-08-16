@@ -224,12 +224,14 @@ export class TradeComponent implements OnInit {
         this.resTable.addColumn2(new DataTableColumn("总仓位", false, true));
 
         this.configs = this.configBll.getAllConfigs();
+        console.log(this.configs);
         this.configs.forEach(config => {
             if (config.activeChannel === "default") {
                 this.config = config;
                 this.config.state = 0;
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-
+                if (this.curTemplate === null)
+                    return;
                 let rtn = this.tileArr.indexOf(config.name);
                 if (config.activeChannel === "default" && rtn === -1) {
                     let tile = new Tile();
@@ -345,7 +347,6 @@ export class TradeComponent implements OnInit {
         });
 
         this.svconfigs = this.configBll.getSVConfigs();
-        console.log(this.svconfigs);
         let svLen = this.svconfigs.length;
         for (let i = 0; i < svLen; ++i) {
             let tile = new Tile();

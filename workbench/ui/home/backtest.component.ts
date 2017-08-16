@@ -165,6 +165,8 @@ export class BacktestComponent implements OnInit {
                         config.stateChanged = () => {
                             tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
                         };
+                        this.strategyContainer.removeItem(config.name);
+                        this.strategyContainer.addItem(config);
                         this.configBll.updateConfig(config);
                     } else if (config.activeChannel === "lookback" && rtn !== -1) {
                         this.backTestArea.getTileAt(rtn).title = config.chinese_name;
@@ -242,12 +244,14 @@ export class BacktestComponent implements OnInit {
         });
 
         this.configs = this.configBll.getAllConfigs();
+        console.log(this.configs);
         this.configs.forEach(config => {
             if (this.config.activeChannel === "lookback") {
                 this.config = config;
                 this.config.state = 0;
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-
+                if (this.curTemplate === null)
+                    return;
                 let rtn = this.tileArr.indexOf(config.name);
                 if (config.activeChannel === "lookback" && rtn === -1) {
                     let tile = new Tile();
@@ -499,8 +503,6 @@ export class BacktestComponent implements OnInit {
         }
     }
     onPopup(type: number = 0) {
-        // this.bPopPanel = true;
-        // this.strategyCores = this.configBll.getTemplates();
         this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();

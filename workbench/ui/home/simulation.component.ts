@@ -36,10 +36,10 @@ export class SimulationComponent implements OnInit {
     ProductMsg: any[];
     bshow: boolean = false;
     bcreate: boolean = false;
-    bRead: boolean = false;
     bSelProduct: boolean = false;
     bModify: boolean = false;
     bSelStrategy: boolean = false;
+    bcreateSuss: boolean = false;
     accounts: string;
     gatewayObj: Object;
     setting: any;
@@ -58,28 +58,22 @@ export class SimulationComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.configs = this.configBll.getAllConfigs();
-        this.configs.forEach(config => {
-            this.config = config;
-            this.config.state = 0;
-            this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-            this.finish();
-        });
-
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
         this.productsList = [];
         this.setting = this.appService.getSetting();
         this.contextMenu.addItem("启动", () => {
+            this.strategyContainer.removeItem(this.config.name);
+            this.strategyContainer.addItem(this.config);
             this.operateStrategyServer(this.config, 1);
         });
         this.contextMenu.addItem("停止", () => {
+            this.strategyContainer.removeItem(this.config.name);
             this.operateStrategyServer(this.config, 0);
         });
         this.contextMenu.addItem("修改", () => {
             this.config.curstep = 1;
-            this.bRead = true;
             this.bshow = true;
             this.bModify = true;
             this.onPopup(1);
@@ -129,6 +123,7 @@ export class SimulationComponent implements OnInit {
 
 
         this.simulationArea.onCreate = () => {
+            this.bcreateSuss = true;
             this.bshow = true;
             this.config.curstep = 1;
             this.onPopup(0);
@@ -158,7 +153,7 @@ export class SimulationComponent implements OnInit {
             callback: msg => {
                 console.info(msg.content.body, this.config);
                 let config = this.configs.find(item => { return item.name === msg.content.body.name; });
-                if (config) {
+                if (this.bcreateSuss) {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
                     let rtn = this.tileArr.indexOf(config.name);
@@ -179,7 +174,7 @@ export class SimulationComponent implements OnInit {
                         this.simulationArea.getTileAt(rtn).title = config.chinese_name;
                     }
                 }
-                // console.log(this.configs);
+                this.bcreateSuss = false;
             }
         });
         this.tgw.addSlot({
@@ -203,7 +198,7 @@ export class SimulationComponent implements OnInit {
                 for (let i = 0; i < len; ++i) {
                     // console.log(msg.content.body.strategies[i].strategy.name, this.config.name, msg.content.body.strategies[i].strategy.strategy_key);
                     if (msg.content.body.strategies[i].strategy.name === this.config.name) {
-                        console.log("find config.name,insert key:", this.config, strategy_key);
+                        // console.log("find config.name,insert key:", this.config, strategy_key);
                         strategy_key = msg.content.body.strategies[i].strategy.strategy_key;
                         break;
                     }
@@ -215,7 +210,7 @@ export class SimulationComponent implements OnInit {
                 this.tgw.send(107, 2000, {
                     routerid: 0, templateid: this.curTemplate.id, body: {
                         name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
-                        strategies: this.config.strategies
+                        strategies: { name: this.config.name }
                     }
                 });
             }
@@ -256,6 +251,31 @@ export class SimulationComponent implements OnInit {
                     return;
                 }
             }
+        });
+
+        this.configs = this.configBll.getAllConfigs();
+        this.configs.forEach(config => {
+            this.config = config;
+            this.config.state = 0;
+            this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+            if (this.curTemplate === null)
+                return;
+            let rtn = this.tileArr.indexOf(config.name);
+            if (config.activeChannel === "simulation" && rtn === -1) {
+                let tile = new Tile();
+                tile.title = config.chinese_name;
+                tile.iconName = "tasks";
+                this.simulationArea.addTile(tile);
+                this.tileArr.push(config.name);
+                // self.isInit = true;
+                config.stateChanged = () => {
+                    tile.backgroundColor = config.state ? "#71A9D6" : null;
+                };
+                this.configBll.updateConfig(config);
+            } else if (config.activeChannel === "simulation" && rtn !== -1) {
+                this.simulationArea.getTileAt(rtn).title = config.chinese_name;
+            }
+            this.finish();
         });
     }
 
@@ -311,6 +331,18 @@ export class SimulationComponent implements OnInit {
         }
         this.gatewayObj = combine;
         console.log(this.accounts, this.gatewayObj);
+        if (this.bModify) {  // in modify strategy, if select product ,change account info and gateway;
+            for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+                for (let obj in this.gatewayObj) {
+                    if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
+                        this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
+                        this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
+                        break;
+                    }
+                }
+            }
+            this.config.strategyInstances[0].accounts = this.accounts;
+        }
     }
     finish() {
         console.log(this.config);
@@ -413,7 +445,6 @@ export class SimulationComponent implements OnInit {
         }
         console.log(this.config);
         this.bcreate = false;
-        this.bRead = false;
         this.bModify = false;
         this.bSelStrategy = false;
         this.closePanel();
@@ -448,16 +479,11 @@ export class SimulationComponent implements OnInit {
     }
     next() {
         if (this.config.curstep === 1) {
-            // if (!this.config.strategyCoreName || this.config.strategyCoreName.length === 0) {
-            //     alert("a strategycore needed.");
-            //     return;
-            // }
             if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
                 alert("please input correct format name");
                 return;
             }
             if (!this.bModify) {
-                console.log(".....................");
                 // get template
                 if (!this.bSelStrategy)
                     this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
@@ -475,7 +501,7 @@ export class SimulationComponent implements OnInit {
                 console.log("in simulation model,ready inset addr and port:", gatewayLen, this.config);
                 for (let i = 0; i < gatewayLen; ++i) {
                     console.log("insert gateway addr & port");
-                    this.config.channels.gateway[i].addr = "172.24.51.1"; // "172.24.50.10";
+                    this.config.channels.gateway[i].addr = "172.24.50.10"; // "172.24.51.1";
                     this.config.channels.gateway[i].port = 8000;
                 }
                 this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
@@ -522,29 +548,6 @@ export class SimulationComponent implements OnInit {
         this.bcreate = true;
         this.bSelStrategy = true;
         this.config.strategyCoreName = this.getStrategyNameByChinese(value);
-        // delete this.curTemplate;
-        // this.curTemplate = null;
-        // this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-
-        // if (this.curTemplate === null) {
-        //     alert("Error: getTemplateByName `not found ${this.config.name}`");
-        //     return;
-        // }
-        // // choose product and account
-        // this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-        // this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
-        // this.strategyName = "";
-
-        // let newInstance: StrategyInstance = new StrategyInstance();
-        // newInstance.name = this.config.name;
-        // newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
-        // newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
-        // newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
-        // newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        // this.config.strategyInstances[0] = newInstance;
-        // // GET account info from product msg
-        // this.config.strategyInstances[0].accounts = "666600000011";
-        // console.log(this.config);
     }
     closePanel(e?: any) {
         if (this.bshow) {
@@ -578,13 +581,10 @@ export class SimulationComponent implements OnInit {
         }
     }
     onPopup(type: number = 0) {
-        // this.bPopPanel = true;
-        // this.strategyCores = this.configBll.getTemplates();
         this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
             this.config = new WorkspaceConfig();
             this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));
-            // console.log(this.strategyCores);
         } else {
             this.config.curstep = 1;
             this.curTemplate = null;
@@ -612,7 +612,6 @@ export class SimulationComponent implements OnInit {
     }
     hide() {
         this.bshow = false;
-        this.bRead = false;
         this.bModify = false;
         this.config.curstep = 1;
     }
