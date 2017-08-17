@@ -246,12 +246,13 @@ export class BacktestComponent implements OnInit {
         this.configs = this.configBll.getAllConfigs();
         console.log(this.configs);
         this.configs.forEach(config => {
-            if (this.config.activeChannel === "lookback") {
+            if (config.activeChannel === "lookback") {
                 this.config = config;
                 this.config.state = 0;
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-                if (this.curTemplate === null)
+                if (this.curTemplate === null) {
                     return;
+                }
                 let rtn = this.tileArr.indexOf(config.name);
                 if (config.activeChannel === "lookback" && rtn === -1) {
                     let tile = new Tile();

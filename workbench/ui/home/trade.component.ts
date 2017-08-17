@@ -638,7 +638,7 @@ export class TradeComponent implements OnInit {
             combine[tmp[2]] = { addr: tmp[0], port: parseInt(tmp[1]) };
         }
         this.gatewayObj = combine;
-        console.log("account:", this.accounts, "gateway:", this.gatewayObj, "config:", this.config);
+        // console.log("account:", this.accounts, "gateway:", this.gatewayObj, "config:", this.config);
         if (this.bModify) {  // in modify strategy, if select product ,change account info and gateway;
             for (let i = 0; i < this.config.channels.gateway.length; ++i) {
                 for (let obj in this.gatewayObj) {
