@@ -60,28 +60,28 @@
                 if (ev.data.time <= caches[ukeys[0]].last && ev.data.time <= caches[ukeys[1]].last) {
                     data[2] = caches[ukeys[0]].values[0];
                     data[3] = caches[ukeys[1]].values[0];
-                    calc(data, 2);
+                    calc(data, ev.data.time, 2);
                 } else if (ev.data.time > caches[ukeys[0]].last && ev.data.time > caches[ukeys[1]].last) {
                     if ((caches[ukeys[0]].last - ev.data.time > limitMax) || (caches[ukeys[1]].last - ev.data.time) > limitMax)
                         return;
 
                     data[2] = caches[ukeys[0]].values[0];
                     data[3] = caches[ukeys[1]].values[0];
-                    calc(data, 0);
+                    calc(data, ev.data.time, 0);
                 } else if (ev.data.time > caches[ukeys[0]].last) {
                     if (caches[ukeys[0]].last - ev.data.time > limitMax)
                         return;
 
                     data[2] = caches[ukeys[0]].values[0];
                     data[3] = caches[ukeys[1]].values[0];
-                    calc(data, 1);
+                    calc(data, ev.data.time, 1);
                 } else {
                     if (caches[ukeys[1]].last - ev.data.time > limitMax)
                         return;
 
                     data[2] = caches[ukeys[0]].values[0];
                     data[3] = caches[ukeys[1]].values[0];
-                    calc(data, 1);
+                    calc(data, ev.data.time, 1);
                 }
                 // get from IDB
                 // indexedDB.open(DB_NAME, DB_VERSION).onsuccess = (event: any) => {
@@ -162,15 +162,15 @@
         }
     };
 
-    function calc(data, type) {
-        console.info(type);
+    function calc(data, reqtime, type) {
+        console.warn(reqtime, data[3].time, type);
         let index = data[3].time - firstItemTime + offset[0];
         let time = data[3].time;
         data[0] = (data[3].ask_price[0] - data[2].bid_price[0]) / 10000; // tslint:disable-line
         data[1] = (data[3].bid_price[0] - data[2].ask_price[0]) / 10000; // tslint:disable-line
         data[2] = data[2].last / 10000; // tslint:disable-line
         data[3] = data[3].last / 10000; // tslint:disable-line
-        postMessage({ index: index, time: time, value: data, type: type });
+        postMessage({ index: index, time: reqtime, value: data, type: type }, "/");
 
         // switch (type) {
         //     case 0:
@@ -185,4 +185,5 @@
         //         break;
         // }
     }
+
 })();

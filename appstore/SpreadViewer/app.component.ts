@@ -259,7 +259,7 @@ export class AppComponent2 implements OnInit {
                     return;
                 }
 
-                chart.setMarketData({ UKey: msg.content.ukey, Time: parseInt(stime), AskPrice: msg.content.ask_price[0], BidPrice: msg.content.bid_price[0] });
+                chart.setMarketData({ ukey: msg.content.ukey, Time: parseInt(stime), AskPrice: msg.content.ask_price[0], BidPrice: msg.content.bid_price[0] });
             }
         });
     }
@@ -285,13 +285,13 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly apptype = "spreadviewer";
     option: any;
     languageType = 0;
-    ukeys: number[];
-    spreadChart: any;
-    timeLineChart: any;
-    worker: Worker;
+    spreadviewer: USpreadViewer;
+    codes: string[];
+    lines: any[];
+    name: string;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
-        private secuinfo: SecuMasterService) {
+        private secuinfo: SecuMasterService, private ref: ChangeDetectorRef) {
         this.state.onInit(this, this.onReady);
     }
 
@@ -317,151 +317,133 @@ export class AppComponent implements OnInit, OnDestroy {
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        let loginObj = { "cellid": "000003", "userid": "000003.1", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
-        this.quote.addSlot({
-            appid: 17,
-            packid: 43,
-            callback: msg => {
-                console.info(`quote ans=>${msg}`);
-                if (afterLogin)
-                    afterLogin.call(this);
-                // this.quote.send(17, 101, { topic: 3112, kwlist: [2163460] });
-            }
-        });
-        this.quote.addSlot({
-            appid: 17,
-            packid: 120,
-            callback: msg => {
-                console.info(msg);
-            }
-        });
+        let loginObj = { "cellid": "1", "userid": "8.999", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
+        this.quote.addSlot(
+            {
+                appid: 17,
+                packid: 43,
+                callback: msg => {
+                    console.info(`quote ans=>${msg}`);
+                    if (afterLogin)
+                        afterLogin.call(this);
+                }
+            }, {
+                appid: 17,
+                packid: 120,
+                callback: msg => {
+                    console.info(msg);
+                }
+            });
+
         this.quote.send(17, 41, loginObj);
     }
 
     ngOnInit() {
-        this.spreadChart = {};
-        this.timeLineChart = {};
-
-        let res = this.secuinfo.getSecuinfoByCode(this.option.details.code1, this.option.details.code2);
-        this.ukeys = [parseInt(res[this.option.details.code1].ukey), parseInt(res[this.option.details.code2].ukey)];
-
-        let lines = [`${this.option.details.code2}.ask_price[0] - ${this.option.details.code1}.bid_price[0]`,
-        `${this.option.details.code2}.bid_price[0] - ${this.option.details.code1}.ask_price[0]`, this.option.details.code1, this.option.details.code2];
-
-        this.durations.push([21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]);
-        this.spreadChart.chartOption = this.createLinesChart(lines);
-
-        this.loginTGW(() => {
-            this.quote.send(17, 101, { topic: 3112, kwlist: this.ukeys });
-        });
-
+        this.codes = ["", ""];
+        this.lines = [];
+        this.name = "";
+        this.lines.push({ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] });
+        this.loginTGW(null);
         this.registerListeners();
     }
 
-    latestItem: any = {};
-    durations = [];
-
     registerListeners() {
-        this.worker = new Worker("spreadWorker.js");
-        let offset = 300;
-        this.worker.postMessage({ type: "init", legs: this.ukeys, offset: [offset] });
-
         let self = this;
-        let beg = null;
-        let end = null;
-        let option = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis };
 
         this.quote.addSlot({
             appid: 17,
             packid: 110,
-            callback(msg) {
-                console.info(msg.content.time);
-                self.worker.postMessage({ type: "add", ukey: msg.content.ukey, value: msg.content });
+            callback: (msg) => {
+                self.spreadviewer.addMDData(msg.content);
+            }
+        });
+    }
 
-                self.latestItem[msg.content.ukey] = msg.content;
+    calcSpread() {
+        if (this.spreadviewer) {
+            this.spreadviewer.dispose();
+            this.spreadviewer = null;
+            this.ref.detectChanges();
+        }
 
-                if (beg === null) {
-                    beg = msg.content.time;
-                    end = msg.content.time;
+        if (this.codes[0].length < 1 || this.codes[1].length < 1) {
+            alert("请输入代码!");
+            return;
+        }
 
-                    for (let i = beg - offset; i < beg + offset; ++i) {
-                        self.spreadChart.chartOption.xAxis[0].data.push(new Date(i * 1000));
-                        self.spreadChart.chartOption.xAxis[1].data.push(new Date(i * 1000));
-                    }
+        let res: Object = this.secuinfo.getSecuinfoByCode(this.codes[0], this.codes[1]);
 
-                    self.spreadChart.chartOption.series[0].data.length = 600;
-                    self.spreadChart.chartOption.series[1].data.length = 600;
-                    self.spreadChart.chartOption.series[2].data.length = 600;
-                    self.spreadChart.chartOption.series[3].data.length = 600;
-                    (self.spreadChart.instance as echarts.ECharts).setOption(self.spreadChart.chartOption, true);
-                }
+        if (Object.getOwnPropertyNames(res).length < this.codes.length) {
+            alert("未找到对应代码!");
+            return;
+        }
+
+        this.lines.forEach(line => {
+            for (let i = 0; i < this.lines.length; ++i) {
+                line.coeffs[i] = parseFloat(line.coeffs[i]);
+                line.levels[i] = parseFloat(line.levels[i]);
+                line.offsets[i] = parseFloat(line.offsets[i]);
             }
         });
 
-        setInterval(() => {
-            self.worker.postMessage({ type: "get", time: end++ });
-        }, 1000);
-
-        let lastIdx = 0;
-        let lastTime = 0;
-
-        this.worker.onmessage = (ev: MessageEvent) => {
-            if (lastIdx !== 0 && ev.data.index > lastIdx + 1) {
-                for (let i = lastIdx + 1; i < ev.data.index; ++i) {
-                    option.series[0].data[i] = option.series[0].data[lastIdx + 1]; // tslint:disable-line
-                    option.series[1].data[i] = option.series[1].data[lastIdx + 1]; // tslint:disable-line
-                    option.series[2].data[i] = option.series[2].data[lastIdx + 1]; // tslint:disable-line
-                    option.series[3].data[i] = option.series[3].data[lastIdx + 1]; // tslint:disable-line
-                    option.series.forEach(serie => {
-                        serie.data.push(null);
-                    });
-
-                    option.xAxis.forEach(axis => {
-                        axis.data.push(new Date((lastTime + offset + 1) * 1000));
-                    });
-                }
-            }
-
-            option.series[0].data[ev.data.index] = ev.data.value[0]; // tslint:disable-line
-            option.series[1].data[ev.data.index] = ev.data.value[1]; // tslint:disable-line
-            option.series[2].data[ev.data.index] = ev.data.value[2]; // tslint:disable-line
-            option.series[3].data[ev.data.index] = ev.data.value[3]; // tslint:disable-line
-
-            if (ev.data.index > lastIdx) {
-                option.series.forEach(serie => {
-                    serie.data.push(null);
-                });
-
-                option.xAxis.forEach(axis => {
-                    axis.data.push(new Date((ev.data.time + offset) * 1000));
-                });
-
-                lastIdx = ev.data.index;
-                lastTime = ev.data.time;
-            }
-
-            (self.spreadChart.instance as echarts.ECharts).setOption(option, false);
-
-            // fix only once;
-            if (ev.data.type < 2 && ev.data.index > lastIdx) {
-                end = ev.data.time;
-            }
-        };
+        this.spreadviewer = new USpreadViewer(this.codes, [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)], this.lines);
+        this.quote.send(17, 101, { topic: 3112, kwlist: this.spreadviewer.ukeys });
+        res = null;
     }
 
-    code(ukey: number) {
-        return this.latestItem[ukey];
+    save() {
+        if (this.name.length < 1)
+            return;
+
+        
     }
 
     ngOnDestroy() {
-        if (this.spreadChart.instance) {
-            this.spreadChart.instance.dispose();
-            this.spreadChart.instance = null;
-        }
+        this.spreadviewer.dispose();
+    }
+}
 
-        if (this.worker) {
-            this.worker.terminate();
-        }
+export class USpreadViewer {
+    initPadding = 300; // unit is seconds
+    padding = 60;
+    ukeys: number[];
+    codes: string[];
+    lines: any[];
+    durations: number[][];
+    spreadChart: any = {};
+    timeLineChart: any = {};
+    worker: Worker;
+    msgs: any;
+    lastIdx: any;
+    interval: any;
+    dataOption: any;
+
+    clockPoint: AxisPoint;
+    dataPoint: AxisPoint;
+    maxPoint: AxisPoint;
+    minPoint: AxisPoint;
+
+    static readonly YUAN_PER_UNIT = 10000;
+
+    constructor(codes: string[], ukeys: number[], lines: any[]) {
+        this.ukeys = ukeys;
+        this.codes = codes;
+        this.lines = lines;
+
+        let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        this.codes[0], this.codes[1]];
+        this.spreadChart.chartOption = this.createLinesChart(names);
+        this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
+        this.lastIdx = {};
+        this.lastIdx[this.ukeys[0]] = -1;
+        this.lastIdx[this.ukeys[1]] = -1;
+        this.interval = { inst: null, value: 1000 };
+        this.msgs = {};
+        this.clockPoint = new AxisPoint();
+        this.dataPoint = new AxisPoint();
+        this.maxPoint = new AxisPoint();
+        this.minPoint = new AxisPoint();
     }
 
     onChartInit(chart: echarts.ECharts, type: number) {
@@ -473,10 +455,153 @@ export class AppComponent implements OnInit, OnDestroy {
                 this.timeLineChart.instance = chart;
                 break;
         }
+
+        // this.worker = new Worker("spreadWorker.js");
+        // this.worker.postMessage({ type: "init", legs: this.ukeys, offset: [offset] });
+        this.dataOption = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis };
+
+        this.interval.inst = setInterval(() => {
+            if (this.lastIdx[this.ukeys[0]] === -1 || this.lastIdx[this.ukeys[1]] === -1)
+                return;
+
+            if (this.clockPoint.time > Math.min(this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]))
+                return;
+
+            console.warn(this.clockPoint.time, this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]);
+            this.dataOption.series[0].data[this.clockPoint.index] = (this.msgs[this.ukeys[1]][this.clockPoint.time].askPrice1 - this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1).toFixed(2); // tslint:disable-line
+            this.dataOption.series[1].data[this.clockPoint.index] = (this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1 - this.msgs[this.ukeys[0]][this.clockPoint.time].askPrice1).toFixed(2); // tslint:disable-line
+            this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1; // tslint:disable-line
+            this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1; // tslint:disable-line
+            this.spreadChart.instance.setOption(this.dataOption);
+            this.clockPoint.time = this.increaseTime(this.clockPoint);
+            ++this.clockPoint.index;
+
+            if (this.clockPoint.time > this.maxPoint.time - this.padding) {
+                let count = this.initPadding;
+
+                while (--count) {
+                    this.maxPoint.time = this.increaseTime(this.maxPoint);
+                    this.dataOption.series.forEach(serie => {
+                        serie.data.push(null);
+                    });
+
+                    let date;
+                    let ymdhms;
+
+                    this.dataOption.xAxis.forEach(axis => {
+                        date = new Date(this.maxPoint.time * 1000);
+                        ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                            + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+                        axis.data.push(ymdhms);
+                    });
+
+                    ymdhms = null;
+                    date = null;
+                }
+            }
+        }, this.interval.value);
     }
 
-    createLinesChart(lines: string[], xAxisPoints: any[] = []) {
-        return {
+    addMDData(mdItem: any) {
+        console.info(mdItem.time, mdItem.ukey);
+        // this.worker.postMessage({ type: "add", ukey: mdItem.ukey, value: mdItem });
+        let curDuration = this.getDuration(mdItem.time);
+        if (curDuration === -1) {
+            console.error(`msg time: ${new Date(mdItem.time * 1000).toLocaleString()} is not valid.`);
+            return;
+        }
+
+        if (!this.msgs[mdItem.ukey])
+            this.msgs[mdItem.ukey] = {};
+
+        if (!this.msgs[mdItem.ukey][mdItem.time])
+            this.msgs[mdItem.ukey][mdItem.time] = {};
+
+        this.msgs[mdItem.ukey][mdItem.time].askPrice1 = mdItem.ask_price[0] / USpreadViewer.YUAN_PER_UNIT;
+        this.msgs[mdItem.ukey][mdItem.time].bidPrice1 = mdItem.bid_price[0] / USpreadViewer.YUAN_PER_UNIT;
+
+        if (this.lastIdx[this.ukeys[0]] !== -1 && this.lastIdx[this.ukeys[1]] !== -1) {
+
+            if (mdItem.time > this.dataPoint.time) {
+                while (mdItem.time > this.dataPoint.time) {
+                    let nextTime = this.increaseTime(this.dataPoint);
+
+                    if (nextTime < mdItem.time) {
+                        if (!this.msgs[this.ukeys[0]].hasOwnProperty(nextTime)) {
+                            this.msgs[this.ukeys[0]][nextTime] = {};
+                            Object.assign(this.msgs[this.ukeys[0]][nextTime], this.msgs[this.ukeys[0]][this.dataPoint.time]);
+                        }
+
+                        if (!this.msgs[this.ukeys[1]].hasOwnProperty(nextTime)) {
+                            this.msgs[this.ukeys[1]][nextTime] = {};
+                            Object.assign(this.msgs[this.ukeys[1]][nextTime], this.msgs[this.ukeys[1]][this.dataPoint.time]);
+                        }
+                    }
+
+                    this.dataPoint.time = nextTime;
+                }
+            }
+
+            if (mdItem.ukey === this.ukeys[0] && mdItem.time > this.lastIdx[this.ukeys[1]]) {
+                if (!this.msgs[this.ukeys[1]].hasOwnProperty(mdItem.time))
+                    this.msgs[this.ukeys[1]][mdItem.time] = {};
+
+                Object.assign(this.msgs[this.ukeys[1]][mdItem.time], this.msgs[this.ukeys[1]][mdItem.time - 1]);
+            }
+
+            if (mdItem.ukey === this.ukeys[1] && mdItem.time > this.lastIdx[this.ukeys[0]]) {
+                if (!this.msgs[this.ukeys[0]][mdItem.time])
+                    this.msgs[this.ukeys[0]][mdItem.time] = {};
+
+                Object.assign(this.msgs[this.ukeys[0]][mdItem.time], this.msgs[this.ukeys[0]][mdItem.time - 1]);
+            }
+        } else if (this.lastIdx[this.ukeys[0]] === -1 && this.lastIdx[this.ukeys[1]] === -1) { // first quote data
+            // init axises;
+            this.lastIdx[mdItem.ukey] = mdItem.time;
+            this.dataPoint.duration = curDuration;
+            this.dataPoint.time = mdItem.time;
+            this.dataPoint.index = this.initPadding - 1;
+            this.initOption(mdItem.time);
+            this.clockPoint.duration = curDuration;
+            this.clockPoint.index = this.initPadding - 1;
+            this.clockPoint.time = mdItem.time;
+        } else { // only one is -1
+            if (this.lastIdx[mdItem.ukey] === -1) { // another leg's data come in.
+                if (mdItem.ukey === this.ukeys[0] && mdItem.time !== this.lastIdx[this.ukeys[1]]) {
+                    if (mdItem.time > this.lastIdx[this.ukeys[1]]) {
+                        this.msgs[this.ukeys[1]][mdItem.time] = {};
+                        Object.assign(this.msgs[this.ukeys[1]][mdItem.time], this.msgs[this.ukeys[1]][this.lastIdx[this.ukeys[1]]]);
+                        this.moveTo(this.dataPoint, mdItem.time);
+                    } else {
+                        this.msgs[mdItem.ukey][this.lastIdx[this.ukeys[1]]] = {};
+                        Object.assign(this.msgs[mdItem.ukey][this.lastIdx[this.ukeys[1]]], this.msgs[mdItem.ukey][mdItem.time]);
+                        this.moveTo(this.dataPoint, this.lastIdx[this.ukeys[1]]);
+                    }
+
+                    Object.assign(this.clockPoint, this.dataPoint);
+                } else if (mdItem.ukey === this.ukeys[1] && mdItem.time !== this.lastIdx[this.ukeys[0]]) {
+                    if (mdItem.time > this.lastIdx[this.ukeys[0]]) {
+                        this.msgs[this.ukeys[0]][mdItem.time] = {};
+                        Object.assign(this.msgs[this.ukeys[0]][mdItem.time], this.msgs[this.ukeys[0]][this.lastIdx[this.ukeys[0]]]);
+                        this.moveTo(this.dataPoint, mdItem.time);
+                    } else {
+                        this.msgs[mdItem.ukey][this.lastIdx[this.ukeys[0]]] = {};
+                        Object.assign(this.msgs[mdItem.ukey][this.lastIdx[this.ukeys[0]]], this.msgs[mdItem.ukey][mdItem.time]);
+                        this.moveTo(this.dataPoint, this.lastIdx[this.ukeys[0]]);
+                    }
+
+                    Object.assign(this.clockPoint, this.dataPoint);
+                }
+            } else { // also one leg data;
+                ;
+            }
+        }
+
+        this.lastIdx[mdItem.ukey] = mdItem.time;
+    }
+
+    createLinesChart(lines: string[]) {
+        return JSON.parse(JSON.stringify({
             title: {
                 show: false,
             },
@@ -488,8 +613,7 @@ export class AppComponent implements OnInit, OnDestroy {
                         show: true, backgroundColor: "rgba(0,0,0,1)",
                         formatter: (params) => {
                             if (typeof params.value === "string") {
-                                let cur = new Date(params.value);
-                                return [cur.getFullYear(), cur.getMonth() + 1, cur.getDate()].join("/") + " " + [cur.getHours(), cur.getMinutes(), cur.getSeconds()].join(":");
+                                return params.value;
                             }
 
                             return params.value.toFixed(2);
@@ -502,7 +626,9 @@ export class AppComponent implements OnInit, OnDestroy {
             },
             legend: {
                 data: lines,
-                textStyle: { color: "#F3F3F5" }
+                textStyle: { color: "#F3F3F5" },
+                top: 30,
+                left: "10%"
             },
             grid: [{
                 show: true,
@@ -517,46 +643,15 @@ export class AppComponent implements OnInit, OnDestroy {
                 height: "40%"
             }],
             xAxis: [{
-                data: xAxisPoints,
+                data: [],
                 axisLabel: {
-                    show: false
-                    // textStyle: { color: "#F3F3F5" },
-                    // formatter: function (value, index) {
-                    //     let date = new Date(value);
-                    //     let hms = [date.getHours(), date.getMinutes(), date.getSeconds()];
-
-                    //     if (index === 0) {
-                    //         let ymd = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
-                    //         return ymd.join("/") + " " + hms.join(":");
-                    //     }
-
-                    //     return hms.join(":");
-                    // },
-                    // interval: (index: number, value: string) => {
-                    //     let date = new Date(value);
-                    //     return date.getSeconds() === 0 && date.getMinutes() % 5 === 0;
-                    // }
+                    textStyle: { color: "#F3F3F5" }
                 }
             }, {
                 gridIndex: 1,
-                data: xAxisPoints,
+                data: [],
                 axisLabel: {
-                    textStyle: { color: "#F3F3F5" },
-                    formatter: function(value, index) {
-                        let date = new Date(value);
-                        let hms = [date.getHours(), date.getMinutes(), date.getSeconds()];
-
-                        // if (index === 0) {
-                        let ymd = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
-                        return hms.join(":") + "\n" + ymd.join("/");
-                        // }
-
-                        // return hms.join(":");
-                    },
-                    interval: (index: number, value: string) => {
-                        let date = new Date(value);
-                        return date.getSeconds() === 0 && date.getMinutes() % 5 === 0;
-                    }
+                    textStyle: { color: "#F3F3F5" }
                 }
             }],
             yAxis: [{
@@ -564,7 +659,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     show: true,
                     textStyle: { color: "#F3F3F5" }
                 },
-                splitLine: { lineStyle: { color: "#1a0000" } },
+                splitLine: { lineStyle: { color: "#888888" } },
                 scale: true,
                 boundaryGap: [0.2, 0.2]
             }, {
@@ -573,7 +668,8 @@ export class AppComponent implements OnInit, OnDestroy {
                     show: true,
                     textStyle: { color: "#F3F3F5" }
                 },
-                splitLine: { lineStyle: { color: "#1a0000" } },
+                splitLine: { lineStyle: { color: "#888888" } },
+                splitNumber: 5,
                 scale: true,
                 boundaryGap: [0.2, 0.2]
             }, {
@@ -583,7 +679,8 @@ export class AppComponent implements OnInit, OnDestroy {
                     show: true,
                     textStyle: { color: "#F3F3F5" }
                 },
-                splitLine: { lineStyle: { color: "#1a0000" } },
+                splitLine: { show: false },
+                splitNumber: 5,
                 scale: true,
                 boundaryGap: [0.2, 0.2]
             }],
@@ -616,6 +713,235 @@ export class AppComponent implements OnInit, OnDestroy {
                 type: "inside",
                 xAxisIndex: [0, 1]
             }]
-        };
+        }));
     }
+
+    initOption(time) {
+        this.minPoint.time = time;
+        this.minPoint.duration = this.dataPoint.duration;
+        this.maxPoint.time = time;
+        this.maxPoint.duration = this.dataPoint.duration;
+        let date = null;
+        let ymdhms;
+        let padding = this.initPadding;
+
+        while (padding--) {
+            date = new Date(this.minPoint.time * 1000);
+            ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+            this.spreadChart.chartOption.xAxis[0].data.unshift(ymdhms);
+            this.spreadChart.chartOption.xAxis[1].data.unshift(ymdhms);
+            this.minPoint.time = this.decreaseTime(this.minPoint);
+        }
+
+        padding = this.initPadding;
+
+        while (padding--) {
+            this.maxPoint.time = this.increaseTime(this.maxPoint);
+            date = new Date(this.maxPoint.time * 1000);
+            ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+            this.spreadChart.chartOption.xAxis[0].data.push(ymdhms);
+            this.spreadChart.chartOption.xAxis[1].data.push(ymdhms);
+        }
+
+        date = null;
+        ymdhms = null;
+        this.spreadChart.chartOption.series[0].data.length = this.initPadding * 2;
+        this.spreadChart.chartOption.series[1].data.length = this.initPadding * 2;
+        this.spreadChart.chartOption.series[2].data.length = this.initPadding * 2;
+        this.spreadChart.chartOption.series[3].data.length = this.initPadding * 2;
+        if (this.spreadChart.instance)
+            (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true);
+        else
+            setTimeout(() => { (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true); }, 1000);
+    }
+
+    reset(codes: string[], ukeys: number[], lines: any[]) {
+        this.ukeys = ukeys;
+        this.codes = codes;
+        this.lines = lines;
+
+        let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        this.codes[0], this.codes[1]];
+        this.spreadChart.chartOption = this.createLinesChart(names);
+        this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
+        this.lastIdx = {};
+        this.lastIdx[this.ukeys[0]] = -1;
+        this.lastIdx[this.ukeys[1]] = -1;
+        this.interval = { inst: null, value: 1000 };
+        this.msgs = {};
+        this.clockPoint = new AxisPoint();
+        this.dataPoint = new AxisPoint();
+        this.maxPoint = new AxisPoint();
+        this.minPoint = new AxisPoint();
+    }
+
+    getDuration(time): number {
+        let begDate = new Date(time * 1000);
+        let begMinutes = begDate.getHours() * 60 + begDate.getMinutes();
+        let k = 0;
+
+        for (; k < this.durations.length; ++k) {
+            if (this.durations[k][0] * 60 + this.durations[k][1] > this.durations[k][2] * 60 + this.durations[k][3]) {
+                if (begMinutes >= (this.durations[k][0] * 60 + this.durations[k][1]) ||
+                    begMinutes * 60 + begDate.getSeconds() <= (this.durations[k][2] * 60 + this.durations[k][3]) * 60) {
+                    break;
+                }
+            } else {
+                if (begMinutes >= (this.durations[k][0] * 60 + this.durations[k][1]) &&
+                    begMinutes * 60 + begDate.getSeconds() <= (this.durations[k][2] * 60 + this.durations[k][3]) * 60) {
+                    break;
+                }
+            }
+        }
+
+        begMinutes = null;
+        begDate = null;
+
+        return this.durations.length !== k ? k : -1;
+    }
+
+    increaseTime(axis): number {
+        if (axis.time === null)
+            return 0;
+
+        let ret = 0;
+        let curDate = new Date(axis.time * 1000);
+        let begMinutes = curDate.getHours() * 60 + curDate.getMinutes();
+        let k = axis.duration;
+
+        if (this.durations[k][0] * 60 + this.durations[k][1] > this.durations[k][2] * 60 + this.durations[k][3]) {
+            if (begMinutes >= (this.durations[k][0] * 60 + this.durations[k][1])) {
+                ret = axis.time + 1;
+            } else if (begMinutes < this.durations[k][2] * 60 + this.durations[k][3]) {
+                ret = axis.time + 1;
+            } else if (begMinutes * 60 + curDate.getSeconds() === (this.durations[k][2] * 60 + this.durations[k][3]) * 60) {
+                if (this.durations[(k + 1) % this.durations.length][0] < this.durations[k][2]) {
+                    curDate.setDate(curDate.getDate() + 1);
+                }
+
+                curDate.setHours(this.durations[(k + 1) % this.durations.length][0]);
+                curDate.setMinutes(this.durations[(k + 1) % this.durations.length][1]);
+                curDate.setSeconds(0);
+                ret = Math.floor(curDate.getTime() / 1000);
+                axis.duration = (k + 1) % this.durations.length;
+            }
+        } else {
+            if (begMinutes >= (this.durations[k][0] * 60 + this.durations[k][1]) &&
+                begMinutes < this.durations[k][2] * 60 + this.durations[k][3]) {
+                ret = axis.time + 1;
+            } else if (begMinutes * 60 + curDate.getSeconds() === (this.durations[k][2] * 60 + this.durations[k][3]) * 60) {
+                if (this.durations[(k + 1) % this.durations.length][0] < this.durations[k][2]) {
+                    curDate.setDate(curDate.getDate() + 1);
+                }
+
+                curDate.setHours(this.durations[(k + 1) % this.durations.length][0]);
+                curDate.setMinutes(this.durations[(k + 1) % this.durations.length][1]);
+                curDate.setSeconds(0);
+                ret = Math.floor(curDate.getTime() / 1000);
+                axis.duration = (k + 1) % this.durations.length;
+            }
+        }
+
+        begMinutes = null;
+        curDate = null;
+        return ret;
+    }
+
+    decreaseTime(axis): number {
+        if (axis.time === null)
+            return 0;
+
+        let ret = 0;
+        let curDate = new Date(axis.time * 1000);
+        let begMinutes = curDate.getHours() * 60 + curDate.getMinutes();
+        let k = axis.duration;
+
+        if (this.durations[k][0] * 60 + this.durations[k][1] > this.durations[k][2] * 60 + this.durations[k][3]) {
+            if (begMinutes >= (this.durations[k][0] * 60 + this.durations[k][1])) {
+                if (begMinutes === (this.durations[k][0] * 60 + this.durations[k][1]) && curDate.getSeconds() === 0) {
+                    if (this.durations[(k - 1 + this.durations.length) % this.durations.length][2] > this.durations[k][0]) {
+                        curDate.setDate(curDate.getDate() - 1);
+                    }
+
+                    curDate.setHours(this.durations[(k - 1 + this.durations.length) % this.durations.length][2]);
+                    curDate.setMinutes(this.durations[(k - 1 + this.durations.length) % this.durations.length][3]);
+                    curDate.setSeconds(0);
+                    ret = Math.floor(curDate.getTime() / 1000);
+                    axis.duration = (k - 1 + this.durations.length) % this.durations.length;
+                } else {
+                    ret = axis.time - 1;
+                }
+            } else if (begMinutes * 60 + curDate.getSeconds() <= (this.durations[k][2] * 60 + this.durations[k][3]) * 60) {
+                ret = axis.time - 1;
+            } else {
+                console.warn(`unvalid date: ${curDate.toLocaleString()}`);
+            }
+        } else {
+            if (begMinutes >= (this.durations[k][0] * 60 + this.durations[k][1]) &&
+                begMinutes < this.durations[k][2] * 60 + this.durations[k][3]) {
+                if (begMinutes === (this.durations[k][0] * 60 + this.durations[k][1]) && curDate.getSeconds() === 0) {
+                    if (this.durations[(k - 1 + this.durations.length) % this.durations.length][2] > this.durations[k][0]) {
+                        curDate.setDate(curDate.getDate() - 1);
+                    }
+
+                    curDate.setHours(this.durations[(k - 1 + this.durations.length) % this.durations.length][2]);
+                    curDate.setMinutes(this.durations[(k - 1 + this.durations.length) % this.durations.length][3]);
+                    curDate.setSeconds(0);
+                    ret = Math.floor(curDate.getTime() / 1000);
+                    axis.duration = (k - 1 + this.durations.length) % this.durations.length;
+                } else
+                    ret = axis.time - 1;
+            } else if (begMinutes * 60 + curDate.getSeconds() <= (this.durations[k][2] * 60 + this.durations[k][3]) * 60) {
+                ret = axis.time - 1;
+            } else {
+                console.warn(`unvalid date: ${curDate.toLocaleString()}`);
+            }
+        }
+
+        begMinutes = null;
+        curDate = null;
+        return ret;
+    }
+
+    moveTo(axis, timepoint) {
+        if (timepoint > axis.time) {
+            do {
+                axis.time = this.increaseTime(axis);
+                ++axis.index;
+            } while (axis.time < timepoint);
+        }
+    }
+
+    dispose() {
+        if (this.spreadChart.instance) {
+            this.spreadChart.instance.dispose();
+            this.spreadChart.instance = null;
+        }
+
+        if (this.worker) {
+            this.worker.terminate();
+        }
+
+        if (this.interval.inst) {
+            clearInterval(this.interval.inst);
+        }
+
+        if (this.msgs) {
+            this.msgs = null;
+        }
+
+        this.dataPoint = null;
+        this.maxPoint = null;
+        this.minPoint = null;
+    }
+}
+
+
+export class AxisPoint {
+    time: number;
+    index: number;
+    duration: number;
 }
