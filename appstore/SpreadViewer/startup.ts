@@ -5,7 +5,7 @@
 
 import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path, IPCManager } from "../../base/api/backend";
 const path = require("path");
-const fs = require("fs");
+import * as fs from "fs";
 import { ipcMain } from "electron";
 
 export class StartUp implements IApplication {
@@ -19,6 +19,7 @@ export class StartUp implements IApplication {
     static instanceMap: any = {};
     _option: any;
     static readonly apptype = "spreadviewer";
+    static untitleID = 1;
 
     constructor() {
         this._windowMgr = new UWindwManager();
@@ -30,6 +31,11 @@ export class StartUp implements IApplication {
     bootstrap(name = "Untitled", option?: any): any {
         let self = this;
         if (!this._mainWindow || !this._mainWindow.win) {
+            if (name === "Untitled") {
+                name = name + StartUp.untitleID;
+                ++StartUp.untitleID;
+            }
+
             this._name = name;
             this._config.name = name;
             this.loadConfig();
@@ -41,7 +47,7 @@ export class StartUp implements IApplication {
                 delete StartUp.instanceMap[this._mainWindow.win.webContents.id];
             };
 
-            this._option = option;
+            this._option = this._config.option ? Object.assign(this._config.option, option) : option;
 
             this._mainWindow.loadURL(path.join(__dirname, "index.html"));
             this._mainWindow.win.setTitle(name);
@@ -88,8 +94,18 @@ export class StartUp implements IApplication {
         fs.writeFileSync(this._cfgFile, JSON.stringify(this._config, null, 2));
     }
 
-    addCfg(name, value) {
-        this._config[name] = value;
+    saveAs(newName) {
+        if (newName !== this._name) {
+            let newPath = path.join(this._appdir, newName + ".json");
+            fs.renameSync(this._cfgFile, newPath);
+            this._cfgFile = newPath;
+            ipcMain.emit("appstore://updateApp", { type: "rename", oldName: this._name, newName: newName });
+            this._name = newName;
+        }
+    }
+
+    addCfgItem(value) {
+        this._config["option"] = value;
         this.saveConfig();
     }
 
@@ -102,15 +118,21 @@ IPCManager.register(`app://${StartUp.apptype}/init`, (e, param) => {
     if (StartUp.instanceMap.hasOwnProperty(e.sender.id)) {
         if (param) {
             switch (param.type) {
+                case "cfg-rename":
+                    StartUp.instanceMap[e.sender.id].saveAs(param.name);
+                    break;
                 case "cfg-add":
-                    StartUp.instanceMap[e.sender.id].addCfg(param.data.name, param.data.value);
+                    StartUp.instanceMap[e.sender.id].addCfgItem(param.value);
                     break;
                 default:
                     console.error(`unknown param name ${param.name}`);
                     break;
             }
         } else {
-            e.returnValue = StartUp.instanceMap[e.sender.id]._option;
+            if (StartUp.instanceMap[e.sender.id]._option)
+                e.returnValue = StartUp.instanceMap[e.sender.id]._option;
+            else
+                e.returnValue = null;
         }
         return;
     }

@@ -2262,11 +2262,11 @@ export class TileArea extends Control {
         tileCount = null;
     }
 
-    getTileAt(idx: number) {
+    getTileAt(idx: number): Tile {
         return this.dataSource.items[idx];
     }
 
-    getTile(name: string) {
+    getTile(name: string): Tile {
         let tileCount = this.dataSource.items.length;
 
         for (let i = 0; i < tileCount; ++i) {

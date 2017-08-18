@@ -339,10 +339,16 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.codes = ["", ""];
-        this.lines = [];
-        this.name = "";
-        this.lines.push({ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] });
+        if (this.option) {
+            this.codes = this.option.codes || ["", ""];
+            this.lines = this.option.lines || [{ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }];
+            this.name = this.option.name || "";
+        } else {
+            this.codes = ["", ""];
+            this.lines = [{ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }];
+            this.name = "";
+        }
+
         this.loginTGW(null);
         this.registerListeners();
     }
@@ -395,7 +401,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (this.name.length < 1)
             return;
 
-        
+        this.state.saveAs(this, this.name, { codes: this.codes, lines: this.lines });
     }
 
     ngOnDestroy() {

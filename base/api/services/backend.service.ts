@@ -37,6 +37,10 @@ export class AppStoreService {
     quitAll() {
         electron.ipcRenderer.send("appstore://quit-all");
     }
+
+    onUpdateApp(update: any, context: any) {
+        electron.ipcRenderer.on(`appstore://updateApp`, (event, params) => { update.call(context, params); });
+    }
 }
 
 @Injectable()
@@ -60,6 +64,11 @@ export class AppStateCheckerRef {
         }
 
         console.error(`apptype is undefined.`);
+    }
+
+    saveAs(appref: any, name, option) {
+        electron.ipcRenderer.send(`app://${appref.apptype}/init`, { type: "cfg-rename", name: name });
+        electron.ipcRenderer.send(`app://${appref.apptype}/init`, { type: "cfg-add", value: option });
     }
 
     onResize(appref: any, resizeCB: (e?: any) => void) {
@@ -238,6 +247,10 @@ export class File {
     }
 
     public static readdirSync(fpath: string) {
+        if (!fs.existsSync(fpath)) {
+            return [];
+        }
+
         return fs.readdirSync(fpath, "utf-8");
     }
 }

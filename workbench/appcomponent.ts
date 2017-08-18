@@ -54,9 +54,9 @@ export class AppComponent implements OnDestroy {
     curTemplate: any;
     isModify: boolean = false;
 
-    svconfigs: SpreadViewConfig[];
+    svconfigs: string[];
     sendLoopConfigs: any[] = [];
-    svconfig: SpreadViewConfig;
+    svconfig: string;
     svMenu: Menu;
     setting: any;
 
@@ -64,7 +64,6 @@ export class AppComponent implements OnDestroy {
         private qtp: QtpService,
         private ref: ChangeDetectorRef) {
         this.config = new WorkspaceConfig();
-        this.svconfig = new SpreadViewConfig();
         this.config.curstep = 1;
         this.bDetails = false;
         this.bLeftSelectedAll = this.bRightSelectedAll = false;
@@ -606,10 +605,7 @@ export class AppComponent implements OnDestroy {
     }
 
     onCreateSpreadViewer(type = 0) {
-        if (type === 0) {
-            this.svconfig = new SpreadViewConfig();
-        }
-        window.showMetroDialog("#svconfig");
+        this.onStartApp()
     }
 
     onCloseSVConfig() {

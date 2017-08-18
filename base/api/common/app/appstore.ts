@@ -48,6 +48,11 @@ export class AppStore {
             AppStore._instances[name].bootstrap(name, option);
             return true;
         } else if (AppStore._apps.hasOwnProperty(type)) {
+            if (name === "Untitled") {
+                AppStore._apps[type].StartUp.instance().bootstrap(name, option);
+                return true;
+            }
+
             AppStore._instances[name] = AppStore._apps[type].StartUp.instance();
             AppStore._instances[name].bootstrap(name, option);
             return true;
@@ -100,7 +105,9 @@ export class AppStore {
             UConfig.saveChanges();
         });
 
+        let sender: Electron.WebContents = null;
         IPCManager.register("appstore://startupAnApp", (event, appname, apptype, option) => {
+            sender = event.sender;
             event.returnValue = AppStore.startupAnApp(appname, apptype, option);
         });
 
@@ -118,6 +125,16 @@ export class AppStore {
                     });
                 }
             });
+        });
+
+        IPCManager.register("appstore://updateApp", (event, params: any) => {
+            switch (event.type) {
+                case "rename":
+                    sender.send("appstore://updateApp", { type: event.type, oldName: event.oldName, newName: event.newName });
+                    break;
+                default:
+                    break;
+            }
         });
 
         IPCManager.register("appstore://login", (event, loginInfo) => {
