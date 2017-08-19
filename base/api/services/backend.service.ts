@@ -253,6 +253,11 @@ export class File {
 
         return fs.readdirSync(fpath, "utf-8");
     }
+
+    public static unlinkSync(fpath: string) {
+        if (fs.existsSync(fpath))
+            fs.unlinkSync(fpath);
+    }
 }
 
 export class Environment {

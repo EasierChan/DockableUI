@@ -128,10 +128,10 @@ export class TradeComponent implements OnInit {
         });
 
         this.svMenu = new Menu();
-        this.svMenu.addItem("修改", () => {
-            console.log(this.svconfig);
-            this.onModifySpreadViewer();
-        });
+        // this.svMenu.addItem("修改", () => {
+        //     console.log(this.svconfig);
+        //     this.onModifySpreadViewer();
+        // });
         this.svMenu.addItem("删除", () => {
             if (!confirm("确定删除？")) {
                 return;
@@ -140,8 +140,8 @@ export class TradeComponent implements OnInit {
                 for (let i = 0; i < len; ++i) {
                     if (this.svconfigs[i] === this.svClickItem.title) {
                         // this.svconfigs.splice(i, 1);
-                        this.configBll.removeSVConfigItem(this.svconfig);
-                        console.log(this.svconfigs);
+                        this.configBll.removeSVConfigItem(this.svClickItem.title);
+                        this.analyticArr.splice(i, 1);
                         this.analyticArea.removeTile(this.svClickItem.title);
                         break;
                     }

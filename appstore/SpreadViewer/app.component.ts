@@ -401,7 +401,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (this.name.length < 1)
             return;
 
-        this.state.saveAs(this, this.name, { codes: this.codes, lines: this.lines });
+        this.state.saveAs(this, this.name, { codes: this.codes, lines: this.lines, name: this.name });
     }
 
     ngOnDestroy() {

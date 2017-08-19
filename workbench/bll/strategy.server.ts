@@ -130,7 +130,7 @@ export class ConfigurationBLL {
     addSVConfigItem(item) {
         if (!this._svconfigs.includes(item))
             this._svconfigs.push(item);
-        File.writeAsync(this._svpath, JSON.stringify(this._svconfigs));
+        // File.writeAsync(this._svpath, JSON.stringify(this._svconfigs));
     }
 
     removeSVConfigItem(config: string) {
@@ -140,7 +140,8 @@ export class ConfigurationBLL {
                 return;
             }
         });
-        File.writeAsync(this._svpath, JSON.stringify(this._svconfigs));
+
+        File.unlinkSync(path.join(this._svpath, config + ".json"));
     }
 }
 
