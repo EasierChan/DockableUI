@@ -21,6 +21,7 @@ let ip20strs = [];
     ]
 })
 export class TradeComponent implements OnInit {
+    static readonly kSpreadViewer = "SpreadViewer";
     areas: TileArea[];
     resTable: DataTable;
     monitorHeight: number;
@@ -41,8 +42,8 @@ export class TradeComponent implements OnInit {
     tileArr: string[] = [];
     analyticArr: string[] = [];
     ProductMsg: any[];
-    svconfigs: SpreadViewConfig[];
-    svconfig: SpreadViewConfig;
+    svconfigs: string[];
+    svconfig: string;
     bshow: boolean = false;
     bcreate: boolean = false;
     bModify: boolean = false;
@@ -67,7 +68,24 @@ export class TradeComponent implements OnInit {
         private configBll: ConfigurationBLL) {
     }
 
+    updateApp(params) {
+        let idx = this.svconfigs.indexOf(params.oldName);
+        if (idx < 0) {
+            this.analyticArr.push(params.newName);
+            this.svconfigs.push(params.newName);
+            let tile = new Tile();
+            tile.title = params.newName;
+            tile.iconName = "object-align-bottom";
+            this.analyticArea.addTile(tile);
+        } else {
+            this.analyticArr[idx] = params.newName;
+            this.svconfigs[idx] = params.newName;
+            this.analyticArea.getTileAt(idx).title = params.newName;
+        }
+    }
+
     ngOnInit() {
+        this.appService.onUpdateApp(this.updateApp, this);
         this.contextMenu = new Menu();
         this.config = new WorkspaceConfig();
         this.config.curstep = 1;
@@ -110,20 +128,20 @@ export class TradeComponent implements OnInit {
         });
 
         this.svMenu = new Menu();
-        this.svMenu.addItem("修改", () => {
-            console.log(this.svconfig);
-            this.onModifySpreadViewer();
-        });
+        // this.svMenu.addItem("修改", () => {
+        //     console.log(this.svconfig);
+        //     this.onModifySpreadViewer();
+        // });
         this.svMenu.addItem("删除", () => {
             if (!confirm("确定删除？")) {
                 return;
             } else {
                 let len = this.svconfigs.length;
                 for (let i = 0; i < len; ++i) {
-                    if (this.svconfigs[i].name === this.svClickItem.title) {
+                    if (this.svconfigs[i] === this.svClickItem.title) {
                         // this.svconfigs.splice(i, 1);
-                        this.configBll.removeSVConfigItem(this.svconfig);
-                        console.log(this.svconfigs);
+                        this.configBll.removeSVConfigItem(this.svClickItem.title);
+                        this.analyticArr.splice(i, 1);
                         this.analyticArea.removeTile(this.svClickItem.title);
                         break;
                     }
@@ -184,29 +202,27 @@ export class TradeComponent implements OnInit {
         this.analyticArea = new TileArea();
         this.analyticArea.title = "分析";
         this.analyticArea.onCreate = () => {
-            this.svconfig = new SpreadViewConfig();
-            this.bSpread = true;
+            // this.svconfig = new SpreadViewConfig();
+            // this.bSpread = true;
+            this.appService.startApp("Untitled", TradeComponent.kSpreadViewer, {
+                port: parseInt(this.frame_port),
+                host: this.frame_host,
+                lang: this.setting.language
+            });
         };
+
         this.analyticArea.onClick = (event: MouseEvent, item: Tile) => {
             this.svClickItem = item;
-            let len = this.svconfigs.length;
-            for (let i = 0; i < len; ++i) {
-                if (this.svconfigs[i].name === item.title) {
-                    this.svconfig = this.svconfigs[i];
-                    break;
-                }
-            }
+
             if (event.button === 0) {
-                if (!this.appService.startApp(this.svconfig.name, this.svconfig.apptype, {
+                if (!this.appService.startApp(item.title, TradeComponent.kSpreadViewer, {
                     port: parseInt(this.frame_port),
                     host: this.frame_host,
-                    lang: this.setting.language,
-                    details: this.svconfig,
+                    lang: this.setting.language
                 })) {
                     alert("Error `Start ${name} app error!`");
                 }
             } else if (event.button === 2) {
-                console.log(this.svconfig, "item:", item);
                 this.svMenu.popup();
             }
         };
@@ -347,11 +363,12 @@ export class TradeComponent implements OnInit {
         });
 
         this.svconfigs = this.configBll.getSVConfigs();
+        console.info(this.svconfigs);
         let svLen = this.svconfigs.length;
         for (let i = 0; i < svLen; ++i) {
             let tile = new Tile();
-            tile.title = this.svconfigs[i].name;
-            this.analyticArr.push(this.svconfigs[i].name);
+            tile.title = this.svconfigs[i];
+            this.analyticArr.push(this.svconfigs[i]);
             tile.iconName = "object-align-bottom";
             this.analyticArea.addTile(tile);
         }
@@ -472,18 +489,18 @@ export class TradeComponent implements OnInit {
     }
     onCloseSVConfig() {
         console.log(this.svconfig, this.svconfigs);
-        if (!this.svconfig.code1 || !this.svconfig.code2 || !this.svconfig.name) {
-            alert("必要参数缺失！");
-            return;
-        }
-        let rtn = this.analyticArr.indexOf(this.svconfig.name);
+        // if (!this.svconfig.code1 || !this.svconfig.code2 || !this.svconfig) {
+        //     alert("必要参数缺失！");
+        //     return;
+        // }
+        let rtn = this.analyticArr.indexOf(this.svconfig);
         if (rtn !== -1 && !this.bNameRead) {
             alert("已存在同名价差分析");
             return;
         }
         if (!this.bNameRead) {
             let tile = new Tile();
-            tile.title = this.svconfig.name;
+            tile.title = this.svconfig;
             tile.iconName = "object-align-bottom";
             this.analyticArea.addTile(tile);
         }

@@ -1322,14 +1322,14 @@ export class SpreadViewer {
 
             if (!this._msgs[this._innerCode1][this._curIdx] || !this._msgs[this._innerCode2][this._curIdx]) {
                 console.warn(`curIdx: ${this._curIdx} don't have data of both.`);
-                if (!this._msgs[this._innerCode1][this._curIdx]) {
-                    this._msgs[this._innerCode1][this._curIdx] = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]];
-                }
+                // if (!this._msgs[this._innerCode1][this._curIdx]) {
+                //     this._msgs[this._innerCode1][this._curIdx] = this._msgs[this._innerCode1][this._lastIdx[this._innerCode1]];
+                // }
 
-                if (!this._msgs[this._innerCode2][this._curIdx]) {
-                    this._msgs[this._innerCode2][this._curIdx] = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]];
-                }
-                // return;
+                // if (!this._msgs[this._innerCode2][this._curIdx]) {
+                //     this._msgs[this._innerCode2][this._curIdx] = this._msgs[this._innerCode2][this._lastIdx[this._innerCode2]];
+                // }
+                return;
             }
 
             // console.info(this._curIdx);
@@ -1548,14 +1548,35 @@ export class SpreadViewer {
         // let itime = Math.floor(timestamp / 1000);
         let ihour = Math.floor(seconds / 10000);
         let iminute = Math.floor(seconds % 10000 / 100);
-        if (ihour * 60 + iminute <= this._durations[0].end.hour * 60 + this._durations[0].end.minute) {
-            return (ihour - this._durations[0].start.hour) * 60 * 60 + (iminute - this._durations[0].start.minute) * 60 +
+        let num = ihour * 60 + iminute;
+
+        if (num < this._durations[0].end.hour * 60 + this._durations[0].end.minute) {
+            return (num - this._durations[0].start.hour * 60 - this._durations[0].start.minute) * 60 +
                 + seconds % 10000 % 100;
-        } else if (this._durations.length === 2) {
-            if (ihour * 60 + iminute >= this._durations[1].start.hour * 60 + this._durations[1].start.minute) {
-                return (ihour - this._durations[1].start.hour) * 60 * 60 + (iminute - this._durations[1].start.minute) * 60 +
+        } else if (this._durations.length >= 2) {
+            if (num < this._durations[1].start.hour * 60 + this._durations[1].start.minute)
+                return -1;
+
+            if (num >= this._durations[1].start.hour * 60 + this._durations[1].start.minute
+                && num < this._durations[1].end.hour * 60 + this._durations[1].end.minute) {
+                return (num - this._durations[1].start.hour * 60 - this._durations[1].start.minute) * 60 +
                     + seconds % 10000 % 100 + (this._durations[0].end.hour - this._durations[0].start.hour) * 60 * 60
                     + (this._durations[0].end.minute - this._durations[0].start.minute) * 60;
+            } else if (this._durations.length === 3) {
+                if (num < this._durations[2].start.hour * 60 + this._durations[2].start.minute)
+                    return -1;
+
+                if (num >= this._durations[2].start.hour * 60 + this._durations[2].start.minute
+                    && num < this._durations[2].end.hour * 60 + this._durations[2].end.minute) {
+                    return (num - this._durations[2].start.hour * 60 - this._durations[2].start.minute) * 60 +
+                        + seconds % 10000 % 100
+                        + (this._durations[1].end.hour - this._durations[1].start.hour) * 60 * 60
+                        + (this._durations[1].end.minute - this._durations[1].start.minute) * 60
+                        + (this._durations[0].end.hour - this._durations[0].start.hour) * 60 * 60
+                        + (this._durations[0].end.minute - this._durations[0].start.minute) * 60;
+                }
+            } else {
+                return -1;
             }
         }
 
@@ -1607,6 +1628,8 @@ export class SpreadViewer {
                 this._msgs[this._innerCode1][idx].askPrice1 = this._msgs[this._innerCode1][idx - 1].askPrice1;
                 this._msgs[this._innerCode1][idx].bidPrice1 = this._msgs[this._innerCode1][idx - 1].bidPrice1;
             }
+
+            this._curIdx = idx;
         } else if (this._lastIdx[this._innerCode1] === -1 && this._lastIdx[this._innerCode2] === -1) { // first quote data
             this._firstIdx = idx;
         } else { // only one is -1
@@ -2239,11 +2262,11 @@ export class TileArea extends Control {
         tileCount = null;
     }
 
-    getTileAt(idx: number) {
+    getTileAt(idx: number): Tile {
         return this.dataSource.items[idx];
     }
 
-    getTile(name: string) {
+    getTile(name: string): Tile {
         let tileCount = this.dataSource.items.length;
 
         for (let i = 0; i < tileCount; ++i) {

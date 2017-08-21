@@ -1,0 +1,61 @@
+/*
+* spreadview.css
+*/
+
+.charts {
+    flex: auto;
+    display: flex;
+    flex-flow: column;
+    background: #1A2237;
+}
+
+.condition {    
+    position: relative;
+    flex: none;
+    left: 10%;
+    width: 90%;
+}
+
+.condition input {
+    padding: 0 5px;
+}
+
+.u-row {
+    margin-top: 5px;
+    display: flex;
+    flex-flow: row;
+    align-items: center
+}
+
+select {
+    padding: 0;
+}
+
+.u-col {
+    display: flex;
+    flex-flow: column;
+}
+
+.condition .item {
+    width: 200px;
+}
+
+.condition .code {
+    width: 100%;
+}
+
+.condition .params {
+    flex: auto;
+    width: 30px;
+}
+
+.condition .operator {
+    height: auto;
+    line-height: auto;
+    padding: 0 10px;
+    margin: 0 10px;
+}
+
+.chart {
+    flex: auto;
+}
