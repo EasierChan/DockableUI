@@ -292,6 +292,7 @@ export class AppComponent implements OnInit, OnDestroy {
     interval: any;
     groupMDWorker: Worker;
     groupUKeys: number[];
+    quoteHeart: any = null;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService, private ref: ChangeDetectorRef) {
@@ -329,6 +330,15 @@ export class AppComponent implements OnInit, OnDestroy {
                     console.info(`quote ans=>${msg}`);
                     if (afterLogin)
                         afterLogin.call(this);
+
+                    if (this.quoteHeart !== null) {
+                        clearInterval(this.quoteHeart);
+                        this.quoteHeart = null;
+                    }
+
+                    this.quoteHeart = setInterval(() => {
+                        this.quote.send(17, 0, {});
+                    }, 60000);
                 }
             }, {
                 appid: 17,
