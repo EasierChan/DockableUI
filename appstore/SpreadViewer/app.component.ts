@@ -408,6 +408,7 @@ export class AppComponent implements OnInit, OnDestroy {
             this.spreadviewer = null;
             this.ref.detectChanges();
             this.quote.send(17, 101, { topic: 3112, kwlist: [] });
+            this.groupUKeys = [];
         }
 
         if (this.codes[0].length < 1 || this.codes[1].length < 1) {
