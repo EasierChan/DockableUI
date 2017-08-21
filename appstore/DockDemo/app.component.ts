@@ -1546,8 +1546,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                         let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
                         let getStrategyid = AppComponent.self.statarbTable.rows[hideIdx].cells[6].Text;
                         if (parseInt(getUkey) === dataArr[idx].code && parseInt(getStrategyid) === dataArr[idx].strategyid) {
-                            // AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
-                            AppComponent.self.statarbTable.rows.splice(hideIdx, 1);
+                            AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
+                            // AppComponent.self.statarbTable.rows.splice(hideIdx, 1);
                             if (dataArr[idx].amount > 0) {
                                 AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[idx].amount / 10000).toFixed(3).toString();
                             } else if (dataArr[idx].amount < 0) {
@@ -1594,17 +1594,15 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.statarbTable.rows[idx].cells[2].Text = dataArr[0].pricerate / 100;
         AppComponent.self.statarbTable.rows[idx].cells[3].Text = dataArr[0].position;
         AppComponent.self.statarbTable.rows[idx].cells[4].Text = dataArr[0].quantity;
-        let getamount = AppComponent.self.statarbTable.rows[idx].cells[5].Text;
-        if (getamount !== dataArr[0].amount / 10000) {
-            AppComponent.self.statarbTable.rows[idx].cells[5].Text = dataArr[0].amount / 10000;
-            if (dataArr[0].amount > 0) {
-                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - parseFloat(getamount) + dataArr[0].amount / 10000).toFixed(3).toString();
-            } else if (dataArr[0].amount < 0) {
-                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + parseFloat(getamount) - dataArr[0].amount / 10000).toFixed(3).toString();
-            }
+        AppComponent.self.statarbTable.rows[idx].cells[5].Text = dataArr[0].amount / 10000;
+        AppComponent.self.statarbTable.rows[idx].cells[5].Text = dataArr[0].amount / 10000;
+        if (dataArr[0].amount > 0) {
+            AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) + dataArr[0].amount / 10000).toFixed(3).toString();
+        } else if (dataArr[0].amount < 0) {
+            AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toFixed(3).toString();
         }
         AppComponent.self.statarbTable.rows[idx].cells[7].Text = dataArr[0].diffQty;
-
+        AppComponent.self.statarbTable.rows[idx].hidden = false;
     }
 
     showComorderstatusAndErrorInfo(data: any) {
