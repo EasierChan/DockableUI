@@ -5,69 +5,71 @@
 
 import { IPCManager } from "../ipcManager";
 import { Path } from "../../common/base/paths";
-const fs = require("fs");
-const path = require("path");
+import * as fs from "fs";
+import * as path from "path";
 
 class SecuMaster {
     private static secuCodeObj = new Object();
     private static secuUkeyObj = new Object();
     private static pinyinObj = new Object();
+    private static windObj = new Object();
 
+    /**
+     * updated by cl, 2017/08/19
+     * clean code and 
+     */
     static init() {
-        // TODO load secuinfo, future info
-        let data1 = new Date();
-        let str = path.join(path.dirname(process.execPath), "secumain.csv");
-        if (!fs.existsSync(str)) {
-            str = path.join(__dirname, "../../../../secumain.csv");
+        let fpath = path.join(path.dirname(process.execPath), "secumain.csv");
+        if (!fs.existsSync(fpath)) {
+            fpath = path.join(__dirname, "../../../../secumain.csv");
         }
 
-        let content: String = new String();
         try {
-            content = fs.readFileSync(path.join(str), { encoding: "utf-8" });
-        }
-        catch (e) {
+            let content = fs.readFileSync(path.join(fpath), { encoding: "utf-8" });
+
+            content.split("\n").forEach((linestr) => {
+                let arr = linestr.split(",");
+                let arrLen = arr.length;
+
+                if (arrLen === 5) {
+                    SecuMaster.pinyinObj[arr[2] + ","] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: parseInt(arr[0]) };
+                    if (arr[4].length > 0)
+                        SecuMaster.windObj[arr[4]] = SecuMaster.pinyinObj[arr[2] + ","];
+                } else if (arrLen === 6) {
+                    SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: parseInt(arr[0]) };
+                    if (arr[5].length > 0)
+                        SecuMaster.windObj[arr[5]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
+                }
+            });
+
+            content = null;
+        } catch (e) {
             console.info(e);
-            // alert("can not open secumain.csv");
         }
-        let lines = content.split("\n");
-        lines.forEach(function (linestr) {
-            let arr = linestr.split(",");
-            let arrLen = arr.length;
-            if (arrLen === 4) {
-                SecuMaster.pinyinObj[arr[2] + ","] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
-            } else if (arrLen === 5) {
-                SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
-            }
-        });
-        let data2 = new Date();
-        // console.log("******************", data2.getTime() - data1.getTime());
+
         let portStr = path.join(path.dirname(process.execPath), "port.csv");
         if (!fs.existsSync(portStr)) {
             portStr = path.join(__dirname, "../../../../port.csv");
         }
 
-        let portContent: String = new String();
         try {
-            portContent = fs.readFileSync(path.join(portStr), { encoding: "utf-8" });
-        }
-        catch (e) {
+            let portContent = fs.readFileSync(path.join(portStr), { encoding: "utf-8" });
+            portContent.split("\n").forEach(function (linestr) {
+                let arr = linestr.split(",");
+                let arrLen = arr.length;
+                if (arrLen === 4) {
+                    SecuMaster.secuCodeObj[arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: parseInt(arr[0]) };
+                    SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: parseInt(arr[0]) };
+                } else if (arrLen === 5) {
+                    SecuMaster.secuCodeObj[arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: parseInt(arr[0]) };
+                    SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: parseInt(arr[0]) };
+                }
+            });
+
+            portContent = null;
+        } catch (e) {
             console.info(e);
-            // alert("can not open secumain.csv");
         }
-        let portlines = portContent.split("\n");
-        portlines.forEach(function (linestr) {
-            let arr = linestr.split(",");
-            let arrLen = arr.length;
-            if (arrLen === 4) {
-                SecuMaster.secuCodeObj[arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
-                SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: arr[0] };
-            } else if (arrLen === 5) {
-                SecuMaster.secuCodeObj[arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
-                SecuMaster.secuUkeyObj[arr[1]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: arr[0] };
-            }
-        });
-        let data3 = new Date();
-        // console.log("******************", data3.getTime() - data2.getTime());
     }
 
     static getSecuinfoByCode(code: string[]) {
@@ -144,12 +146,27 @@ class SecuMaster {
             let bCode = code.startsWith(data);
             if (bPinyin || bCode) {
                 tip += 1;
-                rtnArr.push({ code: SecuMaster.pinyinObj[o].InnerCode, symbolCode: SecuMaster.pinyinObj[o].SecuCode, SecuAbbr: SecuMaster.pinyinObj[o].SecuAbbr, ukey: SecuMaster.pinyinObj[o].ukey });
+                rtnArr.push({ code: SecuMaster.pinyinObj[o].InnerCode, symbolCode: SecuMaster.pinyinObj[o].SecuCode, SecuAbbr: SecuMaster.pinyinObj[o].SecuAbbr, ukey: parseInt(SecuMaster.pinyinObj[o].ukey) });
                 if (tip === 10)
                     return rtnArr;
             }
         }
         return rtnArr;
+    }
+
+    /**
+     * add by cl, date 2017/08/19
+     */
+    static getSecuinfoByWindCodes(codes: string[]) {
+        let resArr = [];
+        codes.forEach(code => {
+            if (SecuMaster.windObj.hasOwnProperty) {
+                SecuMaster.windObj[code].windCode = code;
+                resArr.push(SecuMaster.windObj[code]);
+            }
+        });
+
+        return resArr;
     }
 }
 
@@ -166,6 +183,9 @@ IPCManager.register("dal://itrade/secumaster/getsecuinfo", (e, param) => {
             break;
         case 3: //
             e.returnValue = SecuMaster.getCodeList(param.data);
+            break;
+        case 4:
+            e.returnValue = SecuMaster.getSecuinfoByWindCodes(param.data);
             break;
         default:
             console.error(`unknown type=>${param.type}`);

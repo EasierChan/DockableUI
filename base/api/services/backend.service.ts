@@ -153,6 +153,10 @@ export class SecuMasterService {
     getCodeList(data: string) {
         return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 3, data: data });
     }
+
+    getSecuinfoByWindCodes(codes: string[]): any[] {
+        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 4, data: codes });
+    }
 }
 
 @Injectable()
@@ -204,7 +208,7 @@ export class File {
         return obj;
     }
 
-    public static readLineByLine(fpath: string, cb: (linestr) => void) {
+    public static readLineByLine(fpath: string, cb: (linestr) => void, finish: () => void) {
         const rl = readline.createInterface({
             input: fs.createReadStream(fpath)
         });
@@ -212,6 +216,18 @@ export class File {
         rl.on("line", line => {
             cb(line);
         });
+
+        rl.on("close", () => {
+            finish();
+        });
+    }
+
+    public static readFileSync(fpath: string) {
+        if (fs.existsSync(fpath)) {
+            return fs.readFileSync(fpath);
+        }
+
+        return null;
     }
 
     public static writeSync(fpath: string, content: string | Object) {

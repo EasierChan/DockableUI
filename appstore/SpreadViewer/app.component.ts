@@ -11,7 +11,7 @@ import {
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
+import { AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox, File } from "../../base/api/services/backend.service";
 import * as echarts from "echarts";
 
 @Component({
@@ -289,6 +289,9 @@ export class AppComponent implements OnInit, OnDestroy {
     codes: string[];
     lines: any[];
     name: string;
+    interval: any;
+    groupMDWorker: Worker;
+    groupUKeys: number[];
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService, private ref: ChangeDetectorRef) {
@@ -349,6 +352,7 @@ export class AppComponent implements OnInit, OnDestroy {
             this.name = "";
         }
 
+        this.groupUKeys = [];
         this.loginTGW(null);
         this.registerListeners();
     }
@@ -356,20 +360,44 @@ export class AppComponent implements OnInit, OnDestroy {
     registerListeners() {
         let self = this;
 
+        this.groupMDWorker = new Worker("groupMDWorker.js");
+        this.groupMDWorker.onmessage = (ev: MessageEvent) => {
+            switch (ev.data.type) {
+                case "group-md":
+                    console.info(ev.data.value);
+                    self.spreadviewer.addMDData(ev.data.value);
+                    break;
+                default:
+                    break;
+            }
+        };
+
         this.quote.addSlot({
             appid: 17,
             packid: 110,
             callback: (msg) => {
-                self.spreadviewer.addMDData(msg.content);
+                if (self.spreadviewer) {
+                    if (this.groupUKeys.includes(msg.content.ukey)) {
+                        this.groupMDWorker.postMessage({ type: "add-md", value: msg.content });
+                    } else {
+                        self.spreadviewer.addMDData(msg.content);
+                    }
+                }
             }
         });
     }
 
     calcSpread() {
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+
         if (this.spreadviewer) {
             this.spreadviewer.dispose();
             this.spreadviewer = null;
             this.ref.detectChanges();
+            this.quote.send(17, 101, { topic: 3112, kwlist: [] });
         }
 
         if (this.codes[0].length < 1 || this.codes[1].length < 1) {
@@ -377,24 +405,116 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
 
-        let res: Object = this.secuinfo.getSecuinfoByCode(this.codes[0], this.codes[1]);
+        if (this.codes[0].endsWith(".csv") || this.codes[1].endsWith(".csv")) {
+            let nickCodes = [this.codes[0], this.codes[1]];
+            let ukeys = [0, 0];
+            let res;
 
-        if (Object.getOwnPropertyNames(res).length < this.codes.length) {
-            alert("未找到对应代码!");
-            return;
-        }
-
-        this.lines.forEach(line => {
-            for (let i = 0; i < this.lines.length; ++i) {
-                line.coeffs[i] = parseFloat(line.coeffs[i]);
-                line.levels[i] = parseFloat(line.levels[i]);
-                line.offsets[i] = parseFloat(line.offsets[i]);
+            let group1 = {};
+            let ok1 = true;
+            if (this.codes[0].endsWith(".csv")) {
+                ok1 = false;
+                File.readLineByLine(this.codes[0], (linestr: string) => {
+                    linestr.trim();
+                    let fields = linestr.split(",");
+                    group1[fields[0]] = { count: fields[1] };
+                }, () => {
+                    nickCodes[0] = "组合1";
+                    ukeys[0] = 1;
+                    this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group1)).forEach(item => {
+                        group1[item.windCode].ukey = item.ukey;
+                        this.groupUKeys.push(item.ukey);
+                    });
+                    ok1 = true;
+                });
+            } else {
+                res = this.secuinfo.getSecuinfoByCode(this.codes[0]);
+                ukeys[0] = parseInt(res[this.codes[0]].ukey);
             }
-        });
 
-        this.spreadviewer = new USpreadViewer(this.codes, [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)], this.lines);
-        this.quote.send(17, 101, { topic: 3112, kwlist: this.spreadviewer.ukeys });
-        res = null;
+            let group2 = {};
+            let ok2 = true;
+            if (this.codes[1].endsWith(".csv")) {
+                ok2 = false;
+                File.readLineByLine(this.codes[1], (linestr: string) => {
+                    linestr.trim();
+                    let fields = linestr.split(",");
+                    group2[fields[0]] = { count: fields[1] };
+                }, () => {
+                    nickCodes[1] = "组合2";
+                    ukeys[1] = 2;
+                    this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group2)).forEach(item => {
+                        group2[item.windCode].ukey = item.ukey;
+                        this.groupUKeys.push(item.ukey);
+                    });
+                    ok2 = true;
+                });
+            } else {
+                res = this.secuinfo.getSecuinfoByCode(this.codes[1]);
+                ukeys[1] = parseInt(res[this.codes[1]].ukey);
+            }
+
+            this.interval = setInterval(() => {
+                if (ok1 && ok2) {
+                    clearInterval(this.interval);
+                    this.interval = null;
+
+                    let groups = [];
+                    if (nickCodes[0] !== this.codes[0]) {
+                        groups.push({ ukey: 1, items: group1 });
+                    }
+
+                    if (nickCodes[1] !== this.codes[1]) {
+                        groups.push({ ukey: 2, items: group2 });
+                    }
+
+                    this.groupMDWorker.postMessage({ type: "init", groups: groups });
+
+                    this.lines.forEach(line => {
+                        for (let i = 0; i < this.lines.length; ++i) {
+                            line.coeffs[i] = parseFloat(line.coeffs[i]);
+                            line.levels[i] = parseFloat(line.levels[i]);
+                            line.offsets[i] = parseFloat(line.offsets[i]);
+                        }
+                    });
+
+                    this.spreadviewer = new USpreadViewer(nickCodes, ukeys, this.lines);
+
+                    let kwlist = [];
+                    kwlist = kwlist.concat(this.groupUKeys);
+                    ukeys.forEach(ukey => {
+                        if (ukey > 2)
+                            kwlist.push(ukey);
+                    });
+
+                    console.info(kwlist);
+                    this.quote.send(17, 101, { topic: 3112, kwlist: kwlist });
+
+                    kwlist = null;
+                    groups = null;
+                }
+            }, 100);
+        } else {
+            let res: Object = this.secuinfo.getSecuinfoByCode(this.codes[0], this.codes[1]);
+
+            if (Object.getOwnPropertyNames(res).length < this.codes.length) {
+                alert("未找到对应代码!");
+                return;
+            }
+
+            this.lines.forEach(line => {
+                for (let i = 0; i < this.lines.length; ++i) {
+                    line.coeffs[i] = parseFloat(line.coeffs[i]);
+                    line.levels[i] = parseFloat(line.levels[i]);
+                    line.offsets[i] = parseFloat(line.offsets[i]);
+                }
+            });
+
+            let ukeys = [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)];
+            this.spreadviewer = new USpreadViewer(this.codes, ukeys, this.lines);
+            this.quote.send(17, 101, { topic: 3112, kwlist: ukeys });
+            res = null;
+        }
     }
 
     save() {
@@ -404,8 +524,23 @@ export class AppComponent implements OnInit, OnDestroy {
         this.state.saveAs(this, this.name, { codes: this.codes, lines: this.lines, name: this.name });
     }
 
+    openFile(idx: number) {
+        MessageBox.openFileDialog("选择文件", (filenames: string[]) => {
+            this.codes[idx] = filenames[0];
+        }, [{ name: "股票组合(csv文件)", extensions: ["csv"] }]);
+    }
+
     ngOnDestroy() {
         this.spreadviewer.dispose();
+
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+
+        if (this.groupMDWorker) {
+            this.groupMDWorker.terminate();
+        }
     }
 }
 
@@ -436,8 +571,8 @@ export class USpreadViewer {
         this.codes = codes;
         this.lines = lines;
 
-        let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
-        `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[0].coeffs[1]}x${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[1].coeffs[1]}x${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
         this.codes[0], this.codes[1]];
         this.spreadChart.chartOption = this.createLinesChart(names);
         this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
@@ -474,8 +609,12 @@ export class USpreadViewer {
                 return;
 
             console.warn(this.clockPoint.time, this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]);
-            this.dataOption.series[0].data[this.clockPoint.index] = (this.msgs[this.ukeys[1]][this.clockPoint.time].askPrice1 - this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1).toFixed(2); // tslint:disable-line
-            this.dataOption.series[1].data[this.clockPoint.index] = (this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1 - this.msgs[this.ukeys[0]][this.clockPoint.time].askPrice1).toFixed(2); // tslint:disable-line
+            this.dataOption.series[0].data[this.clockPoint.index] =
+                (this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] -
+                    this.lines[0].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[0].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
+            this.dataOption.series[1].data[this.clockPoint.index] =
+                (this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] -
+                    this.lines[1].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
             this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1; // tslint:disable-line
             this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1; // tslint:disable-line
             this.spreadChart.instance.setOption(this.dataOption);
