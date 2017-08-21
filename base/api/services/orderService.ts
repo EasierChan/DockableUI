@@ -517,7 +517,7 @@ class StrategyParser extends ItradeParser {
                     tableArr.push(fpPosUpdate);
             }
         }
-        // console.log(tableArr);
+        console.log(tableArr);
         return [{ account: account, data: tableArr, count: count }];
     }
 
@@ -564,6 +564,7 @@ class StrategyParser extends ItradeParser {
             statArbOrder.diffQty = this.readInt64LE(buffer, offset); offset += 8;
             res.push(statArbOrder);
         }
+        logger.info(`msginfo::statarborder,info:`, res);
         return [{ subtype: subtype, content: res }];
     }
     readComConOrder(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {

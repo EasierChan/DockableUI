@@ -2734,7 +2734,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showBasketBackInfo(data: any) {
-        // console.log(data);
+        console.log(data);
         let getaccount: number = parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text);
         let account = data[0].account;
         if (account !== getaccount)
