@@ -136,8 +136,8 @@ PrePrice,上笔价
 LastPrice,昨收
 BidSize,买入量
 BidPrice,买入价
-AskPrice,卖出量
-AskSize,卖出价
+AskPrice,卖出价
+AskSize,卖出量
 AvgBuyPrice,买入均价
 AvgSellPrice,卖出均价
 PreValue,上笔成本

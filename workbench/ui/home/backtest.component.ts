@@ -293,7 +293,7 @@ export class BacktestComponent implements OnInit {
             });
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.loopbackConfig.result.hqport);
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.loopbackConfig.result.hqurl;
-            // this.curTemplate.body.data.SSFeed.detailview.PriceServer.filename = "./lib/libFeedChronos.so";
+            this.curTemplate.body.data.SSFeed.detailview.PriceServer.filename = "./lib/libFeedChronos.so";
         }
         this.curTemplate.body.data["SSNet"]["TSServer.port"] = this.config.port;
         this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;
@@ -351,7 +351,7 @@ export class BacktestComponent implements OnInit {
             alert("Wrong Config check items: <br>1. config name.<br>2. one strategy instance at least.<br>3. account must not be empty.");
             return;
         }
-        this.configBll.updateConfig(this.config);
+        // this.configBll.updateConfig(this.config);
         this.config.strategies = { name: this.config.name };
         if (!this.bshow) {
             this.tgw.send(107, 2000, {
