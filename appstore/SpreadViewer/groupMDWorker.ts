@@ -30,7 +30,7 @@
                     groups.push(newItem);
                 });
 
-                console.info(groups);
+                // console.info(groups);
                 break;
             case "add-md":
                 for (let i = 0; i < groups.length; ++i) {
@@ -57,7 +57,6 @@
                                 askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1;
                             });
 
-                            console.error(groups[i].lastestIdx, groups[i].min);
                             if (groups[i].lastestIdx === 0) {
                                 groups[i].lastestIdx = groups[i].max;
 
@@ -77,6 +76,12 @@
                                     }
                                 });
                             }
+                        } else {
+                            groups[i].ukeys.forEach(ukey => {
+                                if (!groups[i].lastIdx.hasOwnProperty(ukey)) {
+                                    console.warn(`lost ${ukey} Market data.`);
+                                }
+                            });
                         }
                         break;
                     }

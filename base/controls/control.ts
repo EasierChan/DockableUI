@@ -1732,7 +1732,7 @@ export class DataTable extends Control {
             if (!col.sortable || !col.onCompare)
                 return;
 
-            if (!col.Name.includes(this.dataSource.sortKey)) {
+            if (col.Name !== this.dataSource.sortKey) {
                 this.dataSource.sortKey = col.Name;
                 this.dataSource.bAsc = true;
                 this.dataSource.rows = this.rows = this.rows.sort((a, b) => {

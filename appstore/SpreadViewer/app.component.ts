@@ -374,8 +374,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.groupMDWorker.onmessage = (ev: MessageEvent) => {
             switch (ev.data.type) {
                 case "group-md":
-                    console.info(ev.data.value);
-                    self.spreadviewer.addMDData(ev.data.value);
+                    if (this.spreadviewer)
+                        self.spreadviewer.addMDData(ev.data.value);
                     break;
                 default:
                     break;
@@ -619,40 +619,44 @@ export class USpreadViewer {
                 return;
 
             console.warn(this.clockPoint.time, this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]);
-            this.dataOption.series[0].data[this.clockPoint.index] =
-                (this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] -
-                    this.lines[0].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[0].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
-            this.dataOption.series[1].data[this.clockPoint.index] =
-                (this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] -
-                    this.lines[1].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
-            this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1; // tslint:disable-line
-            this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1; // tslint:disable-line
-            this.spreadChart.instance.setOption(this.dataOption);
-            this.clockPoint.time = this.increaseTime(this.clockPoint);
-            ++this.clockPoint.index;
+            try {
+                this.dataOption.series[0].data[this.clockPoint.index] =
+                    (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[0].offsets[0] - this.lines[0].offsets[1] -
+                        this.lines[0].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[0].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
+                this.dataOption.series[1].data[this.clockPoint.index] =
+                    (this.lines[1].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[1].offsets[0] - this.lines[1].offsets[1] -
+                        this.lines[1].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
+                this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1; // tslint:disable-line
+                this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1; // tslint:disable-line
+                this.spreadChart.instance.setOption(this.dataOption);
+                this.clockPoint.time = this.increaseTime(this.clockPoint);
+                ++this.clockPoint.index;
 
-            if (this.clockPoint.time > this.maxPoint.time - this.padding) {
-                let count = this.initPadding;
+                if (this.clockPoint.time > this.maxPoint.time - this.padding) {
+                    let count = this.initPadding;
 
-                while (--count) {
-                    this.maxPoint.time = this.increaseTime(this.maxPoint);
-                    this.dataOption.series.forEach(serie => {
-                        serie.data.push(null);
-                    });
+                    while (--count) {
+                        this.maxPoint.time = this.increaseTime(this.maxPoint);
+                        this.dataOption.series.forEach(serie => {
+                            serie.data.push(null);
+                        });
 
-                    let date;
-                    let ymdhms;
+                        let date;
+                        let ymdhms;
 
-                    this.dataOption.xAxis.forEach(axis => {
-                        date = new Date(this.maxPoint.time * 1000);
-                        ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
-                            + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
-                        axis.data.push(ymdhms);
-                    });
+                        this.dataOption.xAxis.forEach(axis => {
+                            date = new Date(this.maxPoint.time * 1000);
+                            ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                                + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+                            axis.data.push(ymdhms);
+                        });
 
-                    ymdhms = null;
-                    date = null;
+                        ymdhms = null;
+                        date = null;
+                    }
                 }
+            } catch (e) {
+                console.error(`Exception: ${e};`, this.msgs, this.clockPoint.time, this.lastIdx);
             }
         }, this.interval.value);
     }
