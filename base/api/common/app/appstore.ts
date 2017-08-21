@@ -127,7 +127,7 @@ export class AppStore {
             });
         });
 
-        IPCManager.register("appstore://updateApp", (event, params: any) => {
+        IPCManager.register("appstore://updateApp", (event: any) => {
             switch (event.type) {
                 case "rename":
                     sender.send("appstore://updateApp", { type: event.type, oldName: event.oldName, newName: event.newName });

@@ -403,7 +403,7 @@ export class WorkspaceConfig {
     apptype: string = "DockDemo";
     private _port: string;
     host: string;
-    activeChannel = "default";
+    activeChannel: string = "default";
     state: number = 0;
     loopbackConfig?: any = {};
     chinese_name: string = "";
