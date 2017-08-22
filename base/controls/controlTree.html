@@ -8,7 +8,7 @@
                 <div class="page-body">
                     <usercontrol *ngIf="page.content" [class]="page.content.styleObj.type" [children]="page.content.children" [dataSource]="page.content.dataSource"
                         [style.min-width.px]="page.content.styleObj?.minWidth" [style.min-height.px]="page.content.styleObj?.minHeight"
-                         [style.height.px]="page.content.styleObj?.height">
+                        [style.height.px]="page.content.styleObj?.height">
                     </usercontrol>
                 </div>
             </div>
@@ -30,23 +30,23 @@
         <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj"
             [dataSource]="child.dataSource">
         </dock-control>
-        <div #navSN class="dock-sn" [style.display]="styleObj?.showNavbar?'flex':'none'">
+        <div *ngIf="children&&children.length==1" #navSN class="dock-nav" [style.display]="styleObj?.showNavbar?'flex':'none'">
             <div #north class="dock-north">
                 <div class="bar-block"></div>
                 <div class="bar-arrow"></div>
             </div>
+            <div class="u-row">
+                <div #west class="dock-west">
+                    <div class="bar-block"></div>
+                    <div class="bar-arrow"></div>
+                </div>
+                <div #center class="dock-center"></div>
+                <div #east class="dock-east">
+                    <div class="bar-block"></div>
+                    <div class="bar-arrow"></div>
+                </div>
+            </div>
             <div #south class="dock-south">
-                <div class="bar-block"></div>
-                <div class="bar-arrow"></div>
-            </div>
-        </div>
-        <div #navEW class="dock-ew" [style.display]="styleObj?.showNavbar?'flex':'none'">
-            <div #west class="dock-west">
-                <div class="bar-block"></div>
-                <div class="bar-arrow"></div>
-            </div>
-            <div #center class="dock-center"></div>
-            <div #east class="dock-east">
                 <div class="bar-block"></div>
                 <div class="bar-arrow"></div>
             </div>

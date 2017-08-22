@@ -62,8 +62,8 @@ export class DockContainerComponent implements AfterViewInit {
     static startPoint: any = [0, 0];
     static lastEnterEle = null;
     @ViewChild("container") container: ElementRef;
-    @ViewChild("navSN") navSN: ElementRef;
-    @ViewChild("navEW") navEW: ElementRef;
+    // @ViewChild("navSN") navSN: ElementRef;
+    // @ViewChild("navEW") navEW: ElementRef;
     @ViewChild("north") north: ElementRef;
     @ViewChild("south") south: ElementRef;
     @ViewChild("west") west: ElementRef;
@@ -74,7 +74,7 @@ export class DockContainerComponent implements AfterViewInit {
     constructor(private renderer: Renderer, private ele: ElementRef, private detector: ChangeDetectorRef) { }
 
     ngAfterViewInit() {
-        if (this.isDockContainer()) {
+        if (this.isDockContainer() && this.children.length === 1) {
             this.styleObj.getWidth = () => {
                 return this.ele.nativeElement.clientWidth > 0 ? this.ele.nativeElement.clientWidth : this.container.nativeElement.clientWidth;
             };
@@ -85,26 +85,20 @@ export class DockContainerComponent implements AfterViewInit {
                 event.preventDefault();
                 event.stopPropagation();
                 DockContainerComponent.hasActive = true;
-
-                // if (event.srcElement.className !== "dock-cover" && event.srcElement.className !== "panel-title")
-                //     return;
-
-                // console.info(event);
                 this.detector.detach();
                 this.dataSource.showNavbar();
-                // this.renderer.setElementStyle(this.navSN.nativeElement, "display", "flex");
-                this.renderer.setElementStyle(this.navSN.nativeElement, "top", "0");
-                this.renderer.setElementStyle(this.navSN.nativeElement, "left", `${(this.container.nativeElement.clientWidth - 30) / 2}`);
-                this.renderer.setElementStyle(this.navEW.nativeElement, "top", `${(this.container.nativeElement.clientHeight - 30) / 2}`);
-                this.renderer.setElementStyle(this.navEW.nativeElement, "left", "0");
+                // this.renderer.setElementStyle(this.navSN.nativeElement, "top", "0");
+                // this.renderer.setElementStyle(this.navSN.nativeElement, "left", `${(this.container.nativeElement.clientWidth - 30) / 2}`);
+                // this.renderer.setElementStyle(this.navEW.nativeElement, "top", `${(this.container.nativeElement.clientHeight - 30) / 2}`);
+                // this.renderer.setElementStyle(this.navEW.nativeElement, "left", "0");
 
-                if (this.styleObj.canHoldpage) {
-                    this.dataSource.showCover();
-                    this.renderer.setElementStyle(this.navCover.nativeElement, "top", "0");
-                    this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
-                    this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
-                    this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
-                }
+                // if (this.styleObj.canHoldpage) {
+                //     this.dataSource.showCover();
+                //     this.renderer.setElementStyle(this.navCover.nativeElement, "top", "0");
+                //     this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
+                //     this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
+                //     this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
+                // }
 
                 this.detector.detectChanges();
 
@@ -115,11 +109,30 @@ export class DockContainerComponent implements AfterViewInit {
 
                 DockContainerComponent.lastEnterEle = this;
             });
-            this.renderer.listen(this.container.nativeElement, "dragover", (event: DragEvent) => {
+            // this.renderer.listen(this.container.nativeElement, "dragover", (event: DragEvent) => {
+            //     event.preventDefault();
+            //     event.stopPropagation();
+            // });
+            // this.renderer.listen(this.container.nativeElement, "drop", (event: DragEvent) => {
+            //     event.preventDefault();
+            //     this.locateTo(event, 0);
+            //     this.detector.detectChanges();
+            //     this.detector.reattach();
+
+            //     DockContainerComponent.lastEnterEle = null;
+            // });
+            this.renderer.listen(this.center.nativeElement, "dragenter", (event: DragEvent) => {
+                this.dataSource.showCover();
+                this.renderer.setElementStyle(this.navCover.nativeElement, "top", "0");
+                this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
+                this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
+                this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
+            });
+            this.renderer.listen(this.center.nativeElement, "dragover", (event: DragEvent) => {
                 event.preventDefault();
                 event.stopPropagation();
             });
-            this.renderer.listen(this.container.nativeElement, "drop", (event: DragEvent) => {
+            this.renderer.listen(this.center.nativeElement, "drop", (event: DragEvent) => {
                 event.preventDefault();
                 this.locateTo(event, 0);
                 this.detector.detectChanges();
@@ -127,13 +140,6 @@ export class DockContainerComponent implements AfterViewInit {
 
                 DockContainerComponent.lastEnterEle = null;
             });
-            // this.renderer.listen(this.center.nativeElement, "dragover", (event: DragEvent) => {
-            //     this.dataSource.showCover();
-            //     this.renderer.setElementStyle(this.navCover.nativeElement, "top", "0");
-            //     this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
-            //     this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
-            //     this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
-            // });
             this.renderer.listen(this.north.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
                 event.stopPropagation();
