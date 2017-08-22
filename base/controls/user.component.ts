@@ -307,9 +307,13 @@ export class DockContainerComponent implements AfterViewInit {
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "height",
                     `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}`);
+                DockContainerComponent.splitter.dataSource.prev().reallocSize(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth,
+                    DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap);
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild, "height",
                     `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap}`);
+                DockContainerComponent.splitter.dataSource.next().reallocSize(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth,
+                    DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap);
             }
 
 

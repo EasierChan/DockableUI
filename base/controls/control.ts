@@ -85,14 +85,14 @@ export class DockContainer extends Control {
                         this.subpanel = null;
 
                         this.addChild(dockNorth);
-                        this.addChild(new Splitter("h"));
+                        this.addChild(new Splitter("h", this));
                         this.addChild(dockSouth);
                     } else {
                         dockNorth = new DockContainer(this.parent, "h", null, northHeight);
                         dockNorth.addChild(panelNorth);
 
                         this.styleObj.height = this.height - 5 - northHeight;
-                        this.parent.children.splice(this.parent.children.indexOf(this), 0, dockNorth, new Splitter("h"));
+                        this.parent.children.splice(this.parent.children.indexOf(this), 0, dockNorth, new Splitter("h", this.parent));
                     }
                     break;
                 case 2: // east
@@ -107,7 +107,7 @@ export class DockContainer extends Control {
                         dockEast.addChild(panelEast);
 
                         this.styleObj.width = this.width - 5 - eastWidth;
-                        this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, new Splitter("v"), dockEast);
+                        this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, new Splitter("v", this.parent), dockEast);
                     } else {
                         dockEast = new DockContainer(this, "v", eastWidth, null);
                         dockEast.addChild(panelEast);
@@ -120,7 +120,7 @@ export class DockContainer extends Control {
                         this.subpanel = null;
 
                         this.addChild(dockWest);
-                        this.addChild(new Splitter("v"));
+                        this.addChild(new Splitter("v", this));
                         this.addChild(dockEast);
                     }
                     break;
@@ -143,14 +143,14 @@ export class DockContainer extends Control {
                         this.subpanel = null;
 
                         this.addChild(dockNorth);
-                        this.addChild(new Splitter("h"));
+                        this.addChild(new Splitter("h", this));
                         this.addChild(dockSouth);
                     } else {
                         dockSouth = new DockContainer(this.parent, "h", null, southHeight);
                         dockSouth.addChild(panelSouth);
 
                         this.styleObj.height = this.height - 5 - southHeight;
-                        this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, new Splitter("h"), dockSouth);
+                        this.parent.children.splice(this.parent.children.indexOf(this) + 1, 0, new Splitter("h", this.parent), dockSouth);
                     }
                     break;
                 case 4: // west
@@ -164,7 +164,7 @@ export class DockContainer extends Control {
                         dockWest = new DockContainer(this.parent, "v", westWidth, null);
                         dockWest.addChild(panelWest);
                         this.styleObj.width = this.width - 5 - westWidth;
-                        this.parent.children.splice(this.parent.children.indexOf(this), 0, dockWest, new Splitter("v"));
+                        this.parent.children.splice(this.parent.children.indexOf(this), 0, dockWest, new Splitter("v", this.parent));
                         console.info(this.id, this.parent);
                     } else {
                         dockWest = new DockContainer(this, "v", westWidth, null);
@@ -178,7 +178,7 @@ export class DockContainer extends Control {
                         this.subpanel = null;
 
                         this.addChild(dockWest);
-                        this.addChild(new Splitter("v"));
+                        this.addChild(new Splitter("v", this));
                         this.addChild(dockEast);
                     }
                     break;
@@ -186,7 +186,6 @@ export class DockContainer extends Control {
                     break;
             }
 
-            console.info(pageid, pageid, location);
             if (TabPanel.fromPanelId(panelId).getAllTabs().length === 0) {
                 DockContainer.clearUnvalidUp(this, panelId);
             }
@@ -352,7 +351,6 @@ export class DockContainer extends Control {
                                     siblings[index - 2].reallocSize(siblings[index - 2].width, siblings[index - 2].styleObj.height);
                                 }
 
-                                // siblings[index - 2].reallocSize(siblings[index - 2].styleObj.width, siblings[index - 2].styleObj.height);
                                 siblings.splice(index - 1, 2);
                             } else {
                                 if (siblings[index + 2].styleObj.type === "v") {
@@ -410,7 +408,6 @@ export class DockContainer extends Control {
                                     children[index - 2].reallocSize(children[index - 2].width, children[index - 2].styleObj.height);
                                 }
 
-                                // children[index - 2].reallocSize(children[index - 2].styleObj.width, children[index - 2].styleObj.height);
                                 children.splice(index - 1, 2);
                             } else {
                                 if (children[index + 2].styleObj.type === "v") {
@@ -422,11 +419,19 @@ export class DockContainer extends Control {
                                         children[index].height + children[index + 1].height + children[index + 2].height;
                                     children[index + 2].reallocSize(children[index + 2].width, children[index + 2].styleObj.height);
                                 }
-                                // children[index + 2].reallocSize(children[index + 2].styleObj.width, children[index + 2].styleObj.height);
+
                                 children.splice(index, 2);
                             }
-                        } else {
-                            children.splice(index, 1);
+                        }
+
+                        if (children.length === 1) { // container only have a container
+                            leaf.subpanel = null;
+
+                            children[0].children.forEach(child => {
+                                leaf.addChild(child);
+                            });
+
+                            leaf.children.splice(0, 1);
                         }
 
                         return true;
@@ -503,11 +508,13 @@ export class DockContainer extends Control {
 }
 
 export class Splitter extends Control {
-    parent: any;
     static readonly size = 5;
-    constructor(type) {
+    constructor(type, parent) {
         super();
         this.className = type === "v" ? "splitter-bar vertical" : "splitter-bar horizental";
+        this.dataSource = { parent: parent };
+        this.dataSource.prev = () => { return this.prev(); };
+        this.dataSource.next = () => { return this.next(); };
     }
 
     get height() {
@@ -516,6 +523,26 @@ export class Splitter extends Control {
 
     get width() {
         return Splitter.size;
+    }
+
+    get parent() {
+        return this.dataSource.parent;
+    }
+
+    set parent(value: any) {
+        this.dataSource.parent = value;
+    }
+
+    get index() {
+        return this.parent.children.indexOf(this);
+    }
+
+    prev(): DockContainer {
+        return this.parent.children[this.index - 1];
+    }
+
+    next(): DockContainer {
+        return this.parent.children[this.index + 1];
     }
 }
 
