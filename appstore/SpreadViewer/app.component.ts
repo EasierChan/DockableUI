@@ -289,6 +289,8 @@ export class AppComponent implements OnInit, OnDestroy {
     codes: string[];
     lines: any[];
     name: string;
+    yAxisOption: any;
+    rangeType: number;
     interval: any;
     groupMDWorker: Worker;
     groupUKeys: number[];
@@ -362,6 +364,8 @@ export class AppComponent implements OnInit, OnDestroy {
             this.name = "";
         }
 
+        this.yAxisOption = { min: null, max: null, step: null };
+        this.rangeType = 1;
         this.groupUKeys = [];
         this.loginTGW(null);
         this.registerListeners();
@@ -541,6 +545,33 @@ export class AppComponent implements OnInit, OnDestroy {
         }, [{ name: "股票组合(csv文件)", extensions: ["csv"] }]);
     }
 
+    changeChartOption(type: number) {
+        if (this.spreadviewer) {
+            switch (type) {
+                case 0:
+                    this.spreadviewer.changeYAxisInterval(parseFloat(this.yAxisOption.min), parseFloat(this.yAxisOption.max), parseFloat(this.yAxisOption.step));
+                    break;
+                case 1:
+                    this.spreadviewer.changeYAxisInterval(null, null, null);
+                    break;
+                case 2:
+                    this.spreadviewer.changeXAxisRange(1); // ten min seconds;
+                    this.rangeType = 1;
+                    break;
+                case 3:
+                    this.spreadviewer.changeXAxisRange(2); // an hour seconds;
+                    this.rangeType = 2;
+                    break;
+                case 4:
+                    this.spreadviewer.changeXAxisRange(3); // one day
+                    this.rangeType = 3;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
     ngOnDestroy() {
         this.spreadviewer.dispose();
 
@@ -556,7 +587,7 @@ export class AppComponent implements OnInit, OnDestroy {
 }
 
 export class USpreadViewer {
-    initPadding = 300; // unit is seconds
+    initPadding; // unit is seconds
     padding = 60;
     ukeys: number[];
     codes: string[];
@@ -564,6 +595,7 @@ export class USpreadViewer {
     durations: number[][];
     spreadChart: any = {};
     timeLineChart: any = {};
+    hoursOfDay: number;
     worker: Worker;
     msgs: any;
     lastIdx: any;
@@ -577,16 +609,22 @@ export class USpreadViewer {
 
     static readonly YUAN_PER_UNIT = 10000;
 
-    constructor(codes: string[], ukeys: number[], lines: any[]) {
+    constructor(codes: string[], ukeys: number[], lines: any[], initPadding = 300) {
         this.ukeys = ukeys;
         this.codes = codes;
         this.lines = lines;
+        this.initPadding = initPadding;
 
         let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[0].coeffs[1]}x${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
         `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[1].coeffs[1]}x${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
         this.codes[0], this.codes[1]];
         this.spreadChart.chartOption = this.createLinesChart(names);
         this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
+        this.hoursOfDay = 0;
+        this.durations.forEach(duration => {
+            this.hoursOfDay += (duration[2] + 24 - duration[0]) % 24 + (duration[3] - duration[1]) / 60;
+        });
+
         this.lastIdx = {};
         this.lastIdx[this.ukeys[0]] = -1;
         this.lastIdx[this.ukeys[1]] = -1;
@@ -610,7 +648,7 @@ export class USpreadViewer {
 
         // this.worker = new Worker("spreadWorker.js");
         // this.worker.postMessage({ type: "init", legs: this.ukeys, offset: [offset] });
-        this.dataOption = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis };
+        this.dataOption = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis, dataZoom: this.spreadChart.chartOption.dataZoom };
 
         this.interval.inst = setInterval(() => {
             if (this.lastIdx[this.ukeys[0]] === -1 || this.lastIdx[this.ukeys[1]] === -1)
@@ -787,11 +825,12 @@ export class USpreadViewer {
             legend: {
                 data: lines,
                 textStyle: { color: "#F3F3F5" },
-                top: 30,
+                top: 0,
                 left: "10%"
             },
             grid: [{
                 show: true,
+                top: 30,
                 left: "10%",
                 right: "8%",
                 height: "40%"
@@ -806,13 +845,15 @@ export class USpreadViewer {
                 data: [],
                 axisLabel: {
                     textStyle: { color: "#F3F3F5" }
-                }
+                },
+                interval: 60
             }, {
                 gridIndex: 1,
                 data: [],
                 axisLabel: {
                     textStyle: { color: "#F3F3F5" }
-                }
+                },
+                interval: 60
             }],
             yAxis: [{
                 axisLabel: {
@@ -869,10 +910,10 @@ export class USpreadViewer {
                 connectNulls: true,
                 data: []
             }],
-            dataZoom: [{
+            dataZoom: {
                 type: "inside",
                 xAxisIndex: [0, 1]
-            }]
+            }
         }));
     }
 
@@ -881,9 +922,9 @@ export class USpreadViewer {
         this.minPoint.duration = this.dataPoint.duration;
         this.maxPoint.time = time;
         this.maxPoint.duration = this.dataPoint.duration;
-        let date = null;
+        let padding = 2 * this.initPadding;
+        let date: Date = null;
         let ymdhms;
-        let padding = this.initPadding;
 
         while (padding--) {
             date = new Date(this.minPoint.time * 1000);
@@ -891,10 +932,12 @@ export class USpreadViewer {
                 + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
             this.spreadChart.chartOption.xAxis[0].data.unshift(ymdhms);
             this.spreadChart.chartOption.xAxis[1].data.unshift(ymdhms);
+
+            if (date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                break;
+
             this.minPoint.time = this.decreaseTime(this.minPoint);
         }
-
-        padding = this.initPadding;
 
         while (padding--) {
             this.maxPoint.time = this.increaseTime(this.maxPoint);
@@ -903,6 +946,9 @@ export class USpreadViewer {
                 + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
             this.spreadChart.chartOption.xAxis[0].data.push(ymdhms);
             this.spreadChart.chartOption.xAxis[1].data.push(ymdhms);
+
+            if (date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                break;
         }
 
         date = null;
@@ -915,6 +961,146 @@ export class USpreadViewer {
             (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true);
         else
             setTimeout(() => { (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true); }, 1000);
+    }
+
+    changeXAxisRange(type: number = 1) {
+        let padding = 0;
+        switch (type) {
+            case 1:
+                padding = 600;
+                break;
+            case 2:
+                padding = 3600;
+                break;
+            case 3:
+                padding = this.hoursOfDay * 3600;
+                break;
+            default:
+                break;
+        }
+
+        let date: Date = null;
+        let ymdhms;
+        this.dataOption.dataZoom.moveOnMouseMove = true;
+
+        if (this.maxPoint.time - this.minPoint.time >= padding) {
+            if (type === 3 || this.maxPoint.time - this.minPoint.time === padding) {
+                setTimeout(() => {
+                    this.spreadChart.instance.dispatchAction({
+                        type: "dataZoom",
+                        start: 0,
+                        end: 100
+                    });
+                }, 1000);
+            } else {
+                let leftPoint: AxisPoint = Object.assign({}, this.clockPoint);
+                while (padding--) {
+                    date = new Date(leftPoint.time * 1000);
+                    ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                        + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+
+                    if (type === 1 && date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                        break;
+
+                    if (type === 2 && date.getMinutes() === 0 && date.getSeconds() === 0)
+                        break;
+
+                    leftPoint.time = this.decreaseTime(leftPoint);
+                }
+
+                let startValue = ymdhms;
+                leftPoint = null;
+
+                let rightPoint: AxisPoint = Object.assign({}, this.clockPoint);
+                while (padding--) {
+                    rightPoint.time = this.increaseTime(rightPoint);
+                    date = new Date(rightPoint.time * 1000);
+                    ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                        + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+
+                    if (type === 1 && date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                        break;
+
+                    if (type === 2 && date.getMinutes() === 0 && date.getSeconds() === 0)
+                        break;
+                }
+
+                let endValue = ymdhms;
+                rightPoint = null;
+
+                console.error(startValue, endValue);
+                setTimeout(() => {
+                    this.spreadChart.instance.dispatchAction({
+                        type: "dataZoom",
+                        startValue: startValue,
+                        endValue: endValue
+                    });
+                }, 1000);
+            }
+
+            return;
+        }
+
+        while (padding--) {
+            date = new Date(this.minPoint.time * 1000);
+            ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+            this.dataOption.xAxis[0].data.unshift(ymdhms);
+            this.dataOption.xAxis[1].data.unshift(ymdhms);
+            this.dataOption.series.forEach(serie => {
+                serie.data.unshift(null);
+            });
+            ++this.clockPoint.index;
+
+            if (type === 1 && date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                break;
+
+            if (type === 2 && date.getMinutes() === 0 && date.getSeconds() === 0)
+                break;
+
+            if (type === 3 && date.getHours() === this.durations[0][0] && date.getMinutes() === this.durations[0][1] && date.getSeconds() === 0)
+                break;
+
+            this.minPoint.time = this.decreaseTime(this.minPoint);
+        }
+
+        while (padding--) {
+            this.maxPoint.time = this.increaseTime(this.maxPoint);
+            date = new Date(this.maxPoint.time * 1000);
+            ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+            this.dataOption.xAxis[0].data.push(ymdhms);
+            this.dataOption.xAxis[1].data.push(ymdhms);
+            this.dataOption.series.forEach(serie => {
+                serie.data.push(null);
+            });
+
+            if (type === 1 && date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                break;
+
+            if (type === 2 && date.getMinutes() === 0 && date.getSeconds() === 0)
+                break;
+
+            if (type === 3 && date.getHours() === this.durations[this.durations.length - 1][2] && date.getMinutes() === this.durations[this.durations.length - 1][3])
+                break;
+        }
+
+        date = null;
+        ymdhms = null;
+
+        setTimeout(() => {
+            this.spreadChart.instance.dispatchAction({
+                type: "dataZoom",
+                start: 0,
+                end: 100
+            });
+        }, 1000);
+    }
+
+    changeYAxisInterval(min: number, max: number, interval: number) {
+        if (this.spreadChart.instance) {
+            this.spreadChart.instance.setOption({ yAxis: [{ min: min, max: max, interval: interval }] });
+        }
     }
 
     reset(codes: string[], ukeys: number[], lines: any[]) {

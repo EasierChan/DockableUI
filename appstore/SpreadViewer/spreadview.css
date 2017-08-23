@@ -41,6 +41,11 @@ select {
     padding: 0;
 }
 
+.span {
+    margin-right: 5px;
+    text-align: right;
+}
+
 .u-col {
     display: flex;
     flex-flow: column;
@@ -48,6 +53,7 @@ select {
 
 .condition .item {
     width: 200px;
+    margin: 0 10px;
 }
 
 .condition .code {
@@ -59,15 +65,20 @@ select {
     width: 30px;
 }
 
-.condition .operator {
+.operator {
     height: auto;
     line-height: auto;
     padding: 0 10px;
-    margin: 0 10px;
 }
 
 .condition .u-file {
     padding: 0 10px;
+}
+
+.addon-btns {
+    position: relative;
+    left: 10%;
+    width: 90%;
 }
 
 .chart {
