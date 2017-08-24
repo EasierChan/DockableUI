@@ -65,6 +65,11 @@ select {
     width: 30px;
 }
 
+.condition .yparams {
+    width: 100px;
+    margin: 0 10px;
+}
+
 .operator {
     height: auto;
     line-height: auto;

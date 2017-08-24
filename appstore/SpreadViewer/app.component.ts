@@ -296,6 +296,7 @@ export class AppComponent implements OnInit, OnDestroy {
     groupUKeys: number[];
     quoteHeart: any = null;
     showSetting: boolean;
+    durations: number[][];
 
     @ViewChild("chart") chart: ElementRef;
 
@@ -361,10 +362,12 @@ export class AppComponent implements OnInit, OnDestroy {
             this.codes = this.option.codes || ["", ""];
             this.lines = this.option.lines || [{ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }];
             this.name = this.option.name || "";
+            this.durations = this.option.durations || [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
         } else {
             this.codes = ["", ""];
             this.lines = [{ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }];
             this.name = "";
+            this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
         }
 
         this.yAxisOption = { min: null, max: null, step: null };
@@ -497,7 +500,7 @@ export class AppComponent implements OnInit, OnDestroy {
                         }
                     });
 
-                    this.spreadviewer = new USpreadViewer(nickCodes, ukeys, this.lines);
+                    this.spreadviewer = new USpreadViewer(nickCodes, ukeys, this.lines, this.durations);
 
                     let kwlist = [];
                     kwlist = kwlist.concat(this.groupUKeys);
@@ -530,7 +533,7 @@ export class AppComponent implements OnInit, OnDestroy {
             });
 
             let ukeys = [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)];
-            this.spreadviewer = new USpreadViewer(this.codes, ukeys, this.lines);
+            this.spreadviewer = new USpreadViewer(this.codes, ukeys, this.lines, this.durations);
             this.quote.send(17, 101, { topic: 3112, kwlist: ukeys });
             res = null;
         }
@@ -540,7 +543,7 @@ export class AppComponent implements OnInit, OnDestroy {
         if (this.name.length < 1)
             return;
 
-        this.state.saveAs(this, this.name, { codes: this.codes, lines: this.lines, name: this.name });
+        this.state.saveAs(this, this.name, { codes: this.codes, lines: this.lines, name: this.name, durations: this.durations });
     }
 
     openFile(idx: number) {
@@ -619,7 +622,7 @@ export class USpreadViewer {
 
     static readonly YUAN_PER_UNIT = 10000;
 
-    constructor(codes: string[], ukeys: number[], lines: any[], initPadding = 300) {
+    constructor(codes: string[], ukeys: number[], lines: any[], durations, initPadding = 300) {
         this.ukeys = ukeys;
         this.codes = codes;
         this.lines = lines;
@@ -629,7 +632,7 @@ export class USpreadViewer {
         `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[1].coeffs[1]}x${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
         this.codes[0], this.codes[1]];
         this.spreadChart.chartOption = this.createLinesChart(names);
-        this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
+        this.durations = durations;
         this.hoursOfDay = 0;
         this.durations.forEach(duration => {
             this.hoursOfDay += (duration[2] + 24 - duration[0]) % 24 + (duration[3] - duration[1]) / 60;
@@ -668,7 +671,7 @@ export class USpreadViewer {
                 if (this.clockPoint.time > Math.min(this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]))
                     break;
 
-                console.warn(this.clockPoint.time, this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]);
+                console.warn(this.clockPoint.time, this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]], this.maxPoint.time);
                 try {
                     this.dataOption.series[0].data[this.clockPoint.index] =
                         (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[0].offsets[0] - this.lines[0].offsets[1] -
