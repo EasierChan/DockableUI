@@ -4,8 +4,7 @@ import { Component, OnInit } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
 import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, Product, StrategyInstance } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
-import { ChangeDetectorRef } from "@angular/core";
-import { TradeService, QtpService } from "../../bll/services";
+import { TradeService } from "../../bll/services";
 
 declare var window: any;
 let ip20strs = [];
@@ -52,8 +51,7 @@ export class SimulationComponent implements OnInit {
     frame_port: any;
     strategymap: any;
 
-
-    constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef,
+    constructor(private appService: AppStoreService, private tgw: TradeService,
         private configBll: ConfigurationBLL) {
     }
 
@@ -106,7 +104,6 @@ export class SimulationComponent implements OnInit {
 
         this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
         this.frame_port = this.setting.endpoints[0].quote_addr.split(":")[1];
-        let self = this;
         this.bDetails = false;
         this.simulationArea = new TileArea();
         this.simulationArea.title = "仿真";
@@ -216,19 +213,18 @@ export class SimulationComponent implements OnInit {
             }
         });
 
-        this.qtp.addSlot({
-            msgtype: 8012,
+        this.tgw.addSlot({
+            appid: 200,
+            packid: 8012,
             callback: (msg) => {
                 console.info("receive 8012:", msg);
-                let addr = msg.url;
-                let port = msg.port;
                 for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-                    this.config.channels.gateway[i].port = parseInt(port);
-                    this.config.channels.gateway[i].addr = addr;
+                    this.config.channels.gateway[i].port = parseInt(msg.content.port);
+                    this.config.channels.gateway[i].addr = msg.content.url;
                 }
-                console.log(this.config);
             }
         });
+
         this.tgw.addSlot({
             appid: 260,
             packid: 216,

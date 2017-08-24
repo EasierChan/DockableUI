@@ -5,7 +5,7 @@ import { TileArea, Tile } from "../../../base/controls/control";
 import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, StrategyInstance } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { ChangeDetectorRef } from "@angular/core";
-import { TradeService, QtpService } from "../../bll/services";
+import { TradeService } from "../../bll/services";
 
 declare var window: any;
 let ip20strs = [];
@@ -52,7 +52,7 @@ export class BacktestComponent implements OnInit {
     strategymap: any;
     selectStrategyName: any;
 
-    constructor(private appService: AppStoreService, private qtp: QtpService, private tgw: TradeService, private ref: ChangeDetectorRef,
+    constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef,
         private configBll: ConfigurationBLL) {
     }
 
@@ -104,7 +104,6 @@ export class BacktestComponent implements OnInit {
             this.bChangeShow = true;
         });
 
-        let self = this;
         this.bDetails = false;
         this.backTestArea = new TileArea();
         this.backTestArea.title = "回测";
@@ -187,6 +186,7 @@ export class BacktestComponent implements OnInit {
                 this.strategyContainer.addItem(this.config);
             }
         });
+
         this.tgw.addSlot({
             appid: 107,
             packid: 2009,
@@ -213,23 +213,24 @@ export class BacktestComponent implements OnInit {
             }
         });
 
-        this.qtp.addSlot({
-            msgtype: 8012,
+        this.tgw.addSlot({
+            appid: 200,
+            packid: 8012,
             callback: (msg) => {
                 console.info("receive 8012:", msg);
-                this.config.loopbackConfig.result = msg;
+                this.config.loopbackConfig.result = msg.content;
                 let item = this.sendLoopConfigs.find((item, idx) => {
-                    return item.reqsn === msg.reqsn;
+                    return item.reqsn === msg.content.reqsn;
                 });
-                this.config.channels.feedhandler.addr = msg.hqurl;
-                this.config.channels.feedhandler.port = msg.hqport;
+                this.config.channels.feedhandler.addr = msg.content.hqurl;
+                this.config.channels.feedhandler.port = msg.content.hqport;
                 for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-                    this.config.channels.gateway[i].addr = msg.url;
-                    this.config.channels.gateway[i].port = msg.port;
+                    this.config.channels.gateway[i].addr = msg.content.url;
+                    this.config.channels.gateway[i].port = msg.content.port;
                 }
 
                 if (item) {
-                    item.id = msg.nId;
+                    item.id = msg.content.nId;
                     item.name = this.config.chinese_name;
                     let today = new Date();
                     item.date = today.getFullYear() + ("0" + (today.getMonth() + 1)).slice(-2) +
@@ -238,13 +239,12 @@ export class BacktestComponent implements OnInit {
 
                     this.configBll.addLoopbackItems(this.lookbackItem);
                 } else {
-                    console.error(`unvalid message. ${msg}`);
+                    console.error(`unvalid message. ${msg.content}`);
                 }
             }
         });
 
         this.configs = this.configBll.getAllConfigs();
-        console.log(this.configs);
         this.configs.forEach(config => {
             if (config.activeChannel === "lookback") {
                 this.config = config;
@@ -260,7 +260,6 @@ export class BacktestComponent implements OnInit {
                     tile.iconName = "retweet";
                     this.backTestArea.addTile(tile);
                     this.tileArr.push(config.name);
-                    // self.isInit = true;
                     config.stateChanged = () => {
                         tile.backgroundColor = config.state ? "#1d9661" : null;
                     };
@@ -388,15 +387,14 @@ export class BacktestComponent implements OnInit {
             unit: parseInt(this.config.loopbackConfig.option.unit)
         };
         this.sendLoopConfigs.push(tmpobj);
-        console.log("send 8010:", tmpobj);
-        this.qtp.send(8010, tmpobj);
+
+        this.tgw.send(200, 8010, tmpobj);
     }
 
     hideChange() {
         this.bChangeShow = false;
     }
     next() {
-        console.log(this.config);
         if (this.config.curstep === 1) {
             if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
                 alert("please input correct format name");
@@ -420,7 +418,6 @@ export class BacktestComponent implements OnInit {
                 this.strategyName = "";
                 this.bcreate = true;
                 let newInstance: StrategyInstance = new StrategyInstance();
-                console.log(this.config);
                 newInstance.name = this.config.name;
                 newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
                 newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
@@ -433,7 +430,6 @@ export class BacktestComponent implements OnInit {
                 this.config.strategyInstances[0].accounts = "666600000011";
 
             }
-            console.log(this.config);
         }
         if (this.config.curstep === 2) {
             this.config.activeChannel = "lookback";
@@ -449,7 +445,6 @@ export class BacktestComponent implements OnInit {
         --this.config.curstep;
     }
     onSelectStrategy(value: string) {
-        console.log(this.config);
         this.bcreate = true;
         this.bSelStrategy = true;
         this.config.strategyCoreName = this.getStrategyNameByChinese(value);
@@ -518,7 +513,6 @@ export class BacktestComponent implements OnInit {
             let month = ("0" + (new Date().getMonth() + 1)).slice(-2);
             let day = ("0" + new Date().getDate()).slice(-2);
             let idate = year + "-" + month + "-" + day;
-            console.log("idate:", idate);
             this.config.loopbackConfig.option = {
                 timebegin: idate,
                 timeend: idate,

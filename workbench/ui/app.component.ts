@@ -12,7 +12,7 @@ import {
 } from "../../base/controls/control";
 
 import { AppStoreService, ChildProcess, Http } from "../../base/api/services/backend.service";
-import { TradeService, QuoteService, QtpService } from "../bll/services";
+import { TradeService, QuoteService } from "../bll/services";
 import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
@@ -29,7 +29,6 @@ import { ActionBar, Label } from "../../base/controls/control";
     providers: [
         TradeService,
         QuoteService,
-        QtpService,
         AppStoreService,
         SecuMasterService,
         ConfigurationBLL
@@ -47,7 +46,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
     constructor(private tradeEndPoint: TradeService,
         private quote: QuoteService,
-        private mock: QtpService,
         private appService: AppStoreService,
         private configBll: ConfigurationBLL) {
     }
@@ -283,9 +281,6 @@ export class AppComponent implements OnInit, OnDestroy {
         let [qhost, qport] = this.curEndpoint.quote_addr.split(":");
         this.quote.connect(qport, qhost);
         this.quote.send(17, 41, loginObj);
-
-        let [lhost, lport] = this.curEndpoint.loopback_addr.split(":");
-        this.mock.connect(lport, lhost);
     }
 
     ngOnDestroy() {

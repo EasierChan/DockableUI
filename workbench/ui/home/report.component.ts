@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { DataTable } from "../../../base/controls/control";
-import { QtpService } from "../../bll/services";
+import { TradeService } from "../../bll/services";
 import { ECharts } from "echarts";
 import { ConfigurationBLL } from "../../bll/strategy.server";
 
@@ -28,7 +28,7 @@ export class ReportComponent implements OnInit {
     Sel_arr = [];
     private configBll = new ConfigurationBLL();
     private allItem: any[];
-    constructor(private mock: QtpService) {
+    constructor(private mock: TradeService) {
     }
 
     ngOnInit() {
@@ -38,7 +38,6 @@ export class ReportComponent implements OnInit {
         this.resTable.columns[4].maxWidth = 50;
         this.Sel_arr = [];
         this.allItem = this.configBll.getLoopbackItems();
-        console.log(this.allItem);
         let len = this.allItem.length;
         for (let i = 0; i < len; ++i) {
             let row = this.resTable.newRow();
@@ -54,7 +53,7 @@ export class ReportComponent implements OnInit {
                 this._unit = this.allItem[i].unit;
                 this._period = this.allItem[i].period;
                 this.chartOption = this.generateOption();
-                this.mock.send(8014, { nId: this.resTable.rows[i].cells[0].Data.nId });
+                this.mock.send(200, 8014, { nId: this.resTable.rows[i].cells[0].Data.nId });
                 this.page = 1;
                 this.bLoading = true;
             };
@@ -99,12 +98,12 @@ export class ReportComponent implements OnInit {
     registerListener() {
         this.mock.addSlot(
             {
-                msgtype: 8015,
+                appid: 200,
+                packid: 8015,
                 callback: msg => {
                     console.info(msg);
-                    this.setProfitOfItem(msg.nId, msg.Accpl);
-                },
-                context: this
+                    this.setProfitOfItem(msg.content.nId, msg.content.Accpl);
+                }
             }
         );
     }
