@@ -123,7 +123,7 @@ export class ISONPack2 extends Message {
             if (this.content instanceof Buffer) {
                 contentBuf = Buffer.alloc(this.content.length + 4, 0);
                 this.head.bitmap = 0x20;
-                contentBuf.writeUInt32LE(this.content.length, 0);
+                contentBuf.writeUInt32LE(contentBuf.length, 0);
                 this.content.copy(contentBuf, 4);
             } else {
                 let contentstr = JSON.stringify(this.content);

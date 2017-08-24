@@ -7,6 +7,7 @@ import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
 import { ISONPack2Header, ISONPack2 } from "../model/isonpack/isonpack.model";
+import { Header } from "../model/itrade/message.model";
 import { Injectable } from "@angular/core";
 
 const logger = console;
@@ -202,7 +203,7 @@ class ISONPackClient extends TcpClient {
         this._parsers.push(parser);
     }
 
-    sendMessage(appid: number, packid: number, body: Object): void {
+    sendMessage(appid: number, packid: number, body: any): void {
         let pack = new ISONPack2();
         pack.content = body;
         pack.head.appid = appid;
@@ -297,6 +298,25 @@ export class IP20Service {
         this._client.sendMessage(appid, packid, jsonstr);
     }
 
+    sendQtp(appid: number, packid, msg: { type: number, subtype: number, body: any }) {
+        let head = new Header();
+        head.type = msg.type;
+        head.subtype = msg.subtype;
+        head.msglen = 0;
+
+        if (msg.body === undefined || msg.body === null) {
+            this.send(appid, 1000, head.toBuffer());
+        } else if (msg.body instanceof Buffer) {
+            head.msglen = msg.body.length;
+            this.send(appid, 1000, Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen));
+        } else {
+            let buf = msg.body.toBuffer();
+            head.msglen = buf.length;
+            this.send(appid, 1000, Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
+        }
+
+        head = null;
+    }
     /**
      *
      */
