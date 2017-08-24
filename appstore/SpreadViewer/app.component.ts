@@ -774,10 +774,9 @@ export class USpreadViewer {
             this.lastIdx[mdItem.ukey] = mdItem.time;
             this.dataPoint.duration = curDuration;
             this.dataPoint.time = mdItem.time;
-            this.dataPoint.index = this.initPadding - 1;
             this.initOption(mdItem.time);
             this.clockPoint.duration = curDuration;
-            this.clockPoint.index = this.initPadding - 1;
+            this.clockPoint.index = this.dataPoint.index;
             this.clockPoint.time = mdItem.time;
         } else { // only one is -1
             if (this.lastIdx[mdItem.ukey] === -1) { // another leg's data come in.
@@ -955,6 +954,8 @@ export class USpreadViewer {
 
             this.minPoint.time = this.decreaseTime(this.minPoint);
         }
+
+        this.dataPoint.index = 2 * this.initPadding - padding;
 
         while (padding--) {
             this.maxPoint.time = this.increaseTime(this.maxPoint);
