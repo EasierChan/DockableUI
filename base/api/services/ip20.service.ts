@@ -293,7 +293,7 @@ export class IP20Service {
         this._client.connect(port, host);
     }
 
-    send(appid: number, packid, jsonstr: Object) {
+    send(appid: number, packid, jsonstr: any) {
         this._client.sendMessage(appid, packid, jsonstr);
     }
 

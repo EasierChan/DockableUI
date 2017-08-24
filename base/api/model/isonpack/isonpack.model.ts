@@ -61,7 +61,7 @@ export class ISONPack2Header extends Message {
 export class ISONPack2 extends Message {
     head: ISONPack2Header = new ISONPack2Header();
     contentLen: number;
-    content: Object;
+    content: Object | Buffer;
     topicHeader: any;
     /**
      * decode a buffer, and return the used bufferlen.
@@ -105,19 +105,32 @@ export class ISONPack2 extends Message {
                 logger.warn(`JSON.parse exception: ${e.message},${offset}, ${len}, ${cstrEndOffset}`);
                 this.content = buf.slice(offset, len).toString();
             }
-            offset += this.contentLen;
+            offset += this.contentLen - 4;
+        }
+
+        if (this.head.bitmap & 0x20) {
+            this.contentLen = buf.readUInt32LE(offset); offset += 4; // bin data len;
+            this.content = buf.slice(offset, offset + this.contentLen - 4);
+            offset += this.contentLen - 4;
         }
 
         return this.head.packlen;
     }
 
     toBuffer(): Buffer {
-        let headBuf = this.head.toBuffer();
         if (this.content) {
-            let contentstr = JSON.stringify(this.content);
-            let contentBuf = Buffer.alloc(contentstr.length + 1 + 4, 0);
-            Buffer.from(contentstr).copy(contentBuf, 4);
-            contentBuf.writeUInt32LE(contentBuf.length, 0);
+            let contentBuf = null;
+            if (this.content instanceof Buffer) {
+                contentBuf = Buffer.alloc(this.content.length + 4, 0);
+                this.head.bitmap = 0x20;
+                contentBuf.writeUInt32LE(this.content.length, 0);
+                this.content.copy(contentBuf, 4);
+            } else {
+                let contentstr = JSON.stringify(this.content);
+                contentBuf = Buffer.alloc(contentstr.length + 1 + 4, 0);
+                Buffer.from(contentstr).copy(contentBuf, 4);
+                contentBuf.writeUInt32LE(contentBuf.length, 0);
+            }
 
             this.head.packlen = ISONPack2Header.len + contentBuf.length;
             let tail = (this.head.packlen + 11) % 4;

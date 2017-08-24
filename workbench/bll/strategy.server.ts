@@ -4,6 +4,7 @@ import { Injectable } from "@angular/core";
 import { Header } from "../../base/api/model/itrade/message.model";
 import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy, ComStrategyCfg } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
+import { StrategyService } from "../../base/api/services/strategy.service";
 import { File, Environment, path } from "../../base/api/services/backend.service";
 
 @Injectable()
@@ -153,24 +154,66 @@ export class Product {
 
 export class StrategyBLL {
     static sessionId = 101;
-    private itrade: ItradeService = new ItradeService();
+    // private itrade: ItradeService = new ItradeService();
+    private itrade: StrategyService = new StrategyService(800);
     strategies: StrategyItem[] = [];
     connState: string;
     onConnect: Function;
     onStatusChanged: Function;
 
     constructor() {
-        this.itrade.sessionID = StrategyBLL.sessionId;
+        // this.itrade.sessionID = StrategyBLL.sessionId;
         StrategyBLL.sessionId += 1;
         this.connState = "INIT";
     }
 
-    get sessionid(): number {
-        return this.itrade.sessionID;
-    }
+    // get sessionid(): number {
+    //     return this.itrade.sessionID;
+    // }
 
     start(port: number, host: string): void {
-        this.itrade.addSlot(0, () => {
+        // this.itrade.addSlot(0, () => {
+        //     let offset = 0;
+        //     let body = Buffer.alloc(4 + 5 * Header.len);
+        //     body.writeUInt32LE(5, offset); offset += 4;
+        //     let header = new Header();
+        //     header.type = 2048;
+        //     header.subtype = 1;
+        //     header.msglen = 0;
+        //     offset += header.toBuffer().copy(body, offset);
+        //     header.type = 2001;
+        //     header.subtype = 0;
+        //     offset += header.toBuffer().copy(body, offset);
+        //     // header.type = 2032;
+        //     // header.subtype = 0;
+        //     // offset += header.toBuffer().copy(body, offset);
+        //     header.type = 2033;
+        //     header.subtype = 0;
+        //     offset += header.toBuffer().copy(body, offset);
+        //     header.type = 2011;
+        //     header.subtype = 0;
+        //     offset += header.toBuffer().copy(body, offset);
+        //     header.type = 2029;
+        //     header.subtype = 0;
+        //     offset += header.toBuffer().copy(body, offset);
+
+        //     this.itrade.send(2998, 0, body);
+        //     this.itrade.send(2010, 0, null);
+        //     header = null;
+        //     body = null;
+        //     offset = null;
+        //     this.connState = "CONNECTED";
+        //     this.onConnect();
+        // }, this);
+        // this.itrade.addSlot(2001, this.handleStartCommand, this);
+        // this.itrade.addSlot(2005, this.handlePauseCommand, this);
+        // this.itrade.addSlot(2003, this.handleStopCommand, this);
+        // this.itrade.addSlot(2050, this.handleWatchCommand, this);
+        // this.itrade.addSlot(2011, this.handleStrategyInfo, this);
+        // this.itrade.addSlot(2033, this.handleStrategyInfo, this);
+        // this.itrade.addSlot(2048, this.handleStrategyProfitInfo, this);
+        this.itrade.onConnected = () => {
+            console.warn("on connected");
             let offset = 0;
             let body = Buffer.alloc(4 + 5 * Header.len);
             body.writeUInt32LE(5, offset); offset += 4;
@@ -200,25 +243,16 @@ export class StrategyBLL {
             header = null;
             body = null;
             offset = null;
-            this.connState = "CONNECTED";
-            this.onConnect();
-        }, this);
-        this.itrade.addSlot(2001, this.handleStartCommand, this);
-        this.itrade.addSlot(2005, this.handlePauseCommand, this);
-        this.itrade.addSlot(2003, this.handleStopCommand, this);
-        this.itrade.addSlot(2050, this.handleWatchCommand, this);
-        this.itrade.addSlot(2011, this.handleStrategyInfo, this);
-        this.itrade.addSlot(2033, this.handleStrategyInfo, this);
-        this.itrade.addSlot(2048, this.handleStrategyProfitInfo, this);
-        this.itrade.connect(port, host);
+        };
+        this.itrade.connect(6114, "172.24.50.10");
     }
 
     stop() {
-        this.itrade.stop();
+        // this.itrade.stop();
     }
 
     addSlot(type: number, callback: Function, context?: any): void {
-        return this.itrade.addSlot(type, callback, context);
+        // return this.itrade.addSlot(type, callback, context);
     }
 
     handleStrategyInfo(msg: ComStrategyInfo, sessionid: number): void {
@@ -359,16 +393,16 @@ export class StrategyServerContainer {
         configs.forEach(config => {
             let bll = new StrategyBLL();
             this.items.push({ name: config.name, conn: bll });
-            bll.onConnect = () => {
-                config.state = 1;
-                config.stateChanged();
-            };
-            bll.addSlot(-1, () => {
-                config.state = 0;
-                config.stateChanged();
-                bll.connState = "INIT";
-                bll.strategies.length = 0;
-            });
+            // bll.onConnect = () => {
+            //     config.state = 1;
+            //     config.stateChanged();
+            // };
+            // bll.addSlot(-1, () => {
+            //     config.state = 0;
+            //     config.stateChanged();
+            //     bll.connState = "INIT";
+            //     bll.strategies.length = 0;
+            // });
             bll.start(config.port, config.host);
         });
     }
