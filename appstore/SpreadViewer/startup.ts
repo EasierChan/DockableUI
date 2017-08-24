@@ -32,7 +32,7 @@ export class StartUp implements IApplication {
         let self = this;
         if (!this._mainWindow || !this._mainWindow.win) {
             if (name === "Untitled") {
-                name = name + StartUp.untitleID;
+                name = [name, StartUp.untitleID].join("-");
                 ++StartUp.untitleID;
             }
 

@@ -5,7 +5,7 @@
  */
 "use strict";
 
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef } from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer
@@ -295,6 +295,9 @@ export class AppComponent implements OnInit, OnDestroy {
     groupMDWorker: Worker;
     groupUKeys: number[];
     quoteHeart: any = null;
+    showSetting: boolean;
+
+    @ViewChild("chart") chart: ElementRef;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService, private ref: ChangeDetectorRef) {
@@ -367,6 +370,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.yAxisOption = { min: null, max: null, step: null };
         this.rangeType = 1;
         this.groupUKeys = [];
+        this.showSetting = true;
         this.loginTGW(null);
         this.registerListeners();
     }
@@ -570,6 +574,12 @@ export class AppComponent implements OnInit, OnDestroy {
                     break;
             }
         }
+    }
+
+    toggleView() {
+        this.showSetting = !this.showSetting;
+        this.ref.detectChanges();
+        this.spreadviewer.spreadChart.instance.resize();
     }
 
     ngOnDestroy() {
@@ -913,6 +923,7 @@ export class USpreadViewer {
                 connectNulls: true,
                 data: []
             }],
+            color: ["#ee0202", "#02ee02", "#65A7EE", "#EED565"],
             dataZoom: {
                 type: "inside",
                 xAxisIndex: [0, 1]

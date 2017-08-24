@@ -1,5 +1,5 @@
 <div class="charts">
-    <div class="u-row condition">
+    <div class="u-row condition" *ngIf="showSetting">
         <div class="u-col item">
             <div class="u-row">
                 <input type="text" class="btn-default code" [(ngModel)]="codes[0]" tabindex="1">
@@ -43,15 +43,21 @@
             <button type="button" class="btn btn-primary operator" style="margin: 5px 0" (click)="changeChartOption(0)">修改</button>
             <button type="button" class="btn btn-primary operator" style="margin: 5px 0" (click)="changeChartOption(1)">自动</button>
         </div>
-        <label for="name"><span class="span" style="width: 50px;">名称：</span><input id="name" type="text" class="btn-default" [(ngModel)]="name"></label>
-        <button type="button" class="btn btn-primary operator" (click)="save()">保存</button>
+        <div class="u-col">
+            <label for="name">
+                <span class="span" style="width: 50px;">名称：</span>
+                <input id="name" type="text" class="btn-default" [(ngModel)]="name" style="width: 100px;">
+            </label>
+            <button type="button" class="btn btn-primary operator" (click)="save()" style="width: 150px; margin: 5px 10px;">保存</button>
+        </div>
     </div>
     <div *ngIf="spreadviewer" class="u-row addon-btns">
         <button type="button" class="btn-default operator" [class.active]="rangeType==1" (click)="changeChartOption(2)">10分</button>
         <button type="button" class="btn-default operator" [class.active]="rangeType==2" (click)="changeChartOption(3)">1时</button>
         <button type="button" class="btn-default operator" [class.active]="rangeType==3" (click)="changeChartOption(4)">1天</button>
+        <button type="button" class="btn-default operator" style="margin-right: 0; margin-left: auto;" (click)="toggleView()">切换设置</button>
     </div>
     <div *ngIf="spreadviewer" echarts [options]="spreadviewer.spreadChart.chartOption" (chartInit)="spreadviewer.onChartInit($event, 0)"
-        class="chart"></div>
+        class="chart" #chart></div>
     <!--<div echarts [options]="timeLineChart.instance" (chartInit)="onChartInit($event, 1)" class="chart"></div>-->
 </div>
