@@ -4,7 +4,7 @@
  */
 import {
     Component, Input, ElementRef, AfterViewInit, OnInit, HostBinding,
-    ViewChild, Renderer, HostListener, ChangeDetectorRef
+    ViewChild, Renderer, HostListener, ChangeDetectorRef, Output, EventEmitter
 } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import {
@@ -13,6 +13,7 @@ import {
 import {
     ScrollerBarTable
 } from "./data.component";
+import { SecuMasterService } from "../api/services/backend.service";
 
 @Component({
     moduleId: module.id,
@@ -448,5 +449,59 @@ export class TileAreaComponent {
 
     @HostBinding("style.flex-flow") get flow() {
         return "column";
+    }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "u-codes",
+    styleUrls: ["code.searcher.css"],
+    template: `
+        <input type="text" class="btn-default" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedValue" #searcher>
+        <ul *ngIf="resList&&resList.length > 0" class="dropdown">
+            <li *ngFor="let item of resList; let i = index" (click)="listClick(item)" [style.backgroundColor]="i === curIdx ? 'black': null">{{item.symbolCode}} {{item.SecuAbbr}}</li>
+        </ul>
+    `
+})
+export class CodeComponent {
+    selectedValue: string;
+    resList: any;
+    curIdx = 0;
+
+    @Output() onSelect: EventEmitter<any> = new EventEmitter<any>();
+
+    constructor(private secuinfo: SecuMasterService) {
+    }
+
+    @HostListener("keyup", ["$event"])
+    onKeyUp(event: KeyboardEvent) {
+        if (event.keyCode !== 40 && event.keyCode !== 38 && event.keyCode !== 13)
+            return;
+
+        if (event.keyCode === 40) {
+            this.curIdx = this.curIdx < 0 ? 0 : (this.curIdx + 1 + this.resList.length) % this.resList.length;
+        } else if (event.keyCode === 38) { // ArrowUp
+            this.curIdx = this.curIdx < 0 ? (this.resList.length - 1)
+                : ((this.curIdx - 1 + this.resList.length) % this.resList.length);
+        } else { // Enter
+            this.listClick(this.resList[this.curIdx < 0 ? 0 : this.curIdx]);
+        }
+    }
+
+    onSearch(value) {
+        this.resList = this.secuinfo.getCodeList(value);
+        this.curIdx = 0;
+    }
+
+    autoHide() {
+        setTimeout(() => {
+            this.resList = null;
+        }, 1000);
+    }
+
+    listClick(item) {
+        this.selectedValue = item.symbolCode;
+        this.onSelect.emit(item);
+        this.resList = null;
     }
 }

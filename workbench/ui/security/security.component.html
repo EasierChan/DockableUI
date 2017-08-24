@@ -1,15 +1,8 @@
 <div class="title">
   <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
   <span class="big">chronos</span>
-  <div class="u-input-group">
-    <input type="text" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedValue" #searcher>
-    <a class="button">
-      <span class="glyphicon glyphicon-search"></span>
-    </a>
-    <ul *ngIf="resList&&resList.length > 0" class="dropdown">
-      <li *ngFor="let item of resList" (click)="listClick(item)">{{item.symbolCode}} {{item.SecuAbbr}}</li>
-    </ul>
-  </div>
+  <u-codes class="u-input-group" (onSelect)="listClick($event)"></u-codes>
+  <button class="btn btn-default" [disabled]="selectedValue" (click)="search()">搜索</button>
 </div>
 <div *ngIf="isStock" class="content">
   <h6>{{codeName}}</h6>
