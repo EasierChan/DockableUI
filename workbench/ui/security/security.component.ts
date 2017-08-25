@@ -27,8 +27,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     currentInfo: Section;
     standardInfo: Section;
     resList: Section;
-    selectedValue: string;
-
+    selectedItem: any;
     marketChart: ECharts;
     mainIncomChart: ECharts;
     isStock: boolean;
@@ -318,28 +317,17 @@ export class SecurityComponent implements OnInit, OnDestroy {
         });
     }
 
-    onSearch(value) {
-        this.resList = this.secuinfo.getCodeList(value);
-    }
-
-    autoHide() {
-        setTimeout(() => {
-            this.resList = null;
-        }, 1000);
-        // if (this.timeout)
-        //     clearTimeout(this.timeout);
-
-        // this.timeout = setTimeout(() => {
-        //     this.resList = null;
-        // }, 1000);
-    }
-
     listClick(item) {
         console.info(item);
-        this.selectedValue = item.symbolCode;
-        this.symbol = item.SecuAbbr;
-        this.code = item.symbolCode;
-        this.isStock = (item.ukey & 0x00010000) > 0 ? true : false;
+        this.selectedItem = item;
+        this.search();
+        this.resList = null;
+    }
+
+    search() {
+        this.symbol = this.selectedItem.SecuAbbr;
+        this.code = this.selectedItem.symbolCode;
+        this.isStock = (this.selectedItem.ukey & 0x00010000) > 0 ? true : false;
 
         if (this.isStock) {
             this.marketPerformance.content.option.legend.data = [this.symbol, "沪深300"];
@@ -356,8 +344,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
             this.marketChart.setOption(this.marketPerformance.content.option);
         }
 
-        this.quote.send(140, 10, { ukey: parseInt(item.ukey), reqtype: 2, reqno: 1 });
-        this.resList = null;
+        this.quote.send(140, 10, { ukey: parseInt(this.selectedItem.ukey), reqtype: 2, reqno: 1 });
     }
 
     get codeName() {

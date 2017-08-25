@@ -16,6 +16,7 @@ process.on("message", (m: WSIP20, sock) => {
 
     switch (m.command) {
         case "ps-start":
+            let quoteHeart = null;
             IP20Factory.instance.onConnect = () => {
                 process.send({ event: "ps-connect" });
             };
@@ -24,13 +25,23 @@ process.on("message", (m: WSIP20, sock) => {
                 process.send({ event: "ps-close" });
             };
 
-            IP20Factory.instance.addSlot({
-                appid: 17,
-                packid: 43,
-                callback(msg) {
-                    logger.info(`tgw ans=>${msg}`);
-                }
-            }, {
+            IP20Factory.instance.addSlot(
+                {
+                    appid: 17,
+                    packid: 43,
+                    callback(msg) {
+                        logger.info(`tgw ans=>${msg}`);
+
+                        if (quoteHeart !== null) {
+                            clearInterval(quoteHeart);
+                            quoteHeart = null;
+                        }
+
+                        quoteHeart = setInterval(() => {
+                            IP20Factory.instance.send(17, 0, {});
+                        }, 60000);
+                    }
+                }, {
                     appid: 17,
                     packid: 120,
                     callback(msg) {

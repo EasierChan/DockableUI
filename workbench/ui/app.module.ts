@@ -6,7 +6,7 @@ import { CommonModule, PercentPipe } from "@angular/common";
 import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
 import { UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent,
-  TileAreaComponent } from "../../base/controls/user.component";
+  TileAreaComponent, CodeComponent } from "../../base/controls/user.component";
 import { HomeComponent } from "./home/home.component";
 import { AdminComponent } from "./home/admin.component";
 import { DashboardComponent } from "./home/dash.component";
@@ -50,7 +50,8 @@ import { EchartsDirective } from "./app.controls";
     RiskFactorComponent,
     SupportComponent,
     EchartsDirective,
-    ReportComponent
+    ReportComponent,
+    CodeComponent
   ],
   bootstrap: [AppComponent]
 })

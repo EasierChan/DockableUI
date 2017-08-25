@@ -5,13 +5,13 @@
  */
 "use strict";
 
-import { Component, OnInit, ChangeDetectorRef, OnDestroy } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef } from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
+import { AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox, File } from "../../base/api/services/backend.service";
 import * as echarts from "echarts";
 
 @Component({
@@ -289,6 +289,16 @@ export class AppComponent implements OnInit, OnDestroy {
     codes: string[];
     lines: any[];
     name: string;
+    yAxisOption: any;
+    rangeType: number;
+    interval: any;
+    groupMDWorker: Worker;
+    groupUKeys: number[];
+    quoteHeart: any = null;
+    showSetting: boolean;
+    durations: number[][];
+
+    @ViewChild("chart") chart: ElementRef;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService, private ref: ChangeDetectorRef) {
@@ -326,6 +336,15 @@ export class AppComponent implements OnInit, OnDestroy {
                     console.info(`quote ans=>${msg}`);
                     if (afterLogin)
                         afterLogin.call(this);
+
+                    if (this.quoteHeart !== null) {
+                        clearInterval(this.quoteHeart);
+                        this.quoteHeart = null;
+                    }
+
+                    this.quoteHeart = setInterval(() => {
+                        this.quote.send(17, 0, {});
+                    }, 60000);
                 }
             }, {
                 appid: 17,
@@ -343,12 +362,18 @@ export class AppComponent implements OnInit, OnDestroy {
             this.codes = this.option.codes || ["", ""];
             this.lines = this.option.lines || [{ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }];
             this.name = this.option.name || "";
+            this.durations = this.option.durations || [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
         } else {
             this.codes = ["", ""];
             this.lines = [{ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }];
             this.name = "";
+            this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
         }
 
+        this.yAxisOption = { min: null, max: null, step: null };
+        this.rangeType = 1;
+        this.groupUKeys = [];
+        this.showSetting = true;
         this.loginTGW(null);
         this.registerListeners();
     }
@@ -356,20 +381,45 @@ export class AppComponent implements OnInit, OnDestroy {
     registerListeners() {
         let self = this;
 
+        this.groupMDWorker = new Worker("groupMDWorker.js");
+        this.groupMDWorker.onmessage = (ev: MessageEvent) => {
+            switch (ev.data.type) {
+                case "group-md":
+                    if (this.spreadviewer)
+                        self.spreadviewer.addMDData(ev.data.value);
+                    break;
+                default:
+                    break;
+            }
+        };
+
         this.quote.addSlot({
             appid: 17,
             packid: 110,
             callback: (msg) => {
-                self.spreadviewer.addMDData(msg.content);
+                if (self.spreadviewer) {
+                    if (this.groupUKeys.includes(msg.content.ukey)) {
+                        this.groupMDWorker.postMessage({ type: "add-md", value: msg.content });
+                    } else {
+                        self.spreadviewer.addMDData(msg.content);
+                    }
+                }
             }
         });
     }
 
     calcSpread() {
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+
         if (this.spreadviewer) {
             this.spreadviewer.dispose();
             this.spreadviewer = null;
             this.ref.detectChanges();
+            this.quote.send(17, 101, { topic: 3112, kwlist: [] });
+            this.groupUKeys = [];
         }
 
         if (this.codes[0].length < 1 || this.codes[1].length < 1) {
@@ -377,40 +427,180 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
 
-        let res: Object = this.secuinfo.getSecuinfoByCode(this.codes[0], this.codes[1]);
+        if (this.codes[0].endsWith(".csv") || this.codes[1].endsWith(".csv")) {
+            let nickCodes = [this.codes[0], this.codes[1]];
+            let ukeys = [0, 0];
+            let res;
 
-        if (Object.getOwnPropertyNames(res).length < this.codes.length) {
-            alert("未找到对应代码!");
-            return;
-        }
-
-        this.lines.forEach(line => {
-            for (let i = 0; i < this.lines.length; ++i) {
-                line.coeffs[i] = parseFloat(line.coeffs[i]);
-                line.levels[i] = parseFloat(line.levels[i]);
-                line.offsets[i] = parseFloat(line.offsets[i]);
+            let group1 = {};
+            let ok1 = true;
+            if (this.codes[0].endsWith(".csv")) {
+                ok1 = false;
+                File.readLineByLine(this.codes[0], (linestr: string) => {
+                    linestr.trim();
+                    let fields = linestr.split(",");
+                    group1[fields[0]] = { count: fields[1] };
+                }, () => {
+                    nickCodes[0] = "组合1";
+                    ukeys[0] = 1;
+                    this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group1)).forEach(item => {
+                        group1[item.windCode].ukey = item.ukey;
+                        this.groupUKeys.push(item.ukey);
+                    });
+                    ok1 = true;
+                });
+            } else {
+                res = this.secuinfo.getSecuinfoByCode(this.codes[0]);
+                ukeys[0] = parseInt(res[this.codes[0]].ukey);
             }
-        });
 
-        this.spreadviewer = new USpreadViewer(this.codes, [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)], this.lines);
-        this.quote.send(17, 101, { topic: 3112, kwlist: this.spreadviewer.ukeys });
-        res = null;
+            let group2 = {};
+            let ok2 = true;
+            if (this.codes[1].endsWith(".csv")) {
+                ok2 = false;
+                File.readLineByLine(this.codes[1], (linestr: string) => {
+                    linestr.trim();
+                    let fields = linestr.split(",");
+                    group2[fields[0]] = { count: fields[1] };
+                }, () => {
+                    nickCodes[1] = "组合2";
+                    ukeys[1] = 2;
+                    this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group2)).forEach(item => {
+                        group2[item.windCode].ukey = item.ukey;
+                        this.groupUKeys.push(item.ukey);
+                    });
+                    ok2 = true;
+                });
+            } else {
+                res = this.secuinfo.getSecuinfoByCode(this.codes[1]);
+                ukeys[1] = parseInt(res[this.codes[1]].ukey);
+            }
+
+            this.interval = setInterval(() => {
+                if (ok1 && ok2) {
+                    clearInterval(this.interval);
+                    this.interval = null;
+
+                    let groups = [];
+                    if (nickCodes[0] !== this.codes[0]) {
+                        groups.push({ ukey: 1, items: group1 });
+                    }
+
+                    if (nickCodes[1] !== this.codes[1]) {
+                        groups.push({ ukey: 2, items: group2 });
+                    }
+
+                    this.groupMDWorker.postMessage({ type: "init", groups: groups });
+
+                    this.lines.forEach(line => {
+                        for (let i = 0; i < this.lines.length; ++i) {
+                            line.coeffs[i] = parseFloat(line.coeffs[i]);
+                            line.levels[i] = parseFloat(line.levels[i]);
+                            line.offsets[i] = parseFloat(line.offsets[i]);
+                        }
+                    });
+
+                    this.spreadviewer = new USpreadViewer(nickCodes, ukeys, this.lines, this.durations);
+
+                    let kwlist = [];
+                    kwlist = kwlist.concat(this.groupUKeys);
+                    ukeys.forEach(ukey => {
+                        if (ukey > 2)
+                            kwlist.push(ukey);
+                    });
+
+                    console.info(kwlist);
+                    this.quote.send(17, 101, { topic: 3112, kwlist: kwlist });
+
+                    kwlist = null;
+                    groups = null;
+                }
+            }, 100);
+        } else {
+            let res: Object = this.secuinfo.getSecuinfoByCode(this.codes[0], this.codes[1]);
+
+            if (Object.getOwnPropertyNames(res).length < this.codes.length) {
+                alert("未找到对应代码!");
+                return;
+            }
+
+            this.lines.forEach(line => {
+                for (let i = 0; i < this.lines.length; ++i) {
+                    line.coeffs[i] = parseFloat(line.coeffs[i]);
+                    line.levels[i] = parseFloat(line.levels[i]);
+                    line.offsets[i] = parseFloat(line.offsets[i]);
+                }
+            });
+
+            let ukeys = [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)];
+            this.spreadviewer = new USpreadViewer(this.codes, ukeys, this.lines, this.durations);
+            this.quote.send(17, 101, { topic: 3112, kwlist: ukeys });
+            res = null;
+        }
     }
 
     save() {
         if (this.name.length < 1)
             return;
 
-        this.state.saveAs(this, this.name, { codes: this.codes, lines: this.lines, name: this.name });
+        this.state.saveAs(this, this.name, { codes: this.codes, lines: this.lines, name: this.name, durations: this.durations });
+    }
+
+    openFile(idx: number) {
+        MessageBox.openFileDialog("选择文件", (filenames: string[]) => {
+            this.codes[idx] = filenames[0];
+        }, [{ name: "股票组合(csv文件)", extensions: ["csv"] }]);
+    }
+
+    changeChartOption(type: number) {
+        if (this.spreadviewer) {
+            switch (type) {
+                case 0:
+                    this.spreadviewer.changeYAxisInterval(parseFloat(this.yAxisOption.min), parseFloat(this.yAxisOption.max), parseFloat(this.yAxisOption.step));
+                    break;
+                case 1:
+                    this.spreadviewer.changeYAxisInterval(null, null, null);
+                    break;
+                case 2:
+                    this.spreadviewer.changeXAxisRange(1); // ten min seconds;
+                    this.rangeType = 1;
+                    break;
+                case 3:
+                    this.spreadviewer.changeXAxisRange(2); // an hour seconds;
+                    this.rangeType = 2;
+                    break;
+                case 4:
+                    this.spreadviewer.changeXAxisRange(3); // one day
+                    this.rangeType = 3;
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    toggleView() {
+        this.showSetting = !this.showSetting;
+        this.ref.detectChanges();
+        this.spreadviewer.spreadChart.instance.resize();
     }
 
     ngOnDestroy() {
         this.spreadviewer.dispose();
+
+        if (this.interval) {
+            clearInterval(this.interval);
+            this.interval = null;
+        }
+
+        if (this.groupMDWorker) {
+            this.groupMDWorker.terminate();
+        }
     }
 }
 
 export class USpreadViewer {
-    initPadding = 300; // unit is seconds
+    initPadding; // unit is seconds
     padding = 60;
     ukeys: number[];
     codes: string[];
@@ -418,6 +608,7 @@ export class USpreadViewer {
     durations: number[][];
     spreadChart: any = {};
     timeLineChart: any = {};
+    hoursOfDay: number;
     worker: Worker;
     msgs: any;
     lastIdx: any;
@@ -431,16 +622,22 @@ export class USpreadViewer {
 
     static readonly YUAN_PER_UNIT = 10000;
 
-    constructor(codes: string[], ukeys: number[], lines: any[]) {
+    constructor(codes: string[], ukeys: number[], lines: any[], durations, initPadding = 300) {
         this.ukeys = ukeys;
         this.codes = codes;
         this.lines = lines;
+        this.initPadding = initPadding;
 
-        let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
-        `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[0].coeffs[1]}x${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[1].coeffs[1]}x${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
         this.codes[0], this.codes[1]];
         this.spreadChart.chartOption = this.createLinesChart(names);
-        this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
+        this.durations = durations;
+        this.hoursOfDay = 0;
+        this.durations.forEach(duration => {
+            this.hoursOfDay += (duration[2] + 24 - duration[0]) % 24 + (duration[3] - duration[1]) / 60;
+        });
+
         this.lastIdx = {};
         this.lastIdx[this.ukeys[0]] = -1;
         this.lastIdx[this.ukeys[1]] = -1;
@@ -464,47 +661,58 @@ export class USpreadViewer {
 
         // this.worker = new Worker("spreadWorker.js");
         // this.worker.postMessage({ type: "init", legs: this.ukeys, offset: [offset] });
-        this.dataOption = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis };
+        this.dataOption = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis, dataZoom: this.spreadChart.chartOption.dataZoom };
 
         this.interval.inst = setInterval(() => {
-            if (this.lastIdx[this.ukeys[0]] === -1 || this.lastIdx[this.ukeys[1]] === -1)
-                return;
+            while (true) {
+                if (this.lastIdx[this.ukeys[0]] === -1 || this.lastIdx[this.ukeys[1]] === -1)
+                    break;
 
-            if (this.clockPoint.time > Math.min(this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]))
-                return;
+                if (this.clockPoint.time > Math.min(this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]))
+                    break;
 
-            console.warn(this.clockPoint.time, this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]);
-            this.dataOption.series[0].data[this.clockPoint.index] = (this.msgs[this.ukeys[1]][this.clockPoint.time].askPrice1 - this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1).toFixed(2); // tslint:disable-line
-            this.dataOption.series[1].data[this.clockPoint.index] = (this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1 - this.msgs[this.ukeys[0]][this.clockPoint.time].askPrice1).toFixed(2); // tslint:disable-line
-            this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1; // tslint:disable-line
-            this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1; // tslint:disable-line
-            this.spreadChart.instance.setOption(this.dataOption);
-            this.clockPoint.time = this.increaseTime(this.clockPoint);
-            ++this.clockPoint.index;
+                console.warn(this.clockPoint.time, this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]], this.maxPoint.time);
+                try {
+                    this.dataOption.series[0].data[this.clockPoint.index] =
+                        (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[0].offsets[0] - this.lines[0].offsets[1] -
+                            this.lines[0].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[0].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
+                    this.dataOption.series[1].data[this.clockPoint.index] =
+                        (this.lines[1].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[1].offsets[0] - this.lines[1].offsets[1] -
+                            this.lines[1].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
+                    this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1; // tslint:disable-line
+                    this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1; // tslint:disable-line
+                    this.clockPoint.time = this.increaseTime(this.clockPoint);
+                    ++this.clockPoint.index;
 
-            if (this.clockPoint.time > this.maxPoint.time - this.padding) {
-                let count = this.initPadding;
+                    if (this.clockPoint.time > this.maxPoint.time - this.padding) {
+                        let count = this.initPadding;
 
-                while (--count) {
-                    this.maxPoint.time = this.increaseTime(this.maxPoint);
-                    this.dataOption.series.forEach(serie => {
-                        serie.data.push(null);
-                    });
+                        while (--count) {
+                            this.maxPoint.time = this.increaseTime(this.maxPoint);
+                            this.dataOption.series.forEach(serie => {
+                                serie.data.push(null);
+                            });
 
-                    let date;
-                    let ymdhms;
+                            let date;
+                            let ymdhms;
 
-                    this.dataOption.xAxis.forEach(axis => {
-                        date = new Date(this.maxPoint.time * 1000);
-                        ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
-                            + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
-                        axis.data.push(ymdhms);
-                    });
+                            this.dataOption.xAxis.forEach(axis => {
+                                date = new Date(this.maxPoint.time * 1000);
+                                ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                                    + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+                                axis.data.push(ymdhms);
+                            });
 
-                    ymdhms = null;
-                    date = null;
+                            ymdhms = null;
+                            date = null;
+                        }
+                    }
+                } catch (e) {
+                    console.error(`Exception: ${e};`, this.msgs, this.clockPoint.time, this.lastIdx);
                 }
             }
+
+            this.spreadChart.instance.setOption(this.dataOption);
         }, this.interval.value);
     }
 
@@ -566,10 +774,9 @@ export class USpreadViewer {
             this.lastIdx[mdItem.ukey] = mdItem.time;
             this.dataPoint.duration = curDuration;
             this.dataPoint.time = mdItem.time;
-            this.dataPoint.index = this.initPadding - 1;
             this.initOption(mdItem.time);
             this.clockPoint.duration = curDuration;
-            this.clockPoint.index = this.initPadding - 1;
+            this.clockPoint.index = this.dataPoint.index;
             this.clockPoint.time = mdItem.time;
         } else { // only one is -1
             if (this.lastIdx[mdItem.ukey] === -1) { // another leg's data come in.
@@ -633,11 +840,12 @@ export class USpreadViewer {
             legend: {
                 data: lines,
                 textStyle: { color: "#F3F3F5" },
-                top: 30,
+                top: 0,
                 left: "10%"
             },
             grid: [{
                 show: true,
+                top: 30,
                 left: "10%",
                 right: "8%",
                 height: "40%"
@@ -652,13 +860,15 @@ export class USpreadViewer {
                 data: [],
                 axisLabel: {
                     textStyle: { color: "#F3F3F5" }
-                }
+                },
+                interval: 60
             }, {
                 gridIndex: 1,
                 data: [],
                 axisLabel: {
                     textStyle: { color: "#F3F3F5" }
-                }
+                },
+                interval: 60
             }],
             yAxis: [{
                 axisLabel: {
@@ -715,10 +925,11 @@ export class USpreadViewer {
                 connectNulls: true,
                 data: []
             }],
-            dataZoom: [{
+            color: ["#ee0202", "#02ee02", "#65A7EE", "#EED565"],
+            dataZoom: {
                 type: "inside",
                 xAxisIndex: [0, 1]
-            }]
+            }
         }));
     }
 
@@ -727,9 +938,9 @@ export class USpreadViewer {
         this.minPoint.duration = this.dataPoint.duration;
         this.maxPoint.time = time;
         this.maxPoint.duration = this.dataPoint.duration;
-        let date = null;
+        let padding = 2 * this.initPadding;
+        let date: Date = null;
         let ymdhms;
-        let padding = this.initPadding;
 
         while (padding--) {
             date = new Date(this.minPoint.time * 1000);
@@ -737,10 +948,14 @@ export class USpreadViewer {
                 + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
             this.spreadChart.chartOption.xAxis[0].data.unshift(ymdhms);
             this.spreadChart.chartOption.xAxis[1].data.unshift(ymdhms);
+
+            if (date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                break;
+
             this.minPoint.time = this.decreaseTime(this.minPoint);
         }
 
-        padding = this.initPadding;
+        this.dataPoint.index = 2 * this.initPadding - padding;
 
         while (padding--) {
             this.maxPoint.time = this.increaseTime(this.maxPoint);
@@ -749,6 +964,9 @@ export class USpreadViewer {
                 + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
             this.spreadChart.chartOption.xAxis[0].data.push(ymdhms);
             this.spreadChart.chartOption.xAxis[1].data.push(ymdhms);
+
+            if (date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                break;
         }
 
         date = null;
@@ -761,6 +979,146 @@ export class USpreadViewer {
             (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true);
         else
             setTimeout(() => { (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true); }, 1000);
+    }
+
+    changeXAxisRange(type: number = 1) {
+        let padding = 0;
+        switch (type) {
+            case 1:
+                padding = 600;
+                break;
+            case 2:
+                padding = 3600;
+                break;
+            case 3:
+                padding = this.hoursOfDay * 3600;
+                break;
+            default:
+                break;
+        }
+
+        let date: Date = null;
+        let ymdhms;
+        this.dataOption.dataZoom.moveOnMouseMove = true;
+
+        if (this.maxPoint.time - this.minPoint.time >= padding) {
+            if (type === 3 || this.maxPoint.time - this.minPoint.time === padding) {
+                setTimeout(() => {
+                    this.spreadChart.instance.dispatchAction({
+                        type: "dataZoom",
+                        start: 0,
+                        end: 100
+                    });
+                }, 1000);
+            } else {
+                let leftPoint: AxisPoint = Object.assign({}, this.clockPoint);
+                while (padding--) {
+                    date = new Date(leftPoint.time * 1000);
+                    ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                        + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+
+                    if (type === 1 && date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                        break;
+
+                    if (type === 2 && date.getMinutes() === 0 && date.getSeconds() === 0)
+                        break;
+
+                    leftPoint.time = this.decreaseTime(leftPoint);
+                }
+
+                let startValue = ymdhms;
+                leftPoint = null;
+
+                let rightPoint: AxisPoint = Object.assign({}, this.clockPoint);
+                while (padding--) {
+                    rightPoint.time = this.increaseTime(rightPoint);
+                    date = new Date(rightPoint.time * 1000);
+                    ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                        + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+
+                    if (type === 1 && date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                        break;
+
+                    if (type === 2 && date.getMinutes() === 0 && date.getSeconds() === 0)
+                        break;
+                }
+
+                let endValue = ymdhms;
+                rightPoint = null;
+
+                console.error(startValue, endValue);
+                setTimeout(() => {
+                    this.spreadChart.instance.dispatchAction({
+                        type: "dataZoom",
+                        startValue: startValue,
+                        endValue: endValue
+                    });
+                }, 1000);
+            }
+
+            return;
+        }
+
+        while (padding--) {
+            date = new Date(this.minPoint.time * 1000);
+            ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+            this.dataOption.xAxis[0].data.unshift(ymdhms);
+            this.dataOption.xAxis[1].data.unshift(ymdhms);
+            this.dataOption.series.forEach(serie => {
+                serie.data.unshift(null);
+            });
+            ++this.clockPoint.index;
+
+            if (type === 1 && date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                break;
+
+            if (type === 2 && date.getMinutes() === 0 && date.getSeconds() === 0)
+                break;
+
+            if (type === 3 && date.getHours() === this.durations[0][0] && date.getMinutes() === this.durations[0][1] && date.getSeconds() === 0)
+                break;
+
+            this.minPoint.time = this.decreaseTime(this.minPoint);
+        }
+
+        while (padding--) {
+            this.maxPoint.time = this.increaseTime(this.maxPoint);
+            date = new Date(this.maxPoint.time * 1000);
+            ymdhms = [date.getFullYear(), ("0" + (date.getMonth() + 1)).slice(-2), ("0" + date.getDate()).slice(-2)].join("/")
+                + " " + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2), ("0" + date.getSeconds()).slice(-2)].join(":");
+            this.dataOption.xAxis[0].data.push(ymdhms);
+            this.dataOption.xAxis[1].data.push(ymdhms);
+            this.dataOption.series.forEach(serie => {
+                serie.data.push(null);
+            });
+
+            if (type === 1 && date.getMinutes() % 10 === 0 && date.getSeconds() === 0) // integral multiple of 10 min.
+                break;
+
+            if (type === 2 && date.getMinutes() === 0 && date.getSeconds() === 0)
+                break;
+
+            if (type === 3 && date.getHours() === this.durations[this.durations.length - 1][2] && date.getMinutes() === this.durations[this.durations.length - 1][3])
+                break;
+        }
+
+        date = null;
+        ymdhms = null;
+
+        setTimeout(() => {
+            this.spreadChart.instance.dispatchAction({
+                type: "dataZoom",
+                start: 0,
+                end: 100
+            });
+        }, 1000);
+    }
+
+    changeYAxisInterval(min: number, max: number, interval: number) {
+        if (this.spreadChart.instance) {
+            this.spreadChart.instance.setOption({ yAxis: [{ min: min, max: max, interval: interval }] });
+        }
     }
 
     reset(codes: string[], ukeys: number[], lines: any[]) {

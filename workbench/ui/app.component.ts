@@ -41,8 +41,8 @@ export class AppComponent implements OnInit, OnDestroy {
     homeMod: string;
     activeTab: string;
     curEndpoint: any;
-    quoteHeart: any;
-    tradeHeart: any;
+    quoteHeart: any = null;
+    tradeHeart: any = null;
     isonpacks: any;
 
     constructor(private tradeEndPoint: TradeService,
@@ -198,8 +198,10 @@ export class AppComponent implements OnInit, OnDestroy {
                 // to request template
                 this.tradeEndPoint.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
 
-                if (this.tradeHeart)
+                if (this.tradeHeart !== null) {
                     clearInterval(this.tradeHeart);
+                    this.tradeHeart = null;
+                }
 
                 this.tradeHeart = setInterval(() => {
                     this.tradeEndPoint.send(17, 0, {});
@@ -248,8 +250,10 @@ export class AppComponent implements OnInit, OnDestroy {
             callback: msg => {
                 console.info(`tgw::login ans=>${msg.toString()}`);
 
-                if (this.quoteHeart)
+                if (this.quoteHeart !== null) {
                     clearInterval(this.quoteHeart);
+                    this.quoteHeart = null;
+                }
 
                 this.quoteHeart = setInterval(() => {
                     this.quote.send(17, 0, {});

@@ -279,6 +279,24 @@ td input {
     height: 100%;
 }
 /*dock-nav*/
+.dock-nav {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1001;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.u-row {
+    display: flex;
+    flex-flow: row;
+}
 
 .dock-sn,
 .dock-ew {
@@ -318,9 +336,9 @@ td input {
     flex-wrap: wrap;
 }
 
-.dock-center {
-    display: none;
-}
+/*.dock-center {
+    display: flex;
+}*/
 
 .bar-block {
     background-color: dodgerblue;

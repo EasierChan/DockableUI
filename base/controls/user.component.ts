@@ -4,7 +4,7 @@
  */
 import {
     Component, Input, ElementRef, AfterViewInit, OnInit, HostBinding,
-    ViewChild, Renderer, HostListener, ChangeDetectorRef
+    ViewChild, Renderer, HostListener, ChangeDetectorRef, Output, EventEmitter
 } from "@angular/core";
 import { NgForm } from "@angular/forms";
 import {
@@ -13,6 +13,7 @@ import {
 import {
     ScrollerBarTable
 } from "./data.component";
+import { SecuMasterService } from "../api/services/backend.service";
 
 @Component({
     moduleId: module.id,
@@ -62,8 +63,8 @@ export class DockContainerComponent implements AfterViewInit {
     static startPoint: any = [0, 0];
     static lastEnterEle = null;
     @ViewChild("container") container: ElementRef;
-    @ViewChild("navSN") navSN: ElementRef;
-    @ViewChild("navEW") navEW: ElementRef;
+    // @ViewChild("navSN") navSN: ElementRef;
+    // @ViewChild("navEW") navEW: ElementRef;
     @ViewChild("north") north: ElementRef;
     @ViewChild("south") south: ElementRef;
     @ViewChild("west") west: ElementRef;
@@ -74,7 +75,7 @@ export class DockContainerComponent implements AfterViewInit {
     constructor(private renderer: Renderer, private ele: ElementRef, private detector: ChangeDetectorRef) { }
 
     ngAfterViewInit() {
-        if (this.isDockContainer()) {
+        if (this.isDockContainer() && this.children.length === 1) {
             this.styleObj.getWidth = () => {
                 return this.ele.nativeElement.clientWidth > 0 ? this.ele.nativeElement.clientWidth : this.container.nativeElement.clientWidth;
             };
@@ -85,26 +86,20 @@ export class DockContainerComponent implements AfterViewInit {
                 event.preventDefault();
                 event.stopPropagation();
                 DockContainerComponent.hasActive = true;
-
-                // if (event.srcElement.className !== "dock-cover" && event.srcElement.className !== "panel-title")
-                //     return;
-
-                // console.info(event);
                 this.detector.detach();
                 this.dataSource.showNavbar();
-                // this.renderer.setElementStyle(this.navSN.nativeElement, "display", "flex");
-                this.renderer.setElementStyle(this.navSN.nativeElement, "top", "0");
-                this.renderer.setElementStyle(this.navSN.nativeElement, "left", `${(this.container.nativeElement.clientWidth - 30) / 2}`);
-                this.renderer.setElementStyle(this.navEW.nativeElement, "top", `${(this.container.nativeElement.clientHeight - 30) / 2}`);
-                this.renderer.setElementStyle(this.navEW.nativeElement, "left", "0");
+                // this.renderer.setElementStyle(this.navSN.nativeElement, "top", "0");
+                // this.renderer.setElementStyle(this.navSN.nativeElement, "left", `${(this.container.nativeElement.clientWidth - 30) / 2}`);
+                // this.renderer.setElementStyle(this.navEW.nativeElement, "top", `${(this.container.nativeElement.clientHeight - 30) / 2}`);
+                // this.renderer.setElementStyle(this.navEW.nativeElement, "left", "0");
 
-                if (this.styleObj.canHoldpage) {
-                    this.dataSource.showCover();
-                    this.renderer.setElementStyle(this.navCover.nativeElement, "top", "0");
-                    this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
-                    this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
-                    this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
-                }
+                // if (this.styleObj.canHoldpage) {
+                //     this.dataSource.showCover();
+                //     this.renderer.setElementStyle(this.navCover.nativeElement, "top", "0");
+                //     this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
+                //     this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
+                //     this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
+                // }
 
                 this.detector.detectChanges();
 
@@ -115,11 +110,30 @@ export class DockContainerComponent implements AfterViewInit {
 
                 DockContainerComponent.lastEnterEle = this;
             });
-            this.renderer.listen(this.container.nativeElement, "dragover", (event: DragEvent) => {
+            // this.renderer.listen(this.container.nativeElement, "dragover", (event: DragEvent) => {
+            //     event.preventDefault();
+            //     event.stopPropagation();
+            // });
+            // this.renderer.listen(this.container.nativeElement, "drop", (event: DragEvent) => {
+            //     event.preventDefault();
+            //     this.locateTo(event, 0);
+            //     this.detector.detectChanges();
+            //     this.detector.reattach();
+
+            //     DockContainerComponent.lastEnterEle = null;
+            // });
+            this.renderer.listen(this.center.nativeElement, "dragenter", (event: DragEvent) => {
+                this.dataSource.showCover();
+                this.renderer.setElementStyle(this.navCover.nativeElement, "top", "0");
+                this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
+                this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
+                this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
+            });
+            this.renderer.listen(this.center.nativeElement, "dragover", (event: DragEvent) => {
                 event.preventDefault();
                 event.stopPropagation();
             });
-            this.renderer.listen(this.container.nativeElement, "drop", (event: DragEvent) => {
+            this.renderer.listen(this.center.nativeElement, "drop", (event: DragEvent) => {
                 event.preventDefault();
                 this.locateTo(event, 0);
                 this.detector.detectChanges();
@@ -127,13 +141,6 @@ export class DockContainerComponent implements AfterViewInit {
 
                 DockContainerComponent.lastEnterEle = null;
             });
-            // this.renderer.listen(this.center.nativeElement, "dragover", (event: DragEvent) => {
-            //     this.dataSource.showCover();
-            //     this.renderer.setElementStyle(this.navCover.nativeElement, "top", "0");
-            //     this.renderer.setElementStyle(this.navCover.nativeElement, "left", "0");
-            //     this.renderer.setElementStyle(this.navCover.nativeElement, "width", "100%");
-            //     this.renderer.setElementStyle(this.navCover.nativeElement, "height", "100%");
-            // });
             this.renderer.listen(this.north.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -301,9 +308,13 @@ export class DockContainerComponent implements AfterViewInit {
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "height",
                     `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}`);
+                DockContainerComponent.splitter.dataSource.prev().reallocSize(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth,
+                    DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap);
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild, "height",
                     `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap}`);
+                DockContainerComponent.splitter.dataSource.next().reallocSize(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth,
+                    DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap);
             }
 
 
@@ -438,5 +449,59 @@ export class TileAreaComponent {
 
     @HostBinding("style.flex-flow") get flow() {
         return "column";
+    }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "u-codes",
+    styleUrls: ["code.searcher.css"],
+    template: `
+        <input type="text" class="btn-default" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedValue" #searcher>
+        <ul *ngIf="resList&&resList.length > 0" class="dropdown">
+            <li *ngFor="let item of resList; let i = index" (click)="listClick(item)" [style.backgroundColor]="i === curIdx ? 'black': null">{{item.symbolCode}} {{item.SecuAbbr}}</li>
+        </ul>
+    `
+})
+export class CodeComponent {
+    selectedValue: string;
+    resList: any;
+    curIdx = 0;
+
+    @Output() onSelect: EventEmitter<any> = new EventEmitter<any>();
+
+    constructor(private secuinfo: SecuMasterService) {
+    }
+
+    @HostListener("keyup", ["$event"])
+    onKeyUp(event: KeyboardEvent) {
+        if (event.keyCode !== 40 && event.keyCode !== 38 && event.keyCode !== 13)
+            return;
+
+        if (event.keyCode === 40) {
+            this.curIdx = this.curIdx < 0 ? 0 : (this.curIdx + 1 + this.resList.length) % this.resList.length;
+        } else if (event.keyCode === 38) { // ArrowUp
+            this.curIdx = this.curIdx < 0 ? (this.resList.length - 1)
+                : ((this.curIdx - 1 + this.resList.length) % this.resList.length);
+        } else { // Enter
+            this.listClick(this.resList[this.curIdx < 0 ? 0 : this.curIdx]);
+        }
+    }
+
+    onSearch(value) {
+        this.resList = this.secuinfo.getCodeList(value);
+        this.curIdx = 0;
+    }
+
+    autoHide() {
+        setTimeout(() => {
+            this.resList = null;
+        }, 1000);
+    }
+
+    listClick(item) {
+        this.selectedValue = item.symbolCode;
+        this.onSelect.emit(item);
+        this.resList = null;
     }
 }

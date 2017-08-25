@@ -1310,7 +1310,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.main = new DockContainer(null, this.option.layout.type, this.option.layout.width, this.option.layout.height);
         for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
             this.main.addChild(this.traversefunc(this.main, children[i]));
-            this.main.addChild(new Splitter("h"));
+            this.main.addChild(new Splitter("h", this.main));
         }
         this.main.addChild(this.traversefunc(this.main, children[childrenLen - 1]));
     }
@@ -1480,7 +1480,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             obj.children.forEach((child, index) => {
                 dock.addChild(AppComponent.self.traversefunc(dock, child));
                 if (index < obj.children.length - 1)
-                    dock.addChild(new Splitter(child.type));
+                    dock.addChild(new Splitter(child.type, dock));
             });
         } else if (obj.modules && obj.modules.length > 0) {
             let panel = new TabPanel();

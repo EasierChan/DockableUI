@@ -9,6 +9,16 @@
     background: #1A2237;
 }
 
+.u-warning {
+    background-color: #1A2237;
+    color: white;
+}
+
+.u-primary {
+    background-color: #2e344c;
+    color: white;
+}
+
 .condition {    
     position: relative;
     flex: none;
@@ -31,6 +41,11 @@ select {
     padding: 0;
 }
 
+.span {
+    margin-right: 5px;
+    text-align: right;
+}
+
 .u-col {
     display: flex;
     flex-flow: column;
@@ -38,6 +53,7 @@ select {
 
 .condition .item {
     width: 200px;
+    margin: 0 10px;
 }
 
 .condition .code {
@@ -49,11 +65,25 @@ select {
     width: 30px;
 }
 
-.condition .operator {
+.condition .yparams {
+    width: 100px;
+    margin: 0 10px;
+}
+
+.operator {
     height: auto;
     line-height: auto;
     padding: 0 10px;
-    margin: 0 10px;
+}
+
+.condition .u-file {
+    padding: 0 10px;
+}
+
+.addon-btns {
+    position: relative;
+    left: 10%;
+    width: 80%;
 }
 
 .chart {
