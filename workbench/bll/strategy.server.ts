@@ -31,7 +31,7 @@ export class ConfigurationBLL {
         this._svpath = path.join(this._basedir, "..", "spreadviewer");
         this._svconfigs = [];
         File.readdirSync(this._svpath).forEach(item => {
-            if (item.length > 0) {
+            if (item.length > 0 && !item.startsWith("Untitled")) {
                 let idx = item.indexOf(".");
                 this._svconfigs.push(item.substr(0, idx));
             }

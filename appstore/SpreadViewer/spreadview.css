@@ -65,6 +65,11 @@ select {
     width: 30px;
 }
 
+.condition .yparams {
+    width: 100px;
+    margin: 0 10px;
+}
+
 .operator {
     height: auto;
     line-height: auto;
@@ -78,7 +83,7 @@ select {
 .addon-btns {
     position: relative;
     left: 10%;
-    width: 90%;
+    width: 80%;
 }
 
 .chart {
