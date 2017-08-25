@@ -564,7 +564,7 @@ class StrategyParser extends ItradeParser {
             statArbOrder.diffQty = this.readInt64LE(buffer, offset); offset += 8;
             res.push(statArbOrder);
         }
-        logger.info(`msginfo::statarborder,info:`, res);
+        logger.info(`msginfo::statarborder,info:`, subtype, res);
         return [{ subtype: subtype, content: res }];
     }
     readComConOrder(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
@@ -720,6 +720,7 @@ class StrategyParser extends ItradeParser {
             }
             res.push(comRecordPos);
             //  console.log("print readComRecordPos info---- :", comRecordPos, offset);
+            logger.info(`msginfo::position,info:`, comRecordPos);
         }
         return res;
     }
@@ -833,7 +834,7 @@ class StrategyParser extends ItradeParser {
                 comOrderRecord.od.signal[j].value = buffer.readUIntLE(offset, 8); offset += 8;
             }
             res.push(comOrderRecord);
-            logger.info(`msginfo::order,info:`, res);
+            logger.info(`msginfo::order,info:`, res, comOrderRecord.od.odatetime, comOrderRecord.od.idatetime);
         }
         return res;
     }
