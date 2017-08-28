@@ -189,6 +189,7 @@ export class EchartsDirective implements OnChanges, OnDestroy {
 
     private myChart: any = null;
     private currentWindowWidth: any = null;
+    private currentWindowHeight: any = null;
 
     constructor(private el: ElementRef, private renderer: Renderer, private _ngZone: NgZone) {
     }
@@ -196,6 +197,7 @@ export class EchartsDirective implements OnChanges, OnDestroy {
     private createChart() {
         this.theme = this.theme || "";
         this.currentWindowWidth = window.innerWidth;
+        this.currentWindowHeight = window.innerHeight;
 
         if (this.theme) {
             return this._ngZone.runOutsideAngular(() => { return echarts.init(this.el.nativeElement, this.theme); });
@@ -210,8 +212,9 @@ export class EchartsDirective implements OnChanges, OnDestroy {
     }
 
     @HostListener("window:resize", ["$event"]) onWindowResize(event: any) {
-        if (event.target.innerWidth !== this.currentWindowWidth) {
+        if (event.target.innerWidth !== this.currentWindowWidth || event.target.innerHeight !== this.currentWindowWidth) {
             this.currentWindowWidth = event.target.innerWidth;
+            this.currentWindowHeight = event.target.innerHeight;
             if (this.myChart) {
                 this.myChart.resize();
             }

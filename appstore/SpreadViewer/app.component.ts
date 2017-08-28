@@ -172,10 +172,6 @@ export class AppComponent2 implements OnInit {
         let chart = new SpreadViewer();
         chart.show();
 
-        // let names = [];
-        // names.push(this.option.details.code1 + ".askPrice1-" + this.option.details.code2 + ".bidPrice1");
-        // names.push(this.option.details.code1 + ".bidPrice1-" + this.option.details.code2 + ".askPrice1");
-        // let chart = this.createChart(names);
         spreadviewerContent.addChild(chart.ControlRef);
 
         btn_init.OnClick = () => {
@@ -585,11 +581,6 @@ export class AppComponent implements OnInit, OnDestroy {
         this.spreadviewer.spreadChart.instance.resize();
     }
 
-    @HostListener("window:resize")
-    onResize() {
-        this.spreadviewer.spreadChart.instance.resize();
-    }
-
     ngOnDestroy() {
         this.spreadviewer.dispose();
 
@@ -616,7 +607,7 @@ export class USpreadViewer {
     hoursOfDay: number;
     worker: Worker;
     msgs: any;
-    lastIdx: any;
+    lastPoint: any;
     interval: any;
     dataOption: any;
 
@@ -643,9 +634,9 @@ export class USpreadViewer {
             this.hoursOfDay += (duration[2] + 24 - duration[0]) % 24 + (duration[3] - duration[1]) / 60;
         });
 
-        this.lastIdx = {};
-        this.lastIdx[this.ukeys[0]] = -1;
-        this.lastIdx[this.ukeys[1]] = -1;
+        this.lastPoint = {};
+        this.lastPoint[this.ukeys[0]] = { time: -1 };
+        this.lastPoint[this.ukeys[1]] = { time: -1 };
         this.interval = { inst: null, value: 1000 };
         this.msgs = {};
         this.clockPoint = new AxisPoint();
@@ -670,13 +661,13 @@ export class USpreadViewer {
 
         this.interval.inst = setInterval(() => {
             while (true) {
-                if (this.lastIdx[this.ukeys[0]] === -1 || this.lastIdx[this.ukeys[1]] === -1)
+                if (this.lastPoint[this.ukeys[0]].time === -1 || this.lastPoint[this.ukeys[1]].time === -1)
                     break;
 
-                if (this.clockPoint.time > Math.min(this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]]))
+                if (this.clockPoint.time > Math.min(this.lastPoint[this.ukeys[0]].time, this.lastPoint[this.ukeys[1]].time))
                     break;
 
-                console.warn(this.clockPoint.time, this.lastIdx[this.ukeys[0]], this.lastIdx[this.ukeys[1]], this.maxPoint.time);
+                console.info(this.clockPoint.time, this.lastPoint[this.ukeys[0]].time, this.lastPoint[this.ukeys[1]].time, this.maxPoint.time);
                 try {
                     this.dataOption.series[0].data[this.clockPoint.index] =
                         (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[0].offsets[0] - this.lines[0].offsets[1] -
@@ -684,8 +675,8 @@ export class USpreadViewer {
                     this.dataOption.series[1].data[this.clockPoint.index] =
                         (this.lines[1].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[1].offsets[0] - this.lines[1].offsets[1] -
                             this.lines[1].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(2); // tslint:disable-line
-                    this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].bidPrice1; // tslint:disable-line
-                    this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].bidPrice1; // tslint:disable-line
+                    this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].last; // tslint:disable-line
+                    this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].last; // tslint:disable-line
                     this.clockPoint.time = this.increaseTime(this.clockPoint);
                     ++this.clockPoint.index;
 
@@ -713,7 +704,7 @@ export class USpreadViewer {
                         }
                     }
                 } catch (e) {
-                    console.error(`Exception: ${e};`, this.msgs, this.clockPoint.time, this.lastIdx);
+                    console.error(`Exception: ${e};`, this.msgs, this.clockPoint.time, this.lastPoint);
                 }
             }
 
@@ -722,7 +713,7 @@ export class USpreadViewer {
     }
 
     addMDData(mdItem: any) {
-        console.info(mdItem.time, mdItem.ukey);
+        console.info(mdItem);
         // this.worker.postMessage({ type: "add", ukey: mdItem.ukey, value: mdItem });
         let curDuration = this.getDuration(mdItem.time);
         if (curDuration === -1) {
@@ -738,45 +729,28 @@ export class USpreadViewer {
 
         this.msgs[mdItem.ukey][mdItem.time].askPrice1 = mdItem.ask_price[0] / USpreadViewer.YUAN_PER_UNIT;
         this.msgs[mdItem.ukey][mdItem.time].bidPrice1 = mdItem.bid_price[0] / USpreadViewer.YUAN_PER_UNIT;
+        this.msgs[mdItem.ukey][mdItem.time].last = mdItem.last / USpreadViewer.YUAN_PER_UNIT;
 
-        if (this.lastIdx[this.ukeys[0]] !== -1 && this.lastIdx[this.ukeys[1]] !== -1) {
+        if (this.lastPoint[this.ukeys[0]].time !== -1 && this.lastPoint[this.ukeys[1]].time !== -1) {
+            let nextTime;
 
-            if (mdItem.time > this.dataPoint.time) {
-                while (mdItem.time > this.dataPoint.time) {
-                    let nextTime = this.increaseTime(this.dataPoint);
+            while (mdItem.time > this.lastPoint[mdItem.ukey].time) {
+                nextTime = this.increaseTime(this.lastPoint[mdItem.ukey]);
 
-                    if (nextTime < mdItem.time) {
-                        if (!this.msgs[this.ukeys[0]].hasOwnProperty(nextTime)) {
-                            this.msgs[this.ukeys[0]][nextTime] = {};
-                            Object.assign(this.msgs[this.ukeys[0]][nextTime], this.msgs[this.ukeys[0]][this.dataPoint.time]);
-                        }
-
-                        if (!this.msgs[this.ukeys[1]].hasOwnProperty(nextTime)) {
-                            this.msgs[this.ukeys[1]][nextTime] = {};
-                            Object.assign(this.msgs[this.ukeys[1]][nextTime], this.msgs[this.ukeys[1]][this.dataPoint.time]);
-                        }
+                if (nextTime < mdItem.time) {
+                    if (!this.msgs[mdItem.ukey].hasOwnProperty(nextTime)) {
+                        this.msgs[mdItem.ukey][nextTime] = {};
+                        Object.assign(this.msgs[mdItem.ukey][nextTime], this.msgs[mdItem.ukey][this.lastPoint[mdItem.ukey].time]);
                     }
-
-                    this.dataPoint.time = nextTime;
                 }
+
+                this.lastPoint[mdItem.ukey].time = nextTime;
             }
 
-            if (mdItem.ukey === this.ukeys[0] && mdItem.time > this.lastIdx[this.ukeys[1]]) {
-                if (!this.msgs[this.ukeys[1]].hasOwnProperty(mdItem.time))
-                    this.msgs[this.ukeys[1]][mdItem.time] = {};
-
-                Object.assign(this.msgs[this.ukeys[1]][mdItem.time], this.msgs[this.ukeys[1]][mdItem.time - 1]);
-            }
-
-            if (mdItem.ukey === this.ukeys[1] && mdItem.time > this.lastIdx[this.ukeys[0]]) {
-                if (!this.msgs[this.ukeys[0]][mdItem.time])
-                    this.msgs[this.ukeys[0]][mdItem.time] = {};
-
-                Object.assign(this.msgs[this.ukeys[0]][mdItem.time], this.msgs[this.ukeys[0]][mdItem.time - 1]);
-            }
-        } else if (this.lastIdx[this.ukeys[0]] === -1 && this.lastIdx[this.ukeys[1]] === -1) { // first quote data
+            nextTime = null;
+        } else if (this.lastPoint[this.ukeys[0]].time === -1 && this.lastPoint[this.ukeys[1]].time === -1) { // first quote data
             // init axises;
-            this.lastIdx[mdItem.ukey] = mdItem.time;
+            this.lastPoint[mdItem.ukey].time = mdItem.time;
             this.dataPoint.duration = curDuration;
             this.dataPoint.time = mdItem.time;
             this.initOption(mdItem.time);
@@ -784,38 +758,40 @@ export class USpreadViewer {
             this.clockPoint.index = this.dataPoint.index;
             this.clockPoint.time = mdItem.time;
         } else { // only one is -1
-            if (this.lastIdx[mdItem.ukey] === -1) { // another leg's data come in.
-                if (mdItem.ukey === this.ukeys[0] && mdItem.time !== this.lastIdx[this.ukeys[1]]) {
-                    if (mdItem.time > this.lastIdx[this.ukeys[1]]) {
+            if (this.lastPoint[mdItem.ukey].time === -1) { // another leg's data come in.
+                if (mdItem.ukey === this.ukeys[0] && mdItem.time !== this.lastPoint[this.ukeys[1]].time) {
+                    if (mdItem.time > this.lastPoint[this.ukeys[1]].time) {
                         this.msgs[this.ukeys[1]][mdItem.time] = {};
-                        Object.assign(this.msgs[this.ukeys[1]][mdItem.time], this.msgs[this.ukeys[1]][this.lastIdx[this.ukeys[1]]]);
+                        Object.assign(this.msgs[this.ukeys[1]][mdItem.time], this.msgs[this.ukeys[1]][this.lastPoint[this.ukeys[1]].time]);
                         this.moveTo(this.dataPoint, mdItem.time);
                     } else {
-                        this.msgs[mdItem.ukey][this.lastIdx[this.ukeys[1]]] = {};
-                        Object.assign(this.msgs[mdItem.ukey][this.lastIdx[this.ukeys[1]]], this.msgs[mdItem.ukey][mdItem.time]);
-                        this.moveTo(this.dataPoint, this.lastIdx[this.ukeys[1]]);
+                        this.msgs[mdItem.ukey][this.lastPoint[this.ukeys[1]].time] = {};
+                        Object.assign(this.msgs[mdItem.ukey][this.lastPoint[this.ukeys[1]].time], this.msgs[mdItem.ukey][mdItem.time]);
+                        this.moveTo(this.dataPoint, this.lastPoint[this.ukeys[1]].time);
                     }
 
                     Object.assign(this.clockPoint, this.dataPoint);
-                } else if (mdItem.ukey === this.ukeys[1] && mdItem.time !== this.lastIdx[this.ukeys[0]]) {
-                    if (mdItem.time > this.lastIdx[this.ukeys[0]]) {
+                    Object.assign(this.lastPoint[this.ukeys[0]], this.clockPoint);
+                    Object.assign(this.lastPoint[this.ukeys[1]], this.clockPoint);
+                } else if (mdItem.ukey === this.ukeys[1] && mdItem.time !== this.lastPoint[this.ukeys[0]].time) {
+                    if (mdItem.time > this.lastPoint[this.ukeys[0]].time) {
                         this.msgs[this.ukeys[0]][mdItem.time] = {};
-                        Object.assign(this.msgs[this.ukeys[0]][mdItem.time], this.msgs[this.ukeys[0]][this.lastIdx[this.ukeys[0]]]);
+                        Object.assign(this.msgs[this.ukeys[0]][mdItem.time], this.msgs[this.ukeys[0]][this.lastPoint[this.ukeys[0]].time]);
                         this.moveTo(this.dataPoint, mdItem.time);
                     } else {
-                        this.msgs[mdItem.ukey][this.lastIdx[this.ukeys[0]]] = {};
-                        Object.assign(this.msgs[mdItem.ukey][this.lastIdx[this.ukeys[0]]], this.msgs[mdItem.ukey][mdItem.time]);
-                        this.moveTo(this.dataPoint, this.lastIdx[this.ukeys[0]]);
+                        this.msgs[mdItem.ukey][this.lastPoint[this.ukeys[0]].time] = {};
+                        Object.assign(this.msgs[mdItem.ukey][this.lastPoint[this.ukeys[0]].time], this.msgs[mdItem.ukey][mdItem.time]);
+                        this.moveTo(this.dataPoint, this.lastPoint[this.ukeys[0]].time);
                     }
 
                     Object.assign(this.clockPoint, this.dataPoint);
+                    Object.assign(this.lastPoint[this.ukeys[0]], this.clockPoint);
+                    Object.assign(this.lastPoint[this.ukeys[1]], this.clockPoint);
                 }
             } else { // also one leg data;
-                ;
+                this.lastPoint[mdItem.ukey] = mdItem.time;
             }
         }
-
-        this.lastIdx[mdItem.ukey] = mdItem.time;
     }
 
     createLinesChart(lines: string[]) {
@@ -1136,9 +1112,9 @@ export class USpreadViewer {
         this.codes[0], this.codes[1]];
         this.spreadChart.chartOption = this.createLinesChart(names);
         this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
-        this.lastIdx = {};
-        this.lastIdx[this.ukeys[0]] = -1;
-        this.lastIdx[this.ukeys[1]] = -1;
+        this.lastPoint = {};
+        this.lastPoint[this.ukeys[0]] = -1;
+        this.lastPoint[this.ukeys[1]] = -1;
         this.interval = { inst: null, value: 1000 };
         this.msgs = {};
         this.clockPoint = new AxisPoint();
