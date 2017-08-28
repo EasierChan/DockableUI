@@ -5,7 +5,7 @@
  */
 "use strict";
 
-import { Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef, HostListener } from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer
@@ -585,6 +585,11 @@ export class AppComponent implements OnInit, OnDestroy {
         this.spreadviewer.spreadChart.instance.resize();
     }
 
+    @HostListener("window:resize")
+    onResize() {
+        this.spreadviewer.spreadChart.instance.resize();
+    }
+
     ngOnDestroy() {
         this.spreadviewer.dispose();
 
@@ -938,7 +943,7 @@ export class USpreadViewer {
         this.minPoint.duration = this.dataPoint.duration;
         this.maxPoint.time = time;
         this.maxPoint.duration = this.dataPoint.duration;
-        let padding = 2 * this.initPadding;
+        let padding = 2 * this.initPadding + this.durations.length;
         let date: Date = null;
         let ymdhms;
 
@@ -982,16 +987,16 @@ export class USpreadViewer {
     }
 
     changeXAxisRange(type: number = 1) {
-        let padding = 0;
+        let padding = this.durations.length;
         switch (type) {
             case 1:
-                padding = 600;
+                padding += 600;
                 break;
             case 2:
-                padding = 3600;
+                padding += 3600;
                 break;
             case 3:
-                padding = this.hoursOfDay * 3600;
+                padding += this.hoursOfDay * 3600;
                 break;
             default:
                 break;
