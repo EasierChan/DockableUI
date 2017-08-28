@@ -2,7 +2,7 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, StrategyInstance } from "../../bll/strategy.server";
+import { ConfigurationBLL, WorkspaceConfig, StrategyContainer, StrategyInstance } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { ChangeDetectorRef } from "@angular/core";
 import { TradeService } from "../../bll/services";
@@ -26,7 +26,7 @@ export class BacktestComponent implements OnInit {
     bDetails: boolean;
     contextMenu: Menu;
     // private configBll = new ConfigurationBLL();
-    private strategyContainer = new StrategyServerContainer();
+    private strategyContainer = new StrategyContainer();
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
     curTemplate: any;
@@ -52,8 +52,7 @@ export class BacktestComponent implements OnInit {
     strategymap: any;
     selectStrategyName: any;
 
-    constructor(private appService: AppStoreService, private tgw: TradeService, private ref: ChangeDetectorRef,
-        private configBll: ConfigurationBLL) {
+    constructor(private appService: AppStoreService, private tgw: TradeService, private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {
@@ -65,7 +64,6 @@ export class BacktestComponent implements OnInit {
             this.strategyContainer.removeItem(this.config.name);
             this.strategyContainer.addItem(this.config);
             this.operateStrategyServer(this.config, 1);
-
         });
         this.contextMenu.addItem("停止", () => {
             this.strategyContainer.removeItem(this.config.name);
@@ -84,7 +82,7 @@ export class BacktestComponent implements OnInit {
                 console.log(this.clickItem, this.configs);
                 let len = this.configs.length;
                 for (let i = 0; i < len; ++i) {
-                    if (this.configs[i].chinese_name === this.clickItem.title) {
+                    if (this.configs[i].chname === this.clickItem.title) {
                         this.configs.splice(i, 1);
                         this.configBll.updateConfig();
                         this.backTestArea.removeTile(this.clickItem.title);
@@ -129,7 +127,7 @@ export class BacktestComponent implements OnInit {
             this.clickItem = item;
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].chinese_name === item.title) {
+                if (this.configs[i].chname === item.title) {
                     this.config = this.configs[i];
                     break;
                 }
@@ -156,7 +154,7 @@ export class BacktestComponent implements OnInit {
                     let rtn = this.tileArr.indexOf(config.name);
                     if (config.activeChannel === "lookback" && rtn === -1) {
                         let tile = new Tile();
-                        tile.title = config.chinese_name;
+                        tile.title = config.chname;
                         tile.iconName = "retweet";
                         this.backTestArea.addTile(tile);
                         this.tileArr.push(config.name);
@@ -168,7 +166,7 @@ export class BacktestComponent implements OnInit {
                         this.strategyContainer.addItem(config);
                         this.configBll.updateConfig(config);
                     } else if (config.activeChannel === "lookback" && rtn !== -1) {
-                        this.backTestArea.getTileAt(rtn).title = config.chinese_name;
+                        this.backTestArea.getTileAt(rtn).title = config.chname;
                     }
                 }
                 this.bcreateSuss = false;
@@ -231,7 +229,7 @@ export class BacktestComponent implements OnInit {
 
                 if (item) {
                     item.id = msg.content.nId;
-                    item.name = this.config.chinese_name;
+                    item.name = this.config.chname;
                     let today = new Date();
                     item.date = today.getFullYear() + ("0" + (today.getMonth() + 1)).slice(-2) +
                         ("0" + today.getDate()).slice(-2);
@@ -253,20 +251,23 @@ export class BacktestComponent implements OnInit {
                 if (this.curTemplate === null) {
                     return;
                 }
+
                 let rtn = this.tileArr.indexOf(config.name);
                 if (config.activeChannel === "lookback" && rtn === -1) {
                     let tile = new Tile();
-                    tile.title = config.chinese_name;
+                    tile.title = config.chname;
                     tile.iconName = "retweet";
                     this.backTestArea.addTile(tile);
                     this.tileArr.push(config.name);
                     config.stateChanged = () => {
                         tile.backgroundColor = config.state ? "#1d9661" : null;
                     };
+
                     this.configBll.updateConfig(config);
                 } else if (config.activeChannel === "loopback" && rtn !== -1) {
-                    this.backTestArea.getTileAt(rtn).title = config.chinese_name;
+                    this.backTestArea.getTileAt(rtn).title = config.chname;
                 }
+
                 this.finish();
             }
         });
@@ -391,9 +392,6 @@ export class BacktestComponent implements OnInit {
         this.tgw.send(200, 8010, tmpobj);
     }
 
-    hideChange() {
-        this.bChangeShow = false;
-    }
     next() {
         if (this.config.curstep === 1) {
             if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
@@ -439,16 +437,23 @@ export class BacktestComponent implements OnInit {
         }
         ++this.config.curstep;
     }
+
     prev() {
         if (this.config.curstep === 2)
             this.bcreate = false;
         --this.config.curstep;
     }
+
+    hideChange() {
+        this.bChangeShow = false;
+    }
+
     onSelectStrategy(value: string) {
         this.bcreate = true;
         this.bSelStrategy = true;
         this.config.strategyCoreName = this.getStrategyNameByChinese(value);
     }
+
     lookbackTosimulation() {
         let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
         this.config.channels.feedhandler.filename = getTmp.body.data.SSFeed.detailview.PriceServer.filename;
@@ -457,6 +462,7 @@ export class BacktestComponent implements OnInit {
             this.config.channels.gateway[i].addr = "172.24.50.10";
             this.config.channels.gateway[i].port = 8000;
         }
+
         this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
         this.config.activeChannel = "simulation";
         this.backTestArea.removeTile(this.clickItem.title);
@@ -465,14 +471,15 @@ export class BacktestComponent implements OnInit {
         this.config.channels.feedhandler.port = parseInt(tmpPort);
         this.configBll.updateConfig(this.config);
         this.bChangeShow = false;
-        console.log(this.config);
     }
+
     closePanel(e?: any) {
         if (this.bshow) {
             this.config.curstep = 1;
             this.bshow = false;
         }
     }
+
     duplicateRemove(data: any) {
         let temp = {};
         let arr = [];
@@ -482,8 +489,10 @@ export class BacktestComponent implements OnInit {
                 arr.push(data[i]);
             }
         }
+
         return arr;
     }
+
     onStartApp() {
         if (!this.appService.startApp(this.config.name, this.config.apptype, {
             port: this.config.port,
@@ -498,6 +507,7 @@ export class BacktestComponent implements OnInit {
             alert(`start ${this.config.name} app error!`);
         }
     }
+
     onPopup(type: number = 0) {
         this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
@@ -535,10 +545,10 @@ export class BacktestComponent implements OnInit {
         console.info(config, action);
         this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
+
     hide() {
         this.bshow = false;
         this.bModify = false;
         this.config.curstep = 1;
     }
-
 }

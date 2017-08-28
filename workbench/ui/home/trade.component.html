@@ -22,12 +22,12 @@
                 </div>
                 <div>
                     <span class="strategytext">策略：</span>
-                    <select class="strategy-sel" (change)="onSelectStrategy(strategyCores[strategycore.selectedIndex])" #strategycore [disabled]="bRead">
-                                <option  *ngFor="let name of strategyCores" >{{name}}</option>
+                    <select class="strategy-sel" (change)="onSelectStrategy(strategycore.selectedIndex)" #strategycore [disabled]="bRead">
+                                <option  *ngFor="let core of strategyCores" >{{core.chname}}</option>
                             </select>
                     <span class="strategytext">产品：</span>
-                    <select class="strategy-sel" (change)="onSelectProduct(productsList[productcore.selectedIndex])" #productcore>
-                                <option  *ngFor="let name of productsList" >{{name}}</option>
+                    <select class="strategy-sel" (change)="onSelectProduct(productcore.selectedIndex)" #productcore>
+                                <option *ngFor="let product of products">{{product.tblock_full_name}}</option>
                             </select>
                 </div>
                 <div class="name-content">
@@ -163,11 +163,12 @@
             <span class="title">价差分析</span>
         </div>
         <div class="content">
-            <div  class = "sptitle">
+            <div class="sptitle">
                 <div>
                     <span>名 称 : </span> <input type="text" [disabled]="bNameRead" [(ngModel)]="svconfig.name">
                 </div>
-                <br> <span>标的1:</span> <input type="text" [(ngModel)]="svconfig.code1"> <span>标的2:</span> <input type="text" [(ngModel)]="svconfig.code2">
+                <br> <span>标的1:</span> <input type="text" [(ngModel)]="svconfig.code1"> <span>标的2:</span> <input type="text"
+                    [(ngModel)]="svconfig.code2">
                 <br>
                 <h5 style="margin-left: 10px;">公式:</h5>
                 <textarea name="formula" style="width: 97%; line-height: 20px; margin-left: 10px;" cols="30" rows="10" [(ngModel)]="svconfig.formula"></textarea>

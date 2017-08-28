@@ -1348,6 +1348,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 AppComponent.self.addStatusBarMark({ name: mark, connected: data });
         }
     }
+
     handleParameter() {
         // traverse strategytable and write in config.json
         for (let i = 0; i < AppComponent.self.strategyTable.columns.length; ++i) {
@@ -1367,8 +1368,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                 console.log(err);
             }
         });
-
     }
+
     loadParameter() {
         for (let i = 0; i < AppComponent.self.strategyTable.columns.length; ++i) {
             if (AppComponent.self.strategyTable.rows[0].cells[i].Data !== undefined) {
@@ -1442,6 +1443,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         return false;
     }
+
     gethanizaionInfo(obj: any, data: any) {
         for (let o in obj) {
             if ((o + "") === data)
@@ -1590,6 +1592,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         else if (dataArr[0].amount < 0)
             AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toFixed(3).toString();
     }
+
     refreshStatArbInfo(dataArr: any, idx: number) {
         AppComponent.self.statarbTable.rows[idx].cells[2].Text = dataArr[0].pricerate / 100;
         AppComponent.self.statarbTable.rows[idx].cells[3].Text = dataArr[0].position;
@@ -1620,6 +1623,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         AppComponent.self.logTable.detectChanges();
     }
+
     showGuiCmdAck(data: any) {
         let strategyid = data[0].strategyid;
         let ret = data[0].success ? "successfully!" : "unsuccessfully!";
@@ -1635,6 +1639,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         }
     }
+
     showLog(data: any) {
         let logStr = data[0];
         // console.log(logStr);
@@ -1647,6 +1652,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = logStr;
         AppComponent.self.logTable.detectChanges();
     }
+
     showStrategyInfo(data: any) {
         // console.log("alarm info,pass", data);
         let len = data.length;
@@ -1669,6 +1675,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         }
     }
+
     rtnStraCtrlBtnType(status: number): { type: number, cellIdx: number } {
         if (status === 2)
             return { type: 0, cellIdx: 3 };
@@ -1681,6 +1688,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         else
             return { type: -1, cellIdx: -1 };
     }
+
     findRowByStrategyId(strategyid: number): number {
         let strategyTableRows: number = AppComponent.self.strategyTable.rows.length;
         for (let i = 0; i < strategyTableRows; ++i) {
@@ -1690,6 +1698,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         return 0;
     }
+
     addStrategyInfo(obj: any) {
         let row = this.strategyTable.newRow();
         row.cells[0].Text = obj.key;
@@ -1722,6 +1731,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         // ---------------------------
         AppComponent.self.strategyTable.detectChanges();
     }
+
     transFormStrategyStatus(data: any): String {
         let rtn: String = "";
         if (data === EStrategyStatus.STRATEGY_STATUS_INIT)
@@ -1741,9 +1751,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         else
             return "ERROR";
     }
+
     showComConOrder(data: any) {
         console.log("showComConOrder: 2020 ,UNKNOWN ,????", data);
     }
+
     showComOrderRecord(data: any) {
         let hasDone = false;
         for (let i = 0; i < data.length; ++i) {
@@ -1762,6 +1774,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
         }
     }
+
     deleteUndoneOrder(data: any) {
         let rows = this.orderstatusTable.rows.length;
         for (let i = 0; i < rows; ++i) {
@@ -1772,6 +1785,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         }
     }
+
     handleDoneOrder(data: any) {
         let doneorderTablRows: number = this.doneOrdersTable.rows.length;
         let orderId: number = data.od.orderid;
@@ -1792,6 +1806,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             checkFlag = false;
         }
     }
+
     addDoneOrderInfo(obj: any) {
         let row = this.doneOrdersTable.newRow();
         row.cells[0].Text = obj.od.innercode;
@@ -1833,6 +1848,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         AppComponent.self.doneOrdersTable.detectChanges();
     }
+
     refreshDoneOrderInfo(obj: any, idx: number) {
         let action: number = obj.od.action;
         if (action === 0)
@@ -1857,6 +1873,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.doneOrdersTable.rows[idx].cells[13].Text = obj.od.iprice / 10000;
         AppComponent.self.doneOrdersTable.detectChanges();
     }
+
     handleUndoneOrder(data: any) {
         let orderStatusTableRows: number = this.orderstatusTable.rows.length;
         let orderId: number = data.od.orderid;
@@ -1877,6 +1894,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             checkFlag = false;
         }
     }
+
     addUndoneOrderInfo(obj: any) {
         let row = this.orderstatusTable.newRow();
         row.cells[0].Type = "checkbox";
@@ -1914,6 +1932,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[11].Text = obj.con.account;
         AppComponent.self.orderstatusTable.detectChanges();
     }
+
     formatTime(time: any): String {
         let rtnStr: String = "";
         let newDate = new Date(time * 1000);
@@ -1927,6 +1946,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         rtnStr = hour + ":" + min + ":" + sec;
         return rtnStr;
     }
+
     getCurrentTime(): String {
         let str: String = "";
         let timeData: Date = new Date();
@@ -1936,6 +1956,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         str = str + ":" + timeData.getMilliseconds();
         return str;
     }
+
     parseOrderStatus(status: any): String {
         if (status === EOrderStatus.ORDER_STATUS_INVALID)
             return "0.无效";
@@ -1962,6 +1983,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             return "10.废单";
         }
     }
+
     refreshUndoneOrderInfo(obj: any, idx: number) {
         this.orderstatusTable.rows[idx].cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
         let action: number = obj.od.action;
@@ -2053,6 +2075,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[12].Text = obj.record.type;
         AppComponent.self.PositionTable.detectChanges();
     }
+
     addFuturePosInfo(obj: any) {
         let row = AppComponent.self.PositionTable.newRow();
         row.cells[0].Text = obj.record.account;
@@ -2077,6 +2100,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[12].Text = obj.record.type;
         AppComponent.self.PositionTable.detectChanges();
     }
+
     refreshEquitPosInfo(obj: any, idx: number) {
         AppComponent.self.PositionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
         AppComponent.self.PositionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
@@ -2085,6 +2109,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.PositionTable.rows[idx].cells[8].Text = obj.record.TotalCost;
         AppComponent.self.PositionTable.detectChanges();
     }
+
     refreshFuturePosInfo(obj: any, idx: number) {
         AppComponent.self.PositionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
         AppComponent.self.PositionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
@@ -2094,6 +2119,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.PositionTable.rows[idx].cells[10].Text = obj.record.MarginAveragePrice / 10000;
         AppComponent.self.PositionTable.detectChanges();
     }
+
     showComGWNetGuiInfo(data: any) {
         let markLen = AppComponent.self.statusbar.items.length;
         let name = data[0].name;
@@ -2148,6 +2174,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
         AppComponent.self.statusbar.items.push(tempmark);
     }
+
     addLog(data: any) {
         let name = data.name;
         let rowLen = AppComponent.self.logTable.rows.length;
@@ -2158,6 +2185,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
         AppComponent.self.ref.detectChanges();
     }
+
     showComTotalProfitInfo(data: any) {
         let subtype = data[0].subtype;
         let arr = data[0].content;
@@ -2174,6 +2202,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         AppComponent.self.profitTable.detectChanges();
     }
+
     showComProfitInfo(data: any) {
         for (let i = 0; i < data.length; ++i) {
             let profitTableRows: number = AppComponent.self.profitTable.rows.length;
@@ -2207,6 +2236,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         }
     }
+
     addProfitInfo(obj: any) {
         let row = AppComponent.self.profitTable.newRow();
         row.cells[0].Text = obj.innercode;
@@ -2237,6 +2267,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[18].Text = obj.iopv;
         AppComponent.self.profitTable.detectChanges();
     }
+
     refreshProfitInfo(obj: any, idx: number) {
         AppComponent.self.profitTable.rows[idx].cells[4].Text = obj.avgpriceforbuy / 10000;
         AppComponent.self.profitTable.rows[idx].cells[5].Text = obj.avgpriceforsell / 10000;
@@ -2319,8 +2350,8 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         }
         AppComponent.self.accountTable.detectChanges();
-
     }
+
     addAccountEquitInfo(obj: any) {
         // console.info(AppComponent.self.accountTable);
         // console.log("equit:", obj);
@@ -2350,6 +2381,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[16].Text = 0;
         // AppComponent.self.ref.detectChanges();
     }
+
     addAccountFutureInfo(obj: any) {
         // console.log("future:", obj);
         let row = AppComponent.self.accountTable.newRow();
@@ -2372,6 +2404,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[16].Text = obj.record.ClosePL / 10000;
         // AppComponent.self.ref.detectChanges();
     }
+
     refreshAccountEquiteInfo(obj: any, idx: number) {
         // console.log("refresh acc equit:", obj, idx);
         if (obj.market === SECU_MARKET.SM_SH)
@@ -2386,6 +2419,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.accountTable.rows[idx].cells[6].Text = obj.record.c;
         // AppComponent.self.ref.detectChanges();
     }
+
     refreshAccountFutureInfo(obj: any, idx: number) {
         AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount / 10000;
         AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount / 10000;
@@ -2402,6 +2436,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.accountTable.rows[idx].cells[16].Text = obj.record.ClosePL / 10000;
         // AppComponent.self.ref.detectChanges();
     }
+
     showStrategyCfg(data: any) {
         // console.log("333333333333", data);
         // handle the config.json file ,and in the first time ,write the parameter in file for initlization
@@ -2491,6 +2526,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
         AppComponent.self.strategyTable.detectChanges();
     }
+
     checkTableIndex(strategyid: number, name: string, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
         // console.log(strategyid, name, type, preIdx, rearIdx);
         let initLen: number = 10; // init talble column lengths

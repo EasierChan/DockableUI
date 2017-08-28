@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig, StrategyServerContainer, Product, StrategyInstance } from "../../bll/strategy.server";
+import { ConfigurationBLL, WorkspaceConfig, StrategyContainer, Product, StrategyInstance } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
 
@@ -22,7 +22,7 @@ export class SimulationComponent implements OnInit {
     areas: TileArea[];
     bDetails: boolean;
     contextMenu: Menu;
-    private strategyContainer = new StrategyServerContainer();
+    private strategyContainer = new StrategyContainer();
     private product = new Product();
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
@@ -82,7 +82,7 @@ export class SimulationComponent implements OnInit {
             } else {
                 let len = this.configs.length;
                 for (let i = 0; i < len; ++i) {
-                    if (this.configs[i].chinese_name === this.clickItem.title) {
+                    if (this.configs[i].chname === this.clickItem.title) {
                         this.configs.splice(i, 1);
                         this.configBll.updateConfig();
                         this.simulationArea.removeTile(this.clickItem.title);
@@ -129,7 +129,7 @@ export class SimulationComponent implements OnInit {
             this.clickItem = item;
             let len = this.configs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].chinese_name === item.title) {
+                if (this.configs[i].chname === item.title) {
                     this.config = this.configs[i];
                     break;
                 }
@@ -156,7 +156,7 @@ export class SimulationComponent implements OnInit {
                     let rtn = this.tileArr.indexOf(config.name);
                     if (config.activeChannel === "simulation" && rtn === -1) {
                         let tile = new Tile();
-                        tile.title = config.chinese_name;
+                        tile.title = config.chname;
                         tile.iconName = "tasks";
                         this.simulationArea.addTile(tile);
                         this.tileArr.push(config.name);
@@ -168,12 +168,13 @@ export class SimulationComponent implements OnInit {
                         this.strategyContainer.addItem(config);
                         this.configBll.updateConfig(config);
                     } else if (config.activeChannel === "simulation" && rtn !== -1) {
-                        this.simulationArea.getTileAt(rtn).title = config.chinese_name;
+                        this.simulationArea.getTileAt(rtn).title = config.chname;
                     }
                 }
                 this.bcreateSuss = false;
             }
         });
+
         this.tgw.addSlot({
             appid: 107,
             packid: 2003,
@@ -185,6 +186,7 @@ export class SimulationComponent implements OnInit {
                 this.strategyContainer.addItem(this.config);
             }
         });
+
         this.tgw.addSlot({
             appid: 107,
             packid: 2009,
@@ -259,7 +261,7 @@ export class SimulationComponent implements OnInit {
             let rtn = this.tileArr.indexOf(config.name);
             if (config.activeChannel === "simulation" && rtn === -1) {
                 let tile = new Tile();
-                tile.title = config.chinese_name;
+                tile.title = config.chname;
                 tile.iconName = "tasks";
                 this.simulationArea.addTile(tile);
                 this.tileArr.push(config.name);
@@ -269,7 +271,7 @@ export class SimulationComponent implements OnInit {
                 };
                 this.configBll.updateConfig(config);
             } else if (config.activeChannel === "simulation" && rtn !== -1) {
-                this.simulationArea.getTileAt(rtn).title = config.chinese_name;
+                this.simulationArea.getTileAt(rtn).title = config.chname;
             }
             this.finish();
         });

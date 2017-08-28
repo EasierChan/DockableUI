@@ -20,8 +20,10 @@ export class RegisterMessage extends Message {
     headers: Header[] = [];
 
     toBuffer(): Buffer {
-        let buf = Buffer.alloc(this.headers.length * Header.len);
+        let buf = Buffer.alloc(4 + this.headers.length * Header.len);
         let offset = 0;
+        buf.writeUInt32LE(this.headers.length, offset); offset += 4;
+
         this.headers.forEach(header => {
             offset += header.toBuffer().copy(buf, offset);
         });

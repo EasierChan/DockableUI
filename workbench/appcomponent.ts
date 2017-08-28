@@ -8,7 +8,7 @@ import { IP20Service } from "../base/api/services/ip20.service";
 import { QtpService } from "../base/api/services/qtp.service";
 import { Component, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import { IApp } from "../base/api/model/app.model";
-import { ConfigurationBLL, StrategyServerContainer, WorkspaceConfig, Channel, StrategyInstance, SpreadViewConfig } from "./bll/strategy.server";
+import { ConfigurationBLL, StrategyContainer, WorkspaceConfig, Channel, StrategyInstance, SpreadViewConfig } from "./bll/strategy.server";
 
 declare var window: any; // hack by chenlei @ 2017/02/07
 let ip20strs = {};
@@ -28,7 +28,7 @@ let ip20strs = {};
 export class AppComponent implements OnDestroy {
     private templates: any = {};
     private configBLL = new ConfigurationBLL();
-    private strategyContainer = new StrategyServerContainer();
+    private strategyContainer = new StrategyContainer();
     isAuthorized: boolean = false;
     username: string;
     password: string;

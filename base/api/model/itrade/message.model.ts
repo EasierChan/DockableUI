@@ -60,9 +60,9 @@ export interface IHeader {
 
 export class Header extends Message {
     static len = 8;
-    type: number;
-    subtype: number;
-    msglen: number;
+    type: number = 0;
+    subtype: number = 0;
+    msglen: number = 0;
 
     toBuffer(): Buffer {
         let buf: Buffer = Buffer.alloc(Header.len);

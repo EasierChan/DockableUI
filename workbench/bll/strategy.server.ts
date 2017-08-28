@@ -132,18 +132,16 @@ export class ConfigurationBLL {
     addSVConfigItem(item) {
         if (!this._svconfigs.includes(item))
             this._svconfigs.push(item);
-        // File.writeAsync(this._svpath, JSON.stringify(this._svconfigs));
     }
 
     removeSVConfigItem(config: string) {
-        this._svconfigs.forEach((item, index) => {
-            if (item === config) {
-                this._svconfigs.splice(index, 1);
-                return;
+        for (let i = 0; i < this._svconfigs.length; ++i) {
+            if (this._svconfigs[i] === config) {
+                this._svconfigs.splice(i, 1);
+                File.unlinkSync(path.join(this._svpath, config + ".json"));
+                break;
             }
-        });
-
-        File.unlinkSync(path.join(this._svpath, config + ".json"));
+        }
     }
 }
 
@@ -386,7 +384,7 @@ export interface StrategyServerItem {
     conn: StrategyBLL;
 }
 
-export class StrategyServerContainer {
+export class StrategyContainer {
     items: StrategyServerItem[] = [];
 
     addItem(...configs: WorkspaceConfig[]): void {
@@ -440,10 +438,10 @@ export class WorkspaceConfig {
     activeChannel: string = "default";
     state: number = 0;
     loopbackConfig?: any = {};
-    chinese_name: string = "";
+    chname: string = "";
     strategies: Object;
     productName: string;
-    ProductId: number;
+    productId: number;
     stateChanged: Function;
     constructor() {
         this.curstep = 1;

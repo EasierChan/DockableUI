@@ -102,6 +102,7 @@ export class ManulTrader {
         }
         ManulTrader.orderService.sendOrder(2030, 0, buffer);
     }
+
     static singleBuy(account: number, askPriceLevel: number, bidPriceLevel: number, askOffset: number, bidOffset: number, ukey: number, qty: number) {
         let offset: number = 0;
         let bufferLen = 12 + 4 + 4 + 4;
@@ -116,6 +117,7 @@ export class ManulTrader {
         buffer.writeUInt32LE(qty, offset); offset += 4;
         ManulTrader.orderService.sendOrder(5004, 0, buffer);
     }
+
     static singleCancel(account: number, ukey: number) {
         let offset: number = 0;
         let bufferLen = 12 + 4;
@@ -124,6 +126,7 @@ export class ManulTrader {
         buffer.writeUInt32LE(1, offset); offset += 4;
         buffer.writeUInt32LE(ukey, offset); offset += 4;
     }
+
     static sendAllSel(account: number, count: number, askPriceLevel: number, bidPriceLevel: number, askOffset: number, bidOffset: number, sendArr: any) {
         let offset: number = 0;
         let bufferLen = 12 + (4 + 4 + 4) * count;
@@ -138,8 +141,10 @@ export class ManulTrader {
             buffer.writeInt8(bidOffset, offset); offset += 1;
             buffer.writeUInt32LE(sendArr[i].qty, offset); offset += 4;
         }
+
         ManulTrader.orderService.sendOrder(5004, 0, buffer);
     }
+
     static cancelAllSel(account: number, count: number, sendArr: any) {
         let offset: number = 0;
         let bufferLen = 12 + 4 * count;
@@ -151,6 +156,7 @@ export class ManulTrader {
         }
         ManulTrader.orderService.sendOrder(5005, 0, buffer);
     }
+
     static submitBasket(type: number, indexSymbol: number, divideNum: number, account: number, initPos: any) {
         let offset: number = 0;
         let bufferLen = 12 + 4 + 4 + initPos.length * 12; // head+fphead+indexSymbol+divideNum+count*initposLen
@@ -169,6 +175,7 @@ export class ManulTrader {
         });
         ManulTrader.orderService.sendOrder(5001, 0, buffer);
     }
+
     static cancelorder(orders: any) {
         let offset: number = 0;
         // handle with array
@@ -235,10 +242,12 @@ export class ManulTrader {
         // offset += mem_size;
         ManulTrader.orderService.sendOrder(2020, 0, buffer);
     }
+
     static getProfitInfo(): void {
         ManulTrader.orderService.sendOrder(2047, 0, null);
         ManulTrader.orderService.sendOrder(2044, 0, null);
     }
+
     static registerAccPos(data: any) {
         let offset: number = 0;
         let buffer = new Buffer(12);
@@ -247,6 +256,7 @@ export class ManulTrader {
         buffer.writeUInt32LE(0, offset); offset += 4;
         ManulTrader.orderService.sendOrder(5002, 0, buffer);
     }
+
     static write2buffer(buffer: Buffer, type: number, subtype: number, msglen: number, offset: number): void {
         buffer.writeInt16LE(type, offset);
         buffer.writeInt16LE(subtype, offset += 2);

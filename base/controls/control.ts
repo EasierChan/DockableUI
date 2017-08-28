@@ -2301,6 +2301,8 @@ export class TileArea extends Control {
                 return this.dataSource.items[i];
             }
         }
+
+        return null;
     }
 
     set onClick(value: Function) {

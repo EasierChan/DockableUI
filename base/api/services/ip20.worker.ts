@@ -7,6 +7,7 @@ import { TcpClient } from "../common/base/tcpclient";
 import { Parser } from "../common/base/parser";
 import { Pool } from "../common/base/pool";
 import { ISONPack2Header, ISONPack2 } from "../model/isonpack/isonpack.model";
+import { Header } from "../model/itrade/message.model";
 import { DefaultLogger } from "../common/base/logger";
 
 const logger = console;
@@ -99,7 +100,7 @@ class IP20Parser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.packlen) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                console.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
+                logger.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
                 this.emit(this._curHeader.appid.toString(), this._curHeader, tempBuffer);
 
                 restLen = buflen - this._curHeader.packlen;
@@ -132,49 +133,29 @@ class ISONPackParser extends IP20Parser {
     }
 
     init(): void {
-        this.registerMsgFunction("17", this, this.processLoginMsg);
-        this.registerMsgFunction("270", this, this.processTemplateMsg);
-        this.registerMsgFunction("107", this, this.processTemplateMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
     }
 
-    processLoginMsg(args: any[]): void {
-        let header: ISONPack2Header = args[0];
-        let all = args[1];
-        let msg = new ISONPack2();
-        switch (header.packid) {
-            case 43: // Login
-            case 120: // login error
-            case 109:
-            case 110:
-                msg.fromBuffer(all);
-                this._client.emit("data", msg);
-                break;
-            default:
-                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
-                break;
-        }
-    }
-
     processTemplateMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
-        let all = args[1];
-        let msg;
+        let msg = new ISONPack2();
+        msg.fromBuffer(args[1]);
+        this._client.emit("data", msg);
 
-        switch (header.packid) {
-            case 194:
-            case 2001:
-            case 2003:
-                msg = new ISONPack2();
-                msg.fromBuffer(all);
-                this._client.emit("data", msg);
-                break;
-            default:
-                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
-                break;
-        }
+        // switch (header.packid) {
+        //     case 194:
+        //     case 2001:
+        //     case 2003:
+        //         msg = new ISONPack2();
+        //         msg.fromBuffer(all);
+        //         this._client.emit("data", msg);
+        //         break;
+        //     default:
+        //         logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
+        //         break;
+        // }
     }
 
     dispose(): void {
@@ -231,12 +212,14 @@ export class IP20Service {
     private _client: ISONPackClient;
     private _messageMap: Object;
     private _timer: any;
+    private _parser: ISONPackParser;
 
     constructor() {
         this._messageMap = new Object();
         this._client = new ISONPackClient();
         this._client.useSelfBuffer = true;
-        this._client.addParser(new ISONPackParser(this._client));
+        this._parser = new ISONPackParser(this._client);
+        this._client.addParser(this._parser);
     };
 
     connect(port, host = "127.0.0.1") {
@@ -268,6 +251,12 @@ export class IP20Service {
 
         this._client.on("close", () => {
             console.info("remote closed");
+
+            if (this._timer) {
+                clearTimeout(this._timer);
+                this._timer = null;
+            }
+
             this._timer = setTimeout(() => {
                 this._client.reconnect(port, host);
             }, 10000);
@@ -278,17 +267,40 @@ export class IP20Service {
         this._client.connect(port, host);
     }
 
-    send(appid: number, packid, jsonstr: Object) {
+    send(appid: number, packid, jsonstr: any) {
         this._client.sendMessage(appid, packid, jsonstr);
     }
 
+    sendQtp(appid: number, packid, msg: { type: number, subtype: number, body: any }) {
+        let head = new Header();
+        head.type = msg.type;
+        head.subtype = msg.subtype;
+        head.msglen = 0;
+
+        if (msg.body === undefined || msg.body === null) {
+            this.send(appid, 1000, head.toBuffer());
+        } else if (msg.body instanceof Buffer) {
+            head.msglen = msg.body.length;
+            this.send(appid, 1000, Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen));
+        } else {
+            let buf = msg.body.toBuffer();
+            head.msglen = buf.length;
+            this.send(appid, 1000, Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
+        }
+
+        head = null;
+    }
     /**
      *
      */
     addSlot(...slots: Slot[]) {
+
         slots.forEach(slot => {
-            if (!this._messageMap.hasOwnProperty(slot.appid))
+            if (!this._messageMap.hasOwnProperty(slot.appid)) {
                 this._messageMap[slot.appid] = new Object();
+                this._parser.registerMsgFunction(slot.appid, this._parser, this._parser.processTemplateMsg);
+            }
+
             this._messageMap[slot.appid][slot.packid] = slot.callback;
         });
     }

@@ -356,13 +356,14 @@ process.on("message", (m: WSIP20, sock) => {
                 process.send({ event: "close" });
             };
 
-            IP20Factory.instance.addSlot({
-                appid: 17,
-                packid: 43,
-                callback(msg) {
-                    console.info(`tgw ans=>${msg}`);
-                }
-            }, {
+            IP20Factory.instance.addSlot(
+                {
+                    appid: 17,
+                    packid: 43,
+                    callback(msg) {
+                        console.info(`tgw ans=>${msg}`);
+                    }
+                }, {
                     appid: 17,
                     packid: 120,
                     callback(msg) {
