@@ -213,9 +213,9 @@ export class TradeComponent implements OnInit {
         // subscribe strategy status
         this.tradePoint.addSlot({
             appid: 17,
-            packid: 110,
+            packid: 101,
             callback: (msg) => {
-
+                console.info(msg);
             }
         });
     }
@@ -323,6 +323,9 @@ export class TradeComponent implements OnInit {
         });
 
         this.areas.push(this.strategyArea);
+
+        // strategy status
+        this.tradePoint.send(17, 101, { topic: 8000, kwlist: [0] });
     }
 
     initializeAnylatics() {
