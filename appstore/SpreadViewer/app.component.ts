@@ -704,7 +704,7 @@ export class USpreadViewer {
                         }
                     }
                 } catch (e) {
-                    console.error(`Exception: ${e};`, this.msgs, this.clockPoint.time, this.lastPoint);
+                    console.error(`Exception: ${e};`, this.lastPoint[this.ukeys[0]], this.lastPoint[this.ukeys[1]], this.clockPoint.time);
                 }
             }
 
