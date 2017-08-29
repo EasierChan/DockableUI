@@ -36,7 +36,7 @@
                 for (let i = 0; i < groups.length; ++i) {
                     if (groups[i].ukeys.includes(ev.data.value.ukey)) {
                         groups[i].items[ev.data.value.ukey][ev.data.value.time] = {
-                            askPrice1: ev.data.value.ask_price[0],
+                            askPrice1: ev.data.value.ask_price[0] < 0.01 ? Math.max(ev.data.value.bid_price[0], ev.data.value.last) : ev.data.value.ask_price[0],
                             bidPrice1: ev.data.value.bid_price[0],
                             last: ev.data.value.last
                         };
