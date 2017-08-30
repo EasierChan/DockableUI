@@ -39,24 +39,20 @@ export class AppComponent implements OnInit, OnDestroy {
     curPage: string;
     homeMod: string;
     activeTab: string;
-    curEndpoint: any;
-    quoteHeart: any = null;
-    tradeHeart: any = null;
     isonpacks: any;
 
     constructor(private tradeEndPoint: TradeService,
         private quote: QuoteService,
-        private appService: AppStoreService,
+        private appSrv: AppStoreService,
         private configBll: ConfigurationBLL) {
     }
 
     get setting() {
-        return this.appService.getSetting();
+        return this.appSrv.getSetting();
     }
 
     ngOnInit() {
         this.isonpacks = {};
-        this.curEndpoint = this.setting.endpoints[0];
         this.homeMod = DataSet.modules[0].name;
         this.activeTab = DataSet.tabs(this.homeMod)[0];
         this.actionBar = new ActionBar();
@@ -67,7 +63,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 iconName: item.icon,
                 tooltip: item.name,
                 title: item.name,
-                active: index === 0,
+                active: false,
             });
         });
 
@@ -173,7 +169,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.actionBar.activeItem = item;
                     break;
                 case "退出":
-                    this.appService.quitAll();
+                    this.appSrv.quitAll();
                     break;
                 default:
                     alert(`unhandler module: ${item.title}`);
@@ -181,40 +177,20 @@ export class AppComponent implements OnInit, OnDestroy {
             }
         };
 
-        this.appService.getUserProfile(null);
+        this.appSrv.getUserProfile(null);
         this.registerListeners();
-        this.loginTGW();
+
+        if (this.appSrv.isLoginTrade()) {
+            this.actionBar.click(this.actionBar.getItem("主页"));
+        } else {
+            this.actionBar.click(this.actionBar.getItem("个人中心"));
+            this.appSrv.afterLogin = () => {
+                this.actionBar.click(this.actionBar.getItem("主页"));
+            };
+        }
     }
 
     registerListeners() {
-        let self = this;
-        this.tradeEndPoint.addSlot({ // login success
-            appid: 17,
-            packid: 43,
-            callback: msg => {
-                console.info(`tgw::login ans=>${msg.toString()}`);
-                // to request template
-                this.tradeEndPoint.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
-
-                if (this.tradeHeart !== null) {
-                    clearInterval(this.tradeHeart);
-                    this.tradeHeart = null;
-                }
-
-                this.tradeHeart = setInterval(() => {
-                    this.tradeEndPoint.send(17, 0, {});
-                }, 60000);
-            }
-        });
-
-        this.tradeEndPoint.addSlot({ // login failed
-            appid: 17,
-            packid: 120,
-            callback: msg => {
-                console.error(`tgw::login ans=>${JSON.stringify(msg.content)}`);
-            }
-        });
-
         this.tradeEndPoint.addSlot({  // template
             appid: 270,
             packid: 194,
@@ -241,50 +217,9 @@ export class AppComponent implements OnInit, OnDestroy {
                 }
             }
         });
-
-        this.quote.addSlot({ // login success
-            appid: 17,
-            packid: 43,
-            callback: msg => {
-                console.info(`tgw::login ans=>${msg.toString()}`);
-
-                if (this.quoteHeart !== null) {
-                    clearInterval(this.quoteHeart);
-                    this.quoteHeart = null;
-                }
-
-                this.quoteHeart = setInterval(() => {
-                    this.quote.send(17, 0, {});
-                }, 60000);
-            }
-        });
-
-        this.quote.addSlot({ // login failed
-            appid: 17,
-            packid: 120,
-            callback: msg => {
-                console.error(`tgw::login ans=>${JSON.stringify(msg.content)}`);
-            }
-        });
-    }
-
-    loginTGW() {
-        let [host, port] = this.curEndpoint.trade_addr.split(":");
-        this.tradeEndPoint.connect(port, host);
-        let timestamp: Date = new Date();
-        let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
-            ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
-            ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        let loginObj = { "cellid": "1", "userid": "8.999", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
-        this.tradeEndPoint.send(17, 41, loginObj); // login
-
-        let [qhost, qport] = this.curEndpoint.quote_addr.split(":");
-        this.quote.connect(qport, qhost);
-        this.quote.send(17, 41, loginObj);
     }
 
     ngOnDestroy() {
         this.isonpacks = null;
-        delete this.isonpacks;
     }
 }

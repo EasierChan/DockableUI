@@ -22,8 +22,9 @@ export class ConfigurationBLL {
             this._names.push(prop);
         }
 
-        this._configpath = path.join(this._basedir, "instances.json");
-        this._configs = WorkspaceConfig.setObject(File.parseJSON(this._configpath) || []);
+        this._ssconfigpath = path.join(this._basedir, "instances.json");
+        this._ssconfigs = WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []);
+        this._
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");
         this._loopbackItems = File.parseJSON(this._loopbackPath) || [];
@@ -45,9 +46,11 @@ export class ConfigurationBLL {
     private _templates: Object;
     private _templatepath: string;
 
-
-    private _configs: WorkspaceConfig[];
-    private _configpath: string;
+    private _ss_simulation_configs: WorkspaceConfig[];
+    private _ss_backtest_configs: WorkspaceConfig[];
+    private _ss_realtrade_configs: WorkspaceConfig[];
+    private _ssconfigs: WorkspaceConfig[];
+    private _ssconfigpath: string;
 
     private _loopbackItems: any[];
     private _loopbackPath: string;
@@ -73,30 +76,32 @@ export class ConfigurationBLL {
     }
 
     getConfigByName(name: string): WorkspaceConfig {
-        this._configs.forEach(item => {
+        this._ssconfigs.forEach(item => {
             if (item.name === name) {
                 return item;
             }
         });
+
         return null;
     }
 
     getAllConfigs(): WorkspaceConfig[] {
-        return this._configs;
+        return this._ssconfigs;
     }
 
     updateConfig(config?: WorkspaceConfig) {
         if (config) {
             let i = 0;
-            for (; i < this._configs.length; ++i) {
-                if (config.name === this._configs[i].name)
+            for (; i < this._ssconfigs.length; ++i) {
+                if (config.name === this._ssconfigs[i].name)
                     break;
             }
-            if (i === this._configs.length) {
-                this._configs.push(config);
+            if (i === this._ssconfigs.length) {
+                this._ssconfigs.push(config);
             }
         }
-        File.writeSync(this._configpath, JSON.stringify(this._configs));
+
+        File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
     }
 
     updateTemplate(name: string, template: any) {
@@ -143,11 +148,6 @@ export class ConfigurationBLL {
             }
         }
     }
-}
-
-
-export class Product {
-    private _productInfo = {};
 }
 
 export class StrategyBLL {
@@ -442,7 +442,7 @@ export class WorkspaceConfig {
     strategies: Object;
     productName: string;
     productId: number;
-    stateChanged: Function;
+
     constructor() {
         this.curstep = 1;
         this.tradingUniverse = [];

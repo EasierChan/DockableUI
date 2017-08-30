@@ -171,7 +171,6 @@ export class AppComponent implements OnDestroy {
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.loopbackConfig.result.hqurl;
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.filename = "./lib/libFeedChronos.so";
         }
-        console.info(this.curTemplate, this.config);
 
         this.curTemplate.body.data["SSNet"]["TSServer.port"] = this.config.port;
         this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;

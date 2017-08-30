@@ -124,7 +124,6 @@ export class TradeComponent implements OnInit {
                         tile.title = config.chname;
                         tile.iconName = "tasks";
                         this.strategyArea.addTile(tile);
-                        config.stateChanged = () => { tile.backgroundColor = config.state ? "#1d9661" : null; };
                     }
 
                     this.configBll.updateConfig(config);
@@ -138,7 +137,7 @@ export class TradeComponent implements OnInit {
             callback: msg => {
                 let data = JSON.parse(msg.content.body);
                 console.info(data);
-                if (data.msret.msgcode !== "00") {
+                if (msg.content.msret.msgcode !== "00") {
                     alert("Get product info Failed! " + data.msret.msg);
                     return;
                 }
@@ -213,9 +212,15 @@ export class TradeComponent implements OnInit {
         // subscribe strategy status
         this.tradePoint.addSlot({
             appid: 17,
-            packid: 101,
+            packid: 110,
             callback: (msg) => {
                 console.info(msg);
+                msg.content.strategyservers.forEach(item => {
+                    let target = this.strategyConfigs.find(citem => { return citem.name === item.name; });
+
+                    if (target !== undefined)
+                        this.strategyArea.getTile(target.chname).backgroundColor = item.state !== 0 ? "#1d9661" : null;
+                });
             }
         });
     }
@@ -282,18 +287,19 @@ export class TradeComponent implements OnInit {
         this.strategyArea.onClick = (event: MouseEvent, item: Tile) => {
             this.clickItem = item;
             let len = this.strategyConfigs.length;
+
             for (let i = 0; i < len; ++i) {
                 if (this.strategyConfigs[i].chname === item.title) {
                     this.config = this.strategyConfigs[i];
                     break;
                 }
             }
+
             if (event.button === 0) {  // left click
                 this.onStartApp();
             } else if (event.button === 2) { // right click
                 this.strategyMenu.popup();
             }
-            console.log(this.config, this.clickItem);
         };
 
         this.strategyConfigs = this.configBll.getAllConfigs();
@@ -304,20 +310,12 @@ export class TradeComponent implements OnInit {
                 this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
                 if (this.curTemplate === null)
                     return;
-                let rtn = this.tileArr.indexOf(config.name);
-                if (config.activeChannel === "default" && rtn === -1) {
-                    let tile = new Tile();
-                    tile.title = config.chname;
-                    tile.iconName = "tasks";
-                    this.strategyArea.addTile(tile);
-                    this.tileArr.push(config.name);
-                    config.stateChanged = () => {
-                        tile.backgroundColor = config.state ? "#1d9661" : null;
-                    };
-                    this.configBll.updateConfig(config);
-                } else if (config.activeChannel === "default" && rtn !== -1) {
-                    this.strategyArea.getTileAt(rtn).title = config.chname;
-                }
+
+                let tile = new Tile();
+                tile.title = config.chname;
+                tile.iconName = "tasks";
+                tile.data = config.name;
+                this.strategyArea.addTile(tile);
                 this.finish();
             }
         });
@@ -325,7 +323,7 @@ export class TradeComponent implements OnInit {
         this.areas.push(this.strategyArea);
 
         // strategy status
-        this.tradePoint.send(17, 101, { topic: 8000, kwlist: [0] });
+        this.tradePoint.send(17, 101, { topic: 8000, kwlist: [800] });
     }
 
     initializeAnylatics() {
@@ -421,8 +419,8 @@ export class TradeComponent implements OnInit {
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.channels.feedhandler.port);
             this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.channels.feedhandler.addr;
         }
-        // console.info(this.curTemplate, this.config);
 
+        // console.info(this.curTemplate, this.config);
         this.curTemplate.body.data["SSNet"]["TSServer.port"] = this.config.port;
         this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;
         let sobj = Object.assign({}, this.curTemplate.body.data["Strategy"][0]);

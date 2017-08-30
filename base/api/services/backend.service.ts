@@ -9,10 +9,18 @@ export const path = require("@node/path");
 export const fs = require("@node/fs");
 export const readline = require("@node/readline");
 export const Http = require("@node/http");
+export const crypto = require("@node/crypto");
 
 @Injectable()
 export class AppStoreService {
-    constructor() { }
+    private bLoginTrade: boolean;
+    private bLoginQuote: boolean;
+    afterLogin: Function;
+
+    constructor() {
+        this.bLoginTrade = false;
+        this.bLoginQuote = false;
+    }
 
     startApp(name: string, type: string, option: any): boolean {
         return electron.ipcRenderer.sendSync("appstore://startupAnApp", name, type, option);
@@ -40,6 +48,23 @@ export class AppStoreService {
 
     onUpdateApp(update: any, context: any) {
         electron.ipcRenderer.on(`appstore://updateApp`, (event, params) => { update.call(context, params); });
+    }
+
+    isLoginTrade(): boolean {
+        return this.bLoginTrade;
+    }
+
+    isLoginQuote(): boolean {
+        return this.bLoginQuote;
+    }
+
+    setLoginTrade(value: boolean) {
+        this.bLoginTrade = value;
+        if (this.afterLogin) this.afterLogin();
+    }
+
+    setLoginQuote(value: boolean) {
+        this.bLoginQuote = value;
     }
 }
 
@@ -321,5 +346,17 @@ export class ChildProcess {
             ChildProcess.exec(`firefox ${uri}`);
         else
             ChildProcess.exec(`cmd /c "C:\\\\Program Files\\\\Internet Explorer\\\\iexplore.exe" ${uri}`); // tslint:disable-line
+    }
+}
+
+@Injectable()
+export class CryptoService {
+    constructor() {
+    }
+
+    generateMD5(value: string): string {
+        const hash = crypto.createHash("md5");
+        hash.update(value);
+        return hash.digest("hex");
     }
 }

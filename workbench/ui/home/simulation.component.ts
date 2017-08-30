@@ -45,7 +45,6 @@ export class SimulationComponent implements OnInit {
     clickItem: any;
     simulationArea: TileArea;
     bChangeShow: boolean = false;
-    tileArr: string[] = [];
     sendLoopConfigs: any[] = [];
     frame_host: any;
     frame_port: any;
@@ -87,10 +86,6 @@ export class SimulationComponent implements OnInit {
                         this.configBll.updateConfig();
                         this.simulationArea.removeTile(this.clickItem.title);
                         this.strategyContainer.removeItem(this.config.name);
-                        let tileIdx = this.tileArr.indexOf(this.config.name);
-                        if (tileIdx !== -1) {
-                            this.tileArr.splice(tileIdx, 1);
-                        }
                         break;
                     }
                 }
@@ -149,28 +144,19 @@ export class SimulationComponent implements OnInit {
             packid: 2001,
             callback: msg => {
                 console.info(msg.content.body, this.config);
-                let config = this.configs.find(item => { return item.name === msg.content.body.name; });
+                let config = this.configs.find(item => { return config.activeChannel === "simulation" && item.name === msg.content.body.name; });
                 if (this.bcreateSuss) {
                     config.name = msg.content.body.name;
                     config.host = msg.content.body.address;
-                    let rtn = this.tileArr.indexOf(config.name);
-                    if (config.activeChannel === "simulation" && rtn === -1) {
-                        let tile = new Tile();
-                        tile.title = config.chname;
-                        tile.iconName = "tasks";
-                        this.simulationArea.addTile(tile);
-                        this.tileArr.push(config.name);
-                        // this.isInit = true;
-                        config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
-                        };
-                        this.strategyContainer.removeItem(config.name);
-                        this.strategyContainer.addItem(config);
-                        this.configBll.updateConfig(config);
-                    } else if (config.activeChannel === "simulation" && rtn !== -1) {
-                        this.simulationArea.getTileAt(rtn).title = config.chname;
-                    }
+                    let tile = new Tile();
+                    tile.title = config.chname;
+                    tile.iconName = "tasks";
+                    this.simulationArea.addTile(tile);
+                    this.strategyContainer.removeItem(config.name);
+                    this.strategyContainer.addItem(config);
+                    this.configBll.updateConfig(config);
                 }
+
                 this.bcreateSuss = false;
             }
         });
@@ -253,27 +239,20 @@ export class SimulationComponent implements OnInit {
 
         this.configs = this.configBll.getAllConfigs();
         this.configs.forEach(config => {
-            this.config = config;
-            this.config.state = 0;
-            this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-            if (this.curTemplate === null)
-                return;
-            let rtn = this.tileArr.indexOf(config.name);
-            if (config.activeChannel === "simulation" && rtn === -1) {
+            if (config.activeChannel === "simulation") {
+                this.config = config;
+                this.config.state = 0;
+                this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+                if (this.curTemplate === null)
+                    return;
+
                 let tile = new Tile();
                 tile.title = config.chname;
                 tile.iconName = "tasks";
                 this.simulationArea.addTile(tile);
-                this.tileArr.push(config.name);
-                // self.isInit = true;
-                config.stateChanged = () => {
-                    tile.backgroundColor = config.state ? "#71A9D6" : null;
-                };
                 this.configBll.updateConfig(config);
-            } else if (config.activeChannel === "simulation" && rtn !== -1) {
-                this.simulationArea.getTileAt(rtn).title = config.chname;
+                this.finish();
             }
-            this.finish();
         });
     }
 
@@ -342,6 +321,7 @@ export class SimulationComponent implements OnInit {
             this.config.strategyInstances[0].accounts = this.accounts;
         }
     }
+
     finish() {
         console.log(this.config);
         // validation
@@ -447,16 +427,19 @@ export class SimulationComponent implements OnInit {
         this.bSelStrategy = false;
         this.closePanel();
     }
+
     hideChange() {
         this.bChangeShow = false;
         this.bSelProduct = false;
     }
+
     simulationToTruly() {
         console.log("simulationToTruly");
         if (!this.bSelProduct) {
             console.log("select change product 0");
             this.onSelectProduct(this.productsList[0]);
         }
+
         for (let i = 0; i < this.config.channels.gateway.length; ++i) {
             for (let obj in this.gatewayObj) {
                 if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
@@ -466,6 +449,7 @@ export class SimulationComponent implements OnInit {
                 }
             }
         }
+
         this.config.strategyInstances[0].accounts = this.accounts;
         this.config.activeChannel = "default";
         let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
@@ -475,6 +459,7 @@ export class SimulationComponent implements OnInit {
         this.bChangeShow = false;
         this.bSelProduct = false;
     }
+
     next() {
         if (this.config.curstep === 1) {
             if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
@@ -530,29 +515,34 @@ export class SimulationComponent implements OnInit {
 
         ++this.config.curstep;
     }
+
     prev() {
         if (this.config.curstep === 2)
             this.bcreate = false;
         --this.config.curstep;
     }
+
     getStrategyNameByChinese(data: any) {
         for (let o in this.strategymap) {
             if (this.strategymap[o] === data)
                 return o;
         }
     }
+
     onSelectStrategy(value: string) {
         console.log(this.config);
         this.bcreate = true;
         this.bSelStrategy = true;
         this.config.strategyCoreName = this.getStrategyNameByChinese(value);
     }
+
     closePanel(e?: any) {
         if (this.bshow) {
             this.config.curstep = 1;
             this.bshow = false;
         }
     }
+
     duplicateRemove(data: any) {
         let temp = {};
         let arr = [];
@@ -564,6 +554,7 @@ export class SimulationComponent implements OnInit {
         }
         return arr;
     }
+
     onStartApp() {
         if (!this.appService.startApp(this.config.name, this.config.apptype, {
             port: this.config.port,
@@ -578,6 +569,7 @@ export class SimulationComponent implements OnInit {
             alert(`start ${this.config.name} app error!`);
         }
     }
+
     onPopup(type: number = 0) {
         this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
         if (type === 0) {
@@ -604,10 +596,12 @@ export class SimulationComponent implements OnInit {
             };
         }
     }
+
     operateStrategyServer(config: WorkspaceConfig, action: number) {
         console.info(config, action);
         this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
+
     hide() {
         this.bshow = false;
         this.bModify = false;

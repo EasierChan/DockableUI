@@ -2222,6 +2222,22 @@ export class ActionBar extends Control {
         return this._activeItem;
     }
 
+    getItem(title: string) {
+        let ret;
+        ret = this.dataSource.features.find(item => { return item.title === title; });
+
+        if (ret === undefined) {
+            ret = this.dataSource.settings.find(item => { return item.title === title; });
+        }
+
+        return ret;
+    }
+
+    click(item) {
+        if (this._onClick)
+            this._onClick(item);
+    }
+
     set left(value: number) {
         this.styleObj.left = value;
     }
