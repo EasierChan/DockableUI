@@ -293,12 +293,14 @@ export class AppComponent implements OnInit, OnDestroy {
     quoteHeart: any = null;
     showSetting: boolean;
     durations: number[][];
+    toggleText: string;
 
     @ViewChild("chart") chart: ElementRef;
 
     constructor(private quote: IP20Service, private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService, private ref: ChangeDetectorRef) {
         this.state.onInit(this, this.onReady);
+        this.toggleText = "隐藏设置";
     }
 
     onReady(option: any) {
@@ -544,7 +546,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
     openFile(idx: number) {
         MessageBox.openFileDialog("选择文件", (filenames: string[]) => {
-            this.codes[idx] = filenames[0];
+            if (filenames && filenames.length > 0) {
+                this.codes[idx] = filenames[0];
+            } else {
+                console.info(`filename = ${filenames}`);
+            }
         }, [{ name: "股票组合(csv文件)", extensions: ["csv"] }]);
     }
 
@@ -577,6 +583,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     toggleView() {
         this.showSetting = !this.showSetting;
+        this.toggleText = this.showSetting ? "隐藏设置" : "显示设置";
         this.ref.detectChanges();
         this.spreadviewer.spreadChart.instance.resize();
     }
@@ -713,7 +720,7 @@ export class USpreadViewer {
     }
 
     addMDData(mdItem: any) {
-        console.info(mdItem);
+        console.info("MARKETDATA=>", mdItem.ukey, mdItem.time, mdItem.ask_price[0], mdItem.bid_price[0]);
         // this.worker.postMessage({ type: "add", ukey: mdItem.ukey, value: mdItem });
         let curDuration = this.getDuration(mdItem.time);
         if (curDuration === -1) {
@@ -1262,7 +1269,8 @@ export class USpreadViewer {
 
     dispose() {
         if (this.spreadChart.instance) {
-            this.spreadChart.instance.dispose();
+            if (!this.spreadChart.instance.isDisposed())
+                this.spreadChart.instance.dispose();
             this.spreadChart.instance = null;
         }
 
