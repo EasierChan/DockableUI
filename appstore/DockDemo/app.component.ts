@@ -1997,14 +1997,13 @@ export class AppComponent implements OnInit, AfterViewInit {
 
                     if (secuCategory === 1) {
                         AppComponent.self.refreshEquitPosInfo(data[iData], iRow);
-                    } else if (secuCategory === 2) {
-                        if (parseInt(AppComponent.self.positionTable.rows[iRow].cells[12].Text) === data[iData].record.type)
-                            AppComponent.self.refreshFuturePosInfo(data[iData], iRow);
-                        else
-                            AppComponent.self.addFuturePosInfo(data[iData]);
+                        break;
                     }
 
-                    break;
+                    if (secuCategory === 2 && parseInt(AppComponent.self.positionTable.rows[iRow].cells[12].Text) === data[iData].record.type) {
+                        AppComponent.self.refreshFuturePosInfo(data[iData], iRow);
+                        break;
+                    }
                 }
             }
 
