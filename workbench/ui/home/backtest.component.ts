@@ -159,9 +159,6 @@ export class BacktestComponent implements OnInit {
                         this.backTestArea.addTile(tile);
                         this.tileArr.push(config.name);
                         // this.isInit = true;
-                        config.stateChanged = () => {
-                            tile.backgroundColor = config.state ? "#71A9D6" : "#f24959";
-                        };
                         this.strategyContainer.removeItem(config.name);
                         this.strategyContainer.addItem(config);
                         this.configBll.updateConfig(config);
@@ -259,9 +256,6 @@ export class BacktestComponent implements OnInit {
                     tile.iconName = "retweet";
                     this.backTestArea.addTile(tile);
                     this.tileArr.push(config.name);
-                    config.stateChanged = () => {
-                        tile.backgroundColor = config.state ? "#1d9661" : null;
-                    };
 
                     this.configBll.updateConfig(config);
                 } else if (config.activeChannel === "loopback" && rtn !== -1) {

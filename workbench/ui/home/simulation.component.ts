@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig, StrategyContainer, Product, StrategyInstance } from "../../bll/strategy.server";
+import { ConfigurationBLL, WorkspaceConfig, StrategyContainer, StrategyInstance } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
 
@@ -11,7 +11,7 @@ let ip20strs = [];
 @Component({
     moduleId: module.id,
     selector: "simulation",
-    templateUrl: "simulation.component.html",
+    template: `<tilearea [dataSource]="simulationArea.dataSource" [styleObj]="simulationArea.styleObj"></tilearea>`,
     styleUrls: ["simulation.component.css"],
     providers: [
         Menu,
@@ -19,11 +19,7 @@ let ip20strs = [];
     ]
 })
 export class SimulationComponent implements OnInit {
-    areas: TileArea[];
-    bDetails: boolean;
     contextMenu: Menu;
-    private strategyContainer = new StrategyContainer();
-    private product = new Product();
     configs: Array<WorkspaceConfig>;
     config: WorkspaceConfig;
     curTemplate: any;
@@ -31,7 +27,6 @@ export class SimulationComponent implements OnInit {
     panelTitle: string;
     strategyName: string;
     strategyCores: string[];
-    productsList: string[];
     ProductMsg: any[];
     bshow: boolean = false;
     bcreate: boolean = false;
@@ -55,18 +50,103 @@ export class SimulationComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.contextMenu = new Menu();
-        this.config = new WorkspaceConfig();
-        this.config.curstep = 1;
-        this.productsList = [];
         this.setting = this.appService.getSetting();
+        this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
+        this.frame_port = this.setting.endpoints[0].quote_addr.split(":")[1];
+
+        this.tgw.addSlot({
+            appid: 107,
+            packid: 2001,
+            callback: msg => {
+                console.info(msg.content.body, this.config);
+                let config = this.configs.find(item => { return config.activeChannel === "simulation" && item.name === msg.content.body.name; });
+                if (this.bcreateSuss) {
+                    config.name = msg.content.body.name;
+                    config.host = msg.content.body.address;
+                    let tile = new Tile();
+                    tile.title = config.chname;
+                    tile.iconName = "tasks";
+                    this.simulationArea.addTile(tile); 
+                    this.configBll.updateConfig(config);
+                }
+
+                this.bcreateSuss = false;
+            }
+        });
+
+        this.tgw.addSlot({
+            appid: 107,
+            packid: 2003,
+            callback: msg => {
+                console.log(2003, msg);
+                this.config.port = msg.content.strategyserver.port;
+                this.configBll.updateConfig(this.config);
+            }
+        });
+
+        this.tgw.addSlot({
+            appid: 107,
+            packid: 2009,
+            callback: msg => {
+                console.log(this.config);
+                let strategy_key = 0;
+                let len = msg.content.body.strategies.length;
+                for (let i = 0; i < len; ++i) {
+                    if (msg.content.body.strategies[i].strategy.name === this.config.name) {
+                        strategy_key = msg.content.body.strategies[i].strategy.strategy_key;
+                        break;
+                    }
+                }
+                this.config.strategyInstances[0].key = strategy_key + "";
+                this.curTemplate.body.data.Strategy[0].key = strategy_key;
+                console.log(this.config, this.curTemplate.body.data);
+                this.tgw.send(107, 2000, {
+                    routerid: 0, templateid: this.curTemplate.id, body: {
+                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
+                        strategies: { name: this.config.name }
+                    }
+                });
+            }
+        });
+
+        this.tgw.addSlot({
+            appid: 200,
+            packid: 8012,
+            callback: (msg) => {
+                console.info("receive 8012:", msg);
+                for (let i = 0; i < this.config.channels.gateway.length; ++i) {
+                    this.config.channels.gateway[i].port = parseInt(msg.content.port);
+                    this.config.channels.gateway[i].addr = msg.content.url;
+                }
+            }
+        });
+
+        this.configs = this.configBll.getAllConfigs();
+        this.configs.forEach(config => {
+            if (config.activeChannel === "simulation") {
+                this.config = config;
+                this.config.state = 0;
+                this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
+                if (this.curTemplate === null)
+                    return;
+
+                let tile = new Tile();
+                tile.title = config.chname;
+                tile.iconName = "tasks";
+                this.simulationArea.addTile(tile);
+                this.configBll.updateConfig(config);
+                this.finish();
+            }
+        });
+    }
+
+    initializeStrategies() {
+        // contextMenu
+        this.contextMenu = new Menu();
         this.contextMenu.addItem("启动", () => {
-            this.strategyContainer.removeItem(this.config.name);
-            this.strategyContainer.addItem(this.config);
             this.operateStrategyServer(this.config, 1);
         });
         this.contextMenu.addItem("停止", () => {
-            this.strategyContainer.removeItem(this.config.name);
             this.operateStrategyServer(this.config, 0);
         });
         this.contextMenu.addItem("修改", () => {
@@ -85,7 +165,6 @@ export class SimulationComponent implements OnInit {
                         this.configs.splice(i, 1);
                         this.configBll.updateConfig();
                         this.simulationArea.removeTile(this.clickItem.title);
-                        this.strategyContainer.removeItem(this.config.name);
                         break;
                     }
                 }
@@ -97,21 +176,9 @@ export class SimulationComponent implements OnInit {
             this.tgw.send(260, 216, { body: { tblock_type: 2 } });
         });
 
-        this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
-        this.frame_port = this.setting.endpoints[0].quote_addr.split(":")[1];
-        this.bDetails = false;
+        // Strategies
         this.simulationArea = new TileArea();
-        this.simulationArea.title = "仿真";
-
-        this.strategymap = {
-            PairTrade: "统计套利",
-            ManualTrader: "手工交易",
-            PortfolioTrader: "组合交易",
-            IndexSpreader: "做市策略",
-            SimpleSpreader: "配对交易",
-            BasketSpreader: "期现套利",
-            BlockTrader: "大宗交易"
-        };
+        this.simulationArea.title = "仿真策略";
 
 
         this.simulationArea.onCreate = () => {
@@ -136,140 +203,6 @@ export class SimulationComponent implements OnInit {
             }
             console.log(this.config, this.clickItem);
         };
-
-        this.areas = [this.simulationArea];
-
-        this.tgw.addSlot({
-            appid: 107,
-            packid: 2001,
-            callback: msg => {
-                console.info(msg.content.body, this.config);
-                let config = this.configs.find(item => { return config.activeChannel === "simulation" && item.name === msg.content.body.name; });
-                if (this.bcreateSuss) {
-                    config.name = msg.content.body.name;
-                    config.host = msg.content.body.address;
-                    let tile = new Tile();
-                    tile.title = config.chname;
-                    tile.iconName = "tasks";
-                    this.simulationArea.addTile(tile);
-                    this.strategyContainer.removeItem(config.name);
-                    this.strategyContainer.addItem(config);
-                    this.configBll.updateConfig(config);
-                }
-
-                this.bcreateSuss = false;
-            }
-        });
-
-        this.tgw.addSlot({
-            appid: 107,
-            packid: 2003,
-            callback: msg => {
-                console.log(2003, msg);
-                this.config.port = msg.content.strategyserver.port;
-                this.configBll.updateConfig(this.config);
-                this.strategyContainer.removeItem(this.config.name);
-                this.strategyContainer.addItem(this.config);
-            }
-        });
-
-        this.tgw.addSlot({
-            appid: 107,
-            packid: 2009,
-            callback: msg => {
-                console.log(this.config);
-                let strategy_key = 0;
-                let len = msg.content.body.strategies.length;
-                for (let i = 0; i < len; ++i) {
-                    // console.log(msg.content.body.strategies[i].strategy.name, this.config.name, msg.content.body.strategies[i].strategy.strategy_key);
-                    if (msg.content.body.strategies[i].strategy.name === this.config.name) {
-                        // console.log("find config.name,insert key:", this.config, strategy_key);
-                        strategy_key = msg.content.body.strategies[i].strategy.strategy_key;
-                        break;
-                    }
-                }
-                this.config.strategyInstances[0].key = strategy_key + "";
-                // this.configBll.updateConfig(this.config);
-                this.curTemplate.body.data.Strategy[0].key = strategy_key;
-                console.log(this.config, this.curTemplate.body.data);
-                this.tgw.send(107, 2000, {
-                    routerid: 0, templateid: this.curTemplate.id, body: {
-                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
-                        strategies: { name: this.config.name }
-                    }
-                });
-            }
-        });
-
-        this.tgw.addSlot({
-            appid: 200,
-            packid: 8012,
-            callback: (msg) => {
-                console.info("receive 8012:", msg);
-                for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-                    this.config.channels.gateway[i].port = parseInt(msg.content.port);
-                    this.config.channels.gateway[i].addr = msg.content.url;
-                }
-            }
-        });
-
-        this.tgw.addSlot({
-            appid: 260,
-            packid: 216,
-            callback: msg => {
-                let data = JSON.parse(msg.content.body);
-                console.log(data, this.config);
-                if (data.msret.msgcode === "00") {
-                    this.ProductMsg = data.body;
-                    for (let i = 0; i < data.body.length; ++i) {
-                        this.product[data.body[i].tblock_id] = data.body[i];
-                    }
-                    for (let o in this.product) {
-                        if (o === "_productInfo")
-                            continue;
-                        this.productsList.push(this.product[o].tblock_full_name);
-                    }
-                    // console.log(this.product, data.body.length); // 还有坑，先留着
-                } else {
-                    alert("Get product info Failed! " + data.msret.msg);
-                    return;
-                }
-            }
-        });
-
-        this.configs = this.configBll.getAllConfigs();
-        this.configs.forEach(config => {
-            if (config.activeChannel === "simulation") {
-                this.config = config;
-                this.config.state = 0;
-                this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-                if (this.curTemplate === null)
-                    return;
-
-                let tile = new Tile();
-                tile.title = config.chname;
-                tile.iconName = "tasks";
-                this.simulationArea.addTile(tile);
-                this.configBll.updateConfig(config);
-                this.finish();
-            }
-        });
-    }
-
-    static reqnum = 1;
-    createLoopbackTest(): void {
-        let tmpobj = {
-            reqsn: SimulationComponent.reqnum++,
-            timebegin: parseInt("20170727"),
-            timeend: parseInt("20170727"),
-            speed: parseInt("1"),
-            simlevel: parseInt("1"),
-            period: parseInt("1"),
-            unit: parseInt("1")
-        };
-        this.sendLoopConfigs.push(tmpobj);
-        console.log("send 8010:", tmpobj);
-        // this.qtp.send(8010, tmpobj);
     }
 
     onSelectProduct(value: string) {
@@ -437,7 +370,7 @@ export class SimulationComponent implements OnInit {
         console.log("simulationToTruly");
         if (!this.bSelProduct) {
             console.log("select change product 0");
-            this.onSelectProduct(this.productsList[0]);
+            // this.onSelectProduct(this.productsList[0]);
         }
 
         for (let i = 0; i < this.config.channels.gateway.length; ++i) {
@@ -455,7 +388,6 @@ export class SimulationComponent implements OnInit {
         let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
         this.configBll.updateConfig(this.config);
         this.simulationArea.removeTile(this.clickItem.title);
-        this.strategyContainer.removeItem(this.config.name);
         this.bChangeShow = false;
         this.bSelProduct = false;
     }

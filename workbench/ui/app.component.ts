@@ -184,8 +184,12 @@ export class AppComponent implements OnInit, OnDestroy {
             this.actionBar.click(this.actionBar.getItem("主页"));
         } else {
             this.actionBar.click(this.actionBar.getItem("个人中心"));
-            this.appSrv.afterLogin = () => {
+            this.appSrv.loginSuccess = () => {
                 this.actionBar.click(this.actionBar.getItem("主页"));
+            };
+
+            this.appSrv.loginFailed = () => {
+                this.actionBar.click(this.actionBar.getItem("个人中心"));
             };
         }
     }

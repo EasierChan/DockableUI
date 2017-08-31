@@ -15,7 +15,8 @@ export const crypto = require("@node/crypto");
 export class AppStoreService {
     private bLoginTrade: boolean;
     private bLoginQuote: boolean;
-    afterLogin: Function;
+    loginSuccess: Function;
+    loginFailed: Function;
 
     constructor() {
         this.bLoginTrade = false;
@@ -60,7 +61,10 @@ export class AppStoreService {
 
     setLoginTrade(value: boolean) {
         this.bLoginTrade = value;
-        if (this.afterLogin) this.afterLogin();
+        if (this.bLoginTrade)
+            this.loginSuccess();
+        else
+            this.loginFailed();
     }
 
     setLoginQuote(value: boolean) {

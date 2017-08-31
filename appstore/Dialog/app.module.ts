@@ -7,6 +7,7 @@ import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
 import { UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent } from "../../base/controls/user.component";
 import { ProductComponent } from "./product/product";
+import { StrategyComponent } from "./strategy/strategy";
 
 @NgModule({
   imports: [
@@ -24,7 +25,8 @@ import { ProductComponent } from "./product/product";
     DialogComponent,
     ActionBarComponent,
     EChartComponent,
-    ProductComponent
+    ProductComponent,
+    StrategyComponent
   ],
   bootstrap: [AppComponent]
 })

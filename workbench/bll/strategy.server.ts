@@ -23,8 +23,23 @@ export class ConfigurationBLL {
         }
 
         this._ssconfigpath = path.join(this._basedir, "instances.json");
+        this._ss_simulation_configs = [];
+        this._ss_backtest_configs = [];
+        this._ss_realtrade_configs = [];
         this._ssconfigs = WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []);
-        this._
+        this._ssconfigs.forEach(item => {
+            switch (item.activeChannel) {
+                case "default":
+                    this._ss_realtrade_configs.push(item);
+                    break;
+                case "simulation":
+                    this._ss_simulation_configs.push(item);
+                    break;
+                case "backtest":
+                    this._ss_backtest_configs.push(item);
+                    break;
+            }
+        });
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");
         this._loopbackItems = File.parseJSON(this._loopbackPath) || [];
@@ -89,6 +104,18 @@ export class ConfigurationBLL {
         return this._ssconfigs;
     }
 
+    getSimulationConfigs(): WorkspaceConfig[] {
+        return this._ss_simulation_configs;
+    }
+
+    getBackTestConfigs(): WorkspaceConfig[] {
+        return this._ss_backtest_configs;
+    }
+
+    getRealTradeConfigs(): WorkspaceConfig[] {
+        return this._ss_realtrade_configs;
+    }
+
     updateConfig(config?: WorkspaceConfig) {
         if (config) {
             let i = 0;
@@ -96,8 +123,20 @@ export class ConfigurationBLL {
                 if (config.name === this._ssconfigs[i].name)
                     break;
             }
+
             if (i === this._ssconfigs.length) {
                 this._ssconfigs.push(config);
+                switch (config.activeChannel) {
+                    case "default":
+                        this._ss_realtrade_configs.push(config);
+                        break;
+                    case "simulation":
+                        this._ss_simulation_configs.push(config);
+                        break;
+                    case "backtest":
+                        this._ss_backtest_configs.push(config);
+                        break;
+                }
             }
         }
 

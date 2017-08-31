@@ -53,11 +53,11 @@ export class ProductComponent implements OnInit {
                 this.productDetail.rows[1][7] = productDetail.stock_valid_amt;
                 this.productDetail.rows[2][1] = productDetail.future_valid_amt;
                 this.productDetail.rows[2][3] = productDetail.future_interests;
-                this.productDetail.rows[2][5] = productDetail.total_assets; // productDetail.stocksMarketValue;
-                this.productDetail.rows[2][7] = productDetail.total_assets; // productDetail.spifCap;
+                this.productDetail.rows[2][5] = productDetail.stocksMarketValue;
+                this.productDetail.rows[2][7] = productDetail.spifCap;
                 this.productDetail.rows[3][1] = 1000; //
-                this.productDetail.rows[3][3] = productDetail.future_interests; // productDetail.commodityFuturesCap;
-                this.productDetail.rows[3][5] = productDetail.future_interests; // productDetail.commodityFuturesNetting;
+                this.productDetail.rows[3][3] = productDetail.commodityFuturesCap;
+                this.productDetail.rows[3][5] = productDetail.commodityFuturesNetting;
                 this.productDetail.rows[3][7] = productDetail.futures_risk;
                 productDetail = null;
             }
