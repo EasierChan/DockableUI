@@ -3,7 +3,7 @@
         <product class="u-col"></product>
     </template>
     <template [ngSwitchCase]="'strategy'">
-        <strategy class="u-col"></strategy>
+        <strategy [config]="option.config" [products]="option.products" [strategies]="option.strategies" class="u-col"></strategy>
     </template>
     <template [ngSwitchDefault>
         <span>Hello world</span>

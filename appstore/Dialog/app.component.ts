@@ -98,14 +98,7 @@ export class AppComponent implements OnInit {
                 });
                 break;
             case "strategy":
-                this.loginTGW(() => {
-                    console.info(this.option.data);
-                    if (this.option.data === undefined) {
-                        // TODO create strategy;
-                    } else {
-                        // TODO modify strategy;
-                    }
-                });
+                this.loginTGW();
                 break;
             default:
                 console.error(`unknown dialog name => ${this.option.dlg_name}`);

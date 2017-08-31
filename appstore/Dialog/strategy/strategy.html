@@ -1,0 +1,14 @@
+<div class="base-info">
+    <label for="">{{enNameLable}}<input type="text" class="btn-default" [(ngModel)]="enName"></label>
+    <label for="">{{chNameLable}}<input type="text" class="btn-default" [(ngModel)]="chName"></label>
+    <label for="">{{strategyLabel}}
+        <select class="btn-default" [(ngModel)]="strategyType" (change)="selectStrategyChange()">
+            <option *ngFor="let opt of strategies" [value]="opt.name">{{opt.chname}}</option>
+        </select>
+    </label>
+    <label *ngIf="products" for="">{{productLabel}}
+        <select class="btn-default" [(ngModel)]="productID" (change)="selectProductChange()">
+            <option *ngFor="let opt of products" [value]="opt.tblock_id">{{opt.tblock_full_name}}</option>
+        </select>
+    </label>
+</div>

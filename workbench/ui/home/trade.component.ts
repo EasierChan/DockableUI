@@ -1,13 +1,11 @@
 "use strict";
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
-import { TileArea, Tile, DataTable, DataTableColumn } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig, StrategyContainer, StrategyInstance, SpreadViewConfig } from "../../bll/strategy.server";
+import { TileArea, Tile } from "../../../base/controls/control";
+import { ConfigurationBLL, WorkspaceConfig } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
 
-declare var window: any;
-let ip20strs = [];
 @Component({
     moduleId: module.id,
     selector: "trade",
@@ -35,8 +33,7 @@ export class TradeComponent implements OnInit {
     strategyArea: TileArea;
     strategyConfigs: Array<WorkspaceConfig>;
     strategyCores: any;
-    selectedStrategyConfig: any;
-    config: WorkspaceConfig;
+    selectedStrategyConfig: WorkspaceConfig;
 
     curTemplate: any;
     setting: any;
@@ -53,8 +50,6 @@ export class TradeComponent implements OnInit {
         this.initializeProducts();
         this.initializeStrategies();
         this.initializeAnylatics();
-        this.config = new WorkspaceConfig();
-        this.config.curstep = 1;
         this.setting = this.appService.getSetting();
 
         this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
@@ -76,13 +71,12 @@ export class TradeComponent implements OnInit {
             appid: 107,
             packid: 2001,
             callback: msg => {
-                console.info(msg.content);
                 if (msg.content.body.errorid !== 0) {
                     console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
                     return;
                 }
 
-                let config = this.strategyConfigs.find(item => { return item.activeChannel === "default" && item.name === msg.content.body.name; });
+                let config = this.strategyConfigs.find(item => { return item.name === msg.content.body.name; });
 
                 if (config) {
                     config.name = msg.content.body.name;
@@ -106,7 +100,7 @@ export class TradeComponent implements OnInit {
             packid: 216,
             callback: msg => {
                 let data = JSON.parse(msg.content.body);
-                console.info(data);
+
                 if (msg.content.msret.msgcode !== "00") {
                     alert("Get product info Failed! " + data.msret.msg);
                     return;
@@ -146,9 +140,15 @@ export class TradeComponent implements OnInit {
             appid: 107,
             packid: 2003,
             callback: msg => {
-                console.log(2003, msg);
-                this.config.port = msg.content.strategyserver.port;
-                this.configBll.updateConfig(this.config);
+                for (let i = 0; i < this.strategyConfigs.length; ++i) {
+                    if (this.strategyConfigs[i].name === msg.content.strategyserver.name) {
+                        this.strategyConfigs[i].port = msg.content.strategyserver.port;
+                        this.strategyConfigs[i].host = msg.content.strategyserver.address;
+                        break;
+                    }
+                }
+
+                this.configBll.updateConfig();
             }
         });
 
@@ -159,20 +159,20 @@ export class TradeComponent implements OnInit {
                 let strategy_key = 0;
                 let len = msg.content.body.strategies.length;
                 for (let i = 0; i < len; ++i) {
-                    if (msg.content.body.strategies[i].strategy.name === this.config.name) {
+                    if (msg.content.body.strategies[i].strategy.name === this.selectedStrategyConfig.name) {
                         strategy_key = msg.content.body.strategies[i].strategy.strategy_key;
                         break;
                     }
                 }
 
-                this.config.strategyInstances[0].key = strategy_key + "";
-                this.configBll.updateConfig(this.config);
+                this.selectedStrategyConfig.strategyInstances[0].key = strategy_key + "";
+                this.configBll.updateConfig(this.selectedStrategyConfig);
                 this.curTemplate.body.data.Strategy[0].key = strategy_key;
                 // console.log(this.config, this.curTemplate.body.data);
                 this.tradePoint.send(107, 2000, {
                     routerid: 0, templateid: this.curTemplate.id, body: {
-                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
-                        strategies: { name: this.config.name }
+                        name: this.selectedStrategyConfig.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
+                        strategies: { name: this.selectedStrategyConfig.name }
                     }
                 });
             }
@@ -213,29 +213,30 @@ export class TradeComponent implements OnInit {
         // strategyMenu
         this.strategyMenu = new Menu();
         this.strategyMenu.addItem("启动", () => {
-            this.operateStrategyServer(this.config, 1);
+            this.operateStrategyServer(this.selectedStrategyConfig, 1);
         });
         this.strategyMenu.addItem("停止", () => {
-            this.operateStrategyServer(this.config, 0);
+            this.operateStrategyServer(this.selectedStrategyConfig, 0);
         });
         this.strategyMenu.addItem("修改", () => {
             this.appService.startApp("策略配置", "Dialog", {
                 dlg_name: "strategy",
-                data: this.selectedStrategyConfig
+                config: this.selectedStrategyConfig,
+                products: this.products,
+                strategies: this.strategyCores
             });
         });
         this.strategyMenu.addItem("删除", () => {
-            if (!confirm("确定删除？")) {
+            if (!confirm("确定删除？"))
                 return;
-            } else {
-                let len = this.strategyConfigs.length;
-                for (let i = 0; i < len; ++i) {
-                    if (this.strategyConfigs[i].chname === this.selectedStrategyConfig.title) {
-                        this.strategyConfigs.splice(i, 1);
-                        this.configBll.updateConfig();
-                        this.strategyArea.removeTile(this.selectedStrategyConfig.title);
-                        break;
-                    }
+
+            let len = this.strategyConfigs.length;
+            for (let i = 0; i < len; ++i) {
+                if (this.strategyConfigs[i].chname === this.selectedStrategyConfig.chname) {
+                    this.strategyConfigs.splice(i, 1);
+                    this.configBll.updateConfig();
+                    this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
+                    break;
                 }
             }
         });
@@ -245,7 +246,8 @@ export class TradeComponent implements OnInit {
         this.strategyArea.title = "策略";
         this.strategyArea.onCreate = () => {
             this.appService.startApp("策略配置", "Dialog", {
-                dlg_name: "strategy"
+                dlg_name: "strategy",
+                strategies: this.strategyCores
             });
         };
 
@@ -254,7 +256,7 @@ export class TradeComponent implements OnInit {
 
             for (let i = 0; i < len; ++i) {
                 if (this.strategyConfigs[i].chname === item.title) {
-                    this.config = this.strategyConfigs[i];
+                    this.selectedStrategyConfig = this.strategyConfigs[i];
                     break;
                 }
             }
@@ -268,12 +270,6 @@ export class TradeComponent implements OnInit {
 
         this.strategyConfigs = this.configBll.getRealTradeConfigs();
         this.strategyConfigs.forEach(config => {
-            this.config = config;
-            this.config.state = 0;
-            this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-            if (this.curTemplate === null)
-                return;
-
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
@@ -361,17 +357,17 @@ export class TradeComponent implements OnInit {
     }
 
     onStartApp() {
-        if (!this.appService.startApp(this.config.name, this.config.apptype, {
-            port: this.config.port,
-            host: this.config.host,
-            name: this.config.name,
+        if (!this.appService.startApp(this.selectedStrategyConfig.name, this.selectedStrategyConfig.apptype, {
+            port: this.selectedStrategyConfig.port,
+            host: this.selectedStrategyConfig.host,
+            name: this.selectedStrategyConfig.name,
             lang: this.setting.language,
             feedhandler: {
                 host: this.frame_host,
                 port: parseInt(this.frame_port)
             }
         })) {
-            alert(`start ${this.config.name} app error!`);
+            alert(`start ${this.selectedStrategyConfig.name} app error!`);
         }
     }
 }
