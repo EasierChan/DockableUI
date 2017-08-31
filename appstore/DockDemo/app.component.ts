@@ -1987,12 +1987,11 @@ export class AppComponent implements OnInit, AfterViewInit {
      * update by cl, date 2017/08/31
      */
     showComRecordPos(data: any) {
-        let len: number = AppComponent.self.positionTable.rows.length;
         let iRow;
         let secuCategory = 1;
 
         for (let iData = 0; iData < data.length; ++iData) {
-            for (iRow = 0; iRow < len; ++iRow) {
+            for (iRow = 0; iRow < AppComponent.self.positionTable.rows.length; ++iRow) {
                 if (parseInt(AppComponent.self.positionTable.rows[iRow].cells[2].Text) === data[iData].record.code) { // refresh
                     secuCategory = parseInt(AppComponent.self.positionTable.rows[iRow].cells[1].Text);
 
@@ -2009,12 +2008,11 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             }
 
-            if (iRow === len) {
+            if (iRow === AppComponent.self.positionTable.rows.length) {
                 secuCategory === 1 ? AppComponent.self.addEquityPosInfo(data[iData]) : AppComponent.self.addFuturePosInfo(data[iData]);
             }
         }
 
-        len = null;
         iRow = null;
         secuCategory = null;
     }
@@ -2025,7 +2023,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        if (codeInfo) {
+        if (codeInfo.length > 0) {
             let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
             if (tempObj)
                 row.cells[3].Text = (tempObj.SecuCode + "").split(".")[0];
@@ -2050,7 +2048,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        if (codeInfo)
+        if (codeInfo.length > 0)
             row.cells[3].Text = codeInfo[obj.record.code].SecuCode;
         else
             row.cells[3].Text = "";
