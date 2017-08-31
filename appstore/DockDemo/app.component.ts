@@ -992,10 +992,10 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: { type: "registerAccPos", data: account }
             });
-            MessageBox.openFileDialog("Select CSV", function (filenames) {
+            MessageBox.openFileDialog("Select CSV", function(filenames) {
                 // console.log(filenames);
                 if (filenames !== undefined)
-                    fs.readFile(filenames[0], function (err, content) {
+                    fs.readFile(filenames[0], function(err, content) {
                         if (err === null) {
                             readself.portfolioCount.Text = "0";
                             readself.allChk.Text = false;
@@ -1003,7 +1003,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                             let codeStr = content.toString();
                             let splitStr = codeStr.split("\n");
                             let initPos = [];
-                            splitStr.forEach(function (item) {
+                            splitStr.forEach(function(item) {
                                 let arr = item.split(",");
                                 if (arr.length === 2 && arr[0]) {
                                     let obj = AppComponent.self.secuinfo.getSecuinfoByCode(arr[0] + "");
@@ -1274,7 +1274,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.subScribeMarketInit(this.option.feedhandler.port, this.option.feedhandler.host);
         // this.init(9082, "172.24.51.4");
         let getpath = Environment.getDataPath(this.option.name);
-        fs.exists(getpath + "/config.json", function (exists) {
+        fs.exists(getpath + "/config.json", function(exists) {
             if (exists) { // file exist
                 fs.readFile(getpath + "/config.json", (err, data) => {
                     if (err) throw err;
@@ -1286,7 +1286,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     }
                 });
             } else {  // nost exist
-                fs.writeFile(getpath + "/config.json", "", function (err) {
+                fs.writeFile(getpath + "/config.json", "", function(err) {
                     if (err) {
                         console.log(err);
                     }
@@ -1361,7 +1361,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let getpath = Environment.getDataPath(this.option.name) + "/config.json";
 
         // judge ss green or red
-        fs.writeFile(getpath, rtntemp, function (err) {
+        fs.writeFile(getpath, rtntemp, function(err) {
             if (err) {
                 console.log(err);
             }
@@ -1792,7 +1792,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
     }
     addDoneOrderInfo(obj: any) {
-        let row = this.doneOrdersTable.newRow();
+        let row = this.doneOrdersTable.newRow(true);
         row.cells[0].Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
         let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
@@ -1877,7 +1877,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
     }
     addUndoneOrderInfo(obj: any) {
-        let row = this.orderstatusTable.newRow();
+        let row = this.orderstatusTable.newRow(true);
         row.cells[0].Type = "checkbox";
         row.cells[0].Text = false;
         row.cells[0].Data = { ukey: 0, chk: true };
@@ -2022,13 +2022,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        if (codeInfo.length > 0) {
-            let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
-            if (tempObj)
-                row.cells[3].Text = (tempObj.SecuCode + "").split(".")[0];
-        }
-        else
-            row.cells[3].Text = "";
+        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "";
         row.cells[4].Text = obj.record.TotalVol;
         row.cells[5].Text = obj.record.AvlVol;
         row.cells[6].Text = obj.record.AvlCreRedempVol;
@@ -2047,11 +2041,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        if (codeInfo.length > 0)
-            row.cells[3].Text = codeInfo[obj.record.code].SecuCode;
-        else
-            row.cells[3].Text = "";
-
+        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "";
         row.cells[4].Text = obj.record.TotalVol;
         row.cells[5].Text = obj.record.AvlVol;
         row.cells[6].Text = 0;
@@ -3096,7 +3086,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     writeinconfigJson(data: string) {
         let getpath = Environment.getDataPath(this.option.name);
-        fs.writeFile(getpath + "/config.json", data, function (err) {
+        fs.writeFile(getpath + "/config.json", data, function(err) {
             if (err) {
                 console.log(err);
             }

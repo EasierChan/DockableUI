@@ -1772,13 +1772,13 @@ export class DataTable extends Control {
         };
     }
 
-    newRow(): DataTableRow {
+    newRow(bInsertFirst: boolean = false): DataTableRow {
         let row = new DataTableRow(this.columns.length);
         row.onCellClick = this._cellclick;
         row.onRowClick = this._rowclick;
         row.onCellDBClick = this._cellDBClick;
         row.onRowDBClick = this._rowDBClick;
-        this.rows.push(row);
+        bInsertFirst ? this.rows.unshift(row) : this.rows.push(row);
         this.dataSource.rows = this.rows;
         return row;
     }
