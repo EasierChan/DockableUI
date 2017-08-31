@@ -40,7 +40,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private logPage: TabPage;
     private strategyPage: TabPage;
     private accountPage: TabPage;
-    private PositionPage: TabPage;
+    private positionPage: TabPage;
     private profitPage: TabPage;
     private statarbPage: TabPage;
     private portfolioPage: TabPage;
@@ -54,7 +54,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private strategyTable: DataTable;
     private accountTable: DataTable;
     private static self: AppComponent;
-    private PositionTable: DataTable;
+    private positionTable: DataTable;
     private profitTable: DataTable;
     private statarbTable: DataTable;
     private portfolioTable: DataTable;
@@ -344,13 +344,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
 
-        this.orderstatusTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
-            console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
-            let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
-            if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
-                AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
-            console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
-        };
+        // this.orderstatusTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
+        //     console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
+        //     let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
+        //     if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
+        //         AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
+        // };
 
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
         this.pageObj["DoneOrders"] = this.doneOrdersPage;
@@ -393,10 +392,10 @@ export class AppComponent implements OnInit, AfterViewInit {
         accountContent.addChild(this.accountTable);
         this.accountPage.setContent(accountContent);
 
-        this.PositionPage = new TabPage("Position", this.langServ.getTranslateInfo(this.languageType, "Position"));
-        this.pageObj["Position"] = this.PositionPage;
+        this.positionPage = new TabPage("Position", this.langServ.getTranslateInfo(this.languageType, "Position"));
+        this.pageObj["Position"] = this.positionPage;
         let positionContent = new ComboControl("col");
-        this.PositionTable = new DataTable("table2");
+        this.positionTable = new DataTable("table2");
         let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
             "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"];
         let positionTableRtnArr: string[] = [];
@@ -406,12 +405,12 @@ export class AppComponent implements OnInit, AfterViewInit {
             positionTableRtnArr.push(positionRtn);
         }
         positionTableRtnArr.forEach(item => {
-            this.PositionTable.addColumn(item);
+            this.positionTable.addColumn(item);
         });
-        this.PositionTable.columnConfigurable = true;
-        positionContent.addChild(this.PositionTable);
-        this.PositionPage.setContent(positionContent);
-        this.PositionTable.onRowDBClick = (rowItem, rowIndex) => {
+        this.positionTable.columnConfigurable = true;
+        positionContent.addChild(this.positionTable);
+        this.positionPage.setContent(positionContent);
+        this.positionTable.onRowDBClick = (rowItem, rowIndex) => {
             let account = rowItem.cells[0].Text;
             let ukey = rowItem.cells[2].Text;
             let strategyid = rowItem.cells[11].Text;
@@ -2006,53 +2005,44 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.orderstatusTable.detectChanges();
     }
 
+    /**
+     * update by cl, date 2017/08/31
+     */
     showComRecordPos(data: any) {
-        for (let i = 0; i < data.length; ++i) {
-            let equityPosTableRows: number = AppComponent.self.PositionTable.rows.length;
-            let equityposSec: number = data[i].secucategory;
-            let ukey: number = data[i].record.code;
-            let type: number = data[i].record.type;
-            if (equityPosTableRows === 0) {
-                if (equityposSec === 1) // equity
-                    AppComponent.self.addEquityPosInfo(data[i]);
-                else if (equityposSec === 2) {
-                    AppComponent.self.addFuturePosInfo(data[i]);
+        let len: number = AppComponent.self.positionTable.rows.length;
+        let iRow;
+        let secuCategory = 1;
+
+        for (let iData = 0; iData < data.length; ++iData) {
+            for (iRow = 0; iRow < len; ++iRow) {
+                if (parseInt(AppComponent.self.positionTable.rows[iRow].cells[2].Text) === data[iData].record.code) { // refresh
+                    secuCategory = parseInt(AppComponent.self.positionTable.rows[iRow].cells[1].Text);
+
+                    if (secuCategory === 1) {
+                        AppComponent.self.refreshEquitPosInfo(data[iData], iRow);
+                    } else if (secuCategory === 2) {
+                        if (parseInt(AppComponent.self.positionTable.rows[iRow].cells[12].Text) === data[iData].record.type)
+                            AppComponent.self.refreshFuturePosInfo(data[iData], iRow);
+                        else
+                            AppComponent.self.addFuturePosInfo(data[iData]);
+                    }
+
+                    break;
                 }
             }
-            else {
-                let checkFlag: boolean = false;
-                for (let j = 0; j < equityPosTableRows; ++j) {
-                    let getUkey = AppComponent.self.PositionTable.rows[j].cells[2].Text;
-                    let getSec = AppComponent.self.PositionTable.rows[j].cells[1].Text;
-                    if (parseInt(getUkey) === ukey) { // refresh
-                        checkFlag = true;
-                        if (parseInt(getSec) === 1) {
-                            AppComponent.self.refreshEquitPosInfo(data[i], j);
-                        } else if (getSec === 2) {
-                            let getType = AppComponent.self.PositionTable.rows[j].cells[12].Text;
-                            if (parseInt(getType) === type)
-                                AppComponent.self.refreshFuturePosInfo(data[i], j);
-                            else
-                                AppComponent.self.addFuturePosInfo(data[i]);
-                        }
-                    }
-                }
 
-                if (!checkFlag) {  // add
-                    if (equityposSec === 1) {
-                        AppComponent.self.addEquityPosInfo(data[i]);
-                    }
-                    else if (equityposSec === 2) {
-                        AppComponent.self.addFuturePosInfo(data[i]);
-                    }
-                }
-                checkFlag = false;
+            if (iRow === len) {
+                secuCategory === 1 ? AppComponent.self.addEquityPosInfo(data[iData]) : AppComponent.self.addFuturePosInfo(data[iData]);
             }
         }
+
+        len = null;
+        iRow = null;
+        secuCategory = null;
     }
 
     addEquityPosInfo(obj: any) {
-        let row = AppComponent.self.PositionTable.newRow();
+        let row = AppComponent.self.positionTable.newRow();
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
@@ -2068,56 +2058,54 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[5].Text = obj.record.AvlVol;
         row.cells[6].Text = obj.record.AvlCreRedempVol;
         row.cells[7].Text = obj.record.WorkingVol;
-        row.cells[8].Text = obj.record.TotalCost;
+        row.cells[8].Text = obj.record.TotalCost / 10000;
         row.cells[9].Text = 0;
         row.cells[10].Text = 0;
         row.cells[11].Text = obj.strategyid;
         row.cells[12].Text = obj.record.type;
-        AppComponent.self.PositionTable.detectChanges();
+        AppComponent.self.positionTable.detectChanges();
     }
 
     addFuturePosInfo(obj: any) {
-        let row = AppComponent.self.PositionTable.newRow();
+        let row = AppComponent.self.positionTable.newRow();
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        if (codeInfo) {
-            let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
-            if (tempObj)
-                row.cells[3].Text = (tempObj.SecuCode + "").split(".")[0];
-        }
+        if (codeInfo)
+            row.cells[3].Text = codeInfo[obj.record.code].SecuCode;
         else
             row.cells[3].Text = "";
+
         row.cells[4].Text = obj.record.TotalVol;
         row.cells[5].Text = obj.record.AvlVol;
         row.cells[6].Text = 0;
         row.cells[7].Text = obj.record.WorkingVol;
-        row.cells[8].Text = obj.record.TotalCost;
+        row.cells[8].Text = obj.record.TotalCost / 10000;
         row.cells[9].Text = obj.record.TodayOpen;
         row.cells[10].Text = obj.record.MarginAveragePrice / 10000;
         row.cells[11].Text = obj.strategyid;
         row.cells[12].Text = obj.record.type;
-        AppComponent.self.PositionTable.detectChanges();
+        AppComponent.self.positionTable.detectChanges();
     }
 
     refreshEquitPosInfo(obj: any, idx: number) {
-        AppComponent.self.PositionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
-        AppComponent.self.PositionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
-        AppComponent.self.PositionTable.rows[idx].cells[6].Text = obj.record.AvlCreRedempVol;
-        AppComponent.self.PositionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
-        AppComponent.self.PositionTable.rows[idx].cells[8].Text = obj.record.TotalCost;
-        AppComponent.self.PositionTable.detectChanges();
+        AppComponent.self.positionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
+        AppComponent.self.positionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
+        AppComponent.self.positionTable.rows[idx].cells[6].Text = obj.record.AvlCreRedempVol;
+        AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
+        AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
+        AppComponent.self.positionTable.detectChanges();
     }
 
     refreshFuturePosInfo(obj: any, idx: number) {
-        AppComponent.self.PositionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
-        AppComponent.self.PositionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
-        AppComponent.self.PositionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
-        AppComponent.self.PositionTable.rows[idx].cells[8].Text = obj.record.TotalCost;
-        AppComponent.self.PositionTable.rows[idx].cells[9].Text = obj.record.TodayOpen;
-        AppComponent.self.PositionTable.rows[idx].cells[10].Text = obj.record.MarginAveragePrice / 10000;
-        AppComponent.self.PositionTable.detectChanges();
+        AppComponent.self.positionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
+        AppComponent.self.positionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
+        AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
+        AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
+        AppComponent.self.positionTable.rows[idx].cells[9].Text = obj.record.TodayOpen;
+        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.MarginAveragePrice / 10000;
+        AppComponent.self.positionTable.detectChanges();
     }
 
     showComGWNetGuiInfo(data: any) {

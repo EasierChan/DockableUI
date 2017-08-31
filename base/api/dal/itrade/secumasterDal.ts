@@ -115,9 +115,11 @@ class SecuMaster {
             for (let o in SecuMaster.secuUkeyObj) {
                 if (o === (ukey[i] + "")) {
                     rtnObj[o] = SecuMaster.secuUkeyObj[o];
+                    break;
                 }
             }
         }
+
         return rtnObj;
     }
 
