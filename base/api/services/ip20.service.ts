@@ -42,21 +42,22 @@ class IP20Parser extends Parser {
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+        let peekBuf = null;
 
         for (; bufCount < this._oPool.length; ++bufCount) {
-            buflen += this._oPool.peek(bufCount + 1)[bufCount].byteLength;
+            peekBuf = this._oPool.peek(bufCount + 1);
+            buflen += peekBuf[bufCount].byteLength;
             if (buflen >= ISONPack2Header.len) {
-                console.info(`buflen=${buflen}, ISONPack2Header.len=${ISONPack2Header.len}, bufCount=${bufCount}`);
+                console.info(`buflen=${buflen}, ISONPack2Header.len=${ISONPack2Header.len}, bufCount=${bufCount + 1}`);
                 this._curHeader = new ISONPack2Header();
                 let tempBuffer = null;
 
-                if (bufCount > 1) {
-                    tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
-
+                if (bufCount >= 1) {
+                    tempBuffer = Buffer.concat(peekBuf, buflen);
                     this._curHeader.fromBuffer(tempBuffer);
                 } else {
-                    this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0]);
-                    tempBuffer = this._oPool.peek(bufCount + 1)[0];
+                    this._curHeader.fromBuffer(peekBuf[0]);
+                    tempBuffer = peekBuf[0];
                 }
 
                 //  remove unvalid message header

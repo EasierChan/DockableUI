@@ -13,7 +13,7 @@ export class ULogger {
             appenders: [
                 { type: "console", maxLogSize: 20480000 },
                 {
-                    type: "file",
+                    type: "dateFile",
                     filename: path.join(logdir, name),
                     pattern: "-yyyy-MM-dd",
                     category: "alert", maxLogSize: 20480000
