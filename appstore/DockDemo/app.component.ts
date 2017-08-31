@@ -40,7 +40,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     private logPage: TabPage;
     private strategyPage: TabPage;
     private accountPage: TabPage;
-    private PositionPage: TabPage;
+    private positionPage: TabPage;
     private profitPage: TabPage;
     private statarbPage: TabPage;
     private portfolioPage: TabPage;
@@ -344,13 +344,12 @@ export class AppComponent implements OnInit, AfterViewInit {
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
 
-        this.orderstatusTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
-            console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
-            let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
-            if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
-                AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
-            console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
-        };
+        // this.orderstatusTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
+        //     console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
+        //     let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
+        //     if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
+        //         AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
+        // };
 
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
         this.pageObj["DoneOrders"] = this.doneOrdersPage;
@@ -393,8 +392,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         accountContent.addChild(this.accountTable);
         this.accountPage.setContent(accountContent);
 
-        this.PositionPage = new TabPage("Position", this.langServ.getTranslateInfo(this.languageType, "Position"));
-        this.pageObj["Position"] = this.PositionPage;
+        this.positionPage = new TabPage("Position", this.langServ.getTranslateInfo(this.languageType, "Position"));
+        this.pageObj["Position"] = this.positionPage;
         let positionContent = new ComboControl("col");
         this.positionTable = new DataTable("table2");
         let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
@@ -410,7 +409,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         });
         this.positionTable.columnConfigurable = true;
         positionContent.addChild(this.positionTable);
-        this.PositionPage.setContent(positionContent);
+        this.positionPage.setContent(positionContent);
         this.positionTable.onRowDBClick = (rowItem, rowIndex) => {
             let account = rowItem.cells[0].Text;
             let ukey = rowItem.cells[2].Text;
