@@ -2,7 +2,7 @@
 
 import { Component, OnInit, Input } from "@angular/core";
 import { IP20Service } from "../../../base/api/services/ip20.service";
-import { DataTable } from "../../../base/controls/control";
+import { DataTable, TabPanel, TabPage } from "../../../base/controls/control";
 import { WorkspaceConfig } from "../../../base/api/model/workbench.model";
 
 @Component({
@@ -16,33 +16,33 @@ export class StrategyComponent implements OnInit {
     @Input("products") products: any[];
     @Input("strategies") strategies: any[];
 
-    enNameLable: string;
+    enNameLabel: string;
     enName: string;
-    chNameLable: string;
+    chNameLabel: string;
     chName: string;
     strategyLabel: string;
     strategyType: string;
     productLabel: string;
     productID: string;
 
+    strategyConfigPanel: TabPanel;
+
     constructor(private tgw: IP20Service) {
-        this.enNameLable = "策略服务名:";
-        this.chNameLable = "中文别名:";
-        this.productLabel = "产品:";
-        this.strategyLabel = "策略:";
+        this.enNameLabel = "策略服务名：";
+        this.chNameLabel = "中文别名：";
+        this.productLabel = "产品：";
+        this.strategyLabel = "策略：";
     }
 
     ngOnInit() {
         if (this.config === undefined)
             this.config = new WorkspaceConfig();
 
-    }
-
-    selectStrategyChange() {
-        console.info(this.strategyType);
-    }
-
-    selectProductChange() {
-        console.info(this.productID);
+        this.strategyConfigPanel = new TabPanel();
+        this.strategyConfigPanel.addTab(new TabPage("parameters", "参数"), false);
+        this.strategyConfigPanel.addTab(new TabPage("instruments", "合约"), false);
+        this.strategyConfigPanel.addTab(new TabPage("commands", "命令"), false);
+        this.strategyConfigPanel.addTab(new TabPage("comments", "Comment"), false);
+        this.strategyConfigPanel.setActive("parameters");
     }
 }

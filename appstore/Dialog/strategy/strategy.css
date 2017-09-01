@@ -1,0 +1,43 @@
+.groupbox {
+    border: 1px solid grey;
+    border-radius: 5px;
+    padding: 10px 1%;
+}
+
+.groupbox > * {
+    margin: 5px;
+}
+
+.btn {
+    padding: 0 12px;
+}
+
+input, button, label, select {
+    padding: 2px 5px;
+    height: 23px;
+    line-height: 23px;
+}
+
+.section {
+    display: flex;
+}
+
+.backtest, .stragtegy {
+    margin-top: 10px;
+}
+
+.stragtegy {
+    flex: auto;
+    display: flex;
+    flex-flow: column nowrap;
+}
+
+.stragtegy > dock-control {
+    flex: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.generate {
+    justify-content: space-between;
+}
