@@ -507,7 +507,7 @@ export class AppComponent implements OnInit, OnDestroy {
                             kwlist.push(ukey);
                     });
 
-                    console.info(kwlist);
+                    // console.info(kwlist);
                     this.quote.send(17, 101, { topic: 3112, kwlist: kwlist });
 
                     kwlist = null;
@@ -667,6 +667,8 @@ export class USpreadViewer {
         this.dataOption = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis, dataZoom: this.spreadChart.chartOption.dataZoom };
 
         this.interval.inst = setInterval(() => {
+            let bChanged = false;
+
             while (true) {
                 if (this.lastPoint[this.ukeys[0]].time === -1 || this.lastPoint[this.ukeys[1]].time === -1)
                     break;
@@ -713,9 +715,12 @@ export class USpreadViewer {
                 } catch (e) {
                     console.error(`Exception: ${e};`, this.lastPoint[this.ukeys[0]], this.lastPoint[this.ukeys[1]], this.clockPoint.time);
                 }
+
+                bChanged = true;
             }
 
-            this.spreadChart.instance.setOption(this.dataOption);
+            if (bChanged)
+                this.spreadChart.instance.setOption(this.dataOption);
         }, this.interval.value);
     }
 
@@ -965,8 +970,6 @@ export class USpreadViewer {
         this.spreadChart.chartOption.series[3].data.length = this.initPadding * 2;
         if (this.spreadChart.instance)
             (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true);
-        else
-            setTimeout(() => { (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true); }, 1000);
     }
 
     changeXAxisRange(type: number = 1) {
