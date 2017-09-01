@@ -598,8 +598,8 @@ export class AppComponent implements OnInit, AfterViewInit {
             let ukeyTest = AppComponent.self.TestingInput(ukey);
             let volumeTest = AppComponent.self.TestingInput(volume);
 
-            let numPrice = Number(price);
-            if (isNaN(numPrice) || numPrice === 0 || numPrice < 0) {
+            let numPrice = parseFloat(price);
+            if (isNaN(numPrice) || numPrice < 0.01) {
                 return;
             }
             if (!volumeTest || !ukeyTest) {
@@ -629,7 +629,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     orderid: 0,
                     algorindex: 0,
                     innercode: parseInt(ukey),
-                    price: price * 10000,
+                    price: numPrice * 10000,
                     quantity: parseInt(volume),
                     action: (actionValue === 1) ? 1 : 0,
                     property: 0,
