@@ -12,6 +12,8 @@ import { DefaultLogger } from "../common/base/logger";
 
 const logger = console;
 
+const kFileName = "ip20work";
+
 class IP20Parser extends Parser {
     private _curHeader: ISONPack2Header = null;
     constructor(_oPool: Pool<Buffer>) {
@@ -100,7 +102,7 @@ class IP20Parser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.packlen) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                logger.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
+                logger.info(`${kFileName}:105 processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
                 this.emit(this._curHeader.appid.toString(), this._curHeader, tempBuffer);
 
                 restLen = buflen - this._curHeader.packlen;
@@ -278,14 +280,14 @@ export class IP20Service {
         head.msglen = 0;
 
         if (msg.body === undefined || msg.body === null) {
-            this.send(appid, 1000, head.toBuffer());
+            this.send(appid, packid, head.toBuffer());
         } else if (msg.body instanceof Buffer) {
             head.msglen = msg.body.length;
-            this.send(appid, 1000, Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen));
+            this.send(appid, packid, Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen));
         } else {
             let buf = msg.body.toBuffer();
             head.msglen = buf.length;
-            this.send(appid, 1000, Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
+            this.send(appid, packid, Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
         }
 
         head = null;

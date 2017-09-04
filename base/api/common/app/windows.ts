@@ -115,6 +115,12 @@ export class ContentWindow extends UWindow {
     }
 }
 
+export class ModalWindow extends UWindow {
+    constructor(config: IWindowCreationOptions, owner: any) {
+        super(config, owner, true);
+    }
+}
+
 export class SingletonWindow extends UWindow {
     constructor(config?: IWindowCreationOptions) {
         super(config);

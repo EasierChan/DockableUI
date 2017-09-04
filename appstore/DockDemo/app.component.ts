@@ -13,10 +13,13 @@ import { ComboControl, MetaControl } from "../../base/controls/control";
 import { WorkerFactory } from "../../base/api/services/uworker.server";
 import {
     MessageBox, fs, AppStateCheckerRef, File, Environment,
-    SecuMasterService, TranslateService
+    SecuMasterService, TranslateService, AppStoreService
 } from "../../base/api/services/backend.service";
-import { EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus, EStrategyStatus, StrategyCfgType } from "../../base/api/model/itrade/orderstruct";
-declare let window: any;
+import {
+    EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus,
+    EStrategyStatus, StrategyCfgType
+} from "../../base/api/model/itrade/orderstruct";
+
 @Component({
     moduleId: module.id,
     selector: "body",
@@ -24,7 +27,8 @@ declare let window: any;
     providers: [
         SecuMasterService,
         TranslateService,
-        AppStateCheckerRef
+        AppStateCheckerRef,
+        AppStoreService
     ]
 })
 export class AppComponent implements OnInit, AfterViewInit {
@@ -119,6 +123,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private statusbar: StatusBar;
     private option: any;
     private layout: any;
+    private tradePoint: any;
+    private quotePoint: any;
 
     static bookViewSN = 1;
     static spreadViewSN = 1;
@@ -126,7 +132,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     static loginFlag: boolean = false;
 
     constructor(private ref: ChangeDetectorRef, private statechecker: AppStateCheckerRef,
-        private secuinfo: SecuMasterService, private langServ: TranslateService) {
+        private secuinfo: SecuMasterService, private langServ: TranslateService, private appSrv: AppStoreService) {
         AppComponent.self = this;
         this.statechecker.onInit(this, this.onReady);
         this.statechecker.onResize(this, this.onResize);
@@ -147,6 +153,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 tempCodeList.push(parseInt(code));
             }
         }
+
         AppComponent.self.subscribeMarketData(tempCodeList);
         AppComponent.self.statechecker.changeMenuItemState(pageid, false, 2);
     }
@@ -196,24 +203,24 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     onReady(option: any) {
-        // option.port and option.host and option.name ;
         this.option = option;
-        let language = this.option.lang;
-        switch (language) {
+    }
+
+    ngOnInit(): void {
+        let setting = this.appSrv.getSetting();
+        switch (setting.language) {
             case "zh-cn":
                 this.languageType = 1;
                 break;
             case "en-us":
-                this.languageType = 0;
-                break;
             default:
                 this.languageType = 0;
                 break;
         }
-        // console.info(this.option);
-    }
 
-    ngOnInit(): void {
+        this.tradePoint = setting.endpoints[0].trade_addr.split(":");
+        this.quotePoint = setting.endpoints[0].quote_addr.split(":");
+
         this.statusbar = new StatusBar();
         let order = "OrderStatus";
         this.orderstatusPage = new TabPage(order, this.langServ.getTranslateInfo(this.languageType, order));
@@ -1268,10 +1275,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         this.loadLayout();
         AppComponent.bgWorker.send({
-            command: "ss-start", params: { port: this.option.port, host: this.option.host }
+            command: "ss-start", params: { port: parseInt(this.tradePoint[1]), host: this.tradePoint[0], appid: this.option.appid }
         });
 
-        this.subScribeMarketInit(this.option.feedhandler.port, this.option.feedhandler.host);
+        this.subScribeMarketInit(this.quotePoint[1], this.quotePoint[0]);
         // this.init(9082, "172.24.51.4");
         let getpath = Environment.getDataPath(this.option.name);
         fs.exists(getpath + "/config.json", function (exists) {
@@ -1296,11 +1303,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit() {
-        setInterval(() => {
-            this.bookviewArr.forEach(item => {
-                item.table.detectChanges();
-            });
-        }, 1000);
     }
 
     loadLayout() {
@@ -2320,17 +2322,16 @@ export class AppComponent implements OnInit, AfterViewInit {
                         checkFlag = true;
                         if (getSec === 1) {
                             AppComponent.self.refreshAccountEquiteInfo(data[i], j);
-                        }
-                        else if (getSec === 2) {
+                        } else if (getSec === 2) {
                             AppComponent.self.refreshAccountFutureInfo(data[i], j);
                         }
                     }
                 }
+
                 if (!checkFlag) {   // add
                     if (accSec === 1) {
                         AppComponent.self.addAccountEquitInfo(data[i]);
-                    }
-                    else if (accSec === 2) {
+                    } else if (accSec === 2) {
                         AppComponent.self.addAccountFutureInfo(data[i]);
                     }
                 }

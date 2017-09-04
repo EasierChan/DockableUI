@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig, StrategyContainer, StrategyInstance } from "../../bll/strategy.server";
+import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType, Channel } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
 
@@ -11,7 +11,7 @@ let ip20strs = [];
 @Component({
     moduleId: module.id,
     selector: "simulation",
-    template: `<tilearea [dataSource]="simulationArea.dataSource" [styleObj]="simulationArea.styleObj"></tilearea>`,
+    template: `<tilearea [dataSource]="strategyArea.dataSource" [styleObj]="strategyArea.styleObj"></tilearea>`,
     styleUrls: ["simulation.component.css"],
     providers: [
         Menu,
@@ -19,524 +19,189 @@ let ip20strs = [];
     ]
 })
 export class SimulationComponent implements OnInit {
-    contextMenu: Menu;
-    configs: Array<WorkspaceConfig>;
-    config: WorkspaceConfig;
-    curTemplate: any;
-    isInit: boolean = false;
-    panelTitle: string;
-    strategyName: string;
-    strategyCores: string[];
-    ProductMsg: any[];
-    bshow: boolean = false;
-    bcreate: boolean = false;
-    bSelProduct: boolean = false;
-    bModify: boolean = false;
-    bSelStrategy: boolean = false;
-    bcreateSuss: boolean = false;
-    accounts: string;
-    gatewayObj: Object;
-    setting: any;
-    clickItem: any;
-    simulationArea: TileArea;
-    bChangeShow: boolean = false;
-    sendLoopConfigs: any[] = [];
-    frame_host: any;
-    frame_port: any;
-    strategymap: any;
+    strategyMenu: Menu;
+    strategyArea: TileArea;
+    strategyConfigs: Array<WorkspaceConfig>;
+    selectedStrategyConfig: WorkspaceConfig;
+    strategyKeys: number[];
 
-    constructor(private appService: AppStoreService, private tgw: TradeService,
-        private configBll: ConfigurationBLL) {
+    constructor(private appService: AppStoreService, private tradePoint: TradeService, private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {
-        this.setting = this.appService.getSetting();
-        this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
-        this.frame_port = this.setting.endpoints[0].quote_addr.split(":")[1];
+        this.appService.onUpdateApp(this.updateApp, this);
+        this.registerListeners();
+        this.initializeStrategies();
+    }
 
-        this.tgw.addSlot({
+    registerListeners() {
+        let strategyKeys = [];
+
+        this.tradePoint.addSlot({
             appid: 107,
-            packid: 2001,
+            packid: 2001, // 创建策略回报
             callback: msg => {
-                console.info(msg.content.body, this.config);
-                let config = this.configs.find(item => { return config.activeChannel === "simulation" && item.name === msg.content.body.name; });
-                if (this.bcreateSuss) {
-                    config.name = msg.content.body.name;
-                    config.host = msg.content.body.address;
-                    let tile = new Tile();
-                    tile.title = config.chname;
-                    tile.iconName = "tasks";
-                    this.simulationArea.addTile(tile); 
-                    this.configBll.updateConfig(config);
+                console.info(msg);
+                if (msg.content.body.errorid !== 0) {
+                    console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
+                    return;
                 }
 
-                this.bcreateSuss = false;
+                let config = this.strategyConfigs.find(item => { return item.name === msg.content.body.name; });
+
+                if (config) {
+                    config.appid = msg.content.body.appid;
+                    config.items[0].key = msg.content.body.strategy_key;
+                    this.strategyKeys.push(config.items[0].key);
+
+                    let tile = this.strategyArea.getTile(config.name);
+
+                    if (null === tile) {
+                        tile = new Tile();
+                        tile.title = config.chname;
+                        tile.iconName = "tasks";
+                        this.strategyArea.addTile(tile);
+                    }
+
+                    this.configBll.updateConfig(config);
+                    this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+                }
             }
         });
 
-        this.tgw.addSlot({
+        this.tradePoint.addSlot({
             appid: 107,
-            packid: 2003,
+            packid: 2003, // 启动策略回报
             callback: msg => {
-                console.log(2003, msg);
-                this.config.port = msg.content.strategyserver.port;
-                this.configBll.updateConfig(this.config);
-            }
-        });
-
-        this.tgw.addSlot({
-            appid: 107,
-            packid: 2009,
-            callback: msg => {
-                console.log(this.config);
-                let strategy_key = 0;
-                let len = msg.content.body.strategies.length;
-                for (let i = 0; i < len; ++i) {
-                    if (msg.content.body.strategies[i].strategy.name === this.config.name) {
-                        strategy_key = msg.content.body.strategies[i].strategy.strategy_key;
+                for (let i = 0; i < this.strategyConfigs.length; ++i) {
+                    if (this.strategyConfigs[i].name === msg.content.strategyserver.name) {
+                        // this.strategyConfigs[i].appid = 
                         break;
                     }
                 }
-                this.config.strategyInstances[0].key = strategy_key + "";
-                this.curTemplate.body.data.Strategy[0].key = strategy_key;
-                console.log(this.config, this.curTemplate.body.data);
-                this.tgw.send(107, 2000, {
-                    routerid: 0, templateid: this.curTemplate.id, body: {
-                        name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
-                        strategies: { name: this.config.name }
-                    }
-                });
+
+                this.configBll.updateConfig();
             }
         });
 
-        this.tgw.addSlot({
-            appid: 200,
-            packid: 8012,
+        // subscribe strategy status
+        this.tradePoint.addSlot({
+            appid: 17,
+            packid: 110,
             callback: (msg) => {
-                console.info("receive 8012:", msg);
-                for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-                    this.config.channels.gateway[i].port = parseInt(msg.content.port);
-                    this.config.channels.gateway[i].addr = msg.content.url;
-                }
-            }
-        });
+                console.info(msg);
+                let target = this.strategyConfigs.find(citem => { return citem.name === msg.content.strategyserver.name; });
 
-        this.configs = this.configBll.getAllConfigs();
-        this.configs.forEach(config => {
-            if (config.activeChannel === "simulation") {
-                this.config = config;
-                this.config.state = 0;
-                this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-                if (this.curTemplate === null)
-                    return;
+                if (target !== undefined)
+                    this.strategyArea.getTile(target.chname).backgroundColor = msg.content.strategyserver.stat !== 0 ? "#1d9661" : null;
 
-                let tile = new Tile();
-                tile.title = config.chname;
-                tile.iconName = "tasks";
-                this.simulationArea.addTile(tile);
-                this.configBll.updateConfig(config);
-                this.finish();
             }
         });
     }
 
     initializeStrategies() {
-        // contextMenu
-        this.contextMenu = new Menu();
-        this.contextMenu.addItem("启动", () => {
-            this.operateStrategyServer(this.config, 1);
+        this.strategyKeys = [];
+        // strategyMenu
+        this.strategyMenu = new Menu();
+        this.strategyMenu.addItem("启动", () => {
+            this.operateStrategyServer(this.selectedStrategyConfig, 1);
         });
-        this.contextMenu.addItem("停止", () => {
-            this.operateStrategyServer(this.config, 0);
+        this.strategyMenu.addItem("停止", () => {
+            this.operateStrategyServer(this.selectedStrategyConfig, 0);
         });
-        this.contextMenu.addItem("修改", () => {
-            this.config.curstep = 1;
-            this.bshow = true;
-            this.bModify = true;
-            this.onPopup(1);
+        this.strategyMenu.addItem("修改", () => {
+            this.appService.startApp("策略配置", "Dialog", {
+                dlg_name: "strategy",
+                config: this.selectedStrategyConfig,
+                strategies: this.configBll.getTemplates()
+            });
         });
-        this.contextMenu.addItem("删除", () => {
-            if (!confirm("确定删除？")) {
+        this.strategyMenu.addItem("删除", () => {
+            if (!confirm("确定删除？"))
                 return;
-            } else {
-                let len = this.configs.length;
-                for (let i = 0; i < len; ++i) {
-                    if (this.configs[i].chname === this.clickItem.title) {
-                        this.configs.splice(i, 1);
-                        this.configBll.updateConfig();
-                        this.simulationArea.removeTile(this.clickItem.title);
-                        break;
-                    }
-                }
-            }
-        });
-        this.contextMenu.addItem("移动到实盘", () => {
-            console.log(this.config);
-            this.bChangeShow = true;
-            this.tgw.send(260, 216, { body: { tblock_type: 2 } });
-        });
 
-        // Strategies
-        this.simulationArea = new TileArea();
-        this.simulationArea.title = "仿真策略";
-
-
-        this.simulationArea.onCreate = () => {
-            this.bcreateSuss = true;
-            this.bshow = true;
-            this.config.curstep = 1;
-            this.onPopup(0);
-        };
-        this.simulationArea.onClick = (event: MouseEvent, item: Tile) => {
-            this.clickItem = item;
-            let len = this.configs.length;
+            let len = this.strategyConfigs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.configs[i].chname === item.title) {
-                    this.config = this.configs[i];
+                if (this.strategyConfigs[i].chname === this.selectedStrategyConfig.chname) {
+                    this.strategyConfigs.splice(i, 1);
+                    this.configBll.updateConfig();
+                    this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
                     break;
                 }
             }
+        });
+        // end strategyMenu
+
+        this.strategyArea = new TileArea();
+        this.strategyArea.title = "策略";
+        this.strategyArea.onCreate = () => {
+            let config = new WorkspaceConfig();
+            config.activeChannel = Channel.SIMULATION;
+            this.appService.startApp("策略配置", "Dialog", { dlg_name: "strategy", config: config, strategies: this.configBll.getTemplates() });
+        };
+
+        this.strategyArea.onClick = (event: MouseEvent, item: Tile) => {
+            let len = this.strategyConfigs.length;
+
+            for (let i = 0; i < len; ++i) {
+                if (this.strategyConfigs[i].chname === item.title) {
+                    this.selectedStrategyConfig = this.strategyConfigs[i];
+                    break;
+                }
+            }
+
             if (event.button === 0) {  // left click
                 this.onStartApp();
             } else if (event.button === 2) { // right click
-                this.contextMenu.popup();
+                this.strategyMenu.popup();
             }
-            console.log(this.config, this.clickItem);
         };
-    }
 
-    onSelectProduct(value: string) {
-        console.log(value);
-        this.bSelProduct = true;
-        this.accounts = "";
-        let len = this.ProductMsg.length;
-        let account_arr = [];
-        let gateway_arr = [];
-        for (let i = 0; i < len; ++i) {
-            if (this.ProductMsg[i].tblock_full_name === value) {
-                account_arr.push(this.ProductMsg[i].broker_customer_code);
-                gateway_arr.push(this.ProductMsg[i].cfg.split("|"));
-            }
-        }
-        account_arr = this.duplicateRemove(account_arr);
-        for (let j = 0; j < account_arr.length; ++j) {
-            if (j === account_arr.length - 1) {
-                this.accounts += account_arr[j];
-            } else {
-                this.accounts += account_arr[j] + ",";
-            }
-        }
-
-        let tmp_gateway_arr = [];
-        for (let tmp = 0; tmp < gateway_arr.length; ++tmp) {
-            for (let tip = 0; tip < gateway_arr[tmp].length; ++tip) {
-                tmp_gateway_arr.push(gateway_arr[tmp][tip]);
-            }
-        }
-        gateway_arr = this.duplicateRemove(tmp_gateway_arr);
-        let combine = {};
-        for (let idx = 0; idx < gateway_arr.length; ++idx) {
-            let tmp = gateway_arr[idx].split(",");
-            combine[tmp[2]] = { addr: tmp[0], port: parseInt(tmp[1]) };
-        }
-        this.gatewayObj = combine;
-        console.log(this.accounts, this.gatewayObj);
-        if (this.bModify) {  // in modify strategy, if select product ,change account info and gateway;
-            for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-                for (let obj in this.gatewayObj) {
-                    if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
-                        this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
-                        this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
-                        break;
-                    }
-                }
-            }
-            this.config.strategyInstances[0].accounts = this.accounts;
-        }
-    }
-
-    finish() {
-        console.log(this.config);
-        // validation
-        if (!this.config.name || this.config.name.length === 0 ||
-            !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
-            // console.log(this.config.name, this.config.name.length, this.config.strategyCoreName, this.config.strategyInstances, this.config.strategyInstances.length);
-            alert("Wrong Config check items: <br>1. config name.<br>2. one strategy instance at least");
-            return;
-        }
-        if (this.config.activeChannel === "simulation") {
-            this.config.channels.gateway.forEach((gw, index) => {
-                console.log("print gw:", gw);
-                if (index === 0)
-                    this.curTemplate.body.data.SSGW[index].ref = 0;
-                this.curTemplate.body.data.SSGW[index].port = gw.port = parseInt(gw.port);
-                this.curTemplate.body.data.SSGW[index].addr = gw.addr = gw.addr;
-            });
-
-            this.curTemplate.body.data.SSFeed.detailview.PriceServer.port = parseInt(this.config.channels.feedhandler.port);
-            this.curTemplate.body.data.SSFeed.detailview.PriceServer.addr = this.config.channels.feedhandler.addr;
-        }
-        this.curTemplate.body.data["SSNet"]["TSServer.port"] = this.config.port;
-        this.curTemplate.body.data["globals"]["ss_instance_name"] = this.config.name;
-        let sobj = Object.assign({}, this.curTemplate.body.data["Strategy"][0]);
-        this.curTemplate.body.data["Strategy"].length = 0;
-        this.curTemplate.body.data["PairTrades"] = {};
-        let hasError = false;
-
-        this.config.strategyInstances.forEach(item => {
-            if (!item.accounts || item.accounts.length < 1) {
-                hasError = true;
-                return;
-            }
-            let obj = JSON.parse(JSON.stringify(sobj));
-            obj.account = [];
-            item.accounts.split(",").forEach(iact => {
-                obj.account.push(parseInt(iact));
-            });
-            obj.algoes = item.algoes;
-            obj.checks = item.checks;
-            // obj.cfg = obj.field = obj.name = obj.log = item.name;
-            obj.cfg = obj.field = obj.name = obj.log = this.config.name;
-            obj.key = parseInt(item.key);
-            obj.status = 2; // RUN;
-            // obj.maxorderid = 0;
-            // obj.minorderid
-            // obj.orderstep
-            item.parameters.forEach((iparam: any) => {
-                iparam.value = parseFloat(iparam.value);
-            });
-            item.comments.forEach((icomment: any) => {
-                if (icomment.value === "false" || icomment.value === "true") { // hack for specified requirement from backend
-                    ;
-                } else {
-                    icomment.value = parseFloat(icomment.value);
-                }
-            });
-            item.instruments.forEach((instrument: any) => {
-                instrument.value = parseFloat(instrument.value);
-            });
-            this.curTemplate.body.data["Strategy"].push(obj);
-            this.curTemplate.body.data["PairTrades"][item.name] = { // item.name
-                Command: item.commands,
-                Comment: item.comments,
-                Instrument: item.instruments,
-                Parameter: item.parameters
-            };
-
-            if (item.sendChecks) {
-                this.curTemplate.body.data["PairTrades"][item.name]["SendCheck"] = item.sendChecks; // item.name
-            }
+        this.strategyConfigs = this.configBll.getRealTradeConfigs();
+        this.strategyConfigs.forEach(config => {
+            let tile = new Tile();
+            tile.title = config.chname;
+            tile.iconName = "tasks";
+            tile.data = config.name;
+            this.strategyArea.addTile(tile);
+            this.strategyKeys.push(config.items[0].key);
         });
 
-        if (hasError) {
-            alert("Wrong Config check items: <br>1. config name.<br>2. one strategy instance at least.<br>3. account must not be empty.");
-            return;
-        }
-        this.configBll.updateConfig(this.config);
-        console.log(this.config.channels.gateway[0].port, this.config.channels.gateway[0].addr);
-        this.config.strategies = { name: this.config.name };
-        if (!this.bshow) {
-            console.log("in usual model send 2000");
-            this.tgw.send(107, 2000, {
-                routerid: 0, templateid: this.curTemplate.id, body: {
-                    name: this.config.name, config: JSON.stringify(this.curTemplate.body.data), chinese_name: "",
-                    strategies: this.config.strategies
+        // strategy status
+        this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+    }
+
+    // update app info
+    updateApp(params) {
+        switch (params.type) {
+            case "strategy":
+                if (localStorage.getItem(DataKey.kStrategyCfg) !== null) {
+                    this.updateStrategyConfig(JSON.parse(localStorage.getItem(DataKey.kStrategyCfg)));
                 }
-            });
-        }
-        // console.log(this.config);
-        if (this.bshow) {
-            console.log("send 2008 get key");
-            this.tgw.send(107, 2008, {
-                routerid: 0, body: {
-                    name: this.config.name,
-                    strategies: [{ strategy: { name: this.config.name } }]
-                }
-            });
-        }
-        console.log(this.config);
-        this.bcreate = false;
-        this.bModify = false;
-        this.bSelStrategy = false;
-        this.closePanel();
-    }
-
-    hideChange() {
-        this.bChangeShow = false;
-        this.bSelProduct = false;
-    }
-
-    simulationToTruly() {
-        console.log("simulationToTruly");
-        if (!this.bSelProduct) {
-            console.log("select change product 0");
-            // this.onSelectProduct(this.productsList[0]);
-        }
-
-        for (let i = 0; i < this.config.channels.gateway.length; ++i) {
-            for (let obj in this.gatewayObj) {
-                if (parseInt(obj) === parseInt(this.config.channels.gateway[i].key)) {
-                    this.config.channels.gateway[i].addr = this.gatewayObj[obj].addr;
-                    this.config.channels.gateway[i].port = this.gatewayObj[obj].port;
-                    break;
-                }
-            }
-        }
-
-        this.config.strategyInstances[0].accounts = this.accounts;
-        this.config.activeChannel = "default";
-        let getTmp = this.configBll.getTemplateByName(this.config.strategyCoreName);
-        this.configBll.updateConfig(this.config);
-        this.simulationArea.removeTile(this.clickItem.title);
-        this.bChangeShow = false;
-        this.bSelProduct = false;
-    }
-
-    next() {
-        if (this.config.curstep === 1) {
-            if ((/^[A-Za-z0-9]+$/).test(this.config.name) || this.config.name.substr(0, 3) !== "ss-") {
-                alert("please input correct format name");
-                return;
-            }
-            if (!this.bModify) {
-                // get template
-                if (!this.bSelStrategy)
-                    this.config.strategyCoreName = this.getStrategyNameByChinese(this.strategyCores[0]);
-                delete this.curTemplate;
-                this.curTemplate = null;
-                this.curTemplate = JSON.parse(JSON.stringify(this.configBll.getTemplateByName(this.config.strategyCoreName)));
-
-                if (this.curTemplate === null) {
-                    alert("Error: getTemplateByName `not found ${this.config.name}`");
-                    return;
-                    // get gateway
-                }
-                this.config.channels.gateway = this.curTemplate.body.data.SSGW;
-                let gatewayLen = this.config.channels.gateway.length;
-                console.log("in simulation model,ready inset addr and port:", gatewayLen, this.config);
-                for (let i = 0; i < gatewayLen; ++i) {
-                    console.log("insert gateway addr & port");
-                    this.config.channels.gateway[i].addr = "172.24.50.10"; // "172.24.51.1";
-                    this.config.channels.gateway[i].port = 8000;
-                }
-                this.config.channels.feedhandler = this.curTemplate.body.data.SSFeed.detailview.PriceServer;
-                this.config.channels.feedhandler.filename = "./lib/libFeedChronos.so";
-                this.config.channels.feedhandler.addr = "127.0.0.1";
-                this.config.channels.feedhandler.port = 9200;
-                this.strategyName = "";
-                this.bcreate = true;
-
-                let newInstance: StrategyInstance = new StrategyInstance();
-                newInstance.name = this.config.name;
-                newInstance.parameters = JSON.parse(JSON.stringify(this.curTemplate.body.data.Parameter));
-                newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
-                newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
-                newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-                newInstance.sendChecks = JSON.parse(JSON.stringify(this.curTemplate.body.data.SendCheck));
-                newInstance.algoes = [100, 101, 102, 103, 104];
-                this.config.strategyInstances[0] = newInstance;
-                // GET account info from product msg
-                this.config.strategyInstances[0].accounts = "666600000011";
-                console.log(this.config);
-            }
-        }
-        if (this.config.curstep === 2) {
-            this.config.activeChannel = "simulation";
-            // this.createLoopbackTest();
-        }
-
-        ++this.config.curstep;
-    }
-
-    prev() {
-        if (this.config.curstep === 2)
-            this.bcreate = false;
-        --this.config.curstep;
-    }
-
-    getStrategyNameByChinese(data: any) {
-        for (let o in this.strategymap) {
-            if (this.strategymap[o] === data)
-                return o;
+                break;
         }
     }
 
-    onSelectStrategy(value: string) {
-        console.log(this.config);
-        this.bcreate = true;
-        this.bSelStrategy = true;
-        this.config.strategyCoreName = this.getStrategyNameByChinese(value);
-    }
-
-    closePanel(e?: any) {
-        if (this.bshow) {
-            this.config.curstep = 1;
-            this.bshow = false;
-        }
-    }
-
-    duplicateRemove(data: any) {
-        let temp = {};
-        let arr = [];
-        for (let i = 0; i < data.length; ++i) {
-            if (!temp[data[i]]) {
-                temp[data[i]] = true;
-                arr.push(data[i]);
-            }
-        }
-        return arr;
-    }
-
-    onStartApp() {
-        if (!this.appService.startApp(this.config.name, this.config.apptype, {
-            port: this.config.port,
-            host: this.config.host,
-            name: this.config.name,
-            lang: this.setting.language,
-            feedhandler: {
-                host: this.frame_host,
-                port: parseInt(this.frame_port)
-            }
-        })) {
-            alert(`start ${this.config.name} app error!`);
-        }
-    }
-
-    onPopup(type: number = 0) {
-        this.strategyCores = ["统计套利", "手工交易", "组合交易", "做市策略", "配对交易", "期现套利", "大宗交易"];
-        if (type === 0) {
-            this.config = new WorkspaceConfig();
-            this.config.strategyCoreName = this.getStrategyNameByChinese(this.getStrategyNameByChinese(this.strategyCores[0]));
-        } else {
-            this.config.curstep = 1;
-            this.curTemplate = null;
-            this.curTemplate = this.configBll.getTemplateByName(this.config.strategyCoreName);
-        }
-        if (!this.config.loopbackConfig.option) {
-            let year = new Date().getFullYear();
-            let month = ("0" + (new Date().getMonth() + 1)).slice(-2);
-            let day = ("0" + new Date().getDate()).slice(-2);
-            let idate = year + "-" + month + "-" + day;
-            console.log("idate:", idate);
-            this.config.loopbackConfig.option = {
-                timebegin: idate,
-                timeend: idate,
-                speed: "1",
-                simlevel: "1",
-                period: "1",
-                unit: "1"
-            };
-        }
+    updateStrategyConfig(config: WorkspaceConfig) {
+        console.info(config);
+        this.strategyConfigs.push(config);
+        let instance = this.configBll.getTemplateByName(config.strategyType);
+        instance["ss_instance_name"] = config.name;
+        instance["SSData"]["backup"]["path"] += config.name;
+        instance["SSInfo"]["name"] = config.name;
+        this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
-        console.info(config, action);
-        this.tgw.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
+        this.tradePoint.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
 
-    hide() {
-        this.bshow = false;
-        this.bModify = false;
-        this.config.curstep = 1;
+    onStartApp() {
+        if (!this.appService.startApp(this.selectedStrategyConfig.name, AppType.kStrategyApp, {
+            appid: this.selectedStrategyConfig.appid,
+            name: this.selectedStrategyConfig.name
+        })) {
+            alert(`start ${this.selectedStrategyConfig.name} app error!`);
+        }
     }
 }

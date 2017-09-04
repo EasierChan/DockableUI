@@ -142,7 +142,7 @@ export class AppComponent implements OnDestroy {
     finish() {
         // validation
         if (!this.config.name || this.config.name.length === 0 ||
-            !this.config.strategyCoreName || !this.config.strategyInstances || this.config.strategyInstances.length === 0) {
+            !this.config.strategyCoreName || !this.config.items || this.config.items.length === 0) {
             this.showError("Wrong Config", "check items: <br>1. config name.<br>2. one strategy instance at least.", "alert");
             return;
         }
@@ -178,7 +178,7 @@ export class AppComponent implements OnDestroy {
         this.curTemplate.body.data["Strategy"].length = 0;
         this.curTemplate.body.data["PairTrades"] = {};
         let hasError = false;
-        this.config.strategyInstances.forEach(item => {
+        this.config.items.forEach(item => {
             if (!item.accounts || item.accounts.length < 1) {
                 hasError = true;
                 return;
@@ -361,11 +361,11 @@ export class AppComponent implements OnDestroy {
         newInstance.comments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Comment));
         newInstance.commands = JSON.parse(JSON.stringify(this.curTemplate.body.data.Command));
         newInstance.instruments = JSON.parse(JSON.stringify(this.curTemplate.body.data.Instrument));
-        this.config.strategyInstances.push(newInstance);
+        this.config.items.push(newInstance);
     }
 
     removeInstance(e: MouseEvent, index: number): void {
-        this.config.strategyInstances.splice(index, 1);
+        this.config.items.splice(index, 1);
         e.preventDefault();
         e.stopPropagation();
     }

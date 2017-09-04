@@ -48,7 +48,7 @@ export abstract class Message {
         return rets;
     }
 
-    abstract fromBuffer(buffer: Buffer, offset: number): void;
+    abstract fromBuffer(buffer: Buffer, offset: number): number;
     abstract toBuffer(): Buffer;
 }
 
@@ -73,10 +73,12 @@ export class Header extends Message {
         return buf;
     }
 
-    fromBuffer(buf: Buffer): void {
+    fromBuffer(buf: Buffer): number {
         let offset = 0;
         this.type = buf.readInt16LE(offset); offset += 2;
         this.subtype = buf.readInt16LE(offset); offset += 2;
         this.msglen = buf.readUInt32LE(offset); offset += 4;
+
+        return offset;
     }
 }

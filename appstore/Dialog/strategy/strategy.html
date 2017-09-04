@@ -11,9 +11,9 @@
             <option *ngFor="let opt of products" [value]="opt.tblock_id">{{opt.tblock_full_name}}</option>
         </select>
     </label>
-    <button class="btn btn-primary">保存</button>
+    <button class="btn btn-primary" (click)="save()">保存</button>
 </div>
-<div class="groupbox backtest">
+<div *ngIf="config.activeChannel == 2" class="groupbox backtest">
     <div class="section">
         <label>撮合模式：</label>
         <label for=""><input type="radio" name="match_mode">&nbsp;无条件成交</label>

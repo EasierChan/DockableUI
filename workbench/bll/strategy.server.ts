@@ -2,12 +2,13 @@
 
 import { Injectable } from "@angular/core";
 import { Header } from "../../base/api/model/itrade/message.model";
+import { Channel } from "../../base/api/model/workbench.model";
 import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy, ComStrategyCfg } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
 import { StrategyService } from "../../base/api/services/strategy.service";
 import { File, Environment, path } from "../../base/api/services/backend.service";
 import { WorkspaceConfig, StrategyInstance } from "../../base/api/model/workbench.model";
-export { WorkspaceConfig, StrategyInstance } from "../../base/api/model/workbench.model";
+export { WorkspaceConfig, StrategyInstance, DataKey, AppType, Channel } from "../../base/api/model/workbench.model";
 
 @Injectable()
 export class ConfigurationBLL {
@@ -21,7 +22,7 @@ export class ConfigurationBLL {
         this._templates = File.parseJSON(this._templatepath) || {};
 
         for (let prop in this._templates) {
-            this._names.push(prop);
+            this._names.push({ name: prop, chname: this._templates[prop].chname ? this._templates[prop].chname : prop });
         }
 
         this._ssconfigpath = path.join(this._basedir, "instances.json");
@@ -31,13 +32,13 @@ export class ConfigurationBLL {
         this._ssconfigs = WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []);
         this._ssconfigs.forEach(item => {
             switch (item.activeChannel) {
-                case "default":
+                case Channel.DEFAULT:
                     this._ss_realtrade_configs.push(item);
                     break;
-                case "simulation":
+                case Channel.SIMULATION:
                     this._ss_simulation_configs.push(item);
                     break;
-                case "backtest":
+                case Channel.BACKTEST:
                     this._ss_backtest_configs.push(item);
                     break;
             }
@@ -75,13 +76,11 @@ export class ConfigurationBLL {
     private _svconfigs: string[];
     private _svpath: string;
 
-    private _names: string[];
-    private _names_back: string[];
-    private _names_simulation: string[];
+    private _names: any[];
     /**
      * @return a list of available strategy templates.
      */
-    getTemplates(): string[] {
+    getTemplates(): any[] {
         return this._names;
     }
 
@@ -112,20 +111,34 @@ export class ConfigurationBLL {
         if (config) {
             let i = 0;
             for (; i < this._ssconfigs.length; ++i) {
-                if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel)
+                if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
+                    switch (config.activeChannel) {
+                        case Channel.DEFAULT:
+                            this._ss_realtrade_configs[this._ss_realtrade_configs.indexOf(this._ssconfigs[i])] = config;
+                            break;
+                        case Channel.SIMULATION:
+                            this._ss_simulation_configs[this._ss_simulation_configs.indexOf(this._ssconfigs[i])] = config;
+                            break;
+                        case Channel.BACKTEST:
+                            this._ss_backtest_configs[this._ss_backtest_configs.indexOf(this._ssconfigs[i])] = config;
+                            break;
+                    }
+
+                    this._ssconfigs[i] = config;
                     break;
+                }
             }
 
             if (i === this._ssconfigs.length) {
                 this._ssconfigs.push(config);
                 switch (config.activeChannel) {
-                    case "default":
+                    case Channel.DEFAULT:
                         this._ss_realtrade_configs.push(config);
                         break;
-                    case "simulation":
+                    case Channel.SIMULATION:
                         this._ss_simulation_configs.push(config);
                         break;
-                    case "backtest":
+                    case Channel.BACKTEST:
                         this._ss_backtest_configs.push(config);
                         break;
                 }
@@ -136,12 +149,14 @@ export class ConfigurationBLL {
     }
 
     updateTemplate(name: string, template: any) {
-        this._templates[name] = template;
-        File.writeSync(this._templatepath, JSON.stringify(this._templates));
-
-        if (!this._names.includes(name)) {
-            this._names.push(name);
+        if (!this._templates.hasOwnProperty(name)) {
+            this._templates[name] = template;
+            this._names.push({ name: name, chname: this._templates[name].chname ? this._templates[name].chname : name });
+        } else {
+            this._templates[name] = template;
         }
+
+        File.writeSync(this._templatepath, JSON.stringify(this._templates));
     }
 
     addLoopbackItems(item: any) {
@@ -174,7 +189,7 @@ export class ConfigurationBLL {
         for (let i = 0; i < this._svconfigs.length; ++i) {
             if (this._svconfigs[i] === config) {
                 this._svconfigs.splice(i, 1);
-                File.unlinkSync(path.join(this._svpath, config + ".json"));
+                File.unlinkSync(path.join(this._svpath, config + this.kTemplateExt));
                 break;
             }
         }

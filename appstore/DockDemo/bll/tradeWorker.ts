@@ -1,11 +1,12 @@
 "use strict";
 
 import { IP20Service } from "../../../base/api/services/ip20.worker";
-import { Header } from "../../../base/api/model/itrade/message.model";
+import { Header, Message } from "../../../base/api/model/itrade/message.model";
 import {
     RegisterMessage, ComStrategyInfo, ComGuiAckStrategy, ComTotalProfitInfo,
     ComConOrderStatus, ComStrategyCfg, ComOrderRecord, ComAccountPos,
-    ComRecordPos, ComGWNetGuiInfo, StatArbOrder, ComConOrderErrorInfo
+    ComRecordPos, ComGWNetGuiInfo, StatArbOrder, ComConOrderErrorInfo,
+    ComProfitInfo, FpPosUpdate
 } from "../../../base/api/model/itrade/strategy.model";
 import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
@@ -14,16 +15,17 @@ import { Sound } from "../../../base/api/services/backend.worker";
 import { ULogger } from "../../../base/api/common/base/logger";
 
 ULogger.init("alert", process.argv[2]);
-const logger = ULogger.console();
+const logger = ULogger.file();
 /**
  * interface for single pro.
  */
 
+let quotePoint;
+let trade;
 process.on("message", (m: WSIP20, sock) => {
-
     switch (m.command) {
         case "ps-start":
-            let quotePoint = new IP20Service();
+            quotePoint = new IP20Service();
             let quoteHeart = null;
             quotePoint.onConnect = () => {
                 process.send({ event: "ps-connect" });
@@ -72,8 +74,8 @@ process.on("message", (m: WSIP20, sock) => {
         case "ps-stop":
             break;
         case "ss-start":
-            let trade = new StrategyDealer();
-            trade.connect(6114, "172.24.50.10");
+            trade = new StrategyDealer(m.params.appid);
+            trade.connect(m.params.port, m.params.host);
             break;
         case "ss-send":
             ss_sendHandle(m.params);
@@ -111,9 +113,13 @@ interface WSIP20 {
 
 export class StrategyDealer {
     tradePoint: IP20Service;
+    appid: number;
+    packid: number;
 
-    constructor() {
+    constructor(appid: number) {
         this.tradePoint = new IP20Service();
+        this.appid = appid;
+        this.packid = 1000;
     }
 
     connect(port, host) {
@@ -153,7 +159,7 @@ export class StrategyDealer {
                 appid: 17,
                 packid: 120,
                 callback(msg) {
-                    logger.info(`tgw ans=>${msg}`);
+                    logger.info(`tgw ans=>${JSON.stringify(msg.content)}`);
                 }
             }, {
                 appid: 17,
@@ -162,10 +168,9 @@ export class StrategyDealer {
                     process.send({ event: "ps-data", content: msg });
                 }
             }, {
-                appid: 800,
+                appid: this.appid,
                 packid: 1001,
                 callback: (msg) => {
-                    console.info(msg.content.length);
                     this.decode(msg.content);
                 }
             }
@@ -175,10 +180,11 @@ export class StrategyDealer {
     decode(content: Buffer) {
         let header: Header = new Header();
         header.fromBuffer(content);
-
-        let offset = Header.len;
+        logger.info(`decode=>type=${header.type} subtype=${header.subtype} msglen=${header.msglen}`);
+        let offset: number = Header.len;
         let count = 0;
-        let msg;
+        let msg: Message | any;
+        let msgArr = [];
 
         switch (header.type) {
             case 2001: // ComGuiAckStrategy start
@@ -192,6 +198,7 @@ export class StrategyDealer {
 
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2033:
@@ -202,6 +209,7 @@ export class StrategyDealer {
 
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2048: // ComTotalProfitInfo
@@ -211,6 +219,7 @@ export class StrategyDealer {
 
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2000:
@@ -225,22 +234,39 @@ export class StrategyDealer {
                 msg = new ComStrategyCfg();
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2022:
+            case 3011:
+            case 3501:
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 msg = new ComOrderRecord();
+
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
+                }
+                break;
+            case 2023: // ComProfitInfo
+                count = content.readUInt32LE(offset);
+                offset += 4;
+                msg = new ComProfitInfo();
+
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2013:
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 msg = new ComAccountPos();
+
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 3502:
@@ -248,8 +274,10 @@ export class StrategyDealer {
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 msg = new ComRecordPos();
+
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2015:
@@ -257,130 +285,75 @@ export class StrategyDealer {
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 msg = new ComGWNetGuiInfo();
+
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2025:
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 msg = new StatArbOrder();
+
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2021:
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 msg = header.subtype === 0 ? new ComConOrderStatus() : new ComConOrderErrorInfo();
+
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
+                    msgArr.push(msg);
                 }
                 break;
             case 2040:
                 msg = content.slice(offset, content.indexOf(0, offset));
+                msgArr.push(msg);
+                break;
+            case 5021:
+                count = content.readUInt32LE(offset); offset += 4;
+                let account = content.readUIntLE(offset, 8); offset += 8;
+                count = content.readUInt32LE(offset); offset += 4;
+                msg = new FpPosUpdate();
+                let arr = [];
+
+                for (let i = 0; i < count; ++i) {
+                    offset = msg.fromBuffer(content, offset);
+                    arr.push(msg);
+                }
+
+                msgArr.push({ account: account, data: arr, count: count });
+                arr = null;
+                account = null;
+                break;
+            case 5022:
+                offset += 20;
+                msgArr.push(content.slice(offset, content.indexOf(0, offset)).toString("utf-8"));
+                break;
+            case 5024:
+                offset += 24;
+                let dayPnl = content.readIntLE(offset, 8); offset += 8;
+                let onPnl = content.readIntLE(offset, 8); offset += 8;
+                let value = content.readIntLE(offset, 8); offset += 8;
+                msgArr.push({
+                    dayPnl: dayPnl,
+                    onPnl: onPnl,
+                    value: value
+                });
                 break;
             default:
                 logger.warn(`unhandle msg=> type=${header.type}, subtype=${header.subtype}, msglen=${header.msglen}`);
                 break;
         }
-        // process of strategy init
-        // ManulTrader.addSlot(2011, data => {
-        //     process.send({ event: "ss-data", content: { type: 2011, data: data } });
-        // });
-        // ManulTrader.addSlot(2033, data => {
-        //     process.send({ event: "ss-data", content: { type: 2033, data: data } });
-        // });
-        // ManulTrader.addSlot(2000, data => {
-        //     process.send({ event: "ss-data", content: { type: 2000, data: data } });
-        // });
-        // ManulTrader.addSlot(2002, data => {
-        //     process.send({ event: "ss-data", content: { type: 2002, data: data } });
-        // });
-        // ManulTrader.addSlot(2004, data => {
-        //     process.send({ event: "ss-data", content: { type: 2004, data: data } });
-        // });
-        // ManulTrader.addSlot(2049, data => {
-        //     process.send({ event: "ss-data", content: { type: 2049, data: data } });
-        // });
-        // ManulTrader.addSlot(2030, data => {
-        //     process.send({ event: "ss-data", content: { type: 2030, data: data } });
-        // });
-        // ManulTrader.addSlot(2029, data => {
-        //     process.send({ event: "ss-data", content: { type: 2029, data: data } });
-        // });
-        // ManulTrader.addSlot(2032, data => {
-        //     process.send({ event: "ss-data", content: { type: 2032, data: data } });
-        // });
-        // ManulTrader.addSlot(2001, data => {
-        //     process.send({ event: "ss-data", content: { type: 2001, data: data } });
-        // });
-        // ManulTrader.addSlot(2003, data => {
-        //     process.send({ event: "ss-data", content: { type: 2003, data: data } });
-        // });
-        // ManulTrader.addSlot(2005, data => {
-        //     process.send({ event: "ss-data", content: { type: 2005, data: data } });
-        // });
-        // ManulTrader.addSlot(2050, data => {
-        //     process.send({ event: "ss-data", content: { type: 2050, data: data } });
-        // });
-        // ManulTrader.addSlot(2031, data => {
-        //     process.send({ event: "ss-data", content: { type: 2031, data: data } });
-        // });
-        // ManulTrader.addSlot(2048, data => {
-        //     process.send({ event: "ss-data", content: { type: 2048, data: data } });
-        // });
-        // ManulTrader.addSlot(2020, data => {
-        //     process.send({ event: "ss-data", content: { type: 2020, data: data } });
-        // });
-        // ManulTrader.addSlot(2013, data => {
-        //     process.send({ event: "ss-data", content: { type: 2013, data: data } });
-        // });
-        // ManulTrader.addSlot(3502, data => {
-        //     process.send({ event: "ss-data", content: { type: 3502, data: data } });
-        // });
-        // ManulTrader.addSlot(3504, data => {
-        //     process.send({ event: "ss-data", content: { type: 3504, data: data } });
-        // });
-        // ManulTrader.addSlot(2015, data => {
-        //     process.send({ event: "ss-data", content: { type: 2015, data: data } });
-        // });
-        // ManulTrader.addSlot(2017, data => {
-        //     process.send({ event: "ss-data", content: { type: 2017, data: data } });
-        // });
-        // ManulTrader.addSlot(2023, data => {
-        //     process.send({ event: "ss-data", content: { type: 2023, data: data } });
-        // });
-        // ManulTrader.addSlot(2025, data => {
-        //     process.send({ event: "ss-data", content: { type: 2025, data: data } });
-        // });
-        // ManulTrader.addSlot(5022, data => {
-        //     process.send({ event: "ss-data", content: { type: 5022, data: data } });
-        // });
-        // ManulTrader.addSlot(2021, data => {
-        //     process.send({ event: "ss-data", content: { type: 2021, data: data } });
-        // });
-        // ManulTrader.addSlot(2022, data => {
-        //     process.send({ event: "ss-data", content: { type: 2022, data: data } });
-        // });
-        // ManulTrader.addSlot(3011, data => {
-        //     process.send({ event: "ss-data", content: { type: 3011, data: data } });
-        // });
-        // ManulTrader.addSlot(3510, data => {
-        //     process.send({ event: "ss-data", content: { type: 3510, data: data } });
-        // });
-        // ManulTrader.addSlot(2040, data => {
-        //     process.send({ event: "ss-data", content: { type: 2040, data: data } });
-        // });
-        // ManulTrader.addSlot(5021, data => {
-        //     process.send({ event: "ss-data", content: { type: 5021, data: data } });
-        // });
-        // ManulTrader.addSlot(5024, data => {
-        //     process.send({ event: "ss-data", content: { type: 5024, data: data } });
-        // });
-        // ManulTrader.addSlot(8000, data => {
-        //     process.send({ event: "ss-data", content: { type: 8000, data: data } });
-        // });
+
+        msg = null;
+        count = null;
+        process.send({ event: "ss-data", content: { type: header.type, data: msgArr } });
     }
 
     registerMessages() {
@@ -411,7 +384,7 @@ export class StrategyDealer {
         header.type = 2029;
         registerMsg.headers.push(header);
 
-        /* order about
+        /* order about */
         header = new Header();
         header.type = 2013;
         registerMsg.headers.push(header);
@@ -488,9 +461,9 @@ export class StrategyDealer {
         header = new Header();
         header.type = 2025;
         header.subtype = 1002;
-        registerMsg.headers.push(header); */
+        registerMsg.headers.push(header);
 
-        this.tradePoint.sendQtp(800, 1000, { type: 2998, subtype: 0, body: registerMsg.toBuffer() });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2998, subtype: 0, body: registerMsg.toBuffer() });
 
         registerMsg = new RegisterMessage();
         header = new Header();
@@ -513,14 +486,17 @@ export class StrategyDealer {
         header.type = 5021;
         registerMsg.headers.push(header);
 
-        this.tradePoint.sendQtp(800, 1000, { type: 2998, subtype: 0, body: registerMsg.toBuffer() });
-        this.tradePoint.sendQtp(800, 1000, { type: 2010, subtype: 0, body: registerMsg.toBuffer() });
-        // this.tradePoint.sendQtp(800, 1000, { type: 2016, subtype: 0, body: registerMsg.toBuffer() });
-        // this.tradePoint.sendQtp(800, 1000, { type: 2044, subtype: 0, body: registerMsg.toBuffer() });
-        // this.tradePoint.sendQtp(800, 1000, { type: 3503, subtype: 0, body: registerMsg.toBuffer() });
-        // this.tradePoint.sendQtp(800, 1000, { type: 3509, subtype: 0, body: registerMsg.toBuffer() });
-        // this.tradePoint.sendQtp(800, 1000, { type: 3010, subtype: 0, body: registerMsg.toBuffer() });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2998, subtype: 0, body: registerMsg.toBuffer() });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2010, subtype: 0, body: null });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2012, subtype: 0, body: null });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2016, subtype: 0, body: null });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2044, subtype: 0, body: null });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2044, subtype: 0, body: null });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 3503, subtype: 0, body: null });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 3509, subtype: 0, body: null });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 3010, subtype: 0, body: null });
         header = null;
+        registerMsg = null;
     }
 }
 
@@ -536,6 +512,7 @@ function loginTGW(ip20: IP20Service) {
 function ss_sendHandle(data: any) {
     let type = data.type;
     let content = data.data;
+
     switch (type) {
         case "sendorder":
             ManulTrader.submitOrder(content);

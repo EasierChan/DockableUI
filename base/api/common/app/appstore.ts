@@ -48,13 +48,24 @@ export class AppStore {
             AppStore._instances[name].bootstrap(name, option);
             return true;
         } else if (AppStore._apps.hasOwnProperty(type)) {
+            let instance = null;
+            if (type === "Dialog") {
+                instance = AppStore._apps[type].StartUp.instance(AppStore._instances[AppStore._workbench]);
+                instance.onClose = (winName) => {
+                    ipcMain.emit("appstore://updateApp", { type: "strategy", winName: winName });
+                };
+            } else {
+                instance = AppStore._apps[type].StartUp.instance();
+            }
+
             if (name === "Untitled") {
-                AppStore._apps[type].StartUp.instance().bootstrap(name, option);
+                instance.bootstrap(name, option);
                 return true;
             }
 
-            AppStore._instances[name] = AppStore._apps[type].StartUp.instance();
+            AppStore._instances[name] = instance;
             AppStore._instances[name].bootstrap(name, option);
+            instance = null;
             return true;
         }
 
@@ -131,6 +142,9 @@ export class AppStore {
             switch (event.type) {
                 case "rename":
                     sender.send("appstore://updateApp", { type: event.type, oldName: event.oldName, newName: event.newName });
+                    break;
+                case "strategy":
+                    sender.send("appstore://updateApp", { type: event.type, winName: event.winName });
                     break;
                 default:
                     break;

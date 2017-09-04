@@ -220,13 +220,13 @@ export class MDParser extends ItradeParser {
         switch (header.subtype) {
             case MsgType.MSG_TYPE_UPDATE_DATE:
                 let msg = new MsgUpdateDate();
-                msg.fromBuffer(body);
+                msg.fromBuffer(body, 0);
                 // this._client.emit("data", msg);
                 logger.info("updatedate data: ", msg.newDate);
                 break;
             case MsgType.MSG_TYPE_FUTURES:
                 let futuredata = new DepthMarketData();
-                futuredata.fromBuffer(body);
+                futuredata.fromBuffer(body, 0);
                 this._client.emit("data", futuredata);
                 // logger.info("futures data: ", futuredata.toString());
                 break;
@@ -235,13 +235,13 @@ export class MDParser extends ItradeParser {
             case MsgType.PS_MSG_TYPE_IOPV_T:
             case MsgType.PS_MSG_TYPE_IOPV_R:
                 let iopvdata = new MsgBidAskIOPV();
-                iopvdata.fromBuffer(body);
+                iopvdata.fromBuffer(body, 0);
                 this._client.emit("data", iopvdata);
                 // logger.info("iopv data: ", iopvdata.toString());
                 break;
             case MsgType.MSG_TYPE_SZ_SNAPSHOT:
                 let szsnapshot = new SZSnapshotMsg();
-                szsnapshot.fromBuffer(body);
+                szsnapshot.fromBuffer(body, 0);
                 this._client.emit("data", szsnapshot);
                 break;
             default:

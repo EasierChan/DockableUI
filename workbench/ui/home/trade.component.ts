@@ -2,7 +2,7 @@
 
 import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
-import { ConfigurationBLL, WorkspaceConfig } from "../../bll/strategy.server";
+import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
 
@@ -18,7 +18,6 @@ import { TradeService } from "../../bll/services";
     ]
 })
 export class TradeComponent implements OnInit {
-    static readonly kSpreadViewer = "SpreadViewer";
     areas: TileArea[];
     analyticMenu: Menu;
     analyticArea: TileArea;
@@ -26,19 +25,19 @@ export class TradeComponent implements OnInit {
     selectedSpreadItem: any;
 
     productArea: TileArea;
-    products: any;
+    products: any[];
     selectedProduct: any;
 
     strategyMenu: Menu;
     strategyArea: TileArea;
     strategyConfigs: Array<WorkspaceConfig>;
-    strategyCores: any;
     selectedStrategyConfig: WorkspaceConfig;
 
     curTemplate: any;
     setting: any;
-    frame_host: any;
-    frame_port: any;
+    quoteHost: any;
+    quotePort: any;
+    isModify: boolean;
 
     constructor(private appService: AppStoreService, private tradePoint: TradeService, private configBll: ConfigurationBLL) {
     }
@@ -52,25 +51,16 @@ export class TradeComponent implements OnInit {
         this.initializeAnylatics();
         this.setting = this.appService.getSetting();
 
-        this.frame_host = this.setting.endpoints[0].quote_addr.split(":")[0];
-        this.frame_port = this.setting.endpoints[0].quote_addr.split(":")[1];
-
-        this.strategyCores = [
-            { name: "PairTrade", chname: "统计套利" },
-            { name: "ManualTrader", chname: "手工交易" },
-            { name: "PortfolioTrader", chname: "组合交易" },
-            { name: "IndexSpreader", chname: "做市策略" },
-            { name: "SimpleSpreader", chname: "配对交易" },
-            { name: "BasketSpreader", chname: "期现套利" },
-            { name: "BlockTrader", chname: "大宗交易" }
-        ];
+        this.quoteHost = this.setting.endpoints[0].quote_addr.split(":")[0];
+        this.quotePort = this.setting.endpoints[0].quote_addr.split(":")[1];
     }
 
     registerListeners() {
         this.tradePoint.addSlot({
             appid: 107,
-            packid: 2001,
+            packid: 2001, // 创建策略回报
             callback: msg => {
+                console.info(msg);
                 if (msg.content.body.errorid !== 0) {
                     console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
                     return;
@@ -80,7 +70,6 @@ export class TradeComponent implements OnInit {
 
                 if (config) {
                     config.name = msg.content.body.name;
-                    config.host = msg.content.body.address;
                     let tile = this.strategyArea.getTile(config.name);
 
                     if (null === tile) {
@@ -138,12 +127,11 @@ export class TradeComponent implements OnInit {
 
         this.tradePoint.addSlot({
             appid: 107,
-            packid: 2003,
+            packid: 2003, // 启动策略回报
             callback: msg => {
                 for (let i = 0; i < this.strategyConfigs.length; ++i) {
                     if (this.strategyConfigs[i].name === msg.content.strategyserver.name) {
-                        this.strategyConfigs[i].port = msg.content.strategyserver.port;
-                        this.strategyConfigs[i].host = msg.content.strategyserver.address;
+                        // this.strategyConfigs[i].appid = 
                         break;
                     }
                 }
@@ -165,7 +153,7 @@ export class TradeComponent implements OnInit {
                     }
                 }
 
-                this.selectedStrategyConfig.strategyInstances[0].key = strategy_key + "";
+                this.selectedStrategyConfig.items[0].key = strategy_key;
                 this.configBll.updateConfig(this.selectedStrategyConfig);
                 this.curTemplate.body.data.Strategy[0].key = strategy_key;
                 // console.log(this.config, this.curTemplate.body.data);
@@ -223,7 +211,7 @@ export class TradeComponent implements OnInit {
                 dlg_name: "strategy",
                 config: this.selectedStrategyConfig,
                 products: this.products,
-                strategies: this.strategyCores
+                strategies: this.configBll.getTemplates()
             });
         });
         this.strategyMenu.addItem("删除", () => {
@@ -245,10 +233,7 @@ export class TradeComponent implements OnInit {
         this.strategyArea = new TileArea();
         this.strategyArea.title = "策略";
         this.strategyArea.onCreate = () => {
-            this.appService.startApp("策略配置", "Dialog", {
-                dlg_name: "strategy",
-                strategies: this.strategyCores
-            });
+            this.appService.startApp("策略配置", "Dialog", { dlg_name: "strategy", strategies: this.configBll.getTemplates(), products: this.products });
         };
 
         this.strategyArea.onClick = (event: MouseEvent, item: Tile) => {
@@ -307,9 +292,9 @@ export class TradeComponent implements OnInit {
         });
 
         this.analyticArea.onCreate = () => {
-            this.appService.startApp("Untitled", TradeComponent.kSpreadViewer, {
-                port: parseInt(this.frame_port),
-                host: this.frame_host,
+            this.appService.startApp("Untitled", AppType.kSpreadViewer, {
+                port: parseInt(this.quotePort),
+                host: this.quoteHost,
                 lang: this.setting.language
             });
         };
@@ -318,9 +303,9 @@ export class TradeComponent implements OnInit {
             this.selectedSpreadItem = item;
 
             if (event.button === 0) {
-                if (!this.appService.startApp(item.title, TradeComponent.kSpreadViewer, {
-                    port: parseInt(this.frame_port),
-                    host: this.frame_host,
+                if (!this.appService.startApp(item.title, AppType.kSpreadViewer, {
+                    port: parseInt(this.quotePort),
+                    host: this.quoteHost,
                     lang: this.setting.language
                 })) {
                     alert("Error `Start ${name} app error!`");
@@ -338,18 +323,44 @@ export class TradeComponent implements OnInit {
 
     // update app info
     updateApp(params) {
-        let idx = this.analyticConfigs.indexOf(params.oldName);
+        switch (params.type) {
+            case "rename":
+                let idx = this.analyticConfigs.indexOf(params.oldName);
 
-        if (idx < 0) {
-            this.analyticConfigs.push(params.newName);
-            let tile = new Tile();
-            tile.title = params.newName;
-            tile.iconName = "object-align-bottom";
-            this.analyticArea.addTile(tile);
-        } else {
-            this.analyticConfigs[idx] = params.newName;
-            this.analyticArea.getTileAt(idx).title = params.newName;
+                if (idx < 0) {
+                    this.analyticConfigs.push(params.newName);
+                    let tile = new Tile();
+                    tile.title = params.newName;
+                    tile.iconName = "object-align-bottom";
+                    this.analyticArea.addTile(tile);
+                } else {
+                    this.analyticConfigs[idx] = params.newName;
+                    this.analyticArea.getTileAt(idx).title = params.newName;
+                }
+                break;
+            case "strategy":
+                if (localStorage.getItem(DataKey.kStrategyCfg) !== null) {
+                    this.updateStrategyConfig(JSON.parse(localStorage.getItem(DataKey.kStrategyCfg)));
+                }
+                break;
         }
+    }
+
+    updateStrategyConfig(config: WorkspaceConfig) {
+        console.info(config);
+        // this.configBll.updateConfig(config);
+        let instance = this.configBll.getTemplateByName(config.strategyType);
+        instance["ss_instance_name"] = config.name;
+        instance["SSData"]["backup"]["path"] += config.name;
+        instance["SSInfo"]["name"] = config.name;
+        let product = this.products.find(item => { return item.tblock_id === config.productID; });
+        console.info(product);
+        if (product) {
+            instance["SSGW"]["Gateway"].addr = product.cfg.split("|")[0].split(",")[0];
+            instance["SSGW"]["Gateway"].port = product.cfg.split("|")[0].split(",")[1];
+            instance["Strategy"][instance["Strategy"]["Strategies"][0]]["account"] = product.broker_customer_code.split(",").map(item => { return parseInt(item); });
+        }
+        // this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
@@ -357,14 +368,14 @@ export class TradeComponent implements OnInit {
     }
 
     onStartApp() {
-        if (!this.appService.startApp(this.selectedStrategyConfig.name, this.selectedStrategyConfig.apptype, {
-            port: this.selectedStrategyConfig.port,
-            host: this.selectedStrategyConfig.host,
+        if (!this.appService.startApp(this.selectedStrategyConfig.name, AppType.kStrategyApp, {
+            port: "",
+            host: "",
             name: this.selectedStrategyConfig.name,
             lang: this.setting.language,
             feedhandler: {
-                host: this.frame_host,
-                port: parseInt(this.frame_port)
+                host: this.quoteHost,
+                port: parseInt(this.quotePort)
             }
         })) {
             alert(`start ${this.selectedStrategyConfig.name} app error!`);

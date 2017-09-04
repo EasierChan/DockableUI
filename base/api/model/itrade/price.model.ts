@@ -10,13 +10,12 @@ export class MsgUpdateDate extends Message {
     newDate: number;
     seqNum: number;
 
-    fromBuffer(buffer: Buffer): void {
+    fromBuffer(buffer: Buffer, offset: number): number {
         if (buffer.length < MsgUpdateDate.len) {
             console.error("MsgUpdateDate::fromBuffer error");
             return;
         }
 
-        let offset = 0;
         this.type = buffer.readInt32LE(offset); offset += 4;
         this.market = buffer.readInt32LE(offset); offset += 4;
         this.oldDate = buffer.readInt32LE(offset); offset += 4;
@@ -45,13 +44,12 @@ export class MsgBidAskIOPV extends Message {
     askIOPV: number;
     seqNum: number;
 
-    fromBuffer(buffer: Buffer): void {
+    fromBuffer(buffer: Buffer, offset: number): number {
         if (buffer.length < MsgBidAskIOPV.len) {
             console.error("MsgBidAskIOPV::fromBuffer error");
             return;
         }
 
-        let offset = 0;
         this.type = buffer.readInt32LE(offset); offset += 4;
         this.innerCode = buffer.readInt32LE(offset); offset += 4;
         this.time = buffer.readInt32LE(offset); offset += 4;
@@ -92,13 +90,12 @@ export class DepthMarketData extends Message {
     AskVolume: number;
     InstrumentID: string;
 
-    fromBuffer(buffer: Buffer): void {
+    fromBuffer(buffer: Buffer, offset: number): number {
         if (buffer.length < DepthMarketData.len) {
             console.error("MarketDataMsg::fromBuffer error");
             return;
         }
 
-        let offset = 0;
         this.type = buffer.readInt32LE(offset); offset += 4;
         this.UKey = buffer.readInt32LE(offset); offset += 4;
         this.LastPrice = buffer.readIntLE(offset, 8); offset += 8;
@@ -172,13 +169,12 @@ export class SZSnapshotMsg extends Message {
     bidprices: number[];
     bidvols: number[];
 
-    fromBuffer(buffer: Buffer): void {
+    fromBuffer(buffer: Buffer, offset: number): number {
         if (buffer.length < DepthMarketData.len) {
             console.error("MarketDataMsg::fromBuffer error");
             return;
         }
 
-        let offset = 0;
         this.type = buffer.readInt32LE(offset); offset += 4;
         this.market = buffer.readInt32LE(offset); offset += 4;
         this.category = buffer.readInt32LE(offset); offset += 4;

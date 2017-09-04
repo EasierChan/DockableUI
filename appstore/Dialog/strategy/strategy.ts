@@ -3,7 +3,7 @@
 import { Component, OnInit, Input } from "@angular/core";
 import { IP20Service } from "../../../base/api/services/ip20.service";
 import { DataTable, TabPanel, TabPage } from "../../../base/controls/control";
-import { WorkspaceConfig } from "../../../base/api/model/workbench.model";
+import { WorkspaceConfig, StrategyInstance, DataKey, Channel } from "../../../base/api/model/workbench.model";
 
 @Component({
     moduleId: module.id,
@@ -38,11 +38,28 @@ export class StrategyComponent implements OnInit {
         if (this.config === undefined)
             this.config = new WorkspaceConfig();
 
+        this.enName = this.config.name;
+        this.chName = this.config.chname;
+        this.strategyType = this.config.strategyType;
+        this.productID = this.config.productID;
         this.strategyConfigPanel = new TabPanel();
         this.strategyConfigPanel.addTab(new TabPage("parameters", "参数"), false);
         this.strategyConfigPanel.addTab(new TabPage("instruments", "合约"), false);
         this.strategyConfigPanel.addTab(new TabPage("commands", "命令"), false);
         this.strategyConfigPanel.addTab(new TabPage("comments", "Comment"), false);
         this.strategyConfigPanel.setActive("parameters");
+        localStorage.removeItem(DataKey.kStrategyCfg);
+    }
+
+    save() {
+        this.config.name = this.enName;
+        this.config.chname = this.chName;
+        this.config.strategyType = this.strategyType;
+        this.config.productID = this.productID;
+
+        let instance = new StrategyInstance();
+        instance.parameters = [];
+        this.config.items.push(instance);
+        localStorage.setItem(DataKey.kStrategyCfg, JSON.stringify(this.config));
     }
 }

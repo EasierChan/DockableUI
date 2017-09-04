@@ -1,23 +1,31 @@
 "use strict";
 
+/**
+ * keys in localstorage
+ */
+export class DataKey {
+    static readonly kStrategyCfg = "chronos-StrategyConfig";
+    static readonly kProducts = "chronos-Products";
+    static readonly kStrategyTypes = "chronos-StrategyTypes";
+}
+
+export class AppType {
+    static readonly kStrategyApp = "DockDemo";
+    static readonly kSpreadViewer = "SpreadViewer";
+}
+
 export class WorkspaceConfig {
     name: string;
-    strategyCoreName: string;
-    port: number;
-    host: string;
-    strategyInstances: StrategyInstance[];
-    channels: { gateway: any, feedhandler: any };
-    apptype: string = "DockDemo";
-    activeChannel: string = "default";
-    loopbackConfig?: any = {};
-    chname: string = "";
-    productId: number;
+    chname: string;
+    appid: number;
+    strategyType: string;
+    items: StrategyInstance[];
+    activeChannel: Channel;
+    backtestConfig?: any;
+    productID: string;
 
     constructor() {
-        this.strategyInstances = [];
-        this.channels = { gateway: null, feedhandler: null };
-        this.port = 0;
-        this.host = "127.0.0.1";
+        this.items = [];
     }
 
     static setObject(obj: any): WorkspaceConfig[] {
@@ -37,7 +45,7 @@ export class WorkspaceConfig {
 }
 
 export class StrategyInstance {
-    key: string;
+    key: number;
     name: string;
     accounts: string;
     algoes: number[] = [];
@@ -47,4 +55,15 @@ export class StrategyInstance {
     comments: Object[];
     commands: Object[];
     instruments: Object[];
+}
+
+class Endpoint {
+    port: number;
+    host: string;
+}
+
+export enum Channel {
+    DEFAULT,
+    SIMULATION,
+    BACKTEST
 }

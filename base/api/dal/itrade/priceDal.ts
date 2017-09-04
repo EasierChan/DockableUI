@@ -14,7 +14,7 @@ export class PriceResolver extends ItradeResolver {
         switch (header.type) {
             case MsgType.PS_MSG_TYPE_UPDATE_DATE:
                 let msgupdate = new MsgUpdateDate();
-                msgupdate.fromBuffer(content);
+                msgupdate.fromBuffer(content, 0);
                 DefaultLogger.debug("market date: ", msgupdate.newDate);
                 // DefaultLogger.info(msgupdate.toString());
                 // this.emit("dal://itrade/data/ps", msgupdate);
@@ -25,7 +25,7 @@ export class PriceResolver extends ItradeResolver {
                 switch (header.subtype) {
                     case MsgType.MSG_TYPE_FUTURES:
                         let futureMarketData = new DepthMarketData();
-                        futureMarketData.fromBuffer(content);
+                        futureMarketData.fromBuffer(content, 0);
                         // DefaultLogger.debug(futureMarketData.toString());
                         this.emit("dal://itrade/data/ps", futureMarketData);
                         break;
@@ -42,7 +42,7 @@ export class PriceResolver extends ItradeResolver {
                     case MsgType.PS_MSG_TYPE_IOPV_R:
                         // deserializeMarketDataIopvItem();
                         let iopvMsg = new MsgBidAskIOPV();
-                        iopvMsg.fromBuffer(content);
+                        iopvMsg.fromBuffer(content, 0);
                         this.emit("dal://itrade/data/ps", iopvMsg);
                         break;
                 }

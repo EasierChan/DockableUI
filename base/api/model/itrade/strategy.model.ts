@@ -31,7 +31,7 @@ export class RegisterMessage extends Message {
         return buf;
     }
 
-    fromBuffer(buf: Buffer): void {
+    fromBuffer(buf: Buffer): number {
         return;
     }
 }
@@ -82,6 +82,36 @@ export class ComTotalProfitInfo extends Message {
 
     fromBuffer(buf: Buffer, offset = 0): number {
         return BufferUtil.format(buf, offset, "1i4p1l11L", this);
+    }
+};
+
+// //ACK  2023
+export class ComProfitInfo extends ComTotalProfitInfo {
+    static readonly len = 232;
+
+    innercode: number;  // 4
+    avgpriceforbuy: number; // 8
+    avgpriceforsell: number; // 8
+    positionpnl: number; // 8
+    tradingpnl: number; // 8
+    iopv: number; // 8
+    lasttradingfee: number; // 8
+    tradingfee: number; // 8
+    lastpositionpnl: number; // 8
+    todaypositionpnl: number; // 8
+    pnl: number; // 8
+    lastposition: number; // 8
+    todayposition: number; // 8
+    lastclose: number; // 8
+    marketprice: number; // 8
+    intradaytradingfee: number; // 8
+
+    toBuffer(): Buffer {
+        return null;
+    }
+
+    fromBuffer(buf: Buffer, offset = 0): number {
+        return BufferUtil.format(buf, super.fromBuffer(buf, offset), "1i4p15L", this);
     }
 };
 
@@ -276,7 +306,7 @@ export enum ESSSecuCategory {
 class FundPos extends Message {
     date: number = 0; // 4
     account: number = 0; // 8
-    c: string = "";  // 1
+    c: number = 0;  // 1
     TotalAmount: number = 0; // 8
     AvlAmount: number = 0; // 8
     FrzAmount: number = 0; // 8
@@ -288,7 +318,7 @@ class FundPos extends Message {
     fromBuffer(buf: Buffer, offset: number): number {
         this.date = buf.readUInt32LE(offset); offset += 8;
         this.account = buf.readUIntLE(offset, 8); offset += 8;
-        this.c = buf.slice(offset, offset + 1).toString("utf-8"); offset += 8;
+        this.c = buf.readInt8(offset); offset += 8;
         this.TotalAmount = buf.readUIntLE(offset, 8); offset += 8;
         this.AvlAmount = buf.readUIntLE(offset, 8); offset += 8;
         this.FrzAmount = buf.readUIntLE(offset, 8); offset += 8;
@@ -299,7 +329,7 @@ class FundPos extends Message {
 class MarginPos extends Message {
     date: number = 0; // 4
     account: number = 0; // 8
-    c: string;  // 1
+    c: number = 0;  // 1
     TotalAmount: number = 0; // 8
     AvlAmount: number = 0; // 8
     FrzAmount: number = 0; // 8
@@ -322,7 +352,7 @@ class MarginPos extends Message {
     fromBuffer(buf: Buffer, offset: number): number {
         this.date = buf.readUInt32LE(offset); offset += 8;
         this.account = buf.readUIntLE(offset, 8); offset += 8;
-        this.c = buf.slice(offset, offset + 1).toString("utf-8"); offset += 8;
+        this.c = buf.readInt8(offset); offset += 8;
         this.TotalAmount = buf.readUIntLE(offset, 8); offset += 8;
         this.AvlAmount = buf.readUIntLE(offset, 8); offset += 8;
         this.FrzAmount = buf.readUIntLE(offset, 8); offset += 8;

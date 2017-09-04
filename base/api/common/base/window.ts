@@ -83,7 +83,7 @@ export class UWindow {
 	// ...
 	private whenReadyCallbacks: TValueCallback<UWindow>[];
 
-	constructor(config?: IWindowCreationOptions) {
+	constructor(config?: IWindowCreationOptions, owner: any = null, modal: boolean = false) {
 		if (config) {
 			this.options = config;
 		} else {
@@ -113,7 +113,8 @@ export class UWindow {
 			useContentSize: true,
 			autoHideMenuBar: false,
 			enableLargerThanScreen: true,
-			// title: this.envService.product.nameLong,
+			parent: owner,
+			modal: modal,
 			webPreferences: {
 				backgroundThrottling: false, // by default if Code is in the background, intervals and timeouts get throttled
 				nodeIntegration: true

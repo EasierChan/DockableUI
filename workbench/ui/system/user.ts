@@ -64,7 +64,7 @@ export class UserComponent implements OnInit {
             appid: 17,
             packid: 43,
             callback: msg => {
-                this.appSrv.setLoginTrade(true);
+                this.appSrv.setLoginTrade(msg.content.conlvl > 2);
                 // to request template
                 // this.tradeSrv.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
 
@@ -92,7 +92,7 @@ export class UserComponent implements OnInit {
             packid: 120,
             callback: msg => {
                 console.info(msg);
-                this.appSrv.setLoginTrade(false);
+                // this.appSrv.setLoginTrade(false);
             }
         });
     }

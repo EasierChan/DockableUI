@@ -3,15 +3,14 @@
  */
 "use strict";
 
-import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path, IPCManager } from "../../base/api/backend";
+import { IApplication, MenuWindow, ModalWindow, UWindwManager, Bound, Path, IPCManager } from "../../base/api/backend";
 const path = require("path");
 const fs = require("fs");
 declare let window: any;
 import { ipcMain } from "electron";
 
 export class StartUp implements IApplication {
-    _windowMgr: UWindwManager;
-    _mainWindow: ContentWindow;
+    _mainWindow: ModalWindow;
     _bound: Bound;
     _name: string;
     _config: DockDemoConfig;
@@ -19,11 +18,14 @@ export class StartUp implements IApplication {
     _cfgFile: string;
     static instanceMap: any = {};
     _option: any;
+    _owner: any;
 
-    constructor() {
-        this._windowMgr = new UWindwManager();
+    constructor(owner: any) {
+        this._owner = owner;
         this._config = { name: "", state: { x: 0, y: 0, width: 1200, height: 800 } };
     }
+
+    onClose: Function;
     /**
      * bootstrap
      */
@@ -34,11 +36,15 @@ export class StartUp implements IApplication {
             this._config.name = name;
             this.loadConfig();
             this._mainWindow = null;
-            this._mainWindow = new ContentWindow({ state: this._config.state });
+            this._mainWindow = new ModalWindow({ state: this._config.state }, this._owner.win);
             this._mainWindow.onclosing = bound => {
                 self._config.state = bound;
                 self.saveConfig();
-                delete StartUp.instanceMap[this._mainWindow.win.webContents.id];
+                if (self.onClose) {
+                    self.onClose(self._name);
+                }
+
+                StartUp.instanceMap[this._mainWindow.win.webContents.id] = null;
             };
 
             this._option = option;
@@ -56,7 +62,6 @@ export class StartUp implements IApplication {
      */
     quit(): void {
         this._mainWindow.close();
-        // this._windowMgr.closeAll();
     }
     /**
      * restart
@@ -89,8 +94,8 @@ export class StartUp implements IApplication {
     }
 
 
-    static instance(): StartUp {
-        return new StartUp();
+    static instance(parent): StartUp {
+        return new StartUp(parent);
     }
 }
 
