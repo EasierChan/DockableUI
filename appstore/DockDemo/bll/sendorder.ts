@@ -125,6 +125,7 @@ export class ManulTrader {
         buffer.writeUIntLE(account, offset, 8); offset += 8;
         buffer.writeUInt32LE(1, offset); offset += 4;
         buffer.writeUInt32LE(ukey, offset); offset += 4;
+        ManulTrader.orderService.sendOrder(5005, 0, buffer);
     }
 
     static sendAllSel(account: number, count: number, askPriceLevel: number, bidPriceLevel: number, askOffset: number, bidOffset: number, sendArr: any) {

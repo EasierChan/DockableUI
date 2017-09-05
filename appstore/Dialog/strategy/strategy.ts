@@ -35,8 +35,16 @@ export class StrategyComponent implements OnInit {
     }
 
     ngOnInit() {
-        if (this.config === undefined)
-            this.config = new WorkspaceConfig();
+        if (this.config.activeChannel === Channel.BACKTEST) {
+            this.config.backtestConfig = {
+                timebegin: "2017-09-04",
+                timeend: "2017-09-04",
+                speed: 5,
+                simlevel: 1,
+                period: 30,
+                unit: 0
+            };
+        }
 
         this.enName = this.config.name;
         this.chName = this.config.chname;

@@ -6,7 +6,7 @@
 import { Message, Header } from "./message.model";
 import { BufferUtil } from "../app.model";
 
-enum EStrategyStatus {
+export enum EStrategyStatus {
     STRATEGY_STATUS_INIT,
     STRATEGY_STATUS_CREATE,
     STRATEGY_STATUS_RUN,
@@ -188,9 +188,23 @@ export enum EOrderStatus {
     ORDER_STATUS_DISCARDED                        // 10:废单            end status
 };
 
-export class TimeVal {
+export class TimeVal extends Message {
+    static len = 16;
+
     tv_sec: number = 0;
     tv_usec: number = 0;
+
+    fromBuffer(buf, offset): number {
+        return BufferUtil.format(buf, offset, "2l", this);
+    }
+
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(TimeVal.len, 0);
+        buf.writeUIntLE(this.tv_sec, offset, 8); offset += 8;
+        buf.writeUIntLE(this.tv_usec, offset, 8); offset += 8;
+        return buf;
+    }
 };
 
 export class AlphaSignalInfo {
@@ -241,7 +255,7 @@ export class ComOrderData {
         this.idatetime.tv_sec = buf.readUIntLE(offset, 8); offset += 8;
         this.idatetime.tv_usec = buf.readUIntLE(offset, 8); offset += 8;
         for (let j = 0; j < 4; ++j) {
-            // this.signal[j] = new AlphaSignalInfo();
+            this.signal[j] = new AlphaSignalInfo();
             this.signal[j].id = buf.readUInt32LE(offset); offset += 8;
             this.signal[j].value = buf.readUIntLE(offset, 8); offset += 8;
         }
@@ -250,6 +264,8 @@ export class ComOrderData {
 };
 
 export class ComContract extends Message {
+    static len = 56;
+
     contractid: number = 0; // 4
     account: number = 0; // 8
     orderaccount: string = ""; // 20
@@ -257,7 +273,14 @@ export class ComContract extends Message {
     tradeproto: string = ""; // 10
 
     toBuffer(): Buffer {
-        return null;
+        let offset = 0;
+        let buf = Buffer.alloc(ComContract.len, 0);
+        buf.writeUInt32LE(this.contractid, offset), offset += 8;
+        buf.writeUIntLE(this.account, offset, 8); offset += 8;
+        buf.write(this.orderaccount, offset); offset += 20;
+        buf.write(this.tradeunit, offset); offset += 10;
+        buf.write(this.tradeproto, offset); offset += 10;
+        return buf;
     }
 
     fromBuffer(buf: Buffer, offset: number): number {
@@ -291,8 +314,8 @@ export class ComOrderRecord extends Message {
         this.secucategory = buf.readUInt32LE(offset); offset += 4;
         this.donetype = buf.readUInt8(offset); offset += 1;
         this.cancel = buf.readUInt8(offset) === 1 ? true : false; offset += 7;
-        offset += this.con.fromBuffer(buf, offset);
-        offset += this.od.fromBuffer(buf, offset);
+        offset = this.con.fromBuffer(buf, offset);
+        offset = this.od.fromBuffer(buf, offset);
         return offset;
     }
 };
@@ -413,16 +436,16 @@ class ComEquitPos extends Message {
     }
 
     fromBuffer(buf: Buffer, offset: number): number {
-        this.date = buf.readUInt32LE(offset); offset += 8;
-        this.account = buf.readUIntLE(offset, 8); offset += 8;
-        this.code = buf.readUInt32LE(offset); offset += 8;
-        this.TotalVol = buf.readUIntLE(offset, 8); offset += 8;
-        this.AvlVol = buf.readUIntLE(offset, 8); offset += 8;
-        this.WorkingVol = buf.readUIntLE(offset, 8); offset += 8;
-        this.TotalCost = buf.readUIntLE(offset, 8); offset += 8;
-        this.AvlCreRedempVol = buf.readUIntLE(offset, 8); offset += 8;
-        this.CovedFrzVol = buf.readUIntLE(offset, 8); offset += 8;
-        this.type = buf.readUInt32LE(offset); offset += 16;
+        this.date = buf.readInt32LE(offset); offset += 8;
+        this.account = buf.readIntLE(offset, 8); offset += 8;
+        this.code = buf.readInt32LE(offset); offset += 8;
+        this.TotalVol = buf.readIntLE(offset, 8); offset += 8;
+        this.AvlVol = buf.readIntLE(offset, 8); offset += 8;
+        this.WorkingVol = buf.readIntLE(offset, 8); offset += 8;
+        this.TotalCost = buf.readIntLE(offset, 8); offset += 8;
+        this.AvlCreRedempVol = buf.readIntLE(offset, 8); offset += 8;
+        this.CovedFrzVol = buf.readIntLE(offset, 8); offset += 8;
+        this.type = buf.readInt32LE(offset); offset += 16;
         return offset;
     }
 };
@@ -480,7 +503,6 @@ export class ComRecordPos extends Message {
         this.initpos = buf.readUIntLE(offset, 8); offset += 8;
         if (ESSSecuCategory.SS_SECU_CATEGORY_EQUIT === this.secucategory) {
             this.record = new ComEquitPos();
-
         } else if (ESSSecuCategory.SS_SECU_CATEGORY_FUTURE === this.secucategory) {
             this.record = new FuturePos();
         } else {
@@ -609,7 +631,7 @@ class ComOrderErrorInfo extends Message {
         this.algorindex = buf.readUInt32LE(offset); offset += 4;
         this.innercode = buf.readUInt32LE(offset); offset += 4;
         this.action = buf.readUInt8(offset); offset += 4;
-        this.errorid = buf.readUInt32LE(offset); offset += 4;
+        this.errorid = buf.readInt32LE(offset); offset += 4;
         this.errormsg = buf.slice(offset, buf.indexOf(0, offset)).toString("utf-8");
         offset += 1028;
         this.datetime.tv_sec = buf.readUIntLE(offset, 8); offset += 8;
@@ -627,11 +649,121 @@ export class ComConOrderErrorInfo extends Message {
     }
 
     fromBuffer(buf: Buffer, offset: number): number {
-        offset += this.con.fromBuffer(buf, offset);
-        offset += this.os.fromBuffer(buf, offset);
+        offset = this.con.fromBuffer(buf, offset);
+        offset = this.os.fromBuffer(buf, offset);
         return offset;
     }
 }
+
+export class ComOrder extends Message {
+    static len = 96;
+
+    strategyid: number = 0; // 4
+    algorid: number = 0;  // 4
+    orderid: number = 0;  // 4
+    algorindex: number = 0; // 4
+    innercode: number = 0; // 4
+    price: number = 0; // 4
+    quantity: number = 0; // 4
+    action: number = 0;              // EOrderAction 1
+    property: number = 0;            // EOrderProperty 1
+    currency: number = 0;            // EOrderCurrency 1
+    covered: number = 0;             // EOrderCoveredFlag 1
+    signal: AlphaSignalInfo[] = []; // 4
+
+    fromBuffer(buf: Buffer, offset: number): number {
+        return BufferUtil.format(buf, offset, "7i4b1i4p1l1i4p1l1i4p1l1i4p1l1i4p1l", this);
+    }
+
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(ComOrder.len, 0);
+        buf.writeUInt32LE(this.strategyid, offset); offset += 4;
+        buf.writeUInt32LE(this.algorid, offset); offset += 4;
+        buf.writeUInt32LE(this.orderid, offset); offset += 4;
+        buf.writeUInt32LE(this.algorindex, offset); offset += 4;
+        buf.writeUInt32LE(this.innercode, offset); offset += 4;
+        buf.writeUInt32LE(this.price, offset); offset += 4;
+        buf.writeUInt32LE(this.quantity, offset); offset += 4;
+        buf.writeInt8(this.action, offset); offset += 1;
+        buf.writeInt8(this.property, offset); offset += 1;
+        buf.writeInt8(this.currency, offset); offset += 1;
+        buf.writeInt8(this.covered, offset); offset += 1;
+
+        for (let i = 0; i < 4; ++i) {
+            this.signal[i] = new AlphaSignalInfo();
+            buf.writeUInt32LE(this.signal[i].id, offset);
+            offset += 8;
+            buf.writeUIntLE(this.signal[i].value, offset, 8);
+            offset += 8;
+        }
+        return buf;
+    }
+};
+
+export class ComOrderCancel extends Message {
+    static len = 32;
+
+    strategyid: number; // 4
+    algorid: number; // 4
+    orderid: number; // 4
+    algorindex: number; // 4
+    innercode: number; // 4
+    price: number; // 4
+    quantity: number;  // 4
+    action: number;     // EOrderAction 1
+
+    fromBuffer(buf: Buffer, offset: number): number {
+        return BufferUtil.format(buf, offset, "7i1b3p", this);
+    }
+
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(ComOrder.len, 0);
+        buf.writeUInt32LE(this.strategyid, offset); offset += 4;
+        buf.writeUInt32LE(this.algorid, offset); offset += 4;
+        buf.writeUInt32LE(this.orderid, offset); offset += 4;
+        buf.writeUInt32LE(this.algorindex, offset); offset += 4;
+        buf.writeUInt32LE(this.innercode, offset); offset += 4;
+        buf.writeUInt32LE(this.price, offset); offset += 4;
+        buf.writeUInt32LE(this.quantity, offset); offset += 4;
+        buf.writeInt8(this.action, offset); offset += 1;
+        return buf;
+    }
+};
+
+export class ComConOrder extends Message {
+    static len = 176;
+
+    ordertype: EOrderType = EOrderType.ORDER_TYPE_UNKNOWN;        // EOrderType 1
+    con: ComContract = new ComContract();
+    datetime: TimeVal = new TimeVal();
+    data: ComOrder | ComOrderCancel;
+
+    fromBuffer(buf: Buffer, offset: number): number {
+        buf.readUInt32LE(offset); offset += 8;
+        offset = this.con.fromBuffer(buf, offset);
+        offset = this.datetime.fromBuffer(buf, offset);
+        this.data.fromBuffer(buf, offset);
+        return ComOrder.len;
+    }
+
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(ComConOrder.len, 0);
+        buf.writeUInt32LE(this.ordertype, offset); offset += 8;
+        this.con.toBuffer().copy(buf, offset); offset += ComContract.len;
+        this.datetime.toBuffer().copy(buf, offset); offset += TimeVal.len;
+        this.data.toBuffer().copy(buf, offset);
+        return buf;
+    }
+};
+
+export enum EOrderType {
+    ORDER_TYPE_ORDER,
+    ORDER_TYPE_CANCEL,
+    ORDER_TYPE_UNKNOWN = 255
+};
 
 export class FpPosUpdate extends Message {
     UKey: number = 0; // uint32_t
@@ -690,3 +822,22 @@ export class FpQtyOrder {
         return offset;
     }
 }
+
+export enum SECU_MARKET {
+    SM_EMPTY = 0,
+    SM_SHFE = 10,
+    SM_DCE = 13,
+    SM_CZCE = 15,
+    SM_CFFEX = 20,
+    SM_NEEQ = 81,
+    SM_SH = 83,
+    SM_SZ = 90,
+    SM_HKFE = 255,
+};
+
+export enum StrategyCfgType {
+    STRATEGY_CFG_TYPE_INSTRUMENT,
+    STRATEGY_CFG_TYPE_COMMENT,
+    STRATEGY_CFG_TYPE_PARAMETER,
+    STRATEGY_CFG_TYPE_COMMAND
+};

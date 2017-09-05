@@ -6,9 +6,8 @@ import {
     RegisterMessage, ComStrategyInfo, ComGuiAckStrategy, ComTotalProfitInfo,
     ComConOrderStatus, ComStrategyCfg, ComOrderRecord, ComAccountPos,
     ComRecordPos, ComGWNetGuiInfo, StatArbOrder, ComConOrderErrorInfo,
-    ComProfitInfo, FpPosUpdate
+    ComProfitInfo, FpPosUpdate, ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract
 } from "../../../base/api/model/itrade/strategy.model";
-import { ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract } from "../../../base/api/model/itrade/orderstruct";
 import { OrderService } from "../../../base/api/services/orderService";
 import { ManulTrader } from "./sendorder";
 import { Sound } from "../../../base/api/services/backend.worker";
@@ -20,8 +19,8 @@ const logger = ULogger.file();
  * interface for single pro.
  */
 
-let quotePoint;
-let trade;
+let quotePoint: IP20Service;
+let trade: StrategyDealer;
 process.on("message", (m: WSIP20, sock) => {
     switch (m.command) {
         case "ps-start":
@@ -78,7 +77,7 @@ process.on("message", (m: WSIP20, sock) => {
             trade.connect(m.params.port, m.params.host);
             break;
         case "ss-send":
-            ss_sendHandle(m.params);
+            trade.send(m.params);
             break;
         case "send":
             Sound.play(m.params.type);
@@ -278,6 +277,7 @@ export class StrategyDealer {
                 for (let i = 0; i < count; ++i) {
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
+                    logger.debug(`ComRecordPos=>${JSON.stringify(msg.record)}`);
                 }
                 break;
             case 2015:
@@ -310,6 +310,7 @@ export class StrategyDealer {
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
+
                 break;
             case 2040:
                 msg = content.slice(offset, content.indexOf(0, offset));
@@ -354,6 +355,99 @@ export class StrategyDealer {
         msg = null;
         count = null;
         process.send({ event: "ss-data", content: { type: header.type, data: msgArr } });
+    }
+
+    send(params) {
+        const maxOrderSize = 100;
+        let body: Buffer;
+        let offset = 0;
+
+        switch (params.type) {
+            case "order":
+                body = Buffer.alloc(4 + ComConOrder.len, 0);
+                body.writeUInt32LE(1, offset); offset += 4;
+                let order = new ComConOrder();
+                order.ordertype = params.data.ordertype;
+                Object.assign(order.con, params.data.con);
+                Object.assign(order.datetime, params.data.datetime);
+                order.data = order.ordertype === EOrderType.ORDER_TYPE_ORDER ? new ComOrder() : new ComOrderCancel();
+                Object.assign(order.data, params.data.data);
+                console.info(order.data, params.data.data);
+                order.toBuffer().copy(body, offset);
+                console.info(order);
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2020, subtype: 0, body: body });
+                logger.info(`send=>ordersize=1`);
+                break;
+            case "singleBuy":
+                // ManulTrader.singleBuy(content.account, content.askPriceLevel, content.bidPriceLevel, content.askOffset, content.bidOffset, content.ukey, content.qty);
+                break;
+            case "singleCancel":
+                body = Buffer.alloc(16, 0); // FP_HEAD
+                body.writeUIntLE(params.data.account, offset, 8); offset += 8;
+                body.writeUInt32LE(1, offset); offset += 4;
+                body.writeUInt32LE(params.data.ukey, offset); offset += 4;
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5005, subtype: 0, body: body });
+                break;
+            case "submitBasket":
+                // ManulTrader.submitBasket(content.type, content.indexSymbol, content.divideNum, content.account, content.initPos);
+                break;
+            case "sendAllSel":
+                // ManulTrader.sendAllSel(content.account, content.count, content.askPriceLevel, content.bidPriceLevel, content.askOffset, content.bidOffset, content.sendArr);
+                break;
+            case "cancelAllSel":
+                // ManulTrader.cancelAllSel(content.account, content.count, content.sendArr);
+                break;
+            case "getProfitInfo":
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2047, subtype: 0, body: null });
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2044, subtype: 0, body: null });
+                break;
+            case "strategy-param":
+                body = Buffer.alloc(4 + params.data.length * ComStrategyCfg.len);
+                body.writeUInt32LE(params.data.length, offset); offset += 4;
+                let cfg: ComStrategyCfg;
+                params.data.forEach(item => {
+                    cfg = new ComStrategyCfg();
+                    cfg.strategyid = item.strategyid;
+                    cfg.key = item.key;
+                    cfg.value = item.value;
+                    cfg.type = item.type;
+                    cfg.toBuffer().copy(body, offset); offset += ComStrategyCfg.len;
+                });
+
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2030, subtype: 0, body: body });
+                break;
+            case "strategy-cmd":
+                body = new Buffer(8);
+                body.writeInt32LE(1, offset); offset += 4;
+                body.writeInt32LE(params.data.strategyid, offset);
+                let type;
+                switch (params.data.tip) {
+                    case 0:
+                        type = 2000;
+                        break;
+                    case 1:
+                        type = 2004;
+                        break;
+                    case 2:
+                        type = 2002;
+                        break;
+                    case 3:
+                        type = 2049;
+                        break;
+                }
+
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: type, subtype: 0, body: body });
+                break;
+            case "registerAccPos":
+                body = new Buffer(12);
+                body.writeUIntLE(params.data, offset, 8); offset += 8;
+                body.writeUInt32LE(0, offset); offset += 4;
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5002, subtype: 0, body: body });
+                break;
+            default:
+                break;
+        }
+        body = null;
     }
 
     registerMessages() {
@@ -510,44 +604,5 @@ function loginTGW(ip20: IP20Service) {
 }
 
 function ss_sendHandle(data: any) {
-    let type = data.type;
-    let content = data.data;
 
-    switch (type) {
-        case "sendorder":
-            ManulTrader.submitOrder(content);
-            break;
-        case "cancelorder":
-            ManulTrader.cancelorder(content);
-            break;
-        case "singleBuy":
-            ManulTrader.singleBuy(content.account, content.askPriceLevel, content.bidPriceLevel, content.askOffset, content.bidOffset, content.ukey, content.qty);
-            break;
-        case "singleCancel":
-            ManulTrader.singleCancel(content.account, content.ukey);
-            break;
-        case "submitBasket":
-            ManulTrader.submitBasket(content.type, content.indexSymbol, content.divideNum, content.account, content.initPos);
-            break;
-        case "sendAllSel":
-            ManulTrader.sendAllSel(content.account, content.count, content.askPriceLevel, content.bidPriceLevel, content.askOffset, content.bidOffset, content.sendArr);
-            break;
-        case "cancelAllSel":
-            ManulTrader.cancelAllSel(content.account, content.count, content.sendArr);
-            break;
-        case "getProfitInfo":
-            ManulTrader.getProfitInfo();
-            break;
-        case "submitPara":
-            ManulTrader.submitPara(content);
-            break;
-        case "strategyControl":
-            ManulTrader.strategyControl(content.tip, content.strategyid);
-            break;
-        case "registerAccPos":
-            ManulTrader.registerAccPos(content);
-            break;
-        default:
-            break;
-    }
 }

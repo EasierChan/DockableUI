@@ -21,6 +21,9 @@ let ip20strs = [];
     ]
 })
 export class BacktestComponent implements OnInit {
+    static reqnum = 1;
+    requestMap = {};
+
     strategyMenu: Menu;
     strategyArea: TileArea;
     strategyConfigs: Array<WorkspaceConfig>;
@@ -31,7 +34,6 @@ export class BacktestComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.appService.onUpdateApp(this.updateApp, this);
         this.registerListeners();
         this.initializeStrategies();
     }
@@ -71,19 +73,29 @@ export class BacktestComponent implements OnInit {
             }
         });
 
-        // this.tradePoint.addSlot({
-        //     appid: 107,
-        //     packid: 2003, // 启动策略回报
-        //     callback: msg => {
-        //         for (let i = 0; i < this.strategyConfigs.length; ++i) {
-        //             if (this.strategyConfigs[i].name === msg.content.strategyserver.name) {
-        //                 // this.strategyConfigs[i].appid = 
-        //                 break;
-        //             }
-        //         }
+        this.tradePoint.addSlot({
+            appid: 200,
+            packid: 8012,
+            callback: msg => {
+                let config = this.strategyConfigs.find(item => { return item.name === this.requestMap[msg.content.reqsn]; });
 
-        //     }
-        // });
+                if (config) {
+                    let instance = this.configBll.getTemplateByName(config.strategyType);
+                    instance["ss_instance_name"] = config.name;
+                    instance["SSData"]["backup"]["path"] += "/" + config.name;
+                    instance["SSInfo"]["name"] = config.name;
+                    instance["SSLog"]["file"] = instance["SSLog"]["file"].replace("$ss_instance_name", config.name);
+                    config.backtestConfig.tradePoint = { host: msg.content.url, port: msg.content.port };
+                    config.backtestConfig.quotePoint = { host: msg.content.hqurl, port: msg.content.hqport };
+                    instance["SSGW"]["Gateway"].addr = config.backtestConfig.tradePoint.host;
+                    instance["SSGW"]["Gateway"].port = config.backtestConfig.tradePoint.port;
+                    instance["SSFeed"]["PS"].addr = config.backtestConfig.quotePoint.port;
+                    instance["SSFeed"]["PS"].port = config.backtestConfig.quotePoint.port;
+
+                    this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
+                }
+            }
+        });
 
         // subscribe strategy status
         this.tradePoint.addSlot({
@@ -170,6 +182,7 @@ export class BacktestComponent implements OnInit {
 
         // strategy status
         this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+        this.appService.onUpdateApp(this.updateApp, this);
     }
 
     // update app info
@@ -187,12 +200,18 @@ export class BacktestComponent implements OnInit {
         if (this.strategyConfigs.find(item => { return item.name === config.name; }) === undefined)
             this.strategyConfigs.push(config);
 
-        let instance = this.configBll.getTemplateByName(config.strategyType);
-        instance["ss_instance_name"] = config.name;
-        instance["SSData"]["backup"]["path"] += config.name;
-        instance["SSInfo"]["name"] = config.name;
-        instance["SSInfo"]["name"] = config.name;
-        this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
+        let tmpobj = {
+            reqsn: BacktestComponent.reqnum++,
+            timebegin: parseInt(config.backtestConfig.timebegin.split("-").join("")),
+            timeend: parseInt(config.backtestConfig.timeend.split("-").join("")),
+            speed: parseInt(config.backtestConfig.speed),
+            simlevel: parseInt(config.backtestConfig.simlevel),
+            period: parseInt(config.backtestConfig.period),
+            unit: parseInt(config.backtestConfig.unit)
+        };
+
+        this.requestMap[tmpobj.reqsn] = config.name;
+        this.tradePoint.send(200, 8010, tmpobj);
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {

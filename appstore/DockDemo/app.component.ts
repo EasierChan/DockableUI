@@ -17,8 +17,9 @@ import {
 } from "../../base/api/services/backend.service";
 import {
     EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus,
-    EStrategyStatus, StrategyCfgType
-} from "../../base/api/model/itrade/orderstruct";
+    EStrategyStatus, StrategyCfgType, ComConOrder, ComOrderCancel,
+    ComOrder
+} from "../../base/api/model/itrade/strategy.model";
 
 @Component({
     moduleId: module.id,
@@ -304,33 +305,18 @@ export class AppComponent implements OnInit, AfterViewInit {
                 else if (!AppComponent.self.orderstatusTable.rows[i].cells[0].Text)
                     continue;
                 else {
-                    let cancelorderPack = {
-                        ordertype: EOrderType.ORDER_TYPE_CANCEL,
-                        con: {
-                            contractid: 0,
-                            account: parseInt(account),
-                            orderaccount: "",
-                            tradeunit: "",
-                            tradeproto: ""
-                        },
-                        datetime: {
-                            tv_sec: date.getSeconds(),
-                            tv_usec: date.getMilliseconds()
-                        },
-                        data: {
-                            strategyid: parseInt(strategyid),
-                            algorid: 0,
-                            orderid: parseInt(orderid),
-                            algorindex: 0,
-                            innercode: parseInt(ukey),
-                            price: 0,
-                            quantity: 0,
-                            action: 1
-                        }
-                    };
-                    AppComponent.bgWorker.send({
-                        command: "ss-send", params: { type: "cancelorder", data: cancelorderPack }
-                    });
+                    let order = new ComConOrder();
+                    order.ordertype = EOrderType.ORDER_TYPE_CANCEL;
+                    order.con.account = parseInt(account);
+                    order.datetime.tv_sec = date.getSeconds();
+                    order.datetime.tv_usec = date.getMilliseconds();
+                    order.data = new ComOrderCancel();
+                    order.data.strategyid = parseInt(strategyid);
+                    order.data.orderid = parseInt(orderid);
+                    order.data.innercode = parseInt(ukey);
+                    order.data.action = 1;
+                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "order", data: order } });
+                    order = null;
                 }
             }
         };
@@ -595,7 +581,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         btn_submit.OnClick = () => {
             let account = this.dd_Account.SelectedItem.Text;
-            let getstrategy = this.dd_Strategy.SelectedItem.Text;
+            let strategyid = this.dd_Strategy.SelectedItem.Text;
             let symbol = this.txt_Symbol.Text;
             let ukey = this.txt_UKey.Text;
             let price = this.txt_Price.Text;
@@ -617,37 +603,20 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
 
             let date = new Date();
-            let orderPack = {
-                ordertype: EOrderType.ORDER_TYPE_ORDER,
-                con: {
-                    contractid: 0,
-                    account: parseInt(account),
-                    orderaccount: "",
-                    tradeunit: "",
-                    tradeproto: ""
-                },
-                datetime: {
-                    tv_sec: date.getSeconds(),
-                    tv_usec: date.getMilliseconds()
-                },
-                data: {
-                    strategyid: parseInt(getstrategy),
-                    algorid: 0,
-                    orderid: 0,
-                    algorindex: 0,
-                    innercode: parseInt(ukey),
-                    price: price * 10000,
-                    quantity: parseInt(volume),
-                    action: (actionValue === 1) ? 1 : 0,
-                    property: 0,
-                    currency: 0,
-                    covered: 0,
-                    signal: [{ id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }, { id: 0, value: 0 }]
-                }
-            };
+            let order = new ComConOrder();
+            order.ordertype = EOrderType.ORDER_TYPE_ORDER;
+            order.con.account = parseInt(account);
+            order.datetime.tv_sec = Math.round(date.getMilliseconds() / 1000);
+            order.datetime.tv_usec = 0;
+            order.data = new ComOrder();
+            order.data.strategyid = parseInt(strategyid);
+            order.data.innercode = parseInt(ukey);
+            order.data.price = Math.round(price * 10000);
+            order.data.quantity = parseInt(volume);
+            order.data.action = (actionValue === 1) ? 1 : 0;
             // submit order
             AppComponent.bgWorker.send({
-                command: "ss-send", params: { type: "sendorder", data: orderPack }
+                command: "ss-send", params: { type: "order", data: order }
             });
             this.dialog.hide();
         };
@@ -1610,18 +1579,16 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showComorderstatusAndErrorInfo(data: any) {
-        // add log
-        let type = data[0].type;
         let time = AppComponent.self.getCurrentTime();
-        let rowLen = AppComponent.self.logTable.rows.length;
-        if (rowLen > 500)
-            AppComponent.self.logTable.rows.splice(0, 1);
         let row = AppComponent.self.logTable.newRow();
         row.cells[0].Text = time;
-        row.cells[1].Text = data[0].logStr;
-        if (row.cells[1].Text.startsWith("errorid")) {
+        row.cells[1].Text = `errorid=${data[0].os.errorid}, errmsg=${data[0].os.errormsg}`;
+        if (data[0].os.errorid !== 0) {
             row.cells[1].Color = "red";
         }
+
+        if (AppComponent.self.logTable.rows.length > 500)
+            AppComponent.self.logTable.rows.shift();
         AppComponent.self.logTable.detectChanges();
     }
 
@@ -2662,7 +2629,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             if (alertFlag)
                 AppComponent.bgWorker.send({
                     command: "ss-send", params: {
-                        type: "submitPara", data: sendArray
+                        type: "strategy-param", data: sendArray
                     }
                 });
             else
@@ -2709,7 +2676,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     if (ret) {
                         AppComponent.bgWorker.send({
                             command: "ss-send", params: {
-                                type: "submitPara", data: [data.Data]
+                                type: "strategy-param", data: [data.Data]
                             }
                         });
                     }
@@ -2723,7 +2690,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.showStraContrlDisable(tip, cellidx, rowIdx);
         AppComponent.bgWorker.send({
             command: "ss-send", params: {
-                type: "strategyControl", data: {
+                type: "strategy-cmd", data: {
                     tip: tip, strategyid: strategyid
                 }
             }

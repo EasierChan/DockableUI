@@ -44,7 +44,6 @@ export class TradeComponent implements OnInit {
 
     ngOnInit() {
         this.areas = [];
-        this.appService.onUpdateApp(this.updateApp, this);
         this.registerListeners();
         this.initializeProducts();
         this.initializeStrategies();
@@ -266,6 +265,7 @@ export class TradeComponent implements OnInit {
 
         // strategy status
         this.tradePoint.send(17, 101, { topic: 8000, kwlist: [800] });
+        this.appService.onUpdateApp(this.updateApp, this);
     }
 
     initializeAnylatics() {

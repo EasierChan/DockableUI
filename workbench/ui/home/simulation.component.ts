@@ -29,7 +29,6 @@ export class SimulationComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.appService.onUpdateApp(this.updateApp, this);
         this.registerListeners();
         this.initializeStrategies();
     }
@@ -41,7 +40,7 @@ export class SimulationComponent implements OnInit {
             appid: 107,
             packid: 2001, // 创建策略回报
             callback: msg => {
-                console.info(msg);
+                // console.info(msg);
                 if (msg.content.body.errorid !== 0) {
                     console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
                     return;
@@ -69,27 +68,12 @@ export class SimulationComponent implements OnInit {
             }
         });
 
-        this.tradePoint.addSlot({
-            appid: 107,
-            packid: 2003, // 启动策略回报
-            callback: msg => {
-                for (let i = 0; i < this.strategyConfigs.length; ++i) {
-                    if (this.strategyConfigs[i].name === msg.content.strategyserver.name) {
-                        // this.strategyConfigs[i].appid = 
-                        break;
-                    }
-                }
-
-                this.configBll.updateConfig();
-            }
-        });
-
         // subscribe strategy status
         this.tradePoint.addSlot({
             appid: 17,
             packid: 110,
             callback: (msg) => {
-                console.info(msg);
+                // console.info(msg);
                 let target = this.strategyConfigs.find(citem => { return citem.name === msg.content.strategyserver.name; });
 
                 if (target !== undefined)
@@ -157,7 +141,7 @@ export class SimulationComponent implements OnInit {
             }
         };
 
-        this.strategyConfigs = this.configBll.getRealTradeConfigs();
+        this.strategyConfigs = this.configBll.getSimulationConfigs();
         this.strategyConfigs.forEach(config => {
             let tile = new Tile();
             tile.title = config.chname;
@@ -169,6 +153,7 @@ export class SimulationComponent implements OnInit {
 
         // strategy status
         this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+        this.appService.onUpdateApp(this.updateApp, this);
     }
 
     // update app info
@@ -183,12 +168,14 @@ export class SimulationComponent implements OnInit {
     }
 
     updateStrategyConfig(config: WorkspaceConfig) {
-        console.info(config);
-        this.strategyConfigs.push(config);
+        if (this.strategyConfigs.find(item => { return item.name === config.name; }) === undefined)
+            this.strategyConfigs.push(config);
+
         let instance = this.configBll.getTemplateByName(config.strategyType);
         instance["ss_instance_name"] = config.name;
-        instance["SSData"]["backup"]["path"] += config.name;
+        instance["SSData"]["backup"]["path"] += "/" + config.name;
         instance["SSInfo"]["name"] = config.name;
+        instance["SSLog"]["file"] = instance["SSLog"]["file"].replace(/\$ss_instance_name/g, config.name);
         this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
     }
 
