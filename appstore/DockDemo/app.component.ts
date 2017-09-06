@@ -329,7 +329,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         };
 
         this.orderstatusTable = new DataTable("table2");
-        let orderstatusArr: string[] = ["Check", "U-Key", "Symbol", "OrderId", "Time", "Strategy",
+        let orderstatusArr: string[] = ["Check", "U-Key", "SymbolCode", "OrderId", "Time", "Strategy",
             "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account"];
         let orderstatusTableRtnArr: string[] = [];
         let orderstatusTableTitleLen = orderstatusArr.length;
@@ -343,13 +343,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.orderstatusTable.columnConfigurable = true;
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
-
-        // this.orderstatusTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
-        //     console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
-        //     let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
-        //     if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
-        //         AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
-        // };
 
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
         this.pageObj["DoneOrders"] = this.doneOrdersPage;
