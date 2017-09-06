@@ -40,7 +40,7 @@ export class SimulationComponent implements OnInit {
             appid: 107,
             packid: 2001, // 创建策略回报
             callback: msg => {
-                // console.info(msg);
+                console.debug(msg);
                 if (msg.content.body.errorid !== 0) {
                     console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
                     return;

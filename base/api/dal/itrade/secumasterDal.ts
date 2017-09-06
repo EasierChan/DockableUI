@@ -162,7 +162,7 @@ class SecuMaster {
     static getSecuinfoByWindCodes(codes: string[]) {
         let resArr = [];
         codes.forEach(code => {
-            if (SecuMaster.windObj.hasOwnProperty) {
+            if (SecuMaster.windObj.hasOwnProperty(code)) {
                 SecuMaster.windObj[code].windCode = code;
                 resArr.push(SecuMaster.windObj[code]);
             }

@@ -420,6 +420,7 @@ export class ComAccountPos extends Message {
 }
 
 class ComEquitPos extends Message {
+    static len = 88;
     date: number = 0; // 4
     account: number = 0; // 8
     code: number = 0; // 4
@@ -445,12 +446,14 @@ class ComEquitPos extends Message {
         this.TotalCost = buf.readIntLE(offset, 8); offset += 8;
         this.AvlCreRedempVol = buf.readIntLE(offset, 8); offset += 8;
         this.CovedFrzVol = buf.readIntLE(offset, 8); offset += 8;
-        this.type = buf.readInt32LE(offset); offset += 16;
+        this.type = buf.readInt32LE(offset); offset += 8;
         return offset;
     }
 };
 
 class FuturePos extends Message {
+    static len = 88;
+
     date: number = 0; // 4
     account: number = 0; // 8
     code: number = 0; // 4
@@ -484,6 +487,7 @@ class FuturePos extends Message {
 };
 
 export class ComRecordPos extends Message {
+    static len = 112;
     poolindex: number = 0;
     poolpri: number = 0;
     secucategory: number = 0;  // 1
@@ -503,11 +507,10 @@ export class ComRecordPos extends Message {
         this.initpos = buf.readUIntLE(offset, 8); offset += 8;
         if (ESSSecuCategory.SS_SECU_CATEGORY_EQUIT === this.secucategory) {
             this.record = new ComEquitPos();
-        } else if (ESSSecuCategory.SS_SECU_CATEGORY_FUTURE === this.secucategory) {
-            this.record = new FuturePos();
         } else {
-            console.error(`unknown secucategory = ${this.secucategory}`);
+            this.record = new FuturePos();
         }
+
         return this.record.fromBuffer(buf, offset);
     }
 }
@@ -797,29 +800,49 @@ export class FpPosUpdate extends Message {
     }
 };
 
-export class FpQtyOrder {
-    UKey: number = 0;  // uint32
-    AskPriceLevel: number = 0; // uint8
-    BidPriceLevel: number = 0; // uint8
-    AskOffset: number = 0; // int8
-    BidOffset: number = 0; // int8
-    Qty: number = 0; // uint32
+export class FpQtyOrder extends Message {
+    static len = 12;
 
-    fromBuffer(buf, offset) {
+    ukey: number = 0;  // uint32
+    askPriceLevel: number = 0; // uint8
+    bidPriceLevel: number = 0; // uint8
+    askOffset: number = 0; // int8
+    bidOffset: number = 0; // int8
+    qty: number = 0; // uint32
+
+    fromBuffer(buf, offset): number {
         return BufferUtil.format(buf, offset, "1i4b1i", this);
     }
 
-    toBuffer() {
-        let buf = Buffer.alloc(12, 0);
+    toBuffer(): Buffer {
+        let buf = Buffer.alloc(FpQtyOrder.len, 0);
         let offset = 0;
 
-        buf.writeUInt32LE(this.UKey, offset); offset += 4;
-        buf.writeUInt8(this.AskPriceLevel, offset); offset += 1;
-        buf.writeUInt8(this.BidPriceLevel, offset); offset += 1;
-        buf.writeUInt8(this.AskOffset, offset); offset += 1;
-        buf.writeUInt8(this.BidOffset, offset); offset += 1;
-        buf.writeUInt32LE(this.Qty, offset); offset += 4;
-        return offset;
+        buf.writeUInt32LE(this.ukey, offset); offset += 4;
+        buf.writeUInt8(this.askPriceLevel, offset); offset += 1;
+        buf.writeUInt8(this.bidPriceLevel, offset); offset += 1;
+        buf.writeUInt8(this.askOffset, offset); offset += 1;
+        buf.writeUInt8(this.bidOffset, offset); offset += 1;
+        buf.writeUInt32LE(this.qty, offset); offset += 4;
+        return buf;
+    }
+}
+
+export class FpHead extends Message {
+    static len = 12;
+    account: number; // uint64_t
+    count: number; // uint32_t
+
+    fromBuffer(buf, offset): number {
+        return BufferUtil.format(buf, offset, "1l1i", this);
+    }
+
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(FpHead.len, 0);
+        buf.writeUIntLE(this.account, offset, 8); offset += 8;
+        buf.writeUInt32LE(this.count, offset); offset += 4;
+        return buf;
     }
 }
 

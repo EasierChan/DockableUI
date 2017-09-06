@@ -237,17 +237,17 @@ export class File {
         return obj;
     }
 
-    public static readLineByLine(fpath: string, cb: (linestr) => void, finish: () => void) {
+    public static readLineByLine(fpath: string, cb: (linestr, data?: any) => void, finish: (data?: any) => void, data?: any) {
         const rl = readline.createInterface({
             input: fs.createReadStream(fpath)
         });
 
         rl.on("line", line => {
-            cb(line);
+            cb(line, data);
         });
 
         rl.on("close", () => {
-            finish();
+            finish(data);
         });
     }
 

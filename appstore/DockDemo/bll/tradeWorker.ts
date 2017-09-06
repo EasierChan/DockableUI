@@ -6,10 +6,9 @@ import {
     RegisterMessage, ComStrategyInfo, ComGuiAckStrategy, ComTotalProfitInfo,
     ComConOrderStatus, ComStrategyCfg, ComOrderRecord, ComAccountPos,
     ComRecordPos, ComGWNetGuiInfo, StatArbOrder, ComConOrderErrorInfo,
-    ComProfitInfo, FpPosUpdate, ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract
+    ComProfitInfo, FpPosUpdate, ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract,
+    FpHead, FpQtyOrder
 } from "../../../base/api/model/itrade/strategy.model";
-import { OrderService } from "../../../base/api/services/orderService";
-import { ManulTrader } from "./sendorder";
 import { Sound } from "../../../base/api/services/backend.worker";
 import { ULogger } from "../../../base/api/common/base/logger";
 
@@ -193,9 +192,9 @@ export class StrategyDealer {
             case 2031: // ComGuiAckStrategy submit
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComGuiAckStrategy();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComGuiAckStrategy();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
@@ -204,9 +203,9 @@ export class StrategyDealer {
             case 2011: // ComStrategyInfo
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComStrategyInfo();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComStrategyInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
@@ -214,9 +213,9 @@ export class StrategyDealer {
             case 2048: // ComTotalProfitInfo
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComTotalProfitInfo();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComTotalProfitInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
@@ -230,8 +229,8 @@ export class StrategyDealer {
             case 2032:
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComStrategyCfg();
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComStrategyCfg();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
@@ -241,9 +240,9 @@ export class StrategyDealer {
             case 3501:
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComOrderRecord();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComOrderRecord();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
@@ -251,9 +250,9 @@ export class StrategyDealer {
             case 2023: // ComProfitInfo
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComProfitInfo();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComProfitInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
@@ -261,9 +260,9 @@ export class StrategyDealer {
             case 2013:
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComAccountPos();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComAccountPos();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
@@ -272,41 +271,43 @@ export class StrategyDealer {
             case 3504:
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComRecordPos();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComRecordPos();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
-                    logger.debug(`ComRecordPos=>${JSON.stringify(msg.record)}`);
+                    logger.debug(`ComRecordPos=>${JSON.stringify(msg)} offset=${offset}`);
                 }
                 break;
             case 2015:
             case 2017:
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new ComGWNetGuiInfo();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new ComGWNetGuiInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
+                    logger.debug(`ComGWNetGuiInfo=>${JSON.stringify(msg)}`);
                 }
                 break;
             case 2025:
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = new StatArbOrder();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new StatArbOrder();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
+                    logger.debug(`ComGWNetGuiInfo=>${JSON.stringify(msg)}`);
                 }
                 break;
             case 2021:
                 count = content.readUInt32LE(offset);
                 offset += 4;
-                msg = header.subtype === 0 ? new ComConOrderStatus() : new ComConOrderErrorInfo();
 
                 for (let i = 0; i < count; ++i) {
+                    msg = header.subtype === 0 ? new ComConOrderStatus() : new ComConOrderErrorInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
                 }
@@ -320,12 +321,13 @@ export class StrategyDealer {
                 count = content.readUInt32LE(offset); offset += 4;
                 let account = content.readUIntLE(offset, 8); offset += 8;
                 count = content.readUInt32LE(offset); offset += 4;
-                msg = new FpPosUpdate();
                 let arr = [];
 
                 for (let i = 0; i < count; ++i) {
+                    msg = new FpPosUpdate();
                     offset = msg.fromBuffer(content, offset);
                     arr.push(msg);
+                    logger.debug(`FpPosUpdate=>${JSON.stringify(msg)}`);
                 }
 
                 msgArr.push({ account: account, data: arr, count: count });
@@ -372,30 +374,56 @@ export class StrategyDealer {
                 Object.assign(order.datetime, params.data.datetime);
                 order.data = order.ordertype === EOrderType.ORDER_TYPE_ORDER ? new ComOrder() : new ComOrderCancel();
                 Object.assign(order.data, params.data.data);
-                console.info(order.data, params.data.data);
                 order.toBuffer().copy(body, offset);
-                console.info(order);
                 this.tradePoint.sendQtp(this.appid, this.packid, { type: 2020, subtype: 0, body: body });
-                logger.info(`send=>ordersize=1`);
+                logger.info(`order=>ordersize=1`);
                 break;
-            case "singleBuy":
-                // ManulTrader.singleBuy(content.account, content.askPriceLevel, content.bidPriceLevel, content.askOffset, content.bidOffset, content.ukey, content.qty);
+            case "order-fp":
+                let orderhead = new FpHead();
+                orderhead.account = params.data.account;
+                orderhead.count = params.data.orders.length;
+                body = orderhead.toBuffer();
+                orderhead = null;
+                let fporder = new FpQtyOrder();
+                fporder.askPriceLevel = params.data.askPriceLevel;
+                fporder.bidPriceLevel = params.data.bidPriceLevel;
+                fporder.askOffset = params.data.askOffset;
+                fporder.bidOffset = params.data.bidOffset;
+                params.data.orders.forEach(order => {
+                    fporder.ukey = order.ukey;
+                    fporder.qty = order.qty;
+                    body = Buffer.concat([body, fporder.toBuffer()], body.byteLength + FpQtyOrder.len);
+                });
+
+                fporder = null;
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5004, subtype: 0, body: body });
+                logger.info(`order-fp=>ordersize=${params.data.orders.length}`);
                 break;
-            case "singleCancel":
-                body = Buffer.alloc(16, 0); // FP_HEAD
+            case "cancel-fp":
+                body = Buffer.alloc(12 + params.data.ukeys.length * 4, 0); // FP_HEAD
                 body.writeUIntLE(params.data.account, offset, 8); offset += 8;
-                body.writeUInt32LE(1, offset); offset += 4;
-                body.writeUInt32LE(params.data.ukey, offset); offset += 4;
+                body.writeUInt32LE(params.data.ukeys.length, offset); offset += 4;
+                params.data.ukeys.forEach(ukey => {
+                    body.writeUInt32LE(ukey, offset); offset += 4;
+                });
                 this.tradePoint.sendQtp(this.appid, this.packid, { type: 5005, subtype: 0, body: body });
                 break;
-            case "submitBasket":
-                // ManulTrader.submitBasket(content.type, content.indexSymbol, content.divideNum, content.account, content.initPos);
-                break;
-            case "sendAllSel":
-                // ManulTrader.sendAllSel(content.account, content.count, content.askPriceLevel, content.bidPriceLevel, content.askOffset, content.bidOffset, content.sendArr);
-                break;
-            case "cancelAllSel":
-                // ManulTrader.cancelAllSel(content.account, content.count, content.sendArr);
+            case "basket-fp":
+                body = Buffer.alloc(FpHead.len + 8 + params.data.list.length * 12);
+                let basketHead = new FpHead();
+                basketHead.account = params.data.account;
+                basketHead.count = params.data.list.length;
+                basketHead.toBuffer().copy(body, 0);
+                offset += FpHead.len;
+                body.writeUInt32LE(8016930, offset); offset += 4;
+                body.writeUInt32LE(300, offset); offset += 4;
+                params.data.list.forEach(item => {
+                    body.writeUInt32LE(item.ukey, offset); offset += 4;
+                    body.writeInt32LE(item.currPos, offset); offset += 4;
+                    body.writeInt32LE(item.targetPos, offset); offset += 4;
+                });
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5001, subtype: 0, body: body });
+                logger.info(`basket-order-size = ${basketHead.count}`);
                 break;
             case "getProfitInfo":
                 this.tradePoint.sendQtp(this.appid, this.packid, { type: 2047, subtype: 0, body: null });
@@ -438,11 +466,12 @@ export class StrategyDealer {
 
                 this.tradePoint.sendQtp(this.appid, this.packid, { type: type, subtype: 0, body: body });
                 break;
-            case "registerAccPos":
-                body = new Buffer(12);
-                body.writeUIntLE(params.data, offset, 8); offset += 8;
-                body.writeUInt32LE(0, offset); offset += 4;
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5002, subtype: 0, body: body });
+            case "account-position-load":
+                let fpHead = new FpHead();
+                fpHead.account = params.account;
+                fpHead.count = 0;
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5002, subtype: 0, body: fpHead.toBuffer() });
+                fpHead = null;
                 break;
             default:
                 break;
