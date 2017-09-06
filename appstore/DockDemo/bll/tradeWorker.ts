@@ -602,7 +602,3 @@ function loginTGW(ip20: IP20Service) {
     let loginObj = { "cellid": "1", "userid": "8.999", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
     ip20.send(17, 41, loginObj);
 }
-
-function ss_sendHandle(data: any) {
-
-}

@@ -5,12 +5,12 @@
  */
 
 import { Component, OnInit, ChangeDetectorRef, AfterViewInit } from "@angular/core";
+import { WorkerFactory } from "../../base/api/services/uworker.server";
 import {
     Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog, Label,
-    DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem
+    DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem,
+    ComboControl, MetaControl
 } from "../../base/controls/control";
-import { ComboControl, MetaControl } from "../../base/controls/control";
-import { WorkerFactory } from "../../base/api/services/uworker.server";
 import {
     MessageBox, fs, AppStateCheckerRef, File, Environment,
     SecuMasterService, TranslateService, AppStoreService
@@ -166,7 +166,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             while (AppComponent.self.pageObj.hasOwnProperty(newBVID)) {
                 newBVID = "BookView" + AppComponent.bookViewSN++;
             }
-            // AppComponent.self.statechecker.addMenuItem(0, newBVID);
+
             AppComponent.self.createBookView(newBVID);
             let panel = AppComponent.self.main.getFirstChildPanel();
             if (panel === null) {
@@ -178,12 +178,12 @@ export class AppComponent implements OnInit, AfterViewInit {
                 panel.addTab(AppComponent.self.pageObj[newBVID]);
                 panel.setActive(newBVID);
             }
+
             return;
         }
 
         if (label.endsWith("New SpreadView")) {
             let newSVID = "SpreadView" + AppComponent.spreadViewSN++;
-            // AppComponent.self.statechecker.addMenuItem(1, newSVID);
             return;
         }
 
@@ -223,9 +223,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.quotePoint = setting.endpoints[0].quote_addr.split(":");
 
         this.statusbar = new StatusBar();
-        let order = "OrderStatus";
-        this.orderstatusPage = new TabPage(order, this.langServ.getTranslateInfo(this.languageType, order));
-        this.pageObj["OrderStatus"] = this.orderstatusPage;
+        let pageid = "OrderStatus";
+        this.orderstatusPage = new TabPage(pageid, this.langServ.getTranslateInfo(this.languageType, pageid));
+        this.pageObj[pageid] = this.orderstatusPage;
         let orderstatusContent = new ComboControl("col");
 
         let orderstatusHeader = new ComboControl("row");
@@ -337,12 +337,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
 
-        // this.orderstatusTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
-        //     console.info(AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text);
-        //     let ukey = AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Data.ukey;
-        //     if (cellIndex === 0 && !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Disable)
-        //         AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text = !AppComponent.self.orderstatusTable.rows[rowIndex].cells[0].Text;
-        // };
 
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
         this.pageObj["DoneOrders"] = this.doneOrdersPage;
@@ -2309,8 +2303,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     addAccountEquitInfo(obj: any) {
-        // console.info(AppComponent.self.accountTable);
-        // console.log("equit:", obj);
         let row = AppComponent.self.accountTable.newRow();
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
@@ -2335,11 +2327,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[14].Text = 0;
         row.cells[15].Text = 0;
         row.cells[16].Text = 0;
-        // AppComponent.self.ref.detectChanges();
     }
 
     addAccountFutureInfo(obj: any) {
-        // console.log("future:", obj);
         let row = AppComponent.self.accountTable.newRow();
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
@@ -2358,11 +2348,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[14].Text = obj.record.Fee / 10000;
         row.cells[15].Text = obj.record.PositionPL / 10000;
         row.cells[16].Text = obj.record.ClosePL / 10000;
-        // AppComponent.self.ref.detectChanges();
     }
 
     refreshAccountEquiteInfo(obj: any, idx: number) {
-        // console.log("refresh acc equit:", obj, idx);
         if (obj.market === SECU_MARKET.SM_SH)
             AppComponent.self.accountTable.rows[idx].cells[7].Text = obj.record.AvlAmount / 10000;
         else if (obj.market === SECU_MARKET.SM_SZ)
@@ -2373,7 +2361,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount / 10000;
         AppComponent.self.accountTable.rows[idx].cells[5].Text = obj.record.date;
         AppComponent.self.accountTable.rows[idx].cells[6].Text = obj.record.c;
-        // AppComponent.self.ref.detectChanges();
     }
 
     refreshAccountFutureInfo(obj: any, idx: number) {
@@ -2390,12 +2377,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.accountTable.rows[idx].cells[14].Text = obj.record.Fee / 10000;
         AppComponent.self.accountTable.rows[idx].cells[15].Text = obj.record.PositionPL / 10000;
         AppComponent.self.accountTable.rows[idx].cells[16].Text = obj.record.ClosePL / 10000;
-        // AppComponent.self.ref.detectChanges();
     }
 
     showStrategyCfg(data: any) {
-        // console.log("333333333333", data);
-        // handle the config.json file ,and in the first time ,write the parameter in file for initlization
         if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
             return;
         let addSubCOmFlag: boolean = false;
@@ -2484,7 +2468,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     checkTableIndex(strategyid: number, name: string, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
-        // console.log(strategyid, name, type, preIdx, rearIdx);
         let initLen: number = 10; // init talble column lengths
         let checkcolFlag: boolean = false;
         let rowFlagIdx: number = -1;
@@ -2553,7 +2536,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         } else {
         }
         AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type, decimal: decimal };
-        // AppComponent.self.ref.detectChanges();
     }
 
     refreshStrategyInfo(paraObj: any, data: any, type: number) {
@@ -2585,7 +2567,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         }
         AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type, decimal: decimal };
-        // AppComponent.self.ref.detectChanges();
     }
 
     controlBtnClick(idx: number) {
@@ -2605,7 +2586,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
-        // console.log(data);
         if (data.dataSource.text === "submit") {  // submit
             let sendArray = [];
             let dvalue = 0;
@@ -2641,13 +2621,11 @@ export class AppComponent implements OnInit, AfterViewInit {
                 if (parseInt(o) === strategyId) {
                     for (let obj in this.commentObj[o]) {
                         let row = AppComponent.self.commentTable.newRow();
-                        // console.log(this.commentObj[o][obj].name, this.commentObj[o][obj].value);
                         let nameRtn = this.langServ.getTranslateInfo(this.languageType, this.commentObj[o][obj].name);
                         row.cells[0].Text = nameRtn;
                         row.cells[1].Text = this.commentObj[o][obj].value;
                     }
                 }
-                // AppComponent.self.commentTable.detectChanges();
             }
             let commentRtn = this.langServ.getTranslateInfo(this.languageType, "Comment");
             Dialog.popup(this, this.commentContent, { title: commentRtn, height: 450 });
