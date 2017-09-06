@@ -1759,7 +1759,7 @@ export class DataTable extends Control {
             if (!col.sortable || !col.onCompare)
                 return;
 
-            if (col.Name !== this.dataSource.sortKey) {
+            if (col.Name !== this.dataSource.sortKey || !this.dataSource.bAsc) {
                 this.dataSource.sortKey = col.Name;
                 this.dataSource.bAsc = true;
                 this.dataSource.rows = this.rows = this.rows.sort((a, b) => {
@@ -1767,7 +1767,9 @@ export class DataTable extends Control {
                 });
             } else {
                 this.dataSource.bAsc = !this.dataSource.bAsc;
-                this.rows.reverse();
+                this.dataSource.rows = this.rows = this.rows.sort((a, b) => {
+                    return col.onCompare(b.cells[idx].Text, a.cells[idx].Text);
+                });
             }
         };
     }
