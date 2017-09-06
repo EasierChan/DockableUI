@@ -1561,17 +1561,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         let row = AppComponent.self.statarbTable.newRow();
         row.cells[1].Text = dataArr[0].code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(dataArr[0].code);
-        let strategyId = dataArr[0].strategyid;
-        let tempObj = AppComponent.self.traverseukeyObj(codeInfo, dataArr[0].code);
-        if (codeInfo) {
-            if (tempObj) {
-                row.cells[0].Text = (tempObj.SecuCode + "").split(".")[0];
-                row.cells[8].Text = tempObj.SecuAbbr;
-            }
-        } else {
-            row.cells[0].Text = "";
-            row.cells[8].Text = "";
-        }
+        row.cells[0].Text = codeInfo.hasOwnProperty(dataArr[0].code) ? codeInfo[dataArr[0].code].SecuAbbr : "unknown";
+        row.cells[8].Text = codeInfo.hasOwnProperty(dataArr[0].code) ? codeInfo[dataArr[0].code].SecuCode : "unknown";
         row.cells[2].Text = dataArr[0].pricerate / 100;
         row.cells[3].Text = dataArr[0].position;
         row.cells[4].Text = dataArr[0].quantity;
@@ -1579,10 +1570,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[6].Text = dataArr[0].strategyid;
         row.cells[7].Text = dataArr[0].diffQty;
 
-        if (dataArr[0].amount > 0) {
+        if (dataArr[0].amount > 0)
             AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) + dataArr[0].amount / 10000).toFixed(3).toString();
-        }
-        else if (dataArr[0].amount < 0)
+        else
             AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toFixed(3).toString();
     }
     refreshStatArbInfo(dataArr: any, idx: number) {
@@ -1791,16 +1781,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         let row = this.doneOrdersTable.newRow(true);
         row.cells[0].Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
-        let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
-        if (codeInfo) {
-            if (tempObj) {
-                row.cells[1].Text = (tempObj.SecuCode + "").split(".")[0];
-                row.cells[14].Text = tempObj.SecuAbbr;
-            }
-        } else {
-            row.cells[1].Text = "";
-            row.cells[14].Text = "";
-        }
+        row.cells[1].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuAbbr : "unknown";
+        row.cells[14].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
         row.cells[2].Text = obj.od.orderid;
         row.cells[3].Text = obj.od.strategyid;
         let action: number = obj.od.action;
@@ -1878,19 +1860,10 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[0].Text = false;
         row.cells[0].Data = { ukey: 0, chk: true };
         row.cells[0].Data.ukey = obj.od.innercode;
-        if (6 === obj.od.status || 7 === obj.od.status) {
-            row.cells[0].Disable = true;
-        }
+        row.cells[0].Disable = (6 === obj.od.status || 7 === obj.od.status);
         row.cells[1].Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
-        let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
-        if (codeInfo) {
-            if (tempObj) {
-                row.cells[2].Text = (tempObj.SecuCode + "").split(".")[0];
-            }
-        }
-        else
-            row.cells[2].Text = "";
+        row.cells[2].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
         row.cells[3].Text = obj.od.orderid;
         row.cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
         row.cells[5].Text = obj.od.strategyid;
@@ -2018,7 +1991,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "";
+        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "unknown";
         row.cells[4].Text = obj.record.TotalVol;
         row.cells[5].Text = obj.record.AvlVol;
         row.cells[6].Text = obj.record.AvlCreRedempVol;
@@ -2037,7 +2010,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "";
+        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "unknown";
         row.cells[4].Text = obj.record.TotalVol;
         row.cells[5].Text = obj.record.AvlVol;
         row.cells[6].Text = 0;
@@ -2186,13 +2159,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let row = AppComponent.self.profitTable.newRow();
         row.cells[0].Text = obj.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.innercode);
-        if (codeInfo) {
-            let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.innercode);
-            if (tempObj)
-                row.cells[1].Text = (tempObj.SecuCode + "").split(".")[0];
-        }
-        else
-            row.cells[1].Text = "";
+        row.cells[1].Text = codeInfo.hasOwnProperty(obj.innercode) ? codeInfo[obj.innercode].SecuCode : "unknown";
         row.cells[2].Text = obj.account;
         row.cells[3].Text = obj.strategyid;
         row.cells[4].Text = obj.avgpriceforbuy / 10000;
@@ -2750,18 +2717,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         let ukey = tableData.UKey;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(ukey);
         if (codeInfo) {
-            let tempObj = AppComponent.self.traverseukeyObj(codeInfo, ukey);
-            let symbol = ""; let abbr = "";
-            if (tempObj) {
-                // symbol = (tempObj.SecuCode + "").split(".")[0];
-                symbol = (tempObj.SecuCode + "").split(".")[0];
-                abbr = tempObj.SecuAbbr;
-            }
             row.cells[0].Type = "checkbox";
-            row.cells[0].Title = symbol;
+            row.cells[0].Title = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuCode : "unknown";
             row.cells[0].Data = { ukey: 0, chk: true };
             row.cells[0].Data.ukey = ukey;
-            row.cells[1].Text = abbr;
+            row.cells[1].Text = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuAbbr : "unknown";
             row.cells[2].Text = tableData.InitPos;
             row.cells[3].Text = tableData.TgtPos;
             row.cells[4].Text = tableData.CurrPos;
@@ -2821,6 +2781,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             row.cells[23].Text = tableData.DayPnLCon / 10000;
             row.cells[24].Text = tableData.ONPnLCon / 10000;
         }
+
         AppComponent.self.showPortfolioTableCount();
     }
 

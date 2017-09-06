@@ -80,7 +80,7 @@ Handle,启用
 CancelSelected,选中撤单
 PORTFOLIOO/NPnl,昨仓盈亏
 U-Key,U-key
-Symbol,股票代码
+Symbol,名称
 OrderId,订单ID
 Time,时间
 Strategy,策略
