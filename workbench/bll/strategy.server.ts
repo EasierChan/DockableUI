@@ -148,6 +148,17 @@ export class ConfigurationBLL {
         File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
     }
 
+    removeConfig(config: WorkspaceConfig) {
+        for (let i = 0; i < this._ssconfigs.length; ++i) {
+            if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
+                this._ssconfigs.splice(i, 1);
+                break;
+            }
+        }
+
+        File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
+    }
+
     updateTemplate(name: string, template: any) {
         if (!this._templates.hasOwnProperty(name)) {
             this._templates[name] = template;

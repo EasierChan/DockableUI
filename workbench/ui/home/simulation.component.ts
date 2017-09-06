@@ -63,7 +63,7 @@ export class SimulationComponent implements OnInit {
                     }
 
                     this.configBll.updateConfig(config);
-                    this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+                    this.refreshSubscribe();
                 }
             }
         });
@@ -81,6 +81,10 @@ export class SimulationComponent implements OnInit {
 
             }
         });
+    }
+
+    refreshSubscribe() {
+        this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
     }
 
     initializeStrategies() {
@@ -106,10 +110,11 @@ export class SimulationComponent implements OnInit {
 
             let len = this.strategyConfigs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.strategyConfigs[i].chname === this.selectedStrategyConfig.chname) {
+                if (this.strategyConfigs[i].name === this.selectedStrategyConfig.name) {
                     this.strategyConfigs.splice(i, 1);
-                    this.configBll.updateConfig();
+                    this.configBll.removeConfig(this.selectedStrategyConfig);
                     this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
+                    this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
                     break;
                 }
             }
@@ -152,7 +157,7 @@ export class SimulationComponent implements OnInit {
         });
 
         // strategy status
-        this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+        this.refreshSubscribe();
         this.appService.onUpdateApp(this.updateApp, this);
     }
 
