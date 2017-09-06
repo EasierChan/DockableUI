@@ -629,7 +629,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     orderid: 0,
                     algorindex: 0,
                     innercode: parseInt(ukey),
-                    price: numPrice * 10000,
+                    price: Math.round(numPrice * 10000),
                     quantity: parseInt(volume),
                     action: (actionValue === 1) ? 1 : 0,
                     property: 0,
@@ -754,10 +754,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.portfolio_acc.Left = statarbLeftAlign;
         let accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
         this.portfolio_acc.Title = accountRtn + ": ";
-        this.portfolio_acc.SelectChange = () => {
-            // console.log(this.portfolio_acc.SelectedItem.Text);
-            // this.portfolioTable.rows.length = 0;
-        };
 
 
         this.portfolioLabel = new MetaControl("textbox");
@@ -2008,7 +2004,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
 
             if (iRow === AppComponent.self.positionTable.rows.length) {
-                secuCategory === 1 ? AppComponent.self.addEquityPosInfo(data[iData]) : AppComponent.self.addFuturePosInfo(data[iData]);
+                data[iData].secucategory === 1 ? AppComponent.self.addEquityPosInfo(data[iData]) : AppComponent.self.addFuturePosInfo(data[iData]);
             }
         }
 

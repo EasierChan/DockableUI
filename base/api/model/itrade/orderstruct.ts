@@ -363,7 +363,7 @@ export interface ComConOrderStatusPos {
 export class FundPos {
     date: number; // 4
     account: number; // 8
-    c: string;  // 1
+    c: number;  // 1
     TotalAmount: number; // 8
     AvlAmount: number; // 8
     FrzAmount: number; // 8
@@ -375,7 +375,7 @@ export class ComFundPos extends FundPos {
 export class MarginPos {
     date: number; // 4
     account: number; // 8
-    c: string;  // 1
+    c: number;  // 1
     TotalAmount: number; // 8
     AvlAmount: number; // 8
     FrzAmount: number; // 8
