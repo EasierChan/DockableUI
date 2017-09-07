@@ -2117,7 +2117,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let arr = data[0].content;
         if (subtype === 1) { // profitcmd & alarmitem
 
-        } else if (subtype === 0) { // set pnl
+        } else { // set pnl
             for (let i = 0; i < arr.length; ++i) {
                 AppComponent.self.totalpnLabel.Text = arr[i].totalpnl / 10000;
                 AppComponent.self.pospnlLabel.Text = arr[i].totalpositionpnl / 10000;
