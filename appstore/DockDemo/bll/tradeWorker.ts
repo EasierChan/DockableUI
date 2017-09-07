@@ -163,7 +163,7 @@ export class StrategyDealer {
                 appid: 17,
                 packid: 110,
                 callback(msg) {
-                    process.send({ event: "ps-data", content: msg });
+                    logger.info(`tgw ans=>${JSON.stringify(msg.content)}`);
                 }
             }, {
                 appid: this.appid,
