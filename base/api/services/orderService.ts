@@ -921,7 +921,7 @@ class StrategyParser extends ItradeParser {
                 comAccountPos.record = new ComFundPos();
                 comAccountPos.record.date = buffer.readUInt32LE(offset); offset += 8;
                 comAccountPos.record.account = this.readInt64LE(buffer, offset); offset += 8;
-                comAccountPos.record.c = buffer.slice(offset, offset + 1).toString("utf-8"); offset += 8;
+                comAccountPos.record.c = buffer.readInt8(offset); offset += 8;
                 comAccountPos.record.TotalAmount = this.readInt64LE(buffer, offset); offset += 8;
                 comAccountPos.record.AvlAmount = this.readInt64LE(buffer, offset); offset += 8;
                 comAccountPos.record.FrzAmount = this.readInt64LE(buffer, offset); offset += 8;
@@ -930,7 +930,7 @@ class StrategyParser extends ItradeParser {
                 let margin = new ComMarginPos();
                 margin.date = buffer.readUInt32LE(offset); offset += 8;
                 margin.account = this.readInt64LE(buffer, offset); offset += 8;
-                margin.c = buffer.slice(offset, offset + 1).toString("utf-8"); offset += 8;
+                margin.c = buffer.readInt8(offset); offset += 8;
                 margin.TotalAmount = this.readInt64LE(buffer, offset); offset += 8;
                 margin.AvlAmount = this.readInt64LE(buffer, offset); offset += 8;
                 margin.FrzAmount = this.readInt64LE(buffer, offset); offset += 8;

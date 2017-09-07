@@ -108,17 +108,14 @@ class SecuMaster {
         return rtnObj;
     }
 
-    static getSecuinfoByUKey(ukey: number[]) {
-        let ukeyLen = ukey.length;
+    static getSecuinfoByUKey(ukeys: number[]) {
         let rtnObj = new Object();
-        for (let i = 0; i < ukeyLen; ++i) {
-            for (let o in SecuMaster.secuUkeyObj) {
-                if (o === (ukey[i] + "")) {
-                    rtnObj[o] = SecuMaster.secuUkeyObj[o];
-                    break;
-                }
+
+        ukeys.forEach(ukey => {
+            if (SecuMaster.secuUkeyObj.hasOwnProperty(ukey)) {
+                rtnObj[ukey] = SecuMaster.secuUkeyObj[ukey];
             }
-        }
+        });
 
         return rtnObj;
     }

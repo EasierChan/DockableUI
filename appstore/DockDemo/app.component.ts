@@ -321,7 +321,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         };
 
         this.orderstatusTable = new DataTable("table2");
-        let orderstatusArr: string[] = ["Check", "U-Key", "Symbol", "OrderId", "Time", "Strategy",
+        let orderstatusArr: string[] = ["Check", "U-Key", "SymbolCode", "OrderId", "Time", "Strategy",
             "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account"];
         let orderstatusTableRtnArr: string[] = [];
         let orderstatusTableTitleLen = orderstatusArr.length;
@@ -335,8 +335,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.orderstatusTable.columnConfigurable = true;
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
-
-
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
         this.pageObj["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new ComboControl("col");
@@ -584,8 +582,8 @@ export class AppComponent implements OnInit, AfterViewInit {
             let ukeyTest = AppComponent.self.TestingInput(ukey);
             let volumeTest = AppComponent.self.TestingInput(volume);
 
-            let numPrice = Number(price);
-            if (isNaN(numPrice) || numPrice === 0 || numPrice < 0) {
+            let numPrice = parseFloat(price);
+            if (isNaN(numPrice) || numPrice < 0.01) {
                 return;
             }
             if (!volumeTest || !ukeyTest) {
@@ -723,10 +721,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.portfolio_acc.Left = statarbLeftAlign;
         let accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
         this.portfolio_acc.Title = accountRtn + ": ";
-        this.portfolio_acc.SelectChange = () => {
-            // console.log(this.portfolio_acc.SelectedItem.Text);
-            // this.portfolioTable.rows.length = 0;
-        };
 
 
         this.portfolioLabel = new MetaControl("textbox");
@@ -1506,17 +1500,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         let row = AppComponent.self.statarbTable.newRow();
         row.cells[1].Text = dataArr[0].code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(dataArr[0].code);
-        let strategyId = dataArr[0].strategyid;
-        let tempObj = AppComponent.self.traverseukeyObj(codeInfo, dataArr[0].code);
-        if (codeInfo) {
-            if (tempObj) {
-                row.cells[0].Text = (tempObj.SecuCode + "").split(".")[0];
-                row.cells[8].Text = tempObj.SecuAbbr;
-            }
-        } else {
-            row.cells[0].Text = "";
-            row.cells[8].Text = "";
-        }
+        row.cells[0].Text = codeInfo.hasOwnProperty(dataArr[0].code) ? codeInfo[dataArr[0].code].SecuAbbr : "unknown";
+        row.cells[8].Text = codeInfo.hasOwnProperty(dataArr[0].code) ? codeInfo[dataArr[0].code].SecuCode : "unknown";
         row.cells[2].Text = dataArr[0].pricerate / 100;
         row.cells[3].Text = dataArr[0].position;
         row.cells[4].Text = dataArr[0].quantity;
@@ -1524,10 +1509,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[6].Text = dataArr[0].strategyid;
         row.cells[7].Text = dataArr[0].diffQty;
 
-        if (dataArr[0].amount > 0) {
+        if (dataArr[0].amount > 0)
             AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) + dataArr[0].amount / 10000).toFixed(3).toString();
-        }
-        else if (dataArr[0].amount < 0)
+        else
             AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toFixed(3).toString();
     }
 
@@ -1744,19 +1728,11 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     addDoneOrderInfo(obj: any) {
-        let row = this.doneOrdersTable.newRow();
+        let row = this.doneOrdersTable.newRow(true);
         row.cells[0].Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
-        let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
-        if (codeInfo) {
-            if (tempObj) {
-                row.cells[1].Text = (tempObj.SecuCode + "").split(".")[0];
-                row.cells[14].Text = tempObj.SecuAbbr;
-            }
-        } else {
-            row.cells[1].Text = "";
-            row.cells[14].Text = "";
-        }
+        row.cells[1].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuAbbr : "unknown";
+        row.cells[14].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
         row.cells[2].Text = obj.od.orderid;
         row.cells[3].Text = obj.od.strategyid;
         let action: number = obj.od.action;
@@ -1832,24 +1808,15 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     addUndoneOrderInfo(obj: any) {
-        let row = this.orderstatusTable.newRow();
+        let row = this.orderstatusTable.newRow(true);
         row.cells[0].Type = "checkbox";
         row.cells[0].Text = false;
         row.cells[0].Data = { ukey: 0, chk: true };
         row.cells[0].Data.ukey = obj.od.innercode;
-        if (6 === obj.od.status || 7 === obj.od.status) {
-            row.cells[0].Disable = true;
-        }
+        row.cells[0].Disable = (6 === obj.od.status || 7 === obj.od.status);
         row.cells[1].Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
-        let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.od.innercode);
-        if (codeInfo) {
-            if (tempObj) {
-                row.cells[2].Text = (tempObj.SecuCode + "").split(".")[0];
-            }
-        }
-        else
-            row.cells[2].Text = "";
+        row.cells[2].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
         row.cells[3].Text = obj.od.orderid;
         row.cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
         row.cells[5].Text = obj.od.strategyid;
@@ -1946,34 +1913,31 @@ export class AppComponent implements OnInit, AfterViewInit {
      * update by cl, date 2017/08/31
      */
     showComRecordPos(data: any) {
-        let len: number = AppComponent.self.positionTable.rows.length;
         let iRow;
         let secuCategory = 1;
 
         for (let iData = 0; iData < data.length; ++iData) {
-            for (iRow = 0; iRow < len; ++iRow) {
+            for (iRow = 0; iRow < AppComponent.self.positionTable.rows.length; ++iRow) {
                 if (parseInt(AppComponent.self.positionTable.rows[iRow].cells[2].Text) === data[iData].record.code) { // refresh
                     secuCategory = parseInt(AppComponent.self.positionTable.rows[iRow].cells[1].Text);
 
                     if (secuCategory === 1) {
                         AppComponent.self.refreshEquitPosInfo(data[iData], iRow);
-                    } else if (secuCategory === 2) {
-                        if (parseInt(AppComponent.self.positionTable.rows[iRow].cells[12].Text) === data[iData].record.type)
-                            AppComponent.self.refreshFuturePosInfo(data[iData], iRow);
-                        else
-                            AppComponent.self.addFuturePosInfo(data[iData]);
+                        break;
                     }
 
-                    break;
+                    if (secuCategory === 2 && parseInt(AppComponent.self.positionTable.rows[iRow].cells[12].Text) === data[iData].record.type) {
+                        AppComponent.self.refreshFuturePosInfo(data[iData], iRow);
+                        break;
+                    }
                 }
             }
 
-            if (iRow === len) {
-                secuCategory === 1 ? AppComponent.self.addEquityPosInfo(data[iData]) : AppComponent.self.addFuturePosInfo(data[iData]);
+            if (iRow === AppComponent.self.positionTable.rows.length) {
+                data[iData].secucategory === 1 ? AppComponent.self.addEquityPosInfo(data[iData]) : AppComponent.self.addFuturePosInfo(data[iData]);
             }
         }
 
-        len = null;
         iRow = null;
         secuCategory = null;
     }
@@ -1984,13 +1948,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        if (codeInfo) {
-            let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.record.code);
-            if (tempObj)
-                row.cells[3].Text = (tempObj.SecuCode + "").split(".")[0];
-        }
-        else
-            row.cells[3].Text = "";
+        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "unknown";
         row.cells[4].Text = obj.record.TotalVol;
         row.cells[5].Text = obj.record.AvlVol;
         row.cells[6].Text = obj.record.AvlCreRedempVol;
@@ -2009,11 +1967,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[1].Text = obj.secucategory;
         row.cells[2].Text = obj.record.code;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        if (codeInfo)
-            row.cells[3].Text = codeInfo[obj.record.code].SecuCode;
-        else
-            row.cells[3].Text = "";
-
+        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "unknown";
         row.cells[4].Text = obj.record.TotalVol;
         row.cells[5].Text = obj.record.AvlVol;
         row.cells[6].Text = 0;
@@ -2041,7 +1995,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
         AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
         AppComponent.self.positionTable.rows[idx].cells[9].Text = obj.record.TodayOpen;
-        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.MarginAveragePrice / 10000;
+        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.AveragePrice / 10000;
         AppComponent.self.positionTable.detectChanges();
     }
 
@@ -2112,7 +2066,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showComTotalProfitInfo(data: any) {
-        console.info(data);
         let subtype = data[0].subtype;
         let arr = data[0].content;
         if (subtype === 1) { // profitcmd & alarmitem
@@ -2168,13 +2121,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let row = AppComponent.self.profitTable.newRow();
         row.cells[0].Text = obj.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.innercode);
-        if (codeInfo) {
-            let tempObj = AppComponent.self.traverseukeyObj(codeInfo, obj.innercode);
-            if (tempObj)
-                row.cells[1].Text = (tempObj.SecuCode + "").split(".")[0];
-        }
-        else
-            row.cells[1].Text = "";
+        row.cells[1].Text = codeInfo.hasOwnProperty(obj.innercode) ? codeInfo[obj.innercode].SecuCode : "unknown";
         row.cells[2].Text = obj.account;
         row.cells[3].Text = obj.strategyid;
         row.cells[4].Text = obj.avgpriceforbuy / 10000;
@@ -2710,16 +2657,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         let ukey = tableData.UKey;
         let codeInfo = this.secuinfo.getSecuinfoByUKey(ukey);
         if (codeInfo) {
-            let tempObj = AppComponent.self.traverseukeyObj(codeInfo, ukey);
-            let symbol = ""; let abbr = "";
-            if (tempObj) {
-                symbol = (tempObj.SecuCode + "").split(".")[0];
-                abbr = tempObj.SecuAbbr;
-            }
             row.cells[0].Type = "checkbox";
-            row.cells[0].Title = symbol;
-            row.cells[0].Data = ukey;
-            row.cells[1].Text = abbr;
+            row.cells[0].Title = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuCode : "unknown";
+            row.cells[0].Data = { ukey: 0, chk: true };
+            row.cells[0].Data.ukey = ukey;
+            row.cells[1].Text = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuAbbr : "unknown";
             row.cells[2].Text = tableData.InitPos;
             row.cells[3].Text = tableData.TgtPos;
             row.cells[4].Text = tableData.CurrPos;

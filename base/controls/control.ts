@@ -1759,7 +1759,7 @@ export class DataTable extends Control {
             if (!col.sortable || !col.onCompare)
                 return;
 
-            if (col.Name !== this.dataSource.sortKey) {
+            if (col.Name !== this.dataSource.sortKey || !this.dataSource.bAsc) {
                 this.dataSource.sortKey = col.Name;
                 this.dataSource.bAsc = true;
                 this.dataSource.rows = this.rows = this.rows.sort((a, b) => {
@@ -1767,18 +1767,20 @@ export class DataTable extends Control {
                 });
             } else {
                 this.dataSource.bAsc = !this.dataSource.bAsc;
-                this.rows.reverse();
+                this.dataSource.rows = this.rows = this.rows.sort((a, b) => {
+                    return col.onCompare(b.cells[idx].Text, a.cells[idx].Text);
+                });
             }
         };
     }
 
-    newRow(): DataTableRow {
+    newRow(bInsertFirst: boolean = false): DataTableRow {
         let row = new DataTableRow(this.columns.length);
         row.onCellClick = this._cellclick;
         row.onRowClick = this._rowclick;
         row.onCellDBClick = this._cellDBClick;
         row.onRowDBClick = this._rowDBClick;
-        this.rows.push(row);
+        bInsertFirst ? this.rows.unshift(row) : this.rows.push(row);
         this.dataSource.rows = this.rows;
         return row;
     }
