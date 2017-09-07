@@ -2127,7 +2127,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         }
 
-        AppComponent.self.profitTable.detectChanges();
+        AppComponent.self.ref.detectChanges();
     }
 
     showComProfitInfo(data: any) {

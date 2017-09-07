@@ -53,7 +53,7 @@ export class SimulationComponent implements OnInit {
                     config.items[0].key = msg.content.body.strategy_key;
                     this.strategyKeys.push(config.items[0].key);
 
-                    let tile = this.strategyArea.getTile(config.name);
+                    let tile = this.strategyArea.getTile(config.chname);
 
                     if (null === tile) {
                         tile = new Tile();

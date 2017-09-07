@@ -216,7 +216,6 @@ export class StrategyDealer {
 
                 let dataArr = [];
                 for (let i = 0; i < count; ++i) {
-                    console.info(content.slice(offset));
                     msg = new ComTotalProfitInfo();
                     offset = msg.fromBuffer(content, offset);
                     dataArr.push(msg);
