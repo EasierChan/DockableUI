@@ -2112,6 +2112,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showComTotalProfitInfo(data: any) {
+        console.info(data);
         let subtype = data[0].subtype;
         let arr = data[0].content;
         if (subtype === 1) { // profitcmd & alarmitem
@@ -2125,6 +2126,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 AppComponent.self.totalpnlt.Text = arr[i].totaltodaypositionpnl / 10000 + arr[i].totaltradingpnl / 10000;
             }
         }
+
         AppComponent.self.profitTable.detectChanges();
     }
 

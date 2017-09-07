@@ -214,11 +214,14 @@ export class StrategyDealer {
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
+                let dataArr = [];
                 for (let i = 0; i < count; ++i) {
                     msg = new ComTotalProfitInfo();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    dataArr.push(msg);
                 }
+
+                msgArr.push({ subtype: header.subtype, content: dataArr });
                 break;
             case 2000:
             case 2002:
@@ -237,7 +240,7 @@ export class StrategyDealer {
                 break;
             case 2022:
             case 3011:
-            case 3501:
+            case 3510:
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
@@ -271,7 +274,6 @@ export class StrategyDealer {
             case 3504:
                 count = content.readUInt32LE(offset);
                 offset += 4;
-
                 for (let i = 0; i < count; ++i) {
                     msg = new ComRecordPos();
                     offset = msg.fromBuffer(content, offset);
@@ -618,6 +620,9 @@ export class StrategyDealer {
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 3503, subtype: 0, body: null });
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 3509, subtype: 0, body: null });
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 3010, subtype: 0, body: null });
+        setInterval(() => {
+            this.tradePoint.sendQtp(this.appid, this.packid, { type: 255, subtype: 0, body: null });
+        }, 30000);
         header = null;
         registerMsg = null;
     }

@@ -446,7 +446,7 @@ class ComEquitPos extends Message {
         this.TotalCost = buf.readIntLE(offset, 8); offset += 8;
         this.AvlCreRedempVol = buf.readIntLE(offset, 8); offset += 8;
         this.CovedFrzVol = buf.readIntLE(offset, 8); offset += 8;
-        this.type = buf.readInt32LE(offset); offset += 8;
+        this.type = buf.readInt32LE(offset); offset += 16;
         return offset;
     }
 };
