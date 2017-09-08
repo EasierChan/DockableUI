@@ -126,14 +126,16 @@ export class StrategyDealer {
     }
 
     registerListeners() {
+        let lasttry = Date.now();
+        let tryTimer = null;
         let tradeHeart = null;
         this.tradePoint.onConnect = () => {
-            process.send({ event: "ps-connect" });
+            process.send({ event: "ss-connect" });
             loginTGW(this.tradePoint);
         };
 
         this.tradePoint.onClose = () => {
-            process.send({ event: "ps-close" });
+            process.send({ event: "ss-close" });
         };
 
         this.tradePoint.addSlot(
@@ -142,6 +144,7 @@ export class StrategyDealer {
                 packid: 43,
                 callback: (msg) => {
                     logger.info(`tgw ans=>${msg}`);
+                    lasttry = Date.now();
                     this.registerMessages();
 
                     if (tradeHeart !== null) {
@@ -156,7 +159,17 @@ export class StrategyDealer {
             }, {
                 appid: 17,
                 packid: 120,
-                callback(msg) {
+                callback: (msg) => {
+                    if (Date.now() - lasttry > 5000) {
+                        lasttry = Date.now();
+                        this.registerMessages();
+                    } else {
+                        clearTimeout(tryTimer);
+                        tryTimer = setTimeout(() => {
+                            this.registerMessages();
+                        }, 5000 - (Date.now() - lasttry));
+                    }
+
                     logger.info(`tgw ans=>${JSON.stringify(msg.content)}`);
                 }
             }, {
