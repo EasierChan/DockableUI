@@ -7,6 +7,7 @@ export class DataKey {
     static readonly kStrategyCfg = "chronos-StrategyConfig";
     static readonly kProducts = "chronos-Products";
     static readonly kStrategyTypes = "chronos-StrategyTypes";
+    static readonly kStrategyTemplates = "chronos-StrategyTemplates";
 }
 
 export class AppType {
@@ -48,13 +49,13 @@ export class StrategyInstance {
     key: number;
     name: string;
     accounts: string;
-    algoes: number[] = [];
-    checks: number[] = [];
+    algoes: number[];
+    checks: number[];
     sendChecks?: Object[];
-    parameters: Object[];
+    parameters: any[];
     comments: Object[];
     commands: Object[];
-    instruments: Object[];
+    instruments: any[];
 }
 
 class Endpoint {

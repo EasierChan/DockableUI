@@ -1,8 +1,9 @@
 "use strict";
 
-import { Component, OnInit, Input } from "@angular/core";
+import { Component, OnInit, Input, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { IP20Service } from "../../../base/api/services/ip20.service";
-import { DataTable, TabPanel, TabPage } from "../../../base/controls/control";
+import { AppStoreService } from "../../../base/api/services/backend.service";
+import { DataTable, TabPanel, TabPage, VBox, DataTableRow } from "../../../base/controls/control";
 import { WorkspaceConfig, StrategyInstance, DataKey, Channel } from "../../../base/api/model/workbench.model";
 
 @Component({
@@ -11,7 +12,7 @@ import { WorkspaceConfig, StrategyInstance, DataKey, Channel } from "../../../ba
     templateUrl: "strategy.html",
     styleUrls: ["strategy.css"]
 })
-export class StrategyComponent implements OnInit {
+export class StrategyComponent implements OnInit, OnDestroy {
     @Input("config") config: WorkspaceConfig;
     @Input("products") products: any[];
     @Input("strategies") strategies: any[];
@@ -24,6 +25,8 @@ export class StrategyComponent implements OnInit {
     strategyType: string;
     productLabel: string;
     productID: string;
+    strategyTemplates: any;
+    paramsTable: DataTable;
 
     strategyConfigPanel: TabPanel;
 
@@ -51,23 +54,58 @@ export class StrategyComponent implements OnInit {
         this.strategyType = this.config.strategyType;
         this.productID = this.config.productID;
         this.strategyConfigPanel = new TabPanel();
-        this.strategyConfigPanel.addTab(new TabPage("parameters", "参数"), false);
+        let paramsPage = new TabPage("parameters", "参数");
+        this.strategyConfigPanel.addTab(paramsPage, false);
         this.strategyConfigPanel.addTab(new TabPage("instruments", "合约"), false);
         this.strategyConfigPanel.addTab(new TabPage("commands", "命令"), false);
         this.strategyConfigPanel.addTab(new TabPage("comments", "Comment"), false);
         this.strategyConfigPanel.setActive("parameters");
-        localStorage.removeItem(DataKey.kStrategyCfg);
+
+        this.paramsTable = new DataTable("table2");
+        this.paramsTable.addColumn("name", "value");
+        let vbox = new VBox();
+        vbox.addChild(this.paramsTable);
+        paramsPage.setContent(vbox);
+        AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
+        this.strategyTemplates = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyTemplates));
     }
 
     save() {
+        if (this.strategyType === undefined) {
+            alert("未选择策略");
+            return;
+        }
+
         this.config.name = this.enName;
         this.config.chname = this.chName;
         this.config.strategyType = this.strategyType;
         this.config.productID = this.productID;
 
-        let instance = new StrategyInstance();
-        instance.parameters = [];
-        this.config.items.push(instance);
+        this.config.items = [new StrategyInstance()];
+        this.config.items[0].parameters = [];
+        this.paramsTable.rows.forEach(row => {
+            this.config.items[0].parameters.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Text) });
+        });
+
         localStorage.setItem(DataKey.kStrategyCfg, JSON.stringify(this.config));
+    }
+
+    changeStrategy(value) {
+        this.paramsTable.rows.length = 0;
+        let row: DataTableRow;
+        let strategy = this.strategyTemplates[value]["Strategy"];
+        for (let prop in strategy[strategy["Strategies"][0]].Parameter) {
+            if (strategy[strategy["Strategies"][0]].Parameter[prop].show === 1) {
+                row = this.paramsTable.newRow();
+                row.cells[0].Data = strategy[strategy["Strategies"][0]].Parameter[prop];
+                row.cells[0].Text = row.cells[0].Data.name;
+                row.cells[1].Type = "textbox";
+                row.cells[1].Text = row.cells[0].Data.value;
+            }
+        }
+    }
+
+    ngOnDestroy() {
+        this.strategyTemplates = null;
     }
 }

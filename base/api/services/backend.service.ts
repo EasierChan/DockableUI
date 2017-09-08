@@ -70,6 +70,18 @@ export class AppStoreService {
     setLoginQuote(value: boolean) {
         this.bLoginQuote = value;
     }
+
+    static getLocalStorageItem(key: string) {
+        return localStorage.getItem(key);
+    }
+
+    static setLocalStorageItem(key: string , value: any) {
+        localStorage.setItem(key, value);
+    }
+
+    static removeLocalStorageItem(key: string) {
+        localStorage.removeItem(key);
+    }
 }
 
 @Injectable()

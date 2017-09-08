@@ -2,7 +2,7 @@
     <label for="">{{enNameLabel}}<input type="text" class="btn-default" [(ngModel)]="enName"></label>
     <label for="">{{chNameLabel}}<input type="text" class="btn-default" [(ngModel)]="chName"></label>
     <label for="">{{strategyLabel}}
-        <select class="btn-default" [(ngModel)]="strategyType">
+        <select class="btn-default" [(ngModel)]="strategyType" (change)="changeStrategy(strategy.value)" #strategy>
             <option *ngFor="let opt of strategies" [value]="opt.name">{{opt.chname}}</option>
         </select>
     </label>

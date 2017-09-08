@@ -6,8 +6,8 @@ import { Channel } from "../../base/api/model/workbench.model";
 import { ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy, ComStrategyCfg } from "../../base/api/model/itrade/strategy.model";
 import { ItradeService } from "../../base/api/services/itrade.service";
 import { StrategyService } from "../../base/api/services/strategy.service";
-import { File, Environment, path } from "../../base/api/services/backend.service";
-import { WorkspaceConfig, StrategyInstance } from "../../base/api/model/workbench.model";
+import { File, Environment, path, AppStoreService } from "../../base/api/services/backend.service";
+import { WorkspaceConfig, StrategyInstance, DataKey } from "../../base/api/model/workbench.model";
 export { WorkspaceConfig, StrategyInstance, DataKey, AppType, Channel } from "../../base/api/model/workbench.model";
 
 @Injectable()
@@ -20,6 +20,7 @@ export class ConfigurationBLL {
         this._basedir = path.join(Environment.appDataDir, "ChronosApps/workbench");
         this._templatepath = path.join(this._basedir, "templates.json");
         this._templates = File.parseJSON(this._templatepath) || {};
+        AppStoreService.setLocalStorageItem(DataKey.kStrategyTemplates, JSON.stringify(this._templates));
 
         for (let prop in this._templates) {
             this._names.push({ name: prop, chname: this._templates[prop].chname ? this._templates[prop].chname : prop });
@@ -168,6 +169,7 @@ export class ConfigurationBLL {
         }
 
         File.writeSync(this._templatepath, JSON.stringify(this._templates));
+        AppStoreService.setLocalStorageItem(DataKey.kStrategyTemplates, JSON.stringify(this._templates));
     }
 
     addLoopbackItems(item: any) {

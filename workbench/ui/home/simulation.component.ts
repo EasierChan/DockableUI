@@ -181,6 +181,13 @@ export class SimulationComponent implements OnInit {
         instance["SSData"]["backup"]["path"] += "/" + config.name;
         instance["SSInfo"]["name"] = config.name;
         instance["SSLog"]["file"] = instance["SSLog"]["file"].replace(/\$ss_instance_name/g, config.name);
+        let parameters = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Parameter"];
+        config.items[0].parameters.forEach(param => {
+            if (parameters.hasOwnProperty(param.name)) {
+                parameters[param.name].value = param.value;
+            }
+        });
+
         this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
     }
 
