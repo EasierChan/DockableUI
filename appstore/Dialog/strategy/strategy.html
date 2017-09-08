@@ -27,22 +27,22 @@
     </label><br>
     <div class="section">
         <label>回测速度：</label>
-        <label for=""><input type="radio" name="match_mode" value="1" [(ngModel)]="config.backtestConfig.speed">&nbsp;1</label>
-        <label for=""><input type="radio" name="match_mode" value="2" [(ngModel)]="config.backtestConfig.speed">&nbsp;2</label>
-        <label for=""><input type="radio" name="match_mode" value="3" [(ngModel)]="config.backtestConfig.speed">&nbsp;3</label>
-        <label for=""><input type="radio" name="match_mode" value="4" [(ngModel)]="config.backtestConfig.speed">&nbsp;4</label>
-        <label for=""><input type="radio" name="match_mode" value="5" [(ngModel)]="config.backtestConfig.speed">&nbsp;5</label>
-        <label for=""><input type="radio" name="match_mode" value="6" [(ngModel)]="config.backtestConfig.speed">&nbsp;6</label>
-        <label for=""><input type="radio" name="match_mode" value="7" [(ngModel)]="config.backtestConfig.speed">&nbsp;7</label>
-        <label for=""><input type="radio" name="match_mode" value="8" [(ngModel)]="config.backtestConfig.speed">&nbsp;8</label>
-        <label for=""><input type="radio" name="match_mode" value="9" [(ngModel)]="config.backtestConfig.speed">&nbsp;9</label>
-        <label for=""><input type="radio" name="match_mode" value="10" [(ngModel)]="config.backtestConfig.speed">&nbsp;10</label>
+        <label for=""><input type="radio" name="speed" value="1" [(ngModel)]="config.backtestConfig.speed">&nbsp;1</label>
+        <label for=""><input type="radio" name="speed" value="2" [(ngModel)]="config.backtestConfig.speed">&nbsp;2</label>
+        <label for=""><input type="radio" name="speed" value="3" [(ngModel)]="config.backtestConfig.speed">&nbsp;3</label>
+        <label for=""><input type="radio" name="speed" value="4" [(ngModel)]="config.backtestConfig.speed">&nbsp;4</label>
+        <label for=""><input type="radio" name="speed" value="5" [(ngModel)]="config.backtestConfig.speed">&nbsp;5</label>
+        <label for=""><input type="radio" name="speed" value="6" [(ngModel)]="config.backtestConfig.speed">&nbsp;6</label>
+        <label for=""><input type="radio" name="speed" value="7" [(ngModel)]="config.backtestConfig.speed">&nbsp;7</label>
+        <label for=""><input type="radio" name="speed" value="8" [(ngModel)]="config.backtestConfig.speed">&nbsp;8</label>
+        <label for=""><input type="radio" name="speed" value="9" [(ngModel)]="config.backtestConfig.speed">&nbsp;9</label>
+        <label for=""><input type="radio" name="speed" value="10" [(ngModel)]="config.backtestConfig.speed">&nbsp;10</label>
     </div>
     <div class="section generate">
         <div class="section">
-            <label>实时净值计算频率：<input type="text" class="btn-default"></label>
-            <label for=""><input type="radio" name="match_mode" value="0" [(ngModel)]="config.backtestConfig.period">&nbsp;分钟</label>
-            <label for=""><input type="radio" name="match_mode" value="1" [(ngModel)]="config.backtestConfig.unit">&nbsp;天</label>
+            <label>实时净值计算频率：<input type="text" class="btn-default" [(ngModel)]="config.backtestConfig.period"></label>
+            <label for=""><input type="radio" name="unit" value="0" [(ngModel)]="config.backtestConfig.unit">&nbsp;分钟</label>
+            <label for=""><input type="radio" name="unit" value="1" [(ngModel)]="config.backtestConfig.unit">&nbsp;天</label>
         </div>
         <button class="btn btn-primary">生成</button>
     </div>

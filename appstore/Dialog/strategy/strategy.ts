@@ -38,14 +38,14 @@ export class StrategyComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        if (this.config.activeChannel === Channel.BACKTEST) {
+        if (this.config.activeChannel === Channel.BACKTEST && this.config.backtestConfig === undefined) {
             this.config.backtestConfig = {
                 timebegin: "2017-09-04",
                 timeend: "2017-09-04",
-                speed: 5,
-                simlevel: 1,
+                speed: "5",
+                simlevel: "1",
                 period: 30,
-                unit: 0
+                unit: "0"
             };
         }
 
