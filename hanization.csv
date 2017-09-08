@@ -145,7 +145,7 @@ CurrValue,持仓成本
 AvgPrice(B),买入均价
 AvgPrice(S),卖出均价
 PositionPnl,持仓盈亏
-LastTradingFee,昨费用
+LastTradingFee,上笔费用
 LastPosPnl,昨仓盈亏
 TotalPnl,总盈亏
 LastPosition,昨仓
@@ -249,3 +249,4 @@ Min,最小值
 Max,最大值
 Tick,最小间隔
 Change,修改
+Currency,币种

@@ -369,7 +369,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.pageObj["Account"] = this.accountPage;
         let accountContent = new ComboControl("col");
         this.accountTable = new DataTable("table");
-        let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Status",
+        let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
             "ShangHai", "ShenZhen", "BuyFrzAmt", "SellFrzAmt", "Buymargin", "SellMargin", "TotalMargin", "Fee",
             "PositionPL", "ClosePL"];
         let accountTableRtnArr: string[] = [];
@@ -1991,7 +1991,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[7].Text = obj.record.WorkingVol;
         row.cells[8].Text = obj.record.TotalCost / 10000;
         row.cells[9].Text = 0;
-        row.cells[10].Text = 0;
+        row.cells[10].Text = obj.record.TotalVol !== 0 ? (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4) : 0;
         row.cells[11].Text = obj.strategyid;
         row.cells[12].Text = obj.record.type;
         AppComponent.self.positionTable.detectChanges();
@@ -2022,6 +2022,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.positionTable.rows[idx].cells[6].Text = obj.record.AvlCreRedempVol;
         AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
         AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
+        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.TotalVol !== 0 ? (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4) : 0;
         AppComponent.self.positionTable.detectChanges();
     }
 
