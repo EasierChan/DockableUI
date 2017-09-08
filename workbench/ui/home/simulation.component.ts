@@ -6,8 +6,6 @@ import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType, Channel } from "..
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
 
-declare var window: any;
-let ip20strs = [];
 @Component({
     moduleId: module.id,
     selector: "simulation",

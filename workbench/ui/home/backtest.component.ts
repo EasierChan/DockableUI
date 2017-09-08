@@ -4,11 +4,7 @@ import { Component, OnInit, ViewChild, ElementRef } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
 import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType, Channel } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
-import { ChangeDetectorRef } from "@angular/core";
 import { TradeService } from "../../bll/services";
-
-declare var window: any;
-let ip20strs = [];
 
 @Component({
     moduleId: module.id,
@@ -45,7 +41,7 @@ export class BacktestComponent implements OnInit {
             appid: 107,
             packid: 2001, // 创建策略回报
             callback: msg => {
-                // console.info(msg);
+                console.debug(msg);
                 if (msg.content.body.errorid !== 0) {
                     console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
                     return;
@@ -58,7 +54,7 @@ export class BacktestComponent implements OnInit {
                     config.items[0].key = msg.content.body.strategy_key;
                     this.strategyKeys.push(config.items[0].key);
 
-                    let tile = this.strategyArea.getTile(config.name);
+                    let tile = this.strategyArea.getTile(config.chname);
 
                     if (null === tile) {
                         tile = new Tile();
@@ -68,7 +64,7 @@ export class BacktestComponent implements OnInit {
                     }
 
                     this.configBll.updateConfig(config);
-                    this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+                    this.refreshSubscribe();
                 }
             }
         });
@@ -84,7 +80,13 @@ export class BacktestComponent implements OnInit {
                     instance["ss_instance_name"] = config.name;
                     instance["SSData"]["backup"]["path"] += "/" + config.name;
                     instance["SSInfo"]["name"] = config.name;
-                    instance["SSLog"]["file"] = instance["SSLog"]["file"].replace("$ss_instance_name", config.name);
+                    instance["SSLog"]["file"] = instance["SSLog"]["file"].replace(/\$ss_instance_name/g, config.name);
+                    let parameters = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Parameter"];
+                    config.items[0].parameters.forEach(param => {
+                        if (parameters.hasOwnProperty(param.name)) {
+                            parameters[param.name].value = param.value;
+                        }
+                    });
                     config.backtestConfig.tradePoint = { host: msg.content.url, port: msg.content.port };
                     config.backtestConfig.quotePoint = { host: msg.content.hqurl, port: msg.content.hqport };
                     instance["SSGW"]["Gateway"].addr = config.backtestConfig.tradePoint.host;
@@ -112,6 +114,10 @@ export class BacktestComponent implements OnInit {
         });
     }
 
+    refreshSubscribe() {
+        this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+    }
+
     initializeStrategies() {
         this.strategyKeys = [];
         // strategyMenu
@@ -135,10 +141,11 @@ export class BacktestComponent implements OnInit {
 
             let len = this.strategyConfigs.length;
             for (let i = 0; i < len; ++i) {
-                if (this.strategyConfigs[i].chname === this.selectedStrategyConfig.chname) {
+                if (this.strategyConfigs[i].name === this.selectedStrategyConfig.name) {
                     this.strategyConfigs.splice(i, 1);
-                    this.configBll.updateConfig();
+                    this.configBll.removeConfig(this.selectedStrategyConfig);
                     this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
+                    this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
                     break;
                 }
             }
@@ -181,7 +188,7 @@ export class BacktestComponent implements OnInit {
         });
 
         // strategy status
-        this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
+        this.refreshSubscribe();
         this.appService.onUpdateApp(this.updateApp, this);
     }
 
