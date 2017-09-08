@@ -360,7 +360,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.pageObj["Account"] = this.accountPage;
         let accountContent = new ComboControl("col");
         this.accountTable = new DataTable("table");
-        let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Status",
+        let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
             "ShangHai", "ShenZhen", "BuyFrzAmt", "SellFrzAmt", "Buymargin", "SellMargin", "TotalMargin", "Fee",
             "PositionPL", "ClosePL"];
         let accountTableRtnArr: string[] = [];
@@ -913,7 +913,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         });
         this.portfolioTable.columnConfigurable = true;
         this.portfolioTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
-            let ukey = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Data.ukey;
+            let ukey = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Data;
             let account = parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text);
             if (cellIndex === 10) {
                 let value = AppComponent.self.portfolioTable.rows[rowIndex].cells[9].Text + "";
@@ -1954,8 +1954,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[6].Text = obj.record.AvlCreRedempVol;
         row.cells[7].Text = obj.record.WorkingVol;
         row.cells[8].Text = obj.record.TotalCost / 10000;
-        row.cells[9].Text = 0;
-        row.cells[10].Text = 0;
+        row.cells[9].Text = obj.record.TotalVol - obj.record.AvlVol;
+        row.cells[10].Text = (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4);
         row.cells[11].Text = obj.strategyid;
         row.cells[12].Text = obj.record.type;
         AppComponent.self.positionTable.detectChanges();
@@ -2020,7 +2020,6 @@ export class AppComponent implements OnInit, AfterViewInit {
             if (!markFlag) {
                 AppComponent.self.addLog(data[0]);
             }
-
         }
     }
 
@@ -2130,7 +2129,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[7].Text = obj.tradingpnl / 10000;
         row.cells[8].Text = obj.intradaytradingfee / 10000;
         row.cells[9].Text = obj.tradingfee / 10000;
-        row.cells[10].Text = obj.lasttradingfee;
+        row.cells[10].Text = obj.lasttradingfee / 10000;
         row.cells[11].Text = obj.lastpositionpnl / 10000;
         row.cells[12].Text = obj.todaypositionpnl / 10000;
         row.cells[13].Text = obj.pnl / 10000;
@@ -2659,8 +2658,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         if (codeInfo) {
             row.cells[0].Type = "checkbox";
             row.cells[0].Title = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuCode : "unknown";
-            row.cells[0].Data = { ukey: 0, chk: true };
-            row.cells[0].Data.ukey = ukey;
+            row.cells[0].Data = ukey;
             row.cells[1].Text = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuAbbr : "unknown";
             row.cells[2].Text = tableData.InitPos;
             row.cells[3].Text = tableData.TgtPos;

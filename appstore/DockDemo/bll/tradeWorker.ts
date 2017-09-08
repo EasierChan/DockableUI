@@ -258,6 +258,7 @@ export class StrategyDealer {
                     msg = new ComProfitInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
+                    logger.debug(`ComProfitInfo=>${msg} offset=${offset}`);
                 }
                 break;
             case 2013:
@@ -278,7 +279,7 @@ export class StrategyDealer {
                     msg = new ComRecordPos();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
-                    logger.debug(`ComRecordPos=>${JSON.stringify(msg)} offset=${offset}`);
+                    logger.debug(`ComRecordPos=>${msg} offset=${offset}`);
                 }
                 break;
             case 2015:
@@ -290,7 +291,7 @@ export class StrategyDealer {
                     msg = new ComGWNetGuiInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
-                    logger.debug(`ComGWNetGuiInfo=>${JSON.stringify(msg)}`);
+                    logger.debug(`ComGWNetGuiInfo=>${msg}`);
                 }
                 break;
             case 2025:
@@ -301,7 +302,7 @@ export class StrategyDealer {
                     msg = new StatArbOrder();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
-                    logger.debug(`ComGWNetGuiInfo=>${JSON.stringify(msg)}`);
+                    logger.debug(`ComGWNetGuiInfo=>${msg}`);
                 }
                 break;
             case 2021:
@@ -329,7 +330,7 @@ export class StrategyDealer {
                     msg = new FpPosUpdate();
                     offset = msg.fromBuffer(content, offset);
                     arr.push(msg);
-                    logger.debug(`FpPosUpdate=>${JSON.stringify(msg)}`);
+                    logger.debug(`FpPosUpdate=>${msg}`);
                 }
 
                 msgArr.push({ account: account, data: arr, count: count });
@@ -397,6 +398,7 @@ export class StrategyDealer {
                     body = Buffer.concat([body, fporder.toBuffer()], body.byteLength + FpQtyOrder.len);
                 });
 
+                console.info(fporder);
                 fporder = null;
                 this.tradePoint.sendQtp(this.appid, this.packid, { type: 5004, subtype: 0, body: body });
                 logger.info(`order-fp=>ordersize=${params.data.orders.length}`);

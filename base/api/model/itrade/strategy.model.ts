@@ -89,29 +89,29 @@ export class ComTotalProfitInfo extends Message {
 export class ComProfitInfo extends ComTotalProfitInfo {
     static readonly len = 232;
 
-    innercode: number;  // 4
-    avgpriceforbuy: number; // 8
-    avgpriceforsell: number; // 8
-    positionpnl: number; // 8
-    tradingpnl: number; // 8
-    iopv: number; // 8
-    lasttradingfee: number; // 8
-    tradingfee: number; // 8
-    lastpositionpnl: number; // 8
-    todaypositionpnl: number; // 8
-    pnl: number; // 8
-    lastposition: number; // 8
-    todayposition: number; // 8
-    lastclose: number; // 8
-    marketprice: number; // 8
-    intradaytradingfee: number; // 8
+    innercode: number = 0;  // 4
+    avgpriceforbuy: number = 0; // 8
+    avgpriceforsell: number = 0; // 8
+    positionpnl: number = 0; // 8
+    tradingpnl: number = 0; // 8
+    iopv: number = 0; // 8
+    lasttradingfee: number = 0; // 8
+    tradingfee: number = 0; // 8
+    lastpositionpnl: number = 0; // 8
+    todaypositionpnl: number = 0; // 8
+    pnl: number = 0; // 8
+    lastposition: number = 0; // 8
+    todayposition: number = 0; // 8
+    lastclose: number = 0; // 8
+    marketprice: number = 0; // 8
+    intradaytradingfee: number = 0; // 8
 
     toBuffer(): Buffer {
         return null;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, super.fromBuffer(buf, offset), "1i4p15L", this);
+        return BufferUtil.format(buf, offset, "1i4p1l11L1i4p15L", this);
     }
 };
 
