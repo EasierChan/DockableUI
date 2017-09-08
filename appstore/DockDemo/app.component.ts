@@ -1943,6 +1943,7 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     addEquityPosInfo(obj: any) {
+        console.info(obj);
         let row = AppComponent.self.positionTable.newRow();
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
@@ -1955,13 +1956,14 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[7].Text = obj.record.WorkingVol;
         row.cells[8].Text = obj.record.TotalCost / 10000;
         row.cells[9].Text = obj.record.TotalVol - obj.record.AvlVol;
-        row.cells[10].Text = (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4);
+        row.cells[10].Text = obj.record.TotalVol !== 0 ? (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4) : 0;
         row.cells[11].Text = obj.strategyid;
         row.cells[12].Text = obj.record.type;
         AppComponent.self.positionTable.detectChanges();
     }
 
     addFuturePosInfo(obj: any) {
+        console.info(obj);
         let row = AppComponent.self.positionTable.newRow();
         row.cells[0].Text = obj.record.account;
         row.cells[1].Text = obj.secucategory;
@@ -1986,6 +1988,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.positionTable.rows[idx].cells[6].Text = obj.record.AvlCreRedempVol;
         AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
         AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
+        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.TotalVol !== 0 ? (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4) : 0;
         AppComponent.self.positionTable.detectChanges();
     }
 
@@ -2623,7 +2626,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showBasketBackInfo(data: any) {
-        console.log(data);
         if (data[0].account !== parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text))
             return;
 
