@@ -8,7 +8,7 @@ import { Sound } from "../../../base/api/services/backend.worker";
 import { ULogger } from "../../../base/api/common/base/logger";
 
 ULogger.init("alert", process.argv[2]);
-const logger = ULogger.console();
+const logger = ULogger.file();
 /**
  * interface for single pro.
  */
@@ -92,6 +92,7 @@ process.on("message", (m: WSIP20, sock) => {
                 process.send({ event: "ss-data", content: { type: 2030, data: data } });
             });
             ManulTrader.addSlot(2029, data => {
+                logger.info(`type:2029 => send to gui.`);
                 process.send({ event: "ss-data", content: { type: 2029, data: data } });
             });
             ManulTrader.addSlot(2032, data => {
@@ -124,19 +125,23 @@ process.on("message", (m: WSIP20, sock) => {
             ManulTrader.addSlot(3502, data => {
                 process.send({ event: "ss-data", content: { type: 3502, data: data } });
             });
+            // 仓位
             ManulTrader.addSlot(3504, data => {
                 process.send({ event: "ss-data", content: { type: 3504, data: data } });
             });
             ManulTrader.addSlot(2015, data => {
                 process.send({ event: "ss-data", content: { type: 2015, data: data } });
             });
+            // GW 连接信息
             ManulTrader.addSlot(2017, data => {
                 process.send({ event: "ss-data", content: { type: 2017, data: data } });
             });
+            // 收益信息
             ManulTrader.addSlot(2023, data => {
                 process.send({ event: "ss-data", content: { type: 2023, data: data } });
             });
             ManulTrader.addSlot(2025, data => {
+                logger.info(`type:2025 => send to gui.`);
                 process.send({ event: "ss-data", content: { type: 2025, data: data } });
             });
             ManulTrader.addSlot(5022, data => {
@@ -151,6 +156,7 @@ process.on("message", (m: WSIP20, sock) => {
             ManulTrader.addSlot(3011, data => {
                 process.send({ event: "ss-data", content: { type: 3011, data: data } });
             });
+            // 完结订单
             ManulTrader.addSlot(3510, data => {
                 process.send({ event: "ss-data", content: { type: 3510, data: data } });
             });

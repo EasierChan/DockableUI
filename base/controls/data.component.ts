@@ -64,7 +64,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     templateUrl: "data.scrollerbar-table.html",
     inputs: ["className", "dataSource", "styleObj"]
 })
-export class ScrollerBarTable implements OnInit, AfterViewInit {
+export class ScrollerBarTable implements OnInit {
     className: string;
     dataSource: any;
     styleObj: any;
@@ -79,12 +79,8 @@ export class ScrollerBarTable implements OnInit, AfterViewInit {
     ngOnInit() {
         this.dataSource.detectChanges = () => {
             this.ref.detectChanges();
-            this.resizeHeader();
+            // this.resizeHeader();
         };
-    }
-
-    ngAfterViewInit() {
-        this.resizeHeader();
     }
 
     @HostListener("scroll")

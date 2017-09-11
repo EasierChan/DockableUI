@@ -981,10 +981,10 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: { type: "registerAccPos", data: account }
             });
-            MessageBox.openFileDialog("Select CSV", function(filenames) {
+            MessageBox.openFileDialog("Select CSV", function (filenames) {
                 // console.log(filenames);
                 if (filenames !== undefined)
-                    fs.readFile(filenames[0], function(err, content) {
+                    fs.readFile(filenames[0], function (err, content) {
                         if (err === null) {
                             readself.portfolioCount.Text = "0";
                             readself.allChk.Text = false;
@@ -992,7 +992,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                             let codeStr = content.toString();
                             let splitStr = codeStr.split("\n");
                             let initPos = [];
-                            splitStr.forEach(function(item) {
+                            splitStr.forEach(function (item) {
                                 let arr = item.split(",");
                                 if (arr.length === 2 && arr[0]) {
                                     let obj = AppComponent.self.secuinfo.getSecuinfoByCode(arr[0] + "");
@@ -1263,7 +1263,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.subScribeMarketInit(this.option.feedhandler.port, this.option.feedhandler.host);
         // this.init(9082, "172.24.51.4");
         let getpath = Environment.getDataPath(this.option.name);
-        fs.exists(getpath + "/config.json", function(exists) {
+        fs.exists(getpath + "/config.json", function (exists) {
             if (exists) { // file exist
                 fs.readFile(getpath + "/config.json", (err, data) => {
                     if (err) throw err;
@@ -1275,7 +1275,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                     }
                 });
             } else {  // nost exist
-                fs.writeFile(getpath + "/config.json", "", function(err) {
+                fs.writeFile(getpath + "/config.json", "", function (err) {
                     if (err) {
                         console.log(err);
                     }
@@ -1350,7 +1350,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let getpath = Environment.getDataPath(this.option.name) + "/config.json";
 
         // judge ss green or red
-        fs.writeFile(getpath, rtntemp, function(err) {
+        fs.writeFile(getpath, rtntemp, function (err) {
             if (err) {
                 console.log(err);
             }
@@ -1722,131 +1722,98 @@ export class AppComponent implements OnInit, AfterViewInit {
     showComConOrder(data: any) {
         console.log("showComConOrder: 2020 ,UNKNOWN ,????", data);
     }
+
     showComOrderRecord(data: any) {
-        let hasDone = false;
+        console.info(`showComOrderRecord: len = ${data.length}`);
+        let hasDone = false, hasUnDone = false;
+        let j;
         for (let i = 0; i < data.length; ++i) {
             let orderStatus = data[i].od.status;
             // if (orderStatus === 9 || orderStatus === 8) {
             if (orderStatus === 9) {
-                AppComponent.self.deleteUndoneOrder(data[i].od.orderid);
-                AppComponent.self.handleDoneOrder(data[i]);
+                // remove from orderstatus table
+                for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
+                    if (data[i].od.orderid === this.orderstatusTable.rows[i].cells[3].Text) {
+                        this.orderstatusTable.rows.splice(i, 1);
+                        break;
+                    }
+                }
+
+                for (j = 0; j < this.doneOrdersTable.rows.length; ++j) {
+                    if (data[i].od.orderid === this.doneOrdersTable.rows[j].cells[2].Text) { // refresh
+                        this.doneOrdersTable.rows[j].cells[4].Text = data[i].od.action === 0 ? "Buy" : "Sell";
+                        this.doneOrdersTable.rows[j].cells[5].Text = data[i].od.oprice / 10000;
+                        this.doneOrdersTable.rows[j].cells[6].Text = data[i].od.ivolume;
+                        this.doneOrdersTable.rows[j].cells[7].Text = this.parseOrderStatus(data[i].od.status);
+                        this.doneOrdersTable.rows[j].cells[8].Text = this.formatTime(data[i].od.odatetime.tv_sec);
+                        this.doneOrdersTable.rows[j].cells[9].Text = data[i].od.ovolume;
+                        this.doneOrdersTable.rows[j].cells[10].Text = data[i].donetype === 1 ? "Active" : (data[i].donetype === 2 ? "Passive" : "UNKNOWN");
+                        this.doneOrdersTable.rows[j].cells[12].Text = this.formatTime(data[i].od.idatetime.tv_sec);
+                        this.doneOrdersTable.rows[j].cells[13].Text = data[i].od.iprice / 10000;
+                        break;
+                    }
+                }
+
+                if (j === this.doneOrdersTable.rows.length) {
+                    let row = this.doneOrdersTable.newRow(true);
+                    row.cells[0].Text = data[i].od.innercode;
+                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[i].od.innercode);
+                    row.cells[1].Text = codeInfo.hasOwnProperty(data[i].od.innercode) ? codeInfo[data[i].od.innercode].SecuAbbr : "unknown";
+                    row.cells[14].Text = codeInfo.hasOwnProperty(data[i].od.innercode) ? codeInfo[data[i].od.innercode].SecuCode : "unknown";
+                    row.cells[2].Text = data[i].od.orderid;
+                    row.cells[3].Text = data[i].od.strategyid;
+                    let action: number = data[i].od.action;
+                    if (action === 0)
+                        row.cells[4].Text = "Buy";
+                    else if (action === 1)
+                        row.cells[4].Text = "Sell";
+                    else
+                        row.cells[4].Text = "";
+                    row.cells[5].Text = data[i].od.oprice / 10000;
+                    row.cells[6].Text = data[i].od.ivolume;
+                    row.cells[7].Text = this.parseOrderStatus(data[i].od.status);
+                    row.cells[8].Text = this.formatTime(data[i].od.odatetime.tv_sec);
+                    row.cells[9].Text = data[i].od.ovolume;
+                    let orderPriceType = data[i].donetype;
+                    if (orderPriceType === 1)
+                        row.cells[10].Text = "Active";
+                    else if (orderPriceType === 2)
+                        row.cells[10].Text = "Passive";
+                    else
+                        row.cells[10].Text = "UNKNOWN";
+                    row.cells[11].Text = data[i].con.account;
+                    row.cells[12].Text = this.formatTime(data[i].od.idatetime.tv_sec);
+                    row.cells[13].Text = data[i].od.iprice / 10000;
+                }
+
                 hasDone = true;
             } else {
-                AppComponent.self.handleUndoneOrder(data[i]);
+                let j;
+
+                for (j = 0; j < this.orderstatusTable.rows.length; ++j) {
+                    if (data[i].od.orderid === this.orderstatusTable.rows[j].cells[3].Text) {  // refresh
+                        this.refreshUndoneOrderInfo(data[i], j);
+                    }
+                }
+
+                if (j === this.orderstatusTable.rows.length) {
+                    this.addUndoneOrderInfo(data[i]);
+                }
+
+                hasUnDone = true;
             }
         }
 
         if (hasDone) {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
+            AppComponent.self.doneOrdersTable.detectChanges();
         }
-    }
-    deleteUndoneOrder(data: any) {
-        let rows = this.orderstatusTable.rows.length;
-        for (let i = 0; i < rows; ++i) {
-            let getOrderId = this.orderstatusTable.rows[i].cells[3].Text;
-            if (data === getOrderId) {
-                this.orderstatusTable.rows.splice(i, 1);
-                break;
-            }
-        }
-    }
-    handleDoneOrder(data: any) {
-        let doneorderTablRows: number = this.doneOrdersTable.rows.length;
-        let orderId: number = data.od.orderid;
-        if (doneorderTablRows === 0) { // add
-            this.addDoneOrderInfo(data);
-        } else {
-            let checkFlag: boolean = false;
-            for (let j = 0; j < doneorderTablRows; ++j) {
-                let getOrderId = this.doneOrdersTable.rows[j].cells[2].Text;
-                if (orderId === getOrderId) { // refresh
-                    checkFlag = true;
-                    this.refreshDoneOrderInfo(data, j);
-                }
-            }
-            if (!checkFlag) {
-                this.addDoneOrderInfo(data);
-            }
-            checkFlag = false;
-        }
-    }
-    addDoneOrderInfo(obj: any) {
-        let row = this.doneOrdersTable.newRow(true);
-        row.cells[0].Text = obj.od.innercode;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
-        row.cells[1].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuAbbr : "unknown";
-        row.cells[14].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
-        row.cells[2].Text = obj.od.orderid;
-        row.cells[3].Text = obj.od.strategyid;
-        let action: number = obj.od.action;
-        if (action === 0)
-            row.cells[4].Text = "Buy";
-        else if (action === 1)
-            row.cells[4].Text = "Sell";
-        else
-            row.cells[4].Text = "";
-        row.cells[5].Text = obj.od.oprice / 10000;
-        row.cells[6].Text = obj.od.ivolume;
-        row.cells[7].Text = this.parseOrderStatus(obj.od.status);
-        row.cells[8].Text = this.formatTime(obj.od.odatetime.tv_sec);
-        row.cells[9].Text = obj.od.ovolume;
-        let orderPriceType = obj.donetype;
-        if (orderPriceType === 1)
-            row.cells[10].Text = "Active";
-        else if (orderPriceType === 2)
-            row.cells[10].Text = "Passive";
-        else
-            row.cells[10].Text = "UNKNOWN";
-        row.cells[11].Text = obj.con.account;
-        row.cells[12].Text = this.formatTime(obj.od.idatetime.tv_sec);
-        row.cells[13].Text = obj.od.iprice / 10000;
 
-        AppComponent.self.doneOrdersTable.detectChanges();
-    }
-    refreshDoneOrderInfo(obj: any, idx: number) {
-        let action: number = obj.od.action;
-        if (action === 0)
-            this.doneOrdersTable.rows[idx].cells[4].Text = "Buy";
-        else if (action === 1)
-            this.doneOrdersTable.rows[idx].cells[4].Text = "Sell";
-        else
-            this.doneOrdersTable.rows[idx].cells[4].Text = "";
-        this.doneOrdersTable.rows[idx].cells[5].Text = obj.od.oprice / 10000;
-        this.doneOrdersTable.rows[idx].cells[6].Text = obj.od.ivolume;
-        this.doneOrdersTable.rows[idx].cells[7].Text = this.parseOrderStatus(obj.od.status);
-        this.doneOrdersTable.rows[idx].cells[8].Text = this.formatTime(obj.od.odatetime.tv_sec);
-        this.doneOrdersTable.rows[idx].cells[9].Text = obj.od.ovolume;
-        let orderPriceType = obj.donetype;
-        if (orderPriceType === 1)
-            this.doneOrdersTable.rows[idx].cells[10].Text = "Active";
-        else if (orderPriceType === 2)
-            this.doneOrdersTable.rows[idx].cells[10].Text = "Passive";
-        else
-            this.doneOrdersTable.rows[idx].cells[10].Text = "UNKNOWN";
-        this.doneOrdersTable.rows[idx].cells[12].Text = this.formatTime(obj.od.idatetime.tv_sec);
-        this.doneOrdersTable.rows[idx].cells[13].Text = obj.od.iprice / 10000;
-        AppComponent.self.doneOrdersTable.detectChanges();
-    }
-    handleUndoneOrder(data: any) {
-        let orderStatusTableRows: number = this.orderstatusTable.rows.length;
-        let orderId: number = data.od.orderid;
-        if (orderStatusTableRows === 0) { // add
-            this.addUndoneOrderInfo(data);
-        } else {
-            let checkFlag: boolean = false;
-            for (let j = 0; j < orderStatusTableRows; ++j) {
-                let getOrderId = this.orderstatusTable.rows[j].cells[3].Text;
-                if (orderId === getOrderId) {  // refresh
-                    checkFlag = true;
-                    this.refreshUndoneOrderInfo(data, j);
-                }
-            }
-            if (!checkFlag) {
-                this.addUndoneOrderInfo(data);
-            }
-            checkFlag = false;
+        if (hasUnDone) {
+            AppComponent.self.orderstatusTable.detectChanges();
         }
     }
+
     addUndoneOrderInfo(obj: any) {
         let row = this.orderstatusTable.newRow(true);
         row.cells[0].Type = "checkbox";
@@ -1873,7 +1840,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[10].Text = this.parseOrderStatus(obj.od.status);
         row.cells[10].Data = obj.od.status;
         row.cells[11].Text = obj.con.account;
-        AppComponent.self.orderstatusTable.detectChanges();
     }
     formatTime(time: any): String {
         let rtnStr: String = "";
@@ -1942,7 +1908,6 @@ export class AppComponent implements OnInit, AfterViewInit {
             if (this.orderstatusTable.rows[idx].cells[0].Text)
                 this.orderstatusTable.rows[idx].cells[0].Text = !this.orderstatusTable.rows[idx].cells[0].Text;
         }
-        AppComponent.self.orderstatusTable.detectChanges();
     }
 
     /**
@@ -2162,7 +2127,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[7].Text = obj.tradingpnl / 10000;
         row.cells[8].Text = obj.intradaytradingfee / 10000;
         row.cells[9].Text = obj.tradingfee / 10000;
-        row.cells[10].Text = obj.lasttradingfee;
+        row.cells[10].Text = obj.lasttradingfee / 10000;
         row.cells[11].Text = obj.lastpositionpnl / 10000;
         row.cells[12].Text = obj.todaypositionpnl / 10000;
         row.cells[13].Text = obj.pnl / 10000;
@@ -2194,7 +2159,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showComAccountPos(data: any) {
-        console.log("***********", data);
         for (let i = 0; i < data.length; ++i) {
             let accTableRows: number = AppComponent.self.accountTable.rows.length;
             let accData: number = data[i].record.account;
@@ -2339,7 +2303,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         // AppComponent.self.ref.detectChanges();
     }
     showStrategyCfg(data: any) {
-        // console.log("333333333333", data);
+        console.log("showStrategyCfg => ", data);
         // handle the config.json file ,and in the first time ,write the parameter in file for initlization
         if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
             return;
@@ -3037,7 +3001,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     writeinconfigJson(data: string) {
         let getpath = Environment.getDataPath(this.option.name);
-        fs.writeFile(getpath + "/config.json", data, function(err) {
+        fs.writeFile(getpath + "/config.json", data, function (err) {
             if (err) {
                 console.log(err);
             }
@@ -3105,104 +3069,103 @@ export class AppComponent implements OnInit, AfterViewInit {
                 case "ss-close":
                     break;
                 case "ss-data":
-                    let type = data.content.type;
-                    let receivedata = data.content.data;
-                    switch (type) {
+                    console.info(`ss-data: type=${data.content.type}`);
+                    switch (data.content.type) {
                         case 2011:
-                            this.showStrategyInfo(receivedata);
+                            this.showStrategyInfo(data.content.data);
                             break;
                         case 2033:
-                            this.showStrategyInfo(receivedata);
+                            this.showStrategyInfo(data.content.data);
                             break;
                         case 2000:
-                            this.showStrategyCfg(receivedata);
+                            this.showStrategyCfg(data.content.data);
                             break;
                         case 2002:
-                            this.showStrategyCfg(receivedata);
+                            this.showStrategyCfg(data.content.data);
                             break;
                         case 2004:
-                            this.showStrategyCfg(receivedata);
+                            this.showStrategyCfg(data.content.data);
                             break;
                         case 2049:
-                            this.showStrategyCfg(receivedata);
+                            this.showStrategyCfg(data.content.data);
                             break;
                         case 2030:
-                            this.showStrategyCfg(receivedata);
+                            this.showStrategyCfg(data.content.data);
                             break;
                         case 2029:
-                            this.showStrategyCfg(receivedata);
+                            this.showStrategyCfg(data.content.data);
                             break;
                         case 2032:
-                            this.showStrategyCfg(receivedata);
+                            this.showStrategyCfg(data.content.data);
                             break;
                         case 2001:
-                            this.showGuiCmdAck(receivedata);
+                            this.showGuiCmdAck(data.content.data);
                             break;
                         case 2003:
-                            this.showGuiCmdAck(receivedata);
+                            this.showGuiCmdAck(data.content.data);
                             break;
                         case 2005:
-                            this.showGuiCmdAck(receivedata);
+                            this.showGuiCmdAck(data.content.data);
                             break;
                         case 2050:
-                            this.showGuiCmdAck(receivedata);
+                            this.showGuiCmdAck(data.content.data);
                             break;
                         case 2031:
-                            this.showGuiCmdAck(receivedata);
+                            this.showGuiCmdAck(data.content.data);
                             break;
                         case 2048:
-                            this.showComTotalProfitInfo(receivedata);
+                            this.showComTotalProfitInfo(data.content.data);
                             break;
                         case 2020:
-                            this.showComConOrder(receivedata);
+                            this.showComConOrder(data.content.data);
                             break;
                         case 2013:
-                            this.showComAccountPos(receivedata);
+                            this.showComAccountPos(data.content.data);
                             break;
                         case 3502:
-                            this.showComRecordPos(receivedata);
+                            this.showComRecordPos(data.content.data);
                             break;
                         case 3504:
-                            this.showComRecordPos(receivedata);
+                            this.showComRecordPos(data.content.data);
                             break;
                         case 2015:
-                            this.showComGWNetGuiInfo(receivedata);
+                            this.showComGWNetGuiInfo(data.content.data);
                             break;
                         case 2017:
-                            this.showComGWNetGuiInfo(receivedata);
+                            this.showComGWNetGuiInfo(data.content.data);
                             break;
                         case 2023:
-                            this.showComProfitInfo(receivedata);
+                            this.showComProfitInfo(data.content.data);
                             break;
                         case 2025:
-                            this.showStatArbOrder(receivedata);
+                            this.showStatArbOrder(data.content.data);
                             break;
                         case 5022:
-                            this.showComorderstatusAndErrorInfo(receivedata);
+                            this.showComorderstatusAndErrorInfo(data.content.data);
                             break;
                         case 2021:
-                            this.showComorderstatusAndErrorInfo(receivedata);
+                            this.showComorderstatusAndErrorInfo(data.content.data);
                             break;
                         case 2022:
-                            this.showComOrderRecord(receivedata);
+                            this.showComOrderRecord(data.content.data);
                             break;
                         case 3011:
-                            this.showComOrderRecord(receivedata);
+                            this.showComOrderRecord(data.content.data);
                             break;
                         case 3510:
-                            this.showComOrderRecord(receivedata);
+                            this.showComOrderRecord(data.content.data);
                             break;
                         case 2040:
-                            this.showLog(receivedata);
+                            this.showLog(data.content.data);
                             break;
                         case 5021:
-                            this.showBasketBackInfo(receivedata);
+                            this.showBasketBackInfo(data.content.data);
                             break;
                         case 5024:
-                            this.showPortfolioSummary(receivedata);
+                            this.showPortfolioSummary(data.content.data);
                             break;
                         case 8000:
-                            this.changeSSstatus(receivedata);
+                            this.changeSSstatus(data.content.data);
                             break;
                         default:
                             break;

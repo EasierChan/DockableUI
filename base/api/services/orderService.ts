@@ -14,7 +14,6 @@ import { Pool } from "../common/base/pool";
 import { ULogger } from "../common/base/logger";
 
 const logger = ULogger.file() || console;
-declare var electron: Electron.ElectronMainAndRenderer;
 
 export class OrderService {
     private _messageMap: any;
@@ -247,22 +246,30 @@ class ItradeParser extends Parser {
     }
 
     processRead(): void {
-        if (this.processMsgHeader() && this.processMsg() && this._oPool.length > 0) {
+        while (this.processMsgHeader() && this.processMsg()) {
             this._curHeader = null;
-            this.processRead();
+
+            if (this._oPool.length === 0)
+                break;
+
+            logger.info(`pool length: ${this._oPool.length}`);
         }
     }
     /**
      * process message head.
      */
     processMsgHeader(): boolean {
-        if (this._oPool.length === 0 || this._curHeader !== null)
+        if (this._oPool.length === 0)
             return false;
+
+        if (this._curHeader !== null)
+            return true;
 
         let ret = false;
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+        let peekBuf = null;
         for (; bufCount < this._oPool.length; ++bufCount) {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= Header.len) {
@@ -274,6 +281,7 @@ class ItradeParser extends Parser {
                 break;
             }
         }
+
         restLen = null;
         buflen = null;
         bufCount = null;
@@ -301,6 +309,7 @@ class ItradeParser extends Parser {
                     this._oPool.prepend(restBuf);
                     restBuf = null;
                 }
+
                 this._curHeader = null;
                 tempBuffer = null;
                 ret = true;
@@ -443,6 +452,7 @@ class StrategyParser extends ItradeParser {
             default:
                 break;
         }
+
         this._client.emit("data", args[0], msgObj);
     }
 
@@ -564,7 +574,7 @@ class StrategyParser extends ItradeParser {
             statArbOrder.diffQty = this.readInt64LE(buffer, offset); offset += 8;
             res.push(statArbOrder);
         }
-        logger.info(`msginfo::statarborder,info:`, subtype, res);
+
         return [{ subtype: subtype, content: res }];
     }
     readComConOrder(buffer: Buffer, msgtype: number, subtype: number, msglen: number): Array<Object> {
@@ -719,8 +729,6 @@ class StrategyParser extends ItradeParser {
                 comRecordPos.record.TodayOpen = this.readInt64LE(buffer, offset); offset += 8;
             }
             res.push(comRecordPos);
-            //  console.log("print readComRecordPos info---- :", comRecordPos, offset);
-            logger.info(`msginfo::position,info:`, comRecordPos);
         }
         return res;
     }
@@ -833,9 +841,10 @@ class StrategyParser extends ItradeParser {
                 comOrderRecord.od.signal[j].id = buffer.readUInt32LE(offset); offset += 8;
                 comOrderRecord.od.signal[j].value = buffer.readUIntLE(offset, 8); offset += 8;
             }
+
             res.push(comOrderRecord);
-            logger.info(`msginfo::order,info:`, res, comOrderRecord.od.odatetime, comOrderRecord.od.idatetime);
         }
+
         return res;
     }
     readComConOrderStatus(buffer: Buffer, msgtype: number, msglen: number): Array<Object> {
