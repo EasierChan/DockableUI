@@ -147,6 +147,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 tempCodeList.push(parseInt(code));
             }
         }
+
         AppComponent.self.subscribeMarketData(tempCodeList);
         AppComponent.self.statechecker.changeMenuItemState(pageid, false, 2);
     }
@@ -175,7 +176,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         if (label.endsWith("New SpreadView")) {
             let newSVID = "SpreadView" + AppComponent.spreadViewSN++;
-            // AppComponent.self.statechecker.addMenuItem(1, newSVID);
             return;
         }
 
@@ -583,22 +583,13 @@ export class AppComponent implements OnInit, AfterViewInit {
             let account = this.dd_Account.SelectedItem.Text;
             let getstrategy = this.dd_Strategy.SelectedItem.Text;
             let symbol = this.txt_Symbol.Text;
-            let ukey = this.txt_UKey.Text;
-            let price = this.txt_Price.Text;
-            let volume = txt_Volume.Text;
+            let ukey = parseInt(this.txt_UKey.Text);
+            let price = parseFloat(this.txt_Price.Text);
+            let volume = parseInt(txt_Volume.Text);
             let actionValue = this.dd_Action.SelectedItem.Value;
 
-            let ukeyTest = AppComponent.self.TestingInput(ukey);
-            let volumeTest = AppComponent.self.TestingInput(volume);
-
-            let numPrice = parseFloat(price);
-            if (isNaN(numPrice) || numPrice < 0.01) {
-                return;
-            }
-            if (!volumeTest || !ukeyTest) {
-                return;
-            }
-            if (!parseInt(ukey) || !parseFloat(price) || !parseInt(volume) || parseFloat(price) < 0 || parseFloat(volume) < 0) {
+            if (isNaN(ukey) || isNaN(price) || isNaN(volume)) {
+                alert("输入不合法");
                 return;
             }
 
@@ -621,9 +612,9 @@ export class AppComponent implements OnInit, AfterViewInit {
                     algorid: 0,
                     orderid: 0,
                     algorindex: 0,
-                    innercode: parseInt(ukey),
-                    price: Math.round(numPrice * 10000),
-                    quantity: parseInt(volume),
+                    innercode: ukey,
+                    price: Math.round(price * 10000),
+                    quantity: volume,
                     action: (actionValue === 1) ? 1 : 0,
                     property: 0,
                     currency: 0,
@@ -1116,64 +1107,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
         this.portfolioPage.setContent(portfolioContent);
 
-        this.strategyPage = new TabPage("Strategy", this.langServ.getTranslateInfo(this.languageType, "StrategyMonitor"));
-        this.pageObj["Strategy"] = this.strategyPage;
 
-        let strategyHeader = new ComboControl("row");
-        let startall = new MetaControl("button");
-        let startallRtn = this.langServ.getTranslateInfo(this.languageType, "StartAll");
-        if (startallRtn === "StartAll")
-            startall.Text = "Start All";
-        else
-            startall.Text = startallRtn;
-        let pauseall = new MetaControl("button");
-        let pauseallRtn = this.langServ.getTranslateInfo(this.languageType, "PauseAll");
-        if (pauseallRtn === "PauseAll")
-            pauseall.Text = "Pause All";
-        else
-            pauseall.Text = pauseallRtn;
-        let stopall = new MetaControl("button");
-        let stopallRtn = this.langServ.getTranslateInfo(this.languageType, "StopAll");
-        if (stopallRtn === "StopAll")
-            stopall.Text = "Stop All";
-        else
-            stopall.Text = stopallRtn;
-        let watchall = new MetaControl("button");
-        let watchallRtn = this.langServ.getTranslateInfo(this.languageType, "WatchAll");
-        if (watchallRtn === "WatchAll")
-            watchall.Text = "Watch All";
-        else
-            watchall.Text = watchallRtn;
-
-        let configBtn = new MetaControl("button");
-        let configRtn = this.langServ.getTranslateInfo(this.languageType, "Config");
-        configBtn.Text = configRtn;
-        configBtn.Left = 50;
-        strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall).addChild(configBtn);
-
-        startall.OnClick = () => {
-            this.controlBtnClick(0);
-        };
-        pauseall.OnClick = () => {
-            this.controlBtnClick(1);
-        };
-        stopall.OnClick = () => {
-            this.controlBtnClick(2);
-        };
-        watchall.OnClick = () => {
-            this.controlBtnClick(3);
-        };
-        configBtn.OnClick = () => {
-            AppComponent.self.configTable.rows.length = 0;
-            let len = this.configArr.length;
-            for (let i = 0; i < len; ++i) {
-                let row = AppComponent.self.configTable.newRow();
-                row.cells[0].Type = "checkbox";
-                row.cells[0].Title = this.configArr[i].name;
-                row.cells[0].Text = this.configArr[i].check;
-            }
-            Dialog.popup(this, this.configContent, { title: this.langServ.getTranslateInfo(this.languageType, "parameter"), height: 450 });
-        };
 
         this.profitPage = new TabPage("Profit", this.langServ.getTranslateInfo(this.languageType, "Profit"));
         this.pageObj["Profit"] = this.profitPage;
@@ -1234,26 +1168,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             });
         };
 
-        this.strategyTable = new DataTable();
-        this.strategyTable.RowIndex = false;
-        let strategyTableInitArr: string[] = ["StrategyID", "Sym1", "Sym2", "Start", "Pause",
-            "Stop", "Watch", "Status", "PosPnl(K)", "TraPnl(K)"];
-        let strategyTableInitTittleLen = strategyTableInitArr.length;
-        let strategytableRtnArr: string[] = [];
-        for (let i = 0; i < strategyTableInitTittleLen; ++i) {
-            strategytableRtnArr.push(this.langServ.getTranslateInfo(this.languageType, strategyTableInitArr[i]));
-        }
-        strategytableRtnArr.forEach(item => {
-            this.strategyTable.addColumn(item);
-        });
-        let strategyContent = new ComboControl("col");
-        strategyContent.addChild(strategyHeader);
-        strategyContent.addChild(this.strategyTable);
-        this.strategyPage.setContent(strategyContent);
-        this.strategyTable.onCellClick = (cellItem, cellIdx, rowIdx) => {
-            // console.log(cellItem, cellIdx, rowIdx);
-            AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
-        };
+        this.onStrategyTableInit();
 
         this.loadLayout();
         AppComponent.bgWorker.send({
@@ -1290,6 +1205,51 @@ export class AppComponent implements OnInit, AfterViewInit {
                 item.table.detectChanges();
             });
         }, 1000);
+    }
+
+    onStrategyTableInit() {
+        this.strategyPage = new TabPage("Strategy", this.langServ.getTranslateInfo(this.languageType, "StrategyMonitor"));
+        this.pageObj["Strategy"] = this.strategyPage;
+
+        let strategyHeader = new ComboControl("row");
+        let startall = new MetaControl("button");
+        startall.Text = this.langServ.getTranslateInfo(this.languageType, "StartAll");
+        let pauseall = new MetaControl("button");
+        pauseall.Text = this.langServ.getTranslateInfo(this.languageType, "PauseAll");
+        let stopall = new MetaControl("button");
+        stopall.Text = this.langServ.getTranslateInfo(this.languageType, "StopAll");
+        let watchall = new MetaControl("button");
+        watchall.Text = this.langServ.getTranslateInfo(this.languageType, "WatchAll");
+        let configBtn = new MetaControl("button");
+        configBtn.Text = this.langServ.getTranslateInfo(this.languageType, "Config");
+        startall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 3, 0, 0); };
+        pauseall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 4, 0, 1); };
+        stopall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 5, 0, 2); };
+        watchall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 6, 0, 3); };
+        configBtn.OnClick = () => {
+            this.configTable.rows.length = 0;
+
+            for (let i = 0; i < this.configArr.length; ++i) {
+                let row = this.configTable.newRow();
+                row.cells[0].Type = "checkbox";
+                row.cells[0].Title = this.configArr[i].name;
+                row.cells[0].Text = this.configArr[i].check;
+            }
+
+            Dialog.popup(this, this.configContent, { title: this.langServ.getTranslateInfo(this.languageType, "parameter"), height: 450 });
+        };
+
+        strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall).addChild(configBtn);
+
+        this.strategyTable = new DataTable();
+        this.strategyTable.RowIndex = false;
+        ["StrategyID", "Sym1", "Sym2", "Start", "Pause", "Stop", "Watch", "Status", "PosPnl(K)", "TraPnl(K)"]
+            .forEach(item => { this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item)); });
+        let strategyContent = new ComboControl("col");
+        strategyContent.addChild(strategyHeader);
+        strategyContent.addChild(this.strategyTable);
+        this.strategyPage.setContent(strategyContent);
+        this.strategyTable.onCellClick = (cellItem, cellIdx, rowIdx) => { this.strategyOnCellClick(cellItem, cellIdx, rowIdx); };
     }
 
     loadLayout() {
@@ -2283,8 +2243,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.accountTable.rows[idx].cells[16].Text = obj.record.ClosePL / 10000;
         // AppComponent.self.ref.detectChanges();
     }
+
     showStrategyCfg(data: any) {
-        console.log("showStrategyCfg => ", data);
         // handle the config.json file ,and in the first time ,write the parameter in file for initlization
         if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
             return;
@@ -2871,12 +2831,15 @@ export class AppComponent implements OnInit, AfterViewInit {
                     AppComponent.self.bookviewArr[i].code = subscribecode;
                 }
             }
+
             if (!bookcodeFlag) {
                 this.bookviewArr.push({ bookview: bookviewID, code: subscribecode, table: bookViewTable });
                 tempCodeList.push(parseInt(subscribecode));
             }
+
             this.subscribeMarketData(tempCodeList);
         };
+
         dd_symbol.matchMethod = (inputText) => {
             let len = inputText.length;
             let sendStr: string = "";
@@ -2899,6 +2862,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 else
                     rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
             }
+
             return rtnArr;
         };
 
