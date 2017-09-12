@@ -1788,11 +1788,10 @@ export class AppComponent implements OnInit, AfterViewInit {
 
                 hasDone = true;
             } else {
-                let j;
-
                 for (j = 0; j < this.orderstatusTable.rows.length; ++j) {
                     if (data[i].od.orderid === this.orderstatusTable.rows[j].cells[3].Text) {  // refresh
                         this.refreshUndoneOrderInfo(data[i], j);
+                        break;
                     }
                 }
 
@@ -1916,88 +1915,70 @@ export class AppComponent implements OnInit, AfterViewInit {
     showComRecordPos(data: any) {
         let iRow;
         let secuCategory = 1;
-
         for (let iData = 0; iData < data.length; ++iData) {
             for (iRow = 0; iRow < AppComponent.self.positionTable.rows.length; ++iRow) {
-                if (parseInt(AppComponent.self.positionTable.rows[iRow].cells[2].Text) === data[iData].record.code) { // refresh
-                    secuCategory = parseInt(AppComponent.self.positionTable.rows[iRow].cells[1].Text);
+                if (AppComponent.self.positionTable.rows[iRow].cells[2].Text === data[iData].record.code) { // refresh
+                    secuCategory = AppComponent.self.positionTable.rows[iRow].cells[1].Text;
 
                     if (secuCategory === 1) {
-                        AppComponent.self.refreshEquitPosInfo(data[iData], iRow);
+                        AppComponent.self.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[6].Text = data[iData].record.AvlCreRedempVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
+                        AppComponent.self.positionTable.rows[iRow].cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
                         break;
-                    }
-
-                    if (secuCategory === 2 && parseInt(AppComponent.self.positionTable.rows[iRow].cells[12].Text) === data[iData].record.type) {
-                        AppComponent.self.refreshFuturePosInfo(data[iData], iRow);
+                    } else if (secuCategory === 2 && AppComponent.self.positionTable.rows[iRow].cells[12].Text === data[iData].record.type) {
+                        AppComponent.self.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
+                        AppComponent.self.positionTable.rows[iRow].cells[9].Text = data[iData].record.TodayOpen;
+                        AppComponent.self.positionTable.rows[iRow].cells[10].Text = data[iData].record.AveragePrice / 10000;
                         break;
                     }
                 }
             }
 
             if (iRow === AppComponent.self.positionTable.rows.length) {
-                data[iData].secucategory === 1 ? AppComponent.self.addEquityPosInfo(data[iData]) : AppComponent.self.addFuturePosInfo(data[iData]);
+                if (data[iData].secucategory === 1) {
+                    let row = AppComponent.self.positionTable.newRow();
+                    row.cells[0].Text = data[iData].record.account;
+                    row.cells[1].Text = data[iData].secucategory;
+                    row.cells[2].Text = data[iData].record.code;
+                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[iData].record.code);
+                    row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
+                    row.cells[4].Text = data[iData].record.TotalVol;
+                    row.cells[5].Text = data[iData].record.AvlVol;
+                    row.cells[6].Text = data[iData].record.AvlCreRedempVol;
+                    row.cells[7].Text = data[iData].record.WorkingVol;
+                    row.cells[8].Text = data[iData].record.TotalCost / 10000;
+                    row.cells[9].Text = 0;
+                    row.cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
+                    row.cells[11].Text = data[iData].strategyid;
+                    row.cells[12].Text = data[iData].record.type;
+                } else {
+                    let row = AppComponent.self.positionTable.newRow();
+                    row.cells[0].Text = data[iData].record.account;
+                    row.cells[1].Text = data[iData].secucategory;
+                    row.cells[2].Text = data[iData].record.code;
+                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[iData].record.code);
+                    row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
+                    row.cells[4].Text = data[iData].record.TotalVol;
+                    row.cells[5].Text = data[iData].record.AvlVol;
+                    row.cells[6].Text = 0;
+                    row.cells[7].Text = data[iData].record.WorkingVol;
+                    row.cells[8].Text = data[iData].record.TotalCost / 10000;
+                    row.cells[9].Text = data[iData].record.TodayOpen;
+                    row.cells[10].Text = data[iData].record.AveragePrice / 10000;
+                    row.cells[11].Text = data[iData].strategyid;
+                    row.cells[12].Text = data[iData].record.type;
+                }
             }
         }
 
         iRow = null;
         secuCategory = null;
-    }
-
-    addEquityPosInfo(obj: any) {
-        let row = AppComponent.self.positionTable.newRow();
-        row.cells[0].Text = obj.record.account;
-        row.cells[1].Text = obj.secucategory;
-        row.cells[2].Text = obj.record.code;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "unknown";
-        row.cells[4].Text = obj.record.TotalVol;
-        row.cells[5].Text = obj.record.AvlVol;
-        row.cells[6].Text = obj.record.AvlCreRedempVol;
-        row.cells[7].Text = obj.record.WorkingVol;
-        row.cells[8].Text = obj.record.TotalCost / 10000;
-        row.cells[9].Text = 0;
-        row.cells[10].Text = obj.record.TotalVol !== 0 ? (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4) : 0;
-        row.cells[11].Text = obj.strategyid;
-        row.cells[12].Text = obj.record.type;
-        AppComponent.self.positionTable.detectChanges();
-    }
-
-    addFuturePosInfo(obj: any) {
-        let row = AppComponent.self.positionTable.newRow();
-        row.cells[0].Text = obj.record.account;
-        row.cells[1].Text = obj.secucategory;
-        row.cells[2].Text = obj.record.code;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "unknown";
-        row.cells[4].Text = obj.record.TotalVol;
-        row.cells[5].Text = obj.record.AvlVol;
-        row.cells[6].Text = 0;
-        row.cells[7].Text = obj.record.WorkingVol;
-        row.cells[8].Text = obj.record.TotalCost / 10000;
-        row.cells[9].Text = obj.record.TodayOpen;
-        row.cells[10].Text = obj.record.AveragePrice / 10000;
-        row.cells[11].Text = obj.strategyid;
-        row.cells[12].Text = obj.record.type;
-        AppComponent.self.positionTable.detectChanges();
-    }
-
-    refreshEquitPosInfo(obj: any, idx: number) {
-        AppComponent.self.positionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
-        AppComponent.self.positionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
-        AppComponent.self.positionTable.rows[idx].cells[6].Text = obj.record.AvlCreRedempVol;
-        AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
-        AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
-        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.TotalVol !== 0 ? (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4) : 0;
-        AppComponent.self.positionTable.detectChanges();
-    }
-
-    refreshFuturePosInfo(obj: any, idx: number) {
-        AppComponent.self.positionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
-        AppComponent.self.positionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
-        AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
-        AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
-        AppComponent.self.positionTable.rows[idx].cells[9].Text = obj.record.TodayOpen;
-        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.AveragePrice / 10000;
         AppComponent.self.positionTable.detectChanges();
     }
 
@@ -3069,7 +3050,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                 case "ss-close":
                     break;
                 case "ss-data":
-                    console.info(`ss-data: type=${data.content.type}`);
+                    // console.info(`ss-data: type=${data.content.type}, len=${data.content.data.length}`);
+                    // let timer = Date.now();
                     switch (data.content.type) {
                         case 2011:
                             this.showStrategyInfo(data.content.data);
@@ -3170,6 +3152,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                         default:
                             break;
                     }
+
+                    // console.debug(`elapsed time: ${Date.now() - timer}`);
                     break;
                 default:
                     break;
