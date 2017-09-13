@@ -293,6 +293,7 @@ export class AppComponent implements OnInit, OnDestroy {
     quoteHeart: any = null;
     showSetting: boolean;
     durations: number[][];
+    kwlist: number[];
     toggleText: string;
 
     @ViewChild("chart") chart: ElementRef;
@@ -371,6 +372,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.yAxisOption = { min: null, max: null, step: null };
         this.rangeType = 1;
         this.groupUKeys = [];
+        this.kwlist = [];
         this.showSetting = true;
         this.loginTGW(null);
         this.registerListeners();
@@ -395,6 +397,11 @@ export class AppComponent implements OnInit, OnDestroy {
             appid: 17,
             packid: 110,
             callback: (msg) => {
+                if (!this.kwlist.includes(msg.content.ukey)) {
+                    console.error(`unexpected marketdata ukey=${msg.content.ukey}`);
+                    return;
+                }
+
                 if (self.spreadviewer) {
                     if (this.groupUKeys.includes(msg.content.ukey)) {
                         this.groupMDWorker.postMessage({ type: "add-md", value: msg.content });
@@ -500,17 +507,16 @@ export class AppComponent implements OnInit, OnDestroy {
 
                     this.spreadviewer = new USpreadViewer(nickCodes, ukeys, this.lines, this.durations);
 
-                    let kwlist = [];
-                    kwlist = kwlist.concat(this.groupUKeys);
+                    this.kwlist = [];
+                    this.kwlist = this.kwlist.concat(this.groupUKeys);
                     ukeys.forEach(ukey => {
                         if (ukey > 2)
-                            kwlist.push(ukey);
+                            this.kwlist.push(ukey);
                     });
 
                     // console.info(kwlist);
-                    this.quote.send(17, 101, { topic: 3112, kwlist: kwlist });
+                    this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
 
-                    kwlist = null;
                     groups = null;
                 }
             }, 100);
@@ -722,6 +728,8 @@ export class USpreadViewer {
 
             if (bChanged)
                 this.spreadChart.instance.setOption(this.dataOption);
+            else
+                console.warn(`failed to drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}`);
         }, this.interval.value);
     }
 

@@ -62,14 +62,13 @@
 
                             if (groups[i].lastestIdx === 0) {
                                 groups[i].lastestIdx = groups[i].max;
-
                                 postMessage({
                                     type: "group-md", value: {
                                         ukey: groups[i].key, time: groups[i].lastestIdx,
                                         ask_price: [askPrice1], bid_price: [bidPrice1], last: last
                                     }
                                 });
-                            } else if (groups[i].min > groups[i].lastestIdx) {
+                            } else if (groups[i].min >= groups[i].lastestIdx) {
                                 groups[i].lastestIdx = groups[i].min;
 
                                 postMessage({
@@ -78,7 +77,19 @@
                                         ask_price: [askPrice1], bid_price: [bidPrice1], last: last
                                     }
                                 });
+                            } else {
+                                console.warn(`[min: ${groups[i].min}] need larger than [last: ${groups[i].lastestIdx}]`);
+                                groups[i].ukeys.forEach(ukey => {
+                                    if (groups[i].lastIdx[ukey] === groups[i].min) {
+                                        console.warn(`wait ukeys: ${ukey}`);
+                                    }
+                                });
+
                             }
+
+                            bidPrice1 = null;
+                            askPrice1 = null;
+                            last = null;
                         } else {
                             groups[i].ukeys.forEach(ukey => {
                                 if (!groups[i].lastIdx.hasOwnProperty(ukey)) {

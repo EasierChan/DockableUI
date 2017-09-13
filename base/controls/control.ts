@@ -1799,7 +1799,8 @@ export class DataTable extends Control {
                     // this.detectChanges();
                 }
             }, "checkbox", { visible: !col.hidden, checked: true }), null);
-            this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length));
+
+            this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length - 1));
         });
 
         this.dataSource.columns = this.columns;
@@ -1817,7 +1818,7 @@ export class DataTable extends Control {
             }
         }, "checkbox", { visible: !column.hidden, checked: true }), null);
 
-        this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length));
+        this.rows.forEach(item => item.insertCell(new DataTableRowCell(), this.columns.length - 1));
         this.dataSource.columns = this.columns;
 
         return this;
@@ -1963,7 +1964,7 @@ export class DataTableRow extends Control {
     }
 
     insertCell(cell: DataTableRowCell, index: number): void {
-        this.cells.splice(index, 0, new DataTableRowCell());
+        this.cells.splice(index, 0, cell);
         this.cells[index].OnClick = (cellIndex, rowIndex) => {
             if (DataTableRow._timeout) {
                 clearTimeout(DataTableRow._timeout);
@@ -2054,6 +2055,8 @@ export class DataTableRowCell extends MetaControl {
 export class DataTableColumn {
     private compare: (prev, next) => number;
     private limitWidth: number;
+    private akey: any;
+
     constructor(private columnHeader: string,
         private bHidden: boolean = false,
         private bSortable: boolean = false) {
@@ -2096,6 +2099,14 @@ export class DataTableColumn {
 
     get maxWidth() {
         return this.limitWidth;
+    }
+
+    set key(value: any) {
+        this.akey = value;
+    }
+
+    get key() {
+        return this.akey;
     }
 }
 

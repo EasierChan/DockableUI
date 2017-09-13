@@ -9,7 +9,7 @@ import { WorkerFactory } from "../../base/api/services/uworker.server";
 import {
     Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog, Label,
     DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem,
-    ComboControl, MetaControl
+    HBox, Button, CheckBox, TextBox, VBox, MetaControl
 } from "../../base/controls/control";
 import {
     MessageBox, fs, AppStateCheckerRef, File, Environment,
@@ -35,7 +35,7 @@ import {
 export class AppComponent implements OnInit, AfterViewInit {
     private readonly apptype = "trade";
     private main: DockContainer;
-    private pageObj: Object = new Object();
+    private modules: Object = new Object();
     private dialog: Dialog;
     private orderstatusPage: TabPage;
     private tradePage: TabPage;
@@ -58,7 +58,6 @@ export class AppComponent implements OnInit, AfterViewInit {
     private logTable: DataTable;
     private strategyTable: DataTable;
     private accountTable: DataTable;
-    private static self: AppComponent;
     private positionTable: DataTable;
     private profitTable: DataTable;
     private statarbTable: DataTable;
@@ -125,7 +124,9 @@ export class AppComponent implements OnInit, AfterViewInit {
     private layout: any;
     private tradePoint: any;
     private quotePoint: any;
+    private strategyMap: any;
 
+    static self: AppComponent;
     static bookViewSN = 1;
     static spreadViewSN = 1;
     static bgWorker = null;
@@ -162,7 +163,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let label = item.label as string;
         if (label.endsWith("New BookView")) {
             let newBVID = "BookView" + AppComponent.bookViewSN++;
-            while (AppComponent.self.pageObj.hasOwnProperty(newBVID)) {
+            while (AppComponent.self.modules.hasOwnProperty(newBVID)) {
                 newBVID = "BookView" + AppComponent.bookViewSN++;
             }
 
@@ -173,8 +174,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                 return;
             }
 
-            if (AppComponent.self.pageObj.hasOwnProperty(newBVID)) {
-                panel.addTab(AppComponent.self.pageObj[newBVID]);
+            if (AppComponent.self.modules.hasOwnProperty(newBVID)) {
+                panel.addTab(AppComponent.self.modules[newBVID]);
                 panel.setActive(newBVID);
             }
 
@@ -195,8 +196,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                 return;
             }
 
-            if (AppComponent.self.pageObj.hasOwnProperty(item.label)) {
-                panel.addTab(AppComponent.self.pageObj[item.label]);
+            if (AppComponent.self.modules.hasOwnProperty(item.label)) {
+                panel.addTab(AppComponent.self.modules[item.label]);
                 panel.setActive(item.label);
             }
         }
@@ -218,17 +219,18 @@ export class AppComponent implements OnInit, AfterViewInit {
                 break;
         }
 
+        this.strategyMap = {};
         this.tradePoint = setting.endpoints[0].trade_addr.split(":");
         this.quotePoint = setting.endpoints[0].quote_addr.split(":");
 
         this.statusbar = new StatusBar();
-        let pageid = "OrderStatus";
-        this.orderstatusPage = new TabPage(pageid, this.langServ.getTranslateInfo(this.languageType, pageid));
-        this.pageObj[pageid] = this.orderstatusPage;
-        let orderstatusContent = new ComboControl("col");
+        let order = "OrderStatus";
+        this.orderstatusPage = new TabPage(order, this.langServ.getTranslateInfo(this.languageType, order));
+        this.modules["OrderStatus"] = this.orderstatusPage;
+        let orderstatusContent = new VBox();
 
-        let orderstatusHeader = new ComboControl("row");
-        let cb_handle = new MetaControl("checkbox");
+        let orderstatusHeader = new HBox();
+        let cb_handle = new CheckBox();
         cb_handle.Text = true;
         let handle = "Handle";
         let rtnHandle = this.langServ.getTranslateInfo(this.languageType, handle);
@@ -250,7 +252,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         dd_status.addItem({ Text: "10.废单", Value: "10" });
         orderstatusHeader.addChild(dd_status);
 
-        let cb_SelAll = new MetaControl("checkbox");
+        let cb_SelAll = new CheckBox();
         cb_SelAll.Left = 10;
         cb_SelAll.Text = false;
         cb_SelAll.Title = this.langServ.getTranslateInfo(this.languageType, "All");
@@ -265,7 +267,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
         };
 
-        let btn_cancel = new MetaControl("button");
+        let btn_cancel = new Button();
         btn_cancel.Left = 10;
         let cancel = "CancelSelected";
         let rtnCancel = this.langServ.getTranslateInfo(this.languageType, cancel);
@@ -336,8 +338,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
-        this.pageObj["DoneOrders"] = this.doneOrdersPage;
-        let doneOrdersContent = new ComboControl("col");
+        this.modules["DoneOrders"] = this.doneOrdersPage;
+        let doneOrdersContent = new VBox();
         this.doneOrdersTable = new DataTable("table2");
         let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
             "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "Account", "OrderTime",
@@ -357,8 +359,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
 
         this.accountPage = new TabPage("Account", this.langServ.getTranslateInfo(this.languageType, "Account"));
-        this.pageObj["Account"] = this.accountPage;
-        let accountContent = new ComboControl("col");
+        this.modules["Account"] = this.accountPage;
+        let accountContent = new VBox();
         this.accountTable = new DataTable("table");
         let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
             "ShangHai", "ShenZhen", "BuyFrzAmt", "SellFrzAmt", "Buymargin", "SellMargin", "TotalMargin", "Fee",
@@ -377,8 +379,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.accountPage.setContent(accountContent);
 
         this.positionPage = new TabPage("Position", this.langServ.getTranslateInfo(this.languageType, "Position"));
-        this.pageObj["Position"] = this.positionPage;
-        let positionContent = new ComboControl("col");
+        this.modules["Position"] = this.positionPage;
+        let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
         let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
             "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"];
@@ -420,11 +422,11 @@ export class AppComponent implements OnInit, AfterViewInit {
         let leftAlign = 20;
         let rowSep = 5;
         this.tradePage = new TabPage("ManulTrader", this.langServ.getTranslateInfo(this.languageType, "ManulTrader"));
-        this.tradeContent = new ComboControl("col");
+        this.tradeContent = new VBox();
         this.tradeContent.MinHeight = 500;
         this.tradeContent.MinWidth = 500;
 
-        let account_firrow = new ComboControl("row");
+        let account_firrow = new HBox();
         this.dd_Account = new DropDown();
         this.dd_Account.Width = 120;
         let dd_accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
@@ -442,7 +444,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         account_firrow.addChild(account_Label).addChild(this.dd_Account);
         this.tradeContent.addChild(account_firrow);
 
-        let strategy_secrow = new ComboControl("row");
+        let strategy_secrow = new HBox();
         let dd_strategyRtn = this.langServ.getTranslateInfo(this.languageType, "Strategy");
         let strategy_label = new Label();
         if (0 === this.languageType)
@@ -460,7 +462,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         strategy_secrow.addChild(strategy_label).addChild(this.dd_Strategy);
         this.tradeContent.addChild(strategy_secrow);
 
-        let action_sevenrow = new ComboControl("row");
+        let action_sevenrow = new HBox();
         let dd_ActionRtn = this.langServ.getTranslateInfo(this.languageType, "Action");
         let action_label = new Label();
         if (0 === this.languageType)
@@ -481,7 +483,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         action_sevenrow.addChild(action_label).addChild(this.dd_Action);
         this.tradeContent.addChild(action_sevenrow);
 
-        let symbol_thirdrow = new ComboControl("row");
+        let symbol_thirdrow = new HBox();
         let txt_symbolRtn = this.langServ.getTranslateInfo(this.languageType, "Symbol");
         let symbol_label = new Label();
         symbol_label.Left = leftAlign;
@@ -500,7 +502,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         symbol_thirdrow.addChild(symbol_label).addChild(this.txt_Symbol);
         this.tradeContent.addChild(symbol_thirdrow);
 
-        let ukey_fourthrow = new ComboControl("row");
+        let ukey_fourthrow = new HBox();
         let txt_UKeyRtn = this.langServ.getTranslateInfo(this.languageType, "U-key");
         let ukey_label = new Label();
         ukey_label.Left = leftAlign;
@@ -519,7 +521,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         ukey_fourthrow.addChild(ukey_label).addChild(this.txt_UKey);
         this.tradeContent.addChild(ukey_fourthrow);
 
-        let price_fifthrow = new ComboControl("row");
+        let price_fifthrow = new HBox();
         let txt_PriceRtn = this.langServ.getTranslateInfo(this.languageType, "Price");
         let price_label = new Label();
         if (0 === this.languageType)
@@ -536,7 +538,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         price_fifthrow.addChild(price_label).addChild(this.txt_Price);
         this.tradeContent.addChild(price_fifthrow);
 
-        let volume_sixrow = new ComboControl("row");
+        let volume_sixrow = new HBox();
         let txt_VolumeRtn = this.langServ.getTranslateInfo(this.languageType, "Volume");
         let volume_label = new Label();
         if (0 === this.languageType)
@@ -553,13 +555,13 @@ export class AppComponent implements OnInit, AfterViewInit {
         volume_sixrow.addChild(volume_label).addChild(txt_Volume);
         this.tradeContent.addChild(volume_sixrow);
 
-        let btn_row = new ComboControl("row");
-        let btn_clear = new MetaControl("button");
+        let btn_row = new HBox();
+        let btn_clear = new Button();
         btn_clear.Left = leftAlign;
         let clearRtn = this.langServ.getTranslateInfo(this.languageType, "Clear");
         btn_clear.Text = clearRtn;
         btn_row.addChild(btn_clear);
-        let btn_submit = new MetaControl("button");
+        let btn_submit = new Button();
         btn_submit.Left = 50;
         let SubmitRtn = this.langServ.getTranslateInfo(this.languageType, "Submit");
         btn_submit.Text = SubmitRtn;
@@ -574,22 +576,13 @@ export class AppComponent implements OnInit, AfterViewInit {
             let account = this.dd_Account.SelectedItem.Text;
             let strategyid = this.dd_Strategy.SelectedItem.Text;
             let symbol = this.txt_Symbol.Text;
-            let ukey = this.txt_UKey.Text;
-            let price = this.txt_Price.Text;
-            let volume = txt_Volume.Text;
+            let ukey = parseInt(this.txt_UKey.Text);
+            let price = parseFloat(this.txt_Price.Text);
+            let volume = parseInt(txt_Volume.Text);
             let actionValue = this.dd_Action.SelectedItem.Value;
 
-            let ukeyTest = AppComponent.self.TestingInput(ukey);
-            let volumeTest = AppComponent.self.TestingInput(volume);
-
-            let numPrice = parseFloat(price);
-            if (isNaN(numPrice) || numPrice < 0.01) {
-                return;
-            }
-            if (!volumeTest || !ukeyTest) {
-                return;
-            }
-            if (!parseInt(ukey) || !parseFloat(price) || !parseInt(volume) || parseFloat(price) < 0 || parseFloat(volume) < 0) {
+            if (isNaN(ukey) || isNaN(price) || price > Math.pow(2, 18) || isNaN(volume)) {
+                alert("输入不合法");
                 return;
             }
 
@@ -601,10 +594,11 @@ export class AppComponent implements OnInit, AfterViewInit {
             order.datetime.tv_usec = 0;
             order.data = new ComOrder();
             order.data.strategyid = parseInt(strategyid);
-            order.data.innercode = parseInt(ukey);
+            order.data.innercode = ukey;
             order.data.price = Math.round(price * 10000);
-            order.data.quantity = parseInt(volume);
+            order.data.quantity = volume;
             order.data.action = (actionValue === 1) ? 1 : 0;
+
             // submit order
             AppComponent.bgWorker.send({
                 command: "ss-send", params: { type: "order", data: order }
@@ -613,7 +607,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         };
 
         this.commentPage = new TabPage("Comment", this.langServ.getTranslateInfo(this.languageType, "Comment"));
-        this.commentContent = new ComboControl("col");
+        this.commentContent = new VBox();
         this.commentTable = new DataTable("table2");
         this.commentTable.height = 400;
 
@@ -631,27 +625,26 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.commentPage.setContent(this.commentContent);
 
         this.configPage = new TabPage("ParameterConfig", this.langServ.getTranslateInfo(this.languageType, "ParameterConfig"));
-        this.configContent = new ComboControl("col");
-        this.checkall = new MetaControl("checkbox");
-        let rtnCheckall = this.langServ.getTranslateInfo(this.languageType, "Check");
-        this.checkall.Title = rtnCheckall;
-        this.checkall.Text = true;
+        this.configContent = new VBox();
+        let configHeader = new HBox();
+        let checkall = new CheckBox();
+        checkall.Title = this.langServ.getTranslateInfo(this.languageType, "Check");
+        let btn_apply = new Button();
+        btn_apply.Left = 200;
+        btn_apply.Text = "应用";
+        btn_apply.Class = "primary";
+        btn_apply.OnClick = () => { this.applyStrateTableConfig(); };
+        configHeader.addChild(checkall).addChild(btn_apply);
         this.configTable = new DataTable("table2");
         this.configTable.height = 390;
         this.configTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "parameter"));
         this.configTable.columnConfigurable = true;
-        this.configContent.addChild(this.checkall).addChild(this.configTable);
+        this.configContent.addChild(configHeader).addChild(this.configTable);
         this.configPage.setContent(this.configContent);
-        this.checkall.OnClick = () => {
-            AppComponent.self.configAllCheck(this.checkall.Text);
-        };
-        this.configTable.onCellClick = (cellItem, cellidx, rowIdx) => {
-            AppComponent.self.StrategyTitleHide(rowIdx);
-            // console.log();
-        };
+        checkall.OnClick = () => { this.configTable.rows.forEach(item => { item.cells[0].Text = !checkall.Text; }); };
 
         this.gatewayPage = new TabPage("GateWay", this.langServ.getTranslateInfo(this.languageType, "Gateway"));
-        this.gatewayContent = new ComboControl("col");
+        this.gatewayContent = new VBox();
         this.gatewayTable = new DataTable("table2");
         this.gatewayTable.height = 300;
         this.gatewayTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "name"));
@@ -664,8 +657,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.createBookView("BookView");
 
         this.logPage = new TabPage("Log", this.langServ.getTranslateInfo(this.languageType, "LOG"));
-        this.pageObj["Log"] = this.logPage;
-        let logContent = new ComboControl("col");
+        this.modules["Log"] = this.logPage;
+        let logContent = new VBox();
         this.logTable = new DataTable("table2");
 
         let logTimeTittleRtn = this.langServ.getTranslateInfo(this.languageType, "Time");
@@ -676,9 +669,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.logPage.setContent(logContent);
 
         this.statarbPage = new TabPage("StatArb", this.langServ.getTranslateInfo(this.languageType, "StatArb"));
-        this.pageObj["StatArb"] = this.statarbPage;
+        this.modules["StatArb"] = this.statarbPage;
         let statarbLeftAlign = 20;
-        let statarbHeader = new ComboControl("row");
+        let statarbHeader = new HBox();
         this.buyamountLabel = new MetaControl("textbox");
         this.buyamountLabel.Left = statarbLeftAlign;
         this.buyamountLabel.Width = 90;
@@ -707,14 +700,14 @@ export class AppComponent implements OnInit, AfterViewInit {
         });
 
         this.statarbTable.columnConfigurable = true;
-        let statarbContent = new ComboControl("col");
+        let statarbContent = new VBox();
         statarbContent.addChild(statarbHeader);
         statarbContent.addChild(this.statarbTable);
         this.statarbPage.setContent(statarbContent);
 
         this.portfolioPage = new TabPage("Portfolio", this.langServ.getTranslateInfo(this.languageType, "Portfolio"));
-        this.pageObj["Portfolio"] = this.portfolioPage;
-        let loadItem = new ComboControl("row");
+        this.modules["Portfolio"] = this.portfolioPage;
+        let loadItem = new HBox();
 
         this.portfolio_acc = new DropDown();
         this.portfolio_acc.Width = 110;
@@ -760,7 +753,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.portfolioCount.Left = 20;
         this.portfolioCount.Disable = true;
 
-        let btn_load = new MetaControl("button");
+        let btn_load = new Button();
         let btn_loadRtn = this.langServ.getTranslateInfo(this.languageType, "LoadCSV");
         if (btn_loadRtn === "LoadCSV")
             btn_load.Text = " Load    CSV ";
@@ -772,7 +765,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         loadItem.addChild(this.portfolio_acc).addChild(this.portfolioLabel)
             .addChild(this.portfolioDaypnl).addChild(this.portfolioonpnl).addChild(this.portfolioCount).addChild(btn_load);
 
-        let tradeitem = new ComboControl("row");
+        let tradeitem = new HBox();
         this.portfolioBuyCom = new DropDown();
         this.portfolioBuyCom.Width = 59;
         this.portfolioBuyCom.Left = 20;
@@ -856,13 +849,13 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.portfolioSellOffset.addItem({ Text: "-9", Value: "-9" });
         this.portfolioSellOffset.addItem({ Text: "-10", Value: "-10" });
 
-        this.allChk = new MetaControl("checkbox"); this.allChk.Width = 30;
+        this.allChk = new CheckBox(); this.allChk.Width = 30;
         this.allChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All");
         this.allChk.Text = false; this.allChk.Left = 22;
-        let allbuyChk = new MetaControl("checkbox"); allbuyChk.Width = 30;
+        let allbuyChk = new CheckBox(); allbuyChk.Width = 30;
         allbuyChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All-Buy");
         allbuyChk.Text = false; allbuyChk.Left = 20;
-        let allsellChk = new MetaControl("checkbox"); allsellChk.Width = 30;
+        let allsellChk = new CheckBox(); allsellChk.Width = 30;
         allsellChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All-Sell");
         allsellChk.Text = false; allsellChk.Left = 20;
 
@@ -877,7 +870,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         this.range.Text = 0; this.rateText.Text = 0;
 
-        let btn_sendSel = new MetaControl("button");
+        let btn_sendSel = new Button();
         let sendSelRtn = this.langServ.getTranslateInfo(this.languageType, "sendselected");
 
         if (sendSelRtn === "sendselected")
@@ -887,7 +880,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         btn_sendSel.Left = 20;
         btn_sendSel.Class = "primary";
-        let btn_cancelSel = new MetaControl("button");
+        let btn_cancelSel = new Button();
         let cancelSelRtn = this.langServ.getTranslateInfo(this.languageType, "cancelselected");
         if (cancelSelRtn === "cancelselected")
             btn_cancelSel.Text = "Cancel Selected";
@@ -1061,73 +1054,16 @@ export class AppComponent implements OnInit, AfterViewInit {
                 }
             });
         };
-        let portfolioContent = new ComboControl("col");
+        let portfolioContent = new VBox();
         portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
         this.portfolioPage.setContent(portfolioContent);
 
-        this.strategyPage = new TabPage("Strategy", this.langServ.getTranslateInfo(this.languageType, "StrategyMonitor"));
-        this.pageObj["Strategy"] = this.strategyPage;
 
-        let strategyHeader = new ComboControl("row");
-        let startall = new MetaControl("button");
-        let startallRtn = this.langServ.getTranslateInfo(this.languageType, "StartAll");
-        if (startallRtn === "StartAll")
-            startall.Text = "Start All";
-        else
-            startall.Text = startallRtn;
-        let pauseall = new MetaControl("button");
-        let pauseallRtn = this.langServ.getTranslateInfo(this.languageType, "PauseAll");
-        if (pauseallRtn === "PauseAll")
-            pauseall.Text = "Pause All";
-        else
-            pauseall.Text = pauseallRtn;
-        let stopall = new MetaControl("button");
-        let stopallRtn = this.langServ.getTranslateInfo(this.languageType, "StopAll");
-        if (stopallRtn === "StopAll")
-            stopall.Text = "Stop All";
-        else
-            stopall.Text = stopallRtn;
-        let watchall = new MetaControl("button");
-        let watchallRtn = this.langServ.getTranslateInfo(this.languageType, "WatchAll");
-        if (watchallRtn === "WatchAll")
-            watchall.Text = "Watch All";
-        else
-            watchall.Text = watchallRtn;
-
-        let configBtn = new MetaControl("button");
-        let configRtn = this.langServ.getTranslateInfo(this.languageType, "Config");
-        configBtn.Text = configRtn;
-        configBtn.Left = 50;
-        strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall).addChild(configBtn);
-
-        startall.OnClick = () => {
-            this.controlBtnClick(0);
-        };
-        pauseall.OnClick = () => {
-            this.controlBtnClick(1);
-        };
-        stopall.OnClick = () => {
-            this.controlBtnClick(2);
-        };
-        watchall.OnClick = () => {
-            this.controlBtnClick(3);
-        };
-        configBtn.OnClick = () => {
-            AppComponent.self.configTable.rows.length = 0;
-            let len = this.configArr.length;
-            for (let i = 0; i < len; ++i) {
-                let row = AppComponent.self.configTable.newRow();
-                row.cells[0].Type = "checkbox";
-                row.cells[0].Title = this.configArr[i].name;
-                row.cells[0].Text = this.configArr[i].check;
-            }
-            Dialog.popup(this, this.configContent, { title: this.langServ.getTranslateInfo(this.languageType, "parameter"), height: 450 });
-        };
 
         this.profitPage = new TabPage("Profit", this.langServ.getTranslateInfo(this.languageType, "Profit"));
-        this.pageObj["Profit"] = this.profitPage;
+        this.modules["Profit"] = this.profitPage;
         let profitleftAlign = 20;
-        let profitHeader = new ComboControl("row");
+        let profitHeader = new HBox();
         this.totalpnLabel = new MetaControl("textbox");
         this.totalpnLabel.Left = profitleftAlign;
         this.totalpnLabel.Width = 85;
@@ -1153,7 +1089,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.totalpnlt.Width = 85;
         this.totalpnlt.Title = this.langServ.getTranslateInfo(this.languageType, "TOTALPNL.T") + ": ";
         this.totalpnlt.Disable = true;
-        let reqbtn = new MetaControl("button");
+        let reqbtn = new Button();
         reqbtn.Left = profitleftAlign;
         reqbtn.Width = 30;
         reqbtn.Text = this.langServ.getTranslateInfo(this.languageType, "Req");
@@ -1171,69 +1107,59 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.profitTable.addColumn(item);
         });
         this.profitTable.columnConfigurable = true;
-        let profitContent = new ComboControl("col");
+        let profitContent = new VBox();
         profitContent.addChild(profitHeader);
         profitContent.addChild(this.profitTable);
         this.profitPage.setContent(profitContent);
-        reqbtn.OnClick = () => {
-            AppComponent.bgWorker.send({
-                command: "ss-send", params: {
-                    type: "getProfitInfo", data: ""
-                }
-            });
-        };
+        reqbtn.OnClick = () => { AppComponent.bgWorker.send({ command: "ss-send", params: { type: "getProfitInfo", data: "" } }); };
 
-        this.strategyTable = new DataTable();
-        this.strategyTable.RowIndex = false;
-        let strategyTableInitArr: string[] = ["StrategyID", "Sym1", "Sym2", "Start", "Pause",
-            "Stop", "Watch", "Status", "PosPnl(K)", "TraPnl(K)"];
-        let strategyTableInitTittleLen = strategyTableInitArr.length;
-        let strategytableRtnArr: string[] = [];
-        for (let i = 0; i < strategyTableInitTittleLen; ++i) {
-            strategytableRtnArr.push(this.langServ.getTranslateInfo(this.languageType, strategyTableInitArr[i]));
-        }
-        strategytableRtnArr.forEach(item => {
-            this.strategyTable.addColumn(item);
-        });
-        let strategyContent = new ComboControl("col");
-        strategyContent.addChild(strategyHeader);
-        strategyContent.addChild(this.strategyTable);
-        this.strategyPage.setContent(strategyContent);
-        this.strategyTable.onCellClick = (cellItem, cellIdx, rowIdx) => {
-            // console.log(cellItem, cellIdx, rowIdx);
-            AppComponent.self.strategyOnCellClick(cellItem, cellIdx, rowIdx);
-        };
-
+        this.onStrategyTableInit();
         this.loadLayout();
-        AppComponent.bgWorker.send({
-            command: "ss-start", params: { port: parseInt(this.tradePoint[1]), host: this.tradePoint[0], appid: this.option.appid }
-        });
 
-        this.subScribeMarketInit(this.quotePoint[1], this.quotePoint[0]);
-        // this.init(9082, "172.24.51.4");
-        let getpath = Environment.getDataPath(this.option.name);
-        fs.exists(getpath + "/config.json", function(exists) {
-            if (exists) { // file exist
-                fs.readFile(getpath + "/config.json", (err, data) => {
-                    if (err) throw err;
-                    if (data) {
-                        if (!data) {
-                            AppComponent.self.configFlag = true;
-                            AppComponent.self.configStrObj = JSON.parse(data);
-                        }
-                    }
-                });
-            } else {  // nost exist
-                fs.writeFile(getpath + "/config.json", "", function(err) {
-                    if (err) {
-                        console.log(err);
-                    }
-                });
-            }
-        });
+        AppComponent.bgWorker.send({ command: "ss-start", params: { port: this.option.port, host: this.option.host } });
+        this.subScribeMarketInit(this.option.feedhandler.port, this.option.feedhandler.host);
     }
 
     ngAfterViewInit() {
+    }
+
+    onStrategyTableInit() {
+        this.strategyPage = new TabPage("Strategy", this.langServ.getTranslateInfo(this.languageType, "StrategyMonitor"));
+        let strategyHeader = new HBox();
+        let startall = new Button();
+        startall.Text = this.langServ.getTranslateInfo(this.languageType, "StartAll");
+        let pauseall = new Button();
+        pauseall.Text = this.langServ.getTranslateInfo(this.languageType, "PauseAll");
+        let stopall = new Button();
+        stopall.Text = this.langServ.getTranslateInfo(this.languageType, "StopAll");
+        let watchall = new Button();
+        watchall.Text = this.langServ.getTranslateInfo(this.languageType, "WatchAll");
+        let configBtn = new Button();
+        configBtn.Text = this.langServ.getTranslateInfo(this.languageType, "Config");
+        startall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 3, 0, 0); };
+        pauseall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 4, 0, 1); };
+        stopall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 5, 0, 2); };
+        watchall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 6, 0, 3); };
+        configBtn.OnClick = () => {
+            this.configTable.rows.forEach(row => {
+                row.cells[0].Text = !this.option.config["strategy_table"].columnHideIDs.includes(row.cells[0].Data);
+            });
+            Dialog.popup(this, this.configContent, { title: this.langServ.getTranslateInfo(this.languageType, "parameter"), height: 450 });
+        };
+
+        strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall).addChild(configBtn);
+
+        this.strategyTable = new DataTable();
+        this.strategyTable.RowIndex = false;
+        ["StrategyID", "Sym1", "Sym2", "Start", "Pause", "Stop", "Watch", "Status", "PosPnl(K)", "TraPnl(K)"]
+            .forEach(item => { this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item)); });
+        let strategyContent = new VBox();
+        strategyContent.addChild(strategyHeader);
+        strategyContent.addChild(this.strategyTable);
+        this.strategyPage.setContent(strategyContent);
+        this.strategyTable.onCellClick = (cellItem, cellIdx, rowIdx) => { this.strategyOnCellClick(cellItem, cellIdx, rowIdx); };
+
+        this.modules["Strategy"] = this.strategyPage;
     }
 
     loadLayout() {
@@ -1244,6 +1170,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             this.main.addChild(this.traversefunc(this.main, children[i]));
             this.main.addChild(new Splitter("h", this.main));
         }
+
         this.main.addChild(this.traversefunc(this.main, children[childrenLen - 1]));
     }
 
@@ -1278,43 +1205,6 @@ export class AppComponent implements OnInit, AfterViewInit {
             }
             if (!markFlag)
                 AppComponent.self.addStatusBarMark({ name: mark, connected: data });
-        }
-    }
-
-    handleParameter() {
-        // traverse strategytable and write in config.json
-        for (let i = 0; i < AppComponent.self.strategyTable.columns.length; ++i) {
-            if (AppComponent.self.strategyTable.rows[0].cells[i].Data !== undefined) {
-                let key = AppComponent.self.strategyTable.rows[0].cells[i].Data.key;
-                let type = AppComponent.self.strategyTable.rows[0].cells[i].Data.type;
-                let name = this.langServ.getTranslateInfo(this.languageType, AppComponent.self.strategyTable.rows[0].cells[i].Data.name);
-                AppComponent.self.configStrObj[key] = { type: type, name: name, show: true };
-            }
-        }
-        let rtntemp = JSON.stringify(AppComponent.self.configStrObj);
-        let getpath = Environment.getDataPath(this.option.name) + "/config.json";
-
-        // judge ss green or red
-        fs.writeFile(getpath, rtntemp, function(err) {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
-
-    loadParameter() {
-        for (let i = 0; i < AppComponent.self.strategyTable.columns.length; ++i) {
-            if (AppComponent.self.strategyTable.rows[0].cells[i].Data !== undefined) {
-                let key = AppComponent.self.strategyTable.rows[0].cells[i].Data.key;
-                let name = AppComponent.self.strategyTable.rows[0].cells[i].Data.name;
-                let show = AppComponent.self.getshow(parseInt(key));
-                if (show === false) {
-                    AppComponent.self.checkall.Text = false;
-                }
-                AppComponent.self.strategyTable.columns[i].hidden = !show;
-                // change configArr value
-                AppComponent.self.changeConfigArrVal(name, show);
-            }
         }
     }
 
@@ -1376,32 +1266,9 @@ export class AppComponent implements OnInit, AfterViewInit {
         return false;
     }
 
-    gethanizaionInfo(obj: any, data: any) {
-        for (let o in obj) {
-            if ((o + "") === data)
-                return obj[o];
-        }
-        return null;
-    }
-
-    gethanizationVal(obj: any, type: number) {
-        if (type === 1)
-            return obj.chinese;
-        return "";
-    }
-
     traverseobj(obj: any, data: any) {
         for (let o in obj) {
             if ((o + "") === data) {
-                return obj[o];
-            }
-        }
-        return {};
-    }
-
-    traverseukeyObj(obj: any, data: any) {
-        for (let o in obj) {
-            if (parseInt(o) === parseInt(data)) {
                 return obj[o];
             }
         }
@@ -1419,8 +1286,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         } else if (obj.modules && obj.modules.length > 0) {
             let panel = new TabPanel();
             obj.modules.forEach(page => {
-                if (AppComponent.self.pageObj.hasOwnProperty(page)) {
-                    panel.addTab(AppComponent.self.pageObj[page]);
+                if (AppComponent.self.modules.hasOwnProperty(page)) {
+                    panel.addTab(AppComponent.self.modules[page]);
                     this.statechecker.changeMenuItemState(page, true, 2);
                 } else {
                     if (page.startsWith("BookView")) {
@@ -1433,6 +1300,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         } else {
             console.error("traverse layout error");
         }
+
         return dock;
     }
 
@@ -1545,265 +1413,285 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showGuiCmdAck(data: any) {
-        let strategyid = data[0].strategyid;
-        let ret = data[0].success ? "successfully!" : "unsuccessfully!";
-        if (!data[0].success)
-            AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
-        let row = AppComponent.self.findRowByStrategyId(strategyid);
-        for (let i = AppComponent.self.commandIdx + 1; i < AppComponent.self.parameterIdx; ++i) {
-            if (AppComponent.self.strategyTable.rows[row].cells[i].Data.key === data[0].key) {
-                alert("operator: " + AppComponent.self.strategyTable.rows[row].cells[i].Data.name + " " + ret);
-                if (data[0].success) {  // modify success
-                    AppComponent.self.strategyTable.rows[row].cells[i].Data.value = data[0].value;
+        data.data.forEach(item => {
+            for (let iRow = 0; iRow < this.strategyTable.rows.length; ++iRow) {
+                if (this.strategyTable.rows[iRow].cells[0].Text !== item.strategyid)
+                    continue;
+
+                switch (data.type) {
+                    case 2001: // start ack
+                        if (!item.success)
+                            break;
+
+                        this.strategyTable.rows[iRow].cells[3].Disable = true;
+                        this.strategyTable.rows[iRow].cells[4].Disable = false;
+                        this.strategyTable.rows[iRow].cells[5].Disable = false;
+                        this.strategyTable.rows[iRow].cells[6].Disable = false;
+                        break;
+                    case 2005: // pause ack
+                        if (!item.success)
+                            break;
+
+                        this.strategyTable.rows[iRow].cells[3].Disable = false;
+                        this.strategyTable.rows[iRow].cells[4].Disable = true;
+                        this.strategyTable.rows[iRow].cells[5].Disable = false;
+                        this.strategyTable.rows[iRow].cells[6].Disable = false;
+                        break;
+                    case 2003: // stop ack
+                        if (!item.success)
+                            break;
+
+                        this.strategyTable.rows[iRow].cells[3].Disable = true;
+                        this.strategyTable.rows[iRow].cells[4].Disable = true;
+                        this.strategyTable.rows[iRow].cells[5].Disable = true;
+                        this.strategyTable.rows[iRow].cells[6].Disable = false;
+                        break;
+                    case 2050: // watch ack
+                        if (!item.success)
+                            break;
+
+                        this.strategyTable.rows[iRow].cells[3].Disable = false;
+                        this.strategyTable.rows[iRow].cells[4].Disable = false;
+                        this.strategyTable.rows[iRow].cells[5].Disable = false;
+                        this.strategyTable.rows[iRow].cells[6].Disable = true;
+                        break;
+                    case 2031:
+                        if (!item.success)
+                            break;
+
+                        let command = this.strategyMap[item.strategyid].commands.find(command => { return command.key === item.key; });
+                        alert(`operator: ${command.name} ${item.success === 1 ? "successfully!" : "unsuccessfully!"}`);
+                        break;
                 }
             }
-        }
+        });
     }
 
     showLog(data: any) {
         let logStr = data[0];
         // console.log(logStr);
-        let time = AppComponent.self.getCurrentTime();
+        let time = this.getCurrentTime();
+        let rowLen = this.logTable.rows.length;
+        if (rowLen > 500)
+            this.logTable.rows.splice(0, 1);
+        let row = this.logTable.newRow();
+        row.cells[0].Text = time;
+        row.cells[1].Text = logStr;
+        this.logTable.detectChanges();
+    }
+
+    addLog(data: any) {
+        let name = data.name;
         let rowLen = AppComponent.self.logTable.rows.length;
         if (rowLen > 500)
             AppComponent.self.logTable.rows.splice(0, 1);
         let row = AppComponent.self.logTable.newRow();
-        row.cells[0].Text = time;
-        row.cells[1].Text = logStr;
-        AppComponent.self.logTable.detectChanges();
+        row.cells[0].Text = AppComponent.self.getCurrentTime();
+        row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
+        AppComponent.self.ref.detectChanges();
     }
 
     showStrategyInfo(data: any) {
-        // console.log("alarm info,pass", data);
-        let len = data.length;
-        for (let i = 0; i < len; ++i) {
-            let getStraId = data[i].key;
-            let getStatus = data[i].status;
-            let strategyTableRows: number = AppComponent.self.strategyTable.rows.length;
-            if (getStatus !== AppComponent.self.strategyStatus && strategyTableRows !== 0) { // refresh strategy status
-                for (let j = 0; j < strategyTableRows; ++j) {
-                    if (parseInt(AppComponent.self.strategyTable.rows[j].cells[0].Text) === getStraId) {
-                        AppComponent.self.strategyTable.rows[j].cells[7].Text = AppComponent.self.transFormStrategyStatus(getStatus);
-                        let temp = AppComponent.self.rtnStraCtrlBtnType(getStatus);
-                        AppComponent.self.showStraContrlDisable(temp.type, temp.cellIdx, AppComponent.self.findRowByStrategyId(getStraId));
-                        AppComponent.self.strategyStatus = getStatus;
+        let j;
+        for (let i = 0; i < data.length; ++i) {
+            for (j = 0; j < this.strategyTable.rows.length; ++j) {
+                if (this.strategyTable.rows[j].cells[0].Text === data[i].key) {
+                    switch (data[i].status) {
+                        case EStrategyStatus.STRATEGY_STATUS_INIT:
+                            this.strategyTable.rows[j].cells[7].Text = "INIT";
+                            break;
+                        case EStrategyStatus.STRATEGY_STATUS_CREATE:
+                            this.strategyTable.rows[j].cells[7].Text = "CREATE";
+                            break;
+                        case EStrategyStatus.STRATEGY_STATUS_RUN:
+                            this.strategyTable.rows[j].cells[3].Disable = true;
+                            this.strategyTable.rows[j].cells[4].Disable = false;
+                            this.strategyTable.rows[j].cells[5].Disable = false;
+                            this.strategyTable.rows[j].cells[6].Disable = false;
+                            this.strategyTable.rows[j].cells[7].Text = "RUN";
+                            break;
+                        case EStrategyStatus.STRATEGY_STATUS_PAUSE:
+                            this.strategyTable.rows[j].cells[3].Disable = false;
+                            this.strategyTable.rows[j].cells[4].Disable = true;
+                            this.strategyTable.rows[j].cells[5].Disable = false;
+                            this.strategyTable.rows[j].cells[6].Disable = false;
+                            this.strategyTable.rows[j].cells[7].Text = "PAUSE";
+                            break;
+                        case EStrategyStatus.STRATEGY_STATUS_STOP:
+                            this.strategyTable.rows[j].cells[3].Disable = true;
+                            this.strategyTable.rows[j].cells[4].Disable = true;
+                            this.strategyTable.rows[j].cells[5].Disable = true;
+                            this.strategyTable.rows[j].cells[6].Disable = false;
+                            this.strategyTable.rows[j].cells[7].Text = "STOP";
+                            break;
+                        case EStrategyStatus.STRATEGY_STATUS_WATCH:
+                            this.strategyTable.rows[j].cells[3].Disable = false;
+                            this.strategyTable.rows[j].cells[4].Disable = false;
+                            this.strategyTable.rows[j].cells[5].Disable = false;
+                            this.strategyTable.rows[j].cells[6].Disable = true;
+                            this.strategyTable.rows[j].cells[7].Text = "WATCH";
+                            break;
+                        case EStrategyStatus.STRATEGY_STATUS_ERROR:
+                        default:
+                            this.strategyTable.rows[j].cells[7].Text = "ERROR";
+                            break;
                     }
+
+                    break;
                 }
             }
-            if (strategyTableRows === 0) {
-                AppComponent.self.addStrategyInfo(data[i]);
+
+            if (j === this.strategyTable.rows.length) {
+                this.strategyMap[data[i].key] = { instruments: [], commands: [], parameters: [], comments1: [], comments2: [] };
+                let row = this.strategyTable.newRow();
+                row.cells[0].Text = data[i].key;
+                row.cells[3].Type = "button";
+                row.cells[3].Text = "start";
+                row.cells[3].Class = "primary";
+                row.cells[4].Type = "button";
+                row.cells[4].Text = "pause";
+                row.cells[4].Class = "primary";
+                row.cells[5].Type = "button";
+                row.cells[5].Text = "stop";
+                row.cells[5].Class = "primary";
+                row.cells[6].Type = "button";
+                row.cells[6].Text = "watch";
+                row.cells[6].Class = "primary";
+                switch (data[i].status) {
+                    case EStrategyStatus.STRATEGY_STATUS_INIT:
+                        row.cells[7].Text = "INIT";
+                        break;
+                    case EStrategyStatus.STRATEGY_STATUS_CREATE:
+                        row.cells[7].Text = "CREATE";
+                        break;
+                    case EStrategyStatus.STRATEGY_STATUS_RUN:
+                        row.cells[3].Disable = true;
+                        row.cells[4].Disable = false;
+                        row.cells[5].Disable = false;
+                        row.cells[6].Disable = false;
+                        row.cells[7].Text = "RUN";
+                        break;
+                    case EStrategyStatus.STRATEGY_STATUS_PAUSE:
+                        row.cells[3].Disable = true;
+                        row.cells[4].Disable = false;
+                        row.cells[5].Disable = false;
+                        row.cells[6].Disable = false;
+                        row.cells[7].Text = "PAUSE";
+                        break;
+                    case EStrategyStatus.STRATEGY_STATUS_STOP:
+                        row.cells[3].Disable = true;
+                        row.cells[4].Disable = false;
+                        row.cells[5].Disable = false;
+                        row.cells[6].Disable = false;
+                        row.cells[7].Text = "STOP";
+                        break;
+                    case EStrategyStatus.STRATEGY_STATUS_WATCH:
+                        row.cells[3].Disable = true;
+                        row.cells[4].Disable = false;
+                        row.cells[5].Disable = false;
+                        row.cells[6].Disable = false;
+                        row.cells[7].Text = "WATCH";
+                        break;
+                    case EStrategyStatus.STRATEGY_STATUS_ERROR:
+                    default:
+                        row.cells[7].Text = "ERROR";
+                        break;
+                }
+
+                this.dd_Strategy.addItem({ Text: data[i].key + "", Value: "" });
             }
         }
-    }
 
-    rtnStraCtrlBtnType(status: number): { type: number, cellIdx: number } {
-        if (status === 2)
-            return { type: 0, cellIdx: 3 };
-        else if (status === 3)
-            return { type: 1, cellIdx: 4 };
-        else if (status === 4)
-            return { type: 2, cellIdx: 5 };
-        else if (status === 5)
-            return { type: 3, cellIdx: 6 };
-        else
-            return { type: -1, cellIdx: -1 };
-    }
-
-    findRowByStrategyId(strategyid: number): number {
-        let strategyTableRows: number = AppComponent.self.strategyTable.rows.length;
-        for (let i = 0; i < strategyTableRows; ++i) {
-            let getId = AppComponent.self.strategyTable.rows[i].cells[0].Text;
-            if (strategyid === getId)
-                return i;
-        }
-        return 0;
-    }
-
-    addStrategyInfo(obj: any) {
-        let row = this.strategyTable.newRow();
-        row.cells[0].Text = obj.key;
-        row.cells[3].Type = "button";
-        row.cells[3].Text = "start";
-        row.cells[3].Class = "primary";
-        row.cells[4].Type = "button";
-        row.cells[4].Text = "pause";
-        row.cells[4].Class = "primary";
-        row.cells[5].Type = "button";
-        row.cells[5].Text = "stop";
-        row.cells[5].Class = "primary";
-        row.cells[6].Type = "button";
-        row.cells[6].Text = "watch";
-        row.cells[6].Class = "primary";
-        row.cells[7].Text = AppComponent.self.transFormStrategyStatus(obj.status);
-        AppComponent.self.strategyStatus = obj.status;
-        let btnDisableType: number = 0;
-        if (obj.status === 2)
-            AppComponent.self.showStraContrlDisable(btnDisableType, 3, 0);
-        else if (obj.status === 3)
-            AppComponent.self.showStraContrlDisable(btnDisableType, 4, 0);
-        else if (obj.status === 4)
-            AppComponent.self.showStraContrlDisable(btnDisableType, 5, 0);
-        else if (obj.status === 5)
-            AppComponent.self.showStraContrlDisable(btnDisableType, 6, 0);
-        // in manultrader frame ,set strategy id in
-        let dd_strategy_len = AppComponent.self.dd_Strategy.Items.length;
-        AppComponent.self.dd_Strategy.addItem({ Text: obj.key + "", Value: dd_strategy_len + "" });
-        // ---------------------------
-        AppComponent.self.strategyTable.detectChanges();
-    }
-
-    transFormStrategyStatus(data: any): String {
-        let rtn: String = "";
-        if (data === EStrategyStatus.STRATEGY_STATUS_INIT)
-            return "INIT";
-        else if (data === EStrategyStatus.STRATEGY_STATUS_CREATE)
-            return "CREATE";
-        else if (data === EStrategyStatus.STRATEGY_STATUS_RUN)
-            return "RUN";
-        else if (data === EStrategyStatus.STRATEGY_STATUS_PAUSE)
-            return "PAUSE";
-        else if (data === EStrategyStatus.STRATEGY_STATUS_STOP)
-            return "STOP";
-        else if (data === EStrategyStatus.STRATEGY_STATUS_WATCH)
-            return "WATCH";
-        else if (data === EStrategyStatus.STRATEGY_STATUS_ERROR)
-            return "ERROR";
-        else
-            return "ERROR";
-    }
-
-    showComConOrder(data: any) {
-        console.log("showComConOrder: 2020 ,UNKNOWN ,????", data);
+        this.strategyTable.detectChanges();
     }
 
     showComOrderRecord(data: any) {
-        let hasDone = false;
+        console.info(`showComOrderRecord: len = ${data.length}`);
+        let hasDone = false, hasUnDone = false;
+        let j;
         for (let i = 0; i < data.length; ++i) {
             let orderStatus = data[i].od.status;
             // if (orderStatus === 9 || orderStatus === 8) {
             if (orderStatus === 9) {
-                AppComponent.self.deleteUndoneOrder(data[i].od.orderid);
-                AppComponent.self.handleDoneOrder(data[i]);
+                // remove from orderstatus table
+                for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
+                    if (data[i].od.orderid === this.orderstatusTable.rows[i].cells[3].Text) {
+                        this.orderstatusTable.rows.splice(i, 1);
+                        break;
+                    }
+                }
+
+                for (j = 0; j < this.doneOrdersTable.rows.length; ++j) {
+                    if (data[i].od.orderid === this.doneOrdersTable.rows[j].cells[2].Text) { // refresh
+                        this.doneOrdersTable.rows[j].cells[4].Text = data[i].od.action === 0 ? "Buy" : "Sell";
+                        this.doneOrdersTable.rows[j].cells[5].Text = data[i].od.oprice / 10000;
+                        this.doneOrdersTable.rows[j].cells[6].Text = data[i].od.ivolume;
+                        this.doneOrdersTable.rows[j].cells[7].Text = this.parseOrderStatus(data[i].od.status);
+                        this.doneOrdersTable.rows[j].cells[8].Text = this.formatTime(data[i].od.odatetime.tv_sec);
+                        this.doneOrdersTable.rows[j].cells[9].Text = data[i].od.ovolume;
+                        this.doneOrdersTable.rows[j].cells[10].Text = data[i].donetype === 1 ? "Active" : (data[i].donetype === 2 ? "Passive" : "UNKNOWN");
+                        this.doneOrdersTable.rows[j].cells[12].Text = this.formatTime(data[i].od.idatetime.tv_sec);
+                        this.doneOrdersTable.rows[j].cells[13].Text = data[i].od.iprice / 10000;
+                        break;
+                    }
+                }
+
+                if (j === this.doneOrdersTable.rows.length) {
+                    let row = this.doneOrdersTable.newRow(true);
+                    row.cells[0].Text = data[i].od.innercode;
+                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[i].od.innercode);
+                    row.cells[1].Text = codeInfo.hasOwnProperty(data[i].od.innercode) ? codeInfo[data[i].od.innercode].SecuAbbr : "unknown";
+                    row.cells[14].Text = codeInfo.hasOwnProperty(data[i].od.innercode) ? codeInfo[data[i].od.innercode].SecuCode : "unknown";
+                    row.cells[2].Text = data[i].od.orderid;
+                    row.cells[3].Text = data[i].od.strategyid;
+                    let action: number = data[i].od.action;
+                    if (action === 0)
+                        row.cells[4].Text = "Buy";
+                    else if (action === 1)
+                        row.cells[4].Text = "Sell";
+                    else
+                        row.cells[4].Text = "";
+                    row.cells[5].Text = data[i].od.oprice / 10000;
+                    row.cells[6].Text = data[i].od.ivolume;
+                    row.cells[7].Text = this.parseOrderStatus(data[i].od.status);
+                    row.cells[8].Text = this.formatTime(data[i].od.odatetime.tv_sec);
+                    row.cells[9].Text = data[i].od.ovolume;
+                    let orderPriceType = data[i].donetype;
+                    if (orderPriceType === 1)
+                        row.cells[10].Text = "Active";
+                    else if (orderPriceType === 2)
+                        row.cells[10].Text = "Passive";
+                    else
+                        row.cells[10].Text = "UNKNOWN";
+                    row.cells[11].Text = data[i].con.account;
+                    row.cells[12].Text = this.formatTime(data[i].od.idatetime.tv_sec);
+                    row.cells[13].Text = data[i].od.iprice / 10000;
+                }
+
                 hasDone = true;
             } else {
-                AppComponent.self.handleUndoneOrder(data[i]);
+                for (j = 0; j < this.orderstatusTable.rows.length; ++j) {
+                    if (data[i].od.orderid === this.orderstatusTable.rows[j].cells[3].Text) {  // refresh
+                        this.refreshUndoneOrderInfo(data[i], j);
+                        break;
+                    }
+                }
+
+                if (j === this.orderstatusTable.rows.length) {
+                    this.addUndoneOrderInfo(data[i]);
+                }
+
+                hasUnDone = true;
             }
         }
 
         if (hasDone) {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
+            AppComponent.self.doneOrdersTable.detectChanges();
         }
-    }
 
-    deleteUndoneOrder(data: any) {
-        let rows = this.orderstatusTable.rows.length;
-        for (let i = 0; i < rows; ++i) {
-            let getOrderId = this.orderstatusTable.rows[i].cells[3].Text;
-            if (data === getOrderId) {
-                this.orderstatusTable.rows.splice(i, 1);
-                break;
-            }
-        }
-    }
-
-    handleDoneOrder(data: any) {
-        let doneorderTablRows: number = this.doneOrdersTable.rows.length;
-        let orderId: number = data.od.orderid;
-        if (doneorderTablRows === 0) { // add
-            this.addDoneOrderInfo(data);
-        } else {
-            let checkFlag: boolean = false;
-            for (let j = 0; j < doneorderTablRows; ++j) {
-                let getOrderId = this.doneOrdersTable.rows[j].cells[2].Text;
-                if (orderId === getOrderId) { // refresh
-                    checkFlag = true;
-                    this.refreshDoneOrderInfo(data, j);
-                }
-            }
-            if (!checkFlag) {
-                this.addDoneOrderInfo(data);
-            }
-            checkFlag = false;
-        }
-    }
-
-    addDoneOrderInfo(obj: any) {
-        let row = this.doneOrdersTable.newRow(true);
-        row.cells[0].Text = obj.od.innercode;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
-        row.cells[1].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuAbbr : "unknown";
-        row.cells[14].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
-        row.cells[2].Text = obj.od.orderid;
-        row.cells[3].Text = obj.od.strategyid;
-        let action: number = obj.od.action;
-        if (action === 0)
-            row.cells[4].Text = "Buy";
-        else if (action === 1)
-            row.cells[4].Text = "Sell";
-        else
-            row.cells[4].Text = "";
-        row.cells[5].Text = obj.od.oprice / 10000;
-        row.cells[6].Text = obj.od.ivolume;
-        row.cells[7].Text = this.parseOrderStatus(obj.od.status);
-        row.cells[8].Text = this.formatTime(obj.od.odatetime.tv_sec);
-        row.cells[9].Text = obj.od.ovolume;
-        let orderPriceType = obj.donetype;
-        if (orderPriceType === 1)
-            row.cells[10].Text = "Active";
-        else if (orderPriceType === 2)
-            row.cells[10].Text = "Passive";
-        else
-            row.cells[10].Text = "UNKNOWN";
-        row.cells[11].Text = obj.con.account;
-        row.cells[12].Text = this.formatTime(obj.od.idatetime.tv_sec);
-        row.cells[13].Text = obj.od.iprice / 10000;
-
-        AppComponent.self.doneOrdersTable.detectChanges();
-    }
-
-    refreshDoneOrderInfo(obj: any, idx: number) {
-        let action: number = obj.od.action;
-        if (action === 0)
-            this.doneOrdersTable.rows[idx].cells[4].Text = "Buy";
-        else if (action === 1)
-            this.doneOrdersTable.rows[idx].cells[4].Text = "Sell";
-        else
-            this.doneOrdersTable.rows[idx].cells[4].Text = "";
-        this.doneOrdersTable.rows[idx].cells[5].Text = obj.od.oprice / 10000;
-        this.doneOrdersTable.rows[idx].cells[6].Text = obj.od.ivolume;
-        this.doneOrdersTable.rows[idx].cells[7].Text = this.parseOrderStatus(obj.od.status);
-        this.doneOrdersTable.rows[idx].cells[8].Text = this.formatTime(obj.od.odatetime.tv_sec);
-        this.doneOrdersTable.rows[idx].cells[9].Text = obj.od.ovolume;
-        let orderPriceType = obj.donetype;
-        if (orderPriceType === 1)
-            this.doneOrdersTable.rows[idx].cells[10].Text = "Active";
-        else if (orderPriceType === 2)
-            this.doneOrdersTable.rows[idx].cells[10].Text = "Passive";
-        else
-            this.doneOrdersTable.rows[idx].cells[10].Text = "UNKNOWN";
-        this.doneOrdersTable.rows[idx].cells[12].Text = this.formatTime(obj.od.idatetime.tv_sec);
-        this.doneOrdersTable.rows[idx].cells[13].Text = obj.od.iprice / 10000;
-        AppComponent.self.doneOrdersTable.detectChanges();
-    }
-
-    handleUndoneOrder(data: any) {
-        let orderStatusTableRows: number = this.orderstatusTable.rows.length;
-        let orderId: number = data.od.orderid;
-        if (orderStatusTableRows === 0) { // add
-            this.addUndoneOrderInfo(data);
-        } else {
-            let checkFlag: boolean = false;
-            for (let j = 0; j < orderStatusTableRows; ++j) {
-                let getOrderId = this.orderstatusTable.rows[j].cells[3].Text;
-                if (orderId === getOrderId) {  // refresh
-                    checkFlag = true;
-                    this.refreshUndoneOrderInfo(data, j);
-                }
-            }
-            if (!checkFlag) {
-                this.addUndoneOrderInfo(data);
-            }
-            checkFlag = false;
+        if (hasUnDone) {
+            AppComponent.self.orderstatusTable.detectChanges();
         }
     }
 
@@ -1833,7 +1721,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         row.cells[10].Text = this.parseOrderStatus(obj.od.status);
         row.cells[10].Data = obj.od.status;
         row.cells[11].Text = obj.con.account;
-        AppComponent.self.orderstatusTable.detectChanges();
     }
 
     formatTime(time: any): String {
@@ -1906,7 +1793,6 @@ export class AppComponent implements OnInit, AfterViewInit {
             if (this.orderstatusTable.rows[idx].cells[0].Text)
                 this.orderstatusTable.rows[idx].cells[0].Text = !this.orderstatusTable.rows[idx].cells[0].Text;
         }
-        AppComponent.self.orderstatusTable.detectChanges();
     }
 
     /**
@@ -1915,124 +1801,95 @@ export class AppComponent implements OnInit, AfterViewInit {
     showComRecordPos(data: any) {
         let iRow;
         let secuCategory = 1;
-
         for (let iData = 0; iData < data.length; ++iData) {
             for (iRow = 0; iRow < AppComponent.self.positionTable.rows.length; ++iRow) {
-                if (parseInt(AppComponent.self.positionTable.rows[iRow].cells[2].Text) === data[iData].record.code) { // refresh
-                    secuCategory = parseInt(AppComponent.self.positionTable.rows[iRow].cells[1].Text);
+                if (AppComponent.self.positionTable.rows[iRow].cells[2].Text === data[iData].record.code) { // refresh
+                    secuCategory = AppComponent.self.positionTable.rows[iRow].cells[1].Text;
 
                     if (secuCategory === 1) {
-                        AppComponent.self.refreshEquitPosInfo(data[iData], iRow);
+                        AppComponent.self.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[6].Text = data[iData].record.AvlCreRedempVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
+                        AppComponent.self.positionTable.rows[iRow].cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
                         break;
-                    }
-
-                    if (secuCategory === 2 && parseInt(AppComponent.self.positionTable.rows[iRow].cells[12].Text) === data[iData].record.type) {
-                        AppComponent.self.refreshFuturePosInfo(data[iData], iRow);
+                    } else if (secuCategory === 2 && AppComponent.self.positionTable.rows[iRow].cells[12].Text === data[iData].record.type) {
+                        AppComponent.self.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
+                        AppComponent.self.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
+                        AppComponent.self.positionTable.rows[iRow].cells[9].Text = data[iData].record.TodayOpen;
+                        AppComponent.self.positionTable.rows[iRow].cells[10].Text = data[iData].record.AveragePrice / 10000;
                         break;
                     }
                 }
             }
 
             if (iRow === AppComponent.self.positionTable.rows.length) {
-                data[iData].secucategory === 1 ? AppComponent.self.addEquityPosInfo(data[iData]) : AppComponent.self.addFuturePosInfo(data[iData]);
+                if (data[iData].secucategory === 1) {
+                    let row = AppComponent.self.positionTable.newRow();
+                    row.cells[0].Text = data[iData].record.account;
+                    row.cells[1].Text = data[iData].secucategory;
+                    row.cells[2].Text = data[iData].record.code;
+                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[iData].record.code);
+                    row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
+                    row.cells[4].Text = data[iData].record.TotalVol;
+                    row.cells[5].Text = data[iData].record.AvlVol;
+                    row.cells[6].Text = data[iData].record.AvlCreRedempVol;
+                    row.cells[7].Text = data[iData].record.WorkingVol;
+                    row.cells[8].Text = data[iData].record.TotalCost / 10000;
+                    row.cells[9].Text = 0;
+                    row.cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
+                    row.cells[11].Text = data[iData].strategyid;
+                    row.cells[12].Text = data[iData].record.type;
+                } else {
+                    let row = AppComponent.self.positionTable.newRow();
+                    row.cells[0].Text = data[iData].record.account;
+                    row.cells[1].Text = data[iData].secucategory;
+                    row.cells[2].Text = data[iData].record.code;
+                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[iData].record.code);
+                    row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
+                    row.cells[4].Text = data[iData].record.TotalVol;
+                    row.cells[5].Text = data[iData].record.AvlVol;
+                    row.cells[6].Text = 0;
+                    row.cells[7].Text = data[iData].record.WorkingVol;
+                    row.cells[8].Text = data[iData].record.TotalCost / 10000;
+                    row.cells[9].Text = data[iData].record.TodayOpen;
+                    row.cells[10].Text = data[iData].record.AveragePrice / 10000;
+                    row.cells[11].Text = data[iData].strategyid;
+                    row.cells[12].Text = data[iData].record.type;
+                }
             }
         }
 
         iRow = null;
         secuCategory = null;
-    }
-
-    addEquityPosInfo(obj: any) {
-        console.info(obj);
-        let row = AppComponent.self.positionTable.newRow();
-        row.cells[0].Text = obj.record.account;
-        row.cells[1].Text = obj.secucategory;
-        row.cells[2].Text = obj.record.code;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "unknown";
-        row.cells[4].Text = obj.record.TotalVol;
-        row.cells[5].Text = obj.record.AvlVol;
-        row.cells[6].Text = obj.record.AvlCreRedempVol;
-        row.cells[7].Text = obj.record.WorkingVol;
-        row.cells[8].Text = obj.record.TotalCost / 10000;
-        row.cells[9].Text = obj.record.TotalVol - obj.record.AvlVol;
-        row.cells[10].Text = obj.record.TotalVol !== 0 ? (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4) : 0;
-        row.cells[11].Text = obj.strategyid;
-        row.cells[12].Text = obj.record.type;
-        AppComponent.self.positionTable.detectChanges();
-    }
-
-    addFuturePosInfo(obj: any) {
-        console.info(obj);
-        let row = AppComponent.self.positionTable.newRow();
-        row.cells[0].Text = obj.record.account;
-        row.cells[1].Text = obj.secucategory;
-        row.cells[2].Text = obj.record.code;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.record.code);
-        row.cells[3].Text = codeInfo.hasOwnProperty(obj.record.code) ? codeInfo[obj.record.code].SecuCode : "unknown";
-        row.cells[4].Text = obj.record.TotalVol;
-        row.cells[5].Text = obj.record.AvlVol;
-        row.cells[6].Text = 0;
-        row.cells[7].Text = obj.record.WorkingVol;
-        row.cells[8].Text = obj.record.TotalCost / 10000;
-        row.cells[9].Text = obj.record.TodayOpen;
-        row.cells[10].Text = obj.record.AveragePrice / 10000;
-        row.cells[11].Text = obj.strategyid;
-        row.cells[12].Text = obj.record.type;
-        AppComponent.self.positionTable.detectChanges();
-    }
-
-    refreshEquitPosInfo(obj: any, idx: number) {
-        AppComponent.self.positionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
-        AppComponent.self.positionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
-        AppComponent.self.positionTable.rows[idx].cells[6].Text = obj.record.AvlCreRedempVol;
-        AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
-        AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
-        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.TotalVol !== 0 ? (obj.record.TotalCost / obj.record.TotalVol / 10000).toFixed(4) : 0;
-        AppComponent.self.positionTable.detectChanges();
-    }
-
-    refreshFuturePosInfo(obj: any, idx: number) {
-        AppComponent.self.positionTable.rows[idx].cells[4].Text = obj.record.TotalVol;
-        AppComponent.self.positionTable.rows[idx].cells[5].Text = obj.record.AvlVol;
-        AppComponent.self.positionTable.rows[idx].cells[7].Text = obj.record.WorkingVol;
-        AppComponent.self.positionTable.rows[idx].cells[8].Text = obj.record.TotalCost / 10000;
-        AppComponent.self.positionTable.rows[idx].cells[9].Text = obj.record.TodayOpen;
-        AppComponent.self.positionTable.rows[idx].cells[10].Text = obj.record.AveragePrice / 10000;
         AppComponent.self.positionTable.detectChanges();
     }
 
     showComGWNetGuiInfo(data: any) {
-        let markLen = AppComponent.self.statusbar.items.length;
+        let markLen = this.statusbar.items.length;
         let name = data[0].name;
         let connect = data[0].connected;
-        let rtn = AppComponent.self.judgexist(name, AppComponent.self.gatewayObj);
-        AppComponent.self.gatewayObj[name] = connect ? "Connected" : "Disconnected";
+        let rtn = this.gatewayObj.hasOwnProperty(name);
+        this.gatewayObj[name] = connect ? "Connected" : "Disconnected";
         if (markLen === 0) { // add
-            AppComponent.self.addLog(data[0]);
+            this.addLog(data[0]);
         } else {
             let markFlag: Boolean = false;
             for (let i = 0; i < markLen; ++i) {
-                let text = AppComponent.self.statusbar.items[i].text;
+                let text = this.statusbar.items[i].text;
                 if (text === data[0].name) {
-                    AppComponent.self.statusbar.items[i].color = data[0].connected ? "green" : "red";
-                    AppComponent.self.addLog(data[0]);
+                    this.statusbar.items[i].color = data[0].connected ? "green" : "red";
+                    this.addLog(data[0]);
                     markFlag = true;
                 }
             }
             if (!markFlag) {
-                AppComponent.self.addLog(data[0]);
+                this.addLog(data[0]);
             }
         }
-    }
-
-    judgexist(key: string, obj: any) {
-        for (let o in obj) {
-            if (o === key) {
-                return true;
-            }
-        }
-        return false;
     }
 
     addStatusBarMark(data: any) {
@@ -2056,23 +1913,24 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.self.statusbar.items.push(tempmark);
     }
 
-    addLog(data: any) {
-        let name = data.name;
-        let rowLen = AppComponent.self.logTable.rows.length;
-        if (rowLen > 500)
-            AppComponent.self.logTable.rows.splice(0, 1);
-        let row = AppComponent.self.logTable.newRow();
-        row.cells[0].Text = AppComponent.self.getCurrentTime();
-        row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
-        AppComponent.self.ref.detectChanges();
-    }
-
     showComTotalProfitInfo(data: any) {
         let subtype = data[0].subtype;
-        let arr = data[0].content;
+        let arr: any[] = data[0].content;
         if (subtype === 1) { // profitcmd & alarmitem
+            arr.forEach(item => {
+                for (let i = 0; i < this.strategyTable.rows.length; ++i) {
+                    if (this.strategyTable.rows[i].cells[0].Text !== item.strategyid)
+                        continue;
 
-        } else { // set pnl
+                    this.strategyTable.rows[i].cells[8].Text = (item.totalpositionpnl / 10000 / 1000).toFixed(2);
+                    this.strategyTable.rows[i].cells[8].bgColor = item.totalpositionpnl > 0 ? null : "#F62626";
+                    this.strategyTable.rows[i].cells[9].Text = (item.totaltradingpnl / 10000 / 1000).toFixed(2);
+                    break;
+                }
+            });
+
+            this.strategyTable.detectChanges();
+        } else if (subtype === 0) { // set pnl
             for (let i = 0; i < arr.length; ++i) {
                 AppComponent.self.totalpnLabel.Text = arr[i].totalpnl / 10000;
                 AppComponent.self.pospnlLabel.Text = arr[i].totalpositionpnl / 10000;
@@ -2080,25 +1938,15 @@ export class AppComponent implements OnInit, AfterViewInit {
                 AppComponent.self.pospnlt.Text = arr[i].totaltodaypositionpnl / 10000;
                 AppComponent.self.totalpnlt.Text = arr[i].totaltodaypositionpnl / 10000 + arr[i].totaltradingpnl / 10000;
             }
-        }
 
-        AppComponent.self.ref.detectChanges();
+            this.ref.detectChanges();
+        }
     }
 
     showComProfitInfo(data: any) {
         for (let i = 0; i < data.length; ++i) {
             let profitTableRows: number = AppComponent.self.profitTable.rows.length;
             let profitUkey: number = data[i].innercode;
-            let strategyid = data[i].strategyid;
-            let row = AppComponent.self.findRowByStrategyId(strategyid);
-            let totalpnl = Math.fround(data[i].totalpositionpnl / 10000 / 1000).toFixed(0) + "";
-            let tradingpnl = Math.fround(data[i].totaltradingpnl / 10000 / 1000).toFixed(0) + "";
-            AppComponent.self.strategyTable.rows[row].cells[8].Text = totalpnl;
-            if (parseInt(totalpnl) > 0)
-                AppComponent.self.strategyTable.rows[row].cells[8].Class = "default";
-            else
-                AppComponent.self.strategyTable.rows[row].cells[8].Class = "danger";
-            AppComponent.self.strategyTable.rows[row].cells[9].Text = tradingpnl;
 
             if (profitTableRows === 0) {  // add
                 AppComponent.self.addProfitInfo(data[i]);
@@ -2304,285 +2152,196 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     showStrategyCfg(data: any) {
-        if (AppComponent.self.strategyTable.rows.length === 0)   // table without strategy item
+        if (this.strategyTable.rows.length === 0)   // table without strategy item
             return;
-        let addSubCOmFlag: boolean = false;
-        for (let i = 0; i < data.length; ++i) {
-            let level = data[i].level;
-            let type = data[i].type;
-            let strategyId = data[i].strategyid;
-            let name = data[i].name;
-            // check submit and comment
-            for (let i = 0; i < AppComponent.self.strategyTable.rows.length; ++i) {   // find row in strategy table
-                let getId = AppComponent.self.strategyTable.rows[i].cells[0].Text;
-                let findFlag: boolean = true;
-                for (let j = 0; j < AppComponent.self.strategyTable.rows[i].cells.length; ++j) {
-                    let checkText = AppComponent.self.strategyTable.rows[i].cells[j].Text;
-                    if (checkText === "submit") {
-                        findFlag = false;
+
+        let needInsert = false;
+        const kInitColumns = 10;
+        let strategyid;
+        let strategyKeyMap;
+        for (let iRow = 0; iRow < this.strategyTable.rows.length; ++iRow) {   // find row in strategy table
+            strategyid = this.strategyTable.rows[iRow].cells[0].Text;
+            strategyKeyMap = this.strategyMap[strategyid];
+
+            for (let iData = 0; iData < data.length; ++iData) {
+                if (data[iData].strategyid !== strategyid)
+                    continue;
+
+                switch (data[iData].type) {
+                    case StrategyCfgType.STRATEGY_CFG_TYPE_INSTRUMENT:
+                        let idxInstrument = strategyKeyMap.instruments.indexOf(data[iData].key);
+                        let secuinfo = this.secuinfo.getSecuinfoByUKey(data[iData].value);
+                        let symbolCode = secuinfo.hasOwnProperty(data[iData].value) ? secuinfo[data[iData].value].SecuCode : "";
+
+                        if (idxInstrument < 0) { // add
+                            this.strategyTable.rows[iRow].cells[strategyKeyMap.instruments.length + 1].Text = `${symbolCode}(${data[iData].value})`;
+                            strategyKeyMap.instruments.push(data[iData].key);
+                        } else { // update
+                            this.strategyTable.rows[iRow].cells[idxInstrument + 1].Text = `${symbolCode}(${data[iData].value})`;
+                        }
+
+                        symbolCode = null;
+                        secuinfo = null;
+                        idxInstrument = null;
                         break;
-                    }
-                }
-                if (getId === strategyId && findFlag) {
-                    AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, "Submit"), AppComponent.self.commandIdx);
-                    AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Type = "button";
-                    AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Text = "submit";
-                    AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.commandIdx].Class = "primary";
-                    AppComponent.self.strategyTable.insertColumn(this.langServ.getTranslateInfo(this.languageType, "Comment"), AppComponent.self.parameterIdx);
-                    AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Type = "button";
-                    AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Text = "comment";
-                    AppComponent.self.strategyTable.rows[i].cells[AppComponent.self.parameterIdx].Class = "primary";
-                    addSubCOmFlag = true;
-                    break;
-                }
-            }
-            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_INSTRUMENT) {  // sym1 sym2   in source code,this need a array,calculate the sum of value
-                let datalen = data[i].length;
-                let getValue = data[i].value;
-                let getRow = AppComponent.self.findRowByStrategyId(strategyId);
-                AppComponent.self.strategyTable.rows[getRow].cells[1].Text = getValue;
-            }
-            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {  // show
-                let paraObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commandIdx, AppComponent.self.parameterIdx);
-                if (paraObj.col === -1) { // add
-                    AppComponent.self.addStrategyTableCol({ row: paraObj.row, col: AppComponent.self.parameterIdx }, data[i], type);
-                    AppComponent.self.parameterIdx++;
-                }
-                else { // refresh
-                    AppComponent.self.refreshStrategyInfo(paraObj, data[i], type);
-                }
-            }
-            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level > 0) {  // show
-                let commentObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, 10, AppComponent.self.commentIdx);
-                if (commentObj.col === -1) { // add
-                    AppComponent.self.addStrategyTableCol({ row: commentObj.row, col: AppComponent.self.commentIdx }, data[i], type);
-                    AppComponent.self.commentIdx++;
-                    AppComponent.self.commandIdx++;
-                    AppComponent.self.parameterIdx++;
-                }
-                else { // refresh
-                    AppComponent.self.refreshStrategyInfo(commentObj, data[i], type);
-                }
-            }
-
-            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT && level === 0) {  // this msg insert into comment dialog
-                // console.log("COMMENT level == 0:", data[i]);
-                AppComponent.self.handleCommentObj(data[i]);
-            }
-            if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) { // show
-                let commandObj: { row: number, col: number } = AppComponent.self.checkTableIndex(strategyId, name, type, AppComponent.self.commentIdx, AppComponent.self.commandIdx);
-                if (commandObj.col === -1) {  // add
-                    AppComponent.self.addStrategyTableCol({ row: commandObj.row, col: AppComponent.self.commandIdx }, data[i], type);
-                    AppComponent.self.commandIdx++;
-                    AppComponent.self.parameterIdx++;
-                } else {  // refresh
-                    AppComponent.self.refreshStrategyInfo(commandObj, data[i], type);
-                }
-            }
-        }
-        if (!AppComponent.self.configFlag && !AppComponent.self.judgeObject(AppComponent.self.configStrObj)) {
-            // first time ,load the default parameter and show it
-            AppComponent.self.handleParameter();
-            AppComponent.self.configFlag = true;
-        } else if (AppComponent.self.judgeObject(AppComponent.self.configStrObj)) {
-            AppComponent.self.loadParameter();
-            AppComponent.self.configFlag = true;
-        }
-        AppComponent.self.strategyTable.detectChanges();
-    }
-
-    checkTableIndex(strategyid: number, name: string, type: number, preIdx: number, rearIdx: number): { row: number, col: number } {
-        let initLen: number = 10; // init talble column lengths
-        let checkcolFlag: boolean = false;
-        let rowFlagIdx: number = -1;
-
-        for (let i = 0; i < this.strategyTable.rows.length; ++i) {   // find row in strategy table
-            let getId = this.strategyTable.rows[i].cells[0].Text;
-            if (getId === strategyid) {
-                rowFlagIdx = i;
-                break;
-            }
-        }
-        // special judge
-        if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT)
-            if ((rearIdx - preIdx) === 0)
-                return { row: rowFlagIdx, col: -1 };
-        if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND)
-            if ((rearIdx - preIdx) === 0)
-                return { row: rowFlagIdx, col: -1 };
-        if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER)
-            if ((rearIdx - preIdx) === 1)
-                return { row: rowFlagIdx, col: -1 };
-
-        for (let j = preIdx; j <= rearIdx; ++j) {
-            // console.log("0.0.0.0.0.0.;", rowFlagIdx, j, startIdx, endIdx, AppComponent.self.strategyTable.columns.length);
-            let transfername = this.langServ.getTranslateInfo(this.languageType, name);
-            let getName = AppComponent.self.strategyTable.columns[j].Name;
-            if (transfername === getName) {
-                checkcolFlag = true;
-                return { row: rowFlagIdx, col: j };
-            }
-        }
-        if ((rowFlagIdx === -1) || !checkcolFlag)
-            return { row: rowFlagIdx, col: -1 };
-    }
-
-    addStrategyTableCol(paraObj: any, data: any, type: number) {
-        // console.log("addStrategyTableCol", paraObj, data, type);
-        let colIdx = paraObj.col;
-        let rowIdx = paraObj.row;
-        let title = this.langServ.getTranslateInfo(this.languageType, data.name);
-        let decimal = data.decimal;
-        let dataKey = data.key;
-        let strategyId = data.strategyid;
-        let value = data.value;
-        let level = data.level;
-        if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
-            this.configArr.push({ name: title, check: true });
-            AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "default";
-        } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
-            this.configArr.push({ name: title, check: true });
-            AppComponent.self.strategyTable.insertColumn(title, colIdx);  // add col
-            // add button
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "button";
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "primary";
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = title;
-            if (value === 0)
-                AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
-        } else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
-            this.configArr.push({ name: title, check: true });
-            AppComponent.self.strategyTable.insertColumn(title, colIdx);
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Type = "textbox";
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Class = "success";
-        } else {
-        }
-        AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type, decimal: decimal };
-    }
-
-    refreshStrategyInfo(paraObj: any, data: any, type: number) {
-        let colIdx = paraObj.col;
-        let rowIdx = paraObj.row;
-        let value = data.value;
-        let decimal = data.decimal;
-        let title = data.name;
-        let dataKey = data.key;
-        let strategyId = data.strategyid;
-        let level = data.level;
-        if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT) {
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
-        }
-        else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND) {
-            if (value === 0)
-                AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
-            else
-                AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = false;
-        }
-        else if (type === StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER) {
-            AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Text = parseFloat(data.value) / Math.pow(10, decimal);
-            if (value === 0)
-                AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = true;
-            else
-                AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Disable = false;
-        }
-        else {
-
-        }
-        AppComponent.self.strategyTable.rows[rowIdx].cells[colIdx].Data = { key: dataKey, value: value, level: level, strategyid: strategyId, name: title, type: type, decimal: decimal };
-    }
-
-    controlBtnClick(idx: number) {
-        let len = AppComponent.self.strategyTable.rows.length;
-        for (let i = 0; i < len; ++i) {
-            let strategyid = AppComponent.self.strategyTable.rows[i].cells[0].Text;
-            if (idx === 0) {
-                AppComponent.self.operateSteategy(strategyid, 3, i, 0);
-            } else if (idx === 1) {
-                AppComponent.self.operateSteategy(strategyid, 4, i, 1);
-            } else if (idx === 2) {
-                AppComponent.self.operateSteategy(strategyid, 5, i, 2);
-            } else if (idx === 3) {
-                AppComponent.self.operateSteategy(strategyid, 6, i, 3);
-            }
-        }
-    }
-
-    strategyOnCellClick(data: any, cellIdx: number, rowIdx: number) {
-        if (data.dataSource.text === "submit") {  // submit
-            let sendArray = [];
-            let dvalue = 0;
-            let alertFlag: Boolean = false;
-            for (let i = AppComponent.self.commandIdx + 1; i < AppComponent.self.parameterIdx; ++i) {
-                let bindData = AppComponent.self.strategyTable.rows[rowIdx].cells[i].Data;
-                let decimal = bindData.decimal;
-                let base = Math.pow(10, decimal);
-                let originValue = bindData.value;
-                dvalue = parseFloat(AppComponent.self.strategyTable.rows[rowIdx].cells[i].Text);
-                if (dvalue > 0) {
-                    dvalue = parseInt((dvalue * base + 5 / (10 * base)) + "");
-                } else if (dvalue < 0) {
-                    dvalue = parseInt((dvalue * base - 5 / (10 * base)) + "");
-                }
-                if (dvalue !== parseInt(originValue)) {
-                    alertFlag = true;
-                    sendArray.push({ idx: i, strategyid: bindData.strategyid, key: bindData.key, value: dvalue, type: 2 });
-                }
-            }
-            if (alertFlag)
-                AppComponent.bgWorker.send({
-                    command: "ss-send", params: {
-                        type: "strategy-param", data: sendArray
-                    }
-                });
-            else
-                alert("no changes!");
-        } else if (data.dataSource.text === "comment") {
-            AppComponent.self.commentTable.rows.length = 0;
-            let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
-            for (let o in this.commentObj) {
-                if (parseInt(o) === strategyId) {
-                    for (let obj in this.commentObj[o]) {
-                        let row = AppComponent.self.commentTable.newRow();
-                        let nameRtn = this.langServ.getTranslateInfo(this.languageType, this.commentObj[o][obj].name);
-                        row.cells[0].Text = nameRtn;
-                        row.cells[1].Text = this.commentObj[o][obj].value;
-                    }
-                }
-            }
-            let commentRtn = this.langServ.getTranslateInfo(this.languageType, "Comment");
-            Dialog.popup(this, this.commentContent, { title: commentRtn, height: 450 });
-        } else {
-            let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
-            if (data.dataSource.text === "start") {
-                AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 0);
-            } else if (data.dataSource.text === "pause") {
-                AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 1);
-            } else if (data.dataSource.text === "stop") {
-                AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 2);
-            } else if (data.dataSource.text === "watch") {
-                AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 3);
-            } else {
-                if (data.Data === undefined)
-                    return;
-                let clickType = data.Data.type;
-                let clickname = data.Data.name;
-                let clicklevel = data.Data.level;
-                if (clickType === 3) {   // command btn
-                    let ret: Boolean = true;
-                    if (clicklevel > 9) {
-                        // messagebox  and return ret;
-                        ret = confirm("extute " + clickname + " ?");
-                    }
-                    if (ret) {
-                        AppComponent.bgWorker.send({
-                            command: "ss-send", params: {
-                                type: "strategy-param", data: [data.Data]
+                    case StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER:
+                        let paramIdx = strategyKeyMap.parameters.findIndex(item => { return data[iData].key === item.key; });
+                        if (paramIdx < 0) { // add
+                            strategyKeyMap.parameters.push(data[iData]);
+                            needInsert = true;
+                        } else { // update
+                            let iCol = kInitColumns + strategyKeyMap.comments1.length + strategyKeyMap.commands.length + paramIdx;
+                            this.strategyTable.rows[iRow].cells[iCol].Type = "textbox";
+                            this.strategyTable.rows[iRow].cells[iCol].Text = (data[iData].value / Math.pow(10, data[iData].decimal)).toFixed(data[iData].decimal);
+                            this.strategyTable.rows[iRow].cells[iCol].Data = data[iData];
+                            this.strategyTable.rows[iRow].cells[iCol].Class = data[iData].level === 10 ? "warning" : "default";
+                        }
+                        break;
+                    case StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT:
+                        let commentIdx = strategyKeyMap.comments1.findIndex(item => { return data[iData].key === item.key && data[iData].level > 0; });
+                        if (commentIdx < 0) { // add
+                            if (data[iData].level > 0) {
+                                strategyKeyMap.comments1.push(data[iData]);
+                                needInsert = true;
+                            } else {
+                                strategyKeyMap.comments2.push(data[iData]);
                             }
-                        });
-                    }
+                        } else { // update
+                            let iCol = kInitColumns + commentIdx;
+                            this.strategyTable.rows[iRow].cells[iCol].Text = (data[iData].value / Math.pow(10, data[iData].decimal)).toFixed(data[iData].decimal);
+                            this.strategyTable.rows[iRow].cells[iCol].Class = data[iData].level === 10 ? "warning" : "default";
+                        }
+                        break;
+                    case StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND:
+                        let commandIdx = strategyKeyMap.commands.findIndex(item => { return data[iData].key === item.key; });
+                        if (commandIdx < 0) { // add
+                            strategyKeyMap.commands.push(data[iData]);
+                            needInsert = true;
+                        } else { // update
+                            let iCol = kInitColumns + strategyKeyMap.comments1.length + commandIdx;
+                            this.strategyTable.rows[iRow].cells[iCol].Text = data[iData].name;
+                            this.strategyTable.rows[iRow].cells[iCol].Data = data[iData];
+                            this.strategyTable.rows[iRow].cells[iCol].Type = "button";
+                            this.strategyTable.rows[iRow].cells[iCol].Class = "primary";
+                            this.strategyTable.rows[iRow].cells[iCol].Disable = data[iData].value === 0;
+                        }
+                        break;
                 }
+            }
+
+            if (needInsert) {
+                let row: DataTableRow;
+                let offset = kInitColumns;
+                if (this.option.config["strategy_table"] === undefined)
+                    this.option.config["strategy_table"] = { columnHideIDs: [] };
+
+                strategyKeyMap.comments1.forEach((item, idx) => {
+                    this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item.name));
+                    this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
+                    this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "warning" : "default";
+                    this.strategyTable.columns[offset + idx].key = item.key;
+                    this.strategyTable.columns[offset + idx].hidden = this.option.config["strategy_table"].columnHideIDs.includes(item.key);
+                    // append to config Table
+                    row = this.configTable.newRow();
+                    row.cells[0].Type = "checkbox";
+                    row.cells[0].Title = item.name;
+                    row.cells[0].Data = item.key;
+                });
+
+                offset += strategyKeyMap.comments1.length;
+                if (strategyKeyMap.parameters.length > 0) {
+                    strategyKeyMap.commands.push({ name: "submit", key: 999999999, value: 1 });
+                }
+
+                strategyKeyMap.commands.forEach((item, idx) => {
+                    this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item.name));
+                    this.strategyTable.rows[iRow].cells[offset + idx].Text = item.name;
+                    this.strategyTable.rows[iRow].cells[offset + idx].Data = item;
+                    this.strategyTable.rows[iRow].cells[offset + idx].Type = "button";
+                    this.strategyTable.rows[iRow].cells[offset + idx].Class = "primary";
+                    this.strategyTable.rows[iRow].cells[offset + idx].Disable = item.value === 0;
+                });
+
+                offset += strategyKeyMap.commands.length;
+                strategyKeyMap.parameters.forEach((item, idx) => {
+                    this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item.name));
+                    this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
+                    this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
+                    this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "warning" : "default";
+                    this.strategyTable.columns[offset + idx].key = item.key;
+                    this.strategyTable.columns[offset + idx].hidden = this.option.config["strategy_table"].columnHideIDs.includes(item.key);
+                    // append to config Table
+                    row = this.configTable.newRow();
+                    row.cells[0].Type = "checkbox";
+                    row.cells[0].Title = item.name;
+                    row.cells[0].Data = item.key;
+                });
+
+                offset += strategyKeyMap.parameters.length;
+                if (strategyKeyMap.comments2.length > 0) {
+                    this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "comment"));
+                    this.strategyTable.rows[iRow].cells[offset].Text = "comment";
+                    this.strategyTable.rows[iRow].cells[offset].Type = "button";
+                    this.strategyTable.rows[iRow].cells[offset].Class = "primary";
+                }
+            }
+
+            strategyKeyMap = null;
+        }
+
+        this.strategyTable.detectChanges();
+    }
+
+    strategyOnCellClick(cell: any, cellIdx: number, rowIdx: number) {
+        if (cell.Text === "submit") {  // submit
+            let strategyKeyMap = this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text];
+            let paramIdx = 10 + strategyKeyMap.comments1.length + strategyKeyMap.commands.length;
+            let dvalue = 0;
+            let cell;
+
+            strategyKeyMap.parameters.forEach((item, idx) => {
+                cell = this.strategyTable.rows[rowIdx].cells[idx + paramIdx];
+                dvalue = Math.round(cell.Text * Math.pow(10, item.decimal));
+                if (item.value !== dvalue) {
+                    item.value = dvalue;
+                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "submitPara", data: [item] } });
+                }
+            });
+
+            return;
+        }
+
+        if (cell.Text === "comment") {
+            this.commentTable.rows.length = 0;
+
+            this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text].comments2.forEach(item => {
+                let row = this.commentTable.newRow();
+                row.cells[0].Text = this.langServ.getTranslateInfo(this.languageType, item.name);
+                row.cells[1].Text = item.value;
+            });
+
+            Dialog.popup(this, this.commentContent, { title: this.langServ.getTranslateInfo(this.languageType, "Comment"), height: 450 });
+            return;
+        }
+
+        let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
+        if (cell.dataSource.text === "start") {
+            AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 0);
+        } else if (cell.dataSource.text === "pause") {
+            AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 1);
+        } else if (cell.dataSource.text === "stop") {
+            AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 2);
+        } else if (cell.dataSource.text === "watch") {
+            AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 3);
+        } else {
+            if (cell.Data === undefined || cell.Data.type !== StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND)
+                return;
+
+            if (cell.Data.level > 9) {
+                if (confirm("extute " + cell.Data.name + " ?"))
+                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "submitPara", data: [cell.Data] } });
+            } else {
+                AppComponent.bgWorker.send({ command: "ss-send", params: { type: "submitPara", data: [cell.Data] } });
             }
 
         }
@@ -2590,13 +2349,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     operateSteategy(strategyid: number, cellidx: number, rowIdx: number, tip: number) {
         AppComponent.self.showStraContrlDisable(tip, cellidx, rowIdx);
-        AppComponent.bgWorker.send({
-            command: "ss-send", params: {
-                type: "strategy-cmd", data: {
-                    tip: tip, strategyid: strategyid
-                }
-            }
-        });
+        AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategyControl", data: { tip: tip, strategyid: strategyid } } });
     }
 
     showStraContrlDisable(Ctrltype: number, cellIdx: number, rowIdx: number) {
@@ -2622,32 +2375,30 @@ export class AppComponent implements OnInit, AfterViewInit {
             AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 2].Disable = false;
             AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 1].Disable = false;
         }
-        AppComponent.self.strategyTable.detectChanges();
     }
 
     showBasketBackInfo(data: any) {
-        if (data[0].account !== parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text))
+        let account = data[0].account;
+        if (account !== parseInt(this.portfolio_acc.SelectedItem.Text))
             return;
+        let count = data[0].count;
+        this.portfolioCount.Text = count;
+        let tableData = data[0].data;
+        let dataLen = data[0].data.length;
 
-        let posArr = data[0].data;
-        AppComponent.self.portfolioCount.Text = posArr.length;
-        if (posArr.length === 0)
-            return;
+        for (let i = 0; i < dataLen; ++i) {
+            let j;
 
-        let len = AppComponent.self.portfolioTable.rows.length;
-        for (let i = 0; i < posArr.length; ++i) {
-            let ukey = posArr[i].UKey;
-            let j = 0;
-
-            for (; j < len; ++j) {
-                if (AppComponent.self.portfolioTable.rows[j].cells[0].Data === posArr[i].UKey) {
-                    AppComponent.self.refreshPortfolioTable(j, posArr[i]);
+            for (j = 0; j < this.portfolioTable.rows.length; ++j) {
+                if (this.portfolioTable.rows[j].cells[0].Data.ukey === tableData[i].UKey) {
+                    this.refreshPortfolioTable(j, tableData[i]);
                     break;
                 }
             }
 
-            if (j === len)
-                AppComponent.self.addPortfolioTableInfo(posArr[i], posArr.length, i);
+            if (j === this.portfolioTable.rows.length) {
+                this.addPortfolioTableInfo(tableData[i], dataLen, i);
+            }
         }
 
         AppComponent.self.portfolioTable.detectChanges();
@@ -2721,79 +2472,75 @@ export class AppComponent implements OnInit, AfterViewInit {
             row.cells[24].Text = tableData.ONPnLCon / 10000;
         }
 
-        AppComponent.self.showPortfolioTableCount();
+        this.portfolioCount.Text = this.portfolioTable.rows.length;
     }
 
     refreshPortfolioTable(idx: number, tableData: any) {
-        AppComponent.self.portfolioTable.rows[idx].cells[2].Text = tableData.InitPos;
-        AppComponent.self.portfolioTable.rows[idx].cells[3].Text = tableData.TgtPos;
-        AppComponent.self.portfolioTable.rows[idx].cells[4].Text = tableData.CurrPos;
-        AppComponent.self.portfolioTable.rows[idx].cells[5].Text = tableData.Diff;
-        AppComponent.self.portfolioTable.rows[idx].cells[6].Text = tableData.Traded;
-        AppComponent.self.portfolioTable.rows[idx].cells[7].Text = tableData.Percentage / 100 + "%";
-        AppComponent.self.portfolioTable.rows[idx].cells[8].Text = tableData.WorkingVol;
+        let ukey = tableData.UKey;
+        this.portfolioTable.rows[idx].cells[2].Text = tableData.InitPos;
+        this.portfolioTable.rows[idx].cells[3].Text = tableData.TgtPos;
+        this.portfolioTable.rows[idx].cells[4].Text = tableData.CurrPos;
+        this.portfolioTable.rows[idx].cells[5].Text = tableData.Diff;
+        this.portfolioTable.rows[idx].cells[6].Text = tableData.Traded;
+        this.portfolioTable.rows[idx].cells[7].Text = tableData.Percentage / 100 + "%";
+        this.portfolioTable.rows[idx].cells[8].Text = tableData.WorkingVol;
         let flag = tableData.Flag;
         // 0 check value ,10,11 disable,12 value, row backcolor
         if (flag === 1) {
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = true;
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Text = true;
-            AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = true;
-            AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = true;
-            AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "Suspended";
-            AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#424242";
+            this.portfolioTable.rows[idx].cells[0].Disable = true;
+            this.portfolioTable.rows[idx].cells[0].Data.chk = true;
+            this.portfolioTable.rows[idx].cells[10].Disable = true;
+            this.portfolioTable.rows[idx].cells[11].Disable = true;
+            this.portfolioTable.rows[idx].cells[12].Text = "Suspended";
+            this.portfolioTable.rows[idx].backgroundColor = "#424242";
         } else if (flag === 2) {
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = true;
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Text = true;
-            AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = true;
-            AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = true;
-            AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "Restrict";
-            AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#424242";
+            this.portfolioTable.rows[idx].cells[0].Disable = true;
+            this.portfolioTable.rows[idx].cells[0].Data.chk = true;
+            this.portfolioTable.rows[idx].cells[10].Disable = true;
+            this.portfolioTable.rows[idx].cells[11].Disable = true;
+            this.portfolioTable.rows[idx].cells[12].Text = "Restrict";
+            this.portfolioTable.rows[idx].backgroundColor = "#424242";
         } else if (flag === 3) {
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Text = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "LimitUp";
-            AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#00FF00";
+            this.portfolioTable.rows[idx].cells[0].Disable = false;
+            this.portfolioTable.rows[idx].cells[0].Data.chk = false;
+            this.portfolioTable.rows[idx].cells[10].Disable = false;
+            this.portfolioTable.rows[idx].cells[11].Disable = false;
+            this.portfolioTable.rows[idx].cells[12].Text = "LimitUp";
+            this.portfolioTable.rows[idx].backgroundColor = "#00FF00";
         } else if (flag === 4) {
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Text = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "LimitDown";
-            AppComponent.self.portfolioTable.rows[idx].backgroundColor = "#FF0000";
+            this.portfolioTable.rows[idx].cells[0].Disable = false;
+            this.portfolioTable.rows[idx].cells[0].Data.chk = false;
+            this.portfolioTable.rows[idx].cells[10].Disable = false;
+            this.portfolioTable.rows[idx].cells[11].Disable = false;
+            this.portfolioTable.rows[idx].cells[12].Text = "LimitDown";
+            this.portfolioTable.rows[idx].backgroundColor = "#FF0000";
         } else {
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[0].Text = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[10].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[11].Disable = false;
-            AppComponent.self.portfolioTable.rows[idx].cells[12].Text = "Normal";
-            AppComponent.self.portfolioTable.rows[idx].backgroundColor = null;
+            this.portfolioTable.rows[idx].cells[0].Disable = false;
+            this.portfolioTable.rows[idx].cells[0].Data.chk = false;
+            this.portfolioTable.rows[idx].cells[10].Disable = false;
+            this.portfolioTable.rows[idx].cells[11].Disable = false;
+            this.portfolioTable.rows[idx].cells[12].Text = "Normal";
+            this.portfolioTable.rows[idx].backgroundColor = null;
         }
-        AppComponent.self.portfolioTable.rows[idx].cells[13].Text = tableData.PreClose / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[14].Text = tableData.LastPrice / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[15].Text = tableData.BidSize;
-        AppComponent.self.portfolioTable.rows[idx].cells[16].Text = tableData.BidPrice / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[17].Text = tableData.AskSize;
-        AppComponent.self.portfolioTable.rows[idx].cells[18].Text = tableData.AskPrice / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[19].Text = tableData.AvgBuyPrice / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[20].Text = tableData.AvgSellPrice / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[21].Text = tableData.PreValue / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[22].Text = tableData.ValueCon / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[23].Text = tableData.DayPnLCon / 10000;
-        AppComponent.self.portfolioTable.rows[idx].cells[24].Text = tableData.ONPnLCon / 10000;
-        AppComponent.self.showPortfolioTableCount();
-    }
-
-    showPortfolioTableCount() {
-        let count = AppComponent.self.portfolioTable.rows.length;
-        AppComponent.self.portfolioCount.Text = count;
+        this.portfolioTable.rows[idx].cells[13].Text = tableData.PreClose / 10000;
+        this.portfolioTable.rows[idx].cells[14].Text = tableData.LastPrice / 10000;
+        this.portfolioTable.rows[idx].cells[15].Text = tableData.BidSize;
+        this.portfolioTable.rows[idx].cells[16].Text = tableData.BidPrice / 10000;
+        this.portfolioTable.rows[idx].cells[17].Text = tableData.AskSize;
+        this.portfolioTable.rows[idx].cells[18].Text = tableData.AskPrice / 10000;
+        this.portfolioTable.rows[idx].cells[19].Text = tableData.AvgBuyPrice / 10000;
+        this.portfolioTable.rows[idx].cells[20].Text = tableData.AvgSellPrice / 10000;
+        this.portfolioTable.rows[idx].cells[21].Text = tableData.PreValue / 10000;
+        this.portfolioTable.rows[idx].cells[22].Text = tableData.ValueCon / 10000;
+        this.portfolioTable.rows[idx].cells[23].Text = tableData.DayPnLCon / 10000;
+        this.portfolioTable.rows[idx].cells[24].Text = tableData.ONPnLCon / 10000;
+        this.portfolioCount.Text = this.portfolioTable.rows.length;
     }
 
     showPortfolioSummary(data: any) {
-        AppComponent.self.portfolioLabel.Text = data[0].value / 10000;
-        AppComponent.self.portfolioDaypnl.Text = data[0].dayPnl / 10000;
-        AppComponent.self.portfolioonpnl.Text = data[0].onPnl / 10000;
+        this.portfolioLabel.Text = data[0].value / 10000;
+        this.portfolioDaypnl.Text = data[0].dayPnl / 10000;
+        this.portfolioonpnl.Text = data[0].onPnl / 10000;
     }
 
     changeItems(type: number, check: boolean) {    // check if opposite
@@ -2831,11 +2578,33 @@ export class AppComponent implements OnInit, AfterViewInit {
         return res;
     }
 
+    applyStrateTableConfig() {
+        this.configTable.rows.forEach(row => {
+            let idx = this.option.config["strategy_table"].columnHideIDs.indexOf(row.cells[0].Data);
+            if (!row.cells[0].Text && idx < 0) {
+                this.option.config["strategy_table"].columnHideIDs.push(row.cells[0].Data);
+            } else if (row.cells[0].Text && idx >= 0) {
+                this.option.config["strategy_table"].columnHideIDs.splice(idx, 1);
+            }
+        });
+
+        let fstStrategy = this.strategyMap[this.strategyTable.rows[0].cells[0].Text];
+        let i = 10;
+        for (; i < fstStrategy.comments1.length; ++i) {
+            this.strategyTable.columns[i].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[i].key);
+        }
+
+        i += fstStrategy.commands.length;
+        for (; i < fstStrategy.parameters.length; ++i) {
+            this.strategyTable.columns[i].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[i].key);
+        }
+    }
+
     createBookView(bookviewID) {
         let bookviewPage = new TabPage(bookviewID, this.langServ.getTranslateInfo(this.languageType, "BookView"));
-        this.pageObj[bookviewID] = bookviewPage;
+        this.modules[bookviewID] = bookviewPage;
 
-        let bookviewHeader = new ComboControl("row");
+        let bookviewHeader = new HBox();
         let dd_symbol = new DropDown();
         dd_symbol.AcceptInput = true;
         let codeRtn = this.langServ.getTranslateInfo(this.languageType, "Code");
@@ -2858,12 +2627,15 @@ export class AppComponent implements OnInit, AfterViewInit {
                     AppComponent.self.bookviewArr[i].code = subscribecode;
                 }
             }
+
             if (!bookcodeFlag) {
                 this.bookviewArr.push({ bookview: bookviewID, code: subscribecode, table: bookViewTable });
                 tempCodeList.push(parseInt(subscribecode));
             }
+
             this.subscribeMarketData(tempCodeList);
         };
+
         dd_symbol.matchMethod = (inputText) => {
             let len = inputText.length;
             let sendStr: string = "";
@@ -2886,6 +2658,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                 else
                     rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
             }
+
             return rtnArr;
         };
 
@@ -2922,7 +2695,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
             Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
-        let bookViewContent = new ComboControl("col");
+        let bookViewContent = new VBox();
         bookViewContent.addChild(bookviewHeader);
         bookViewContent.addChild(bookViewTable);
         bookviewPage.setContent(bookViewContent);
@@ -2938,69 +2711,14 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
     }
 
-    StrategyTitleHide(rowIdx: number) {
-        let title = AppComponent.self.configTable.rows[rowIdx].cells[0].Title;
-        let check = AppComponent.self.configTable.rows[rowIdx].cells[0].Text;
-        AppComponent.self.configTable.rows[rowIdx].cells[0].Text = !check;
-        for (let i = 0; i < AppComponent.self.configArr.length; ++i) {
-            if (AppComponent.self.configArr[i].name === title) {
-                AppComponent.self.configArr[i].check = !check;
-                // modify configStrObj and write in config.json file
-                AppComponent.self.modifyConfigStrObj(AppComponent.self.configArr[i].name, !check);
-            }
-        }
-        for (let j = 0; j < AppComponent.self.strategyTable.columns.length; ++j) {
-            if (AppComponent.self.strategyTable.columns[j].Name === title) {
-                AppComponent.self.strategyTable.columns[j].hidden = check;
-            }
-        }
-    }
-
-    modifyConfigStrObj(name: string, check: boolean) {
-        for (let o in AppComponent.self.configStrObj) {
-            if (AppComponent.self.configStrObj[o].name === name) {
-                AppComponent.self.configStrObj[o].show = check;
-                // write in cofig.json
-                AppComponent.self.writeinconfigJson(JSON.stringify(AppComponent.self.configStrObj));
-                break;
-            }
-        }
-    }
-
-    writeinconfigJson(data: string) {
-        let getpath = Environment.getDataPath(this.option.name);
-        fs.writeFile(getpath + "/config.json", data, function(err) {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
-
-    configAllCheck(check: boolean) {
-        for (let idx = 0; idx < AppComponent.self.configTable.rows.length; ++idx) {
-            AppComponent.self.configTable.rows[idx].cells[0].Text = !check;
-        }
-        for (let i = 0; i < AppComponent.self.configArr.length; ++i) {
-            AppComponent.self.configArr[i].check = !check;
-            for (let j = 0; j < AppComponent.self.strategyTable.columns.length; ++j) {
-                if (AppComponent.self.strategyTable.columns[j].Name === AppComponent.self.configArr[i].name)
-                    AppComponent.self.strategyTable.columns[j].hidden = check;
-            }
-        }
-        for (let o in AppComponent.self.configStrObj) {
-            AppComponent.self.configStrObj[o].show = !check;
-        }
-        AppComponent.self.writeinconfigJson(JSON.stringify(AppComponent.self.configStrObj));
-    }
-
     subscribeMarketData(codes: any) {
         AppComponent.bgWorker.send({ command: "ps-send", params: { appid: 17, packid: 101, msg: { topic: 3112, kwlist: codes } } });
     }
 
     onDestroy() {
         AppComponent.bgWorker.dispose();
-        File.writeSync(`${Environment.appDataDir}/ChronosApps/${AppComponent.self.option.name}/layout.json`, this.main.getLayout());
-        // File.writeSync(Environment.getDataPath(this.option.name), )
+        File.writeSync(`${Environment.appDataDir}/ChronosApps/${this.option.name}/layout.json`, this.main.getLayout());
+        File.writeSync(`${Environment.appDataDir}/ChronosApps/${this.option.name}/config.json`, this.option.config);
     }
 
     onResize(event: any) {
@@ -3013,132 +2731,98 @@ export class AppComponent implements OnInit, AfterViewInit {
         AppComponent.bgWorker.onData = data => {
             switch (data.event) {
                 case "ps-data":
-                    let msg = data.content;
-                    let len = AppComponent.self.bookviewArr.length;
-                    for (let idx = 0; idx < len; ++idx) {
-                        if (parseInt(AppComponent.self.bookviewArr[idx].code) === msg.content.ukey) {
+                    for (let idx = 0; idx < this.bookviewArr.length; ++idx) {
+                        if (parseInt(this.bookviewArr[idx].code) === data.content.content.ukey) {
                             for (let i = 0; i < 10; ++i) {
-                                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[0].Text = msg.content.bid_volume[i] + "";
-                                AppComponent.self.bookviewArr[idx].table.rows[i + 10].cells[1].Text = (msg.content.bid_price[i] / 10000).toFixed(4);
-                                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[2].Text = msg.content.ask_volume[i] + "";
-                                AppComponent.self.bookviewArr[idx].table.rows[9 - i].cells[1].Text = (msg.content.ask_price[i] / 10000).toFixed(4);
+                                this.bookviewArr[idx].table.rows[i + 10].cells[0].Text = data.content.content.bid_volume[i] + "";
+                                this.bookviewArr[idx].table.rows[i + 10].cells[1].Text = (data.content.content.bid_price[i] / 10000).toFixed(4);
+                                this.bookviewArr[idx].table.rows[9 - i].cells[2].Text = data.content.content.ask_volume[i] + "";
+                                this.bookviewArr[idx].table.rows[9 - i].cells[1].Text = (data.content.content.ask_price[i] / 10000).toFixed(4);
                             }
                         }
                     }
                     break;
                 case "ps-connect":
-                    AppComponent.self.changeIp20Status(true);
+                    this.addStatus(true, "PS");
                     break;
                 case "ps-close":
-                    AppComponent.self.changeIp20Status(false);
+                    this.addStatus(false, "PS");
                     break;
                 case "ss-connect":
                     break;
                 case "ss-close":
                     break;
                 case "ss-data":
-                    let type = data.content.type;
-                    let receivedata = data.content.data;
-                    switch (type) {
+                    // console.info(`ss-data: type=${data.content.type}, len=${data.content.data.length}`);
+                    // let timer = Date.now();
+                    switch (data.content.type) {
                         case 2011:
-                            this.showStrategyInfo(receivedata);
-                            break;
                         case 2033:
-                            this.showStrategyInfo(receivedata);
+                            this.showStrategyInfo(data.content.data);
                             break;
                         case 2000:
-                            this.showStrategyCfg(receivedata);
-                            break;
                         case 2002:
-                            this.showStrategyCfg(receivedata);
-                            break;
                         case 2004:
-                            this.showStrategyCfg(receivedata);
-                            break;
                         case 2049:
-                            this.showStrategyCfg(receivedata);
-                            break;
                         case 2030:
-                            this.showStrategyCfg(receivedata);
-                            break;
                         case 2029:
-                            this.showStrategyCfg(receivedata);
-                            break;
                         case 2032:
-                            this.showStrategyCfg(receivedata);
-                            break;
-                        case 2001:
-                            this.showGuiCmdAck(receivedata);
-                            break;
-                        case 2003:
-                            this.showGuiCmdAck(receivedata);
-                            break;
-                        case 2005:
-                            this.showGuiCmdAck(receivedata);
-                            break;
-                        case 2050:
-                            this.showGuiCmdAck(receivedata);
+                            this.showStrategyCfg(data.content.data);
                             break;
                         case 2031:
-                            this.showGuiCmdAck(receivedata);
+                        case 2050:
+                        case 2001:
+                        case 2003:
+                        case 2005:
+                            this.showGuiCmdAck(data.content);
                             break;
                         case 2048:
-                            this.showComTotalProfitInfo(receivedata);
-                            break;
-                        case 2020:
-                            this.showComConOrder(receivedata);
+                            this.showComTotalProfitInfo(data.content.data);
                             break;
                         case 2013:
-                            this.showComAccountPos(receivedata);
+                            this.showComAccountPos(data.content.data);
                             break;
                         case 3502:
-                            this.showComRecordPos(receivedata);
-                            break;
                         case 3504:
-                            this.showComRecordPos(receivedata);
+                            this.showComRecordPos(data.content.data);
                             break;
                         case 2015:
-                            this.showComGWNetGuiInfo(receivedata);
-                            break;
                         case 2017:
-                            this.showComGWNetGuiInfo(receivedata);
+                            this.showComGWNetGuiInfo(data.content.data);
                             break;
                         case 2023:
-                            this.showComProfitInfo(receivedata);
+                            this.showComProfitInfo(data.content.data);
                             break;
                         case 2025:
-                            this.showStatArbOrder(receivedata);
+                            this.showStatArbOrder(data.content.data);
                             break;
                         case 5022:
-                            this.showComorderstatusAndErrorInfo(receivedata);
-                            break;
                         case 2021:
-                            this.showComorderstatusAndErrorInfo(receivedata);
+                            this.showComorderstatusAndErrorInfo(data.content.data);
                             break;
                         case 2022:
-                            this.showComOrderRecord(receivedata);
-                            break;
                         case 3011:
-                            this.showComOrderRecord(receivedata);
-                            break;
                         case 3510:
-                            this.showComOrderRecord(receivedata);
+                            this.showComOrderRecord(data.content.data);
                             break;
                         case 2040:
-                            this.showLog(receivedata);
+                            this.showLog(data.content.data);
                             break;
                         case 5021:
-                            this.showBasketBackInfo(receivedata);
+                            this.showBasketBackInfo(data.content.data);
                             break;
                         case 5024:
-                            this.showPortfolioSummary(receivedata);
+                            this.showPortfolioSummary(data.content.data);
                             break;
                         case 8000:
-                            this.changeSSstatus(receivedata);
+                            this.changeSSstatus(data.content.data);
                             break;
                         default:
+                            console.error(`unhandled type=${data.content.type}`);
                             break;
                     }
+
+                    // console.debug(`elapsed time: ${Date.now() - timer}`);
                     break;
                 default:
                     break;

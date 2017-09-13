@@ -120,6 +120,7 @@ export class StartUp implements IApplication {
 
             this._option = option ? option : {};
             this._option.layout = this.loadLayout();
+            this._option.config = this.loadModulesConfig();
 
             this._mainWindow.loadURL(`${__dirname}/index.html`);
             this._mainWindow.win.setTitle(name);
@@ -228,6 +229,15 @@ export class StartUp implements IApplication {
             }]
         };
         return res;
+    }
+
+    loadModulesConfig() {
+        let config = path.join(this._appdir, "config.json");
+        if (!fs.existsSync(config)) {
+            return {};
+        }
+
+        return JSON.parse(fs.readFileSync(config));
     }
 
     static instance(): StartUp {
