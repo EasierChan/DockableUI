@@ -17,7 +17,7 @@ export class ConfigurationBLL {
     constructor() {
         this._names = [];
         this._templates = {};
-        this._basedir = path.join(Environment.appDataDir, "ChronosApps/workbench");
+        this._basedir = path.join(Environment.getDataPath("workbench"));
         this._templatepath = path.join(this._basedir, "templates.json");
         this._templates = File.parseJSON(this._templatepath) || {};
         AppStoreService.setLocalStorageItem(DataKey.kStrategyTemplates, JSON.stringify(this._templates));

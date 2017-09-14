@@ -2718,8 +2718,8 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     onDestroy() {
         AppComponent.bgWorker.dispose();
-        File.writeSync(`${Environment.appDataDir}/ChronosApps/${this.option.name}/layout.json`, this.main.getLayout());
-        File.writeSync(`${Environment.appDataDir}/ChronosApps/${this.option.name}/config.json`, this.option.config);
+        File.writeSync(`${Environment.getDataPath(this.option.name)}/layout.json`, this.main.getLayout());
+        File.writeSync(`${Environment.getDataPath(this.option.name)}/config.json`, this.option.config);
     }
 
     onResize(event: any) {

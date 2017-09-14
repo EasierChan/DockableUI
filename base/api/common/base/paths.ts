@@ -22,7 +22,7 @@ class Paths {
     private backupdir_: string;
     private settings_: { default: string, user: string };
     constructor() {
-        this.basedir_ = path.join(app.getPath("appData"), "ChronosApps");
+        this.basedir_ = path.join(app.getPath("appData"), "ChronosApps-TGW");
         // this.logdir_ = path.join(this.basedir_, "logs");
         // this.backupdir_ = path.join(this.basedir_, "backup");
         // this.settings_ = {
