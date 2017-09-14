@@ -21,11 +21,15 @@ export class BacktestComponent implements OnInit {
     strategyConfigs: Array<WorkspaceConfig>;
     selectedStrategyConfig: WorkspaceConfig;
     strategyKeys: number[];
+    ssgwAppID: number;
+    backtestAppID: number;
 
-    constructor(private appService: AppStoreService, private tradePoint: TradeService, private configBll: ConfigurationBLL) {
+    constructor(private appsrv: AppStoreService, private tradePoint: TradeService, private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {
+        this.ssgwAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.ssgw;
+        this.backtestAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.backtest;
         this.registerListeners();
         this.initializeStrategies();
     }
@@ -34,7 +38,7 @@ export class BacktestComponent implements OnInit {
         let strategyKeys = [];
 
         this.tradePoint.addSlot({
-            appid: 107,
+            appid: this.ssgwAppID,
             packid: 2001, // 创建策略回报
             callback: msg => {
                 console.debug(msg);
@@ -70,7 +74,7 @@ export class BacktestComponent implements OnInit {
         });
 
         this.tradePoint.addSlot({
-            appid: 200,
+            appid: this.backtestAppID,
             packid: 8012,
             callback: msg => {
                 let config = this.strategyConfigs.find(item => { return item.name === this.requestMap[msg.content.reqsn]; });
@@ -100,7 +104,7 @@ export class BacktestComponent implements OnInit {
                     instance["SSFeed"]["PS"].addr = config.backtestConfig.quotePoint.port;
                     instance["SSFeed"]["PS"].port = config.backtestConfig.quotePoint.port;
 
-                    this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
+                    this.tradePoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
                 }
             }
         });
@@ -143,7 +147,7 @@ export class BacktestComponent implements OnInit {
             this.refreshSubscribe();
         });
         this.strategyMenu.addItem("修改", () => {
-            this.appService.startApp("策略配置", "Dialog", {
+            this.appsrv.startApp("策略配置", "Dialog", {
                 dlg_name: "strategy",
                 config: this.selectedStrategyConfig,
                 strategies: this.configBll.getTemplates()
@@ -165,7 +169,7 @@ export class BacktestComponent implements OnInit {
         this.strategyArea.onCreate = () => {
             let config = new WorkspaceConfig();
             config.activeChannel = Channel.BACKTEST;
-            this.appService.startApp("策略配置", "Dialog", { dlg_name: "strategy", config: config, strategies: this.configBll.getTemplates() });
+            this.appsrv.startApp("策略配置", "Dialog", { dlg_name: "strategy", config: config, strategies: this.configBll.getTemplates() });
         };
 
         this.strategyArea.onClick = (event: MouseEvent, item: Tile) => {
@@ -197,7 +201,7 @@ export class BacktestComponent implements OnInit {
 
         // strategy status
         this.refreshSubscribe();
-        this.appService.onUpdateApp(this.updateApp, this);
+        this.appsrv.onUpdateApp(this.updateApp, this);
     }
 
     // update app info
@@ -226,15 +230,15 @@ export class BacktestComponent implements OnInit {
         };
 
         this.requestMap[tmpobj.reqsn] = config.name;
-        this.tradePoint.send(200, 8010, tmpobj);
+        this.tradePoint.send(this.backtestAppID, 8010, tmpobj);
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
-        this.tradePoint.send(107, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
+        this.tradePoint.send(this.ssgwAppID, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
 
     onStartApp() {
-        if (!this.appService.startApp(this.selectedStrategyConfig.name, AppType.kStrategyApp, {
+        if (!this.appsrv.startApp(this.selectedStrategyConfig.name, AppType.kStrategyApp, {
             appid: this.selectedStrategyConfig.appid,
             name: this.selectedStrategyConfig.name
         })) {

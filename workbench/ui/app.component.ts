@@ -40,6 +40,8 @@ export class AppComponent implements OnInit, OnDestroy {
     homeMod: string;
     activeTab: string;
     isonpacks: any;
+    productAppID: number;
+    scmsAppID: number;
 
     constructor(private tradeEndPoint: TradeService,
         private quote: QuoteService,
@@ -52,6 +54,8 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.productAppID = this.setting.endpoints[0].tgw_apps.ids;
+        this.scmsAppID = this.setting.endpoints[0].tgw_apps.scms;
         this.isonpacks = {};
         this.homeMod = DataSet.modules[0].name;
         this.activeTab = DataSet.tabs(this.homeMod)[0];
@@ -196,7 +200,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     registerListeners() {
         this.tradeEndPoint.addSlot({  // template
-            appid: 270,
+            appid: this.scmsAppID,
             packid: 194,
             callback: msg => {
                 // console.info(msg);
@@ -223,7 +227,7 @@ export class AppComponent implements OnInit, OnDestroy {
         });
 
         this.tradeEndPoint.addSlot({
-            appid: 260,
+            appid: this.productAppID,
             packid: 216,
             callback: msg => {
                 let data = JSON.parse(msg.content.body);

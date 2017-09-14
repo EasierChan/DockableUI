@@ -53,14 +53,14 @@ export class UConfig {
 		if (!fs.existsSync(UConfig.appdir))
 			fs.mkdirSync(UConfig.appdir);
 
+		UConfig.default = JSON.parse(fs.existsSync(default_cfg_file) ? fs.readFileSync(default_cfg_file, "utf-8") : default_cfg_file);
 		if (!fs.existsSync(path.join(UConfig.appdir, "default-setting.json"))) {
-			if (fs.existsSync(default_cfg_file))
-				fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), fs.readFileSync(default_cfg_file, "utf-8"), { encoding: "utf-8" });
-			else
-				fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), default_cfg_file, { encoding: "utf-8" });
+			fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), UConfig.default, { encoding: "utf-8" });
+		} else {
+			let obj = JSON.parse(stripComments(fs.readFileSync(path.join(UConfig.appdir, "default-setting.json"), "utf-8")));
+			UConfig.default = Object.assign(obj, UConfig.default);
 		}
 
-		UConfig.default = JSON.parse(stripComments(fs.readFileSync(path.join(UConfig.appdir, "default-setting.json"), "utf-8")));
 		// // DefaultLogger.trace(JSON.stringify(UConfig.default));
 		// if (Paths.configration.settings.user !== null) {
 		// 	UConfig.user = JSON.parse(stripComments(fs.readFileSync(Paths.configration.settings.user, "utf-8")));

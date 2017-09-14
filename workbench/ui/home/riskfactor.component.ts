@@ -107,10 +107,7 @@ export class RiskFactorComponent implements OnDestroy {
     netTableValue: any[] = [];
 
     dataDir: string; // added by cl
-    // this.groupPosition = [ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
-    // groupPosition: any[] = [{stockDate:"20170704",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]},
-    //                        {stockDate:"20170705",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]} ];
-
+    productAppID: number; // added by cl
 
     constructor(private tradePoint: TradeService, private appsrv: AppStoreService, private datePipe: DatePipe) {
         RiskFactorComponent.self = this;
@@ -124,6 +121,7 @@ export class RiskFactorComponent implements OnDestroy {
     }
 
     ngOnInit() {
+        this.productAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.ids;
         this.dataDir = this.appsrv.getSetting().riskDataDir ? this.appsrv.getSetting().riskDataDir : "/mnt/dropbox/risk";
         console.info(this.activeTab, this.dataDir);
 
@@ -159,7 +157,7 @@ export class RiskFactorComponent implements OnDestroy {
         if (this.activeTab === "风险因子分析") {
             // receive holdlist
             this.tradePoint.addSlot({
-                appid: 260,
+                appid: this.productAppID,
                 packid: 224,
                 callback: (msg) => {
                     let data = JSON.parse(msg.content.body);
@@ -183,13 +181,13 @@ export class RiskFactorComponent implements OnDestroy {
                     console.log(tblockId);
                     console.log(RiskFactorComponent.self.istrategys);
                     RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
-                    this.tradePoint.send(260, 218, { body: { tblock_id: tblockId } });
+                    this.tradePoint.send(this.productAppID, 218, { body: { tblock_id: tblockId } });
                 }
             });
 
             // index strategies
             this.tradePoint.addSlot({
-                appid: 260,
+                appid: this.productAppID,
                 packid: 218,
                 callback: (msg) => {
                     console.log(msg);
@@ -239,7 +237,7 @@ export class RiskFactorComponent implements OnDestroy {
                     this.lookReturn();
                 }
             });
-            this.tradePoint.send(260, 224, { body: { tblock_type: 2 } });
+            this.tradePoint.send(this.productAppID, 224, { body: { tblock_type: 2 } });
         }
 
         this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLDivElement);
@@ -324,7 +322,7 @@ export class RiskFactorComponent implements OnDestroy {
         console.log(RiskFactorComponent.productIndex);
         // strategies
         this.tradePoint.addSlot({
-            appid: 260,
+            appid: this.productAppID,
             packid: 218,
             callback: (msg) => {
                 console.log(msg);
@@ -341,7 +339,7 @@ export class RiskFactorComponent implements OnDestroy {
         });
         console.log(RiskFactorComponent.self.istrategys);
         RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
-        this.tradePoint.send(260, 218, { body: { tblock_id: tblockId } });
+        this.tradePoint.send(this.productAppID, 218, { body: { tblock_id: tblockId } });
         RiskFactorComponent.strategyIndex = 0;
     }
 
@@ -644,7 +642,7 @@ export class RiskFactorComponent implements OnDestroy {
             console.log(RiskFactorComponent.strategyIndex);
             // setNetTableValue
             this.tradePoint.addSlot({
-                appid: 260,
+                appid: this.productAppID,
                 packid: 226,
                 callback: (msg) => {
                     console.log("receive setNetTableValue", msg);
@@ -690,7 +688,7 @@ export class RiskFactorComponent implements OnDestroy {
                 console.log(this.startDate, tblockId);
                 // strategyfuturehold
                 this.tradePoint.addSlot({
-                    appid: 260,
+                    appid: this.productAppID,
                     packid: 220,
                     callback: (msg) => {
                         console.log("strategyfuturehold", msg, msg.content.head.pkgCnt, msg.content.head.pkgIdx);
@@ -724,11 +722,11 @@ export class RiskFactorComponent implements OnDestroy {
                 this.strategyfuturehold = "";
                 this.hadFutureHold = false;
                 this.futurePosition = [];
-                this.tradePoint.send(260, 220, { body: { strategy_id: strategyId, begin_date: this.startDate, end_date: this.startDate, product_id: tblockId } });
+                this.tradePoint.send(this.productAppID, 220, { body: { strategy_id: strategyId, begin_date: this.startDate, end_date: this.startDate, product_id: tblockId } });
 
                 // strategystockhold
                 this.tradePoint.addSlot({
-                    appid: 260,
+                    appid: this.productAppID,
                     packid: 222,
                     callback: (msg) => {
                         console.log("strategystockhold", msg, msg.content.head.pkgCnt, msg.content.head.pkgIdx);
@@ -763,18 +761,18 @@ export class RiskFactorComponent implements OnDestroy {
                 this.strategystockhold = "";
                 this.hadStockHold = false;
                 this.groupPosition = [];
-                this.tradePoint.send(260, 222, { body: { strategy_id: strategyId, product_id: tblockId, begin_date: this.startDate, end_date: this.startDate } });
+                this.tradePoint.send(this.productAppID, 222, { body: { strategy_id: strategyId, product_id: tblockId, begin_date: this.startDate, end_date: this.startDate } });
 
                 this.hadNetData = false;
                 this.netTableValue = [];
                 this.netValueString = "";
-                this.tradePoint.send(260, 226, { body: { type: 1, id: strategyId, begin_date: this.startDate, end_date: this.endDate } });
+                this.tradePoint.send(this.productAppID, 226, { body: { type: 1, id: strategyId, begin_date: this.startDate, end_date: this.endDate } });
                 console.log("send setNetTableValue strategy", tblockId, this.startDate, this.endDate);
             } else {
                 console.log(this.startDate, tblockId);
                 // productfuturehold
                 this.tradePoint.addSlot({
-                    appid: 260,
+                    appid: this.productAppID,
                     packid: 228,
                     callback: (msg) => {
 
@@ -804,11 +802,11 @@ export class RiskFactorComponent implements OnDestroy {
                 this.productfuturehold = "";
                 this.hadFutureHold = false;
                 this.futurePosition = [];
-                this.tradePoint.send(260, 228, { body: { begin_date: this.startDate, end_date: this.startDate, tblock_id: tblockId } });
+                this.tradePoint.send(this.productAppID, 228, { body: { begin_date: this.startDate, end_date: this.startDate, tblock_id: tblockId } });
 
                 // productstockhold
                 this.tradePoint.addSlot({
-                    appid: 260,
+                    appid: this.productAppID,
                     packid: 230,
                     callback: (msg) => {
 
@@ -840,12 +838,12 @@ export class RiskFactorComponent implements OnDestroy {
                 this.productstockhold = "";
                 this.hadStockHold = false;
                 this.groupPosition = [];
-                this.tradePoint.send(260, 230, { body: { begin_date: this.startDate, end_date: this.startDate, tblock_id: tblockId } });
+                this.tradePoint.send(this.productAppID, 230, { body: { begin_date: this.startDate, end_date: this.startDate, tblock_id: tblockId } });
 
                 this.hadNetData = false;
                 this.netTableValue = [];
                 this.netValueString = "";
-                this.tradePoint.send(260, 226, { body: { type: 0, id: tblockId, begin_date: this.startDate, end_date: this.endDate } });
+                this.tradePoint.send(this.productAppID, 226, { body: { type: 0, id: tblockId, begin_date: this.startDate, end_date: this.endDate } });
                 console.log("send setNetTableValue", tblockId, this.startDate, this.endDate);
             }
         } else {

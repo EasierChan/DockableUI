@@ -137,10 +137,6 @@ class ISONPackParser extends IP20Parser {
     }
 
     init(): void {
-        // this.registerMsgFunction("17", this, this.processLoginMsg);
-        // this.registerMsgFunction("260", this, this.processTemplateMsg);
-        // this.registerMsgFunction("270", this, this.processTemplateMsg);
-        // this.registerMsgFunction("107", this, this.processTemplateMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);

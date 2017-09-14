@@ -30,6 +30,7 @@ export class AppComponent implements OnInit {
     private languageType = 0;
     main: any;
     option: any;
+    productAppID: number;
 
     constructor(private state: AppStateCheckerRef, private langServ: TranslateService,
         private trade: IP20Service, private appsrv: AppStoreService) {
@@ -85,6 +86,7 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.productAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.ids;
         this.registerListeners();
 
         switch (this.option.dlg_name) {
@@ -92,9 +94,9 @@ export class AppComponent implements OnInit {
                 this.loginTGW(() => {
                     let today = new Date();
                     let dateStr = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + (today.getDate());
-                    this.trade.send(260, 232, { body: { productID: this.option.productID } });
-                    this.trade.send(260, 228, { body: { tblock_id: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
-                    this.trade.send(260, 230, { body: { tblock_id: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
+                    this.trade.send(this.productAppID, 232, { body: { productID: this.option.productID } });
+                    this.trade.send(this.productAppID, 228, { body: { tblock_id: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
+                    this.trade.send(this.productAppID, 230, { body: { tblock_id: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
                 });
                 break;
             case "strategy":

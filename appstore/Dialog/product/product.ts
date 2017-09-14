@@ -3,6 +3,7 @@
 import { Component, OnInit } from "@angular/core";
 import { IP20Service } from "../../../base/api/services/ip20.service";
 import { DataTable } from "../../../base/controls/control";
+import { AppStoreService } from "../../../base/api/services/backend.service";
 
 @Component({
     moduleId: module.id,
@@ -15,11 +16,13 @@ export class ProductComponent implements OnInit {
     futureTable: DataTable;
     stockTable: DataTable;
     isonpack: any;
+    productAppID: number;
 
-    constructor(private tgw: IP20Service) {
+    constructor(private tgw: IP20Service, private appsrv: AppStoreService) {
     }
 
     ngOnInit() {
+        this.productAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.ids;
         this.productDetail = new Table();
         this.productDetail.rows.push(["产品名称", "1000", "总资金规模", "1000", "昨日净值", "1000", "当日净值", "1000"]);
         this.productDetail.rows.push(["平仓盈亏", "1000", "浮动盈亏", "1000", "保证金", "1000", "股票账户可用资金"]);
@@ -39,7 +42,7 @@ export class ProductComponent implements OnInit {
 
     registerListener() {
         this.tgw.addSlot({
-            appid: 260,
+            appid: this.productAppID,
             packid: 232,
             callback: (msg) => {
                 let productDetail = JSON.parse(msg.content.body).body;
@@ -65,7 +68,7 @@ export class ProductComponent implements OnInit {
 
         // stock hold
         this.tgw.addSlot({
-            appid: 260,
+            appid: this.productAppID,
             packid: 230,
             callback: (msg) => {
                 if (msg.content.head.pkgCnt === msg.content.head.pkgIdx + 1) {
@@ -91,7 +94,7 @@ export class ProductComponent implements OnInit {
 
         // future hold
         this.tgw.addSlot({
-            appid: 260,
+            appid: this.productAppID,
             packid: 228,
             callback: (msg) => {
                 if (msg.content.head.pkgCnt === msg.content.head.pkgIdx + 1) {

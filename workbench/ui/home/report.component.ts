@@ -2,6 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { DataTable } from "../../../base/controls/control";
+import { AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
 import { ECharts } from "echarts";
 import { ConfigurationBLL } from "../../bll/strategy.server";
@@ -23,14 +24,17 @@ export class ReportComponent implements OnInit {
     percentProfitable: any;
     sharpeRatio: any;
     freeriskrate = 0.3;
+    backtestAppID: number;
     _unit: any;
     _period: any;
     Sel_arr = [];
     private allItem: any[];
-    constructor(private mock: TradeService, private configBll: ConfigurationBLL) {
+
+    constructor(private mock: TradeService, private configBll: ConfigurationBLL, private appsrv: AppStoreService) {
     }
 
     ngOnInit() {
+        this.backtestAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.backtest;
         this.resTable = new DataTable("table2");
         this.resTable.addColumn("选中", "名称", "开始时间", "结束时间", "查看");
         this.resTable.columns[0].maxWidth = 20;
@@ -52,7 +56,7 @@ export class ReportComponent implements OnInit {
                 this._unit = this.allItem[i].unit;
                 this._period = this.allItem[i].period;
                 this.chartOption = this.generateOption();
-                this.mock.send(200, 8014, { nId: this.resTable.rows[i].cells[0].Data.nId });
+                this.mock.send(this.backtestAppID, 8014, { nId: this.resTable.rows[i].cells[0].Data.nId });
                 this.page = 1;
                 this.bLoading = true;
             };
@@ -97,7 +101,7 @@ export class ReportComponent implements OnInit {
     registerListener() {
         this.mock.addSlot(
             {
-                appid: 200,
+                appid: this.backtestAppID,
                 packid: 8015,
                 callback: msg => {
                     console.info(msg);

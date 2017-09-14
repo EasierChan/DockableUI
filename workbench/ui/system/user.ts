@@ -21,6 +21,8 @@ export class UserComponent implements OnInit {
     maid: string;
     userid: string;
     password: string;
+    productAppID: number;
+    scmsAppID: number;
 
     constructor(private tradeSrv: TradeService,
         private quoteSrv: QuoteService,
@@ -35,6 +37,8 @@ export class UserComponent implements OnInit {
     }
 
     ngOnInit() {
+        this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
+        this.scmsAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.scms;
         this.registerListeners();
     }
 
@@ -66,8 +70,8 @@ export class UserComponent implements OnInit {
             callback: msg => {
                 this.appSrv.setLoginTrade(msg.content.conlvl > 2);
                 // to request template
-                // this.tradeSrv.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
-                this.tradeSrv.send(260, 216, { body: { tblock_type: 2 } });
+                // this.tradeSrv.send(this.scmsAppID, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
+                this.tradeSrv.send(this.productAppID, 216, { body: { tblock_type: 2 } });
 
                 if (this.tradeHeart !== null) {
                     clearInterval(this.tradeHeart);
