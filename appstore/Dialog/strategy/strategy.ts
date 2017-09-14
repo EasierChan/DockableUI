@@ -90,15 +90,15 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.config.productID = this.productID;
 
         this.config.items = [new StrategyInstance()];
+        this.config.items[0].parameters = [];
+        this.config.items[0].instruments = [];
         if (this.paramsTable.rows.length > 0) {
-            this.config.items[0].parameters = [];
             this.paramsTable.rows.forEach(row => {
                 this.config.items[0].parameters.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Text) });
             });
         }
 
         if (this.instrumentTable.rows.length > 0) {
-            this.config.items[0].instruments = [];
             this.instrumentTable.rows.forEach(row => {
                 this.config.items[0].instruments.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Text) });
             });

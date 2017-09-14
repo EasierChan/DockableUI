@@ -48,6 +48,7 @@ export class AppStoreService {
     }
 
     onUpdateApp(update: any, context: any) {
+        electron.ipcRenderer.removeAllListeners(`appstore://updateApp`);
         electron.ipcRenderer.on(`appstore://updateApp`, (event, params) => { update.call(context, params); });
     }
 
@@ -75,7 +76,7 @@ export class AppStoreService {
         return localStorage.getItem(key);
     }
 
-    static setLocalStorageItem(key: string , value: any) {
+    static setLocalStorageItem(key: string, value: any) {
         localStorage.setItem(key, value);
     }
 
@@ -162,6 +163,10 @@ export class Menu {
     popup(x?: number, y?: number): void {
         this._menu.popup();
     }
+
+    get instance() {
+        return this._menu;
+    }
 }
 
 @Injectable()
@@ -177,6 +182,10 @@ export class MenuItem {
             return new electron.remote.MenuItem({ label: lable, type: type, click: click, visible: option.visible, checked: option.checked });
         else
             return new electron.remote.MenuItem({ label: lable, type: type, click: click });
+    }
+
+    static createSubmenu(label: string, submenu: Menu) {
+        return new electron.remote.MenuItem({ label: label, submenu: submenu.instance });
     }
 }
 

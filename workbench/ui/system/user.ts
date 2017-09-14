@@ -67,6 +67,7 @@ export class UserComponent implements OnInit {
                 this.appSrv.setLoginTrade(msg.content.conlvl > 2);
                 // to request template
                 // this.tradeSrv.send(270, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
+                this.tradeSrv.send(260, 216, { body: { tblock_type: 2 } });
 
                 if (this.tradeHeart !== null) {
                     clearInterval(this.tradeHeart);

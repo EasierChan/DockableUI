@@ -64,7 +64,7 @@ class Endpoint {
 }
 
 export enum Channel {
-    DEFAULT,
+    ONLINE,
     SIMULATION,
     BACKTEST
 }

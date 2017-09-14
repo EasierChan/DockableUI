@@ -33,7 +33,7 @@ export class ConfigurationBLL {
         this._ssconfigs = WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []);
         this._ssconfigs.forEach(item => {
             switch (item.activeChannel) {
-                case Channel.DEFAULT:
+                case Channel.ONLINE:
                     this._ss_realtrade_configs.push(item);
                     break;
                 case Channel.SIMULATION:
@@ -78,6 +78,7 @@ export class ConfigurationBLL {
     private _svpath: string;
 
     private _names: any[];
+    private _products: any[];
     /**
      * @return a list of available strategy templates.
      */
@@ -87,7 +88,7 @@ export class ConfigurationBLL {
 
     getTemplateByName(name: string): any {
         if (this._templates.hasOwnProperty(name)) {
-            return this._templates[name];
+            return JSON.parse(JSON.stringify(this._templates[name]));
         }
         return null;
     }
@@ -114,7 +115,7 @@ export class ConfigurationBLL {
             for (; i < this._ssconfigs.length; ++i) {
                 if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
                     switch (config.activeChannel) {
-                        case Channel.DEFAULT:
+                        case Channel.ONLINE:
                             this._ss_realtrade_configs[this._ss_realtrade_configs.indexOf(this._ssconfigs[i])] = config;
                             break;
                         case Channel.SIMULATION:
@@ -133,7 +134,7 @@ export class ConfigurationBLL {
             if (i === this._ssconfigs.length) {
                 this._ssconfigs.push(config);
                 switch (config.activeChannel) {
-                    case Channel.DEFAULT:
+                    case Channel.ONLINE:
                         this._ss_realtrade_configs.push(config);
                         break;
                     case Channel.SIMULATION:
@@ -153,11 +154,54 @@ export class ConfigurationBLL {
         for (let i = 0; i < this._ssconfigs.length; ++i) {
             if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
                 this._ssconfigs.splice(i, 1);
+
+                switch (config.activeChannel) {
+                    case Channel.ONLINE:
+                        this._ss_realtrade_configs.splice(this._ss_realtrade_configs.indexOf(config), 1);
+                        break;
+                    case Channel.SIMULATION:
+                        this._ss_simulation_configs.splice(this._ss_simulation_configs.indexOf(config), 1);
+                        break;
+                    case Channel.BACKTEST:
+                        this._ss_backtest_configs.splice(this._ss_backtest_configs.indexOf(config), 1);
+                        break;
+                }
+
+                File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
                 break;
             }
         }
+    }
 
-        File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
+    moveConfig(config: WorkspaceConfig, channel: Channel) {
+        if (config.activeChannel === channel)
+            return;
+
+        switch (config.activeChannel) {
+            case Channel.ONLINE:
+                this._ss_realtrade_configs.splice(this._ss_realtrade_configs.indexOf(config), 1);
+                break;
+            case Channel.SIMULATION:
+                this._ss_simulation_configs.splice(this._ss_simulation_configs.indexOf(config), 1);
+                break;
+            case Channel.BACKTEST:
+                this._ss_backtest_configs.splice(this._ss_backtest_configs.indexOf(config), 1);
+                break;
+        }
+
+        config.activeChannel = channel;
+        config.backtestConfig = null;
+        switch (config.activeChannel) {
+            case Channel.ONLINE:
+                this._ss_realtrade_configs.push(config);
+                break;
+            case Channel.SIMULATION:
+                this._ss_simulation_configs.push(config);
+                break;
+            case Channel.BACKTEST:
+                this._ss_backtest_configs.push(config);
+                break;
+        }
     }
 
     updateTemplate(name: string, template: any) {
@@ -206,5 +250,13 @@ export class ConfigurationBLL {
                 break;
             }
         }
+    }
+
+    setProducts(products: any[]) {
+        this._products = products;
+    }
+
+    getProducts(): any[] {
+        return this._products;
     }
 }

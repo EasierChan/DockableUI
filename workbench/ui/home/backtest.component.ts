@@ -10,11 +10,7 @@ import { TradeService } from "../../bll/services";
     moduleId: module.id,
     selector: "backtest",
     template: `<tilearea [dataSource]="strategyArea.dataSource" [styleObj]="strategyArea.styleObj"></tilearea>`,
-    styleUrls: ["backtest.component.css"],
-    providers: [
-        Menu,
-        ConfigurationBLL
-    ]
+    styleUrls: ["backtest.component.css"]
 })
 export class BacktestComponent implements OnInit {
     static reqnum = 1;
@@ -52,7 +48,11 @@ export class BacktestComponent implements OnInit {
                 if (config) {
                     config.appid = msg.content.body.appid;
                     config.items[0].key = msg.content.body.strategy_key;
-                    this.strategyKeys.push(config.items[0].key);
+                    let idx = this.strategyKeys.indexOf(config.items[0].key);
+                    if (idx < 0)
+                        this.strategyKeys.push(config.items[0].key);
+                    else
+                        this.strategyKeys[idx] = config.items[0].key;
 
                     let tile = this.strategyArea.getTile(config.chname);
 
@@ -85,6 +85,12 @@ export class BacktestComponent implements OnInit {
                     config.items[0].parameters.forEach(param => {
                         if (parameters.hasOwnProperty(param.name)) {
                             parameters[param.name].value = param.value;
+                        }
+                    });
+                    let instruments = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Instrument"];
+                    config.items[0].instruments.forEach(instrument => {
+                        if (instruments.hasOwnProperty(instrument.name)) {
+                            instruments[instrument.name].value = instrument.value;
                         }
                     });
                     config.backtestConfig.tradePoint = { host: msg.content.url, port: msg.content.port };
@@ -128,6 +134,14 @@ export class BacktestComponent implements OnInit {
         this.strategyMenu.addItem("停止", () => {
             this.operateStrategyServer(this.selectedStrategyConfig, 0);
         });
+        this.strategyMenu.addItem("移至仿真", () => {
+            this.operateStrategyServer(this.selectedStrategyConfig, 0);
+
+            this.configBll.moveConfig(this.selectedStrategyConfig, Channel.SIMULATION);
+            this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
+            this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
+            this.refreshSubscribe();
+        });
         this.strategyMenu.addItem("修改", () => {
             this.appService.startApp("策略配置", "Dialog", {
                 dlg_name: "strategy",
@@ -139,16 +153,10 @@ export class BacktestComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
-            let len = this.strategyConfigs.length;
-            for (let i = 0; i < len; ++i) {
-                if (this.strategyConfigs[i].name === this.selectedStrategyConfig.name) {
-                    this.strategyConfigs.splice(i, 1);
-                    this.configBll.removeConfig(this.selectedStrategyConfig);
-                    this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
-                    this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
-                    break;
-                }
-            }
+            this.configBll.removeConfig(this.selectedStrategyConfig);
+            this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
+            this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
+            this.refreshSubscribe();
         });
         // end strategyMenu
 

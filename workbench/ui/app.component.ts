@@ -221,6 +221,46 @@ export class AppComponent implements OnInit, OnDestroy {
                 }
             }
         });
+
+        this.tradeEndPoint.addSlot({
+            appid: 260,
+            packid: 216,
+            callback: msg => {
+                let data = JSON.parse(msg.content.body);
+
+                if (msg.content.msret.msgcode !== "00") {
+                    alert("Get product info Failed! " + data.msret.msg);
+                    return;
+                }
+
+                let productInfo: Object = {};
+
+                data.body.forEach(item => {
+                    if (productInfo.hasOwnProperty(item.tblock_id)) {
+                        item.cfg.split("|").forEach(gwItem => {
+                            if (productInfo[item.tblock_id].cfg.indexOf("," + gwItem.split(",")[2]) < 0)
+                                productInfo[item.tblock_id].cfg += "|" + gwItem;
+                        });
+
+                        if (productInfo[item.tblock_id].broker_customer_code.indexOf(item.broker_customer_code) < 0)
+                            productInfo[item.tblock_id].broker_customer_code += "," + item.broker_customer_code;
+                    } else {
+                        productInfo[item.tblock_id] = item;
+                    }
+                });
+
+                let products = [];
+                for (let prop in productInfo) {
+                    products.push(productInfo[prop]);
+                }
+
+                this.configBll.setProducts(products);
+
+                products = null;
+                productInfo = null;
+                data = null;
+            }
+        });
     }
 
     ngOnDestroy() {

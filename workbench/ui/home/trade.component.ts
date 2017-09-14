@@ -10,12 +10,7 @@ import { TradeService } from "../../bll/services";
     moduleId: module.id,
     selector: "trade",
     templateUrl: "trade.component.html",
-    styleUrls: ["trade.component.css"],
-    providers: [
-        Menu,
-        AppStoreService,
-        ConfigurationBLL
-    ]
+    styleUrls: ["trade.component.css"]
 })
 export class TradeComponent implements OnInit {
     areas: TileArea[];
@@ -67,7 +62,11 @@ export class TradeComponent implements OnInit {
                 if (config) {
                     config.appid = msg.content.body.appid;
                     config.items[0].key = msg.content.body.strategy_key;
-                    this.strategyKeys.push(config.items[0].key);
+                    let idx = this.strategyKeys.indexOf(config.items[0].key);
+                    if (idx < 0)
+                        this.strategyKeys.push(config.items[0].key);
+                    else
+                        this.strategyKeys[idx] = config.items[0].key;
 
                     let tile = this.strategyArea.getTile(config.chname);
 
@@ -81,47 +80,6 @@ export class TradeComponent implements OnInit {
                     this.configBll.updateConfig(config);
                     this.refreshSubscribe();
                 }
-            }
-        });
-
-        this.tradePoint.addSlot({
-            appid: 260,
-            packid: 216,
-            callback: msg => {
-                let data = JSON.parse(msg.content.body);
-
-                if (msg.content.msret.msgcode !== "00") {
-                    alert("Get product info Failed! " + data.msret.msg);
-                    return;
-                }
-
-                let productInfo: Object = {};
-
-                data.body.forEach(item => {
-                    if (productInfo.hasOwnProperty(item.tblock_id)) {
-                        item.cfg.split("|").forEach(gwItem => {
-                            if (productInfo[item.tblock_id].cfg.indexOf("," + gwItem.split(",")[2]) < 0)
-                                productInfo[item.tblock_id].cfg += "|" + gwItem;
-                        });
-
-                        if (productInfo[item.tblock_id].broker_customer_code.indexOf(item.broker_customer_code) < 0)
-                            productInfo[item.tblock_id].broker_customer_code += "," + item.broker_customer_code;
-                    } else {
-                        productInfo[item.tblock_id] = item;
-                    }
-                });
-
-                for (let prop in productInfo) {
-                    let tile = new Tile();
-                    tile.title = productInfo[prop].tblock_full_name;
-                    tile.iconName = "folder-close";
-                    tile.data = productInfo[prop].tblock_id;
-                    this.productArea.addTile(tile);
-                    this.products.push(productInfo[prop]);
-                }
-
-                productInfo = null;
-                data = null;
             }
         });
 
@@ -150,7 +108,6 @@ export class TradeComponent implements OnInit {
 
                 if (target !== undefined)
                     this.strategyArea.getTile(target.chname).backgroundColor = msg.content.strategyserver.stat !== 0 ? "#1d9661" : null;
-
             }
         });
     }
@@ -160,18 +117,27 @@ export class TradeComponent implements OnInit {
     }
 
     initializeProducts() {
-        this.products = [];
         this.productArea = new TileArea();
         this.productArea.title = "产品";
         this.productArea.onClick = (event: MouseEvent, item: Tile) => {
-            this.appService.startApp("产品信息", "Dialog", {
-                dlg_name: "product",
-                productID: item.data
-            });
+            if (event.button === 0) {  // left click
+                this.appService.startApp("产品信息", "Dialog", {
+                    dlg_name: "product",
+                    productID: item.data
+                });
+            }
         };
 
+        this.products = this.configBll.getProducts();
+        this.products.forEach(product => {
+            let tile = new Tile();
+            tile.title = product.tblock_full_name;
+            tile.iconName = "folder-close";
+            tile.data = product.tblock_id;
+            this.productArea.addTile(tile);
+        });
+
         this.areas.push(this.productArea);
-        this.tradePoint.send(260, 216, { body: { tblock_type: 2 } });
     }
 
     initializeStrategies() {
@@ -196,13 +162,12 @@ export class TradeComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
-            let len = this.strategyConfigs.length;
-            for (let i = 0; i < len; ++i) {
+            for (let i = 0; i < this.strategyConfigs.length; ++i) {
                 if (this.strategyConfigs[i].name === this.selectedStrategyConfig.name) {
-                    this.strategyConfigs.splice(i, 1);
                     this.configBll.removeConfig(this.selectedStrategyConfig);
                     this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
                     this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
+                    this.refreshSubscribe();
                     break;
                 }
             }
@@ -213,7 +178,7 @@ export class TradeComponent implements OnInit {
         this.strategyArea.title = "策略";
         this.strategyArea.onCreate = () => {
             let config = new WorkspaceConfig();
-            config.activeChannel = Channel.DEFAULT;
+            config.activeChannel = Channel.ONLINE;
             this.appService.startApp("策略配置", "Dialog", { dlg_name: "strategy", strategies: this.configBll.getTemplates(), products: this.products });
         };
 
@@ -344,6 +309,12 @@ export class TradeComponent implements OnInit {
                 parameters[param.name].value = param.value;
             }
         });
+        let instruments = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Instrument"];
+        config.items[0].instruments.forEach(instrument => {
+            if (instruments.hasOwnProperty(instrument.name)) {
+                instruments[instrument.name].value = instrument.value;
+            }
+        });
 
         let product = this.products.find(item => { return item.tblock_id === config.productID; });
         console.info(product);
@@ -351,9 +322,11 @@ export class TradeComponent implements OnInit {
             instance["SSGW"]["Gateway"].addr = product.cfg.split("|")[0].split(",")[0];
             instance["SSGW"]["Gateway"].port = product.cfg.split("|")[0].split(",")[1];
             instance["Strategy"][instance["Strategy"]["Strategies"][0]]["account"] = product.broker_customer_code.split(",").map(item => { return parseInt(item); });
+            this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
+        } else {
+            console.error(`product error`);
         }
 
-        this.tradePoint.send(107, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {

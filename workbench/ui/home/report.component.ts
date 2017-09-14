@@ -26,9 +26,8 @@ export class ReportComponent implements OnInit {
     _unit: any;
     _period: any;
     Sel_arr = [];
-    private configBll = new ConfigurationBLL();
     private allItem: any[];
-    constructor(private mock: TradeService) {
+    constructor(private mock: TradeService, private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {

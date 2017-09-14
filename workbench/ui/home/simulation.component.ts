@@ -3,18 +3,14 @@
 import { Component, OnInit } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
 import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType, Channel } from "../../bll/strategy.server";
-import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
+import { Menu, MenuItem, AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
 
 @Component({
     moduleId: module.id,
     selector: "simulation",
     template: `<tilearea [dataSource]="strategyArea.dataSource" [styleObj]="strategyArea.styleObj"></tilearea>`,
-    styleUrls: ["simulation.component.css"],
-    providers: [
-        Menu,
-        ConfigurationBLL
-    ]
+    styleUrls: ["simulation.component.css"]
 })
 export class SimulationComponent implements OnInit {
     strategyMenu: Menu;
@@ -49,7 +45,11 @@ export class SimulationComponent implements OnInit {
                 if (config) {
                     config.appid = msg.content.body.appid;
                     config.items[0].key = msg.content.body.strategy_key;
-                    this.strategyKeys.push(config.items[0].key);
+                    let idx = this.strategyKeys.indexOf(config.items[0].key);
+                    if (idx < 0)
+                        this.strategyKeys.push(config.items[0].key);
+                    else
+                        this.strategyKeys[idx] = config.items[0].key;
 
                     let tile = this.strategyArea.getTile(config.chname);
 
@@ -90,11 +90,27 @@ export class SimulationComponent implements OnInit {
         // strategyMenu
         this.strategyMenu = new Menu();
         this.strategyMenu.addItem("启动", () => {
+            this.updateStrategyConfig(this.selectedStrategyConfig);
             this.operateStrategyServer(this.selectedStrategyConfig, 1);
         });
         this.strategyMenu.addItem("停止", () => {
             this.operateStrategyServer(this.selectedStrategyConfig, 0);
         });
+
+        let subMenu = new Menu();
+        this.configBll.getProducts().forEach(product => {
+            subMenu.addItem(product.tblock_full_name, () => {
+                this.selectedStrategyConfig.productID = product.tblock_id;
+                this.operateStrategyServer(this.selectedStrategyConfig, 0);
+                this.configBll.moveConfig(this.selectedStrategyConfig, Channel.ONLINE);
+                this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
+                this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
+                this.refreshSubscribe();
+            });
+        });
+
+        this.strategyMenu.addItem(MenuItem.createSubmenu("移至实盘产品", subMenu));
+
         this.strategyMenu.addItem("修改", () => {
             this.appService.startApp("策略配置", "Dialog", {
                 dlg_name: "strategy",
@@ -106,16 +122,10 @@ export class SimulationComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
-            let len = this.strategyConfigs.length;
-            for (let i = 0; i < len; ++i) {
-                if (this.strategyConfigs[i].name === this.selectedStrategyConfig.name) {
-                    this.strategyConfigs.splice(i, 1);
-                    this.configBll.removeConfig(this.selectedStrategyConfig);
-                    this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
-                    this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
-                    break;
-                }
-            }
+            this.configBll.removeConfig(this.selectedStrategyConfig);
+            this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
+            this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
+            this.refreshSubscribe();
         });
         // end strategyMenu
 
@@ -183,6 +193,12 @@ export class SimulationComponent implements OnInit {
         config.items[0].parameters.forEach(param => {
             if (parameters.hasOwnProperty(param.name)) {
                 parameters[param.name].value = param.value;
+            }
+        });
+        let instruments = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Instrument"];
+        config.items[0].instruments.forEach(instrument => {
+            if (instruments.hasOwnProperty(instrument.name)) {
+                instruments[instrument.name].value = instrument.value;
             }
         });
 
