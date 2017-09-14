@@ -1460,7 +1460,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                             break;
 
                         let command = this.strategyMap[item.strategyid].commands.find(command => { return command.key === item.key; });
-                        alert(`operator: ${command.name} ${item.success === 1 ? "successfully!" : "unsuccessfully!"}`);
+                        alert(`operator: ${command.name} ${item.success ? "successfully!" : "unsuccessfully!"}`);
                         break;
                 }
             }
@@ -2204,7 +2204,8 @@ export class AppComponent implements OnInit, AfterViewInit {
                                 strategyKeyMap.comments1.push(data[iData]);
                                 needInsert = true;
                             } else {
-                                strategyKeyMap.comments2.push(data[iData]);
+                                let idx = strategyKeyMap.comments2.findIndex(item => { return data[iData].key === item.key; });
+                                idx < 0 ? strategyKeyMap.comments2.push(data[iData]) : (strategyKeyMap.comments2[idx] = data[iData]);
                             }
                         } else { // update
                             let iCol = kInitColumns + commentIdx;

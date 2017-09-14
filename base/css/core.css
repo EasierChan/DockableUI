@@ -23,6 +23,7 @@ body {
     user-select: none;
     -webkit-user-drag: none;
     background-color: rgba(45, 45, 45, 1);
+    overflow: hidden;
 }
 
 body > .toolbar,
