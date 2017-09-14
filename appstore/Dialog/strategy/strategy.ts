@@ -27,6 +27,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
     productID: string;
     strategyTemplates: any;
     paramsTable: DataTable;
+    instrumentTable: DataTable;
 
     strategyConfigPanel: TabPanel;
 
@@ -56,16 +57,23 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.strategyConfigPanel = new TabPanel();
         let paramsPage = new TabPage("parameters", "参数");
         this.strategyConfigPanel.addTab(paramsPage, false);
-        this.strategyConfigPanel.addTab(new TabPage("instruments", "合约"), false);
-        this.strategyConfigPanel.addTab(new TabPage("commands", "命令"), false);
-        this.strategyConfigPanel.addTab(new TabPage("comments", "Comment"), false);
+        let instrumentPage = new TabPage("instruments", "合约");
+        this.strategyConfigPanel.addTab(instrumentPage, false);
+        // this.strategyConfigPanel.addTab(new TabPage("commands", "命令"), false);
+        // this.strategyConfigPanel.addTab(new TabPage("comments", "Comment"), false);
         this.strategyConfigPanel.setActive("parameters");
 
         this.paramsTable = new DataTable("table2");
         this.paramsTable.addColumn("name", "value");
-        let vbox = new VBox();
-        vbox.addChild(this.paramsTable);
-        paramsPage.setContent(vbox);
+        this.instrumentTable = new DataTable("table2");
+        this.instrumentTable.addColumn("name", "value");
+
+        let vboxParams = new VBox();
+        vboxParams.addChild(this.paramsTable);
+        paramsPage.setContent(vboxParams);
+        let vboxInstrument = new VBox();
+        vboxInstrument.addChild(this.instrumentTable);
+        instrumentPage.setContent(vboxInstrument);
         AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
         this.strategyTemplates = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyTemplates));
     }
@@ -82,10 +90,19 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.config.productID = this.productID;
 
         this.config.items = [new StrategyInstance()];
-        this.config.items[0].parameters = [];
-        this.paramsTable.rows.forEach(row => {
-            this.config.items[0].parameters.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Text) });
-        });
+        if (this.paramsTable.rows.length > 0) {
+            this.config.items[0].parameters = [];
+            this.paramsTable.rows.forEach(row => {
+                this.config.items[0].parameters.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Text) });
+            });
+        }
+
+        if (this.instrumentTable.rows.length > 0) {
+            this.config.items[0].instruments = [];
+            this.instrumentTable.rows.forEach(row => {
+                this.config.items[0].instruments.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Text) });
+            });
+        }
 
         localStorage.setItem(DataKey.kStrategyCfg, JSON.stringify(this.config));
     }
@@ -98,6 +115,16 @@ export class StrategyComponent implements OnInit, OnDestroy {
             if (strategy[strategy["Strategies"][0]].Parameter[prop].show === 1) {
                 row = this.paramsTable.newRow();
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Parameter[prop];
+                row.cells[0].Text = row.cells[0].Data.name;
+                row.cells[1].Type = "textbox";
+                row.cells[1].Text = row.cells[0].Data.value;
+            }
+        }
+
+        for (let prop in strategy[strategy["Strategies"][0]].Instrument) {
+            if (strategy[strategy["Strategies"][0]].Instrument[prop].show === 1) {
+                row = this.instrumentTable.newRow();
+                row.cells[0].Data = strategy[strategy["Strategies"][0]].Instrument[prop];
                 row.cells[0].Text = row.cells[0].Data.name;
                 row.cells[1].Type = "textbox";
                 row.cells[1].Text = row.cells[0].Data.value;

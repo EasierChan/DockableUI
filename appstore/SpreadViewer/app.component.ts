@@ -398,7 +398,7 @@ export class AppComponent implements OnInit, OnDestroy {
             packid: 110,
             callback: (msg) => {
                 if (!this.kwlist.includes(msg.content.ukey)) {
-                    console.error(`unexpected marketdata ukey=${msg.content.ukey}`);
+                    console.error(`unexpected marketdata ukey=${msg.content.ukey}, support ${this.kwlist}`);
                     return;
                 }
 
@@ -536,9 +536,9 @@ export class AppComponent implements OnInit, OnDestroy {
                 }
             });
 
-            let ukeys = [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)];
-            this.spreadviewer = new USpreadViewer(this.codes, ukeys, this.lines, this.durations);
-            this.quote.send(17, 101, { topic: 3112, kwlist: ukeys });
+            this.kwlist = [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)];
+            this.spreadviewer = new USpreadViewer(this.codes, this.kwlist, this.lines, this.durations);
+            this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
             res = null;
         }
     }
