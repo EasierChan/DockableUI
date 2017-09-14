@@ -1516,7 +1516,7 @@ export class AppComponent implements OnInit, AfterViewInit {
                             break;
 
                         let command = this.strategyMap[item.strategyid].commands.find(command => { return command.key === item.key; });
-                        alert(`operator: ${command.name} ${item.success === 1 ? "successfully!" : "unsuccessfully!"}`);
+                        alert(`operator: ${command.name} ${item.success ? "successfully!" : "unsuccessfully!"}`);
                         break;
                 }
             }
