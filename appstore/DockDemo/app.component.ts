@@ -122,8 +122,8 @@ export class AppComponent implements OnInit, AfterViewInit {
     private statusbar: StatusBar;
     private option: any;
     private layout: any;
-    private tradePoint: any;
-    private quotePoint: any;
+    private tradeEndpoint: any;
+    private quoteEndpoint: any;
     private strategyMap: any;
 
     static self: AppComponent;
@@ -220,8 +220,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         }
 
         this.strategyMap = {};
-        this.tradePoint = setting.endpoints[0].trade_addr.split(":");
-        this.quotePoint = setting.endpoints[0].quote_addr.split(":");
+        this.tradeEndpoint = setting.endpoints[0].trade_addr.split(":");
+        this.quoteEndpoint = setting.endpoints[0].quote_addr.split(":");
 
         this.statusbar = new StatusBar();
         let order = "OrderStatus";
@@ -1116,8 +1116,8 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.onStrategyTableInit();
         this.loadLayout();
 
-        AppComponent.bgWorker.send({ command: "ss-start", params: { port: this.option.port, host: this.option.host } });
-        this.subScribeMarketInit(this.option.feedhandler.port, this.option.feedhandler.host);
+        AppComponent.bgWorker.send({ command: "ss-start", params: { port: parseInt(this.tradeEndpoint[1]), host: this.tradeEndpoint[0], appid: this.option.appid } });
+        this.subScribeMarketInit(parseInt(this.quoteEndpoint[1]), this.quoteEndpoint[0]);
     }
 
     ngAfterViewInit() {

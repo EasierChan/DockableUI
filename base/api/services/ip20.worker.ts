@@ -296,7 +296,7 @@ export class IP20Service {
      *
      */
     addSlot(...slots: Slot[]) {
-
+        console.info(slots);
         slots.forEach(slot => {
             if (!this._messageMap.hasOwnProperty(slot.appid)) {
                 this._messageMap[slot.appid] = new Object();

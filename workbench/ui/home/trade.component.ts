@@ -30,7 +30,7 @@ export class TradeComponent implements OnInit {
     strategyKeys: number[];
 
     setting: any;
-    quotePoint: any;
+    quoteEndpoint: any;
     ssgwAppID: number;
 
     constructor(private appsrv: AppStoreService, private tradePoint: TradeService, private configBll: ConfigurationBLL) {
@@ -45,7 +45,7 @@ export class TradeComponent implements OnInit {
         this.initializeStrategies();
         this.initializeAnylatics();
 
-        this.quotePoint = this.setting.endpoints[0].quote_addr.split(":");
+        this.quoteEndpoint = this.setting.endpoints[0].quote_addr.split(":");
     }
 
     registerListeners() {
@@ -147,6 +147,9 @@ export class TradeComponent implements OnInit {
         // strategyMenu
         this.strategyMenu = new Menu();
         this.strategyMenu.addItem("启动", () => {
+            if (this.strategyArea.getTile(this.selectedStrategyConfig.chname).backgroundColor !== null)
+                return;
+
             this.operateStrategyServer(this.selectedStrategyConfig, 1);
         });
         this.strategyMenu.addItem("停止", () => {
@@ -243,8 +246,8 @@ export class TradeComponent implements OnInit {
 
         this.analyticArea.onCreate = () => {
             this.appsrv.startApp("Untitled", AppType.kSpreadViewer, {
-                port: parseInt(this.quotePoint[1]),
-                host: this.quotePoint[0],
+                port: parseInt(this.quoteEndpoint[1]),
+                host: this.quoteEndpoint[0],
                 lang: this.setting.language
             });
         };
@@ -254,8 +257,8 @@ export class TradeComponent implements OnInit {
 
             if (event.button === 0) {
                 if (!this.appsrv.startApp(item.title, AppType.kSpreadViewer, {
-                    port: parseInt(this.quotePoint[1]),
-                    host: this.quotePoint[0],
+                    port: parseInt(this.quoteEndpoint[1]),
+                    host: this.quoteEndpoint[0],
                     lang: this.setting.language
                 })) {
                     alert("Error `Start ${name} app error!`");
