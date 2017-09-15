@@ -58,7 +58,7 @@ export class UConfig {
 			fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), UConfig.default, { encoding: "utf-8" });
 		} else {
 			let obj = JSON.parse(stripComments(fs.readFileSync(path.join(UConfig.appdir, "default-setting.json"), "utf-8")));
-			UConfig.default = Object.assign(obj, UConfig.default);
+			UConfig.default = Object.assign(UConfig.default, obj);
 		}
 
 		// // DefaultLogger.trace(JSON.stringify(UConfig.default));
