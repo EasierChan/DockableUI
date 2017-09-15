@@ -61,7 +61,7 @@ export class ComStrategyInfo extends Message {
 
 // //ASK  2047  ACK 2048
 export class ComTotalProfitInfo extends Message {
-    static readonly len = 104;
+    static len = 104;
     strategyid: number = 0;  // 4
     account: number = 0; // 8
     totalpositionpnl: number = 0; // 8
@@ -87,7 +87,7 @@ export class ComTotalProfitInfo extends Message {
 
 // //ACK  2023
 export class ComProfitInfo extends ComTotalProfitInfo {
-    static readonly len = 232;
+    static len: number = 232;
 
     innercode: number = 0;  // 4
     avgpriceforbuy: number = 0; // 8
