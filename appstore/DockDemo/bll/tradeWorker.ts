@@ -7,7 +7,7 @@ import {
     ComConOrderStatus, ComStrategyCfg, ComOrderRecord, ComAccountPos,
     ComRecordPos, ComGWNetGuiInfo, StatArbOrder, ComConOrderErrorInfo,
     ComProfitInfo, FpPosUpdate, ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract,
-    FpHead, FpQtyOrder
+    FpHead, FpQtyOrder, ComGuiAskStrategy
 } from "../../../base/api/model/itrade/strategy.model";
 import { Sound } from "../../../base/api/services/backend.worker";
 import { ULogger } from "../../../base/api/common/base/logger";
@@ -216,12 +216,24 @@ export class StrategyDealer {
             case 2011: // ComStrategyInfo
                 count = content.readUInt32LE(offset);
                 offset += 4;
+                let askOffset: number = 0;
+                let ask: ComGuiAskStrategy;
+                let askBuf = Buffer.alloc(count * ComGuiAckStrategy.len + 4);
+                askBuf.writeUInt32LE(count, askOffset); askOffset += 4;
 
                 for (let i = 0; i < count; ++i) {
                     msg = new ComStrategyInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
+                    ask = new ComGuiAskStrategy();
+                    ask.strategyid = msg.key;
+                    ask.toBuffer().copy(askBuf, askOffset);
                 }
+
+                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2028, subtype: 0, body: askBuf });
+                askBuf = null;
+                ask = null;
+                askOffset = null;
                 break;
             case 2048: // ComTotalProfitInfo
                 count = content.readUInt32LE(offset);

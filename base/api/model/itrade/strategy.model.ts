@@ -133,6 +133,23 @@ export class ComGuiAckStrategy extends Message {
     }
 }
 
+export class ComGuiAskStrategy extends Message {
+    static readonly len = 4;
+
+    strategyid: number = 0; // 4
+
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(ComGuiAskStrategy.len, 0);
+        buf.writeUInt32LE(this.strategyid, offset);
+        return buf;
+    }
+
+    fromBuffer(buf: Buffer, offset = 0): number {
+        return BufferUtil.format(buf, offset, "1i", this);
+    }
+}
+
 export class ComStrategyCfg extends Message {
     static readonly len = 80;
 

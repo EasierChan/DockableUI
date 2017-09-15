@@ -1609,76 +1609,76 @@ export class AppComponent implements OnInit, AfterViewInit {
         console.info(`showComOrderRecord: len = ${data.length}`);
         let hasDone = false, hasUnDone = false;
         let j;
-        for (let i = 0; i < data.length; ++i) {
-            let orderStatus = data[i].od.status;
+        for (let iData = 0; iData < data.length; ++iData) {
+            let orderStatus = data[iData].od.status;
             // if (orderStatus === 9 || orderStatus === 8) {
             if (orderStatus === 9) {
                 // remove from orderstatus table
                 for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
-                    if (data[i].od.orderid === this.orderstatusTable.rows[i].cells[3].Text) {
+                    if (data[iData].od.orderid === this.orderstatusTable.rows[i].cells[3].Text) {
                         this.orderstatusTable.rows.splice(i, 1);
                         break;
                     }
                 }
 
                 for (j = 0; j < this.doneOrdersTable.rows.length; ++j) {
-                    if (data[i].od.orderid === this.doneOrdersTable.rows[j].cells[2].Text) { // refresh
-                        this.doneOrdersTable.rows[j].cells[4].Text = data[i].od.action === 0 ? "Buy" : "Sell";
-                        this.doneOrdersTable.rows[j].cells[5].Text = data[i].od.oprice / 10000;
-                        this.doneOrdersTable.rows[j].cells[6].Text = data[i].od.ivolume;
-                        this.doneOrdersTable.rows[j].cells[7].Text = this.parseOrderStatus(data[i].od.status);
-                        this.doneOrdersTable.rows[j].cells[8].Text = this.formatTime(data[i].od.odatetime.tv_sec);
-                        this.doneOrdersTable.rows[j].cells[9].Text = data[i].od.ovolume;
-                        this.doneOrdersTable.rows[j].cells[10].Text = data[i].donetype === 1 ? "Active" : (data[i].donetype === 2 ? "Passive" : "UNKNOWN");
-                        this.doneOrdersTable.rows[j].cells[12].Text = this.formatTime(data[i].od.idatetime.tv_sec);
-                        this.doneOrdersTable.rows[j].cells[13].Text = data[i].od.iprice / 10000;
+                    if (data[iData].od.orderid === this.doneOrdersTable.rows[j].cells[2].Text) { // refresh
+                        this.doneOrdersTable.rows[j].cells[4].Text = data[iData].od.action === 0 ? "Buy" : "Sell";
+                        this.doneOrdersTable.rows[j].cells[5].Text = data[iData].od.oprice / 10000;
+                        this.doneOrdersTable.rows[j].cells[6].Text = data[iData].od.ivolume;
+                        this.doneOrdersTable.rows[j].cells[7].Text = this.parseOrderStatus(data[iData].od.status);
+                        this.doneOrdersTable.rows[j].cells[8].Text = this.formatTime(data[iData].od.odatetime.tv_sec);
+                        this.doneOrdersTable.rows[j].cells[9].Text = data[iData].od.ovolume;
+                        this.doneOrdersTable.rows[j].cells[10].Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
+                        this.doneOrdersTable.rows[j].cells[12].Text = this.formatTime(data[iData].od.idatetime.tv_sec);
+                        this.doneOrdersTable.rows[j].cells[13].Text = data[iData].od.iprice / 10000;
                         break;
                     }
                 }
 
                 if (j === this.doneOrdersTable.rows.length) {
                     let row = this.doneOrdersTable.newRow(true);
-                    row.cells[0].Text = data[i].od.innercode;
-                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[i].od.innercode);
-                    row.cells[1].Text = codeInfo.hasOwnProperty(data[i].od.innercode) ? codeInfo[data[i].od.innercode].SecuAbbr : "unknown";
-                    row.cells[14].Text = codeInfo.hasOwnProperty(data[i].od.innercode) ? codeInfo[data[i].od.innercode].SecuCode : "unknown";
-                    row.cells[2].Text = data[i].od.orderid;
-                    row.cells[3].Text = data[i].od.strategyid;
-                    let action: number = data[i].od.action;
+                    row.cells[0].Text = data[iData].od.innercode;
+                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[iData].od.innercode);
+                    row.cells[1].Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuAbbr : "unknown";
+                    row.cells[14].Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuCode : "unknown";
+                    row.cells[2].Text = data[iData].od.orderid;
+                    row.cells[3].Text = data[iData].od.strategyid;
+                    let action: number = data[iData].od.action;
                     if (action === 0)
                         row.cells[4].Text = "Buy";
                     else if (action === 1)
                         row.cells[4].Text = "Sell";
                     else
                         row.cells[4].Text = "";
-                    row.cells[5].Text = data[i].od.oprice / 10000;
-                    row.cells[6].Text = data[i].od.ivolume;
-                    row.cells[7].Text = this.parseOrderStatus(data[i].od.status);
-                    row.cells[8].Text = this.formatTime(data[i].od.odatetime.tv_sec);
-                    row.cells[9].Text = data[i].od.ovolume;
-                    let orderPriceType = data[i].donetype;
+                    row.cells[5].Text = data[iData].od.oprice / 10000;
+                    row.cells[6].Text = data[iData].od.ivolume;
+                    row.cells[7].Text = this.parseOrderStatus(data[iData].od.status);
+                    row.cells[8].Text = this.formatTime(data[iData].od.odatetime.tv_sec);
+                    row.cells[9].Text = data[iData].od.ovolume;
+                    let orderPriceType = data[iData].donetype;
                     if (orderPriceType === 1)
                         row.cells[10].Text = "Active";
                     else if (orderPriceType === 2)
                         row.cells[10].Text = "Passive";
                     else
                         row.cells[10].Text = "UNKNOWN";
-                    row.cells[11].Text = data[i].con.account;
-                    row.cells[12].Text = this.formatTime(data[i].od.idatetime.tv_sec);
-                    row.cells[13].Text = data[i].od.iprice / 10000;
+                    row.cells[11].Text = data[iData].con.account;
+                    row.cells[12].Text = this.formatTime(data[iData].od.idatetime.tv_sec);
+                    row.cells[13].Text = data[iData].od.iprice / 10000;
                 }
 
                 hasDone = true;
             } else {
                 for (j = 0; j < this.orderstatusTable.rows.length; ++j) {
-                    if (data[i].od.orderid === this.orderstatusTable.rows[j].cells[3].Text) {  // refresh
-                        this.refreshUndoneOrderInfo(data[i], j);
+                    if (data[iData].od.orderid === this.orderstatusTable.rows[j].cells[3].Text) {  // refresh
+                        this.refreshUndoneOrderInfo(data[iData], j);
                         break;
                     }
                 }
 
                 if (j === this.orderstatusTable.rows.length) {
-                    this.addUndoneOrderInfo(data[i]);
+                    this.addUndoneOrderInfo(data[iData]);
                 }
 
                 hasUnDone = true;
