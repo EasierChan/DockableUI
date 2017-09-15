@@ -128,36 +128,65 @@ export class AppComponent implements OnInit, OnDestroy {
         });
 
         this.actionBar.onClick = (item) => {
+
             switch (item.title) {
                 case "主页":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
                     this.curPage = "home";
                     this.homeMod = item.title;
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
                 case "历史回测":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
                     this.curPage = "home";
                     this.homeMod = item.title;
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
                 case "未来预测":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
                     this.curPage = "home";
                     this.homeMod = item.title;
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
                 case "证券信息":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
                     this.curPage = "security";
                     this.actionBar.activeItem = item;
                     break;
                 case "时间回溯":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
                     Http.get(this.setting.externalLinks.TimeMachine);
                     break;
                 case "超级图表":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
                     Http.get(this.setting.externalLinks.SuperGraph);
                     break;
                 case "产品监控":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
                     ChildProcess.openUrl(this.setting.externalLinks.CSP);
                     break;
                 case "设置":

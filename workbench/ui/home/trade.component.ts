@@ -181,7 +181,7 @@ export class TradeComponent implements OnInit {
         this.strategyArea.onCreate = () => {
             let config = new WorkspaceConfig();
             config.activeChannel = Channel.ONLINE;
-            this.appsrv.startApp("策略配置", "Dialog", { dlg_name: "strategy", strategies: this.configBll.getTemplates(), products: this.products });
+            this.appsrv.startApp("策略配置", "Dialog", { dlg_name: "strategy", config: config, strategies: this.configBll.getTemplates(), products: this.products });
         };
 
         this.strategyArea.onClick = (event: MouseEvent, item: Tile) => {
