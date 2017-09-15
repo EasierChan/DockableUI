@@ -147,8 +147,7 @@ export class TradeComponent implements OnInit {
         // strategyMenu
         this.strategyMenu = new Menu();
         this.strategyMenu.addItem("启动", () => {
-            if (this.strategyArea.getTile(this.selectedStrategyConfig.chname).backgroundColor !== null)
-                return;
+            this.updateStrategyConfig(this.selectedStrategyConfig);
 
             this.operateStrategyServer(this.selectedStrategyConfig, 1);
         });
