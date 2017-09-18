@@ -97,6 +97,9 @@
                                 }
                             });
 
+                            if (ev.data.value.time < groups[i].min) {
+                                groups[i].min = ev.data.value.time;
+                            }
                             // post this group's md
                             let bidPrice1 = 0;
                             let askPrice1 = 0;
@@ -111,6 +114,13 @@
                                     bidPrice1 += groups[i].items[ukey].replace_amount;
                                     askPrice1 += groups[i].items[ukey].replace_amount;
                                     last += groups[i].items[ukey].replace_amount;
+                                }
+                            });
+
+                            postMessage({
+                                type: "group-md", value: {
+                                    ukey: groups[i].key, time: groups[i].min,
+                                    ask_price: [askPrice1], bid_price: [bidPrice1], last: last
                                 }
                             });
                         }

@@ -106,7 +106,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
 
         if (this.instrumentTable.rows.length > 0) {
             this.instrumentTable.rows.forEach(row => {
-                this.config.items[0].instruments.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Text) });
+                this.config.items[0].instruments.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Data) });
             });
         }
 
@@ -132,12 +132,12 @@ export class StrategyComponent implements OnInit, OnDestroy {
                 row = this.instrumentTable.newRow();
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Instrument[prop];
                 row.cells[0].Text = row.cells[0].Data.name;
-                row.cells[1].Type = "textbox";
+                row.cells[1].Type = "u-codes";
                 row.cells[1].Text = row.cells[0].Data.value;
-                // row.cells[1].OnClick = (item, cellIdx, iRow) => {
-                //     console.info(this, cellIdx, iRow);
-                //     this.instrumentTable.rows[index].cells[1].Data = parseInt(item.code);
-                // };
+                row.cells[1].OnClick = (event) => {
+                    if (event.row !== undefined)
+                        this.instrumentTable.rows[event.row].cells[1].Data = parseInt(event.item.code);
+                };
             }
         }
     }

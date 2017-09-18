@@ -459,7 +459,7 @@ export class TileAreaComponent {
     template: `
         <input type="text" class="btn-default" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedValue" #searcher>
         <ul *ngIf="resList&&resList.length > 0" class="dropdown">
-            <li *ngFor="let item of resList; let i = index" (click)="listClick(item)" [style.backgroundColor]="i === curIdx ? 'black': null">{{item.symbolCode}} {{item.SecuAbbr}}</li>
+            <li *ngFor="let item of resList; let i = index" (click)="listClick($event, item)" [style.backgroundColor]="i === curIdx ? 'black': null">{{item.symbolCode}} {{item.SecuAbbr}}</li>
         </ul>
     `
 })
@@ -484,7 +484,7 @@ export class CodeComponent {
             this.curIdx = this.curIdx < 0 ? (this.resList.length - 1)
                 : ((this.curIdx - 1 + this.resList.length) % this.resList.length);
         } else { // Enter
-            this.listClick(this.resList[this.curIdx < 0 ? 0 : this.curIdx]);
+            this.listClick(event, this.resList[this.curIdx < 0 ? 0 : this.curIdx]);
         }
     }
 
@@ -499,7 +499,9 @@ export class CodeComponent {
         }, 1000);
     }
 
-    listClick(item) {
+    listClick(event: Event, item) {
+        event.preventDefault();
+        event.stopPropagation();
         this.selectedValue = item.symbolCode;
         this.onSelect.emit(item);
         this.resList = null;
