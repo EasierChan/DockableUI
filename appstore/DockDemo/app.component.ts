@@ -32,7 +32,7 @@ import {
         AppStoreService
     ]
 })
-export class AppComponent implements OnInit, AfterViewInit {
+export class AppComponent implements OnInit {
     private readonly apptype = "trade";
     private main: DockContainer;
     private modules: Object = new Object();
@@ -1118,9 +1118,11 @@ export class AppComponent implements OnInit, AfterViewInit {
 
         AppComponent.bgWorker.send({ command: "ss-start", params: { port: parseInt(this.tradeEndpoint[1]), host: this.tradeEndpoint[0], appid: this.option.appid } });
         this.subScribeMarketInit(parseInt(this.quoteEndpoint[1]), this.quoteEndpoint[0]);
-    }
-
-    ngAfterViewInit() {
+        setInterval(() => {
+            this.bookviewArr.forEach(item => {
+                item.table.detectChanges();
+            });
+        }, 1000);
     }
 
     onStrategyTableInit() {
@@ -2612,7 +2614,6 @@ export class AppComponent implements OnInit, AfterViewInit {
         dd_symbol.AcceptInput = true;
         let codeRtn = this.langServ.getTranslateInfo(this.languageType, "Code");
         dd_symbol.Title = codeRtn + ": ";
-        let self = this;
         let bookViewTable = new DataTable("table2");
         bookViewTable.align = "right";
         dd_symbol.SelectChange = () => {
@@ -2621,13 +2622,13 @@ export class AppComponent implements OnInit, AfterViewInit {
             let tempCodeList = [];
             let bookcodeFlag: boolean = false;
             let subscribecode = (dd_symbol.SelectedItem.Value).split(",")[2];
-            for (let i = 0; i < AppComponent.self.bookviewArr.length; ++i) {
-                tempCodeList.push(parseInt(AppComponent.self.bookviewArr[i].code));
-                if (AppComponent.self.bookviewArr[i].bookview === bookviewID) {
+            for (let i = 0; i < this.bookviewArr.length; ++i) {
+                tempCodeList.push(parseInt(this.bookviewArr[i].code));
+                if (this.bookviewArr[i].bookview === bookviewID) {
                     tempCodeList.splice(i, 1);
                     tempCodeList.push(parseInt(subscribecode));
                     bookcodeFlag = true;
-                    AppComponent.self.bookviewArr[i].code = subscribecode;
+                    this.bookviewArr[i].code = subscribecode;
                 }
             }
 
@@ -2698,6 +2699,7 @@ export class AppComponent implements OnInit, AfterViewInit {
             let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
             Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
+
         let bookViewContent = new VBox();
         bookViewContent.addChild(bookviewHeader);
         bookViewContent.addChild(bookViewTable);
