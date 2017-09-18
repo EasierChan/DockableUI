@@ -141,8 +141,8 @@ class SecuMaster {
             if (!pinyin)
                 bPinyin = false;
             else
-                bPinyin = upStr.startsWith(data);
-            let bCode = code.startsWith(data);
+                bPinyin = upStr.startsWith(data.toLocaleUpperCase());
+            let bCode = code.startsWith(data.toLocaleUpperCase());
             if (bPinyin || bCode) {
                 tip += 1;
                 rtnArr.push({ code: SecuMaster.pinyinObj[o].InnerCode, symbolCode: SecuMaster.pinyinObj[o].SecuCode, SecuAbbr: SecuMaster.pinyinObj[o].SecuAbbr, ukey: parseInt(SecuMaster.pinyinObj[o].ukey) });

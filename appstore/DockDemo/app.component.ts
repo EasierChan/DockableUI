@@ -1611,8 +1611,7 @@ export class AppComponent implements OnInit, AfterViewInit {
         let j;
         for (let iData = 0; iData < data.length; ++iData) {
             let orderStatus = data[iData].od.status;
-            // if (orderStatus === 9 || orderStatus === 8) {
-            if (orderStatus === 9) {
+            if (orderStatus === 9 || orderStatus === 6 || orderStatus === 7) {
                 // remove from orderstatus table
                 for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
                     if (data[iData].od.orderid === this.orderstatusTable.rows[i].cells[3].Text) {
@@ -1748,29 +1747,30 @@ export class AppComponent implements OnInit, AfterViewInit {
     }
 
     parseOrderStatus(status: any): String {
-        if (status === EOrderStatus.ORDER_STATUS_INVALID)
-            return "0.无效";
-        else if (status === EOrderStatus.ORDER_STATUS_INIT)
-            return "1.未报";
-        else if (status === EOrderStatus.ORDER_STATUS_WAIT_SEND)
-            return "2.待报";
-        else if (status === EOrderStatus.ORDER_STATUS_SEND)
-            return "3.已报";
-        else if (status === EOrderStatus.ORDER_STATUS_SEND_WAIT_CANCEL)
-            return "4.已报待撤";
-        else if (status === EOrderStatus.ORDER_STATUS_PART_WAIT_CANCEL)
-            return "5.部成待撤";
-        else if (status === EOrderStatus.ORDER_STATUS_PART_CANCELED)
-            return "6.部撤";
-        else if (status === EOrderStatus.ORDER_STATUS_CANCELED)
-            return "7.已撤";
-        else if (status === EOrderStatus.ORDER_STATUS_PART_DEALED)
-            return "8.部成";
-        else if (status === EOrderStatus.ORDER_STATUS_DEALED)
-            return "9.已成";
-        else {
-            AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
-            return "10.废单";
+        switch (status) {
+            case EOrderStatus.ORDER_STATUS_INVALID:
+                return "0.无效";
+            case EOrderStatus.ORDER_STATUS_INIT:
+                return "1.未报";
+            case EOrderStatus.ORDER_STATUS_WAIT_SEND:
+                return "2.待报";
+            case EOrderStatus.ORDER_STATUS_SEND:
+                return "3.已报";
+            case EOrderStatus.ORDER_STATUS_SEND_WAIT_CANCEL:
+                return "4.已报待撤";
+            case EOrderStatus.ORDER_STATUS_PART_WAIT_CANCEL:
+                return "5.部成待撤";
+            case EOrderStatus.ORDER_STATUS_PART_CANCELED:
+                return "6.部撤";
+            case EOrderStatus.ORDER_STATUS_CANCELED:
+                return "7.已撤";
+            case EOrderStatus.ORDER_STATUS_PART_DEALED:
+                return "8.部成";
+            case EOrderStatus.ORDER_STATUS_DEALED:
+                return "9.已成";
+            default:
+                AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
+                return "10.废单";
         }
     }
 
@@ -2174,8 +2174,10 @@ export class AppComponent implements OnInit, AfterViewInit {
                         let symbolCode = secuinfo.hasOwnProperty(data[iData].value) ? secuinfo[data[iData].value].SecuCode : "";
 
                         if (idxInstrument < 0) { // add
-                            this.strategyTable.rows[iRow].cells[strategyKeyMap.instruments.length + 1].Text = `${symbolCode}(${data[iData].value})`;
-                            strategyKeyMap.instruments.push(data[iData].key);
+                            if (data[iData].key === 1 || data[iData].key === 2) {
+                                this.strategyTable.rows[iRow].cells[strategyKeyMap.instruments.length + 1].Text = `${symbolCode}(${data[iData].value})`;
+                                strategyKeyMap.instruments.push(data[iData].key);
+                            }
                         } else { // update
                             this.strategyTable.rows[iRow].cells[idxInstrument + 1].Text = `${symbolCode}(${data[iData].value})`;
                         }

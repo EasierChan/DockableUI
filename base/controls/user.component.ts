@@ -496,7 +496,7 @@ export class CodeComponent {
     autoHide() {
         setTimeout(() => {
             this.resList = null;
-        }, 1000);
+        }, 500);
     }
 
     listClick(event: Event, item) {
