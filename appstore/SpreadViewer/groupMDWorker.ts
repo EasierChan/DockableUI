@@ -1,7 +1,7 @@
 /**
  * deal with group Market data.
  */
-(function () {
+(function() {
     "use strict";
 
     let groups: any[];
@@ -24,7 +24,7 @@
 
                     for (let prop in group.items) {
                         newItem.ukeys.push(group.items[prop].ukey);
-                        newItem.items[group.items[prop].ukey] = { count: parseInt(group.items[prop].count) };
+                        newItem.items[group.items[prop].ukey] = { count: parseInt(group.items[prop].count), replace_amount: parseInt(group.items[prop].replace_amount) };
                     };
 
                     groups.push(newItem);
@@ -48,7 +48,7 @@
                             let bidPrice1 = 0;
                             let askPrice1 = 0;
                             let last = 0;
-                            groups[i].min = groups[i].max;
+
                             groups[i].ukeys.forEach(ukey => {
                                 if (groups[i].lastIdx[ukey] < groups[i].min)
                                     groups[i].min = groups[i].lastIdx[ukey];
@@ -94,6 +94,23 @@
                             groups[i].ukeys.forEach(ukey => {
                                 if (!groups[i].lastIdx.hasOwnProperty(ukey)) {
                                     console.warn(`lost ${ukey} Market data.`);
+                                }
+                            });
+
+                            // post this group's md
+                            let bidPrice1 = 0;
+                            let askPrice1 = 0;
+                            let last = 0;
+
+                            groups[i].ukeys.forEach(ukey => {
+                                if (groups[i].lastIdx.hasOwnProperty(ukey)) {
+                                    bidPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1;
+                                    askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1;
+                                    last += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].last;
+                                } else {
+                                    bidPrice1 += groups[i].items[ukey].replace_amount;
+                                    askPrice1 += groups[i].items[ukey].replace_amount;
+                                    last += groups[i].items[ukey].replace_amount;
                                 }
                             });
                         }

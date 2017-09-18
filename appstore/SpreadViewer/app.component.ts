@@ -444,7 +444,12 @@ export class AppComponent implements OnInit, OnDestroy {
                 File.readLineByLine(this.codes[0], (linestr: string) => {
                     linestr.trim();
                     let fields = linestr.split(",");
-                    group1[fields[0]] = { count: fields[1] };
+                    if (fields.length < 3) {
+                        console.error(`${linestr} must have 3 columns!`);
+                        return;
+                    }
+
+                    group1[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
                 }, () => {
                     nickCodes[0] = "组合1";
                     ukeys[0] = 1;
@@ -466,7 +471,8 @@ export class AppComponent implements OnInit, OnDestroy {
                 File.readLineByLine(this.codes[1], (linestr: string) => {
                     linestr.trim();
                     let fields = linestr.split(",");
-                    group2[fields[0]] = { count: fields[1] };
+
+                    group2[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
                 }, () => {
                     nickCodes[1] = "组合2";
                     ukeys[1] = 2;
