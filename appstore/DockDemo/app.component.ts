@@ -1321,41 +1321,30 @@ export class AppComponent implements OnInit {
         }
     }
 
-    showStatArbOrder(data: any) {
-        for (let i = 0; i < data.length; ++i) {
-            let subtype = data[i].subtype;
-            let dataArr = data[i].content;
-            if (subtype === 1001) {  // add
-                let statArbLen = AppComponent.self.statarbTable.rows.length;
-                if (statArbLen === 0) {
-                    AppComponent.self.addStatArbInfo(dataArr);
-                } else {
-                    let checkFlag: boolean = false;
-                    for (let j = 0; j < statArbLen; ++j) {
-                        let getStrategyid = AppComponent.self.statarbTable.rows[j].cells[6].Text;
-                        let getukey = AppComponent.self.statarbTable.rows[j].cells[1].Text;
-                        if (dataArr[0].code === getukey && dataArr[0].strategyid === getStrategyid) {
-                            checkFlag = true;
-                            AppComponent.self.refreshStatArbInfo(dataArr, j);
-                        }
-                    }
-                    if (!checkFlag) {
-                        AppComponent.self.addStatArbInfo(dataArr);
-                        checkFlag = false;
+    showStatArbOrder(res: any) {
+        let j;
+        for (let i = 0; i < res.data.length; ++i) {
+            let dataArr = res.data;
+            if (res.subtype === 1001) {  // add
+                for (j = 0; j < this.statarbTable.rows.length; ++j) {
+                    if (dataArr[0].code === this.statarbTable.rows[j].cells[1].Text && dataArr[0].strategyid === this.statarbTable.rows[j].cells[6].Text) {
+                        this.refreshStatArbInfo(dataArr, j);
                     }
                 }
-            } else if (subtype === 1002) { // hide
+                if (j === this.statarbTable.rows.length) {
+                    this.addStatArbInfo(dataArr);
+                }
+            } else if (res.subtype === 1002) { // hide
                 for (let idx = 0; idx < dataArr.length; ++idx) {
-                    for (let hideIdx = 0; hideIdx < AppComponent.self.statarbTable.rows.length; ++hideIdx) {
-                        let getUkey = AppComponent.self.statarbTable.rows[hideIdx].cells[1].Text;
-                        let getStrategyid = AppComponent.self.statarbTable.rows[hideIdx].cells[6].Text;
+                    for (let hideIdx = 0; hideIdx < this.statarbTable.rows.length; ++hideIdx) {
+                        let getUkey = this.statarbTable.rows[hideIdx].cells[1].Text;
+                        let getStrategyid = this.statarbTable.rows[hideIdx].cells[6].Text;
                         if (parseInt(getUkey) === dataArr[idx].code && parseInt(getStrategyid) === dataArr[idx].strategyid) {
-                            AppComponent.self.statarbTable.rows[hideIdx].hidden = true;
-                            // AppComponent.self.statarbTable.rows.splice(hideIdx, 1);
+                            this.statarbTable.rows[hideIdx].hidden = true;
                             if (dataArr[idx].amount > 0) {
-                                AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) - dataArr[idx].amount / 10000).toFixed(3).toString();
+                                this.buyamountLabel.Text = (parseFloat(this.buyamountLabel.Text) - dataArr[idx].amount / 10000).toFixed(3).toString();
                             } else if (dataArr[idx].amount < 0) {
-                                AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) + dataArr[idx].amount / 10000).toFixed(3).toString();
+                                this.sellamountLabel.Text = (parseFloat(this.sellamountLabel.Text) + dataArr[idx].amount / 10000).toFixed(3).toString();
                             }
                             break;
                         }
@@ -1458,6 +1447,9 @@ export class AppComponent implements OnInit {
                         this.strategyTable.rows[iRow].cells[6].Disable = true;
                         break;
                     case 2031:
+                        if (item.type !== StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER)
+                            break;
+
                         if (!item.success)
                             break;
 
@@ -1471,7 +1463,6 @@ export class AppComponent implements OnInit {
 
     showLog(data: any) {
         let logStr = data[0];
-        // console.log(logStr);
         let time = this.getCurrentTime();
         let rowLen = this.logTable.rows.length;
         if (rowLen > 500)
@@ -2176,7 +2167,7 @@ export class AppComponent implements OnInit {
                         let symbolCode = secuinfo.hasOwnProperty(data[iData].value) ? secuinfo[data[iData].value].SecuCode : "";
 
                         if (idxInstrument < 0) { // add
-                            if (data[iData].key === 1 || data[iData].key === 2) {
+                            if ((data[iData].key & 0x0000ffff) === 1 || (data[iData].key & 0x0000ffff) === 2) {
                                 this.strategyTable.rows[iRow].cells[strategyKeyMap.instruments.length + 1].Text = `${symbolCode}(${data[iData].value})`;
                                 strategyKeyMap.instruments.push(data[iData].key);
                             }
@@ -2309,7 +2300,7 @@ export class AppComponent implements OnInit {
                 dvalue = Math.round(cell.Text * Math.pow(10, item.decimal));
                 if (item.value !== dvalue) {
                     item.value = dvalue;
-                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "submitPara", data: [item] } });
+                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-param", data: [item] } });
                 }
             });
 
@@ -2344,9 +2335,9 @@ export class AppComponent implements OnInit {
 
             if (cell.Data.level > 9) {
                 if (confirm("extute " + cell.Data.name + " ?"))
-                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "submitPara", data: [cell.Data] } });
+                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-param", data: [cell.Data] } });
             } else {
-                AppComponent.bgWorker.send({ command: "ss-send", params: { type: "submitPara", data: [cell.Data] } });
+                AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-param", data: [cell.Data] } });
             }
 
         }
@@ -2354,7 +2345,7 @@ export class AppComponent implements OnInit {
 
     operateSteategy(strategyid: number, cellidx: number, rowIdx: number, tip: number) {
         AppComponent.self.showStraContrlDisable(tip, cellidx, rowIdx);
-        AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategyControl", data: { tip: tip, strategyid: strategyid } } });
+        AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-cmd", data: { tip: tip, strategyid: strategyid } } });
     }
 
     showStraContrlDisable(Ctrltype: number, cellIdx: number, rowIdx: number) {
@@ -2609,11 +2600,17 @@ export class AppComponent implements OnInit {
         let bookviewPage = new TabPage(bookviewID, this.langServ.getTranslateInfo(this.languageType, "BookView"));
         this.modules[bookviewID] = bookviewPage;
 
-        let bookviewHeader = new HBox();
+        let row1 = new HBox();
         let dd_symbol = new DropDown();
         dd_symbol.AcceptInput = true;
-        let codeRtn = this.langServ.getTranslateInfo(this.languageType, "Code");
-        dd_symbol.Title = codeRtn + ": ";
+        dd_symbol.Title = this.langServ.getTranslateInfo(this.languageType, "Code") + ": ";
+        row1.addChild(dd_symbol);
+
+        let row2 = new HBox();
+        let lbl_timestamp = new Label();
+        lbl_timestamp.Title = "Timestamp: ";
+        row2.addChild(lbl_timestamp);
+
         let bookViewTable = new DataTable("table2");
         bookViewTable.align = "right";
         dd_symbol.SelectChange = () => {
@@ -2666,8 +2663,6 @@ export class AppComponent implements OnInit {
             return rtnArr;
         };
 
-        bookviewHeader.addChild(dd_symbol);
-
         let bookviewTableArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
         let bookviewRtnArr: string[] = [];
         let bookviewTittleLen = bookviewTableArr.length;
@@ -2701,7 +2696,7 @@ export class AppComponent implements OnInit {
         };
 
         let bookViewContent = new VBox();
-        bookViewContent.addChild(bookviewHeader);
+        bookViewContent.addChild(row1).addChild(row2);
         bookViewContent.addChild(bookViewTable);
         bookviewPage.setContent(bookViewContent);
         return bookviewPage;
@@ -2799,7 +2794,7 @@ export class AppComponent implements OnInit {
                             this.showComProfitInfo(data.content.data);
                             break;
                         case 2025:
-                            this.showStatArbOrder(data.content.data);
+                            this.showStatArbOrder(data.content);
                             break;
                         case 5022:
                         case 2021:

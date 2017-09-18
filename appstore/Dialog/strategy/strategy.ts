@@ -115,6 +115,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
 
     changeStrategy(value) {
         this.paramsTable.rows.length = 0;
+        this.instrumentTable.rows.length = 0;
         let row: DataTableRow;
         let strategy = this.strategyTemplates[value]["Strategy"];
         for (let prop in strategy[strategy["Strategies"][0]].Parameter) {

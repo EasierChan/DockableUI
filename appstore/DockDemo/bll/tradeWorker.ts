@@ -327,7 +327,7 @@ export class StrategyDealer {
                     msg = new StatArbOrder();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
-                    logger.debug(`ComGWNetGuiInfo=>${msg}`);
+                    logger.debug(`StatArbOrder=>${msg}`);
                 }
                 break;
             case 2021:
@@ -342,7 +342,10 @@ export class StrategyDealer {
 
                 break;
             case 2040:
-                msg = content.slice(offset, content.indexOf(0, offset));
+                count = content.readUInt32LE(offset);
+                offset += 4;
+                msg = content.slice(offset, content.indexOf(0, offset)).toString();
+                console.info(msg);
                 msgArr.push(msg);
                 break;
             case 5021:
@@ -384,7 +387,7 @@ export class StrategyDealer {
 
         msg = null;
         count = null;
-        process.send({ event: "ss-data", content: { type: header.type, data: msgArr } });
+        process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: msgArr } });
     }
 
     send(params) {
