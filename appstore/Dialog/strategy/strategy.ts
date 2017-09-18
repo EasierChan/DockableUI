@@ -2,7 +2,7 @@
 
 import { Component, OnInit, Input, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { IP20Service } from "../../../base/api/services/ip20.service";
-import { AppStoreService } from "../../../base/api/services/backend.service";
+import { AppStoreService, SecuMasterService } from "../../../base/api/services/backend.service";
 import { DataTable, TabPanel, TabPage, VBox, DataTableRow } from "../../../base/controls/control";
 import { WorkspaceConfig, StrategyInstance, DataKey, Channel } from "../../../base/api/model/workbench.model";
 
@@ -10,7 +10,10 @@ import { WorkspaceConfig, StrategyInstance, DataKey, Channel } from "../../../ba
     moduleId: module.id,
     selector: "strategy",
     templateUrl: "strategy.html",
-    styleUrls: ["strategy.css"]
+    styleUrls: ["strategy.css"],
+    providers: [
+        SecuMasterService
+    ]
 })
 export class StrategyComponent implements OnInit, OnDestroy {
     @Input("config") config: WorkspaceConfig;
@@ -131,6 +134,10 @@ export class StrategyComponent implements OnInit, OnDestroy {
                 row.cells[0].Text = row.cells[0].Data.name;
                 row.cells[1].Type = "textbox";
                 row.cells[1].Text = row.cells[0].Data.value;
+                // row.cells[1].OnClick = (item, cellIdx, iRow) => {
+                //     console.info(this, cellIdx, iRow);
+                //     this.instrumentTable.rows[index].cells[1].Data = parseInt(item.code);
+                // };
             }
         }
     }

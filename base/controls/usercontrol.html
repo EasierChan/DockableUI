@@ -36,6 +36,7 @@
       </ul>
     </div>
   </div>
+  <u-codes *ngIf="child.styleObj.type=='u-codes'" (onSelect)="listClick($event)"></u-codes>
   <label *ngIf="child.styleObj.type=='radio'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top">
                 <pre>{{child.dataSource.title}}</pre>
                 <input [name]="child.dataSource.name" type="radio" [(ngModel)]="child.dataSource.text" [disabled]="child.styleObj?.disable"> 

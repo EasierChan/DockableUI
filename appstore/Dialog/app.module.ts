@@ -5,7 +5,7 @@ import { CommonModule } from "@angular/common";
 
 import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
-import { UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent } from "../../base/controls/user.component";
+import { UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent, CodeComponent } from "../../base/controls/user.component";
 import { ProductComponent } from "./product/product";
 import { StrategyComponent } from "./strategy/strategy";
 
@@ -25,6 +25,7 @@ import { StrategyComponent } from "./strategy/strategy";
     DialogComponent,
     ActionBarComponent,
     EChartComponent,
+    CodeComponent,
     ProductComponent,
     StrategyComponent
   ],

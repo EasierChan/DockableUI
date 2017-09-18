@@ -203,7 +203,7 @@ export class SimulationComponent implements OnInit {
                 instruments[instrument.name].value = instrument.value;
             }
         });
-
+        console.info(instance);
         this.tradePoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
     }
 

@@ -16,6 +16,7 @@ ul.dropdown {
     border-radius: 2px;
     border: 1px solid;
     background-color: #222A41;
+    z-index: 999;
 }
 
 ul.dropdown > li {

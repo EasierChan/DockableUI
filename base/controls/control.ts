@@ -888,7 +888,7 @@ export class HBox extends ComboControl {
 
 export class MetaControl extends Control {
     protected _dataObj: any;
-    constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range" | "date") {
+    constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range" | "date" | "u-codes") {
         super();
         this.styleObj = {
             type: type,
@@ -1217,6 +1217,12 @@ export class DropDown extends MetaControl {
 export interface DropDownItem {
     Text: string;
     Value: any;
+}
+
+export class UCodes extends MetaControl {
+    constructor() {
+        super("u-codes");
+    }
 }
 
 export class EChart extends Control {

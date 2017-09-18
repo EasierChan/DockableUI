@@ -10,3 +10,7 @@ table {
 .page-body {
     background-color: #222a41;
 }
+
+.table > tbody > tr > td {
+    overflow: visible;
+}
