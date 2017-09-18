@@ -9,7 +9,7 @@ import {
   EchartsDirective
 } from "../../base/controls/data.component";
 import {
-  UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent,
+  UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent, CodeComponent
 } from "../../base/controls/user.component";
 
 @NgModule({
@@ -28,6 +28,7 @@ import {
     StatusBarComponent,
     DialogComponent,
     ActionBarComponent,
+    CodeComponent,
     EchartsDirective
   ],
   bootstrap: [AppComponent]
