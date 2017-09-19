@@ -1904,7 +1904,8 @@ export class DataTable extends Control {
     }
 
     detectChanges(): void {
-        this.dataSource.detectChanges();
+        if (typeof this.dataSource.detectChanges === "function")
+            this.dataSource.detectChanges();
     }
 
     set pageSize(value: number) {

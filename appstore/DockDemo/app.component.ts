@@ -144,16 +144,17 @@ export class AppComponent implements OnInit {
 
     onTabPageClosed(pageid: string) {
         let len = AppComponent.self.bookviewArr.length;
-        let tempCodeList = [];
+        let kwlist = [];
         for (let i = 0; i < len; ++i) {
             if (AppComponent.self.bookviewArr[i].id === pageid) {
                 AppComponent.self.bookviewArr.splice(i, 1);
             } else {
-                tempCodeList.push(AppComponent.self.bookviewArr[i].code);
+                if (AppComponent.self.bookviewArr[i].code !== null)
+                    kwlist.push(AppComponent.self.bookviewArr[i].code);
             }
         }
 
-        AppComponent.self.subscribeMarketData(tempCodeList);
+        AppComponent.self.subscribeMarketData(kwlist);
         AppComponent.self.statechecker.changeMenuItemState(pageid, false, 2);
     }
 
@@ -2622,7 +2623,7 @@ export class AppComponent implements OnInit {
             row.cells[3].bgColor = "transparent";
         }
 
-        this.bookviewArr.push({ id: bookviewID, code: null, table: bookViewTable });
+        this.bookviewArr.push({ id: bookviewID, code: null, table: bookViewTable, lbl_timestamp: lbl_timestamp });
 
         dd_symbol.SelectChange = () => {
             this.clearBookViewTable(bookViewTable);
@@ -2633,6 +2634,10 @@ export class AppComponent implements OnInit {
             for (let i = 0; i < this.bookviewArr.length; ++i) {
                 if (this.bookviewArr[i].id === bookviewID) {
                     this.bookviewArr[i].code = ukey;
+                }
+
+                if (this.bookviewArr[i].code === null) {
+                    continue;
                 }
 
                 if (!kwlist.includes(this.bookviewArr[i].code)) {
@@ -2705,7 +2710,8 @@ export class AppComponent implements OnInit {
             switch (data.event) {
                 case "ps-data":
                     for (let idx = 0; idx < this.bookviewArr.length; ++idx) {
-                        if (parseInt(this.bookviewArr[idx].code) === data.content.content.ukey) {
+                        if (this.bookviewArr[idx].code === data.content.content.ukey) {
+                            this.bookviewArr[idx].lbl_timestamp.Text = data.content.content.time;
                             for (let i = 0; i < 10; ++i) {
                                 this.bookviewArr[idx].table.rows[i + 10].cells[0].Text = data.content.content.bid_volume[i] + "";
                                 this.bookviewArr[idx].table.rows[i + 10].cells[1].Text = (data.content.content.bid_price[i] / 10000).toFixed(4);
