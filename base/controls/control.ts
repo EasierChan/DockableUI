@@ -1161,12 +1161,12 @@ export class DropDown extends MetaControl {
     showDropdown() {
         this.curidx = 0;
         this.dataSource.keyup = (event: KeyboardEvent) => {
-            if (event.code !== "ArrowDown" && event.code !== "ArrowUp" && event.code !== "Enter")
+            if (event.keyCode !== 40 && event.keyCode !== 38 && event.keyCode !== 13)
                 return;
 
-            if (event.code === "ArrowDown") {
+            if (event.keyCode === 40) {
                 this.curidx = this.curidx < 0 ? 0 : (this.curidx + 1 + this.dataSource.completelist.length) % this.dataSource.completelist.length;
-            } else if (event.code === "ArrowUp") { // ArrowUp
+            } else if (event.keyCode === 38) { // ArrowUp
                 this.curidx = this.curidx < 0 ? (this.dataSource.completelist.length - 1)
                     : ((this.curidx - 1 + this.dataSource.completelist.length) % this.dataSource.completelist.length);
             } else { // Enter

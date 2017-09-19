@@ -35,7 +35,7 @@ import {
 export class AppComponent implements OnInit {
     private readonly apptype = "trade";
     private main: DockContainer;
-    private modules: Object = new Object();
+    private pageMap: Object = new Object();
     private dialog: Dialog;
     private orderstatusPage: TabPage;
     private tradePage: TabPage;
@@ -110,7 +110,6 @@ export class AppComponent implements OnInit {
     private languageType: number = 1;　 // * 0,English 1,chinese
     private filename: String = "";
     private OrderStatusSelArr = [];
-    // private bookviewObj = { bookview: 0, code: "" };
     private bookviewArr = [];
     private commentObj = {};
     private gatewayObj = {};
@@ -147,11 +146,10 @@ export class AppComponent implements OnInit {
         let len = AppComponent.self.bookviewArr.length;
         let tempCodeList = [];
         for (let i = 0; i < len; ++i) {
-            let code = AppComponent.self.bookviewArr[i].code;
-            if (AppComponent.self.bookviewArr[i].bookview === pageid) {
+            if (AppComponent.self.bookviewArr[i].id === pageid) {
                 AppComponent.self.bookviewArr.splice(i, 1);
             } else {
-                tempCodeList.push(parseInt(code));
+                tempCodeList.push(AppComponent.self.bookviewArr[i].code);
             }
         }
 
@@ -163,7 +161,7 @@ export class AppComponent implements OnInit {
         let label = item.label as string;
         if (label.endsWith("New BookView")) {
             let newBVID = "BookView" + AppComponent.bookViewSN++;
-            while (AppComponent.self.modules.hasOwnProperty(newBVID)) {
+            while (AppComponent.self.pageMap.hasOwnProperty(newBVID)) {
                 newBVID = "BookView" + AppComponent.bookViewSN++;
             }
 
@@ -174,8 +172,8 @@ export class AppComponent implements OnInit {
                 return;
             }
 
-            if (AppComponent.self.modules.hasOwnProperty(newBVID)) {
-                panel.addTab(AppComponent.self.modules[newBVID]);
+            if (AppComponent.self.pageMap.hasOwnProperty(newBVID)) {
+                panel.addTab(AppComponent.self.pageMap[newBVID]);
                 panel.setActive(newBVID);
             }
 
@@ -196,8 +194,8 @@ export class AppComponent implements OnInit {
                 return;
             }
 
-            if (AppComponent.self.modules.hasOwnProperty(item.label)) {
-                panel.addTab(AppComponent.self.modules[item.label]);
+            if (AppComponent.self.pageMap.hasOwnProperty(item.label)) {
+                panel.addTab(AppComponent.self.pageMap[item.label]);
                 panel.setActive(item.label);
             }
         }
@@ -226,7 +224,7 @@ export class AppComponent implements OnInit {
         this.statusbar = new StatusBar();
         let order = "OrderStatus";
         this.orderstatusPage = new TabPage(order, this.langServ.getTranslateInfo(this.languageType, order));
-        this.modules["OrderStatus"] = this.orderstatusPage;
+        this.pageMap["OrderStatus"] = this.orderstatusPage;
         let orderstatusContent = new VBox();
 
         let orderstatusHeader = new HBox();
@@ -338,7 +336,7 @@ export class AppComponent implements OnInit {
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
-        this.modules["DoneOrders"] = this.doneOrdersPage;
+        this.pageMap["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new VBox();
         this.doneOrdersTable = new DataTable("table2");
         let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
@@ -359,7 +357,7 @@ export class AppComponent implements OnInit {
 
 
         this.accountPage = new TabPage("Account", this.langServ.getTranslateInfo(this.languageType, "Account"));
-        this.modules["Account"] = this.accountPage;
+        this.pageMap["Account"] = this.accountPage;
         let accountContent = new VBox();
         this.accountTable = new DataTable("table");
         let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
@@ -379,7 +377,7 @@ export class AppComponent implements OnInit {
         this.accountPage.setContent(accountContent);
 
         this.positionPage = new TabPage("Position", this.langServ.getTranslateInfo(this.languageType, "Position"));
-        this.modules["Position"] = this.positionPage;
+        this.pageMap["Position"] = this.positionPage;
         let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
         let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
@@ -657,7 +655,7 @@ export class AppComponent implements OnInit {
         this.createBookView("BookView");
 
         this.logPage = new TabPage("Log", this.langServ.getTranslateInfo(this.languageType, "LOG"));
-        this.modules["Log"] = this.logPage;
+        this.pageMap["Log"] = this.logPage;
         let logContent = new VBox();
         this.logTable = new DataTable("table2");
 
@@ -669,7 +667,7 @@ export class AppComponent implements OnInit {
         this.logPage.setContent(logContent);
 
         this.statarbPage = new TabPage("StatArb", this.langServ.getTranslateInfo(this.languageType, "StatArb"));
-        this.modules["StatArb"] = this.statarbPage;
+        this.pageMap["StatArb"] = this.statarbPage;
         let statarbLeftAlign = 20;
         let statarbHeader = new HBox();
         this.buyamountLabel = new MetaControl("textbox");
@@ -706,7 +704,7 @@ export class AppComponent implements OnInit {
         this.statarbPage.setContent(statarbContent);
 
         this.portfolioPage = new TabPage("Portfolio", this.langServ.getTranslateInfo(this.languageType, "Portfolio"));
-        this.modules["Portfolio"] = this.portfolioPage;
+        this.pageMap["Portfolio"] = this.portfolioPage;
         let loadItem = new HBox();
 
         this.portfolio_acc = new DropDown();
@@ -1061,7 +1059,7 @@ export class AppComponent implements OnInit {
 
 
         this.profitPage = new TabPage("Profit", this.langServ.getTranslateInfo(this.languageType, "Profit"));
-        this.modules["Profit"] = this.profitPage;
+        this.pageMap["Profit"] = this.profitPage;
         let profitleftAlign = 20;
         let profitHeader = new HBox();
         this.totalpnLabel = new MetaControl("textbox");
@@ -1161,7 +1159,7 @@ export class AppComponent implements OnInit {
         this.strategyPage.setContent(strategyContent);
         this.strategyTable.onCellClick = (cellItem, cellIdx, rowIdx) => { this.strategyOnCellClick(cellItem, cellIdx, rowIdx); };
 
-        this.modules["Strategy"] = this.strategyPage;
+        this.pageMap["Strategy"] = this.strategyPage;
     }
 
     loadLayout() {
@@ -1288,8 +1286,8 @@ export class AppComponent implements OnInit {
         } else if (obj.modules && obj.modules.length > 0) {
             let panel = new TabPanel();
             obj.modules.forEach(page => {
-                if (AppComponent.self.modules.hasOwnProperty(page)) {
-                    panel.addTab(AppComponent.self.modules[page]);
+                if (AppComponent.self.pageMap.hasOwnProperty(page)) {
+                    panel.addTab(AppComponent.self.pageMap[page]);
                     this.statechecker.changeMenuItemState(page, true, 2);
                 } else {
                     if (page.startsWith("BookView")) {
@@ -2598,7 +2596,7 @@ export class AppComponent implements OnInit {
 
     createBookView(bookviewID) {
         let bookviewPage = new TabPage(bookviewID, this.langServ.getTranslateInfo(this.languageType, "BookView"));
-        this.modules[bookviewID] = bookviewPage;
+        this.pageMap[bookviewID] = bookviewPage;
 
         let row1 = new HBox();
         let dd_symbol = new DropDown();
@@ -2613,66 +2611,8 @@ export class AppComponent implements OnInit {
 
         let bookViewTable = new DataTable("table2");
         bookViewTable.align = "right";
-        dd_symbol.SelectChange = () => {
-            this.clearBookViewTable(bookViewTable);
-            // bind bookivewID, and subscribe code
-            let tempCodeList = [];
-            let bookcodeFlag: boolean = false;
-            let subscribecode = (dd_symbol.SelectedItem.Value).split(",")[2];
-            for (let i = 0; i < this.bookviewArr.length; ++i) {
-                tempCodeList.push(parseInt(this.bookviewArr[i].code));
-                if (this.bookviewArr[i].bookview === bookviewID) {
-                    tempCodeList.splice(i, 1);
-                    tempCodeList.push(parseInt(subscribecode));
-                    bookcodeFlag = true;
-                    this.bookviewArr[i].code = subscribecode;
-                }
-            }
+        ["BidVol", "Price", "AskVol", "TransVol"].forEach(item => { bookViewTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item)); });
 
-            if (!bookcodeFlag) {
-                this.bookviewArr.push({ bookview: bookviewID, code: subscribecode, table: bookViewTable });
-                tempCodeList.push(parseInt(subscribecode));
-            }
-
-            this.subscribeMarketData(tempCodeList);
-        };
-
-        dd_symbol.matchMethod = (inputText) => {
-            let len = inputText.length;
-            let sendStr: string = "";
-            for (let i = 0; i < len; ++i) {
-                let bcheck = (/^[a-z]+$/).test(inputText.charAt(i));
-                if (bcheck) {
-                    sendStr += inputText.charAt(i).toLocaleUpperCase();
-                }
-                else {
-                    sendStr += inputText.charAt(i);
-                }
-            }
-            let msg = this.secuinfo.getCodeList(sendStr);
-            let rtnArr = [];
-            dd_symbol.Items.length = 0;
-            let msgLen = msg.length;
-            for (let i = 0; i < msgLen; ++i) {
-                if (msg[i].SecuAbbr === msg[i].symbolCode)
-                    rtnArr.push({ Text: msg[i].symbolCode, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
-                else
-                    rtnArr.push({ Text: msg[i].symbolCode + " " + msg[i].SecuAbbr, Value: msg[i].code + "," + msg[i].symbolCode + "," + msg[i].ukey });
-            }
-
-            return rtnArr;
-        };
-
-        let bookviewTableArr: string[] = ["BidVol", "Price", "AskVol", "TransVol"];
-        let bookviewRtnArr: string[] = [];
-        let bookviewTittleLen = bookviewTableArr.length;
-        for (let i = 0; i < bookviewTittleLen; ++i) {
-            let bookviewRtn = this.langServ.getTranslateInfo(this.languageType, bookviewTableArr[i]);
-            bookviewRtnArr.push(bookviewRtn);
-        }
-        bookviewRtnArr.forEach(item => {
-            bookViewTable.addColumn(item);
-        });
         for (let i = 0; i < 20; ++i) {
             let row = bookViewTable.newRow();
             row.cells[0].bgColor = "#FE6635";
@@ -2681,18 +2621,51 @@ export class AppComponent implements OnInit {
             row.cells[2].bgColor = "#D31d45";
             row.cells[3].bgColor = "transparent";
         }
-        let bHead = false;
-        bookViewTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
-            // console.info(cellIndex, rowIndex);
+
+        this.bookviewArr.push({ id: bookviewID, code: null, table: bookViewTable });
+
+        dd_symbol.SelectChange = () => {
+            this.clearBookViewTable(bookViewTable);
+            // bind bookivewID, and subscribe code
+            let kwlist = [];
+            let ukey = parseInt(dd_symbol.SelectedItem.Value.split(",")[2]);
+
+            for (let i = 0; i < this.bookviewArr.length; ++i) {
+                if (this.bookviewArr[i].id === bookviewID) {
+                    this.bookviewArr[i].code = ukey;
+                }
+
+                if (!kwlist.includes(this.bookviewArr[i].code)) {
+                    kwlist.push(this.bookviewArr[i].code);
+                }
+            }
+
+            this.subscribeMarketData(kwlist);
         };
+
+        dd_symbol.matchMethod = (inputText) => {
+            let codes = this.secuinfo.getCodeList(inputText.toLocaleUpperCase());
+            let rtnArr = [];
+
+            dd_symbol.Items.length = 0;
+            for (let i = 0; i < codes.length; ++i) {
+                if (codes[i].SecuAbbr === codes[i].symbolCode)
+                    rtnArr.push({ Text: codes[i].symbolCode, Value: codes[i].code + "," + codes[i].symbolCode + "," + codes[i].ukey });
+                else
+                    rtnArr.push({ Text: codes[i].symbolCode + " " + codes[i].SecuAbbr, Value: codes[i].code + "," + codes[i].symbolCode + "," + codes[i].ukey });
+            }
+
+            return rtnArr;
+        };
+
         bookViewTable.onRowDBClick = (rowItem, rowIndex) => {
             if (dd_symbol.SelectedItem !== null) {
                 [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
                 this.txt_Price.Text = rowItem.cells[1].Text;
                 this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
             }
-            let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
-            Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
+
+            Dialog.popup(this, this.tradeContent, { title: this.langServ.getTranslateInfo(this.languageType, "Trade"), height: 300 });
         };
 
         let bookViewContent = new VBox();
