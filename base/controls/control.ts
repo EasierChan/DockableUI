@@ -344,11 +344,11 @@ export class DockContainer extends Control {
                                 if (siblings[index - 2].styleObj.type === "v") {
                                     siblings[index - 2].styleObj.width =
                                         siblings[index - 1].width + siblings[index].width + siblings[index - 2].width;
-                                    siblings[index - 2].reallocSize(siblings[index - 2].styleObj.width, siblings[index - 2].height);
+                                    siblings[index - 2].reallocSize(siblings[index - 2].styleObj.width, siblings[index - 2].parent.height);
                                 } else {
                                     siblings[index - 2].styleObj.height =
                                         siblings[index - 1].height + siblings[index].height + siblings[index - 2].height;
-                                    siblings[index - 2].reallocSize(siblings[index - 2].width, siblings[index - 2].styleObj.height);
+                                    siblings[index - 2].reallocSize(siblings[index - 2].parent.width, siblings[index - 2].styleObj.height);
                                 }
 
                                 siblings.splice(index - 1, 2);
@@ -356,11 +356,11 @@ export class DockContainer extends Control {
                                 if (siblings[index + 2].styleObj.type === "v") {
                                     siblings[index + 2].styleObj.width =
                                         siblings[index].width + siblings[index + 1].width + siblings[index + 2].width;
-                                    siblings[index + 2].reallocSize(siblings[index + 2].styleObj.width, siblings[index + 2].height);
+                                    siblings[index + 2].reallocSize(siblings[index + 2].styleObj.width, siblings[index + 2].parent.height);
                                 } else {
                                     siblings[index + 2].styleObj.height =
                                         siblings[index].height + siblings[index + 1].height + siblings[index + 2].height;
-                                    siblings[index + 2].reallocSize(siblings[index + 2].width, siblings[index + 2].styleObj.height);
+                                    siblings[index + 2].reallocSize(siblings[index + 2].parent.width, siblings[index + 2].styleObj.height);
                                 }
 
                                 siblings.splice(index, 2);

@@ -170,13 +170,13 @@ export class StrategyDealer {
                         }, 5000 - (Date.now() - lasttry));
                     }
 
-                    logger.info(`tgw ans=>${JSON.stringify(msg.content)}`);
+                    logger.info(`tradeWorker:173: tgw ans=>${JSON.stringify(msg.content)}`);
                 }
             }, {
                 appid: 17,
                 packid: 110,
                 callback(msg) {
-                    logger.info(`tgw ans=>${JSON.stringify(msg.content)}`);
+                    logger.info(`tradeWorker:179: tgw ans=>${JSON.stringify(msg.content)}`);
                 }
             }, {
                 appid: this.appid,
