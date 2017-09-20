@@ -80,7 +80,26 @@ export class StrategyComponent implements OnInit, OnDestroy {
         AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
         this.strategyTemplates = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyTemplates));
         if (this.strategyType !== undefined) {
-            this.changeStrategy(this.strategyType);
+            let row: DataTableRow;
+            let strategy = this.strategyTemplates[this.strategyType]["Strategy"];
+            this.config.items[0].parameters.forEach(param => {
+                row = this.paramsTable.newRow();
+                row.cells[0].Text = param.name;
+                row.cells[1].Type = "textbox";
+                row.cells[1].Text = param.value;
+            });
+
+            this.config.items[0].instruments.forEach(instrument => {
+                row = this.instrumentTable.newRow();
+                row.cells[0].Text = instrument.name;
+                row.cells[1].Type = "u-codes";
+                row.cells[1].Text = instrument.value;
+                row.cells[1].Data = instrument.value;
+                row.cells[1].OnClick = (event) => {
+                    if (event.row !== undefined)
+                        this.instrumentTable.rows[event.row].cells[1].Data = parseInt(event.item.code);
+                };
+            });
         }
     }
 
@@ -135,6 +154,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
                 row.cells[0].Text = row.cells[0].Data.name;
                 row.cells[1].Type = "u-codes";
                 row.cells[1].Text = row.cells[0].Data.value;
+                row.cells[1].Data = row.cells[0].Data.value;
                 row.cells[1].OnClick = (event) => {
                     if (event.row !== undefined)
                         this.instrumentTable.rows[event.row].cells[1].Data = parseInt(event.item.code);

@@ -79,6 +79,11 @@ export class ConfigurationBLL {
 
     private _names: any[];
     private _products: any[];
+
+    strategyKeys: number[];
+    onCreated: Function;
+    onStateChanged: Function;
+    tempConfig: WorkspaceConfig;
     /**
      * @return a list of available strategy templates.
      */
@@ -144,6 +149,9 @@ export class ConfigurationBLL {
                         this._ss_backtest_configs.push(config);
                         break;
                 }
+
+                if (this.onCreated)
+                    this.onCreated(config);
             }
         }
 
@@ -165,6 +173,11 @@ export class ConfigurationBLL {
                     case Channel.BACKTEST:
                         this._ss_backtest_configs.splice(this._ss_backtest_configs.indexOf(config), 1);
                         break;
+                }
+
+                let idx = this.strategyKeys.indexOf(config.items[0].key);
+                if (idx >= 0) {
+                    this.strategyKeys.splice(idx, 1);
                 }
 
                 File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
@@ -202,6 +215,51 @@ export class ConfigurationBLL {
                 this._ss_backtest_configs.push(config);
                 break;
         }
+    }
+
+    genInstance(config: WorkspaceConfig): Object {
+        let instance = this.getTemplateByName(config.strategyType);
+        instance["ss_instance_name"] = config.name;
+        instance["SSData"]["backup"]["path"] += "/" + config.name;
+        instance["SSInfo"]["name"] = config.name;
+        instance["SSLog"]["file"] = instance["SSLog"]["file"].replace(/\$ss_instance_name/g, config.name);
+        let parameters = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Parameter"];
+        let instruments = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Instrument"];
+        config.items[0].parameters.forEach(param => {
+            if (parameters.hasOwnProperty(param.name)) {
+                parameters[param.name].value = param.value;
+            }
+        });
+
+        config.items[0].instruments.forEach(instrument => {
+            if (instruments.hasOwnProperty(instrument.name)) {
+                instruments[instrument.name].value = instrument.value;
+            }
+        });
+
+        switch (config.activeChannel) {
+            case Channel.BACKTEST:
+                instance["SSGW"]["Gateway"].addr = config.backtestConfig.tradePoint.host;
+                instance["SSGW"]["Gateway"].port = config.backtestConfig.tradePoint.port;
+                instance["SSFeed"]["PS"].addr = config.backtestConfig.quotePoint.port;
+                instance["SSFeed"]["PS"].port = config.backtestConfig.quotePoint.port;
+                break;
+            case Channel.SIMULATION:
+                break;
+            case Channel.ONLINE:
+                let product = this._products.find(item => { return item.tblock_id === config.productID; });
+
+                if (product) {
+                    instance["SSGW"]["Gateway"].addr = product.cfg.split("|")[0].split(",")[0];
+                    instance["SSGW"]["Gateway"].port = product.cfg.split("|")[0].split(",")[1];
+                    instance["Strategy"][instance["Strategy"]["Strategies"][0]]["account"] = product.broker_customer_code.split(",").map(item => { return parseInt(item); });
+                } else {
+                    console.error(`product error`);
+                }
+                break;
+        }
+
+        return instance;
     }
 
     updateTemplate(name: string, template: any) {

@@ -24,9 +24,11 @@ export class WorkspaceConfig {
     activeChannel: Channel;
     backtestConfig?: any;
     productID: string;
+    state: number;
 
     constructor() {
         this.items = [];
+        this.state = 0;
     }
 
     static setObject(obj: any): WorkspaceConfig[] {

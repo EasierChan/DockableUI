@@ -42,6 +42,7 @@ export class AppComponent implements OnInit, OnDestroy {
     isonpacks: any;
     productAppID: number;
     scmsAppID: number;
+    ssgwAppID: number;
 
     constructor(private tradeEndPoint: TradeService,
         private quote: QuoteService,
@@ -56,6 +57,7 @@ export class AppComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.productAppID = this.setting.endpoints[0].tgw_apps.ids;
         this.scmsAppID = this.setting.endpoints[0].tgw_apps.scms;
+        this.ssgwAppID = this.setting.endpoints[0].tgw_apps.ssgw;
         this.isonpacks = {};
         this.homeMod = DataSet.modules[0].name;
         this.activeTab = DataSet.tabs(this.homeMod)[0];
@@ -256,6 +258,36 @@ export class AppComponent implements OnInit, OnDestroy {
         });
 
         this.tradeEndPoint.addSlot({
+            appid: this.ssgwAppID,
+            packid: 2001, // 创建策略回报
+            callback: msg => {
+                console.debug(msg);
+                if (msg.content.body.errorid !== 0) {
+                    console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
+                    return;
+                }
+
+                let config;
+                if (this.configBll.tempConfig && this.configBll.tempConfig.name === msg.content.body.name) {
+                    config = this.configBll.tempConfig;
+                } else {
+                    config = this.configBll.getAllConfigs().find(item => { return item.name === msg.content.body.name; });
+                }
+
+                if (config) {
+                    config.appid = msg.content.body.appid;
+                    config.items[0].key = msg.content.body.strategy_key;
+                    let idx = this.configBll.strategyKeys.indexOf(config.items[0].key);
+                    if (idx < 0)
+                        this.configBll.strategyKeys.push(config.items[0].key);
+
+                    this.configBll.updateConfig(config);
+                    this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+                }
+            }
+        });
+
+        this.tradeEndPoint.addSlot({
             appid: this.productAppID,
             packid: 216,
             callback: msg => {
@@ -292,6 +324,21 @@ export class AppComponent implements OnInit, OnDestroy {
                 products = null;
                 productInfo = null;
                 data = null;
+            }
+        });
+
+        this.tradeEndPoint.addSlot({
+            appid: 17,
+            packid: 110,
+            callback: (msg) => {
+                // console.info(msg);
+                let target = this.configBll.getAllConfigs().find(citem => { return citem.name === msg.content.strategyserver.name; });
+
+                if (target !== undefined) {
+                    target.state = msg.content.strategyserver.stat;
+                    if (this.configBll.onStateChanged)
+                        this.configBll.onStateChanged(target);
+                }
             }
         });
     }

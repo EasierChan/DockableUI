@@ -27,13 +27,12 @@ export class TradeComponent implements OnInit {
     strategyArea: TileArea;
     strategyConfigs: Array<WorkspaceConfig>;
     selectedStrategyConfig: WorkspaceConfig;
-    strategyKeys: number[];
 
     setting: any;
     quoteEndpoint: any;
     ssgwAppID: number;
 
-    constructor(private appsrv: AppStoreService, private tradePoint: TradeService, private configBll: ConfigurationBLL) {
+    constructor(private appsrv: AppStoreService, private tradeEndPoint: TradeService, private configBll: ConfigurationBLL) {
     }
 
     ngOnInit() {
@@ -49,73 +48,7 @@ export class TradeComponent implements OnInit {
     }
 
     registerListeners() {
-        this.tradePoint.addSlot({
-            appid: this.ssgwAppID,
-            packid: 2001, // 创建策略回报
-            callback: msg => {
-                console.debug(msg);
-                if (msg.content.body.errorid !== 0) {
-                    console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
-                    return;
-                }
-
-                let config = this.strategyConfigs.find(item => { return item.name === msg.content.body.name; });
-
-                if (config) {
-                    config.appid = msg.content.body.appid;
-                    config.items[0].key = msg.content.body.strategy_key;
-                    let idx = this.strategyKeys.indexOf(config.items[0].key);
-                    if (idx < 0)
-                        this.strategyKeys.push(config.items[0].key);
-                    else
-                        this.strategyKeys[idx] = config.items[0].key;
-
-                    let tile = this.strategyArea.getTile(config.chname);
-
-                    if (null === tile) {
-                        tile = new Tile();
-                        tile.title = config.chname;
-                        tile.iconName = "tasks";
-                        this.strategyArea.addTile(tile);
-                    }
-
-                    this.configBll.updateConfig(config);
-                    this.refreshSubscribe();
-                }
-            }
-        });
-
-        this.tradePoint.addSlot({
-            appid: this.ssgwAppID,
-            packid: 2003, // 启动策略回报
-            callback: msg => {
-                for (let i = 0; i < this.strategyConfigs.length; ++i) {
-                    if (this.strategyConfigs[i].name === msg.content.strategyserver.name) {
-                        // this.strategyConfigs[i].appid = 
-                        break;
-                    }
-                }
-
-                this.configBll.updateConfig();
-            }
-        });
-
         // subscribe strategy status
-        this.tradePoint.addSlot({
-            appid: 17,
-            packid: 110,
-            callback: (msg) => {
-                // console.info(msg);
-                let target = this.strategyConfigs.find(citem => { return citem.name === msg.content.strategyserver.name; });
-
-                if (target !== undefined)
-                    this.strategyArea.getTile(target.chname).backgroundColor = msg.content.strategyserver.stat !== 0 ? "#1d9661" : null;
-            }
-        });
-    }
-
-    refreshSubscribe() {
-        this.tradePoint.send(17, 101, { topic: 8000, kwlist: this.strategyKeys });
     }
 
     initializeProducts() {
@@ -143,12 +76,9 @@ export class TradeComponent implements OnInit {
     }
 
     initializeStrategies() {
-        this.strategyKeys = [];
         // strategyMenu
         this.strategyMenu = new Menu();
         this.strategyMenu.addItem("启动", () => {
-            this.updateStrategyConfig(this.selectedStrategyConfig);
-
             this.operateStrategyServer(this.selectedStrategyConfig, 1);
         });
         this.strategyMenu.addItem("停止", () => {
@@ -166,15 +96,9 @@ export class TradeComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
-            for (let i = 0; i < this.strategyConfigs.length; ++i) {
-                if (this.strategyConfigs[i].name === this.selectedStrategyConfig.name) {
-                    this.configBll.removeConfig(this.selectedStrategyConfig);
-                    this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
-                    this.strategyKeys.splice(this.strategyKeys.indexOf(this.selectedStrategyConfig.items[0].key), 1);
-                    this.refreshSubscribe();
-                    break;
-                }
-            }
+            this.configBll.removeConfig(this.selectedStrategyConfig);
+            this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
+            this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
         });
         // end strategyMenu
 
@@ -209,14 +133,25 @@ export class TradeComponent implements OnInit {
             tile.title = config.chname;
             tile.iconName = "tasks";
             tile.data = config.name;
+            tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
-            this.strategyKeys.push(config.items[0].key);
         });
 
         this.areas.push(this.strategyArea);
 
+        this.configBll.onCreated = (config) => {
+            let tile = new Tile();
+            tile.title = config.chname;
+            tile.iconName = "tasks";
+            tile.data = config.name;
+            tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
+            this.strategyArea.addTile(tile);
+        };
+
+        this.configBll.onStateChanged = (config: WorkspaceConfig) => {
+            this.strategyArea.getTile(config.chname).backgroundColor = config.state !== 0 ? "#1d9661" : null;
+        };
         // strategy status
-        this.refreshSubscribe();
         this.appsrv.onUpdateApp(this.updateApp, this);
     }
 
@@ -299,42 +234,14 @@ export class TradeComponent implements OnInit {
     }
 
     updateStrategyConfig(config: WorkspaceConfig) {
-        if (this.strategyConfigs.find(item => { return item.name === config.name; }) === undefined)
-            this.strategyConfigs.push(config);
+        if (this.selectedStrategyConfig === undefined || config.name !== this.selectedStrategyConfig.name) // create
+            this.configBll.tempConfig = config;
 
-        let instance = this.configBll.getTemplateByName(config.strategyType);
-        instance["ss_instance_name"] = config.name;
-        instance["SSData"]["backup"]["path"] += "/" + config.name;
-        instance["SSInfo"]["name"] = config.name;
-        instance["SSLog"]["file"] = instance["SSLog"]["file"].replace(/\$ss_instance_name/g, config.name);
-        let parameters = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Parameter"];
-        config.items[0].parameters.forEach(param => {
-            if (parameters.hasOwnProperty(param.name)) {
-                parameters[param.name].value = param.value;
-            }
-        });
-        let instruments = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Instrument"];
-        config.items[0].instruments.forEach(instrument => {
-            if (instruments.hasOwnProperty(instrument.name)) {
-                instruments[instrument.name].value = instrument.value;
-            }
-        });
-
-        let product = this.products.find(item => { return item.tblock_id === config.productID; });
-        console.info(product);
-        if (product) {
-            instance["SSGW"]["Gateway"].addr = product.cfg.split("|")[0].split(",")[0];
-            instance["SSGW"]["Gateway"].port = product.cfg.split("|")[0].split(",")[1];
-            instance["Strategy"][instance["Strategy"]["Strategies"][0]]["account"] = product.broker_customer_code.split(",").map(item => { return parseInt(item); });
-            this.tradePoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: instance }) } });
-        } else {
-            console.error(`product error`);
-        }
-
+        this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
-        this.tradePoint.send(this.ssgwAppID, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
+        this.tradeEndPoint.send(this.ssgwAppID, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
 
     onStartApp() {

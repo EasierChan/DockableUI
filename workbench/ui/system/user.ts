@@ -2,6 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { AppStoreService, CryptoService } from "../../../base/api/services/backend.service";
+import { ConfigurationBLL } from "../../bll/strategy.server";
 import { TradeService, QuoteService } from "../../bll/services";
 
 @Component({
@@ -27,7 +28,8 @@ export class UserComponent implements OnInit {
     constructor(private tradeSrv: TradeService,
         private quoteSrv: QuoteService,
         private appSrv: AppStoreService,
-        private cryptoSrv: CryptoService) {
+        private cryptoSrv: CryptoService,
+        private configBll: ConfigurationBLL) {
         this.name = "个人中心";
         this.maid = "";
         this.userid = "";
@@ -72,6 +74,7 @@ export class UserComponent implements OnInit {
                 // to request template
                 // this.tradeSrv.send(this.scmsAppID, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
                 this.tradeSrv.send(this.productAppID, 216, { body: { tblock_type: 2 } });
+                this.tradeSrv.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
 
                 if (this.tradeHeart !== null) {
                     clearInterval(this.tradeHeart);
