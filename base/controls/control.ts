@@ -454,6 +454,7 @@ export class DockContainer extends Control {
 
         if (this.subpanel && this.children.length === 1) {
             layout.modules = this.subpanel.getAllTabs();
+            layout.activeIdx = this.subpanel.activeIdx;
         } else {
             layout.children = [];
             this.children.forEach(child => {
@@ -550,6 +551,8 @@ export class TabPanel extends Control {
     private static sn = 1;
     private static panelMap: Object = {};
     id: string;
+    activePageID: string;
+    activeIdx: number;
     protected pages: TabPages;
     protected headers: TabHeaders;
     private afterPageClosed: Function;
@@ -621,31 +624,44 @@ export class TabPanel extends Control {
     removeTab(pageid: string) {
         this.headers.removeHeader(pageid);
         let respage = this.pages.removePage(pageid);
-        this.headers.getAllHeader().forEach((header, index) => {
-            if (index === 0)
-                header.setActive();
-            else
-                header.unActive();
-        });
-        this.pages.getAllPage().forEach(page => {
-            if (page.id === this.headers.at(0).targetId)
-                page.setActive();
-            else
-                page.unActive();
-        });
+
+        this.setActiveIdx(0);
         return respage;
     }
 
     setActive(pageId: string): TabPanel {
-        this.pages.getAllPage().forEach(page => {
-            if (page.id === pageId)
+        this.pages.getAllPage().forEach((page, index) => {
+            if (page.id === pageId) {
                 page.setActive();
-            else
+                this.activeIdx = index;
+                this.activePageID = pageId;
+            } else {
                 page.unActive();
+            }
         });
 
         this.headers.getAllHeader().forEach(header => {
             if (header.targetId === pageId)
+                header.setActive();
+            else
+                header.unActive();
+        });
+        return this;
+    }
+
+    setActiveIdx(pageIdx: number): TabPanel {
+        this.pages.getAllPage().forEach((page, index) => {
+            if (pageIdx === index) {
+                page.setActive();
+                this.activeIdx = index;
+                this.activePageID = page.id;
+            } else {
+                page.unActive();
+            }
+        });
+
+        this.headers.getAllHeader().forEach((header, index) => {
+            if (pageIdx === index)
                 header.setActive();
             else
                 header.unActive();

@@ -33,12 +33,12 @@ class SecuMaster {
 
                 if (arrLen === 5) {
                     SecuMaster.pinyinObj[arr[2] + ","] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: parseInt(arr[0]) };
-                    SecuMaster.secuUkeyObj[arr[1]] = SecuMaster.pinyinObj[arr[2] + ","];
+                    SecuMaster.secuUkeyObj[arr[0]] = SecuMaster.pinyinObj[arr[2] + ","];
                     if (arr[4].length > 0)
                         SecuMaster.windObj[arr[4]] = SecuMaster.pinyinObj[arr[2] + ","];
                 } else if (arrLen === 6) {
                     SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: parseInt(arr[0]) };
-                    SecuMaster.secuUkeyObj[arr[1]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
+                    SecuMaster.secuUkeyObj[arr[0]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
                     if (arr[5].length > 0)
                         SecuMaster.windObj[arr[5]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
                 }

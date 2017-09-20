@@ -124,6 +124,7 @@ export class AppComponent implements OnInit {
     private tradeEndpoint: any;
     private quoteEndpoint: any;
     private strategyMap: any;
+    private appStorage: any;
 
     static self: AppComponent;
     static bookViewSN = 1;
@@ -143,14 +144,15 @@ export class AppComponent implements OnInit {
     }
 
     onTabPageClosed(pageid: string) {
-        let len = AppComponent.self.bookviewArr.length;
         let kwlist = [];
-        for (let i = 0; i < len; ++i) {
+        let i = 0;
+        while (i < AppComponent.self.bookviewArr.length) {
             if (AppComponent.self.bookviewArr[i].id === pageid) {
                 AppComponent.self.bookviewArr.splice(i, 1);
             } else {
                 if (AppComponent.self.bookviewArr[i].code !== null)
                     kwlist.push(AppComponent.self.bookviewArr[i].code);
+                ++i;
             }
         }
 
@@ -218,6 +220,7 @@ export class AppComponent implements OnInit {
                 break;
         }
 
+        this.appStorage = JSON.parse(localStorage.getItem(this.option.name));
         this.strategyMap = {};
         this.tradeEndpoint = setting.endpoints[0].trade_addr.split(":");
         this.quoteEndpoint = setting.endpoints[0].quote_addr.split(":");
@@ -1116,7 +1119,7 @@ export class AppComponent implements OnInit {
         this.loadLayout();
 
         AppComponent.bgWorker.send({ command: "ss-start", params: { port: parseInt(this.tradeEndpoint[1]), host: this.tradeEndpoint[0], appid: this.option.appid } });
-        this.subScribeMarketInit(parseInt(this.quoteEndpoint[1]), this.quoteEndpoint[0]);
+        this.subMarketInit(parseInt(this.quoteEndpoint[1]), this.quoteEndpoint[0]);
         setInterval(() => {
             this.bookviewArr.forEach(item => {
                 item.table.detectChanges();
@@ -1168,19 +1171,57 @@ export class AppComponent implements OnInit {
         let childrenLen = children.length;
         this.main = new DockContainer(null, this.option.layout.type, this.option.layout.width, this.option.layout.height);
         for (let i = 0; i < childrenLen - 1; ++i) {  // traverse
-            this.main.addChild(this.traversefunc(this.main, children[i]));
+            this.main.addChild(this.loadChildren(this.main, children[i]));
             this.main.addChild(new Splitter("h", this.main));
         }
 
-        this.main.addChild(this.traversefunc(this.main, children[childrenLen - 1]));
+        this.main.addChild(this.loadChildren(this.main, children[childrenLen - 1]));
     }
 
-    subScribeMarketInit(port: number, host: string) {
-        if (!AppComponent.loginFlag) {
-            this.createBackgroundWork();
-            AppComponent.bgWorker.send({ command: "ps-start", params: { port: port, host: host } });
-            AppComponent.loginFlag = true;
+    loadChildren(parentDock: DockContainer, childDock: any) {
+        let dock = new DockContainer(parentDock, childDock.type, childDock.width, childDock.height);
+        if (childDock.children && childDock.children.length > 0) {
+            childDock.children.forEach((child, index) => {
+                dock.addChild(this.loadChildren(dock, child));
+                if (index < childDock.children.length - 1)
+                    dock.addChild(new Splitter(child.type, dock));
+            });
+        } else if (childDock.modules && childDock.modules.length > 0) {
+            let panel = new TabPanel();
+            childDock.modules.forEach(page => {
+                if (this.pageMap.hasOwnProperty(page)) {
+                    panel.addTab(this.pageMap[page]);
+                    this.statechecker.changeMenuItemState(page, true, 2);
+                } else {
+                    if (page.startsWith("BookView")) {
+                        panel.addTab(this.createBookView(page));
+                    }
+                }
+            });
+
+            dock.addChild(panel);
+            panel.setActive(childDock.modules[typeof childDock.activeIdx === "undefined" ? 0 : childDock.activeIdx]);
+        } else {
+            console.error("loadChildren layout error");
         }
+
+        return dock;
+    }
+
+    subMarketInit(port: number, host: string) {
+        this.createBackgroundWork();
+        AppComponent.bgWorker.send({ command: "ps-start", params: { port: port, host: host } });
+
+        let kwlist = [];
+        this.bookviewArr.forEach(item => {
+            if (item.code !== null && !kwlist.includes(item.code)) {
+                kwlist.push(item.code);
+            }
+        });
+
+        setTimeout(() => {
+            this.subscribeMarketData(kwlist);
+        }, 1000);
     }
 
     changeIp20Status(data: any) {
@@ -1265,44 +1306,6 @@ export class AppComponent implements OnInit {
             return true;
         }
         return false;
-    }
-
-    traverseobj(obj: any, data: any) {
-        for (let o in obj) {
-            if ((o + "") === data) {
-                return obj[o];
-            }
-        }
-        return {};
-    }
-
-    traversefunc(parent, obj) {
-        let dock = new DockContainer(parent, obj.type, obj.width, obj.height);
-        if (obj.children && obj.children.length > 0) {
-            obj.children.forEach((child, index) => {
-                dock.addChild(AppComponent.self.traversefunc(dock, child));
-                if (index < obj.children.length - 1)
-                    dock.addChild(new Splitter(child.type, dock));
-            });
-        } else if (obj.modules && obj.modules.length > 0) {
-            let panel = new TabPanel();
-            obj.modules.forEach(page => {
-                if (AppComponent.self.pageMap.hasOwnProperty(page)) {
-                    panel.addTab(AppComponent.self.pageMap[page]);
-                    this.statechecker.changeMenuItemState(page, true, 2);
-                } else {
-                    if (page.startsWith("BookView")) {
-                        panel.addTab(AppComponent.self.createBookView(page));
-                    }
-                }
-            });
-            dock.addChild(panel);
-            panel.setActive(obj.modules[0]);
-        } else {
-            console.error("traverse layout error");
-        }
-
-        return dock;
     }
 
     TestingInput(data: any) {
@@ -2603,6 +2606,15 @@ export class AppComponent implements OnInit {
         let dd_symbol = new DropDown();
         dd_symbol.AcceptInput = true;
         dd_symbol.Title = this.langServ.getTranslateInfo(this.languageType, "Code") + ": ";
+        let code = null;
+        if (this.appStorage && this.appStorage.bookView && this.appStorage.bookView.hasOwnProperty(bookviewID)) {
+            code = this.appStorage.bookView[bookviewID].code;
+            if (code !== null) {
+                let codeInfo = this.secuinfo.getSecuinfoByUKey(code);
+                dd_symbol.Text = codeInfo[code].SecuCode;
+                dd_symbol.SelectedItem = { Text: codeInfo[code].symbolCode, Value: codeInfo[code].InnerCode + "," + codeInfo[code].SecuCode + "," + codeInfo[code].ukey };
+            }
+        }
         row1.addChild(dd_symbol);
 
         let row2 = new HBox();
@@ -2623,7 +2635,7 @@ export class AppComponent implements OnInit {
             row.cells[3].bgColor = "transparent";
         }
 
-        this.bookviewArr.push({ id: bookviewID, code: null, table: bookViewTable, lbl_timestamp: lbl_timestamp });
+        this.bookviewArr.push({ id: bookviewID, code: code, table: bookViewTable, lbl_timestamp: lbl_timestamp });
 
         dd_symbol.SelectChange = () => {
             this.clearBookViewTable(bookViewTable);
@@ -2646,6 +2658,7 @@ export class AppComponent implements OnInit {
             }
 
             this.subscribeMarketData(kwlist);
+            kwlist = null;
         };
 
         dd_symbol.matchMethod = (inputText) => {
@@ -2695,6 +2708,12 @@ export class AppComponent implements OnInit {
 
     onDestroy() {
         AppComponent.bgWorker.dispose();
+        this.appStorage = { bookView: {} };
+        this.bookviewArr.forEach(item => {
+            this.appStorage.bookView[item.id] = { code: item.code };
+        });
+
+        localStorage.setItem(this.option.name, JSON.stringify(this.appStorage));
         File.writeSync(`${Environment.getDataPath(this.option.name)}/layout.json`, this.main.getLayout());
         File.writeSync(`${Environment.getDataPath(this.option.name)}/config.json`, this.option.config);
     }

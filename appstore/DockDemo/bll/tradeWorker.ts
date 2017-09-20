@@ -67,7 +67,8 @@ process.on("message", (m: WSIP20, sock) => {
             quotePoint.connect(m.params.port, m.params.host);
             break;
         case "ps-send":
-            quotePoint.send(m.params.appid, m.params.packid, m.params.msg);
+            if (quotePoint)
+                quotePoint.send(m.params.appid, m.params.packid, m.params.msg);
             break;
         case "ps-stop":
             break;
