@@ -1,7 +1,7 @@
 /**
  * deal with group Market data.
  */
-(function() {
+(function () {
     "use strict";
 
     let groups: any[];
@@ -80,11 +80,17 @@
                             } else {
                                 console.warn(`[min: ${groups[i].min}] need larger than [last: ${groups[i].lastestIdx}]`);
                                 groups[i].ukeys.forEach(ukey => {
-                                    if (groups[i].lastIdx[ukey] === groups[i].min) {
+                                    if (groups[i].lastIdx[ukey] <= groups[i].min) {
                                         console.warn(`wait ukeys: ${ukey}`);
                                     }
                                 });
 
+                                postMessage({
+                                    type: "group-md", value: {
+                                        ukey: groups[i].key, time: ev.data.value.time,
+                                        ask_price: [askPrice1], bid_price: [bidPrice1], last: last
+                                    }
+                                });
                             }
 
                             bidPrice1 = null;
