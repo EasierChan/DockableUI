@@ -1449,14 +1449,14 @@ export class AppComponent implements OnInit {
                         this.strategyTable.rows[iRow].cells[6].Disable = true;
                         break;
                     case 2031:
-                        if (item.type !== StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER)
+                        let parameter = this.strategyMap[item.strategyid].parameters.find(param => { return param.key === item.key; });
+                        if (parameter === undefined)
                             break;
 
                         if (!item.success)
                             break;
 
-                        let command = this.strategyMap[item.strategyid].commands.find(command => { return command.key === item.key; });
-                        alert(`operator: ${command.name} ${item.success ? "successfully!" : "unsuccessfully!"}`);
+                        alert(`Strategyid: ${item.strategyid}, key: ${parameter.name} submit ${item.success ? "successfully!" : "unsuccessfully!"}`);
                         break;
                 }
             }
@@ -2287,7 +2287,7 @@ export class AppComponent implements OnInit {
             strategyKeyMap = null;
         }
 
-        this.strategyTable.detectChanges();
+        // this.strategyTable.detectChanges();
     }
 
     strategyOnCellClick(cell: any, cellIdx: number, rowIdx: number) {
