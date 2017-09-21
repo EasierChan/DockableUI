@@ -49,6 +49,7 @@ export class SimulationComponent implements OnInit {
                 this.configBll.moveConfig(this.selectedStrategyConfig, Channel.ONLINE);
                 this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
                 this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: this.selectedStrategyConfig.name, config: JSON.stringify({ SS: this.configBll.genInstance(this.selectedStrategyConfig) }) } });
+                this.selectedStrategyConfig = null;
             });
         });
 
@@ -65,9 +66,11 @@ export class SimulationComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
+            this.operateStrategyServer(this.selectedStrategyConfig, 0);
             this.configBll.removeConfig(this.selectedStrategyConfig);
             this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
             this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+            this.selectedStrategyConfig = null;
         });
         // end strategyMenu
 
@@ -116,7 +119,9 @@ export class SimulationComponent implements OnInit {
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
-            this.strategyArea.getTile(config.chname).backgroundColor = config.state !== 0 ? "#1d9661" : null;
+            let tile = this.strategyArea.getTile(config.chname);
+            if (tile !== null)
+                tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
         };
         // strategy status
         this.appsrv.onUpdateApp(this.updateApp, this);
@@ -126,15 +131,15 @@ export class SimulationComponent implements OnInit {
     updateApp(params) {
         switch (params.type) {
             case "strategy":
-                if (localStorage.getItem(DataKey.kStrategyCfg) !== null) {
-                    this.updateStrategyConfig(JSON.parse(localStorage.getItem(DataKey.kStrategyCfg)));
+                if (AppStoreService.getLocalStorageItem(DataKey.kStrategyCfg) !== null) {
+                    this.updateStrategyConfig(JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyCfg)));
                 }
                 break;
         }
     }
 
     updateStrategyConfig(config: WorkspaceConfig) {
-        if (this.selectedStrategyConfig === undefined || config.name !== this.selectedStrategyConfig.name) // create
+        if (!this.selectedStrategyConfig || config.name !== this.selectedStrategyConfig.name) // create
             this.configBll.tempConfig = config;
 
         this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });

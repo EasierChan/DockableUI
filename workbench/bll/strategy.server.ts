@@ -30,6 +30,7 @@ export class ConfigurationBLL {
         this._ss_simulation_configs = [];
         this._ss_backtest_configs = [];
         this._ss_realtrade_configs = [];
+        this.strategyKeys = [];
         this._ssconfigs = WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []);
         this._ssconfigs.forEach(item => {
             switch (item.activeChannel) {
@@ -43,6 +44,8 @@ export class ConfigurationBLL {
                     this._ss_backtest_configs.push(item);
                     break;
             }
+
+            this.strategyKeys.push(item.items[0].key);
         });
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");
@@ -241,7 +244,7 @@ export class ConfigurationBLL {
             case Channel.BACKTEST:
                 instance["SSGW"]["Gateway"].addr = config.backtestConfig.tradePoint.host;
                 instance["SSGW"]["Gateway"].port = config.backtestConfig.tradePoint.port;
-                instance["SSFeed"]["PS"].addr = config.backtestConfig.quotePoint.port;
+                instance["SSFeed"]["PS"].addr = config.backtestConfig.quotePoint.host;
                 instance["SSFeed"]["PS"].port = config.backtestConfig.quotePoint.port;
                 break;
             case Channel.SIMULATION:

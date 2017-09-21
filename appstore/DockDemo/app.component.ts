@@ -220,7 +220,7 @@ export class AppComponent implements OnInit {
                 break;
         }
 
-        this.appStorage = JSON.parse(localStorage.getItem(this.option.name));
+        this.appStorage = JSON.parse(AppStoreService.getLocalStorageItem(this.option.name));
         this.strategyMap = {};
         this.tradeEndpoint = setting.endpoints[0].trade_addr.split(":");
         this.quoteEndpoint = setting.endpoints[0].quote_addr.split(":");
@@ -1597,7 +1597,7 @@ export class AppComponent implements OnInit {
             }
         }
 
-        this.strategyTable.detectChanges();
+        // this.strategyTable.detectChanges();
     }
 
     showComOrderRecord(data: any) {
@@ -2713,7 +2713,7 @@ export class AppComponent implements OnInit {
             this.appStorage.bookView[item.id] = { code: item.code };
         });
 
-        localStorage.setItem(this.option.name, JSON.stringify(this.appStorage));
+        AppStoreService.setLocalStorageItem(this.option.name, JSON.stringify(this.appStorage));
         File.writeSync(`${Environment.getDataPath(this.option.name)}/layout.json`, this.main.getLayout());
         File.writeSync(`${Environment.getDataPath(this.option.name)}/config.json`, this.option.config);
     }
