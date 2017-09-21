@@ -141,7 +141,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
             if (strategy[strategy["Strategies"][0]].Parameter[prop].show === 1) {
                 row = this.paramsTable.newRow();
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Parameter[prop];
-                row.cells[0].Text = row.cells[0].Data.name;
+                row.cells[0].Text = prop;
                 row.cells[1].Type = "textbox";
                 row.cells[1].Text = row.cells[0].Data.value;
             }
@@ -151,7 +151,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
             if (strategy[strategy["Strategies"][0]].Instrument[prop].show === 1) {
                 row = this.instrumentTable.newRow();
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Instrument[prop];
-                row.cells[0].Text = row.cells[0].Data.name;
+                row.cells[0].Text = prop;
                 row.cells[1].Type = "u-codes";
                 row.cells[1].Text = row.cells[0].Data.value;
                 row.cells[1].Data = row.cells[0].Data.value;

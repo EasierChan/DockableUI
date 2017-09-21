@@ -157,8 +157,7 @@ export class BacktestComponent implements OnInit {
     }
 
     updateStrategyConfig(config: WorkspaceConfig) {
-        if (!this.selectedStrategyConfig || config.name !== this.selectedStrategyConfig.name) // create
-            this.configBll.tempConfig = config;
+        this.configBll.tempConfig = config;
 
         let tmpobj = {
             reqsn: BacktestComponent.reqnum++,

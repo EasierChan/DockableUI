@@ -239,8 +239,7 @@ export class TradeComponent implements OnInit {
     }
 
     updateStrategyConfig(config: WorkspaceConfig) {
-        if (!this.selectedStrategyConfig || config.name !== this.selectedStrategyConfig.name) // create
-            this.configBll.tempConfig = config;
+        this.configBll.tempConfig = config;
 
         this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
     }
