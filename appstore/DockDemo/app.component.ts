@@ -20,6 +20,7 @@ import {
     EStrategyStatus, StrategyCfgType, ComConOrder, ComOrderCancel,
     ComOrder
 } from "../../base/api/model/itrade/strategy.model";
+import { DataKey } from "../../base/api/model/workbench.model";
 
 @Component({
     moduleId: module.id,
@@ -1118,7 +1119,7 @@ export class AppComponent implements OnInit {
         this.onStrategyTableInit();
         this.loadLayout();
 
-        AppComponent.bgWorker.send({ command: "ss-start", params: { port: parseInt(this.tradeEndpoint[1]), host: this.tradeEndpoint[0], appid: this.option.appid } });
+        AppComponent.bgWorker.send({ command: "ss-start", params: { port: parseInt(this.tradeEndpoint[1]), host: this.tradeEndpoint[0], appid: this.option.appid, loginInfo: JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)) } });
         this.subMarketInit(parseInt(this.quoteEndpoint[1]), this.quoteEndpoint[0]);
         setInterval(() => {
             this.bookviewArr.forEach(item => {

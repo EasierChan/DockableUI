@@ -80,26 +80,26 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
-        this.actionBar.addFeature({
-            iconName: "time",
-            tooltip: "时间回溯",
-            title: "时间回溯",
-            active: false
-        });
+        // this.actionBar.addFeature({
+        //     iconName: "time",
+        //     tooltip: "时间回溯",
+        //     title: "时间回溯",
+        //     active: false
+        // });
 
-        this.actionBar.addFeature({
-            iconName: "stats",
-            tooltip: "超级图表",
-            title: "超级图表",
-            active: false
-        });
+        // this.actionBar.addFeature({
+        //     iconName: "stats",
+        //     tooltip: "超级图表",
+        //     title: "超级图表",
+        //     active: false
+        // });
 
-        this.actionBar.addFeature({
-            iconName: "eye-open",
-            tooltip: "产品监控",
-            title: "产品监控",
-            active: false
-        });
+        // this.actionBar.addFeature({
+        //     iconName: "eye-open",
+        //     tooltip: "产品监控",
+        //     title: "产品监控",
+        //     active: false
+        // });
 
         this.actionBar.addSettings({
             iconName: "user",

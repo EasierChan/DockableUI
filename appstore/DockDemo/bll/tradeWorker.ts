@@ -73,7 +73,7 @@ process.on("message", (m: WSIP20, sock) => {
         case "ps-stop":
             break;
         case "ss-start":
-            trade = new StrategyDealer(m.params.appid);
+            trade = new StrategyDealer(m.params.appid, m.params.loginInfo);
             trade.connect(m.params.port, m.params.host);
             break;
         case "ss-send":
@@ -114,11 +114,13 @@ export class StrategyDealer {
     tradePoint: IP20Service;
     appid: number;
     packid: number;
+    loginInfo: any;
 
-    constructor(appid: number) {
+    constructor(appid: number, loginInfo) {
         this.tradePoint = new IP20Service();
         this.appid = appid;
         this.packid = 1000;
+        this.loginInfo = loginInfo;
     }
 
     connect(port, host) {
@@ -132,7 +134,7 @@ export class StrategyDealer {
         let tradeHeart = null;
         this.tradePoint.onConnect = () => {
             process.send({ event: "ss-connect" });
-            loginTGW(this.tradePoint);
+            loginTGW(this.tradePoint, this.loginInfo);
         };
 
         this.tradePoint.onClose = () => {
@@ -659,11 +661,16 @@ export class StrategyDealer {
     }
 }
 
-function loginTGW(ip20: IP20Service) {
+function loginTGW(ip20: IP20Service, loginObj?: any) {
     let timestamp: Date = new Date();
     let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
         ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
         ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-    let loginObj = { "cellid": "1", "userid": "8.999", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
-    ip20.send(17, 41, loginObj);
+    if (loginObj) {
+        loginObj.clienttm = stimestamp;
+        ip20.send(17, 41, loginObj);
+    }
+    else
+        ip20.send(17, 41, { "cellid": "1", "userid": "8.999", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp });
+
 }

@@ -8,6 +8,7 @@ export class DataKey {
     static readonly kProducts = "chronos-Products";
     static readonly kStrategyTypes = "chronos-StrategyTypes";
     static readonly kStrategyTemplates = "chronos-StrategyTemplates";
+    static readonly kUserInfo = "chronos-userinfo";
 }
 
 export class AppType {

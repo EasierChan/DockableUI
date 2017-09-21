@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { AppStoreService, CryptoService } from "../../../base/api/services/backend.service";
-import { ConfigurationBLL } from "../../bll/strategy.server";
+import { ConfigurationBLL, DataKey } from "../../bll/strategy.server";
 import { TradeService, QuoteService } from "../../bll/services";
 
 @Component({
@@ -70,6 +70,11 @@ export class UserComponent implements OnInit {
             appid: 17,
             packid: 43,
             callback: msg => {
+                if (msg.content.conlvl <= 2 || parseInt(msg.content.msret.msgcode) !== 0) {
+                    alert(msg.content.msret.msg);
+                    return;
+                }
+
                 this.appSrv.setLoginTrade(msg.content.conlvl > 2);
                 // to request template
                 // this.tradeSrv.send(this.scmsAppID, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
@@ -92,7 +97,7 @@ export class UserComponent implements OnInit {
             appid: 17,
             packid: 120,
             callback: msg => {
-                this.appSrv.setLoginQuote(false);
+                console.info(msg);
             }
         });
 
@@ -101,7 +106,8 @@ export class UserComponent implements OnInit {
             packid: 120,
             callback: msg => {
                 console.info(msg);
-                // this.appSrv.setLoginTrade(false);
+                alert(msg.content.msg);
+                this.appSrv.setLoginTrade(false);
             }
         });
     }
@@ -116,6 +122,7 @@ export class UserComponent implements OnInit {
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
         let loginObj: any = { maid: this.maid, cellid: "*", userid: this.userid, password: this.cryptoSrv.generateMD5(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
         this.tradeSrv.send(17, 41, loginObj); // login
+        AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
 
         loginObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
         let [qhost, qport] = curEndpoint.quote_addr.split(":");

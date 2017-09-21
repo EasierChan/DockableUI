@@ -42,7 +42,10 @@ export class TcpClient {
     }
 
     connect(port: number, ip?: string): void {
-        this._clientSock = null;
+        if (this._clientSock) {
+            return;
+        }
+
         this._clientSock = new TcpSocket();
         this._clientSock.connect(port, ip);
         this._clientSock.on("data", (data: any) => {
@@ -60,12 +63,18 @@ export class TcpClient {
 
         this._clientSock.on("error", (err) => {
             this.emit("error");
+            this._clientSock.close();
+            this._clientSock = null;
         });
         this._clientSock.on("end", (err) => {
             this.emit("end");
+            this._clientSock.close();
+            this._clientSock = null;
         });
         this._clientSock.on("close", (err) => {
             this.emit("close");
+            this._clientSock.close();
+            this._clientSock = null;
         });
     }
 

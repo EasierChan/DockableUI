@@ -45,6 +45,7 @@ export class ConfigurationBLL {
                     break;
             }
 
+            item.state = 0;
             this.strategyKeys.push(item.items[0].key);
         });
 
