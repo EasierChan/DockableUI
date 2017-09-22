@@ -196,8 +196,8 @@ export class SecuMasterService {
         return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 1, data: code });
     }
 
-    getSecuinfoByUKey(...ukey: number[]) {
-        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 2, data: ukey });
+    getSecuinfoByInnerCode(...innercodes: number[]) {
+        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 2, data: innercodes });
     }
 
     getCodeList(data: string) {
@@ -206,6 +206,10 @@ export class SecuMasterService {
 
     getSecuinfoByWindCodes(codes: string[]): any[] {
         return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 4, data: codes });
+    }
+
+    getSecuinfoByUKey(...ukeys: number[]) {
+        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 5, data: ukeys });
     }
 }
 

@@ -11,6 +11,7 @@ import * as path from "path";
 class SecuMaster {
     private static secuCodeObj = new Object();
     private static secuUkeyObj = new Object();
+    private static innerCodeObj = new Object();
     private static pinyinObj = new Object();
     private static windObj = new Object();
 
@@ -34,11 +35,13 @@ class SecuMaster {
                 if (arrLen === 5) {
                     SecuMaster.pinyinObj[arr[2] + ","] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: parseInt(arr[0]) };
                     SecuMaster.secuUkeyObj[arr[0]] = SecuMaster.pinyinObj[arr[2] + ","];
+                    SecuMaster.innerCodeObj[arr[1]] = SecuMaster.pinyinObj[arr[2] + ","];
                     if (arr[4].length > 0)
                         SecuMaster.windObj[arr[4]] = SecuMaster.pinyinObj[arr[2] + ","];
                 } else if (arrLen === 6) {
                     SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: parseInt(arr[0]) };
                     SecuMaster.secuUkeyObj[arr[0]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
+                    SecuMaster.innerCodeObj[arr[1]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
                     if (arr[5].length > 0)
                         SecuMaster.windObj[arr[5]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
                 }
@@ -105,6 +108,18 @@ class SecuMaster {
                 }
             }
         }
+        return rtnObj;
+    }
+
+    static getSecuinfoByInnerCode(innercodes: number[]) {
+        let rtnObj = new Object();
+
+        innercodes.forEach(innercode => {
+            if (SecuMaster.innerCodeObj.hasOwnProperty(innercode)) {
+                rtnObj[innercode] = SecuMaster.innerCodeObj[innercode];
+            }
+        });
+
         return rtnObj;
     }
 
@@ -178,13 +193,16 @@ IPCManager.register("dal://itrade/secumaster/getsecuinfo", (e, param) => {
             e.returnValue = SecuMaster.getSecuinfoByCode(param.data);
             break;
         case 2: // ukey
-            e.returnValue = SecuMaster.getSecuinfoByUKey(param.data);
+            e.returnValue = SecuMaster.getSecuinfoByInnerCode(param.data);
             break;
         case 3: //
             e.returnValue = SecuMaster.getCodeList(param.data);
             break;
         case 4:
             e.returnValue = SecuMaster.getSecuinfoByWindCodes(param.data);
+            break;
+        case 5:
+            e.returnValue = SecuMaster.getSecuinfoByUKey(param.data);
             break;
         default:
             console.error(`unknown type=>${param.type}`);

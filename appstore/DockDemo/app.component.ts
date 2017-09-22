@@ -1361,7 +1361,7 @@ export class AppComponent implements OnInit {
     addStatArbInfo(dataArr: any) {
         let row = AppComponent.self.statarbTable.newRow();
         row.cells[1].Text = dataArr[0].code;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(dataArr[0].code);
+        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(dataArr[0].code);
         row.cells[0].Text = codeInfo.hasOwnProperty(dataArr[0].code) ? codeInfo[dataArr[0].code].SecuAbbr : "unknown";
         row.cells[8].Text = codeInfo.hasOwnProperty(dataArr[0].code) ? codeInfo[dataArr[0].code].SecuCode : "unknown";
         row.cells[2].Text = dataArr[0].pricerate / 100;
@@ -1634,7 +1634,7 @@ export class AppComponent implements OnInit {
                 if (j === this.doneOrdersTable.rows.length) {
                     let row = this.doneOrdersTable.newRow(true);
                     row.cells[0].Text = data[iData].od.innercode;
-                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[iData].od.innercode);
+                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].od.innercode);
                     row.cells[1].Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuAbbr : "unknown";
                     row.cells[14].Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuCode : "unknown";
                     row.cells[2].Text = data[iData].od.orderid;
@@ -1698,7 +1698,7 @@ export class AppComponent implements OnInit {
         row.cells[0].Data.ukey = obj.od.innercode;
         row.cells[0].Disable = (6 === obj.od.status || 7 === obj.od.status);
         row.cells[1].Text = obj.od.innercode;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.od.innercode);
+        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(obj.od.innercode);
         row.cells[2].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
         row.cells[3].Text = obj.od.orderid;
         row.cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
@@ -1828,7 +1828,7 @@ export class AppComponent implements OnInit {
                     row.cells[0].Text = data[iData].record.account;
                     row.cells[1].Text = data[iData].secucategory;
                     row.cells[2].Text = data[iData].record.code;
-                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[iData].record.code);
+                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].record.code);
                     row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
                     row.cells[4].Text = data[iData].record.TotalVol;
                     row.cells[5].Text = data[iData].record.AvlVol;
@@ -1844,7 +1844,7 @@ export class AppComponent implements OnInit {
                     row.cells[0].Text = data[iData].record.account;
                     row.cells[1].Text = data[iData].secucategory;
                     row.cells[2].Text = data[iData].record.code;
-                    let codeInfo = this.secuinfo.getSecuinfoByUKey(data[iData].record.code);
+                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].record.code);
                     row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
                     row.cells[4].Text = data[iData].record.TotalVol;
                     row.cells[5].Text = data[iData].record.AvlVol;
@@ -1966,7 +1966,7 @@ export class AppComponent implements OnInit {
     addProfitInfo(obj: any) {
         let row = AppComponent.self.profitTable.newRow();
         row.cells[0].Text = obj.innercode;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(obj.innercode);
+        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(obj.innercode);
         row.cells[1].Text = codeInfo.hasOwnProperty(obj.innercode) ? codeInfo[obj.innercode].SecuCode : "unknown";
         row.cells[2].Text = obj.account;
         row.cells[3].Text = obj.strategyid;
@@ -2166,7 +2166,7 @@ export class AppComponent implements OnInit {
                 switch (data[iData].type) {
                     case StrategyCfgType.STRATEGY_CFG_TYPE_INSTRUMENT:
                         let idxInstrument = strategyKeyMap.instruments.indexOf(data[iData].key);
-                        let secuinfo = this.secuinfo.getSecuinfoByUKey(data[iData].value);
+                        let secuinfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].value);
                         let symbolCode = secuinfo.hasOwnProperty(data[iData].value) ? secuinfo[data[iData].value].SecuCode : "";
 
                         if (idxInstrument < 0) { // add
@@ -2406,7 +2406,7 @@ export class AppComponent implements OnInit {
     addPortfolioTableInfo(tableData: any, len: number, idx: number) {
         let row = AppComponent.self.portfolioTable.newRow();
         let ukey = tableData.UKey;
-        let codeInfo = this.secuinfo.getSecuinfoByUKey(ukey);
+        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(ukey);
         if (codeInfo) {
             row.cells[0].Type = "checkbox";
             row.cells[0].Title = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuCode : "unknown";
