@@ -65,26 +65,25 @@ export class TcpClient {
             this.emit("error");
             this._clientSock.close();
             this._clientSock = null;
+            this._buffer_Queue = null;
         });
         this._clientSock.on("end", () => {
             this.emit("end");
             this._clientSock.close();
             this._clientSock = null;
+            this._buffer_Queue = null;
         });
         this._clientSock.on("close", (has_error) => {
             this.emit("close");
             this._clientSock.close();
             this._clientSock = null;
+            this._buffer_Queue = null;
         });
     }
 
-    reconnect(port: number, ip?: string) {
-        if (this._clientSock)
-            this._clientSock.connect(port, ip);
-    }
-
     send(buf: Buffer | string): void {
-        this._clientSock.send(buf);
+        if (this._clientSock)
+            this._clientSock.send(buf);
     }
 
     dispose(): void {

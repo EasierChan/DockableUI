@@ -397,7 +397,7 @@ export class ItradeService {
             this._timer = setTimeout(() => {
                 clearTimeout(this._timer);
                 this._timer = null;
-                this._client.reconnect(this._port, this._host);
+                this._client.connect(this._port, this._host);
             }, 10000);
 
             if (this._messageMap.hasOwnProperty(-1)) {
