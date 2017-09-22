@@ -285,13 +285,8 @@ export class AppComponent implements OnInit {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
                 if (dd_status.SelectedItem.Value === "-1") {   // all
                     AppComponent.self.orderstatusTable.rows[i].hidden = false;
-                }
-                else {
-                    if (AppComponent.self.orderstatusTable.rows[i].cells[10].Text === dd_status.SelectedItem.Text) {
-                        AppComponent.self.orderstatusTable.rows[i].hidden = false;
-                    }
-                    else
-                        AppComponent.self.orderstatusTable.rows[i].hidden = true;
+                } else {
+                    AppComponent.self.orderstatusTable.rows[i].hidden = AppComponent.self.orderstatusTable.rows[i].cells[10].Text !== dd_status.SelectedItem.Text;
                 }
             }
         };
@@ -304,24 +299,24 @@ export class AppComponent implements OnInit {
                 let orderid = this.orderstatusTable.rows[i].cells[3].Text;
                 let account = this.orderstatusTable.rows[i].cells[11].Text;
                 let date = new Date();
-                if (getStatus === 0 || getStatus === 6 || getStatus === 7 || getStatus === 9 || getStatus === 10)
+                if (getStatus === 6 || getStatus === 7 || getStatus === 9 || getStatus === 10)
                     continue;
-                else if (!AppComponent.self.orderstatusTable.rows[i].cells[0].Text)
+
+                if (!AppComponent.self.orderstatusTable.rows[i].cells[0].Text)
                     continue;
-                else {
-                    let order = new ComConOrder();
-                    order.ordertype = EOrderType.ORDER_TYPE_CANCEL;
-                    order.con.account = parseInt(account);
-                    order.datetime.tv_sec = date.getSeconds();
-                    order.datetime.tv_usec = date.getMilliseconds();
-                    order.data = new ComOrderCancel();
-                    order.data.strategyid = parseInt(strategyid);
-                    order.data.orderid = parseInt(orderid);
-                    order.data.innercode = parseInt(ukey);
-                    order.data.action = 1;
-                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "order", data: order } });
-                    order = null;
-                }
+
+                let order = new ComConOrder();
+                order.ordertype = EOrderType.ORDER_TYPE_CANCEL;
+                order.con.account = parseInt(account);
+                order.datetime.tv_sec = date.getSeconds();
+                order.datetime.tv_usec = date.getMilliseconds();
+                order.data = new ComOrderCancel();
+                order.data.strategyid = parseInt(strategyid);
+                order.data.orderid = parseInt(orderid);
+                order.data.innercode = parseInt(ukey);
+                order.data.action = 1;
+                AppComponent.bgWorker.send({ command: "ss-send", params: { type: "order", data: order } });
+                order = null;
             }
         };
 
@@ -962,7 +957,6 @@ export class AppComponent implements OnInit {
                 if (filenames === undefined || filenames.length < 1)
                     return;
 
-                ;
                 File.readLineByLine(filenames[0], (linestr, basketList) => {
                     let fields = linestr.split(",");
 
@@ -979,54 +973,54 @@ export class AppComponent implements OnInit {
         };
 
         this.allChk.OnClick = () => {
-            AppComponent.self.changeItems(0, !this.allChk.Text);
+            this.changeItems(0, !this.allChk.Text);
         };
         allbuyChk.OnClick = () => {
-            AppComponent.self.changeItems(1, !allbuyChk.Text);
+            this.changeItems(1, !allbuyChk.Text);
         };
         allsellChk.OnClick = () => {
-            AppComponent.self.changeItems(2, !allsellChk.Text);
+            this.changeItems(2, !allsellChk.Text);
         };
         this.range.OnClick = () => {
             let rateVal = this.range.Text;
             this.rateText.Text = rateVal;
-            AppComponent.self.changeSingleQty(rateVal);
+            this.changeSingleQty(rateVal);
         };
         this.rateText.OnInput = () => {
             let getrateText = this.range.Text = this.rateText.Text;
-            let rtn = AppComponent.self.TestingInput(getrateText + "");
+            let rtn = this.TestingInput(getrateText + "");
             if (!rtn) {
                 this.range.Text = this.rateText.Text = 0;
-                AppComponent.self.changeSingleQty(0);
+                this.changeSingleQty(0);
                 return;
             }
             if (parseInt(getrateText) > 100) {
                 MessageBox.show("warning", "Input Error!", "input value shold be less than 100");
                 this.range.Text = this.rateText.Text = 100;
-                AppComponent.self.changeSingleQty(100);
+                this.changeSingleQty(100);
                 return;
             } else {
-                AppComponent.self.changeSingleQty(parseInt(this.rateText.Text));
+                this.changeSingleQty(parseInt(this.rateText.Text));
             }
         };
 
         btn_sendSel.OnClick = () => {
 
-            let askPriceLevel = AppComponent.self.portfolioBuyCom.SelectedItem.Value;
-            let bidPriceLevel = AppComponent.self.portfolioSellCom.SelectedItem.Value;
-            let askOffset = AppComponent.self.portfolioBUyOffset.SelectedItem.Value;
-            let bidOffset = AppComponent.self.portfolioSellOffset.SelectedItem.Value;
+            let askPriceLevel = this.portfolioBuyCom.SelectedItem.Value;
+            let bidPriceLevel = this.portfolioSellCom.SelectedItem.Value;
+            let askOffset = this.portfolioBUyOffset.SelectedItem.Value;
+            let bidOffset = this.portfolioSellOffset.SelectedItem.Value;
             let sendArr = [];
 
-            for (let i = 0; i < AppComponent.self.portfolioTable.rows.length; ++i) {
-                if (AppComponent.self.portfolioTable.rows[i].cells[0].Text) {
-                    let qty = parseInt(AppComponent.self.portfolioTable.rows[i].cells[9].Text);
+            for (let i = 0; i < this.portfolioTable.rows.length; ++i) {
+                if (this.portfolioTable.rows[i].cells[0].Text) {
+                    let qty = parseInt(this.portfolioTable.rows[i].cells[9].Text);
                     if (isNaN(qty)) {
                         alert("下单量必须是数值型");
                         continue;
                     }
 
-                    sendArr.push({ ukey: AppComponent.self.portfolioTable.rows[i].cells[0].Data, qty: qty });
+                    sendArr.push({ ukey: this.portfolioTable.rows[i].cells[0].Data, qty: qty });
                 }
             }
 
@@ -1694,8 +1688,7 @@ export class AppComponent implements OnInit {
         let row = this.orderstatusTable.newRow(true);
         row.cells[0].Type = "checkbox";
         row.cells[0].Text = false;
-        row.cells[0].Data = { ukey: 0, chk: true };
-        row.cells[0].Data.ukey = obj.od.innercode;
+        row.cells[0].Data = obj.od.innercode;
         row.cells[0].Disable = (6 === obj.od.status || 7 === obj.od.status);
         row.cells[1].Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByInnerCode(obj.od.innercode);
@@ -2385,32 +2378,33 @@ export class AppComponent implements OnInit {
         let tableData = data[0].data;
         let dataLen = data[0].data.length;
 
-        for (let i = 0; i < dataLen; ++i) {
-            let j;
+        for (let iData = 0; iData < dataLen; ++iData) {
+            let iRow;
 
-            for (j = 0; j < this.portfolioTable.rows.length; ++j) {
-                if (this.portfolioTable.rows[j].cells[0].Data.ukey === tableData[i].UKey) {
-                    this.refreshPortfolioTable(j, tableData[i]);
+            for (iRow = 0; iRow < this.portfolioTable.rows.length; ++iRow) {
+                if (this.portfolioTable.rows[iRow].cells[0].Data === tableData[iData].UKey) {
+                    this.refreshPortfolioTable(iRow, tableData[iData]);
                     break;
                 }
             }
 
-            if (j === this.portfolioTable.rows.length) {
-                this.addPortfolioTableInfo(tableData[i], dataLen, i);
+            if (iRow === this.portfolioTable.rows.length) {
+                this.addPortfolioTableInfo(tableData[iData], dataLen, iData);
             }
         }
 
-        AppComponent.self.portfolioTable.detectChanges();
+        this.portfolioTable.detectChanges();
     }
 
     addPortfolioTableInfo(tableData: any, len: number, idx: number) {
-        let row = AppComponent.self.portfolioTable.newRow();
+        let row = this.portfolioTable.newRow();
         let ukey = tableData.UKey;
         let codeInfo = this.secuinfo.getSecuinfoByInnerCode(ukey);
         if (codeInfo) {
             row.cells[0].Type = "checkbox";
             row.cells[0].Title = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuCode : "unknown";
             row.cells[0].Data = ukey;
+            row.cells[0].Text = false;
             row.cells[1].Text = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuAbbr : "unknown";
             row.cells[2].Text = tableData.InitPos;
             row.cells[3].Text = tableData.TgtPos;
@@ -2487,35 +2481,35 @@ export class AppComponent implements OnInit {
         // 0 check value ,10,11 disable,12 value, row backcolor
         if (flag === 1) {
             this.portfolioTable.rows[idx].cells[0].Disable = true;
-            this.portfolioTable.rows[idx].cells[0].Data.chk = true;
+            this.portfolioTable.rows[idx].cells[0].Text = true;
             this.portfolioTable.rows[idx].cells[10].Disable = true;
             this.portfolioTable.rows[idx].cells[11].Disable = true;
             this.portfolioTable.rows[idx].cells[12].Text = "Suspended";
             this.portfolioTable.rows[idx].backgroundColor = "#424242";
         } else if (flag === 2) {
             this.portfolioTable.rows[idx].cells[0].Disable = true;
-            this.portfolioTable.rows[idx].cells[0].Data.chk = true;
+            this.portfolioTable.rows[idx].cells[0].Text = true;
             this.portfolioTable.rows[idx].cells[10].Disable = true;
             this.portfolioTable.rows[idx].cells[11].Disable = true;
             this.portfolioTable.rows[idx].cells[12].Text = "Restrict";
             this.portfolioTable.rows[idx].backgroundColor = "#424242";
         } else if (flag === 3) {
             this.portfolioTable.rows[idx].cells[0].Disable = false;
-            this.portfolioTable.rows[idx].cells[0].Data.chk = false;
+            this.portfolioTable.rows[idx].cells[0].Text = false;
             this.portfolioTable.rows[idx].cells[10].Disable = false;
             this.portfolioTable.rows[idx].cells[11].Disable = false;
             this.portfolioTable.rows[idx].cells[12].Text = "LimitUp";
             this.portfolioTable.rows[idx].backgroundColor = "#00FF00";
         } else if (flag === 4) {
             this.portfolioTable.rows[idx].cells[0].Disable = false;
-            this.portfolioTable.rows[idx].cells[0].Data.chk = false;
+            this.portfolioTable.rows[idx].cells[0].Text = false;
             this.portfolioTable.rows[idx].cells[10].Disable = false;
             this.portfolioTable.rows[idx].cells[11].Disable = false;
             this.portfolioTable.rows[idx].cells[12].Text = "LimitDown";
             this.portfolioTable.rows[idx].backgroundColor = "#FF0000";
         } else {
             this.portfolioTable.rows[idx].cells[0].Disable = false;
-            this.portfolioTable.rows[idx].cells[0].Data.chk = false;
+            this.portfolioTable.rows[idx].cells[0].Text = false;
             this.portfolioTable.rows[idx].cells[10].Disable = false;
             this.portfolioTable.rows[idx].cells[11].Disable = false;
             this.portfolioTable.rows[idx].cells[12].Text = "Normal";

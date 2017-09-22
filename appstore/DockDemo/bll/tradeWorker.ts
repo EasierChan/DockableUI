@@ -32,6 +32,11 @@ process.on("message", (m: WSIP20, sock) => {
 
             quotePoint.onClose = () => {
                 process.send({ event: "ps-close" });
+                quotePoint = null;
+                if (quoteHeart !== null) {
+                    clearInterval(quoteHeart);
+                    quoteHeart = null;
+                }
             };
 
             quotePoint.addSlot(
