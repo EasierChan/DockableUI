@@ -203,7 +203,7 @@ export class QtpService {
         });
         this._client.on("close", () => {
             this._timer = setTimeout(() => {
-                this._client.reconnect(port, host);
+                this._client.connect(port, host);
             }, 10000);
         });
         this._client.on("connect", () => {

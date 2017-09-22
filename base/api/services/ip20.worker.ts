@@ -260,7 +260,7 @@ export class IP20Service {
             }
 
             this._timer = setTimeout(() => {
-                this._client.reconnect(port, host);
+                this._client.connect(port, host);
             }, 10000);
 
             if (this.onClose)

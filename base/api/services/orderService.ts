@@ -70,7 +70,7 @@ export class OrderService {
             this._client.sendHeartBeat(0);
             this._messageMap[8000].callback(false, this._sessionid);
             setTimeout(() => {
-                this._client.reconnect(this._port, this._host);
+                this._client.connect(this._port, this._host);
             }, 10000);
         });
     }

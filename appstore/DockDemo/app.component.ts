@@ -4,7 +4,7 @@
  * desc:
  */
 
-import { Component, OnInit, ChangeDetectorRef, AfterViewInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { WorkerFactory } from "../../base/api/services/uworker.server";
 import {
     Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog, Label,
@@ -12,7 +12,7 @@ import {
     HBox, Button, CheckBox, TextBox, VBox, MetaControl
 } from "../../base/controls/control";
 import {
-    MessageBox, fs, AppStateCheckerRef, File, Environment,
+    MessageBox, AppStateCheckerRef, File, Environment,
     SecuMasterService, TranslateService, AppStoreService
 } from "../../base/api/services/backend.service";
 import {
