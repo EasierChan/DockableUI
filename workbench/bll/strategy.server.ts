@@ -286,8 +286,14 @@ export class ConfigurationBLL {
         }
     }
 
-    updateLoopbackItems(item: any) { // write once
-        this._loopbackItems = item;
+    removeLoopbackItem(item: any) { // write once
+        let idx = this._loopbackItems.findIndex(item => { return item.id === item.id; });
+        if (idx >= 0) {
+            this._loopbackItems.splice(idx, 1);
+        }
+    }
+
+    syncLoopbackItem() {
         File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
     }
 

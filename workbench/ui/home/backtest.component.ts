@@ -51,6 +51,7 @@ export class BacktestComponent implements OnInit {
                     config.backtestConfig.quotePoint = { host: msg.content.hqurl, port: msg.content.hqport };
 
                     this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
+                    this.configBll.addLoopbackItems(msg.content);
                 }
             }
         });

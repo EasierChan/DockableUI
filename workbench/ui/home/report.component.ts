@@ -25,10 +25,7 @@ export class ReportComponent implements OnInit {
     sharpeRatio: any;
     freeriskrate = 0.3;
     backtestAppID: number;
-    _unit: any;
-    _period: any;
-    Sel_arr = [];
-    private allItem: any[];
+    selectedItem: any;
 
     constructor(private mock: TradeService, private configBll: ConfigurationBLL, private appsrv: AppStoreService) {
     }
@@ -39,56 +36,26 @@ export class ReportComponent implements OnInit {
         this.resTable.addColumn("选中", "名称", "开始时间", "结束时间", "查看");
         this.resTable.columns[0].maxWidth = 20;
         this.resTable.columns[4].maxWidth = 50;
-        this.Sel_arr = [];
-        this.allItem = this.configBll.getLoopbackItems();
-        let len = this.allItem.length;
-        for (let i = 0; i < len; ++i) {
+        this.configBll.getLoopbackItems().forEach(item => {
             let row = this.resTable.newRow();
             row.cells[0].Type = "checkbox";
-            row.cells[0].Data = { nId: this.allItem[i].id, unit: this.allItem[i].unit, period: this.allItem[i].period };
+            row.cells[0].Data = item;
             row.cells[0].Text = false;
-            row.cells[1].Text = this.allItem[i].name + "-" + this.allItem[i].id;
-            row.cells[2].Text = this.parseDate(this.allItem[i].timebegin + "");
-            row.cells[3].Text = this.parseDate(this.allItem[i].timeend + "");
+            row.cells[1].Text = item.name + "-" + item.id;
+            row.cells[2].Text = this.parseDate(item.timebegin + "");
+            row.cells[3].Text = this.parseDate(item.timeend + "");
             row.cells[4].Type = "button";
             row.cells[4].Text = "查看";
             row.cells[4].OnClick = () => {
-                this._unit = this.allItem[i].unit;
-                this._period = this.allItem[i].period;
+                this.selectedItem = item;
                 this.chartOption = this.generateOption();
-                this.mock.send(this.backtestAppID, 8014, { nId: this.resTable.rows[i].cells[0].Data.nId });
+                this.mock.send(this.backtestAppID, 8014, { nId: row.cells[0].Data.id });
                 this.page = 1;
                 this.bLoading = true;
             };
-        }
-        this.resTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
-            // console.log(cellItem, cellIndex, rowIndex);
-            if (cellIndex !== 0)
-                return;
-            let tmpNid = cellItem.Data.nId;
-            let rtn = this.findReportIndex(tmpNid);
-            if (cellItem.Text) {
-                if (rtn === -1) {
-                    this.Sel_arr.push({ nid: tmpNid, idx: rowIndex });
-                }
-            } else {
-                if (rtn !== -1) {
-                    this.Sel_arr.splice(rtn, 1);
-                }
-            }
-            console.log(this.Sel_arr);
-        };
-        this.registerListener();
-    }
+        });
 
-    findReportIndex(nid: number) {
-        let arrLen = this.Sel_arr.length;
-        for (let i = 0; i < arrLen; ++i) {
-            if (this.Sel_arr[i].nid === nid) {
-                return this.Sel_arr[i].idx;
-            }
-        }
-        return -1;
+        this.registerListener();
     }
 
     parseDate(data: string) {
@@ -115,54 +82,32 @@ export class ReportComponent implements OnInit {
         this.page = 0;
     }
 
-    chooseAll() {
-        let len = this.resTable.rows.length;
-        this.Sel_arr.splice(0, this.Sel_arr.length);
-        for (let i = 0; i < len; ++i) {
-            this.resTable.rows[i].cells[0].Text = true;
-            this.Sel_arr.push({ nid: this.resTable.rows[i].cells[0].Data.nId, idx: i });
-        }
-        console.log(this.Sel_arr);
+    selectAll() {
+        this.resTable.rows.forEach(row => {
+            row.cells[0].Text = true;
+        });
     }
-    unChoose() {
-        let len = this.resTable.rows.length;
-        for (let i = 0; i < len; ++i) {
-            this.resTable.rows[i].cells[0].Text = false;
-        }
-        this.Sel_arr.splice(0, this.Sel_arr.length);
-        console.log(this.Sel_arr);
-    }
-    search() {
 
+    unseletAll() {
+        this.resTable.rows.forEach(row => {
+            row.cells[0].Text = false;
+        });
     }
+
+    search(value) {
+        this.resTable.rows.forEach(row => {
+            row.hidden = !row.cells[1].Text.startsWith(value);
+        });
+    }
+
     remove() {
-        console.log(this.allItem, this.Sel_arr);
-        if (this.Sel_arr.length === 0)
-            return;
-        let tableLen = this.resTable.rows.length;
-        for (let i = 0; i < tableLen; ++i) {
-            let nid = this.resTable.rows[i].cells[0].Data.nId;
-            for (let j = 0; j < this.Sel_arr.length; ++j) {
-                if (nid === this.Sel_arr[j].nid) {
-                    this.resTable.rows.splice(i, 1);
-                    tableLen--;
-                }
+        this.resTable.rows.forEach(row => {
+            if (row.cells[0].Text) {
+                this.configBll.removeLoopbackItem(row.cells[0].Data);
             }
-        }
-        let itemLen = this.allItem.length;
-        for (let i = 0; i < itemLen; ++i) {
-            let nid = this.allItem[i].id;
-            let selArrLen = this.Sel_arr.length;
-            for (let j = 0; j < this.Sel_arr.length; ++j) {
-                if (nid === this.Sel_arr[j].nid) {
-                    this.allItem.splice(i, 1);
-                    itemLen--;
-                }
-            }
-        }
-        this.configBll.updateLoopbackItems(this.allItem);
-        this.Sel_arr = [];
-        console.log(this.allItem, this.Sel_arr);
+        });
+
+        this.configBll.syncLoopbackItem();
     }
 
     chartInit(chart) {
@@ -261,10 +206,10 @@ export class ReportComponent implements OnInit {
         if (variance !== 0) {
             let value = null;
             let multiper;
-            if (this._unit === 0)
-                multiper = 365 * 24 * 60 / parseInt(this._period);
+            if (this.selectedItem.unit === 0)
+                multiper = 365 * 24 * 60 / parseInt(this.selectedItem.period);
             else
-                multiper = 365 / parseInt(this._period);
+                multiper = 365 / parseInt(this.selectedItem.period);
             value = ((total_ratios.pop() - 1) * multiper / profit.length - this.freeriskrate) / (Math.sqrt(variance) * multiper);
             // console.info(value, variance);
             this.sharpeRatio = value.toFixed(4);
