@@ -86,6 +86,7 @@ export class ConfigurationBLL {
 
     strategyKeys: number[];
     onCreated: Function;
+    onUpdated: Function;
     onStateChanged: Function;
     tempConfig: WorkspaceConfig;
     /**
@@ -136,6 +137,8 @@ export class ConfigurationBLL {
                     }
 
                     this._ssconfigs[i] = config;
+                    if (this.onUpdated)
+                        this.onUpdated(config);
                     break;
                 }
             }

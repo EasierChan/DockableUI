@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
 import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType, Channel } from "../../bll/strategy.server";
 import { Menu, MenuItem, AppStoreService } from "../../../base/api/services/backend.service";
@@ -19,7 +19,7 @@ export class SimulationComponent implements OnInit {
     selectedStrategyConfig: WorkspaceConfig;
     ssgwAppID: number;
 
-    constructor(private appsrv: AppStoreService, private tradeEndPoint: TradeService, private configBll: ConfigurationBLL) {
+    constructor(private appsrv: AppStoreService, private tradeEndPoint: TradeService, private configBll: ConfigurationBLL, private ref: ChangeDetectorRef) {
     }
 
     ngOnInit() {
@@ -116,6 +116,10 @@ export class SimulationComponent implements OnInit {
             tile.data = config.name;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
+        };
+
+        this.configBll.onUpdated = (config) => {
+            this.ref.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
