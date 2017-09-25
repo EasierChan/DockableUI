@@ -1319,36 +1319,45 @@ export class AppComponent implements OnInit {
     }
 
     showStatArbOrder(res: any) {
-        let j;
-        for (let i = 0; i < res.data.length; ++i) {
-            let dataArr = res.data;
-            if (res.subtype === 1001) {  // add
-                for (j = 0; j < this.statarbTable.rows.length; ++j) {
-                    if (dataArr[0].code === this.statarbTable.rows[j].cells[1].Text && dataArr[0].strategyid === this.statarbTable.rows[j].cells[6].Text) {
-                        this.refreshStatArbInfo(dataArr, j);
-                    }
+        if (res.subtype === 1001) {  // OrderInfo
+            res.data.forEach(order => {
+                let row = this.statarbTable.rows.find(item => { return item.cells[1].Text === order.code && item.cells[6].Text === order.strategyid; });
+                if (row === undefined) {
+                    row = this.statarbTable.newRow();
+                    let codeInfo = this.secuinfo.getSecuinfoByUKey(order.code)[order.code];
+                    row.cells[0].Text = codeInfo.SecuAbbr;
+                    row.cells[1].Text = order.code;
+                    row.cells[8].Text = codeInfo.SecuCode;
                 }
-                if (j === this.statarbTable.rows.length) {
-                    this.addStatArbInfo(dataArr);
-                }
-            } else if (res.subtype === 1002) { // hide
-                for (let idx = 0; idx < dataArr.length; ++idx) {
-                    for (let hideIdx = 0; hideIdx < this.statarbTable.rows.length; ++hideIdx) {
-                        let getUkey = this.statarbTable.rows[hideIdx].cells[1].Text;
-                        let getStrategyid = this.statarbTable.rows[hideIdx].cells[6].Text;
-                        if (parseInt(getUkey) === dataArr[idx].code && parseInt(getStrategyid) === dataArr[idx].strategyid) {
-                            this.statarbTable.rows[hideIdx].hidden = true;
-                            if (dataArr[idx].amount > 0) {
-                                this.buyamountLabel.Text = (parseFloat(this.buyamountLabel.Text) - dataArr[idx].amount / 10000).toFixed(3).toString();
-                            } else if (dataArr[idx].amount < 0) {
-                                this.sellamountLabel.Text = (parseFloat(this.sellamountLabel.Text) + dataArr[idx].amount / 10000).toFixed(3).toString();
-                            }
-                            break;
-                        }
-                    }
-                }
-            }
 
+                row.cells[2].Text = (order.pricerate / 100).toFixed(2);
+                row.cells[3].Text = order.position;
+                row.cells[4].Text = order.quantity;
+                row.cells[5].Text = (order.amount / 10000).toFixed(1);
+                row.cells[6].Text = order.strategyid;
+
+                if (order.amount > 0) {
+                    this.buyamountLabel.Text = (parseFloat(this.buyamountLabel.Text) + order.amount / 10000).toFixed(1);
+                } else if (order.amount < 0) {
+                    this.sellamountLabel.Text = (parseFloat(this.sellamountLabel.Text) - order.amount / 10000).toFixed(1);
+                }
+
+                row.cells[7].Text = order.diffQty;
+                row.hidden = false;
+            });
+        } else if (res.subtype === 1002) { // TradeInfo
+            res.data.forEach(order => {
+                let row = this.statarbTable.rows.find(item => { return item.cells[1].Text === order.code && item.cells[6].Text === order.strategyid; });
+                if (row !== undefined) {
+                    row.hidden = true;
+
+                    if (order.amount > 0) {
+                        this.buyamountLabel.Text = (parseFloat(this.buyamountLabel.Text) - order.amount / 10000).toFixed(1);
+                    } else if (order.amount < 0) {
+                        this.sellamountLabel.Text = (parseFloat(this.sellamountLabel.Text) + order.amount / 10000).toFixed(1);
+                    }
+                }
+            });
         }
     }
 
