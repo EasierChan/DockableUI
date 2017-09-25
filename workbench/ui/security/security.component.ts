@@ -341,7 +341,9 @@ export class SecurityComponent implements OnInit, OnDestroy {
                 data: []
             }];
 
-            this.marketChart.setOption(this.marketPerformance.content.option);
+            setTimeout(() => {
+                this.marketChart.setOption(this.marketPerformance.content.option);
+            }, 1000);
         }
 
         this.quote.send(140, 10, { ukey: parseInt(this.selectedItem.ukey), reqtype: 2, reqno: 1 });
