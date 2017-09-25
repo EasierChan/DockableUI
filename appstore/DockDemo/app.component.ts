@@ -1487,7 +1487,7 @@ export class AppComponent implements OnInit {
         let row = AppComponent.self.logTable.newRow();
         row.cells[0].Text = AppComponent.self.getCurrentTime();
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
-        AppComponent.self.ref.detectChanges();
+        this.logTable.detectChanges();
     }
 
     showStrategyInfo(data: any) {
@@ -1927,7 +1927,7 @@ export class AppComponent implements OnInit {
                 }
             });
 
-            this.strategyTable.detectChanges();
+            // this.strategyTable.detectChanges();
         } else if (subtype === 0) { // set pnl
             for (let i = 0; i < arr.length; ++i) {
                 AppComponent.self.totalpnLabel.Text = arr[i].totalpnl / 10000;
@@ -1937,7 +1937,7 @@ export class AppComponent implements OnInit {
                 AppComponent.self.totalpnlt.Text = arr[i].totaltodaypositionpnl / 10000 + arr[i].totaltradingpnl / 10000;
             }
 
-            this.ref.detectChanges();
+            // this.strategyTable.detectChanges();
         }
     }
 
