@@ -78,6 +78,7 @@ process.on("message", (m: WSIP20, sock) => {
         case "ps-stop":
             break;
         case "ss-start":
+            logger.debug(`tradeWorker.ts:81  tgw-appid=${m.params.appid}`);
             trade = new StrategyDealer(m.params.appid, m.params.loginInfo);
             trade.connect(m.params.port, m.params.host);
             break;
