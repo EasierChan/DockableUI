@@ -101,6 +101,7 @@ export class TradeComponent implements OnInit {
             this.configBll.removeConfig(this.selectedStrategyConfig);
             this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
             this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+            this.tradeEndPoint.send(this.ssgwAppID, 2014, { body: { name: this.selectedStrategyConfig.name } });
             this.selectedStrategyConfig = null;
         });
         // end strategyMenu
@@ -247,6 +248,7 @@ export class TradeComponent implements OnInit {
         this.configBll.tempConfig = config;
 
         this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
+        this.configBll.wait("创建策略失败");
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {

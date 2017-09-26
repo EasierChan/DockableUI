@@ -1,7 +1,7 @@
 "use strict";
 
 import { Component, OnInit } from "@angular/core";
-import { AppStoreService, CryptoService } from "../../../base/api/services/backend.service";
+import { AppStoreService, CryptoService, MessageBox } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL, DataKey } from "../../bll/strategy.server";
 import { TradeService, QuoteService } from "../../bll/services";
 
@@ -106,8 +106,11 @@ export class UserComponent implements OnInit {
             packid: 120,
             callback: msg => {
                 console.info(msg);
-                alert(msg.content.msg);
-                this.appSrv.setLoginTrade(false);
+                MessageBox.show("error", "TGW ERROR", msg.content.msg, (response) => {
+                    if (response === 1) {
+                        this.appSrv.setLoginTrade(false);
+                    }
+                }, ["忽略", "重新登录"], 0, 0);
             }
         });
     }

@@ -11,7 +11,7 @@
             <option *ngFor="let opt of products" [value]="opt.tblock_id">{{opt.tblock_full_name}}</option>
         </select>
     </label>
-    <button class="btn btn-primary" (click)="save()">保存</button>
+    <button class="btn btn-primary" (click)="save()">保存并关闭</button>
 </div>
 <div *ngIf="config.activeChannel == 2" class="groupbox backtest">
     <div class="section">

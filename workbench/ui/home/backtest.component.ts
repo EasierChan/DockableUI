@@ -89,6 +89,7 @@ export class BacktestComponent implements OnInit {
             this.configBll.removeConfig(this.selectedStrategyConfig);
             this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
             this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+            this.tradeEndPoint.send(this.ssgwAppID, 2014, { body: { name: this.selectedStrategyConfig.name } });
             this.selectedStrategyConfig = null;
         });
         // end strategyMenu
@@ -184,6 +185,7 @@ export class BacktestComponent implements OnInit {
             this.configBll.tempConfig = config;
 
         this.tradeEndPoint.send(this.ssgwAppID, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
+        this.configBll.wait("创建策略失败", 2000);
     }
 
     onStartApp() {

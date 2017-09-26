@@ -1324,7 +1324,7 @@ export class AppComponent implements OnInit {
                 let row = this.statarbTable.rows.find(item => { return item.cells[1].Text === order.code && item.cells[6].Text === order.strategyid; });
                 if (row === undefined) {
                     row = this.statarbTable.newRow();
-                    let codeInfo = this.secuinfo.getSecuinfoByUKey(order.code)[order.code];
+                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(order.code)[order.code];
                     row.cells[0].Text = codeInfo.SecuAbbr;
                     row.cells[1].Text = order.code;
                     row.cells[8].Text = codeInfo.SecuCode;
@@ -2401,8 +2401,6 @@ export class AppComponent implements OnInit {
                 this.addPortfolioTableInfo(tableData[iData], dataLen, iData);
             }
         }
-
-        this.portfolioTable.detectChanges();
     }
 
     addPortfolioTableInfo(tableData: any, len: number, idx: number) {

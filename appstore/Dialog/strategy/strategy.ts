@@ -130,6 +130,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
         }
 
         AppStoreService.setLocalStorageItem(DataKey.kStrategyCfg, JSON.stringify(this.config));
+        window.close();
     }
 
     changeStrategy(value) {

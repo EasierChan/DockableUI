@@ -89,6 +89,7 @@ export class ConfigurationBLL {
     onUpdated: Function;
     onStateChanged: Function;
     tempConfig: WorkspaceConfig;
+    timeout: any;
     /**
      * @return a list of available strategy templates.
      */
@@ -162,9 +163,14 @@ export class ConfigurationBLL {
                 if (this.onCreated)
                     this.onCreated(config);
             }
+
+            if (this.timeout) {
+                clearTimeout(this.timeout);
+            }
         }
 
         File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
+        alert("策略创建成功");
     }
 
     removeConfig(config: WorkspaceConfig) {
@@ -331,5 +337,11 @@ export class ConfigurationBLL {
 
     getProducts(): any[] {
         return this._products;
+    }
+
+    wait(fail_msg: string, timeout_val: number = 2000) {
+        this.timeout = setTimeout(() => {
+            alert(fail_msg);
+        }, timeout_val);
     }
 }
