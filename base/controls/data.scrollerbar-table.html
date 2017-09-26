@@ -31,7 +31,7 @@
                  [disabled]="cell.styleObj?.disable" style="width: 12px;"> 
                 <span style="white-space: nowrap">{{cell.dataSource.title}}</span>
             </label>
-            <u-codes *ngIf="cell.styleObj.type=='u-codes'" (onSelect)="cell.dataSource.click({row: i, item: $event})"></u-codes>
+            <u-codes *ngIf="cell.styleObj.type=='u-codes'" [selectedItem]="cell.dataSource.text" (onSelect)="cell.dataSource.click({row: i, item: $event})"></u-codes>
           </td>
         </template>
       </tr>

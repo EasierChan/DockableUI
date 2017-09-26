@@ -457,17 +457,17 @@ export class TileAreaComponent {
     selector: "u-codes",
     styleUrls: ["code.searcher.css"],
     template: `
-        <input type="text" class="btn-default" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedValue" #searcher>
+        <input type="text" class="btn-default" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedItem?.symbolCode" #searcher>
         <ul *ngIf="resList&&resList.length > 0" class="dropdown">
             <li *ngFor="let item of resList; let i = index" (click)="listClick($event, item)" [style.backgroundColor]="i === curIdx ? 'black': null">{{item.symbolCode}} {{item.SecuAbbr}}</li>
         </ul>
     `
 })
 export class CodeComponent {
-    selectedValue: string;
     resList: any;
     curIdx = 0;
 
+    @Input("selectedItem") selectedItem: any;
     @Output() onSelect: EventEmitter<any> = new EventEmitter<any>();
 
     constructor(private secuinfo: SecuMasterService) {
@@ -502,7 +502,7 @@ export class CodeComponent {
     listClick(event: Event, item) {
         event.preventDefault();
         event.stopPropagation();
-        this.selectedValue = item.symbolCode;
+        this.selectedItem = item.symbolCode;
         this.onSelect.emit(item);
         this.resList = null;
     }

@@ -34,7 +34,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
 
     strategyConfigPanel: TabPanel;
 
-    constructor(private tgw: IP20Service) {
+    constructor(private tgw: IP20Service, private secuinfo: SecuMasterService) {
         this.enNameLabel = "策略服务名：";
         this.chNameLabel = "中文别名：";
         this.productLabel = "产品：";
@@ -80,24 +80,24 @@ export class StrategyComponent implements OnInit, OnDestroy {
         AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
         this.strategyTemplates = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyTemplates));
         if (this.strategyType !== undefined) {
-            let row: DataTableRow;
             let strategy = this.strategyTemplates[this.strategyType]["Strategy"];
             this.config.items[0].parameters.forEach(param => {
-                row = this.paramsTable.newRow();
+                let row: DataTableRow = this.paramsTable.newRow();
                 row.cells[0].Text = param.name;
                 row.cells[1].Type = "textbox";
                 row.cells[1].Text = param.value;
             });
 
             this.config.items[0].instruments.forEach(instrument => {
-                row = this.instrumentTable.newRow();
+                let row: DataTableRow = this.instrumentTable.newRow();
                 row.cells[0].Text = instrument.name;
                 row.cells[1].Type = "u-codes";
-                row.cells[1].Text = instrument.value;
+                let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(instrument.value);
+                row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(instrument.value) ? codeinfo[instrument.value].SecuCode : instrument.value };
                 row.cells[1].Data = instrument.value;
                 row.cells[1].OnClick = (event) => {
                     if (event.row !== undefined)
-                        this.instrumentTable.rows[event.row].cells[1].Data = parseInt(event.item.code);
+                        row.cells[1].Data = parseInt(event.item.code);
                 };
             });
         }
@@ -136,11 +136,10 @@ export class StrategyComponent implements OnInit, OnDestroy {
     changeStrategy(value) {
         this.paramsTable.rows.length = 0;
         this.instrumentTable.rows.length = 0;
-        let row: DataTableRow;
         let strategy = this.strategyTemplates[value]["Strategy"];
         for (let prop in strategy[strategy["Strategies"][0]].Parameter) {
             if (strategy[strategy["Strategies"][0]].Parameter[prop].show === 1) {
-                row = this.paramsTable.newRow();
+                let row: DataTableRow = this.paramsTable.newRow();
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Parameter[prop];
                 row.cells[0].Text = prop;
                 row.cells[1].Type = "textbox";
@@ -150,15 +149,16 @@ export class StrategyComponent implements OnInit, OnDestroy {
 
         for (let prop in strategy[strategy["Strategies"][0]].Instrument) {
             if (strategy[strategy["Strategies"][0]].Instrument[prop].show === 1) {
-                row = this.instrumentTable.newRow();
+                let row: DataTableRow = this.instrumentTable.newRow();
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Instrument[prop];
                 row.cells[0].Text = prop;
                 row.cells[1].Type = "u-codes";
-                row.cells[1].Text = row.cells[0].Data.value;
+                let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(row.cells[0].Data.value);
+                row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(row.cells[0].Data.value) ? codeinfo[row.cells[0].Data.value].SecuCode : row.cells[0].Data.value };
                 row.cells[1].Data = row.cells[0].Data.value;
                 row.cells[1].OnClick = (event) => {
                     if (event.row !== undefined)
-                        this.instrumentTable.rows[event.row].cells[1].Data = parseInt(event.item.code);
+                        row.cells[1].Data = parseInt(event.item.code);
                 };
             }
         }
