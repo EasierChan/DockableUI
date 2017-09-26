@@ -655,7 +655,7 @@ export class StrategyDealer {
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 2012, subtype: 0, body: null });
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 2016, subtype: 0, body: null });
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 2044, subtype: 0, body: null });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2044, subtype: 0, body: null });
+        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2024, subtype: 1000, body: null });
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 3503, subtype: 0, body: null });
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 3509, subtype: 0, body: null });
         this.tradePoint.sendQtp(this.appid, this.packid, { type: 3010, subtype: 0, body: null });
