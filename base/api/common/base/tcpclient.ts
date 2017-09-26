@@ -63,19 +63,16 @@ export class TcpClient {
 
         this._clientSock.on("error", (err: Error) => {
             this.emit("error");
-            this._clientSock.close();
             this._clientSock = null;
             this._buffer_Queue = null;
         });
         this._clientSock.on("end", () => {
             this.emit("end");
-            this._clientSock.close();
             this._clientSock = null;
             this._buffer_Queue = null;
         });
         this._clientSock.on("close", (has_error) => {
             this.emit("close");
-            this._clientSock.close();
             this._clientSock = null;
             this._buffer_Queue = null;
         });
