@@ -124,6 +124,8 @@ export class ConfigurationBLL {
             let i = 0;
             for (; i < this._ssconfigs.length; ++i) {
                 if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
+                    let oldName = this._ssconfigs[i].chname;
+
                     switch (config.activeChannel) {
                         case Channel.ONLINE:
                             this._ss_realtrade_configs[this._ss_realtrade_configs.indexOf(this._ssconfigs[i])] = config;
@@ -138,7 +140,7 @@ export class ConfigurationBLL {
 
                     this._ssconfigs[i] = config;
                     if (this.onUpdated)
-                        this.onUpdated(config);
+                        this.onUpdated(oldName, config);
                     break;
                 }
             }

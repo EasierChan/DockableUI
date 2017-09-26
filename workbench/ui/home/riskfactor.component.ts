@@ -165,6 +165,8 @@ export class RiskFactorComponent implements OnDestroy {
                         RiskFactorComponent.self.productData = data.body;
                         console.log(RiskFactorComponent.self.productData);
                         console.log(RiskFactorComponent.self.productData[0].tblock_full_name);
+                        RiskFactorComponent.self.iproducts = [];
+
                         for (let i = 0; i < RiskFactorComponent.self.productData.length; i++) {
                             RiskFactorComponent.self.iproducts.push(RiskFactorComponent.self.productData[i].tblock_full_name);
                         }
@@ -504,11 +506,13 @@ export class RiskFactorComponent implements OnDestroy {
             let rfeIndex = this.binarySearchStock(riskFactorExposure, singleStock.stockCode, 1, 0);
 
             if (rfeIndex === -1) {
-                alert("没有找到" + singleStock.stockCode + "的暴露,请补全信息!");
+                // alert("没有找到" + singleStock.stockCode + "的暴露,请补全信息!");
 
-                return false;
-            }
-            else {
+                // return false;
+                for (let i = 2; i < riskFactorExposure[rfeIndex].length; ++i) {   // 遍历指定暴露的风险因子
+                    singleStock["stockExposure"][i - 2] = 0; // 这里有一个假设，假定所有数据都不会重复哦  /
+                }
+            } else {
                 for (let i = 2; i < riskFactorExposure[rfeIndex].length; ++i) {   // 遍历指定暴露的风险因子的暴露
                     singleStock["stockExposure"][i - 2] = riskFactorExposure[rfeIndex][i] * singleStock.stockWeight; // 这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
 
@@ -1066,9 +1070,9 @@ export class RiskFactorComponent implements OnDestroy {
 
             this.readAndHandleRiskExposure(path.join(this.dataDir, "expo", exposureFile[fileIndex]));
             let result = this.calculateRiskFactor(this.riskFactorReturn, this.riskFactorExposure, this.groupPosition, sumOfDayExposure, exposureFile[fileIndex].split(".")[0]);
-            if (!result) {
-                return;
-            }
+            // if (!result) {
+            //     return;
+            // }
         }
 
         this.setriskFactorExposureEchart(sumOfDayExposure, this.groupPosition, this.riskFactorReturn);

@@ -151,7 +151,8 @@ export class TradeComponent implements OnInit {
             this.strategyArea.addTile(tile);
         };
 
-        this.configBll.onUpdated = (config) => {
+        this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
+            this.strategyArea.getTile(oldName).title = config.chname;
             this.ref.detectChanges();
         };
 

@@ -280,6 +280,8 @@ export class AppComponent implements OnInit, OnDestroy {
                     let idx = this.configBll.strategyKeys.indexOf(config.items[0].key);
                     if (idx < 0)
                         this.configBll.strategyKeys.push(config.items[0].key);
+                    else
+                        this.configBll.strategyKeys[idx] = config.items[0].key;
 
                     this.configBll.updateConfig(config);
                     this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
