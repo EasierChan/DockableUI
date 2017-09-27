@@ -502,7 +502,7 @@ export class CodeComponent {
     listClick(event: Event, item) {
         event.preventDefault();
         event.stopPropagation();
-        this.selectedItem = item.symbolCode;
+        this.selectedItem = item;
         this.onSelect.emit(item);
         this.resList = null;
     }

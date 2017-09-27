@@ -13,6 +13,9 @@ import { ECharts } from "echarts";
     styleUrls: ["../home/home.component.css", "security.component.css"]
 })
 export class SecurityComponent implements OnInit, OnDestroy {
+    tabs: string[];
+    activeTab: string;
+
     symbol: string;
     code: string;
     summary: Section;
@@ -37,6 +40,10 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.tabs = ["证券信息", "历史行情"];
+        this.activeTab = this.tabs[0];
+
+
         this.symbol = "--";
         this.code = "--";
         this.summary = new Section();
@@ -196,6 +203,10 @@ export class SecurityComponent implements OnInit, OnDestroy {
             packid: 11,
             callback: (msg) => {
                 console.info(msg.content);
+                if (this.activeTab !== this.tabs[0]) {
+                    return;
+                }
+
                 switch (msg.content.type) {
                     case 1:
                         this.summary.content = msg.content.array[0].S_INFO_CHINESEINTRODUCTION;
@@ -245,7 +256,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
                             this.mainIncome.content.option.series[0].data.push({ value: item.S_SEGMENT_SALES / 1000, name: item.S_SEGMENT_ITEM });
                         });
 
-                        this.mainIncomChart.setOption(this.mainIncome.content.option);
+                        if (this.mainIncomChart && this.isStock)
+                            this.mainIncomChart.setOption(this.mainIncome.content.option);
                         break;
                     case 6:
                         this.baseInfo.content[4].value = msg.content.array[0].S_INFO_LISTDATE.substr(0, 4) + "-" + msg.content.array[0].S_INFO_LISTDATE.substr(4, 2) + "-" + msg.content.array[0].S_INFO_LISTDATE.substr(6, 2);
@@ -280,7 +292,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
                             this.marketPerformance.content.option.series[0].data.push(item.S_DQ_CLOSE);
                         });
 
-                        this.marketChart.setOption(this.marketPerformance.content.option);
+                        if (this.marketChart && this.isStock)
+                            this.marketChart.setOption(this.marketPerformance.content.option);
                         break;
                     case 100:
                         this.currentInfo.content.rows.length = 0;
