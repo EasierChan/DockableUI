@@ -11,8 +11,8 @@ import {
     VBox, HBox, TextBox, Button, DockContainer
 } from "../../base/controls/control";
 
-import { AppStoreService, ChildProcess, Http } from "../../base/api/services/backend.service";
-import { TradeService, QuoteService } from "../bll/services";
+import { AppStoreService, ChildProcess, Http, ULogger } from "../../base/api/services/backend.service";
+import { TradeService, QuoteService,  } from "../bll/services";
 import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
@@ -214,6 +214,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.appSrv.getUserProfile(null);
         this.registerListeners();
+        ULogger.init("log", Environment.getDataPath("workbench"));
 
         if (this.appSrv.isLoginTrade()) {
             this.actionBar.click(this.actionBar.getItem("主页"));

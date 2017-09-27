@@ -9,8 +9,9 @@ import { Pool } from "../browser/pool";
 import { ISONPack2Header, ISONPack2 } from "../model/isonpack/isonpack.model";
 import { Header } from "../model/itrade/message.model";
 import { Injectable } from "@angular/core";
+import { ULogger } from "./backend.service";
 
-const logger = console;
+let logger = ULogger;
 
 class IP20Parser extends Parser {
     private _curHeader: ISONPack2Header = null;
@@ -35,8 +36,10 @@ class IP20Parser extends Parser {
         if (this._oPool.length === 0)
             return false;
 
-        if (this._curHeader !== null)
+        if (this._curHeader !== null) {
+            logger.warn(`curHeader: ${JSON.stringify(this._curHeader)}, poolLen=${this._oPool.length}`);
             return true;
+        }
 
         let ret = false;
         let bufCount = 0;
@@ -48,7 +51,7 @@ class IP20Parser extends Parser {
             peekBuf = this._oPool.peek(bufCount + 1);
             buflen += peekBuf[bufCount].byteLength;
             if (buflen >= ISONPack2Header.len) {
-                console.info(`buflen=${buflen}, ISONPack2Header.len=${ISONPack2Header.len}, bufCount=${bufCount + 1}`);
+                logger.info(`buflen=${buflen}, ISONPack2Header.len=${ISONPack2Header.len}, bufCount=${bufCount + 1}`);
                 this._curHeader = new ISONPack2Header();
                 let tempBuffer = null;
 
@@ -72,7 +75,7 @@ class IP20Parser extends Parser {
                         restBuf = null;
                     }
 
-                    console.warn(`remove unvalid message => packlen=${this._curHeader.packlen}, restLen=${restLen}`);
+                    logger.warn(`remove unvalid message => packlen=${this._curHeader.packlen}, restLen=${restLen}`);
                     tempBuffer = null;
                     this._curHeader = null;
                     ret = false;
@@ -103,7 +106,7 @@ class IP20Parser extends Parser {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.packlen) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                console.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}, buflen=${tempBuffer.length}`);
+                logger.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}, buflen=${tempBuffer.length}`);
                 this.emit(this._curHeader.appid.toString(), this._curHeader, tempBuffer);
 
                 restLen = buflen - this._curHeader.packlen;
@@ -112,7 +115,7 @@ class IP20Parser extends Parser {
                     tempBuffer.copy(restBuf, 0, buflen - restLen);
                     this._oPool.prepend(restBuf);
                     restBuf = null;
-                    console.warn(`restLen=${restLen}, tempBuffer=${tempBuffer.length}`);
+                    logger.warn(`restLen=${restLen}, tempBuffer=${tempBuffer.length}`);
                 }
 
                 this._curHeader = null;
@@ -260,7 +263,7 @@ export class IP20Service {
                 self._messageMap[msg.head.appid][msg.head.packid](msg);
             }
             else
-                console.warn(`unknown message appid = ${msg.head.appid}, packid = ${msg.head.packid}`);
+                logger.warn(`unknown message appid = ${msg.head.appid}, packid = ${msg.head.packid}`);
         });
 
         this._client.on("connect", () => {
@@ -274,7 +277,7 @@ export class IP20Service {
         });
 
         this._client.on("close", () => {
-            console.info("remote closed");
+            logger.info("remote closed");
 
             if (this._timer) {
                 clearTimeout(this._timer);
@@ -357,13 +360,13 @@ process.on("message", (m: WSIP20, sock) => {
                     appid: 17,
                     packid: 43,
                     callback(msg) {
-                        console.info(`tgw ans=>${msg}`);
+                        logger.info(`tgw ans=>${msg}`);
                     }
                 }, {
                     appid: 17,
                     packid: 120,
                     callback(msg) {
-                        console.info(`tgw ans=>${msg}`);
+                        logger.info(`tgw ans=>${msg}`);
                     }
                 }, {
                     appid: 17,
@@ -387,7 +390,7 @@ process.on("message", (m: WSIP20, sock) => {
         case "stop":
             break;
         default:
-            console.error(`unvalid command => ${m.command}`);
+            logger.error(`unvalid command => ${m.command}`);
             break;
     }
 });

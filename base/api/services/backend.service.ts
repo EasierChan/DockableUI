@@ -389,3 +389,60 @@ export class CryptoService {
         return hash.digest("hex");
     }
 }
+
+export class ULogger {
+    static stream = null;
+    static info = ULogger.log;
+    static error = ULogger.log;
+    static warn = ULogger.log;
+    static formatStr;
+
+    static init(name = "log", logdir = "."): void {
+        let date = new Date();
+        ULogger.stream = fs.createWriteStream(path.join(Environment.getDataPath("workbench"), [name, date.format("MM-dd")].join("-")), {
+            flags: "a"
+        });
+
+        ULogger.formatStr = "yyyy-MM-dd HHmmss.SSS";
+    }
+
+    static log(msg: string) {
+        let date = new Date();
+        if (ULogger.stream)
+            ULogger.stream.write(`[${date.format(ULogger.formatStr)}] ${msg}\n`, "utf8");
+        else
+            console.log(msg);
+    }
+}
+
+Date.prototype.format = function (format: string): string {
+    return format.replace(/(yyyy)|(MM)|(dd)|(HH)|(mm)|(ss)|(SSS)/g, (matchStr) => {
+        switch (matchStr) {
+            case "yyyy":
+                return this.getFullYear().toString();
+            case "MM":
+                let month = this.getMonth() + 1;
+                return month.toString().lpad(2, 0);
+            case "dd":
+                return this.getDate().toString();
+            case "HH":
+                return this.getHours().toString();
+            case "mm":
+                return this.getMinutes().toString();
+            case "ss":
+                return this.getSeconds().toString().lpad(2, 0);
+            case "SSS":
+                return this.getMilliseconds().toString().lpad(3, 0);
+        }
+    });
+};
+
+String.prototype.lpad = function (this: String, length: number, value: string): string {
+    let primitive = this.valueOf();
+
+    while (primitive.length < length) {
+        primitive = value + primitive;
+    }
+
+    return primitive;
+};

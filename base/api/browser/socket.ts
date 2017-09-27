@@ -5,9 +5,10 @@
 
 const { EventEmitter } = require("@node/events");
 const net = require("@node/net");
+import { ULogger } from "../services/backend.service";
 
 const localhost: string = "127.0.0.1";
-const logger = console;
+const logger = ULogger;
 /**
  * TcpClient is
  */
@@ -56,7 +57,7 @@ export class TcpSocket {
 
         this._sock.on("data", (data) => {
             this.emit("data", data);
-            console.info(`[read from  ${this._ip}:${this._port}]: length=${data.length}`);
+            logger.info(`[read from  ${this._ip}:${this._port}]: length=${data.length}`);
         });
 
         this._sock.on("end", () => {
@@ -73,7 +74,7 @@ export class TcpSocket {
     send(data: any): void {
         if (this._sock && this._sock.writable) {
             this._sock.write(data);
-            console.info(`[write to ${this._ip}:${this._port}]: length=${data.length}`);
+            logger.info(`[write to ${this._ip}:${this._port}]: length=${data.length}`);
             return;
         }
 

@@ -35,6 +35,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
     mainIncomChart: ECharts;
     isStock: boolean;
     timeout: any;
+    // history tab;
+    historyMDChart: ECharts;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
     }
@@ -176,6 +178,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.standardInfo.content.push(["交易时间", "", "上市交易所", ""]);
 
         this.isStock = true;
+
+        // 历史行情
         this.registerListener();
     }
 
@@ -330,14 +334,27 @@ export class SecurityComponent implements OnInit, OnDestroy {
         });
     }
 
+    chartInit(chart) {
+        this.historyMDChart = chart;
+    }
+
     listClick(item) {
         console.info(item);
         this.selectedItem = item;
-        this.search();
+        if (this.activeTab === this.tabs[0]) {
+            this.searchInfo();
+        } else {
+            this.searchMD();
+        }
+
         this.resList = null;
     }
 
-    search() {
+    searchMD() {
+        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.selectedItem.ukey, dataType: 101001, dateFrom: 20170508, dateTo: 20170508, timeTo: 153000000 });
+    }
+
+    searchInfo() {
         this.symbol = this.selectedItem.SecuAbbr;
         this.code = this.selectedItem.symbolCode;
         this.isStock = (this.selectedItem.ukey & 0x00010000) > 0 ? true : false;
