@@ -2376,6 +2376,12 @@ export class AppComponent implements OnInit {
                 row.cells[0].Data = data[0].data[iData].UKey;
                 row.cells[0].Text = false;
                 row.cells[1].Text = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuAbbr : "unknown";
+                row.cells[9].Type = "textbox";
+                row.cells[9].Text = 0;
+                row.cells[10].Type = "button";
+                row.cells[10].Text = "Send";
+                row.cells[11].Type = "button";
+                row.cells[11].Text = "Cancel";
                 ++this.portfolioCount.Text;
             }
 
@@ -2386,12 +2392,6 @@ export class AppComponent implements OnInit {
             row.cells[6].Text = data[0].data[iData].Traded;
             row.cells[7].Text = data[0].data[iData].Percentage / 100 + "%";
             row.cells[8].Text = data[0].data[iData].WorkingVol;
-            row.cells[9].Type = "textbox";
-            row.cells[9].Text = 0;
-            row.cells[10].Type = "button";
-            row.cells[10].Text = "Send";
-            row.cells[11].Type = "button";
-            row.cells[11].Text = "Cancel";
 
             row.cells[13].Text = data[0].data[iData].PreClose / 10000;
             row.cells[14].Text = data[0].data[iData].LastPrice / 10000;
