@@ -9,9 +9,9 @@
                 <span class="glyphicon glyphicon-user"></span>
             </h2>
             <label for="username">资产单元：</label>
-            <input id="username" type="text" placeholder="请输入手机号或邮箱" [(ngModel)]="maid">
+            <input id="username" type="text" placeholder="请输入手机号或邮箱" [(ngModel)]="maid" autocomplete="on">
             <label for="username">操作员：</label>
-            <input id="username" type="text" placeholder="请输入手机号或邮箱" [(ngModel)]="userid">
+            <input id="username" type="text" placeholder="请输入手机号或邮箱" [(ngModel)]="userid" autocomplete="on">
             <label for="password">密码：</label>
             <input id="password" type="password" placeholder="6-20位数字、字母或字符" [(ngModel)]="password">
             <button class="btn-login" (click)="login()">登录</button>

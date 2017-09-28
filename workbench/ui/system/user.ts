@@ -126,6 +126,13 @@ export class UserComponent implements OnInit {
         let loginObj: any = { maid: this.maid, cellid: "*", userid: this.userid, password: this.cryptoSrv.generateMD5(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
         this.tradeSrv.send(17, 41, loginObj); // login
 
+        this.tradeSrv.onClose = () => {
+            if (this.appSrv.isLoginTrade()) {
+                MessageBox.show("warning", "Server Error", "TGW Connection Close!");
+                this.appSrv.setLoginTrade(false);
+            }
+        };
+
         AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
 
         loginObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };

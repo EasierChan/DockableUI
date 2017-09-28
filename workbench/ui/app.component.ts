@@ -12,7 +12,7 @@ import {
 } from "../../base/controls/control";
 
 import { AppStoreService, ChildProcess, Http, ULogger } from "../../base/api/services/backend.service";
-import { TradeService, QuoteService,  } from "../bll/services";
+import { TradeService, QuoteService, } from "../bll/services";
 import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
