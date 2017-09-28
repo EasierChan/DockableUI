@@ -22,6 +22,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
 
     enNameLabel: string;
     enName: string;
+    isCreate: boolean;
     chNameLabel: string;
     chName: string;
     strategyLabel: string;
@@ -54,6 +55,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
         }
 
         this.enName = this.config.name;
+        this.isCreate = true;
         this.chName = this.config.chname;
         this.strategyType = this.config.strategyType;
         this.productID = this.config.productID;
@@ -80,6 +82,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
         AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
         this.strategyTemplates = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyTemplates));
         if (this.strategyType !== undefined) {
+            this.isCreate = false;
             let strategy = this.strategyTemplates[this.strategyType]["Strategy"];
             this.config.items[0].parameters.forEach(param => {
                 let row: DataTableRow = this.paramsTable.newRow();

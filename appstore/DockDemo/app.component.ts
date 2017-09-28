@@ -63,6 +63,7 @@ export class AppComponent implements OnInit {
     private profitTable: DataTable;
     private statarbTable: DataTable;
     private portfolioTable: DataTable;
+    private portfolioTradingFlag: number = 0;
     private commentTable: DataTable;
     private configTable: DataTable;
     private gatewayTable: DataTable;
@@ -779,6 +780,7 @@ export class AppComponent implements OnInit {
         this.portfolioBuyCom.addItem({ Text: "A3", Value: "7" });
         this.portfolioBuyCom.addItem({ Text: "A4", Value: "8" });
         this.portfolioBuyCom.addItem({ Text: "A5", Value: "9" });
+        this.portfolioBuyCom.SelectedItem = this.portfolioBuyCom.Items[4];
 
         this.portfolioBUyOffset = new DropDown();
         this.portfolioBUyOffset.Width = 59;
@@ -821,6 +823,7 @@ export class AppComponent implements OnInit {
         this.portfolioSellCom.addItem({ Text: "A3", Value: "7" });
         this.portfolioSellCom.addItem({ Text: "A4", Value: "8" });
         this.portfolioSellCom.addItem({ Text: "A5", Value: "9" });
+        this.portfolioSellCom.SelectedItem = this.portfolioSellCom.Items[5];
         this.portfolioSellOffset = new DropDown();
         this.portfolioSellOffset.Width = 62;
         this.portfolioSellOffset.Left = 8;
@@ -1310,11 +1313,11 @@ export class AppComponent implements OnInit {
     }
 
     changeSingleQty(rateVal: number) {
-        let len = AppComponent.self.portfolioTable.rows.length;
+        let len = this.portfolioTable.rows.length;
         for (let i = 0; i < len; ++i) {
-            let targetVal = AppComponent.self.portfolioTable.rows[i].cells[3].Text;
+            let targetVal = this.portfolioTable.rows[i].cells[3].Text;
             let singleVal = (targetVal / 100 * rateVal).toFixed(0);
-            AppComponent.self.portfolioTable.rows[i].cells[9].Text = Math.abs(parseInt(singleVal));
+            this.portfolioTable.rows[i].cells[9].Text = Math.abs(parseInt(singleVal));
         }
     }
 
@@ -1359,40 +1362,6 @@ export class AppComponent implements OnInit {
                 }
             });
         }
-    }
-
-    addStatArbInfo(dataArr: any) {
-        let row = AppComponent.self.statarbTable.newRow();
-        row.cells[1].Text = dataArr[0].code;
-        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(dataArr[0].code);
-        row.cells[0].Text = codeInfo.hasOwnProperty(dataArr[0].code) ? codeInfo[dataArr[0].code].SecuAbbr : "unknown";
-        row.cells[8].Text = codeInfo.hasOwnProperty(dataArr[0].code) ? codeInfo[dataArr[0].code].SecuCode : "unknown";
-        row.cells[2].Text = dataArr[0].pricerate / 100;
-        row.cells[3].Text = dataArr[0].position;
-        row.cells[4].Text = dataArr[0].quantity;
-        row.cells[5].Text = dataArr[0].amount / 10000;
-        row.cells[6].Text = dataArr[0].strategyid;
-        row.cells[7].Text = dataArr[0].diffQty;
-
-        if (dataArr[0].amount > 0)
-            AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) + dataArr[0].amount / 10000).toFixed(3).toString();
-        else
-            AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toFixed(3).toString();
-    }
-
-    refreshStatArbInfo(dataArr: any, idx: number) {
-        AppComponent.self.statarbTable.rows[idx].cells[2].Text = dataArr[0].pricerate / 100;
-        AppComponent.self.statarbTable.rows[idx].cells[3].Text = dataArr[0].position;
-        AppComponent.self.statarbTable.rows[idx].cells[4].Text = dataArr[0].quantity;
-        AppComponent.self.statarbTable.rows[idx].cells[5].Text = dataArr[0].amount / 10000;
-        AppComponent.self.statarbTable.rows[idx].cells[5].Text = dataArr[0].amount / 10000;
-        if (dataArr[0].amount > 0) {
-            AppComponent.self.buyamountLabel.Text = (parseFloat(AppComponent.self.buyamountLabel.Text) + dataArr[0].amount / 10000).toFixed(3).toString();
-        } else if (dataArr[0].amount < 0) {
-            AppComponent.self.sellamountLabel.Text = (parseFloat(AppComponent.self.sellamountLabel.Text) - dataArr[0].amount / 10000).toFixed(3).toString();
-        }
-        AppComponent.self.statarbTable.rows[idx].cells[7].Text = dataArr[0].diffQty;
-        AppComponent.self.statarbTable.rows[idx].hidden = false;
     }
 
     showComorderstatusAndErrorInfo(data: any) {
@@ -2378,163 +2347,103 @@ export class AppComponent implements OnInit {
         }
     }
 
-    showBasketBackInfo(data: any) {
-        let account = data[0].account;
-        if (account !== parseInt(this.portfolio_acc.SelectedItem.Text))
+    updateBasketPosition(data: any) {
+        if (data[0].account !== parseInt(this.portfolio_acc.SelectedItem.Text))
             return;
+
+        if (data[0].count === 0) {
+            this.portfolioTable.rows.length = 0;
+            return;
+        }
+
         let count = data[0].count;
         this.portfolioCount.Text = count;
-        let tableData = data[0].data;
-        let dataLen = data[0].data.length;
+        let row;
 
-        for (let iData = 0; iData < dataLen; ++iData) {
-            let iRow;
+        for (let iData = 0; iData < count; ++iData) {
+            row = this.portfolioTable.rows.find(item => {
+                return item.cells[0].Data === data[0].data[iData].UKey;
+            });
 
-            for (iRow = 0; iRow < this.portfolioTable.rows.length; ++iRow) {
-                if (this.portfolioTable.rows[iRow].cells[0].Data === tableData[iData].UKey) {
-                    this.refreshPortfolioTable(iRow, tableData[iData]);
+            if (row === undefined) {
+                row = this.portfolioTable.newRow();
+                let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[0].data[iData].UKey);
+                row.cells[0].Type = "checkbox";
+                row.cells[0].Title = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuCode : "unknown";
+                row.cells[0].Data = data[0].data[iData].UKey;
+                row.cells[0].Text = false;
+                row.cells[1].Text = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuAbbr : "unknown";
+            }
+
+            row.cells[2].Text = data[0].data[iData].InitPos;
+            row.cells[3].Text = data[0].data[iData].TgtPos;
+            row.cells[4].Text = data[0].data[iData].CurrPos;
+            row.cells[5].Text = data[0].data[iData].Diff;
+            row.cells[6].Text = data[0].data[iData].Traded;
+            row.cells[7].Text = data[0].data[iData].Percentage / 100 + "%";
+            row.cells[8].Text = data[0].data[iData].WorkingVol;
+
+            row.cells[13].Text = data[0].data[iData].PreClose / 10000;
+            row.cells[14].Text = data[0].data[iData].LastPrice / 10000;
+            row.cells[15].Text = data[0].data[iData].BidSize;
+            row.cells[16].Text = data[0].data[iData].BidPrice / 10000;
+            row.cells[17].Text = data[0].data[iData].AskSize;
+            row.cells[18].Text = data[0].data[iData].AskPrice / 10000;
+            row.cells[19].Text = data[0].data[iData].AvgBuyPrice / 10000;
+            row.cells[20].Text = data[0].data[iData].AvgSellPrice / 10000;
+            row.cells[21].Text = data[0].data[iData].PreValue / 10000;
+            row.cells[22].Text = data[0].data[iData].ValueCon / 10000;
+            row.cells[23].Text = data[0].data[iData].DayPnLCon / 10000;
+            row.cells[24].Text = data[0].data[iData].ONPnLCon / 10000;
+
+            if (this.portfolioTradingFlag === data[0].data[iData].Flag)
+                return;
+
+            this.portfolioTradingFlag = data[0].data[iData].Flag;
+            // 0 check value ,10,11 disable,12 value, row backcolor
+            switch (this.portfolioTradingFlag) {
+                case 1:
+                    row.cells[0].Disable = true;
+                    row.cells[0].Text = false;
+                    row.cells[10].Disable = true;
+                    row.cells[11].Disable = true;
+                    row.cells[12].Text = "Suspended";
+                    row.backgroundColor = "#424242";
                     break;
-                }
-            }
-
-            if (iRow === this.portfolioTable.rows.length) {
-                this.addPortfolioTableInfo(tableData[iData], dataLen, iData);
+                case 2:
+                    row.cells[0].Disable = true;
+                    row.cells[0].Text = false;
+                    row.cells[10].Disable = true;
+                    row.cells[11].Disable = true;
+                    row.cells[12].Text = "Restrict";
+                    row.backgroundColor = "#424242";
+                    break;
+                case 3:
+                    row.cells[0].Disable = false;
+                    row.cells[0].Text = false;
+                    row.cells[10].Disable = false;
+                    row.cells[11].Disable = false;
+                    row.cells[12].Text = "LimitUp";
+                    row.backgroundColor = "#00FF00";
+                    break;
+                case 4:
+                    row.cells[0].Disable = false;
+                    row.cells[0].Text = false;
+                    row.cells[10].Disable = false;
+                    row.cells[11].Disable = false;
+                    row.cells[12].Text = "LimitDown";
+                    row.backgroundColor = "#FF0000";
+                    break;
+                default:
+                    row.cells[0].Disable = false;
+                    row.cells[0].Text = false;
+                    row.cells[10].Disable = false;
+                    row.cells[11].Disable = false;
+                    row.cells[12].Text = "Normal";
+                    row.backgroundColor = null;
+                    break;
             }
         }
-    }
-
-    addPortfolioTableInfo(tableData: any, len: number, idx: number) {
-        let row = this.portfolioTable.newRow();
-        let ukey = tableData.UKey;
-        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(ukey);
-        if (codeInfo) {
-            row.cells[0].Type = "checkbox";
-            row.cells[0].Title = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuCode : "unknown";
-            row.cells[0].Data = ukey;
-            row.cells[0].Text = false;
-            row.cells[1].Text = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuAbbr : "unknown";
-            row.cells[2].Text = tableData.InitPos;
-            row.cells[3].Text = tableData.TgtPos;
-            row.cells[4].Text = tableData.CurrPos;
-            row.cells[5].Text = tableData.Diff;
-            row.cells[6].Text = tableData.Traded;
-            row.cells[7].Text = tableData.Percentage + "%";
-            row.cells[8].Text = tableData.WorkingVol;
-            row.cells[9].Type = "textbox";
-            row.cells[9].Text = 0;
-            row.cells[10].Type = "button";
-            row.cells[10].Text = "Send";
-            row.cells[11].Type = "button";
-            row.cells[11].Text = "Cancel";
-            let flag = tableData.Flag;
-            if (flag === 1) {
-                row.cells[0].Disable = true;
-                row.cells[0].Text = true;
-                row.cells[10].Disable = true;
-                row.cells[11].Disable = true;
-                row.cells[12].Text = "Suspended";
-            } else if (flag === 2) {
-                row.cells[0].Disable = true;
-                row.cells[0].Text = true;
-                row.cells[10].Disable = true;
-                row.cells[11].Disable = true;
-                row.cells[12].Text = "Restrict";
-            } else if (flag === 3) {
-                row.cells[0].Disable = false;
-                row.cells[0].Text = false;
-                row.cells[10].Disable = false;
-                row.cells[11].Disable = false;
-                row.cells[12].Text = "LimitUp";
-            } else if (flag === 4) {
-                row.cells[0].Disable = false;
-                row.cells[0].Text = false;
-                row.cells[10].Disable = false;
-                row.cells[11].Disable = false;
-                row.cells[12].Text = "LimitDown";
-            } else {
-                row.cells[0].Disable = false;
-                row.cells[0].Text = false;
-                row.cells[10].Disable = false;
-                row.cells[11].Disable = false;
-                row.cells[12].Text = "Normal";
-            }
-            row.cells[13].Text = tableData.PreClose / 10000;
-            row.cells[14].Text = tableData.LastPrice / 10000;
-            row.cells[15].Text = tableData.BidSize;
-            row.cells[16].Text = tableData.BidPrice / 10000;
-            row.cells[17].Text = tableData.AskSize;
-            row.cells[18].Text = tableData.AskPrice / 10000;
-            row.cells[19].Text = tableData.AvgBuyPrice / 10000;
-            row.cells[20].Text = tableData.AvgSellPrice / 10000;
-            row.cells[21].Text = tableData.PreValue / 10000;
-            row.cells[22].Text = tableData.ValueCon / 10000;
-            row.cells[23].Text = tableData.DayPnLCon / 10000;
-            row.cells[24].Text = tableData.ONPnLCon / 10000;
-        }
-
-        this.portfolioCount.Text = this.portfolioTable.rows.length;
-    }
-
-    refreshPortfolioTable(idx: number, tableData: any) {
-        let ukey = tableData.UKey;
-        this.portfolioTable.rows[idx].cells[2].Text = tableData.InitPos;
-        this.portfolioTable.rows[idx].cells[3].Text = tableData.TgtPos;
-        this.portfolioTable.rows[idx].cells[4].Text = tableData.CurrPos;
-        this.portfolioTable.rows[idx].cells[5].Text = tableData.Diff;
-        this.portfolioTable.rows[idx].cells[6].Text = tableData.Traded;
-        this.portfolioTable.rows[idx].cells[7].Text = tableData.Percentage / 100 + "%";
-        this.portfolioTable.rows[idx].cells[8].Text = tableData.WorkingVol;
-        let flag = tableData.Flag;
-        // 0 check value ,10,11 disable,12 value, row backcolor
-        if (flag === 1) {
-            this.portfolioTable.rows[idx].cells[0].Disable = true;
-            this.portfolioTable.rows[idx].cells[0].Text = true;
-            this.portfolioTable.rows[idx].cells[10].Disable = true;
-            this.portfolioTable.rows[idx].cells[11].Disable = true;
-            this.portfolioTable.rows[idx].cells[12].Text = "Suspended";
-            this.portfolioTable.rows[idx].backgroundColor = "#424242";
-        } else if (flag === 2) {
-            this.portfolioTable.rows[idx].cells[0].Disable = true;
-            this.portfolioTable.rows[idx].cells[0].Text = true;
-            this.portfolioTable.rows[idx].cells[10].Disable = true;
-            this.portfolioTable.rows[idx].cells[11].Disable = true;
-            this.portfolioTable.rows[idx].cells[12].Text = "Restrict";
-            this.portfolioTable.rows[idx].backgroundColor = "#424242";
-        } else if (flag === 3) {
-            this.portfolioTable.rows[idx].cells[0].Disable = false;
-            this.portfolioTable.rows[idx].cells[0].Text = false;
-            this.portfolioTable.rows[idx].cells[10].Disable = false;
-            this.portfolioTable.rows[idx].cells[11].Disable = false;
-            this.portfolioTable.rows[idx].cells[12].Text = "LimitUp";
-            this.portfolioTable.rows[idx].backgroundColor = "#00FF00";
-        } else if (flag === 4) {
-            this.portfolioTable.rows[idx].cells[0].Disable = false;
-            this.portfolioTable.rows[idx].cells[0].Text = false;
-            this.portfolioTable.rows[idx].cells[10].Disable = false;
-            this.portfolioTable.rows[idx].cells[11].Disable = false;
-            this.portfolioTable.rows[idx].cells[12].Text = "LimitDown";
-            this.portfolioTable.rows[idx].backgroundColor = "#FF0000";
-        } else {
-            this.portfolioTable.rows[idx].cells[0].Disable = false;
-            this.portfolioTable.rows[idx].cells[0].Text = false;
-            this.portfolioTable.rows[idx].cells[10].Disable = false;
-            this.portfolioTable.rows[idx].cells[11].Disable = false;
-            this.portfolioTable.rows[idx].cells[12].Text = "Normal";
-            this.portfolioTable.rows[idx].backgroundColor = null;
-        }
-        this.portfolioTable.rows[idx].cells[13].Text = tableData.PreClose / 10000;
-        this.portfolioTable.rows[idx].cells[14].Text = tableData.LastPrice / 10000;
-        this.portfolioTable.rows[idx].cells[15].Text = tableData.BidSize;
-        this.portfolioTable.rows[idx].cells[16].Text = tableData.BidPrice / 10000;
-        this.portfolioTable.rows[idx].cells[17].Text = tableData.AskSize;
-        this.portfolioTable.rows[idx].cells[18].Text = tableData.AskPrice / 10000;
-        this.portfolioTable.rows[idx].cells[19].Text = tableData.AvgBuyPrice / 10000;
-        this.portfolioTable.rows[idx].cells[20].Text = tableData.AvgSellPrice / 10000;
-        this.portfolioTable.rows[idx].cells[21].Text = tableData.PreValue / 10000;
-        this.portfolioTable.rows[idx].cells[22].Text = tableData.ValueCon / 10000;
-        this.portfolioTable.rows[idx].cells[23].Text = tableData.DayPnLCon / 10000;
-        this.portfolioTable.rows[idx].cells[24].Text = tableData.ONPnLCon / 10000;
-        this.portfolioCount.Text = this.portfolioTable.rows.length;
     }
 
     showPortfolioSummary(data: any) {
@@ -2809,7 +2718,7 @@ export class AppComponent implements OnInit {
                             this.showLog(data.content.data);
                             break;
                         case 5021:
-                            this.showBasketBackInfo(data.content.data);
+                            this.updateBasketPosition(data.content.data);
                             break;
                         case 5024:
                             this.showPortfolioSummary(data.content.data);

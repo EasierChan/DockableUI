@@ -1,5 +1,5 @@
 <div class="groupbox">
-    <label for="">{{enNameLabel}}<input type="text" class="btn-default" [(ngModel)]="enName"></label>
+    <label for="">{{enNameLabel}}<input type="text" class="btn-default" [(ngModel)]="enName" [readonly]="!isCreate"></label>
     <label for="">{{chNameLabel}}<input type="text" class="btn-default" [(ngModel)]="chName"></label>
     <label for="">{{strategyLabel}}
         <select class="btn-default" [(ngModel)]="strategyType" (change)="changeStrategy(strategy.value)" #strategy>

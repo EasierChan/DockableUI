@@ -51,7 +51,7 @@ class IP20Parser extends Parser {
                 this._curHeader = new ISONPack2Header();
                 let tempBuffer = null;
 
-                if (bufCount > 1) {
+                if (bufCount >= 1) {
                     tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
 
                     this._curHeader.fromBuffer(tempBuffer);

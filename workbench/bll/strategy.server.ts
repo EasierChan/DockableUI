@@ -122,6 +122,7 @@ export class ConfigurationBLL {
 
     updateConfig(config?: WorkspaceConfig) {
         if (config) {
+            let info = "";
             let i = 0;
             for (; i < this._ssconfigs.length; ++i) {
                 if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
@@ -142,6 +143,8 @@ export class ConfigurationBLL {
                     this._ssconfigs[i] = config;
                     if (this.onUpdated)
                         this.onUpdated(oldName, config);
+
+                    info = "修改成功";
                     break;
                 }
             }
@@ -162,15 +165,18 @@ export class ConfigurationBLL {
 
                 if (this.onCreated)
                     this.onCreated(config);
+
+                info = "创建成功";
             }
 
             if (this.timeout) {
                 clearTimeout(this.timeout);
             }
+
+            alert(info);
         }
 
         File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
-        alert("策略创建成功");
     }
 
     removeConfig(config: WorkspaceConfig) {

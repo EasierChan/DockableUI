@@ -809,7 +809,7 @@ export class FpPosUpdate extends Message {
     Flag: number = 0;  // int32_t  0 for normal status, 1 for suspend, 2 for forbidden, 3 for hit ceiling, 4 for hit floor
 
     fromBuffer(buf, offset) {
-        return BufferUtil.format(buf, offset, "15i1w4l1i", this);
+        return BufferUtil.format(buf, offset, "15I1w4L1i", this);
     }
 
     toBuffer(): Buffer {
