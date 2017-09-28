@@ -809,6 +809,7 @@ export class AppComponent implements OnInit {
         this.portfolioBUyOffset.addItem({ Text: "-8", Value: "-8" });
         this.portfolioBUyOffset.addItem({ Text: "-9", Value: "-9" });
         this.portfolioBUyOffset.addItem({ Text: "-10", Value: "-10" });
+        this.portfolioBUyOffset.SelectedItem = this.portfolioBUyOffset.Items[10];
 
         this.portfolioSellCom = new DropDown();
         this.portfolioSellCom.Width = 62;
@@ -850,6 +851,7 @@ export class AppComponent implements OnInit {
         this.portfolioSellOffset.addItem({ Text: "-8", Value: "-8" });
         this.portfolioSellOffset.addItem({ Text: "-9", Value: "-9" });
         this.portfolioSellOffset.addItem({ Text: "-10", Value: "-10" });
+        this.portfolioSellOffset.SelectedItem = this.portfolioSellOffset.Items[10];
 
         this.allChk = new CheckBox(); this.allChk.Width = 30;
         this.allChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All");
@@ -894,18 +896,12 @@ export class AppComponent implements OnInit {
             .addChild(allsellChk).addChild(this.range).addChild(this.rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
 
         this.portfolioTable = new DataTable("table2");
-        let portfolioTableArr: string[] = ["Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+        ["Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
             "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
-            "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"];
-        let portfolioTableTittleLen = portfolioTableArr.length;
-        let portfoliotableRtnArr: string[] = [];
-        for (let i = 0; i < portfolioTableTittleLen; ++i) {
-            let portfolioTableRtn = this.langServ.getTranslateInfo(this.languageType, portfolioTableArr[i]);
-            portfoliotableRtnArr.push(portfolioTableRtn);
-        }
-        portfoliotableRtnArr.forEach(item => {
-            this.portfolioTable.addColumn(item);
+            "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].forEach(col => {
+            this.portfolioTable.addColumn(this.langServ.getTranslateInfo(this.languageType, col));
         });
+
         this.portfolioTable.columnConfigurable = true;
         this.portfolioTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
             let ukey = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Data;
