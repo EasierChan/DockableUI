@@ -2407,7 +2407,7 @@ export class AppComponent implements OnInit {
             row.cells[24].Text = data[0].data[iData].ONPnLCon / 10000;
 
             if (this.portfolioTradingFlag === data[0].data[iData].Flag)
-                return;
+                continue;
 
             this.portfolioTradingFlag = data[0].data[iData].Flag;
             // 0 check value ,10,11 disable,12 value, row backcolor
