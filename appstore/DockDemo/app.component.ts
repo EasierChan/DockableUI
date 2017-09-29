@@ -90,7 +90,7 @@ export class AppComponent implements OnInit {
     private range: URange;
     private rateText: MetaControl;
     private dd_Account: DropDown;
-    private portfolio_acc: DropDown;
+    private dd_portfolioAccount: DropDown;
     private dd_Strategy: DropDown;
     private dd_symbol: DropDown;
     private checkall: MetaControl;
@@ -707,11 +707,11 @@ export class AppComponent implements OnInit {
         this.pageMap["Portfolio"] = this.portfolioPage;
         let loadItem = new HBox();
 
-        this.portfolio_acc = new DropDown();
-        this.portfolio_acc.Width = 110;
-        this.portfolio_acc.Left = statarbLeftAlign;
+        this.dd_portfolioAccount = new DropDown();
+        this.dd_portfolioAccount.Width = 110;
+        this.dd_portfolioAccount.Left = statarbLeftAlign;
         let accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
-        this.portfolio_acc.Title = accountRtn + ": ";
+        this.dd_portfolioAccount.Title = accountRtn + ": ";
 
 
         this.portfolioLabel = new MetaControl("textbox");
@@ -761,7 +761,7 @@ export class AppComponent implements OnInit {
         btn_load.Left = 20;
         btn_load.Class = "primary";
 
-        loadItem.addChild(this.portfolio_acc).addChild(this.portfolioLabel)
+        loadItem.addChild(this.dd_portfolioAccount).addChild(this.portfolioLabel)
             .addChild(this.portfolioDaypnl).addChild(this.portfolioonpnl).addChild(this.portfolioCount).addChild(btn_load);
 
         let tradeitem = new HBox();
@@ -904,7 +904,7 @@ export class AppComponent implements OnInit {
         this.portfolioTable.columnConfigurable = true;
         this.portfolioTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
             let ukey = AppComponent.self.portfolioTable.rows[rowIndex].cells[0].Data;
-            let account = parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text);
+            let account = parseInt(AppComponent.self.dd_portfolioAccount.SelectedItem.Text);
             if (cellIndex === 10) {
                 let value = AppComponent.self.portfolioTable.rows[rowIndex].cells[9].Text + "";
                 let rtn = AppComponent.self.TestingInput(value);
@@ -946,10 +946,8 @@ export class AppComponent implements OnInit {
 
         btn_load.OnClick = () => {
             let readself = this;
-            let account: number = parseInt(AppComponent.self.portfolio_acc.SelectedItem.Text);
-            AppComponent.bgWorker.send({
-                command: "ss-send", params: { type: "account-position-load", account: account }
-            });
+            let account: number = parseInt(AppComponent.self.dd_portfolioAccount.SelectedItem.Text);
+            AppComponent.bgWorker.send({ command: "ss-send", params: { type: "account-position-load", account: account } });
 
             MessageBox.openFileDialog("Select CSV", (filenames) => {
                 // console.log(filenames);
@@ -1028,7 +1026,7 @@ export class AppComponent implements OnInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: {
                     type: "order-fp", data: {
-                        account: AppComponent.self.portfolio_acc.SelectedItem.Text,
+                        account: AppComponent.self.dd_portfolioAccount.SelectedItem.Text,
                         askPriceLevel: askPriceLevel,
                         bidPriceLevel: bidPriceLevel,
                         askOffset: askOffset,
@@ -1046,7 +1044,7 @@ export class AppComponent implements OnInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: {
                     type: "cancel-fp", data: {
-                        account: AppComponent.self.portfolio_acc.SelectedItem.Text,
+                        account: AppComponent.self.dd_portfolioAccount.SelectedItem.Text,
                         ukeys: selectArr
                     }
                 }
@@ -1979,141 +1977,47 @@ export class AppComponent implements OnInit {
 
     showComAccountPos(data: any) {
         for (let i = 0; i < data.length; ++i) {
-            let accTableRows: number = AppComponent.self.accountTable.rows.length;
-            let accData: number = data[i].record.account;
-            // -------in manultrader frame,set account info
-            let checkFlag: boolean = true; let portfolioCheckFlag: boolean = true;
-            let dd_account_len = AppComponent.self.dd_Account.Items.length;
-            let portfolioAccLen = AppComponent.self.portfolio_acc.Items.length;
-            for (let idx = 0; idx < dd_account_len; ++idx) {
-                let gettext = AppComponent.self.dd_Account.Items[idx].Text;
-                if (accData + "" === gettext)
-                    checkFlag = false;
-            }
-            if (checkFlag) {
-                AppComponent.self.dd_Account.addItem({ Text: accData + "", Value: dd_account_len + "" });
+            let account: number = data[i].record.account;
+            let secucategory: number = data[i].secucategory;
+            let item = this.dd_Account.Items.find(value => { return value.Text === data[i].record.account; });
+
+            if (item === undefined) {
+                this.dd_Account.addItem({ Text: account, Value: null });
+                this.dd_portfolioAccount.addItem({ Text: account, Value: null });
             }
 
-            for (let idx = 0; idx < portfolioAccLen; ++idx) {
-                let gettext = AppComponent.self.portfolio_acc.Items[idx].Text;
-                if (accData + "" === gettext)
-                    portfolioCheckFlag = false;
-            }
-            if (portfolioCheckFlag)
-                AppComponent.self.portfolio_acc.addItem({ Text: accData + "", Value: portfolioAccLen + "" });
-            // ----------------------
-            let accSec: number = data[i].secucategory;
-            if (accTableRows === 0) {  // add
-                if (accSec === 1) {
-                    AppComponent.self.addAccountEquitInfo(data[i]);
-                }
-                else if (accSec === 2) {
-                    AppComponent.self.addAccountFutureInfo(data[i]);
-                }
-            }
-            else {
-                let checkFlag: boolean = false;
-                for (let j = 0; j < accTableRows; ++j) {
-                    let getAcc = AppComponent.self.accountTable.rows[j].cells[0].Text;
-                    let getSec = AppComponent.self.accountTable.rows[j].cells[1].Text;
-                    if (getAcc === accData && getSec === accSec) {  // refresh
-                        checkFlag = true;
-                        if (getSec === 1) {
-                            AppComponent.self.refreshAccountEquiteInfo(data[i], j);
-                        } else if (getSec === 2) {
-                            AppComponent.self.refreshAccountFutureInfo(data[i], j);
-                        }
-                    }
-                }
+            let row = this.accountTable.rows.find(item => {
+                return item.cells[0].Text === account && item.cells[1].Text === secucategory;
+            });
 
-                if (!checkFlag) {   // add
-                    if (accSec === 1) {
-                        AppComponent.self.addAccountEquitInfo(data[i]);
-                    } else if (accSec === 2) {
-                        AppComponent.self.addAccountFutureInfo(data[i]);
-                    }
-                }
-                checkFlag = false;
+            if (row === undefined) {
+                row = this.accountTable.newRow();
+                row.cells[0].Text = data[i].record.account;
+                row.cells[1].Text = data[i].secucategory;
+                row.cells[7].Text = 0;
+                row.cells[8].Text = 0;
+            }
+
+            row.cells[2].Text = data[i].record.TotalAmount / 10000;
+            row.cells[3].Text = data[i].record.AvlAmount / 10000;
+            row.cells[4].Text = data[i].record.FrzAmount / 10000;
+            row.cells[5].Text = data[i].record.date;
+            row.cells[6].Text = data[i].record.c;
+            data[i].market === SECU_MARKET.SM_SH ? row.cells[7].Text = data[i].record.AvlAmount / 10000 : row.cells[8].Text = data[i].record.AvlAmount / 10000;
+
+            if (secucategory === 2) {
+                row.cells[9].Text = data[i].record.BuyFrzAmt / 10000;
+                row.cells[10].Text = data[i].record.SellFrzAmt / 10000;
+                row.cells[11].Text = data[i].record.BuyMargin / 10000;
+                row.cells[12].Text = data[i].record.SellMargin / 10000;
+                row.cells[13].Text = data[i].record.TotalMargin / 10000;
+                row.cells[14].Text = data[i].record.Fee / 10000;
+                row.cells[15].Text = data[i].record.PositionPL / 10000;
+                row.cells[16].Text = data[i].record.ClosePL / 10000;
             }
         }
-        AppComponent.self.accountTable.detectChanges();
-    }
 
-    addAccountEquitInfo(obj: any) {
-        let row = AppComponent.self.accountTable.newRow();
-        row.cells[0].Text = obj.record.account;
-        row.cells[1].Text = obj.secucategory;
-        row.cells[2].Text = obj.record.TotalAmount / 10000;
-        row.cells[3].Text = obj.record.AvlAmount / 10000;
-        row.cells[4].Text = obj.record.FrzAmount / 10000;
-        row.cells[5].Text = obj.record.date;
-        row.cells[6].Text = obj.record.c;
-        if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SH)
-            row.cells[7].Text = obj.record.AvlAmount / 10000;
-        else
-            row.cells[7].Text = 0;
-        if (obj.market !== 0 && obj.market === SECU_MARKET.SM_SZ)
-            row.cells[8].Text = obj.record.AvlAmount / 10000;
-        else
-            row.cells[8].Text = 0;
-        row.cells[9].Text = 0;
-        row.cells[10].Text = 0;
-        row.cells[11].Text = 0;
-        row.cells[12].Text = 0;
-        row.cells[13].Text = 0;
-        row.cells[14].Text = 0;
-        row.cells[15].Text = 0;
-        row.cells[16].Text = 0;
-    }
-
-    addAccountFutureInfo(obj: any) {
-        let row = AppComponent.self.accountTable.newRow();
-        row.cells[0].Text = obj.record.account;
-        row.cells[1].Text = obj.secucategory;
-        row.cells[2].Text = obj.record.TotalAmount / 10000;
-        row.cells[3].Text = obj.record.AvlAmount / 10000;
-        row.cells[4].Text = obj.record.FrzAmount / 10000;
-        row.cells[5].Text = obj.record.date;
-        row.cells[6].Text = obj.record.c;
-        row.cells[7].Text = 0;
-        row.cells[8].Text = 0;
-        row.cells[9].Text = obj.record.BuyFrzAmt / 10000;
-        row.cells[10].Text = obj.record.SellFrzAmt / 10000;
-        row.cells[11].Text = obj.record.BuyMargin / 10000;
-        row.cells[12].Text = obj.record.SellMargin / 10000;
-        row.cells[13].Text = obj.record.TotalMargin / 10000;
-        row.cells[14].Text = obj.record.Fee / 10000;
-        row.cells[15].Text = obj.record.PositionPL / 10000;
-        row.cells[16].Text = obj.record.ClosePL / 10000;
-    }
-
-    refreshAccountEquiteInfo(obj: any, idx: number) {
-        if (obj.market === SECU_MARKET.SM_SH)
-            AppComponent.self.accountTable.rows[idx].cells[7].Text = obj.record.AvlAmount / 10000;
-        else if (obj.market === SECU_MARKET.SM_SZ)
-            AppComponent.self.accountTable.rows[idx].cells[8].Text = obj.record.AvlAmount / 10000;
-
-        AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[5].Text = obj.record.date;
-        AppComponent.self.accountTable.rows[idx].cells[6].Text = obj.record.c;
-    }
-
-    refreshAccountFutureInfo(obj: any, idx: number) {
-        AppComponent.self.accountTable.rows[idx].cells[2].Text = obj.record.TotalAmount / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[3].Text = obj.record.AvlAmount / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[4].Text = obj.record.FrzAmount / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[5].Text = obj.record.date;
-        AppComponent.self.accountTable.rows[idx].cells[6].Text = obj.record.c;
-        AppComponent.self.accountTable.rows[idx].cells[9].Text = obj.record.BuyFrzAmt / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[10].Text = obj.record.SellFrzAmt / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[11].Text = obj.record.BuyMargin / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[12].Text = obj.record.SellMargin / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[13].Text = obj.record.TotalMargin / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[14].Text = obj.record.Fee / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[15].Text = obj.record.PositionPL / 10000;
-        AppComponent.self.accountTable.rows[idx].cells[16].Text = obj.record.ClosePL / 10000;
+        this.accountTable.detectChanges();
     }
 
     showStrategyCfg(data: any) {
@@ -2346,7 +2250,7 @@ export class AppComponent implements OnInit {
     }
 
     updateBasketPosition(data: any) {
-        if (data[0].account !== parseInt(this.portfolio_acc.SelectedItem.Text))
+        if (data[0].account !== parseInt(this.dd_portfolioAccount.SelectedItem.Text))
             return;
 
         if (data[0].count === 0) {

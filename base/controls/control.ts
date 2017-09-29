@@ -1231,7 +1231,7 @@ export class DropDown extends MetaControl {
 }
 
 export interface DropDownItem {
-    Text: string;
+    Text: any;
     Value: any;
 }
 
