@@ -63,7 +63,6 @@ export class AppComponent implements OnInit {
     private profitTable: DataTable;
     private statarbTable: DataTable;
     private portfolioTable: DataTable;
-    private portfolioTradingFlag: number = 0;
     private commentTable: DataTable;
     private configTable: DataTable;
     private gatewayTable: DataTable;
@@ -87,7 +86,7 @@ export class AppComponent implements OnInit {
     private portfolioSellCom: DropDown;
     private portfolioBUyOffset: DropDown;
     private portfolioSellOffset: DropDown;
-    private allChk: MetaControl;
+    // private allChk: MetaControl;
     private range: URange;
     private rateText: MetaControl;
     private dd_Account: DropDown;
@@ -768,7 +767,7 @@ export class AppComponent implements OnInit {
         let tradeitem = new HBox();
         this.portfolioBuyCom = new DropDown();
         this.portfolioBuyCom.Width = 59;
-        this.portfolioBuyCom.Left = 20;
+        this.portfolioBuyCom.Left = 30;
 
         this.portfolioBuyCom.Title = this.langServ.getTranslateInfo(this.languageType, "Buy") + ": ";
         this.portfolioBuyCom.addItem({ Text: "B5", Value: "0" });
@@ -853,9 +852,9 @@ export class AppComponent implements OnInit {
         this.portfolioSellOffset.addItem({ Text: "-10", Value: "-10" });
         this.portfolioSellOffset.SelectedItem = this.portfolioSellOffset.Items[10];
 
-        this.allChk = new CheckBox(); this.allChk.Width = 30;
-        this.allChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All");
-        this.allChk.Text = false; this.allChk.Left = 22;
+        // this.allChk = new CheckBox(); this.allChk.Width = 30;
+        // this.allChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All");
+        // this.allChk.Text = false; this.allChk.Left = 22;
         let allbuyChk = new CheckBox(); allbuyChk.Width = 30;
         allbuyChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All-Buy");
         allbuyChk.Text = false; allbuyChk.Left = 20;
@@ -892,15 +891,15 @@ export class AppComponent implements OnInit {
             btn_cancelSel.Text = cancelSelRtn;
         btn_cancelSel.Left = 20; btn_cancelSel.Class = "primary";
 
-        tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioBUyOffset).addChild(this.portfolioSellCom).addChild(this.portfolioSellOffset).addChild(this.allChk).addChild(allbuyChk)
+        tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioBUyOffset).addChild(this.portfolioSellCom).addChild(this.portfolioSellOffset).addChild(allbuyChk)
             .addChild(allsellChk).addChild(this.range).addChild(this.rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
 
         this.portfolioTable = new DataTable("table2");
         ["Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
             "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
             "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].forEach(col => {
-            this.portfolioTable.addColumn(this.langServ.getTranslateInfo(this.languageType, col));
-        });
+                this.portfolioTable.addColumn(this.langServ.getTranslateInfo(this.languageType, col));
+            });
 
         this.portfolioTable.columnConfigurable = true;
         this.portfolioTable.onCellClick = (cellItem, cellIndex, rowIndex) => {
@@ -974,9 +973,9 @@ export class AppComponent implements OnInit {
             }, [{ name: "CSV", extensions: ["csv"] }]);
         };
 
-        this.allChk.OnClick = () => {
-            this.changeItems(0, !this.allChk.Text);
-        };
+        // this.allChk.OnClick = () => {
+        //     this.changeItems(0, !this.allChk.Text);
+        // };
         allbuyChk.OnClick = () => {
             this.changeItems(1, !allbuyChk.Text);
         };
@@ -2357,7 +2356,7 @@ export class AppComponent implements OnInit {
         }
 
         let count = data[0].count;
-        let row;
+        let row: DataTableRow;
 
         for (let iData = 0; iData < count; ++iData) {
             row = this.portfolioTable.rows.find(item => {
@@ -2378,6 +2377,9 @@ export class AppComponent implements OnInit {
                 row.cells[10].Text = "Send";
                 row.cells[11].Type = "button";
                 row.cells[11].Text = "Cancel";
+                row.cells[12].Text = "Normal";
+                row.cells[12].Data = data[0].data[iData].Flag;
+                this.setTradingFlag(row, row.cells[12].Data);
                 ++this.portfolioCount.Text;
             }
 
@@ -2402,53 +2404,57 @@ export class AppComponent implements OnInit {
             row.cells[23].Text = data[0].data[iData].DayPnLCon / 10000;
             row.cells[24].Text = data[0].data[iData].ONPnLCon / 10000;
 
-            if (this.portfolioTradingFlag === data[0].data[iData].Flag)
+            if (row.cells[12].Data === data[0].data[iData].Flag)
                 continue;
 
-            this.portfolioTradingFlag = data[0].data[iData].Flag;
-            // 0 check value ,10,11 disable,12 value, row backcolor
-            switch (this.portfolioTradingFlag) {
-                case 1:
-                    row.cells[0].Disable = true;
-                    row.cells[0].Text = false;
-                    row.cells[10].Disable = true;
-                    row.cells[11].Disable = true;
-                    row.cells[12].Text = "Suspended";
-                    row.backgroundColor = "#424242";
-                    break;
-                case 2:
-                    row.cells[0].Disable = true;
-                    row.cells[0].Text = false;
-                    row.cells[10].Disable = true;
-                    row.cells[11].Disable = true;
-                    row.cells[12].Text = "Restrict";
-                    row.backgroundColor = "#424242";
-                    break;
-                case 3:
-                    row.cells[0].Disable = false;
-                    row.cells[0].Text = false;
-                    row.cells[10].Disable = false;
-                    row.cells[11].Disable = false;
-                    row.cells[12].Text = "LimitUp";
-                    row.backgroundColor = "#00FF00";
-                    break;
-                case 4:
-                    row.cells[0].Disable = false;
-                    row.cells[0].Text = false;
-                    row.cells[10].Disable = false;
-                    row.cells[11].Disable = false;
-                    row.cells[12].Text = "LimitDown";
-                    row.backgroundColor = "#FF0000";
-                    break;
-                default:
-                    row.cells[0].Disable = false;
-                    row.cells[0].Text = false;
-                    row.cells[10].Disable = false;
-                    row.cells[11].Disable = false;
-                    row.cells[12].Text = "Normal";
-                    row.backgroundColor = null;
-                    break;
-            }
+            row.cells[12].Data = data[0].data[iData].Flag;
+            this.setTradingFlag(row, row.cells[12].Data);
+        }
+    }
+
+    setTradingFlag(row: DataTableRow, flag: number) {
+        // 0 check value ,10,11 disable,12 value, row backcolor
+        switch (flag) {
+            case 1:
+                row.cells[0].Disable = true;
+                row.cells[0].Text = false;
+                row.cells[10].Disable = true;
+                row.cells[11].Disable = true;
+                row.cells[12].Text = "Suspended";
+                row.backgroundColor = "#585757";
+                break;
+            case 2:
+                row.cells[0].Disable = true;
+                row.cells[0].Text = false;
+                row.cells[10].Disable = true;
+                row.cells[11].Disable = true;
+                row.cells[12].Text = "Restrict";
+                row.backgroundColor = "#585757";
+                break;
+            case 3:
+                row.cells[0].Disable = false;
+                row.cells[0].Text = false;
+                row.cells[10].Disable = false;
+                row.cells[11].Disable = false;
+                row.cells[12].Text = "LimitUp";
+                row.backgroundColor = "#790a0a";
+                break;
+            case 4:
+                row.cells[0].Disable = false;
+                row.cells[0].Text = false;
+                row.cells[10].Disable = false;
+                row.cells[11].Disable = false;
+                row.cells[12].Text = "LimitDown";
+                row.backgroundColor = "#4e7305";
+                break;
+            default:
+                row.cells[0].Disable = false;
+                row.cells[0].Text = false;
+                row.cells[10].Disable = false;
+                row.cells[11].Disable = false;
+                row.cells[12].Text = "Normal";
+                row.backgroundColor = null;
+                break;
         }
     }
 
@@ -2647,7 +2653,7 @@ export class AppComponent implements OnInit {
                 case "ps-data":
                     for (let idx = 0; idx < this.bookviewArr.length; ++idx) {
                         if (this.bookviewArr[idx].code === data.content.content.ukey) {
-                            this.bookviewArr[idx].lbl_timestamp.Text = data.content.content.time;
+                            this.bookviewArr[idx].lbl_timestamp.Text = new Date(data.content.content.time * 1000).toLocaleString();
                             for (let i = 0; i < 10; ++i) {
                                 this.bookviewArr[idx].table.rows[i + 10].cells[0].Text = data.content.content.bid_volume[i] + "";
                                 this.bookviewArr[idx].table.rows[i + 10].cells[1].Text = (data.content.content.bid_price[i] / 10000).toFixed(4);
