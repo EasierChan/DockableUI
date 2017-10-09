@@ -84,25 +84,37 @@ export class StrategyComponent implements OnInit, OnDestroy {
         if (this.strategyType !== undefined) {
             this.isCreate = false;
             let strategy = this.strategyTemplates[this.strategyType]["Strategy"];
-            this.config.items[0].parameters.forEach(param => {
-                let row: DataTableRow = this.paramsTable.newRow();
-                row.cells[0].Text = param.name;
-                row.cells[1].Type = "textbox";
-                row.cells[1].Text = param.value;
-            });
 
-            this.config.items[0].instruments.forEach(instrument => {
-                let row: DataTableRow = this.instrumentTable.newRow();
-                row.cells[0].Text = instrument.name;
-                row.cells[1].Type = "u-codes";
-                let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(instrument.value);
-                row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(instrument.value) ? codeinfo[instrument.value].SecuCode : instrument.value };
-                row.cells[1].Data = instrument.value;
-                row.cells[1].OnClick = (event) => {
-                    if (event.row !== undefined)
-                        row.cells[1].Data = parseInt(event.item.code);
-                };
-            });
+            for (let prop in strategy[strategy["Strategies"][0]].Parameter) {
+                if (strategy[strategy["Strategies"][0]].Parameter[prop].show === 1) {
+                    let row: DataTableRow = this.paramsTable.newRow();
+                    row.cells[0].Data = strategy[strategy["Strategies"][0]].Parameter[prop];
+                    row.cells[0].Text = prop;
+                    row.cells[1].Type = "textbox";
+                    let param = this.config.items[0].parameters.find(item => { return item.name === prop; });
+                    row.cells[1].Text = param ? param.value : row.cells[0].Data.value;
+                }
+            }
+
+            for (let prop in strategy[strategy["Strategies"][0]].Instrument) {
+                if (strategy[strategy["Strategies"][0]].Instrument[prop].show === 1) {
+                    let row: DataTableRow = this.instrumentTable.newRow();
+                    row.cells[0].Data = strategy[strategy["Strategies"][0]].Instrument[prop];
+                    row.cells[0].Text = prop;
+                    row.cells[1].Type = "u-codes";
+
+                    let instru = this.config.items[0].instruments.find(item => { return item.name === prop; });
+                    let value = instru ? instru.value : row.cells[0].Data.value;
+
+                    let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(value);
+                    row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(value) ? codeinfo[value].SecuCode : value };
+                    row.cells[1].Data = value;
+                    row.cells[1].OnClick = (event) => {
+                        if (event.row !== undefined)
+                            row.cells[1].Data = parseInt(event.item.code);
+                    };
+                }
+            }
         }
     }
 
