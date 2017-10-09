@@ -126,6 +126,7 @@ export class AppComponent implements OnInit {
     private quoteEndpoint: any;
     private strategyMap: any;
     private appStorage: any;
+    private readonly kInitColumns = 7;
 
     static self: AppComponent;
     static bookViewSN = 1;
@@ -1134,10 +1135,10 @@ export class AppComponent implements OnInit {
         watchall.Text = this.langServ.getTranslateInfo(this.languageType, "WatchAll");
         let configBtn = new Button();
         configBtn.Text = this.langServ.getTranslateInfo(this.languageType, "Config");
-        startall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 3, 0, 0); };
-        pauseall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 4, 0, 1); };
-        stopall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 5, 0, 2); };
-        watchall.OnClick = () => { this.operateSteategy(this.strategyTable.rows[0].cells[0].Text, 6, 0, 3); };
+        startall.OnClick = () => { this.operateStrategy(this.strategyTable.rows[0].cells[0].Text, 0); };
+        pauseall.OnClick = () => { this.operateStrategy(this.strategyTable.rows[0].cells[0].Text, 1); };
+        stopall.OnClick = () => { this.operateStrategy(this.strategyTable.rows[0].cells[0].Text, 2); };
+        watchall.OnClick = () => { this.operateStrategy(this.strategyTable.rows[0].cells[0].Text, 3); };
         configBtn.OnClick = () => {
             this.configTable.rows.forEach(row => {
                 row.cells[0].Text = !this.option.config["strategy_table"].columnHideIDs.includes(row.cells[0].Data);
@@ -1149,7 +1150,7 @@ export class AppComponent implements OnInit {
 
         this.strategyTable = new DataTable();
         this.strategyTable.RowIndex = false;
-        ["StrategyID", "Sym1", "Sym2", "Start", "Pause", "Stop", "Watch", "Status", "PosPnl(K)", "TraPnl(K)"]
+        ["StrategyID", "Sym1", "Sym2", "Command", "Status", "PosPnl(K)", "TraPnl(K)"]
             .forEach(item => { this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item)); });
         let strategyContent = new VBox();
         strategyContent.addChild(strategyHeader);
@@ -1375,6 +1376,7 @@ export class AppComponent implements OnInit {
     }
 
     showGuiCmdAck(data: any) {
+        console.info(data);
         data.data.forEach(item => {
             for (let iRow = 0; iRow < this.strategyTable.rows.length; ++iRow) {
                 if (this.strategyTable.rows[iRow].cells[0].Text !== item.strategyid)
@@ -1385,37 +1387,25 @@ export class AppComponent implements OnInit {
                         if (!item.success)
                             break;
 
-                        this.strategyTable.rows[iRow].cells[3].Disable = true;
-                        this.strategyTable.rows[iRow].cells[4].Disable = false;
-                        this.strategyTable.rows[iRow].cells[5].Disable = false;
-                        this.strategyTable.rows[iRow].cells[6].Disable = false;
+                        this.strategyTable.rows[iRow].cells[3].Data = { disable: [0] };
                         break;
                     case 2005: // pause ack
                         if (!item.success)
                             break;
 
-                        this.strategyTable.rows[iRow].cells[3].Disable = false;
-                        this.strategyTable.rows[iRow].cells[4].Disable = true;
-                        this.strategyTable.rows[iRow].cells[5].Disable = false;
-                        this.strategyTable.rows[iRow].cells[6].Disable = false;
+                        this.strategyTable.rows[iRow].cells[3].Data = { disable: [1] };
                         break;
                     case 2003: // stop ack
                         if (!item.success)
                             break;
 
-                        this.strategyTable.rows[iRow].cells[3].Disable = true;
-                        this.strategyTable.rows[iRow].cells[4].Disable = true;
-                        this.strategyTable.rows[iRow].cells[5].Disable = true;
-                        this.strategyTable.rows[iRow].cells[6].Disable = false;
+                        this.strategyTable.rows[iRow].cells[3].Data = { disable: [0, 1, 2] };
                         break;
                     case 2050: // watch ack
                         if (!item.success)
                             break;
 
-                        this.strategyTable.rows[iRow].cells[3].Disable = false;
-                        this.strategyTable.rows[iRow].cells[4].Disable = false;
-                        this.strategyTable.rows[iRow].cells[5].Disable = false;
-                        this.strategyTable.rows[iRow].cells[6].Disable = true;
+                        this.strategyTable.rows[iRow].cells[3].Data = { disable: [3] };
                         break;
                     case 2031:
                         let parameter = this.strategyMap[item.strategyid].parameters.find(param => { return param.key === item.key; });
@@ -1430,6 +1420,56 @@ export class AppComponent implements OnInit {
                 }
             }
         });
+    }
+
+    showStrategyInfo(data: any) {
+        console.info(data);
+        let row: DataTableRow;
+        for (let i = 0; i < data.length; ++i) {
+            row = this.strategyTable.rows.find(item => { return item.cells[0].Text === data[i].key; });
+
+            if (row === undefined) {
+                this.strategyMap[data[i].key] = { instruments: [], commands: [], parameters: [], comments1: [], comments2: [] };
+                row = this.strategyTable.newRow();
+                row.cells[0].Text = data[i].key;
+                row.cells[3].Type = "button-group";
+                row.cells[3].Text = ["play", "pause", "stop", "eye-open"];
+                row.cells[3].Class = "primary";
+                row.cells[3].OnClick = (btn_idx) => {
+                    this.operateStrategy(data[i].key, btn_idx);
+                };
+                this.dd_Strategy.addItem({ Text: data[i].key + "", Value: "" });
+            }
+
+            switch (data[i].status) {
+                case EStrategyStatus.STRATEGY_STATUS_INIT:
+                    row.cells[4].Text = "INIT";
+                    break;
+                case EStrategyStatus.STRATEGY_STATUS_CREATE:
+                    row.cells[4].Text = "CREATE";
+                    break;
+                case EStrategyStatus.STRATEGY_STATUS_RUN:
+                    row.cells[3].Data = { disable: [0] };
+                    row.cells[4].Text = "RUN";
+                    break;
+                case EStrategyStatus.STRATEGY_STATUS_PAUSE:
+                    row.cells[3].Data = { disable: [1] };
+                    row.cells[4].Text = "PAUSE";
+                    break;
+                case EStrategyStatus.STRATEGY_STATUS_STOP:
+                    row.cells[3].Data = { disable: [0, 1, 2] };
+                    row.cells[4].Text = "STOP";
+                    break;
+                case EStrategyStatus.STRATEGY_STATUS_WATCH:
+                    row.cells[3].Data = { disable: [3] };
+                    row.cells[4].Text = "WATCH";
+                    break;
+                case EStrategyStatus.STRATEGY_STATUS_ERROR:
+                default:
+                    row.cells[4].Text = "ERROR";
+                    break;
+            }
+        }
     }
 
     showLog(data: any) {
@@ -1453,120 +1493,6 @@ export class AppComponent implements OnInit {
         row.cells[0].Text = AppComponent.self.getCurrentTime();
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
         this.logTable.detectChanges();
-    }
-
-    showStrategyInfo(data: any) {
-        let j;
-        for (let i = 0; i < data.length; ++i) {
-            for (j = 0; j < this.strategyTable.rows.length; ++j) {
-                if (this.strategyTable.rows[j].cells[0].Text === data[i].key) {
-                    switch (data[i].status) {
-                        case EStrategyStatus.STRATEGY_STATUS_INIT:
-                            this.strategyTable.rows[j].cells[7].Text = "INIT";
-                            break;
-                        case EStrategyStatus.STRATEGY_STATUS_CREATE:
-                            this.strategyTable.rows[j].cells[7].Text = "CREATE";
-                            break;
-                        case EStrategyStatus.STRATEGY_STATUS_RUN:
-                            this.strategyTable.rows[j].cells[3].Disable = true;
-                            this.strategyTable.rows[j].cells[4].Disable = false;
-                            this.strategyTable.rows[j].cells[5].Disable = false;
-                            this.strategyTable.rows[j].cells[6].Disable = false;
-                            this.strategyTable.rows[j].cells[7].Text = "RUN";
-                            break;
-                        case EStrategyStatus.STRATEGY_STATUS_PAUSE:
-                            this.strategyTable.rows[j].cells[3].Disable = false;
-                            this.strategyTable.rows[j].cells[4].Disable = true;
-                            this.strategyTable.rows[j].cells[5].Disable = false;
-                            this.strategyTable.rows[j].cells[6].Disable = false;
-                            this.strategyTable.rows[j].cells[7].Text = "PAUSE";
-                            break;
-                        case EStrategyStatus.STRATEGY_STATUS_STOP:
-                            this.strategyTable.rows[j].cells[3].Disable = true;
-                            this.strategyTable.rows[j].cells[4].Disable = true;
-                            this.strategyTable.rows[j].cells[5].Disable = true;
-                            this.strategyTable.rows[j].cells[6].Disable = false;
-                            this.strategyTable.rows[j].cells[7].Text = "STOP";
-                            break;
-                        case EStrategyStatus.STRATEGY_STATUS_WATCH:
-                            this.strategyTable.rows[j].cells[3].Disable = false;
-                            this.strategyTable.rows[j].cells[4].Disable = false;
-                            this.strategyTable.rows[j].cells[5].Disable = false;
-                            this.strategyTable.rows[j].cells[6].Disable = true;
-                            this.strategyTable.rows[j].cells[7].Text = "WATCH";
-                            break;
-                        case EStrategyStatus.STRATEGY_STATUS_ERROR:
-                        default:
-                            this.strategyTable.rows[j].cells[7].Text = "ERROR";
-                            break;
-                    }
-
-                    break;
-                }
-            }
-
-            if (j === this.strategyTable.rows.length) {
-                this.strategyMap[data[i].key] = { instruments: [], commands: [], parameters: [], comments1: [], comments2: [] };
-                let row = this.strategyTable.newRow();
-                row.cells[0].Text = data[i].key;
-                row.cells[3].Type = "button";
-                row.cells[3].Text = "start";
-                row.cells[3].Class = "primary";
-                row.cells[4].Type = "button";
-                row.cells[4].Text = "pause";
-                row.cells[4].Class = "primary";
-                row.cells[5].Type = "button";
-                row.cells[5].Text = "stop";
-                row.cells[5].Class = "primary";
-                row.cells[6].Type = "button";
-                row.cells[6].Text = "watch";
-                row.cells[6].Class = "primary";
-                switch (data[i].status) {
-                    case EStrategyStatus.STRATEGY_STATUS_INIT:
-                        row.cells[7].Text = "INIT";
-                        break;
-                    case EStrategyStatus.STRATEGY_STATUS_CREATE:
-                        row.cells[7].Text = "CREATE";
-                        break;
-                    case EStrategyStatus.STRATEGY_STATUS_RUN:
-                        row.cells[3].Disable = true;
-                        row.cells[4].Disable = false;
-                        row.cells[5].Disable = false;
-                        row.cells[6].Disable = false;
-                        row.cells[7].Text = "RUN";
-                        break;
-                    case EStrategyStatus.STRATEGY_STATUS_PAUSE:
-                        row.cells[3].Disable = true;
-                        row.cells[4].Disable = false;
-                        row.cells[5].Disable = false;
-                        row.cells[6].Disable = false;
-                        row.cells[7].Text = "PAUSE";
-                        break;
-                    case EStrategyStatus.STRATEGY_STATUS_STOP:
-                        row.cells[3].Disable = true;
-                        row.cells[4].Disable = false;
-                        row.cells[5].Disable = false;
-                        row.cells[6].Disable = false;
-                        row.cells[7].Text = "STOP";
-                        break;
-                    case EStrategyStatus.STRATEGY_STATUS_WATCH:
-                        row.cells[3].Disable = true;
-                        row.cells[4].Disable = false;
-                        row.cells[5].Disable = false;
-                        row.cells[6].Disable = false;
-                        row.cells[7].Text = "WATCH";
-                        break;
-                    case EStrategyStatus.STRATEGY_STATUS_ERROR:
-                    default:
-                        row.cells[7].Text = "ERROR";
-                        break;
-                }
-
-                this.dd_Strategy.addItem({ Text: data[i].key + "", Value: "" });
-            }
-        }
-
-        // this.strategyTable.detectChanges();
     }
 
     showComOrderRecord(data: any) {
@@ -1891,8 +1817,6 @@ export class AppComponent implements OnInit {
                     break;
                 }
             });
-
-            // this.strategyTable.detectChanges();
         } else if (subtype === 0) { // set pnl
             for (let i = 0; i < arr.length; ++i) {
                 AppComponent.self.totalpnLabel.Text = arr[i].totalpnl / 10000;
@@ -2025,7 +1949,6 @@ export class AppComponent implements OnInit {
             return;
 
         let needInsert = false;
-        const kInitColumns = 10;
         let strategyid;
         let strategyKeyMap;
         for (let iRow = 0; iRow < this.strategyTable.rows.length; ++iRow) {   // find row in strategy table
@@ -2061,7 +1984,7 @@ export class AppComponent implements OnInit {
                             strategyKeyMap.parameters.push(data[iData]);
                             needInsert = true;
                         } else { // update
-                            let iCol = kInitColumns + strategyKeyMap.comments1.length + strategyKeyMap.commands.length + paramIdx;
+                            let iCol = this.kInitColumns + strategyKeyMap.comments1.length + strategyKeyMap.commands.length + paramIdx;
                             this.strategyTable.rows[iRow].cells[iCol].Type = "textbox";
                             this.strategyTable.rows[iRow].cells[iCol].Text = (data[iData].value / Math.pow(10, data[iData].decimal)).toFixed(data[iData].decimal);
                             this.strategyTable.rows[iRow].cells[iCol].Data = data[iData];
@@ -2079,7 +2002,7 @@ export class AppComponent implements OnInit {
                                 idx < 0 ? strategyKeyMap.comments2.push(data[iData]) : (strategyKeyMap.comments2[idx] = data[iData]);
                             }
                         } else { // update
-                            let iCol = kInitColumns + commentIdx;
+                            let iCol = this.kInitColumns + commentIdx;
                             this.strategyTable.rows[iRow].cells[iCol].Text = (data[iData].value / Math.pow(10, data[iData].decimal)).toFixed(data[iData].decimal);
                             this.strategyTable.rows[iRow].cells[iCol].Class = data[iData].level === 10 ? "warning" : "default";
                         }
@@ -2090,7 +2013,7 @@ export class AppComponent implements OnInit {
                             strategyKeyMap.commands.push(data[iData]);
                             needInsert = true;
                         } else { // update
-                            let iCol = kInitColumns + strategyKeyMap.comments1.length + commandIdx;
+                            let iCol = this.kInitColumns + strategyKeyMap.comments1.length + commandIdx;
                             this.strategyTable.rows[iRow].cells[iCol].Text = data[iData].name;
                             this.strategyTable.rows[iRow].cells[iCol].Data = data[iData];
                             this.strategyTable.rows[iRow].cells[iCol].Type = "button";
@@ -2103,7 +2026,7 @@ export class AppComponent implements OnInit {
 
             if (needInsert) {
                 let row: DataTableRow;
-                let offset = kInitColumns;
+                let offset = this.kInitColumns;
                 if (this.option.config["strategy_table"] === undefined)
                     this.option.config["strategy_table"] = { columnHideIDs: [] };
 
@@ -2167,7 +2090,7 @@ export class AppComponent implements OnInit {
     strategyOnCellClick(cell: any, cellIdx: number, rowIdx: number) {
         if (cell.Text === "submit") {  // submit
             let strategyKeyMap = this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text];
-            let paramIdx = 10 + strategyKeyMap.comments1.length + strategyKeyMap.commands.length;
+            let paramIdx = this.kInitColumns + strategyKeyMap.comments1.length + strategyKeyMap.commands.length;
             let dvalue = 0;
             let cell;
 
@@ -2196,57 +2119,20 @@ export class AppComponent implements OnInit {
             return;
         }
 
-        let strategyId: number = AppComponent.self.strategyTable.rows[rowIdx].cells[0].Text;
-        if (cell.dataSource.text === "start") {
-            AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 0);
-        } else if (cell.dataSource.text === "pause") {
-            AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 1);
-        } else if (cell.dataSource.text === "stop") {
-            AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 2);
-        } else if (cell.dataSource.text === "watch") {
-            AppComponent.self.operateSteategy(strategyId, cellIdx, rowIdx, 3);
-        } else {
-            if (cell.Data === undefined || cell.Data.type !== StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND)
-                return;
+        let strategyId: number = this.strategyTable.rows[rowIdx].cells[0].Text;
+        if (cell.Data === undefined || cell.Data.type !== StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND)
+            return;
 
-            if (cell.Data.level > 9) {
-                if (confirm("extute " + cell.Data.name + " ?"))
-                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-param", data: [cell.Data] } });
-            } else {
+        if (cell.Data.level > 9) {
+            if (confirm("extute " + cell.Data.name + " ?"))
                 AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-param", data: [cell.Data] } });
-            }
-
+        } else {
+            AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-param", data: [cell.Data] } });
         }
     }
 
-    operateSteategy(strategyid: number, cellidx: number, rowIdx: number, tip: number) {
-        AppComponent.self.showStraContrlDisable(tip, cellidx, rowIdx);
+    operateStrategy(strategyid: number, tip: number) {
         AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-cmd", data: { tip: tip, strategyid: strategyid } } });
-    }
-
-    showStraContrlDisable(Ctrltype: number, cellIdx: number, rowIdx: number) {
-        if (Ctrltype === 0) {
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx].Disable = true;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx + 1].Disable = false;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx + 2].Disable = false;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx + 3].Disable = false;
-        } else if (Ctrltype === 1) {
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx].Disable = true;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx + 1].Disable = false;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx + 2].Disable = false;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 1].Disable = false;
-        } else if (Ctrltype === 2) {
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx].Disable = true;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx + 1].Disable = false;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 2].Disable = false;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 1].Disable = true;
-        }
-        else if (Ctrltype === 3) {
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx].Disable = true;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 3].Disable = false;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 2].Disable = false;
-            AppComponent.self.strategyTable.rows[rowIdx].cells[cellIdx - 1].Disable = false;
-        }
     }
 
     updateBasketPosition(data: any) {

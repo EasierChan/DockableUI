@@ -507,3 +507,33 @@ export class CodeComponent {
         this.resList = null;
     }
 }
+
+@Component({
+    moduleId: module.id,
+    selector: "button-group",
+    template: `
+        <button *ngFor="let item of buttons; let index = index" type="button" class="btn btn-xs btn-primary" (click)="itemClick($event, index)" [disabled]="option?.disable.includes(index)">
+            <span class="glyphicon glyphicon-{{item}}" aria-hidden="true"></span>
+        </button>
+    `,
+    inputs: ["buttons", "option"]
+})
+export class ButtonGroupComponent implements OnInit {
+    buttons: string[];
+    option: any;
+
+    @HostBinding("class") cssClass: string = "btn-group";
+    @HostBinding("style.width.px") width: number;
+    @HostBinding("attr.role") role: string = "group";
+    @Output() onClick: EventEmitter<any> = new EventEmitter<any>();
+
+    ngOnInit() {
+        this.width = this.buttons.length * 25;
+    }
+
+    itemClick(event: Event, index: number) {
+        event.stopPropagation();
+        event.preventDefault();
+        this.onClick.emit(index);
+    }
+}

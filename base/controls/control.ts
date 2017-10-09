@@ -904,7 +904,8 @@ export class HBox extends ComboControl {
 
 export class MetaControl extends Control {
     protected _dataObj: any;
-    constructor(type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range" | "date" | "u-codes") {
+    constructor(
+        type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range" | "date" | "u-codes" | "button-group") {
         super();
         this.styleObj = {
             type: type,
@@ -1017,6 +1018,12 @@ export class MetaControl extends Control {
 export class Button extends MetaControl {
     constructor() {
         super("button");
+    }
+}
+
+export class ButtonGroup extends MetaControl {
+    constructor() {
+        super("button-group");
     }
 }
 
