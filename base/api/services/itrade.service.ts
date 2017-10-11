@@ -24,33 +24,55 @@ class ItradeParser extends Parser {
     }
 
     processRead(): void {
-        if (this.processMsgHeader() && this.processMsg() && this._oPool.length > 0) {
+        while (this.processMsgHeader() && this.processMsg()) {
             this._curHeader = null;
-            this.processRead();
+
+            if (this._oPool.length === 0)
+                break;
+
+            logger.info(`pool length: ${this._oPool.length}`);
         }
     }
     /**
      * process message head.
      */
     processMsgHeader(): boolean {
-        if (this._oPool.length === 0 || this._curHeader !== null)
+        if (this._oPool.length === 0)
             return false;
+
+        if (this._curHeader !== null) {
+            logger.warn(`curHeader: ${JSON.stringify(this._curHeader)}, poolLen=${this._oPool.length}`);
+            return true;
+        }
 
         let ret = false;
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+        let peekBuf = null;
+
         for (; bufCount < this._oPool.length; ++bufCount) {
-            buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
+            peekBuf = this._oPool.peek(bufCount + 1);
+            buflen += peekBuf[bufCount].byteLength;
+
             if (buflen >= Header.len) {
                 this._curHeader = new Header();
-                let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
-                this._curHeader.fromBuffer(tempBuffer);
+                let tempBuffer = null;
+
+                if (bufCount >= 1) {
+                    tempBuffer = Buffer.concat(peekBuf, buflen);
+                    this._curHeader.fromBuffer(tempBuffer);
+                } else {
+                    this._curHeader.fromBuffer(peekBuf[0]);
+                    tempBuffer = peekBuf[0];
+                }
+
                 tempBuffer = null;
                 ret = true;
                 break;
             }
         }
+
         restLen = null;
         buflen = null;
         bufCount = null;
@@ -64,6 +86,7 @@ class ItradeParser extends Parser {
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+
         for (; bufCount < this._oPool.length; ++bufCount) {
             buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
             if (buflen >= this._curHeader.msglen + Header.len) {
@@ -78,12 +101,14 @@ class ItradeParser extends Parser {
                     this._oPool.prepend(restBuf);
                     restBuf = null;
                 }
+
                 this._curHeader = null;
                 tempBuffer = null;
                 ret = true;
                 break;
             }
         }
+
         restLen = null;
         buflen = null;
         bufCount = null;
@@ -102,33 +127,6 @@ class StrategyParser extends ItradeParser {
     }
 
     init(): void {
-        this.registerMsgFunction("2001", this, this.processStrategyMsg);
-        this.registerMsgFunction("2003", this, this.processStrategyMsg);
-        this.registerMsgFunction("2005", this, this.processStrategyMsg);
-        this.registerMsgFunction("2050", this, this.processStrategyMsg);
-        this.registerMsgFunction("2011", this, this.processStrategyMsg);
-        this.registerMsgFunction("2033", this, this.processStrategyMsg);
-        this.registerMsgFunction("2048", this, this.processStrategyMsg);
-        // StrategyCfg
-        this.registerMsgFunction("2000", this, this.processStrategyMsg);
-        this.registerMsgFunction("2002", this, this.processStrategyMsg);
-        this.registerMsgFunction("2004", this, this.processStrategyMsg);
-        this.registerMsgFunction("2049", this, this.processStrategyMsg);
-        this.registerMsgFunction("2030", this, this.processStrategyMsg);
-        this.registerMsgFunction("2029", this, this.processStrategyMsg);
-        this.registerMsgFunction("2032", this, this.processStrategyMsg);
-        // ComOrderRecord
-        this.registerMsgFunction("2022", this, this.processStrategyMsg);
-        this.registerMsgFunction("3011", this, this.processStrategyMsg);
-        this.registerMsgFunction("3510", this, this.processStrategyMsg);
-        // ComAccountPos
-        this.registerMsgFunction("2013", this, this.processStrategyMsg);
-        // ComRecordPos
-        this.registerMsgFunction("3502", this, this.processStrategyMsg);
-        this.registerMsgFunction("3504", this, this.processStrategyMsg);
-        // ComGWNetGuiInfo
-        this.registerMsgFunction("2015", this, this.processStrategyMsg);
-        this.registerMsgFunction("2017", this, this.processStrategyMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -331,7 +329,7 @@ class ItradeClient extends TcpClient {
 @Injectable()
 export class ItradeService {
     private _client: ItradeClient;
-    private _parser: ItradeParser;
+    private _parser: StrategyParser;
     private _messageMap: Object;
     private _sessionid: number;
     private _port: number;
@@ -383,6 +381,7 @@ export class ItradeService {
                 clearTimeout(this._timer);
                 this._timer = null;
             }
+
             this._client.sendHeartBeat(10);
             if (this._messageMap.hasOwnProperty(0)) {
                 if (this._messageMap[0].context !== undefined)
@@ -424,7 +423,9 @@ export class ItradeService {
     addSlot(type: number, cb: Function, context?: any): void {
         if (this._messageMap.hasOwnProperty(type))
             return;
+
         this._messageMap[type] = { callback: cb, context: context };
+        this._parser.registerMsgFunction(type, this._parser, this._parser.processStrategyMsg);
     }
 
     get client() {
