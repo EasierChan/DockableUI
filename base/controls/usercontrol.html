@@ -7,7 +7,7 @@
     (input)="child.dataSource.input ? child.dataSource.input() : null" (change)="child.dataSource.change ? child.dataSource.change() : null">
       <pre>{{child.dataSource.title}}</pre>
         <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" [style.width.px]="child.styleObj?.width"
-        class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
+        class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly" ondragstart="return false;">
   </label>
   <label *ngIf="child.styleObj.type=='date'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top">
       <pre>{{child.dataSource.title}}</pre>
@@ -18,7 +18,7 @@
     <pre>{{child.dataSource.title}}</pre>
     <div class="btn-group" [style.width.px]="child.styleObj?.width">
       <input *ngIf="child.styleObj.acceptInput" type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name"
-        [style.width.px]="child.styleObj?.width" class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable"
+        [style.width.px]="child.styleObj?.width" class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" ondragstart="return false;"
         [readonly]="child.styleObj?.readonly" (input)="child.dataSource.input($event)" (blur)="child.dataSource.blur()" (keyup)="child.dataSource.keyup($event)">
       <ul *ngIf="child.styleObj.acceptInput" class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'" (mouseover)="child.dataSource.mouseover()"
         (mouseleave)="child.dataSource.mouseleave()">

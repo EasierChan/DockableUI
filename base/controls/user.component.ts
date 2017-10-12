@@ -457,7 +457,7 @@ export class TileAreaComponent {
     selector: "u-codes",
     styleUrls: ["code.searcher.css"],
     template: `
-        <input type="text" class="btn-default" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedItem?.symbolCode" #searcher>
+        <input type="text" class="btn-default" placeholder="Search..." (input)="onSearch(searcher.value)" (blur)="autoHide()" [ngModel]="selectedItem?.symbolCode" ondragstart="return false;" #searcher>
         <ul *ngIf="resList&&resList.length > 0" class="dropdown">
             <li *ngFor="let item of resList; let i = index" (click)="listClick($event, item)" [style.backgroundColor]="i === curIdx ? 'black': null">{{item.symbolCode}} {{item.SecuAbbr}}</li>
         </ul>
