@@ -176,19 +176,15 @@ export class QtpService {
     private _client: QTPClient;
     private _messageMap: Object;
     private _timer: any;
+    private _port: number;
+    private _host: string;
+
     constructor() {
         this._messageMap = new Object();
         this._client = new QTPClient();
         this._client.useSelfBuffer = true;
         this._client.addParser(new QTPMessageParser(this._client));
-    };
-
-    connect(port, host = "127.0.0.1") {
         let self = this;
-        if (this._timer) {
-            clearTimeout(this._timer);
-            this._timer = null;
-        }
 
         this._client.on("data", msg => {
             msg = msg[0];
@@ -202,15 +198,40 @@ export class QtpService {
                 console.warn(`unknown message appid = ${msg.header.msgtype}`);
         });
         this._client.on("close", () => {
+            console.info("remote closed");
+
+            if (this._timer) {
+                clearTimeout(this._timer);
+                this._timer = null;
+            }
+
             this._timer = setTimeout(() => {
-                this._client.connect(port, host);
+                this._client.connect(this._port, this._host);
             }, 10000);
+
+            if (this.onClose)
+                this.onClose();
         });
+
         this._client.on("connect", () => {
             if (this._timer) {
                 clearTimeout(this._timer);
+                this._timer = null;
             }
+
+            if (this.onConnect)
+                this.onConnect();
         });
+    };
+
+    connect(port, host = "127.0.0.1") {
+        this._port = port;
+        this._host = host;
+
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
         this._client.connect(port, host);
     }
 
@@ -234,6 +255,8 @@ export class QtpService {
             };
         });
     }
+    onConnect: Function;
+    onClose: Function;
 }
 
 export interface Slot {

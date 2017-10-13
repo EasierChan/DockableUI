@@ -215,6 +215,8 @@ export class IP20Service {
     private _messageMap: Object;
     private _timer: any;
     private _parser: ISONPackParser;
+    private _port: number;
+    private _host: string;
 
     constructor() {
         this._messageMap = new Object();
@@ -222,16 +224,8 @@ export class IP20Service {
         this._client.useSelfBuffer = true;
         this._parser = new ISONPackParser(this._client);
         this._client.addParser(this._parser);
-    };
 
-    connect(port, host = "127.0.0.1") {
         let self = this;
-
-        if (this._timer) {
-            clearTimeout(this._timer);
-            this._timer = null;
-        }
-
         this._client.on("data", msg => {
             msg = msg[0];
             if (self._messageMap.hasOwnProperty(msg.head.appid) && self._messageMap[msg.head.appid].hasOwnProperty(msg.head.packid)) {
@@ -260,12 +254,22 @@ export class IP20Service {
             }
 
             this._timer = setTimeout(() => {
-                this._client.connect(port, host);
+                this._client.connect(this._port, this._host);
             }, 10000);
 
             if (this.onClose)
                 this.onClose();
         });
+    };
+
+    connect(port, host = "127.0.0.1") {
+        this._port = port;
+        this._host = host;
+
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
         this._client.connect(port, host);
     }
 
