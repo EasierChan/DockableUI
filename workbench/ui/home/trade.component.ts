@@ -64,13 +64,15 @@ export class TradeComponent implements OnInit {
         };
 
         this.products = this.configBll.getProducts();
-        this.products.forEach(product => {
-            let tile = new Tile();
-            tile.title = product.tblock_full_name;
-            tile.iconName = "folder-close";
-            tile.data = product.tblock_id;
-            this.productArea.addTile(tile);
-        });
+        if (this.products) {
+            this.products.forEach(product => {
+                let tile = new Tile();
+                tile.title = product.tblock_full_name;
+                tile.iconName = "folder-close";
+                tile.data = product.tblock_id;
+                this.productArea.addTile(tile);
+            });
+        }
 
         this.areas.push(this.productArea);
     }
