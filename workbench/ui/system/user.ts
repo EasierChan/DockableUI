@@ -123,7 +123,8 @@ export class UserComponent implements OnInit {
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        let loginObj: any = { maid: this.maid, cellid: "*", userid: this.userid, password: this.cryptoSrv.generateMD5(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
+        let password = this.cryptoSrv.generateMD5(this.password);
+        let loginObj: any = {conid: 101, maid: this.maid, cellid: this.maid, userid: this.userid, password: "2cb6703cc7cb7d564008ddbfaad68eE2", termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
         this.tradeSrv.send(17, 41, loginObj); // login
 
         this.tradeSrv.onClose = () => {
