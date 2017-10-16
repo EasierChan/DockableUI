@@ -1954,7 +1954,7 @@ export class AppComponent implements OnInit {
         for (let iRow = 0; iRow < this.strategyTable.rows.length; ++iRow) {   // find row in strategy table
             strategyid = this.strategyTable.rows[iRow].cells[0].Text;
             strategyKeyMap = this.strategyMap[strategyid];
-
+            console.info(`strategy_cfg num=${data.length}`);
             for (let iData = 0; iData < data.length; ++iData) {
                 if (data[iData].strategyid !== strategyid)
                     continue;
@@ -2082,9 +2082,71 @@ export class AppComponent implements OnInit {
             }
 
             strategyKeyMap = null;
+            console.warn(`needInsert=${needInsert}`);
         }
+    }
 
-        // this.strategyTable.detectChanges();
+    updateStrategyCfg(data: any) {
+        if (this.strategyTable.rows.length === 0)   // table without strategy item
+            return;
+
+        let needInsert = false;
+        let strategyid;
+        let strategyKeyMap;
+        for (let iRow = 0; iRow < this.strategyTable.rows.length; ++iRow) {   // find row in strategy table
+            strategyid = this.strategyTable.rows[iRow].cells[0].Text;
+            strategyKeyMap = this.strategyMap[strategyid];
+            console.info(`strategy_cfg num=${data.length}`);
+            for (let iData = 0; iData < data.length; ++iData) {
+                if (data[iData].strategyid !== strategyid)
+                    continue;
+
+                switch (data[iData].type) {
+                    case StrategyCfgType.STRATEGY_CFG_TYPE_INSTRUMENT:
+                        let idxInstrument = strategyKeyMap.instruments.indexOf(data[iData].key);
+                        let secuinfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].value);
+                        let symbolCode = secuinfo.hasOwnProperty(data[iData].value) ? secuinfo[data[iData].value].SecuCode : "";
+
+                        if (idxInstrument >= 0) { // update
+                            this.strategyTable.rows[iRow].cells[idxInstrument + 1].Text = `${symbolCode}(${data[iData].value})`;
+                        }
+
+                        symbolCode = null;
+                        secuinfo = null;
+                        idxInstrument = null;
+                        break;
+                    case StrategyCfgType.STRATEGY_CFG_TYPE_PARAMETER:
+                        let paramIdx = strategyKeyMap.parameters.findIndex(item => { return data[iData].key === item.key; });
+                        if (paramIdx >= 0) { // update
+                            let iCol = this.kInitColumns + strategyKeyMap.comments1.length + strategyKeyMap.commands.length + paramIdx;
+                            this.strategyTable.rows[iRow].cells[iCol].Type = "textbox";
+                            this.strategyTable.rows[iRow].cells[iCol].Text = (data[iData].value / Math.pow(10, data[iData].decimal)).toFixed(data[iData].decimal);
+                            this.strategyTable.rows[iRow].cells[iCol].Data = data[iData];
+                            this.strategyTable.rows[iRow].cells[iCol].Class = data[iData].level === 10 ? "warning" : "default";
+                        }
+                        break;
+                    case StrategyCfgType.STRATEGY_CFG_TYPE_COMMENT:
+                        let commentIdx = strategyKeyMap.comments1.findIndex(item => { return data[iData].key === item.key && data[iData].level > 0; });
+                        if (commentIdx >= 0) { // update
+                            let iCol = this.kInitColumns + commentIdx;
+                            this.strategyTable.rows[iRow].cells[iCol].Text = (data[iData].value / Math.pow(10, data[iData].decimal)).toFixed(data[iData].decimal);
+                            this.strategyTable.rows[iRow].cells[iCol].Class = data[iData].level === 10 ? "warning" : "default";
+                        }
+                        break;
+                    case StrategyCfgType.STRATEGY_CFG_TYPE_COMMAND:
+                        let commandIdx = strategyKeyMap.commands.findIndex(item => { return data[iData].key === item.key; });
+                        if (commandIdx >= 0) { // update
+                            let iCol = this.kInitColumns + strategyKeyMap.comments1.length + commandIdx;
+                            this.strategyTable.rows[iRow].cells[iCol].Text = data[iData].name;
+                            this.strategyTable.rows[iRow].cells[iCol].Data = data[iData];
+                            this.strategyTable.rows[iRow].cells[iCol].Type = "button";
+                            this.strategyTable.rows[iRow].cells[iCol].Class = "primary";
+                            this.strategyTable.rows[iRow].cells[iCol].Disable = data[iData].value === 0;
+                        }
+                        break;
+                }
+            }
+        }
     }
 
     strategyOnCellClick(cell: any, cellIdx: number, rowIdx: number) {
@@ -2479,6 +2541,9 @@ export class AppComponent implements OnInit {
                         case 2029:
                         case 2032:
                             this.showStrategyCfg(data.content.data);
+                            break;
+                        case 2032:
+                            this.updateStrategyCfg(data.content.data);
                             break;
                         case 2031:
                         case 2050:
