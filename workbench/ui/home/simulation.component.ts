@@ -43,8 +43,8 @@ export class SimulationComponent implements OnInit {
 
         let subMenu = new Menu();
         this.configBll.getProducts().forEach(product => {
-            subMenu.addItem(product.tblock_full_name, () => {
-                this.selectedStrategyConfig.productID = product.tblock_id;
+            subMenu.addItem(product.caname, () => {
+                this.selectedStrategyConfig.productID = product.caid;
                 this.operateStrategyServer(this.selectedStrategyConfig, 0);
                 this.configBll.moveConfig(this.selectedStrategyConfig, Channel.ONLINE);
                 this.strategyArea.removeTile(this.selectedStrategyConfig.chname);

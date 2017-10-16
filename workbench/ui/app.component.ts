@@ -292,7 +292,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.tradeEndPoint.addSlot({
             appid: this.productAppID,
-            packid: 216,
+            packid: 251,
             callback: msg => {
                 let data = JSON.parse(msg.content.body);
 
@@ -301,31 +301,27 @@ export class AppComponent implements OnInit, OnDestroy {
                     return;
                 }
 
-                let productInfo: Object = {};
+                console.info(msg);
+                switch (msg.content.head.actor) {
+                    case "getProductAns":
+                        let productInfo: Object = {};
 
-                data.body.forEach(item => {
-                    if (productInfo.hasOwnProperty(item.tblock_id)) {
-                        item.cfg.split("|").forEach(gwItem => {
-                            if (productInfo[item.tblock_id].cfg.indexOf("," + gwItem.split(",")[2]) < 0)
-                                productInfo[item.tblock_id].cfg += "|" + gwItem;
+                        data.body.forEach(item => {
+                            productInfo[item.caid] = item;
                         });
 
-                        if (productInfo[item.tblock_id].broker_customer_code.indexOf(item.broker_customer_code) < 0)
-                            productInfo[item.tblock_id].broker_customer_code += "," + item.broker_customer_code;
-                    } else {
-                        productInfo[item.tblock_id] = item;
-                    }
-                });
+                        let products = [];
+                        for (let prop in productInfo) {
+                            products.push(productInfo[prop]);
+                        }
 
-                let products = [];
-                for (let prop in productInfo) {
-                    products.push(productInfo[prop]);
+                        this.configBll.setProducts(products);
+
+                        products = null;
+                        productInfo = null;
+                        break;
                 }
 
-                this.configBll.setProducts(products);
-
-                products = null;
-                productInfo = null;
                 data = null;
             }
         });

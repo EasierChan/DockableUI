@@ -96,9 +96,9 @@ export class AppComponent implements OnInit {
                 this.loginTGW(() => {
                     let today = new Date();
                     let dateStr = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + (today.getDate());
-                    this.trade.send(this.productAppID, 232, { body: { productID: this.option.productID } });
-                    this.trade.send(this.productAppID, 228, { body: { tblock_id: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
-                    this.trade.send(this.productAppID, 230, { body: { tblock_id: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
+                    this.trade.send(this.productAppID, 251, { head: { realActor: "getMonitorProducts" }, body: { caid: this.option.productID } });
+                    this.trade.send(this.productAppID, 251, { head: { realActor: "getProductStockHoldWeight" }, body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
+                    this.trade.send(this.productAppID, 251, { head: { realActor: "getProductFuturesHoldWeight" }, body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
                 });
                 break;
             case "strategy":

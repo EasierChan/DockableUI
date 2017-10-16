@@ -67,9 +67,9 @@ export class TradeComponent implements OnInit {
         if (this.products) {
             this.products.forEach(product => {
                 let tile = new Tile();
-                tile.title = product.tblock_full_name;
+                tile.title = product.caname;
                 tile.iconName = "folder-close";
-                tile.data = product.tblock_id;
+                tile.data = product.caid;
                 this.productArea.addTile(tile);
             });
         }
