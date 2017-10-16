@@ -342,7 +342,7 @@ export class ConfigurationBLL {
     }
 
     getProducts(): any[] {
-        return this._products;
+        return this._products || [];
     }
 
     wait(fail_msg: string, timeout_val: number = 2000) {
