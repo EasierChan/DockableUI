@@ -1254,55 +1254,6 @@ export class AppComponent implements OnInit {
         }
     }
 
-    getshow(key: any) {
-        for (let o in AppComponent.self.configStrObj) {
-            if (parseInt(o) === key) {
-                return AppComponent.self.configStrObj[o].show;
-            }
-        }
-    }
-
-    handleCommentObj(data: any) {
-        let judge = AppComponent.self.judgeObject(this.commentObj);
-        let strategyid = data.strategyid;
-        // let getname = this.langServ.getTranslateInfo(this.languageType, data.name); commentparameter
-        if (!judge) {
-            this.commentObj[strategyid] = {};
-            this.commentObj[strategyid][data.key] = { name: data.name, value: data.value };
-        } else {
-            // traverse commentobj,insert or modify
-            let commentFlag: boolean = false;
-            let tempFlag: boolean = false;
-            for (let o in this.commentObj) {
-                if (o === strategyid) {
-                    commentFlag = true;
-                    let strategyComment = this.commentObj[o];
-                    for (let tempobj in strategyComment) {
-                        if (tempobj === data.key) {
-                            tempFlag = true;
-                            strategyComment.value = data.value;
-                        }
-                    }
-                }
-                if (!tempFlag) {
-                    this.commentObj[o][data.key] = { name: data.name, value: data.value };
-                }
-
-            }
-            if (!commentFlag) {
-                this.commentObj[strategyid][data.key] = { name: data.name, value: data.value };
-            }
-        }
-        // console.log(this.commentObj);
-    }
-
-    judgeObject(data: any) {
-        for (let o in data) {
-            return true;
-        }
-        return false;
-    }
-
     TestingInput(data: any) {
         let reg = /^[\d]+$/;
         let rtn = reg.test(data);
@@ -1423,7 +1374,6 @@ export class AppComponent implements OnInit {
     }
 
     showStrategyInfo(data: any) {
-        console.info(data);
         let row: DataTableRow;
         for (let i = 0; i < data.length; ++i) {
             row = this.strategyTable.rows.find(item => { return item.cells[0].Text === data[i].key; });
@@ -2080,7 +2030,6 @@ export class AppComponent implements OnInit {
             }
 
             strategyKeyMap = null;
-            console.warn(`needInsert=${needInsert}`);
         }
     }
 
@@ -2093,6 +2042,10 @@ export class AppComponent implements OnInit {
         let strategyKeyMap;
         for (let iRow = 0; iRow < this.strategyTable.rows.length; ++iRow) {   // find row in strategy table
             strategyid = this.strategyTable.rows[iRow].cells[0].Text;
+
+            if (!this.strategyMap.hasOwnProperty(strategyid))
+                continue;
+
             strategyKeyMap = this.strategyMap[strategyid];
             console.info(`strategy_cfg num=${data.length}`);
             for (let iData = 0; iData < data.length; ++iData) {
@@ -2148,6 +2101,7 @@ export class AppComponent implements OnInit {
     }
 
     strategyOnCellClick(cell: any, cellIdx: number, rowIdx: number) {
+        console.info(cell);
         if (cell.Text === "submit") {  // submit
             let strategyKeyMap = this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text];
             let paramIdx = this.kInitColumns + strategyKeyMap.comments1.length + strategyKeyMap.commands.length;
