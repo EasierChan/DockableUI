@@ -34,7 +34,7 @@ export class AppComponent implements OnInit {
     productAppID: number;
 
     constructor(private state: AppStateCheckerRef, private langServ: TranslateService,
-        private trade: IP20Service, private appsrv: AppStoreService) {
+        private tradePoint: IP20Service, private appsrv: AppStoreService) {
         this.state.onInit(this, this.onReady);
     }
 
@@ -57,7 +57,7 @@ export class AppComponent implements OnInit {
 
     loginTGW(afterLogin?: Function) {
         let [addr, port] = this.appsrv.getSetting().endpoints[0].trade_addr.split(":");
-        this.trade.connect(port, addr);
+        this.tradePoint.connect(port, addr);
 
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
@@ -66,7 +66,7 @@ export class AppComponent implements OnInit {
         let loginObj = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo));
         loginObj.clienttm = stimestamp;
 
-        this.trade.addSlot({
+        this.tradePoint.addSlot({
             appid: 17,
             packid: 43,
             callback: msg => {
@@ -76,7 +76,7 @@ export class AppComponent implements OnInit {
             }
         });
 
-        this.trade.addSlot({
+        this.tradePoint.addSlot({
             appid: 17,
             packid: 120,
             callback: msg => {
@@ -84,7 +84,9 @@ export class AppComponent implements OnInit {
             }
         });
 
-        this.trade.send(17, 41, loginObj);
+        this.tradePoint.onConnect = () => {
+            this.tradePoint.send(17, 41, loginObj);
+        };
     }
 
     ngOnInit() {
@@ -96,9 +98,9 @@ export class AppComponent implements OnInit {
                 this.loginTGW(() => {
                     let today = new Date();
                     let dateStr = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + (today.getDate());
-                    this.trade.send(this.productAppID, 251, { head: { realActor: "getMonitorProducts" }, body: { caid: this.option.productID } });
-                    this.trade.send(this.productAppID, 251, { head: { realActor: "getProductStockHoldWeight" }, body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
-                    this.trade.send(this.productAppID, 251, { head: { realActor: "getProductFuturesHoldWeight" }, body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
+                    this.tradePoint.send(this.productAppID, 251, { head: { realActor: "getMonitorProducts" }, body: { caid: this.option.productID } });
+                    this.tradePoint.send(this.productAppID, 251, { head: { realActor: "getProductStockHoldWeight" }, body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
+                    this.tradePoint.send(this.productAppID, 251, { head: { realActor: "getProductFuturesHoldWeight" }, body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
                 });
                 break;
             case "strategy":

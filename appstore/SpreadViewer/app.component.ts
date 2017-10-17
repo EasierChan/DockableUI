@@ -78,7 +78,10 @@ export class AppComponent2 implements OnInit {
                 console.info(msg);
             }
         });
-        this.tgw.send(17, 41, loginObj);
+
+        this.tgw.onConnect = () => {
+            this.tgw.send(17, 41, loginObj);
+        };
     }
 
     ngOnInit() {

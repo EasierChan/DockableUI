@@ -200,7 +200,7 @@ usercontrol.col > dock-control > .tab-panel {
 }
 
 .panel-header-list > .tab.active {
-    background-color: #060606;
+    background-color: #1e1e1e; /* #060606 */
     border-bottom-left-radius: 3px;
     border-bottom-right-radius: 3px;
 }

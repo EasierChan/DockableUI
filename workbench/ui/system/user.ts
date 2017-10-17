@@ -78,7 +78,7 @@ export class UserComponent implements OnInit {
                 this.appSrv.setLoginTrade(msg.content.conlvl > 2);
                 // to request template
                 // this.tradeSrv.send(this.scmsAppID, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
-                this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getProduct" }, body: { } });
+                this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getProduct" }, body: {} });
                 console.info(`subscribe=> ${this.configBll.strategyKeys}`);
                 this.tradeSrv.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
 
@@ -124,8 +124,7 @@ export class UserComponent implements OnInit {
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
         let password = this.cryptoSrv.generateMD5(this.password);
-        let loginObj: any = {conid: 101, maid: this.maid, cellid: this.maid, userid: this.userid, password: "2cb6703cc7cb7d564008ddbfaad68eE2", termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
-        this.tradeSrv.send(17, 41, loginObj); // login
+        let loginObj: any = { conid: 101, maid: this.maid, cellid: this.maid, userid: this.userid, password: "2cb6703cc7cb7d564008ddbfaad68eE2", termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
 
         this.tradeSrv.onClose = () => {
             if (this.appSrv.isLoginTrade()) {
@@ -134,11 +133,15 @@ export class UserComponent implements OnInit {
             }
         };
 
+        this.tradeSrv.onConnect = () => {
+            this.tradeSrv.send(17, 41, loginObj); // login
+        };
+
         AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
 
-        loginObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
+        let quoteObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
         let [qhost, qport] = curEndpoint.quote_addr.split(":");
         this.quoteSrv.connect(qport, qhost);
-        this.quoteSrv.send(17, 41, loginObj);
+        this.quoteSrv.send(17, 41, quoteObj);
     }
 }
