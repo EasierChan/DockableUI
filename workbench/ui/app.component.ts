@@ -212,7 +212,6 @@ export class AppComponent implements OnInit, OnDestroy {
             }
         };
 
-        this.appSrv.getUserProfile(null);
         this.registerListeners();
         ULogger.init("log", Environment.getDataPath("workbench"));
 

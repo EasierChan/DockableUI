@@ -63,25 +63,6 @@ class IP20Parser extends Parser {
                     tempBuffer = peekBuf[0];
                 }
 
-                //  remove unvalid message header
-                if (this._curHeader.packlen === 0) {
-                    this._oPool.remove(bufCount + 1);
-                    restLen = buflen - ISONPack2Header.len;
-
-                    if (restLen > 0) {
-                        let restBuf = Buffer.alloc(restLen);
-                        tempBuffer.copy(restBuf, 0, buflen - restLen);
-                        this._oPool.prepend(restBuf);
-                        restBuf = null;
-                    }
-
-                    logger.warn(`remove unvalid message => packlen=${this._curHeader.packlen}, restLen=${restLen}`);
-                    tempBuffer = null;
-                    this._curHeader = null;
-                    ret = false;
-                    break;
-                }
-
                 tempBuffer = null;
                 ret = true;
                 break;
@@ -101,9 +82,11 @@ class IP20Parser extends Parser {
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+        let peekBuf = null;
 
         for (; bufCount < this._oPool.length; ++bufCount) {
-            buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
+            peekBuf = this._oPool.peek(bufCount + 1);
+            buflen += peekBuf[bufCount].byteLength;
             if (buflen >= this._curHeader.packlen) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
                 logger.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}, buflen=${tempBuffer.length}`);
