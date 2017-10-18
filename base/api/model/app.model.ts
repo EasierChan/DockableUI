@@ -9,7 +9,7 @@ export interface IApp {
     author?: string;
 }
 
-export interface UserProfile {
+export class UserProfile {
     username: string;
     password: string;
     roles: string[];

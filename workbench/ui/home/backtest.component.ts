@@ -178,6 +178,7 @@ export class BacktestComponent implements OnInit {
 
         this.requestMap[tmpobj.reqsn] = config.name;
         this.tradeEndPoint.send(this.backtestAppID, 8010, tmpobj);
+        this.configBll.wait("创建策略失败", 2000);
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
@@ -185,7 +186,6 @@ export class BacktestComponent implements OnInit {
             this.configBll.tempConfig = config;
 
         this.tradeEndPoint.send(this.ssgwAppID, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
-        this.configBll.wait("创建策略失败", 2000);
     }
 
     onStartApp() {

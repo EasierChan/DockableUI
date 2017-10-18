@@ -2094,6 +2094,10 @@ export class AppComponent implements OnInit {
         for (let iRow = 0; iRow < this.strategyTable.rows.length; ++iRow) {   // find row in strategy table
             strategyid = this.strategyTable.rows[iRow].cells[0].Text;
             strategyKeyMap = this.strategyMap[strategyid];
+
+            if (!this.strategyMap.hasOwnProperty(strategyid))
+                continue;
+
             console.info(`strategy_cfg num=${data.length}`);
             for (let iData = 0; iData < data.length; ++iData) {
                 if (data[iData].strategyid !== strategyid)

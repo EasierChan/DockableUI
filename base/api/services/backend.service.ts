@@ -15,12 +15,14 @@ export const crypto = require("@node/crypto");
 export class AppStoreService {
     private bLoginTrade: boolean;
     private bLoginQuote: boolean;
+    private userinfo: UserProfile;
     loginSuccess: Function;
     loginFailed: Function;
 
     constructor() {
         this.bLoginTrade = false;
         this.bLoginQuote = false;
+        this.userinfo = new UserProfile();
     }
 
     startApp(name: string, type: string, option: any): boolean {
@@ -31,8 +33,12 @@ export class AppStoreService {
         return electron.ipcRenderer.sendSync("appstore://unloadApp", name);
     }
 
-    getUserProfile(loginInfo: UserProfile): any {
-        return electron.ipcRenderer.sendSync("appstore://login", loginInfo);
+    getUserProfile(): UserProfile {
+        return this.userinfo;
+    }
+
+    setUserProfile(loginInfo: UserProfile) {
+        this.userinfo = loginInfo;
     }
 
     getSetting(): any {
@@ -378,6 +384,7 @@ export class ChildProcess {
     }
 }
 
+const { tgwapi } = require("../../script/tgwpass");
 @Injectable()
 export class CryptoService {
     constructor() {
@@ -387,6 +394,10 @@ export class CryptoService {
         const hash = crypto.createHash("md5");
         hash.update(value);
         return hash.digest("hex");
+    }
+
+    getTGWPass(value: string): string {
+        return tgwapi.pass(value);
     }
 }
 
