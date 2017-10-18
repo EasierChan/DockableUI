@@ -41,6 +41,7 @@ export class UserComponent implements OnInit {
     ngOnInit() {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
         this.scmsAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.scms;
+        this.userid = this.appSrv.getUserProfile().username;
         this.registerListeners();
     }
 
@@ -116,6 +117,11 @@ export class UserComponent implements OnInit {
     }
 
     login() {
+        if (this.appSrv.isLoginTrade()) {
+            this.appSrv.setLoginTrade(true);
+            return;
+        }
+
         let curEndpoint = this.setting.endpoints[0];
         let [host, port] = curEndpoint.trade_addr.split(":");
         this.tradeSrv.connect(port, host);
@@ -123,8 +129,7 @@ export class UserComponent implements OnInit {
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        let password = this.cryptoSrv.generateMD5(this.password);
-        let loginObj: any = { conid: 101, maid: this.maid, cellid: this.maid, userid: this.userid, password: "2cb6703cc7cb7d564008ddbfaad68eE2", termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
+        let loginObj: any = { maid: this.maid, cellid: this.maid, userid: this.userid, password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
 
         this.tradeSrv.onClose = () => {
             if (this.appSrv.isLoginTrade()) {
@@ -135,6 +140,7 @@ export class UserComponent implements OnInit {
 
         this.tradeSrv.onConnect = () => {
             this.tradeSrv.send(17, 41, loginObj); // login
+            this.appSrv.setUserProfile({ username: this.userid, password: loginObj.password, roles: [], apps: [] });
         };
 
         AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));

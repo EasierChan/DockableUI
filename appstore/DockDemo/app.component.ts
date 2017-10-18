@@ -2047,6 +2047,10 @@ export class AppComponent implements OnInit {
                 continue;
 
             strategyKeyMap = this.strategyMap[strategyid];
+
+            if (!this.strategyMap.hasOwnProperty(strategyid))
+                continue;
+
             console.info(`strategy_cfg num=${data.length}`);
             for (let iData = 0; iData < data.length; ++iData) {
                 if (data[iData].strategyid !== strategyid)
