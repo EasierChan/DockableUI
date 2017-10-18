@@ -24,7 +24,7 @@ export class TcpClient {
     /**
      * common buffer queue
      */
-    private static _s_bufferQueue: Pool<Buffer>;
+    // private static _s_bufferQueue: Pool<Buffer>;
     /**
      * self buffer queue
      */
@@ -87,9 +87,9 @@ export class TcpClient {
         this._buffer_Queue = null;
     }
 
-    static dispose(): void {
-        TcpClient._s_bufferQueue = null;
-    }
+    // static dispose(): void {
+    //     TcpClient._s_bufferQueue = null;
+    // }
     /**
      *
      */
@@ -97,16 +97,16 @@ export class TcpClient {
         if (this._buffer_Queue)
             return this._buffer_Queue;
 
-        if (this._bUseSelfBuffer)
-            this._buffer_Queue = new Pool<Buffer>();
-        else
-            this._buffer_Queue = TcpClient._s_bufferQueue || (TcpClient._s_bufferQueue = new Pool<Buffer>());
+        // if (this._bUseSelfBuffer)
+        this._buffer_Queue = new Pool<Buffer>();
+        // else
+        //     this._buffer_Queue = TcpClient._s_bufferQueue || (TcpClient._s_bufferQueue = new Pool<Buffer>());
         return this._buffer_Queue;
     }
 
-    static get commonPoolInstance(): Pool<Buffer> {
-        if (TcpClient._s_bufferQueue === null)
-            TcpClient._s_bufferQueue = new Pool<Buffer>();
-        return TcpClient._s_bufferQueue;
-    }
+    // static get commonPoolInstance(): Pool<Buffer> {
+    //     if (TcpClient._s_bufferQueue === null)
+    //         TcpClient._s_bufferQueue = new Pool<Buffer>();
+    //     return TcpClient._s_bufferQueue;
+    // }
 }

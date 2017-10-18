@@ -435,11 +435,11 @@ Date.prototype.format = function (format: string): string {
                 let month = this.getMonth() + 1;
                 return month.toString().lpad(2, 0);
             case "dd":
-                return this.getDate().toString();
+                return this.getDate().toString().lpad(2, 0);
             case "HH":
-                return this.getHours().toString();
+                return this.getHours().toString().lpad(2, 0);
             case "mm":
-                return this.getMinutes().toString();
+                return this.getMinutes().toString().lpad(2, 0);
             case "ss":
                 return this.getSeconds().toString().lpad(2, 0);
             case "SSS":

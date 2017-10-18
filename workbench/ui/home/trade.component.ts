@@ -91,7 +91,8 @@ export class TradeComponent implements OnInit {
                 dlg_name: "strategy",
                 config: this.selectedStrategyConfig,
                 products: this.products,
-                strategies: this.configBll.getTemplates()
+                strategies: this.configBll.getTemplates(),
+                forbidNames: this.getTileNames()
             });
             this.selectedStrategyConfig = null;
         });
@@ -113,7 +114,10 @@ export class TradeComponent implements OnInit {
         this.strategyArea.onCreate = () => {
             let config = new WorkspaceConfig();
             config.activeChannel = Channel.ONLINE;
-            this.appsrv.startApp("策略配置", "Dialog", { dlg_name: "strategy", config: config, strategies: this.configBll.getTemplates(), products: this.products });
+            this.appsrv.startApp("策略配置", "Dialog", {
+                dlg_name: "strategy", config: config, strategies: this.configBll.getTemplates(), products: this.products,
+                forbidNames: this.getTileNames()
+            });
         };
 
         this.strategyArea.onClick = (event: MouseEvent, item: Tile) => {
@@ -250,7 +254,7 @@ export class TradeComponent implements OnInit {
         this.configBll.tempConfig = config;
 
         this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
-        this.configBll.wait("创建策略失败");
+        this.configBll.wait("策略操作失败");
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
@@ -264,5 +268,15 @@ export class TradeComponent implements OnInit {
         })) {
             alert(`start ${this.selectedStrategyConfig.name} app error!`);
         }
+    }
+
+    getTileNames(): string[] {
+        let ret = [];
+
+        this.strategyArea.items.forEach(tile => {
+            ret.push(tile.title);
+        });
+
+        return ret;
     }
 }
