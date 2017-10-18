@@ -60,24 +60,6 @@ class IP20Parser extends Parser {
                     tempBuffer = this._oPool.peek(bufCount + 1)[0];
                 }
 
-                //  remove unvalid message header
-                if (this._curHeader.packlen === 0) {
-                    this._oPool.remove(bufCount + 1);
-                    restLen = buflen - ISONPack2Header.len;
-
-                    if (restLen > 0) {
-                        let restBuf = Buffer.alloc(restLen);
-                        tempBuffer.copy(restBuf, 0, buflen - restLen);
-                        this._oPool.prepend(restBuf);
-                        restBuf = null;
-                    }
-
-                    tempBuffer = null;
-                    this._curHeader = null;
-                    ret = false;
-                    break;
-                }
-
                 tempBuffer = null;
                 ret = true;
                 break;

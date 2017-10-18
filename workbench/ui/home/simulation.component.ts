@@ -59,7 +59,8 @@ export class SimulationComponent implements OnInit {
             this.appsrv.startApp("策略配置", "Dialog", {
                 dlg_name: "strategy",
                 config: this.selectedStrategyConfig,
-                strategies: this.configBll.getTemplates()
+                strategies: this.configBll.getTemplates(),
+                forbidNames: this.getTileNames()
             });
         });
         this.strategyMenu.addItem("删除", () => {
@@ -80,7 +81,11 @@ export class SimulationComponent implements OnInit {
         this.strategyArea.onCreate = () => {
             let config = new WorkspaceConfig();
             config.activeChannel = Channel.SIMULATION;
-            this.appsrv.startApp("策略配置", "Dialog", { dlg_name: "strategy", config: config, strategies: this.configBll.getTemplates() });
+            this.appsrv.startApp("策略配置", "Dialog", {
+                dlg_name: "strategy", config: config,
+                strategies: this.configBll.getTemplates(),
+                forbidNames: this.getTileNames()
+            });
         };
 
         this.strategyArea.onClick = (event: MouseEvent, item: Tile) => {
@@ -148,7 +153,7 @@ export class SimulationComponent implements OnInit {
         this.configBll.tempConfig = config;
 
         this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
-        this.configBll.wait("创建策略失败", 2000);
+        this.configBll.wait("策略操作失败", 2000);
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
@@ -162,5 +167,15 @@ export class SimulationComponent implements OnInit {
         })) {
             alert(`start ${this.selectedStrategyConfig.name} app error!`);
         }
+    }
+
+    getTileNames(): string[] {
+        let ret = [];
+
+        this.strategyArea.items.forEach(tile => {
+            ret.push(tile.title);
+        });
+
+        return ret;
     }
 }

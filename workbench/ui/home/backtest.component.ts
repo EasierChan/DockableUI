@@ -78,7 +78,8 @@ export class BacktestComponent implements OnInit {
             this.appsrv.startApp("策略配置", "Dialog", {
                 dlg_name: "strategy",
                 config: this.selectedStrategyConfig,
-                strategies: this.configBll.getTemplates()
+                strategies: this.configBll.getTemplates(),
+                forbidNames: this.getTileNames()
             });
         });
         this.strategyMenu.addItem("删除", () => {
@@ -99,7 +100,11 @@ export class BacktestComponent implements OnInit {
         this.strategyArea.onCreate = () => {
             let config = new WorkspaceConfig();
             config.activeChannel = Channel.BACKTEST;
-            this.appsrv.startApp("策略配置", "Dialog", { dlg_name: "strategy", config: config, strategies: this.configBll.getTemplates() });
+            this.appsrv.startApp("策略配置", "Dialog", {
+                dlg_name: "strategy", config: config,
+                strategies: this.configBll.getTemplates(),
+                forbidNames: this.getTileNames()
+            });
         };
 
         this.strategyArea.onClick = (event: MouseEvent, item: Tile) => {
@@ -178,7 +183,7 @@ export class BacktestComponent implements OnInit {
 
         this.requestMap[tmpobj.reqsn] = config.name;
         this.tradeEndPoint.send(this.backtestAppID, 8010, tmpobj);
-        this.configBll.wait("创建策略失败", 2000);
+        this.configBll.wait("策略操作失败", 2000);
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
@@ -195,5 +200,15 @@ export class BacktestComponent implements OnInit {
         })) {
             alert(`start ${this.selectedStrategyConfig.name} app error!`);
         }
+    }
+
+    getTileNames(): string[] {
+        let ret = [];
+
+        this.strategyArea.items.forEach(tile => {
+            ret.push(tile.title);
+        });
+
+        return ret;
     }
 }

@@ -151,68 +151,64 @@ export class AppStore {
             }
         });
 
-        IPCManager.register("appstore://login", (event, loginInfo) => {
-            // begin test
-            let apps = [
-                {
-                    id: "DockDemo",
-                    name: "DockDemo",
-                    desc: "TradeMonitor",
-                    category: "Transanctional"
-                },
-                {
-                    id: "SpreadViewer",
-                    name: "hello spread",
-                    desc: "TradeMonitor",
-                    category: "Transanctional"
-                },
-                {
-                    id: "LoopbackTestReport",
-                    name: "hello spread",
-                    desc: "TradeMonitor",
-                    category: "Transanctional"
-                },
-                {
-                    id: "Dialog",
-                    name: "hello spread",
-                    desc: "TradeMonitor",
-                    category: "Transanctional"
-                }
-            ];
-            let appIds = [];
-            apps.forEach((item) => {
-                appIds.push(item.id);
-            });
-            AppStore.initStore(appIds);
-            AppStore._appInfo = apps;
-            event.returnValue = apps;
-            return;
-            // end test
-            // if (AppStore._appInfo) {
-            //     event.returnValue = AppStore._appInfo;
-            //     return;
-            // }
-
-            // AppStore._userDal = AppStore._userDal || new UserDal();
-            // AppStore._userDal.on("error", (error) => {
-            //     if (event !== null)
-            //         event.returnValue = false;
-            //     AppStore._bAuthorized = false;
-            // });
-
-            // AppStore._userDal.getUserProfile(loginInfo.username, loginInfo.password);
-
-            // AppStore._userDal.on("userprofile", (res) => {
-            //     let appIds = [];
-            //     res.apps.forEach((item) => {
-            //         appIds.push(item.id);
-            //     });
-            //     AppStore.initStore(appIds);
-            //     AppStore._appInfo = res.apps;
-            //     if (event !== null)
-            //         event.returnValue = AppStore._appInfo;
-            // });
+        // begin test
+        let apps = [
+            {
+                id: "DockDemo",
+                name: "DockDemo",
+                desc: "TradeMonitor",
+                category: "Transanctional"
+            },
+            {
+                id: "SpreadViewer",
+                name: "hello spread",
+                desc: "TradeMonitor",
+                category: "Transanctional"
+            },
+            {
+                id: "LoopbackTestReport",
+                name: "hello spread",
+                desc: "TradeMonitor",
+                category: "Transanctional"
+            },
+            {
+                id: "Dialog",
+                name: "hello spread",
+                desc: "TradeMonitor",
+                category: "Transanctional"
+            }
+        ];
+        let appIds = [];
+        apps.forEach((item) => {
+            appIds.push(item.id);
         });
+        AppStore.initStore(appIds);
+        AppStore._appInfo = apps;
+        // end test
+        // if (AppStore._appInfo) {
+        //     event.returnValue = AppStore._appInfo;
+        //     return;
+        // }
+
+        // AppStore._userDal = AppStore._userDal || new UserDal();
+        // AppStore._userDal.on("error", (error) => {
+        //     if (event !== null)
+        //         event.returnValue = false;
+        //     AppStore._bAuthorized = false;
+        // });
+
+        // AppStore._userDal.getUserProfile(loginInfo.username, loginInfo.password);
+
+        // AppStore._userDal.on("userprofile", (res) => {
+        //     let appIds = [];
+        //     res.apps.forEach((item) => {
+        //         appIds.push(item.id);
+        //     });
+        //     AppStore.initStore(appIds);
+        //     AppStore._appInfo = res.apps;
+        //     if (event !== null)
+        //         event.returnValue = AppStore._appInfo;
+        // });
         // set tray icon
         AppStore._tray = new Tray(path.join(__dirname, "..", "..", "..", "images", "AppStore.png"));
         let bLang = UConfig.default.language === "zh-cn" ? true : false;

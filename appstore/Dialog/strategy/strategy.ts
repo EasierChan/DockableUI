@@ -19,6 +19,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
     @Input("config") config: WorkspaceConfig;
     @Input("products") products: any[];
     @Input("strategies") strategies: any[];
+    @Input("forbidNames") forbidNames: string[];
 
     enNameLabel: string;
     enName: string;
@@ -121,6 +122,11 @@ export class StrategyComponent implements OnInit, OnDestroy {
     save() {
         if (this.strategyType === undefined) {
             alert("未选择策略");
+            return;
+        }
+
+        if(this.isCreate && this.forbidNames && this.forbidNames.indexOf(this.chName) >= 0) {
+            alert("策略名称已存在！");
             return;
         }
 

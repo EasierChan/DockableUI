@@ -2375,6 +2375,10 @@ export class TileArea extends Control {
     set onSettingClick(value: Function) {
         this.dataSource.setting = value;
     }
+
+    get items(): Tile[] {
+        return this.dataSource.items;
+    }
 }
 
 export class Tile {
