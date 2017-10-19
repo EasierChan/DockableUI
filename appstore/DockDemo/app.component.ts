@@ -1486,11 +1486,11 @@ export class AppComponent implements OnInit {
 
     addLog(data: any) {
         let name = data.name;
-        let rowLen = AppComponent.self.logTable.rows.length;
+        let rowLen = this.logTable.rows.length;
         if (rowLen > 500)
-            AppComponent.self.logTable.rows.splice(0, 1);
-        let row = AppComponent.self.logTable.newRow();
-        row.cells[0].Text = AppComponent.self.getCurrentTime();
+            this.logTable.rows.splice(0, 1);
+        let row = this.logTable.newRow();
+        row.cells[0].Text = this.getCurrentTime();
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
         this.logTable.detectChanges();
     }
@@ -1626,13 +1626,7 @@ export class AppComponent implements OnInit {
     }
 
     getCurrentTime(): String {
-        let str: String = "";
-        let timeData: Date = new Date();
-        str = timeData.getHours() + "";
-        str = str + ":" + timeData.getMinutes();
-        str = str + ":" + timeData.getSeconds();
-        str = str + ":" + timeData.getMilliseconds();
-        return str;
+        return new Date().format("HH:mm:ss.SSS");
     }
 
     parseOrderStatus(status: any): String {
