@@ -632,7 +632,9 @@ export class AppComponent implements OnInit {
         btn_apply.Left = 200;
         btn_apply.Text = "应用";
         btn_apply.Class = "primary";
-        btn_apply.OnClick = () => { this.applyStrateTableConfig(); };
+        btn_apply.OnClick = () => {
+            this.applyStrateTableConfig();
+        };
         configHeader.addChild(checkall).addChild(btn_apply);
         this.configTable = new DataTable("table2");
         this.configTable.height = 390;
@@ -2358,14 +2360,14 @@ export class AppComponent implements OnInit {
         });
 
         let fstStrategy = this.strategyMap[this.strategyTable.rows[0].cells[0].Text];
-        let i = this.kInitColumns;
-        for (; i < fstStrategy.comments1.length; ++i) {
-            this.strategyTable.columns[i].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[i].key);
+        let iCol = this.kInitColumns;
+        for (let i = 0; i < fstStrategy.comments1.length; ++i) {
+            this.strategyTable.columns[iCol].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[iCol].key);
         }
 
-        i += fstStrategy.commands.length;
-        for (; i < fstStrategy.parameters.length; ++i) {
-            this.strategyTable.columns[i].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[i].key);
+        iCol += fstStrategy.commands.length;
+        for (let i = 0; i < fstStrategy.parameters.length; ++i) {
+            this.strategyTable.columns[iCol].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[iCol].key);
         }
     }
 
