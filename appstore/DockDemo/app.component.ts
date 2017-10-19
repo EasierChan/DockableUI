@@ -632,7 +632,9 @@ export class AppComponent implements OnInit {
         btn_apply.Left = 200;
         btn_apply.Text = "应用";
         btn_apply.Class = "primary";
-        btn_apply.OnClick = () => { this.applyStrateTableConfig(); };
+        btn_apply.OnClick = () => {
+            this.applyStrateTableConfig();
+        };
         configHeader.addChild(checkall).addChild(btn_apply);
         this.configTable = new DataTable("table2");
         this.configTable.height = 390;
@@ -1436,11 +1438,11 @@ export class AppComponent implements OnInit {
 
     addLog(data: any) {
         let name = data.name;
-        let rowLen = AppComponent.self.logTable.rows.length;
+        let rowLen = this.logTable.rows.length;
         if (rowLen > 500)
-            AppComponent.self.logTable.rows.splice(0, 1);
-        let row = AppComponent.self.logTable.newRow();
-        row.cells[0].Text = AppComponent.self.getCurrentTime();
+            this.logTable.rows.splice(0, 1);
+        let row = this.logTable.newRow();
+        row.cells[0].Text = this.getCurrentTime();
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
         this.logTable.detectChanges();
     }
@@ -1576,13 +1578,7 @@ export class AppComponent implements OnInit {
     }
 
     getCurrentTime(): String {
-        let str: String = "";
-        let timeData: Date = new Date();
-        str = timeData.getHours() + "";
-        str = str + ":" + timeData.getMinutes();
-        str = str + ":" + timeData.getSeconds();
-        str = str + ":" + timeData.getMilliseconds();
-        return str;
+        return new Date().format("HH:mm:ss.SSS");
     }
 
     parseOrderStatus(status: any): String {
@@ -2318,14 +2314,14 @@ export class AppComponent implements OnInit {
         });
 
         let fstStrategy = this.strategyMap[this.strategyTable.rows[0].cells[0].Text];
-        let i = this.kInitColumns;
-        for (; i < fstStrategy.comments1.length; ++i) {
-            this.strategyTable.columns[i].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[i].key);
+        let iCol = this.kInitColumns;
+        for (let i = 0; i < fstStrategy.comments1.length; ++i) {
+            this.strategyTable.columns[iCol].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[iCol].key);
         }
 
-        i += fstStrategy.commands.length;
-        for (; i < fstStrategy.parameters.length; ++i) {
-            this.strategyTable.columns[i].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[i].key);
+        iCol += fstStrategy.commands.length;
+        for (let i = 0; i < fstStrategy.parameters.length; ++i) {
+            this.strategyTable.columns[iCol].hidden = this.option.config["strategy_table"].columnHideIDs.includes(this.strategyTable.columns[iCol].key);
         }
     }
 

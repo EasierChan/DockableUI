@@ -13,7 +13,8 @@ body {
 }
 
 .page-body {
-  background-color: #1f273e;
+  /*background-color: #1f273e;*/
+  background-color: #1b1b1b;
 }
 
 .panel-header-list {
@@ -22,7 +23,7 @@ body {
 }
 
 .panel-header-list > .tab.active {
-    background-color: #060606;
+    background-color: #1b1b1b;
 }
 
 .splitter-bar {
@@ -45,7 +46,7 @@ body {
 }
 
 table {
-    background-color: #1f273e;
+    background-color: #1b1b1b;
 }
 /*user control*/
 .controls{
@@ -79,9 +80,8 @@ usercontrol.col{
 ::-webkit-scrollbar-button {
     display: none;
 }
-::-webkit-scrollbar-thumb {
-    /*background-color: #bdbdbd;*/
-    background-color: #bdbdbd;
+::-webkit-scrollbar-thumb{
+    background-color: #bebebe;
 }
 ::-webkit-scrollbar-thumb:hover{
     background-color: #e9b837;

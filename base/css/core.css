@@ -485,6 +485,8 @@ button > pre, label > pre, pre {
     border: 0;
     color: white;
     line-height: 21px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dropdown-toggle, .dropdown-toggle > prev{

@@ -285,7 +285,7 @@ export class AppComponent implements OnInit, OnDestroy {
     option: any;
     languageType = 0;
     spreadviewer: USpreadViewer;
-    codes: string[];
+    codes: any[];
     lines: any[];
     name: string;
     yAxisOption: any;
@@ -416,6 +416,14 @@ export class AppComponent implements OnInit, OnDestroy {
         });
     }
 
+    firstLegClick(item) {
+        this.codes[0] = item;
+    }
+
+    secondLegLick(item) {
+        this.codes[1] = item;
+    }
+
     calcSpread() {
         if (this.interval) {
             clearInterval(this.interval);
@@ -435,14 +443,14 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if (this.codes[0].endsWith(".csv") || this.codes[1].endsWith(".csv")) {
+        if ((typeof this.codes[0] === "string" && this.codes[0].endsWith(".csv"))
+            || (typeof this.codes[1] === "string" && this.codes[1].endsWith(".csv"))) {
             let nickCodes = [this.codes[0], this.codes[1]];
             let ukeys = [0, 0];
-            let res;
 
             let group1 = {};
             let ok1 = true;
-            if (this.codes[0].endsWith(".csv")) {
+            if (typeof this.codes[0] === "string" && this.codes[0].endsWith(".csv")) {
                 ok1 = false;
                 File.readLineByLine(this.codes[0], (linestr: string) => {
                     linestr.trim();
@@ -463,13 +471,12 @@ export class AppComponent implements OnInit, OnDestroy {
                     ok1 = true;
                 });
             } else {
-                res = this.secuinfo.getSecuinfoByCode(this.codes[0]);
-                ukeys[0] = parseInt(res[this.codes[0]].ukey);
+                ukeys[0] = this.codes[0].ukey;
             }
 
             let group2 = {};
             let ok2 = true;
-            if (this.codes[1].endsWith(".csv")) {
+            if (typeof this.codes[1] === "string" && this.codes[1].endsWith(".csv")) {
                 ok2 = false;
                 File.readLineByLine(this.codes[1], (linestr: string) => {
                     linestr.trim();
@@ -486,8 +493,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     ok2 = true;
                 });
             } else {
-                res = this.secuinfo.getSecuinfoByCode(this.codes[1]);
-                ukeys[1] = parseInt(res[this.codes[1]].ukey);
+                ukeys[1] = this.codes[1].ukey;
             }
 
             this.interval = setInterval(() => {
@@ -529,14 +535,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     groups = null;
                 }
             }, 100);
-        } else {
-            let res: Object = this.secuinfo.getSecuinfoByCode(this.codes[0], this.codes[1]);
-
-            if (Object.getOwnPropertyNames(res).length < this.codes.length) {
-                alert("未找到对应代码!");
-                return;
-            }
-
+        } else if (typeof this.codes[0] === "object" && typeof this.codes[1] === "object") {
             this.lines.forEach(line => {
                 for (let i = 0; i < this.lines.length; ++i) {
                     line.coeffs[i] = parseFloat(line.coeffs[i]);
@@ -545,10 +544,9 @@ export class AppComponent implements OnInit, OnDestroy {
                 }
             });
 
-            this.kwlist = [parseInt(res[this.codes[0]].ukey), parseInt(res[this.codes[1]].ukey)];
-            this.spreadviewer = new USpreadViewer(this.codes, this.kwlist, this.lines, this.durations);
+            this.kwlist = [this.codes[0].ukey, this.codes[1].ukey];
+            this.spreadviewer = new USpreadViewer([this.codes[0].symbolCode, this.codes[1].symbolCode], this.kwlist, this.lines, this.durations);
             this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
-            res = null;
         }
     }
 
