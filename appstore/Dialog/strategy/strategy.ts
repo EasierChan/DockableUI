@@ -125,7 +125,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if(this.isCreate && this.forbidNames && this.forbidNames.indexOf(this.chName) >= 0) {
+        if (this.isCreate && this.forbidNames && this.forbidNames.indexOf(this.chName) >= 0) {
             alert("策略名称已存在！");
             return;
         }
