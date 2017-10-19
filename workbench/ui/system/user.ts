@@ -20,10 +20,13 @@ export class UserComponent implements OnInit {
     tradeHeart: any;
     // model
     maid: string;
-    userid: string;
+    operNum: number;
     password: string;
     productAppID: number;
     scmsAppID: number;
+    isTcpConnect: boolean;
+
+    private _userid: string;
 
     constructor(private tradeSrv: TradeService,
         private quoteSrv: QuoteService,
@@ -42,11 +45,22 @@ export class UserComponent implements OnInit {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
         this.scmsAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.scms;
         this.userid = this.appSrv.getUserProfile().username;
+        this.isTcpConnect = false;
         this.registerListeners();
     }
 
     get setting() {
         return this.appSrv.getSetting();
+    }
+
+    get userid(): string {
+        if (this._userid === undefined)
+            this._userid = [this.maid, this.operNum].join(".");
+        return this._userid;
+    }
+
+    set userid(value: string) {
+        this._userid = value;
     }
 
     registerListeners() {
@@ -129,9 +143,10 @@ export class UserComponent implements OnInit {
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        let loginObj: any = { maid: this.maid, cellid: this.maid, userid: this.userid, password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
+        let loginObj: any;
 
         this.tradeSrv.onClose = () => {
+            this.isTcpConnect = false;
             if (this.appSrv.isLoginTrade()) {
                 MessageBox.show("warning", "Server Error", "TGW Connection Close!");
                 this.appSrv.setLoginTrade(false);
@@ -139,9 +154,17 @@ export class UserComponent implements OnInit {
         };
 
         this.tradeSrv.onConnect = () => {
+            this.isTcpConnect = true;
+            loginObj = { maid: this.maid, cellid: this.maid, userid: this.userid, password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
             this.tradeSrv.send(17, 41, loginObj); // login
             this.appSrv.setUserProfile({ username: this.userid, password: loginObj.password, roles: [], apps: [] });
         };
+
+        if (this.isTcpConnect) {
+            loginObj = { maid: this.maid, cellid: this.maid, userid: this.userid, password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
+            this.tradeSrv.send(17, 41, loginObj); // login
+            this.appSrv.setUserProfile({ username: this.userid, password: loginObj.password, roles: [], apps: [] });
+        }
 
         AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
 
