@@ -2196,7 +2196,10 @@ export class StatusBarItem {
     text: string = "";
     section: "left" | "right" = "right";
     click: Function = () => { };
+    blur: Function = () => { };
+    hover: Function = () => { };
     color: string;
+    bgColor: string;
     data: any;
     width: number;
 

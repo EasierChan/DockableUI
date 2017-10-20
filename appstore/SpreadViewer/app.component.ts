@@ -8,7 +8,7 @@
 import { Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef, HostListener } from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
-    VBox, HBox, TextBox, Button, DockContainer, ChartViewer
+    VBox, HBox, TextBox, Button, DockContainer, ChartViewer, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
 import { AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox, File } from "../../base/api/services/backend.service";
@@ -47,6 +47,8 @@ export class AppComponent implements OnInit, OnDestroy {
     durations: number[][];
     kwlist: number[];
     toggleText: string;
+    bTip: boolean;
+    private statusbar: StatusBar;
 
     @ViewChild("chart") chart: ElementRef;
 
@@ -126,6 +128,17 @@ export class AppComponent implements OnInit, OnDestroy {
         this.groupUKeys = [];
         this.kwlist = [];
         this.showSetting = true;
+        this.bTip = false;
+        this.statusbar = new StatusBar();
+        let info = new StatusBarItem("INFO");
+        info.section = "right";
+        info.click = () => {
+            this.bTip = true;
+        };
+        info.blur = () => {
+            this.bTip = false;
+        };
+        this.statusbar.items.push(info);
         this.loginTGW(null);
         this.registerListeners();
     }
@@ -612,7 +625,7 @@ export class USpreadViewer {
                 left: "10%",
                 right: "8%",
                 top: "55%",
-                height: "40%"
+                bottom: "30"
             }],
             xAxis: [{
                 data: [],
