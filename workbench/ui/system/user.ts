@@ -35,7 +35,6 @@ export class UserComponent implements OnInit {
         private configBll: ConfigurationBLL) {
         this.name = "个人中心";
         this.maid = "";
-        this.userid = "";
         this.password = "";
         this.quoteHeart = null;
         this.tradeHeart = null;
@@ -44,7 +43,7 @@ export class UserComponent implements OnInit {
     ngOnInit() {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
         this.scmsAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.scms;
-        this.userid = this.appSrv.getUserProfile().username;
+        this._userid = this.appSrv.getUserProfile().username;
         this.isTcpConnect = false;
         this.registerListeners();
     }
@@ -53,12 +52,12 @@ export class UserComponent implements OnInit {
         return this.appSrv.getSetting();
     }
 
-    get userid(): string {
+    getUserid(): string {
         this._userid = [this.maid, this.operNum].join(".");
         return this._userid;
     }
 
-    set userid(value: string) {
+    setUserid(value: string) {
         this._userid = value;
     }
 
@@ -135,6 +134,11 @@ export class UserComponent implements OnInit {
             return;
         }
 
+        if (!/^\d+$/.test(this.operNum) || !/^\d+$/.test(this.maid)) {
+            alert("操作员和资产单元都只能是数字");
+            return;
+        }
+
         if (this.password.length < 6) {
             alert("密码长度不对");
             return;
@@ -159,16 +163,16 @@ export class UserComponent implements OnInit {
 
         this.tradeSrv.onConnect = () => {
             this.isTcpConnect = true;
-            loginObj = { maid: this.maid, cellid: this.maid, userid: this.userid, password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
+            loginObj = { maid: this.maid, cellid: this.maid, userid: this.getUserid(), password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
             this.tradeSrv.send(17, 41, loginObj); // login
-            this.appSrv.setUserProfile({ username: this.userid, password: loginObj.password, roles: [], apps: [] });
+            this.appSrv.setUserProfile({ username: this.getUserid(), password: loginObj.password, roles: [], apps: [] });
             AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
         };
 
         if (this.isTcpConnect) {
-            loginObj = { maid: this.maid, cellid: this.maid, userid: this.userid, password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
+            loginObj = { maid: this.maid, cellid: this.maid, userid: this.getUserid(), password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
             this.tradeSrv.send(17, 41, loginObj); // login
-            this.appSrv.setUserProfile({ username: this.userid, password: loginObj.password, roles: [], apps: [] });
+            this.appSrv.setUserProfile({ username: this.getUserid(), password: loginObj.password, roles: [], apps: [] });
             AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
         }
 
