@@ -54,8 +54,7 @@ export class UserComponent implements OnInit {
     }
 
     get userid(): string {
-        if (this._userid === undefined)
-            this._userid = [this.maid, this.operNum].join(".");
+        this._userid = [this.maid, this.operNum].join(".");
         return this._userid;
     }
 
