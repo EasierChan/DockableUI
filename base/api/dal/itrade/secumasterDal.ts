@@ -9,7 +9,6 @@ import * as fs from "fs";
 import * as path from "path";
 
 class SecuMaster {
-    private static secuCodeObj = new Object();
     private static secuUkeyObj = new Object();
     private static innerCodeObj = new Object();
     private static pinyinObj = new Object();
@@ -51,64 +50,6 @@ class SecuMaster {
         } catch (e) {
             console.info(e);
         }
-
-        let portStr = path.join(path.dirname(process.execPath), "port.csv");
-        if (!fs.existsSync(portStr)) {
-            portStr = path.join(__dirname, "../../../../port.csv");
-        }
-
-        try {
-            let portContent = fs.readFileSync(path.join(portStr), { encoding: "utf-8" });
-            portContent.split("\n").forEach(function (linestr) {
-                let arr = linestr.split(",");
-                let arrLen = arr.length;
-                if (arrLen === 4) {
-                    SecuMaster.secuCodeObj[arr[2]] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: parseInt(arr[0]) };
-                } else if (arrLen === 5) {
-                    SecuMaster.secuCodeObj[arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: parseInt(arr[0]) };
-                }
-            });
-
-            portContent = null;
-        } catch (e) {
-            console.info(e);
-        }
-    }
-
-    static getSecuinfoByCode(code: string[]) {
-        let rtnObj = new Object();
-        let codeLen = code.length;
-        for (let i = 0; i < codeLen; ++i) {
-            let codestr = code[i];
-            let codeLen = codestr.length;
-            let UpcodeStr = "";
-            for (let j = 0; j < codeLen; ++j) {
-                let bCheck = (/^[A-Z]+$/).test(codestr.charAt(j));
-                if (!bCheck) {
-                    UpcodeStr += codestr.charAt(j).toLocaleUpperCase();
-                }
-                else {
-                    UpcodeStr += codestr.charAt(j);
-                }
-            }
-            for (let o in SecuMaster.secuCodeObj) {
-                let oLen = o.length;
-                let upoStr: string = "";
-                for (let j = 0; j < oLen; ++j) {
-                    let bCheck = (/^[A-Z]+$/).test(o.charAt(j));
-                    if (!bCheck) {
-                        upoStr += o.charAt(j).toLocaleUpperCase();
-                    }
-                    else {
-                        upoStr += o.charAt(j);
-                    }
-                }
-                if (upoStr === UpcodeStr) {
-                    rtnObj[code[i]] = SecuMaster.secuCodeObj[o];
-                }
-            }
-        }
-        return rtnObj;
     }
 
     static getSecuinfoByInnerCode(innercodes: number[]) {
@@ -187,11 +128,8 @@ class SecuMaster {
 SecuMaster.init();
 
 IPCManager.register("dal://itrade/secumaster/getsecuinfo", (e, param) => {
-    // TODO i.e. SecuMaster.getSecuinfoByCode
+    // TODO i.e. 
     switch (param.type) {
-        case 1: // code
-            e.returnValue = SecuMaster.getSecuinfoByCode(param.data);
-            break;
         case 2: // ukey
             e.returnValue = SecuMaster.getSecuinfoByInnerCode(param.data);
             break;

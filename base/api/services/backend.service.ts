@@ -197,10 +197,6 @@ export class MenuItem {
 
 @Injectable()
 export class SecuMasterService {
-    // TODO
-    getSecuinfoByCode(...code: string[]) {
-        return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 1, data: code });
-    }
 
     getSecuinfoByInnerCode(...innercodes: number[]) {
         return electron.ipcRenderer.sendSync("dal://itrade/secumaster/getsecuinfo", { type: 2, data: innercodes });
