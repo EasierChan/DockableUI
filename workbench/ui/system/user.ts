@@ -20,7 +20,7 @@ export class UserComponent implements OnInit {
     tradeHeart: any;
     // model
     maid: string;
-    operNum: number;
+    operNum: string;
     password: string;
     productAppID: number;
     scmsAppID: number;
@@ -54,8 +54,7 @@ export class UserComponent implements OnInit {
     }
 
     get userid(): string {
-        if (this._userid === undefined)
-            this._userid = [this.maid, this.operNum].join(".");
+        this._userid = [this.maid, this.operNum].join(".");
         return this._userid;
     }
 
@@ -133,6 +132,11 @@ export class UserComponent implements OnInit {
     login() {
         if (this.appSrv.isLoginTrade()) {
             this.appSrv.setLoginTrade(true);
+            return;
+        }
+
+        if (this.password.length < 6) {
+            alert("密码长度不对");
             return;
         }
 
