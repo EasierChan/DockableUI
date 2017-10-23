@@ -5,7 +5,10 @@
  */
 "use strict";
 
-import { Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef, HostListener } from "@angular/core";
+import {
+    Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef, HostListener,
+    EventEmitter
+} from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer, StatusBar, StatusBarItem
@@ -48,6 +51,7 @@ export class AppComponent implements OnInit, OnDestroy {
     kwlist: number[];
     toggleText: string;
     bTip: boolean;
+    tips: string[];
     private statusbar: StatusBar;
 
     @ViewChild("chart") chart: ElementRef;
@@ -129,10 +133,11 @@ export class AppComponent implements OnInit, OnDestroy {
         this.kwlist = [];
         this.showSetting = true;
         this.bTip = false;
+        this.tips = [];
         this.statusbar = new StatusBar();
         let info = new StatusBarItem("INFO");
         info.section = "right";
-        info.click = () => {
+        info.hover = () => {
             this.bTip = true;
         };
         info.blur = () => {
@@ -164,6 +169,7 @@ export class AppComponent implements OnInit, OnDestroy {
             callback: (msg) => {
                 if (!this.kwlist.includes(msg.content.ukey)) {
                     console.error(`unexpected marketdata ukey=${msg.content.ukey}, support ${this.kwlist}`);
+                    this.addTips(`unexpected marketdata ukey=${msg.content.ukey}, support ${this.kwlist}`);
                     return;
                 }
 
@@ -184,6 +190,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
     secondLegLick(item) {
         this.codes[1] = item;
+    }
+
+    addTips(str: string) {
+        if (this.tips.length > 1)
+            this.tips.shift();
+
+        this.tips.push(str);
     }
 
     calcSpread() {
@@ -310,6 +323,11 @@ export class AppComponent implements OnInit, OnDestroy {
             this.spreadviewer = new USpreadViewer([this.codes[0].symbolCode, this.codes[1].symbolCode], this.kwlist, this.lines, this.durations);
             this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
         }
+
+        this.spreadviewer.emmiter.subscribe((param) => {
+            if (param.type.startsWith("debug"))
+                this.addTips(param.value);
+        });
     }
 
     save() {
@@ -397,6 +415,7 @@ export class USpreadViewer {
     dataPoint: AxisPoint;
     maxPoint: AxisPoint;
     minPoint: AxisPoint;
+    emmiter: EventEmitter<any>;
 
     static readonly YUAN_PER_UNIT = 10000;
 
@@ -425,6 +444,7 @@ export class USpreadViewer {
         this.dataPoint = new AxisPoint();
         this.maxPoint = new AxisPoint();
         this.minPoint = new AxisPoint();
+        this.emmiter = new EventEmitter<any>();
     }
 
     onChartInit(chart: echarts.ECharts, type: number) {
@@ -452,6 +472,7 @@ export class USpreadViewer {
                 if (this.clockPoint.time > Math.min(this.lastPoint[this.ukeys[0]].time, this.lastPoint[this.ukeys[1]].time))
                     break;
 
+                this.emmiter.emit({ type: "debug", value: `drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}` });
                 console.debug(`drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}`);
                 try {
                     this.dataOption.series[0].data[this.clockPoint.index] =

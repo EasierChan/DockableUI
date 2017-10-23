@@ -65,5 +65,5 @@
 <div *ngIf="statusbar" class="statusbar" [statusbar]="statusbar">
 </div>
 <div *ngIf="bTip" class="u-tooltip">
-    <span>Hello World</span>
+    <p *ngFor="let tip of tips">{{tip}}</p>
 </div>

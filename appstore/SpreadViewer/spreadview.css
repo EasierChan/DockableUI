@@ -98,6 +98,7 @@ select {
     z-index: 999;
     width: auto;
     height: auto;
-    background-color: transparent;
+    background-color: #424B62;
     border: 1px solid white;
+    padding: 5px 10px;
 }
