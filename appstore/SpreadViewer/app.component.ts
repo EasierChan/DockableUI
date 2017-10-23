@@ -324,7 +324,7 @@ export class AppComponent implements OnInit, OnDestroy {
             this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
         }
 
-        this.spreadviewer.emmiter.subscribe((param) => {
+        this.spreadviewer.emitter.subscribe((param) => {
             if (param.type.startsWith("debug"))
                 this.addTips(param.value);
         });
@@ -415,7 +415,7 @@ export class USpreadViewer {
     dataPoint: AxisPoint;
     maxPoint: AxisPoint;
     minPoint: AxisPoint;
-    emmiter: EventEmitter<any>;
+    emitter: EventEmitter<any>;
 
     static readonly YUAN_PER_UNIT = 10000;
 
@@ -444,7 +444,7 @@ export class USpreadViewer {
         this.dataPoint = new AxisPoint();
         this.maxPoint = new AxisPoint();
         this.minPoint = new AxisPoint();
-        this.emmiter = new EventEmitter<any>();
+        this.emitter = new EventEmitter<any>();
     }
 
     onChartInit(chart: echarts.ECharts, type: number) {
@@ -472,7 +472,7 @@ export class USpreadViewer {
                 if (this.clockPoint.time > Math.min(this.lastPoint[this.ukeys[0]].time, this.lastPoint[this.ukeys[1]].time))
                     break;
 
-                this.emmiter.emit({ type: "debug", value: `drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}` });
+                this.emitter.emit({ type: "debug", value: `drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}` });
                 console.debug(`drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}`);
                 try {
                     this.dataOption.series[0].data[this.clockPoint.index] =
