@@ -51,8 +51,10 @@
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-height: 30px;
 }
 
 .area-tiles > .tile > .title > span {
     white-space: normal;
+    word-wrap: break-word;
 }
