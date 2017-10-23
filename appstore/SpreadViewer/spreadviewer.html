@@ -62,3 +62,8 @@
         class="chart" #chart></div>
     <!--<div echarts [options]="timeLineChart.instance" (chartInit)="onChartInit($event, 1)" class="chart"></div>-->
 </div>
+<div *ngIf="statusbar" class="statusbar" [statusbar]="statusbar">
+</div>
+<div *ngIf="bTip" class="u-tooltip">
+    <p *ngFor="let tip of tips">{{tip}}</p>
+</div>

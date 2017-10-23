@@ -5,10 +5,13 @@
  */
 "use strict";
 
-import { Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef, HostListener } from "@angular/core";
+import {
+    Component, OnInit, ChangeDetectorRef, OnDestroy, ViewChild, ElementRef, HostListener,
+    EventEmitter
+} from "@angular/core";
 import {
     Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
-    VBox, HBox, TextBox, Button, DockContainer, ChartViewer
+    VBox, HBox, TextBox, Button, DockContainer, ChartViewer, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
 import { AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox, File } from "../../base/api/services/backend.service";
@@ -48,6 +51,9 @@ export class AppComponent implements OnInit, OnDestroy {
     durations: number[][];
     kwlist: number[];
     toggleText: string;
+    bTip: boolean;
+    tips: string[];
+    private statusbar: StatusBar;
 
     @ViewChild("chart") chart: ElementRef;
 
@@ -127,6 +133,18 @@ export class AppComponent implements OnInit, OnDestroy {
         this.groupUKeys = [];
         this.kwlist = [];
         this.showSetting = true;
+        this.bTip = false;
+        this.tips = [];
+        this.statusbar = new StatusBar();
+        let info = new StatusBarItem("INFO");
+        info.section = "right";
+        info.hover = () => {
+            this.bTip = true;
+        };
+        info.blur = () => {
+            this.bTip = false;
+        };
+        this.statusbar.items.push(info);
         this.loginTGW(null);
         this.registerListeners();
     }
@@ -152,6 +170,7 @@ export class AppComponent implements OnInit, OnDestroy {
             callback: (msg) => {
                 if (!this.kwlist.includes(msg.content.ukey)) {
                     console.error(`unexpected marketdata ukey=${msg.content.ukey}, support ${this.kwlist}`);
+                    this.addTips(`unexpected marketdata ukey=${msg.content.ukey}, support ${this.kwlist}`);
                     return;
                 }
 
@@ -174,6 +193,13 @@ export class AppComponent implements OnInit, OnDestroy {
         this.codes[1] = item;
     }
 
+    addTips(str: string) {
+        if (this.tips.length > 1)
+            this.tips.shift();
+
+        this.tips.push(str);
+    }
+
     calcSpread() {
         if (this.interval) {
             clearInterval(this.interval);
@@ -193,16 +219,16 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if ((typeof this.codes[0] === "string" && this.codes[0].endsWith(".csv"))
-            || (typeof this.codes[1] === "string" && this.codes[1].endsWith(".csv"))) {
-            let nickCodes = [this.codes[0], this.codes[1]];
+        if (this.codes[0].symbolCode.endsWith(".csv")
+            || this.codes[1].symbolCode.endsWith(".csv")) {
+            let nickCodes = [this.codes[0].symbolCode, this.codes[1].symbolCode];
             let ukeys = [0, 0];
 
             let group1 = {};
             let ok1 = true;
-            if (typeof this.codes[0] === "string" && this.codes[0].endsWith(".csv")) {
+            if (this.codes[0].symbolCode.endsWith(".csv")) {
                 ok1 = false;
-                File.readLineByLine(this.codes[0], (linestr: string) => {
+                File.readLineByLine(this.codes[0].symbolCode, (linestr: string) => {
                     linestr.trim();
                     let fields = linestr.split(",");
                     if (fields.length < 3) {
@@ -226,9 +252,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
             let group2 = {};
             let ok2 = true;
-            if (typeof this.codes[1] === "string" && this.codes[1].endsWith(".csv")) {
+            if (this.codes[1].symbolCode.endsWith(".csv")) {
                 ok2 = false;
-                File.readLineByLine(this.codes[1], (linestr: string) => {
+                File.readLineByLine(this.codes[1].symbolCode, (linestr: string) => {
                     linestr.trim();
                     let fields = linestr.split(",");
 
@@ -252,11 +278,11 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.interval = null;
 
                     let groups = [];
-                    if (nickCodes[0] !== this.codes[0]) {
+                    if (nickCodes[0] !== this.codes[0].symbolCode) {
                         groups.push({ ukey: 1, items: group1 });
                     }
 
-                    if (nickCodes[1] !== this.codes[1]) {
+                    if (nickCodes[1] !== this.codes[1].symbolCode) {
                         groups.push({ ukey: 2, items: group2 });
                     }
 
@@ -285,7 +311,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     groups = null;
                 }
             }, 100);
-        } else if (typeof this.codes[0] === "object" && typeof this.codes[1] === "object") {
+        } else {
             this.lines.forEach(line => {
                 for (let i = 0; i < this.lines.length; ++i) {
                     line.coeffs[i] = parseFloat(line.coeffs[i]);
@@ -298,6 +324,11 @@ export class AppComponent implements OnInit, OnDestroy {
             this.spreadviewer = new USpreadViewer([this.codes[0].symbolCode, this.codes[1].symbolCode], this.kwlist, this.lines, this.durations);
             this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
         }
+
+        this.spreadviewer.emitter.subscribe((param) => {
+            if (param.type.startsWith("debug"))
+                this.addTips(param.value);
+        });
     }
 
     save() {
@@ -310,7 +341,7 @@ export class AppComponent implements OnInit, OnDestroy {
     openFile(idx: number) {
         MessageBox.openFileDialog("选择文件", (filenames: string[]) => {
             if (filenames && filenames.length > 0) {
-                this.codes[idx] = filenames[0];
+                this.codes[idx] = { symbolCode: filenames[0] };
             } else {
                 console.info(`filename = ${filenames}`);
             }
@@ -385,6 +416,7 @@ export class USpreadViewer {
     dataPoint: AxisPoint;
     maxPoint: AxisPoint;
     minPoint: AxisPoint;
+    emitter: EventEmitter<any>;
 
     static readonly YUAN_PER_UNIT = 10000;
 
@@ -413,6 +445,7 @@ export class USpreadViewer {
         this.dataPoint = new AxisPoint();
         this.maxPoint = new AxisPoint();
         this.minPoint = new AxisPoint();
+        this.emitter = new EventEmitter<any>();
     }
 
     onChartInit(chart: echarts.ECharts, type: number) {
@@ -440,6 +473,7 @@ export class USpreadViewer {
                 if (this.clockPoint.time > Math.min(this.lastPoint[this.ukeys[0]].time, this.lastPoint[this.ukeys[1]].time))
                     break;
 
+                this.emitter.emit({ type: "debug", value: `drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}` });
                 console.debug(`drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}`);
                 try {
                     this.dataOption.series[0].data[this.clockPoint.index] =
@@ -613,7 +647,7 @@ export class USpreadViewer {
                 left: "10%",
                 right: "8%",
                 top: "55%",
-                height: "40%"
+                bottom: "30"
             }],
             xAxis: [{
                 data: [],
