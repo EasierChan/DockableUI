@@ -218,16 +218,16 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if ((typeof this.codes[0] === "string" && this.codes[0].endsWith(".csv"))
-            || (typeof this.codes[1] === "string" && this.codes[1].endsWith(".csv"))) {
-            let nickCodes = [this.codes[0], this.codes[1]];
+        if (this.codes[0].symbolCode.endsWith(".csv")
+            || this.codes[1].symbolCode.endsWith(".csv")) {
+            let nickCodes = [this.codes[0].symbolCode, this.codes[1].symbolCode];
             let ukeys = [0, 0];
 
             let group1 = {};
             let ok1 = true;
-            if (typeof this.codes[0] === "string" && this.codes[0].endsWith(".csv")) {
+            if (this.codes[0].symbolCode.endsWith(".csv")) {
                 ok1 = false;
-                File.readLineByLine(this.codes[0], (linestr: string) => {
+                File.readLineByLine(this.codes[0].symbolCode, (linestr: string) => {
                     linestr.trim();
                     let fields = linestr.split(",");
                     if (fields.length < 3) {
@@ -251,9 +251,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
             let group2 = {};
             let ok2 = true;
-            if (typeof this.codes[1] === "string" && this.codes[1].endsWith(".csv")) {
+            if (this.codes[1].symbolCode.endsWith(".csv")) {
                 ok2 = false;
-                File.readLineByLine(this.codes[1], (linestr: string) => {
+                File.readLineByLine(this.codes[1].symbolCode, (linestr: string) => {
                     linestr.trim();
                     let fields = linestr.split(",");
 
@@ -277,11 +277,11 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.interval = null;
 
                     let groups = [];
-                    if (nickCodes[0] !== this.codes[0]) {
+                    if (nickCodes[0] !== this.codes[0].symbolCode) {
                         groups.push({ ukey: 1, items: group1 });
                     }
 
-                    if (nickCodes[1] !== this.codes[1]) {
+                    if (nickCodes[1] !== this.codes[1].symbolCode) {
                         groups.push({ ukey: 2, items: group2 });
                     }
 
@@ -310,7 +310,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     groups = null;
                 }
             }, 100);
-        } else if (typeof this.codes[0] === "object" && typeof this.codes[1] === "object") {
+        } else {
             this.lines.forEach(line => {
                 for (let i = 0; i < this.lines.length; ++i) {
                     line.coeffs[i] = parseFloat(line.coeffs[i]);
@@ -340,7 +340,7 @@ export class AppComponent implements OnInit, OnDestroy {
     openFile(idx: number) {
         MessageBox.openFileDialog("选择文件", (filenames: string[]) => {
             if (filenames && filenames.length > 0) {
-                this.codes[idx] = filenames[0];
+                this.codes[idx] = { symbolCode: filenames[0] };
             } else {
                 console.info(`filename = ${filenames}`);
             }
