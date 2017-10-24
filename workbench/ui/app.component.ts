@@ -231,29 +231,9 @@ export class AppComponent implements OnInit, OnDestroy {
 
     registerListeners() {
         this.tradeEndPoint.addSlot({  // template
-            appid: this.scmsAppID,
-            packid: 194,
+            appid: this.productAppID,
+            packid: 251,
             callback: msg => {
-                // console.info(msg);
-                if (msg.content.head.pkgCnt > 1) {
-                    if (this.isonpacks[msg.content.head.pkgId] === undefined)
-                        this.isonpacks[msg.content.head.pkgId] = "";
-                    if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
-                        let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
-                        templatelist.body.forEach(template => {
-                            this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
-                        });
-
-                        delete this.isonpacks[msg.content.head.pkgId];
-                    } else {
-                        this.isonpacks[msg.content.head.pkgId] = this.isonpacks[msg.content.head.pkgId].concat(msg.content.body);
-                    }
-                } else {
-                    let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
-                    templatelist.body.forEach(template => {
-                        this.configBll.updateTemplate(template.templatename, { id: template.id, body: JSON.parse(template.templatetext) });
-                    });
-                }
             }
         });
 
@@ -293,7 +273,6 @@ export class AppComponent implements OnInit, OnDestroy {
             appid: this.productAppID,
             packid: 251,
             callback: msg => {
-                let data = JSON.parse(msg.content.body);
 
                 if (msg.content.msret.msgcode !== "00") {
                     alert("Get product info Failed! " + data.msret.msg);
@@ -305,6 +284,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     case "getProductAns":
                         let productInfo: Object = {};
 
+                        let data = JSON.parse(msg.content.body);
                         data.body.forEach(item => {
                             productInfo[item.caid] = item;
                         });
@@ -318,10 +298,30 @@ export class AppComponent implements OnInit, OnDestroy {
 
                         products = null;
                         productInfo = null;
+                        data = null;
                         break;
-                }
+                    case "getStrategyServerTemplateAns":
+                        // console.info(msg);
+                        if (msg.content.head.pkgCnt > 1) {
+                            if (this.isonpacks[msg.content.head.pkgId] === undefined)
+                                this.isonpacks[msg.content.head.pkgId] = "";
+                            if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
+                                let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
+                                templatelist.body.forEach(template => {
+                                    this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms).SS });
+                                });
 
-                data = null;
+                                delete this.isonpacks[msg.content.head.pkgId];
+                            } else {
+                                this.isonpacks[msg.content.head.pkgId] = this.isonpacks[msg.content.head.pkgId].concat(msg.content.body);
+                            }
+                        } else {
+                            let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
+                            templatelist.body.forEach(template => {
+                                this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms) });
+                            });
+                        }
+                }
             }
         });
 

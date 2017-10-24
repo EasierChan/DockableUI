@@ -90,7 +90,7 @@ export class UserComponent implements OnInit {
 
                 this.appSrv.setLoginTrade(msg.content.conlvl > 2);
                 // to request template
-                // this.tradeSrv.send(this.scmsAppID, 194, { "head": { "realActor": "getDataTemplate" }, category: 0 });
+                this.tradeSrv.send(this.productAppID, 251, { "head": { "realActor": "getStrategyServerTemplate" }, body: {} });
                 this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getProduct" }, body: {} });
                 console.info(`subscribe=> ${this.configBll.strategyKeys}`);
                 this.tradeSrv.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
