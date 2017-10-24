@@ -469,12 +469,17 @@ export class CodeComponent {
 
     @Input("selectedItem") selectedItem: any;
     @Output() onSelect: EventEmitter<any> = new EventEmitter<any>();
+    @Output() onInput: EventEmitter<any> = new EventEmitter<any>();
 
     constructor(private secuinfo: SecuMasterService) {
     }
 
     @HostListener("keyup", ["$event"])
     onKeyUp(event: KeyboardEvent) {
+        if (this.resList === undefined || this.resList === null) {
+            return;
+        }
+
         if (event.keyCode !== 40 && event.keyCode !== 38 && event.keyCode !== 13)
             return;
 
@@ -491,6 +496,7 @@ export class CodeComponent {
     onSearch(value) {
         this.resList = this.secuinfo.getCodeList(value);
         this.curIdx = 0;
+        this.onInput.emit(value);
     }
 
     autoHide() {

@@ -193,6 +193,10 @@ export class AppComponent implements OnInit, OnDestroy {
         this.codes[1] = item;
     }
 
+    onValueChanged(value, idx: number) {
+        this.codes[idx] = { symbolCode: value };
+    }
+
     addTips(str: string) {
         if (this.tips.length > 1)
             this.tips.shift();
@@ -298,6 +302,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
                     this.spreadviewer = new USpreadViewer(nickCodes, ukeys, this.lines, this.durations);
 
+                    this.spreadviewer.emitter.subscribe((param) => {
+                        if (param.type.startsWith("debug"))
+                            this.addTips(param.value);
+                    });
+
                     this.kwlist = [];
                     this.kwlist = this.kwlist.concat(this.groupUKeys);
                     ukeys.forEach(ukey => {
@@ -323,12 +332,12 @@ export class AppComponent implements OnInit, OnDestroy {
             this.kwlist = [this.codes[0].ukey, this.codes[1].ukey];
             this.spreadviewer = new USpreadViewer([this.codes[0].symbolCode, this.codes[1].symbolCode], this.kwlist, this.lines, this.durations);
             this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
-        }
 
-        this.spreadviewer.emitter.subscribe((param) => {
-            if (param.type.startsWith("debug"))
-                this.addTips(param.value);
-        });
+            this.spreadviewer.emitter.subscribe((param) => {
+                if (param.type.startsWith("debug"))
+                    this.addTips(param.value);
+            });
+        }
     }
 
     save() {

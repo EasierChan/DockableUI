@@ -557,19 +557,21 @@ export class AppComponent implements OnInit {
         let btn_row = new HBox();
         let btn_clear = new Button();
         btn_clear.Left = leftAlign;
-        let clearRtn = this.langServ.getTranslateInfo(this.languageType, "Clear");
-        btn_clear.Text = clearRtn;
+        btn_clear.Text = this.langServ.getTranslateInfo(this.languageType, "Close");
         btn_row.addChild(btn_clear);
         let btn_submit = new Button();
         btn_submit.Left = 50;
-        let SubmitRtn = this.langServ.getTranslateInfo(this.languageType, "Submit");
-        btn_submit.Text = SubmitRtn;
+        btn_submit.Text = this.langServ.getTranslateInfo(this.languageType, "Submit");
         btn_clear.Class = btn_submit.Class = "primary";
         btn_row.top = 10;
         btn_row.left = 50;
         btn_row.addChild(btn_submit);
         this.tradeContent.addChild(btn_row);
         this.tradePage.setContent(this.tradeContent);
+
+        btn_clear.OnClick = () => {
+            this.dialog.hide();
+        };
 
         btn_submit.OnClick = () => {
             let account = this.dd_Account.SelectedItem.Text;
