@@ -3,7 +3,7 @@
         <div class="u-col item">
             <div class="u-row">
                 <!--<input type="text" class="btn-default code" [(ngModel)]="codes[0]" tabindex="1">-->
-                <u-codes class="u-input-group" (onSelect)="firstLegClick($event)" [selectedItem]="codes[0]" tabindex="1"></u-codes>
+                <u-codes class="u-input-group" (onSelect)="firstLegClick($event)" (onInput)="onValueChanged($event, 0)" [selectedItem]="codes[0]" tabindex="1"></u-codes>
                 <button type="button" class="btn-primary u-file" (click)="openFile(0)">...</button>
             </div>
             <div *ngFor="let line of lines" class="u-row">
@@ -20,7 +20,7 @@
         <button type="button" class="btn-primary operator">&minus;</button>
         <div class="u-col item">
             <div class="u-row">
-                <u-codes class="u-input-group" (onSelect)="secondLegLick($event)" [selectedItem]="codes[1]" tabindex="2"></u-codes>
+                <u-codes class="u-input-group" (onSelect)="secondLegLick($event)" (onInput)="onValueChanged($event, 1)" [selectedItem]="codes[1]" tabindex="2"></u-codes>
                 <button type="button" class="btn-primary u-file" (click)="openFile(1)">...</button>
             </div>
             <div *ngFor="let line of lines" class="u-row">
