@@ -557,7 +557,7 @@ export class AppComponent implements OnInit {
         let btn_row = new HBox();
         let btn_clear = new Button();
         btn_clear.Left = leftAlign;
-        let clearRtn = this.langServ.getTranslateInfo(this.languageType, "Clear");
+        let clearRtn = this.langServ.getTranslateInfo(this.languageType, "Close");
         btn_clear.Text = clearRtn;
         btn_row.addChild(btn_clear);
         let btn_submit = new Button();
@@ -570,6 +570,10 @@ export class AppComponent implements OnInit {
         btn_row.addChild(btn_submit);
         this.tradeContent.addChild(btn_row);
         this.tradePage.setContent(this.tradeContent);
+
+        btn_clear.OnClick = () => {
+            this.dialog.hide();
+        };
 
         btn_submit.OnClick = () => {
             let account = this.dd_Account.SelectedItem.Text;
