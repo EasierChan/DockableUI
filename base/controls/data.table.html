@@ -20,8 +20,8 @@
               [name]="cell.dataSource.name">
             {{cell.dataSource.text}}
           </button>
-            <input *ngIf="cell.styleObj.type=='textbox'" type="text" [(ngModel)]="cell.dataSource.text" [readonly]="cell.styleObj.readonly"
-              [name]="cell.dataSource.name" class="btn-default btn-{{cell.className}} btn-xs" ondragstart="return false;">
+            <input *ngIf="cell.styleObj.type=='textbox'" type="text" (change)="cell.dataSource.change(cell)" [(ngModel)]="cell.dataSource.text" [readonly]="cell.styleObj.readonly"
+              [name]="cell.dataSource.name" class="btn-{{cell.className}} btn-xs" ondragstart="return false;">
             <span *ngIf="cell.styleObj.type=='plaintext'">{{cell.dataSource.text}}</span>
             <label *ngIf="cell.styleObj.type=='checkbox'" [style.margin-left.px]="cell.styleObj.left" [style.margin-top.px]="cell.styleObj.top">
                 <input [name]="cell.dataSource.name" type="checkbox" [(ngModel)]="cell.dataSource.text"

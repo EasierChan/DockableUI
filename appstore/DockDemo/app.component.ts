@@ -2009,6 +2009,9 @@ export class AppComponent implements OnInit {
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "warning" : "default";
+                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function(cell) {
+                        cell.Class = "warning";
+                    };
                     this.strategyTable.columns[offset + idx].key = item.key;
                     this.strategyTable.columns[offset + idx].hidden = this.option.config["strategy_table"].columnHideIDs.includes(item.key);
                     // append to config Table
@@ -2114,6 +2117,7 @@ export class AppComponent implements OnInit {
                 cell = this.strategyTable.rows[rowIdx].cells[idx + paramIdx];
                 dvalue = Math.round(cell.Text * Math.pow(10, item.decimal));
                 if (item.value !== dvalue) {
+                    cell.Class = "default";
                     item.value = dvalue;
                     AppComponent.bgWorker.send({ command: "ss-send", params: { type: "strategy-param", data: [item] } });
                 }
@@ -2493,7 +2497,6 @@ export class AppComponent implements OnInit {
                         case 2049:
                         case 2030:
                         case 2029:
-                        case 2032:
                             this.showStrategyCfg(data.content.data);
                             break;
                         case 2032:

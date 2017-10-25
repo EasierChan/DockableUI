@@ -916,7 +916,7 @@ export class MetaControl extends Control {
         this.dataSource = new Object();
         this.dataSource.click = () => { };
         this.dataSource.input = null;
-        this.dataSource.change = null;
+        this.dataSource.change = () => { };
         this.styleObj.left = 2;
         this.styleObj.top = 0;
     }

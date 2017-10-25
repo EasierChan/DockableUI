@@ -438,6 +438,8 @@ Date.prototype.format = function (format: string): string {
                 return this.getMinutes().toString().lpad(2, 0);
             case "ss":
                 return this.getSeconds().toString().lpad(2, 0);
+            case "SS":
+                return this.getMilliseconds().toString().lpad(2, 0);
             case "SSS":
                 return this.getMilliseconds().toString().lpad(3, 0);
         }

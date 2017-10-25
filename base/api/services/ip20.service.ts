@@ -200,9 +200,7 @@ class ISONPackClient extends TcpClient {
             clearInterval(this._intervalHeart);
             this._intervalHeart = null;
         }
-        this._parsers.forEach(parser => {
-            parser.dispose();
-        });
+
         super.dispose();
     }
 }
@@ -267,6 +265,8 @@ export class IP20Service {
             clearTimeout(this._timer);
             this._timer = null;
         }
+
+        this._client.dispose();
         this._client.connect(port, host);
     }
 
