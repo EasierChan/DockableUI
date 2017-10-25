@@ -169,13 +169,6 @@ export class UserComponent implements OnInit {
             AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
         };
 
-        if (this.isTcpConnect) {
-            loginObj = { maid: this.maid, cellid: this.maid, userid: this.getUserid(), password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
-            this.tradeSrv.send(17, 41, loginObj); // login
-            this.appSrv.setUserProfile({ username: this.getUserid(), password: loginObj.password, roles: [], apps: [] });
-            AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
-        }
-
         let quoteObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
         let [qhost, qport] = curEndpoint.quote_addr.split(":");
         this.quoteSrv.connect(parseInt(qport), qhost);
