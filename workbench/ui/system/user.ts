@@ -146,7 +146,7 @@ export class UserComponent implements OnInit {
 
         let curEndpoint = this.setting.endpoints[0];
         let [host, port] = curEndpoint.trade_addr.split(":");
-        this.tradeSrv.connect(port, host);
+        this.tradeSrv.connect(parseInt(port), host);
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
@@ -178,7 +178,7 @@ export class UserComponent implements OnInit {
 
         let quoteObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
         let [qhost, qport] = curEndpoint.quote_addr.split(":");
-        this.quoteSrv.connect(qport, qhost);
+        this.quoteSrv.connect(parseInt(qport), qhost);
         this.quoteSrv.send(17, 41, quoteObj);
     }
 }
