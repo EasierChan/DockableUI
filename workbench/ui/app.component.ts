@@ -230,13 +230,6 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     registerListeners() {
-        this.tradeEndPoint.addSlot({  // template
-            appid: this.productAppID,
-            packid: 251,
-            callback: msg => {
-            }
-        });
-
         this.tradeEndPoint.addSlot({
             appid: this.ssgwAppID,
             packid: 2001, // 创建策略回报
@@ -275,7 +268,7 @@ export class AppComponent implements OnInit, OnDestroy {
             callback: msg => {
 
                 if (msg.content.msret.msgcode !== "00") {
-                    alert("Get product info Failed! " + data.msret.msg);
+                    alert("Get product info Failed! " + msg.content.msret.msg);
                     return;
                 }
 
@@ -308,7 +301,7 @@ export class AppComponent implements OnInit, OnDestroy {
                             if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
                                 let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
                                 templatelist.body.forEach(template => {
-                                    this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms).SS });
+                                    this.configBll.updateTemplate(template.temp_name, JSON.parse(template.parms).SS);
                                 });
 
                                 delete this.isonpacks[msg.content.head.pkgId];
