@@ -2537,11 +2537,6 @@ export class AppComponent implements OnInit {
                         case 2033:
                             this.showStrategyInfo(data.content.data);
                             break;
-                        case 2000:
-                        case 2002:
-                        case 2004:
-                        case 2049:
-                        case 2030:
                         case 2029:
                             this.showStrategyCfg(data.content.data);
                             break;
