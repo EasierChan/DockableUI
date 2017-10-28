@@ -39,7 +39,7 @@ export class BacktestComponent implements OnInit {
             packid: 8012,
             callback: msg => {
                 console.info(msg);
-                let config;
+                let config: WorkspaceConfig;
                 if (this.configBll.tempConfig && this.configBll.tempConfig.name === this.requestMap[msg.content.reqsn]) {
                     config = this.configBll.tempConfig;
                 } else {
@@ -49,9 +49,29 @@ export class BacktestComponent implements OnInit {
                 if (config) {
                     config.backtestConfig.tradePoint = { host: msg.content.url, port: msg.content.port };
                     config.backtestConfig.quotePoint = { host: msg.content.hqurl, port: msg.content.hqport };
+                    config.backtestConfig.id = msg.content.nId;
+                    config.backtestConfig.name = config.name;
 
                     this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
-                    this.configBll.addLoopbackItems(msg.content);
+                    this.configBll.addLoopbackItems(config.backtestConfig);
+                }
+            }
+        });
+
+        this.tradeEndPoint.addSlot({
+            appid: this.ssgwAppID,
+            packid: 2015,
+            callback: (msg) => {
+                console.info(msg);
+                if (msg.content.body.error_id === 0) {
+                    let config = this.strategyConfigs.find((item) => { return item.name === msg.content.body.name; });
+
+                    if (config) {
+                        this.operateStrategyServer(config, 0);
+                        this.configBll.removeConfig(config);
+                        this.strategyArea.removeTile(config.chname);
+                        this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+                    }
                 }
             }
         });
@@ -86,12 +106,7 @@ export class BacktestComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
-            this.operateStrategyServer(this.selectedStrategyConfig, 0);
-            this.configBll.removeConfig(this.selectedStrategyConfig);
-            this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
-            this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
             this.tradeEndPoint.send(this.ssgwAppID, 2014, { body: { name: this.selectedStrategyConfig.name } });
-            this.selectedStrategyConfig = null;
         });
         // end strategyMenu
 
@@ -187,9 +202,6 @@ export class BacktestComponent implements OnInit {
     }
 
     operateStrategyServer(config: WorkspaceConfig, action: number) {
-        if (config.name !== this.selectedStrategyConfig.name) // create
-            this.configBll.tempConfig = config;
-
         this.tradeEndPoint.send(this.ssgwAppID, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
 

@@ -27,7 +27,8 @@ export class ReportComponent implements OnInit {
     backtestAppID: number;
     selectedItem: any;
 
-    constructor(private mock: TradeService, private configBll: ConfigurationBLL, private appsrv: AppStoreService) {
+    constructor(private mock: TradeService, private configBll: ConfigurationBLL,
+        private appsrv: AppStoreService) {
     }
 
     ngOnInit() {
@@ -42,8 +43,8 @@ export class ReportComponent implements OnInit {
             row.cells[0].Data = item;
             row.cells[0].Text = false;
             row.cells[1].Text = item.name + "-" + item.id;
-            row.cells[2].Text = this.parseDate(item.timebegin + "");
-            row.cells[3].Text = this.parseDate(item.timeend + "");
+            row.cells[2].Text = item.timebegin;
+            row.cells[3].Text = item.timeend;
             row.cells[4].Type = "button";
             row.cells[4].Text = "查看";
             row.cells[4].OnClick = () => {
@@ -56,13 +57,6 @@ export class ReportComponent implements OnInit {
         });
 
         this.registerListener();
-    }
-
-    parseDate(data: string) {
-        let day = data.substr(6, 2);
-        let month = data.substr(4, 2);
-        let year = data.substr(0, 4);
-        return (parseInt(month) + "/" + parseInt(day) + "/" + year);
     }
 
     registerListener() {
@@ -108,6 +102,7 @@ export class ReportComponent implements OnInit {
         });
 
         this.configBll.syncLoopbackItem();
+        this.resTable.detectChanges();
     }
 
     chartInit(chart) {

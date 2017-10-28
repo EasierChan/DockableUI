@@ -27,12 +27,22 @@ import { DataSet } from "./common";
 export class HomeComponent implements OnInit {
     currentMod: string; // input module name
     activeTab: string;
+    disabled_tabs: string[];
 
     constructor() {
     }
 
     ngOnInit() {
+        this.disabled_tabs = ["实盘交易", "风控"];
+    }
 
+    onTabClick(tab: string) {
+        if (this.disabled_tabs.indexOf(tab) >= 0) {
+            alert("当前为开放权限！");
+            return;
+        }
+
+        this.activeTab = tab;
     }
 
     get curModule() {

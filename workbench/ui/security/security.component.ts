@@ -42,7 +42,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.tabs = ["证券信息", "历史行情"];
+        this.tabs = ["证券信息"]; // , "历史行情"
         this.activeTab = this.tabs[0];
 
 

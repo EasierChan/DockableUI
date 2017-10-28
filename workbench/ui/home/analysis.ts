@@ -29,6 +29,7 @@ export class AnalysisComponent implements OnInit {
         this.initializeAnylatics();
 
         this.quoteEndpoint = this.setting.endpoints[0].quote_addr.split(":");
+        this.appsrv.onUpdateApp(this.updateApp, this);
     }
 
     initializeAnylatics() {

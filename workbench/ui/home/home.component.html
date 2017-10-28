@@ -2,7 +2,7 @@
   <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
   <span class="big">chronos</span>
   <ul class="tabs">
-    <li *ngFor="let tab of curModule.tabs" [class.active]="activeTab==tab" (click)="activeTab=tab"><a>{{tab}}</a></li>
+    <li *ngFor="let tab of curModule.tabs" [class.active]="activeTab==tab" (click)="onTabClick(tab)"><a>{{tab}}</a></li>
   </ul>
 </div>
 <div class="content">

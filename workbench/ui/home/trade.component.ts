@@ -41,6 +41,24 @@ export class TradeComponent implements OnInit {
 
     registerListeners() {
         // subscribe strategy status
+
+        this.tradeEndPoint.addSlot({
+            appid: this.ssgwAppID,
+            packid: 2015,
+            callback: (msg) => {
+                console.info(msg);
+                if (msg.content.body.error_id === 0) {
+                    let config = this.strategyConfigs.find((item) => { return item.name === msg.content.body.name; });
+
+                    if (config) {
+                        this.operateStrategyServer(config, 0);
+                        this.configBll.removeConfig(config);
+                        this.strategyArea.removeTile(config.chname);
+                        this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+                    }
+                }
+            }
+        });
     }
 
     initializeProducts() {
@@ -92,12 +110,7 @@ export class TradeComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
-            this.operateStrategyServer(this.selectedStrategyConfig, 0);
-            this.configBll.removeConfig(this.selectedStrategyConfig);
-            this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
-            this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
             this.tradeEndPoint.send(this.ssgwAppID, 2014, { body: { name: this.selectedStrategyConfig.name } });
-            this.selectedStrategyConfig = null;
         });
         // end strategyMenu
 
