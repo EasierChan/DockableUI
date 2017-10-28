@@ -20,6 +20,7 @@ import { UserComponent } from "./system/user";
 import { SupportComponent } from "./system/support";
 import { RiskFactorComponent } from "./home/riskfactor.component";
 import { ReportComponent } from "./home/report.component";
+import { AnalysisComponent } from "./home/analysis";
 import { EchartsDirective } from "./app.controls";
 
 @NgModule({
@@ -52,7 +53,8 @@ import { EchartsDirective } from "./app.controls";
     EchartsDirective,
     ReportComponent,
     CodeComponent,
-    ButtonGroupComponent
+    ButtonGroupComponent,
+    AnalysisComponent
   ],
   bootstrap: [AppComponent]
 })

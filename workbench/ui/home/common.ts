@@ -21,6 +21,12 @@ export class DataSet {
             icon: "road",
             // tabs: ["Profit", "RiskFactors"]
             tabs: ["风险因子收益", "风险因子分析", "Alpha因子"]
+        },
+        {
+            name: "分析",
+            icon: "stats",
+            // tabs: ["Profit", "RiskFactors"]
+            tabs: ["分析"]
         }
     ];
 

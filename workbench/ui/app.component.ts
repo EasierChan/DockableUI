@@ -162,6 +162,16 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
+                case "分析":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
+                    this.curPage = "home";
+                    this.homeMod = item.title;
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
                 case "证券信息":
                     if (!this.appSrv.isLoginTrade()) {
                         this.actionBar.click(this.actionBar.getItem("个人中心"));
@@ -182,7 +192,8 @@ export class AppComponent implements OnInit, OnDestroy {
                         this.actionBar.click(this.actionBar.getItem("个人中心"));
                         break;
                     }
-                    Http.get(this.setting.externalLinks.SuperGraph);
+                    this.curPage = "analysis";
+                    this.actionBar.activeItem = item;
                     break;
                 case "产品监控":
                     if (!this.appSrv.isLoginTrade()) {
