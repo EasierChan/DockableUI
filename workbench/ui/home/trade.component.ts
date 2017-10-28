@@ -14,10 +14,6 @@ import { TradeService } from "../../bll/services";
 })
 export class TradeComponent implements OnInit {
     areas: TileArea[];
-    analyticMenu: Menu;
-    analyticArea: TileArea;
-    analyticConfigs: string[];
-    selectedSpreadItem: any;
 
     productArea: TileArea;
     products: any[];
@@ -29,7 +25,6 @@ export class TradeComponent implements OnInit {
     selectedStrategyConfig: WorkspaceConfig;
 
     setting: any;
-    quoteEndpoint: any;
     ssgwAppID: number;
 
     constructor(private appsrv: AppStoreService, private tradeEndPoint: TradeService, private configBll: ConfigurationBLL, private ref: ChangeDetectorRef) {
@@ -42,9 +37,6 @@ export class TradeComponent implements OnInit {
         this.registerListeners();
         this.initializeProducts();
         this.initializeStrategies();
-        this.initializeAnylatics();
-
-        this.quoteEndpoint = this.setting.endpoints[0].quote_addr.split(":");
     }
 
     registerListeners() {
@@ -172,76 +164,9 @@ export class TradeComponent implements OnInit {
         this.appsrv.onUpdateApp(this.updateApp, this);
     }
 
-    initializeAnylatics() {
-        // analyticMenu
-        this.analyticMenu = new Menu();
-        this.analyticMenu.addItem("删除", () => {
-            if (!confirm("确定删除？"))
-                return;
-
-            this.configBll.removeSVConfigItem(this.selectedSpreadItem.title);
-            this.analyticArea.removeTile(this.selectedSpreadItem.title);
-        });
-        // endMenu
-
-        this.analyticArea = new TileArea();
-        this.analyticArea.title = "分析";
-        this.analyticConfigs = this.configBll.getSVConfigs();
-
-        this.analyticConfigs.forEach(item => {
-            let tile = new Tile();
-            tile.title = item;
-            tile.iconName = "object-align-bottom";
-            this.analyticArea.addTile(tile);
-        });
-
-        this.analyticArea.onCreate = () => {
-            this.appsrv.startApp("Untitled", AppType.kSpreadViewer, {
-                port: parseInt(this.quoteEndpoint[1]),
-                host: this.quoteEndpoint[0],
-                lang: this.setting.language
-            });
-        };
-
-        this.analyticArea.onClick = (event: MouseEvent, item: Tile) => {
-            this.selectedSpreadItem = item;
-
-            if (event.button === 0) {
-                if (!this.appsrv.startApp(item.title, AppType.kSpreadViewer, {
-                    port: parseInt(this.quoteEndpoint[1]),
-                    host: this.quoteEndpoint[0],
-                    lang: this.setting.language
-                })) {
-                    alert("Error `Start ${name} app error!`");
-                }
-
-                return;
-            }
-
-            if (event.button === 2)
-                this.analyticMenu.popup();
-        };
-
-        this.areas.push(this.analyticArea);
-    }
-
     // update app info
     updateApp(params) {
         switch (params.type) {
-            case "rename":
-                let idx = this.analyticConfigs.indexOf(params.oldName);
-
-                if (idx < 0) {
-                    this.analyticConfigs.push(params.newName);
-                    let tile = new Tile();
-                    tile.title = params.newName;
-                    tile.iconName = "object-align-bottom";
-                    this.analyticArea.addTile(tile);
-                } else {
-                    this.analyticConfigs[idx] = params.newName;
-                    this.analyticArea.getTileAt(idx).title = params.newName;
-                }
-                break;
             case "strategy":
                 if (AppStoreService.getLocalStorageItem(DataKey.kStrategyCfg) !== null) {
                     this.updateStrategyConfig(JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyCfg)));
