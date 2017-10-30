@@ -131,6 +131,11 @@ export class AppComponent implements OnInit, OnDestroy {
 
         let disables = ["未来预测", "证券信息"];
         this.actionBar.onClick = (item) => {
+            if (disables.indexOf(item.title) >= 0) {
+                alert("当前未开放权限");
+                return;
+            }
+
             switch (item.title) {
                 case "主页":
                     if (!this.appSrv.isLoginTrade()) {
@@ -153,11 +158,6 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.actionBar.activeItem = item;
                     break;
                 case "未来预测":
-                    if (disables.indexOf(item.title) >= 0){
-                        alert("当前未开放权限");
-                        return;
-                    }
-
                     if (!this.appSrv.isLoginTrade()) {
                         this.actionBar.click(this.actionBar.getItem("个人中心"));
                         break;
