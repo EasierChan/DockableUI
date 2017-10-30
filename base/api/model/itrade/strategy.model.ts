@@ -390,23 +390,23 @@ class MarginPos extends Message {
     }
 
     fromBuffer(buf: Buffer, offset: number): number {
-        this.date = buf.readUInt32LE(offset); offset += 8;
-        this.account = buf.readUIntLE(offset, 8); offset += 8;
+        this.date = buf.readInt32LE(offset); offset += 8;
+        this.account = buf.readIntLE(offset, 8); offset += 8;
         this.c = buf.readInt8(offset); offset += 8;
-        this.TotalAmount = buf.readUIntLE(offset, 8); offset += 8;
-        this.AvlAmount = buf.readUIntLE(offset, 8); offset += 8;
-        this.FrzAmount = buf.readUIntLE(offset, 8); offset += 8;
+        this.TotalAmount = buf.readIntLE(offset, 8); offset += 8;
+        this.AvlAmount = buf.readIntLE(offset, 8); offset += 8;
+        this.FrzAmount = buf.readIntLE(offset, 8); offset += 8;
 
-        this.BuyFrzAmt = buf.readUIntLE(offset, 8); offset += 8;
-        this.SellFrzAmt = buf.readUIntLE(offset, 8); offset += 8;
-        this.BuyMargin = buf.readUIntLE(offset, 8); offset += 8;
-        this.SellFrzAmt = buf.readUIntLE(offset, 8); offset += 8;
-        this.TotalMargin = buf.readUIntLE(offset, 8); offset += 8;
-        this.Fee = buf.readUIntLE(offset, 8); offset += 8;
-        this.PositionPL = buf.readUIntLE(offset, 8); offset += 8;
-        this.ClosePL = buf.readUIntLE(offset, 8); offset += 8;
-        this.PreFee = buf.readUIntLE(offset, 8); offset += 8;
-        this.PreFundVal = buf.readUIntLE(offset, 8); offset += 8;
+        this.BuyFrzAmt = buf.readIntLE(offset, 8); offset += 8;
+        this.SellFrzAmt = buf.readIntLE(offset, 8); offset += 8;
+        this.BuyMargin = buf.readIntLE(offset, 8); offset += 8;
+        this.SellFrzAmt = buf.readIntLE(offset, 8); offset += 8;
+        this.TotalMargin = buf.readIntLE(offset, 8); offset += 8;
+        this.Fee = buf.readIntLE(offset, 8); offset += 8;
+        this.PositionPL = buf.readIntLE(offset, 8); offset += 8;
+        this.ClosePL = buf.readIntLE(offset, 8); offset += 8;
+        this.PreFee = buf.readIntLE(offset, 8); offset += 8;
+        this.PreFundVal = buf.readIntLE(offset, 8); offset += 8;
         return offset;
     }
 };
