@@ -129,7 +129,7 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
-        let disables = ["未来预测"];
+        let disables = ["未来预测", "证券信息"];
         this.actionBar.onClick = (item) => {
             switch (item.title) {
                 case "主页":
