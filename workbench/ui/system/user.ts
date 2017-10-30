@@ -146,20 +146,11 @@ export class UserComponent implements OnInit {
 
         let curEndpoint = this.setting.endpoints[0];
         let [host, port] = curEndpoint.trade_addr.split(":");
-        this.tradeSrv.connect(parseInt(port), host);
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
         let loginObj: any;
-
-        this.tradeSrv.onClose = () => {
-            this.isTcpConnect = false;
-            if (this.appSrv.isLoginTrade()) {
-                MessageBox.show("warning", "Server Error", "TGW Connection Close!");
-                this.appSrv.setLoginTrade(false);
-            }
-        };
 
         this.tradeSrv.onConnect = () => {
             this.isTcpConnect = true;
@@ -167,7 +158,16 @@ export class UserComponent implements OnInit {
             this.tradeSrv.send(17, 41, loginObj); // login
             this.appSrv.setUserProfile({ username: this.getUserid(), password: loginObj.password, roles: [], apps: [] });
             AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
+
+            this.tradeSrv.onClose = () => {
+                this.isTcpConnect = false;
+                if (this.appSrv.isLoginTrade()) {
+                    MessageBox.show("warning", "Server Error", "TGW Connection Close!");
+                    this.appSrv.setLoginTrade(false);
+                }
+            };
         };
+        this.tradeSrv.connect(parseInt(port), host);
 
         let quoteObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
         let [qhost, qport] = curEndpoint.quote_addr.split(":");
