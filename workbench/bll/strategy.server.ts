@@ -360,7 +360,7 @@ export class ConfigurationBLL {
         return this._products || [];
     }
 
-    wait(fail_msg: string, timeout_val: number = 2000) {
+    wait(fail_msg: string, timeout_val: number = 5000) {
         this.timeout = setTimeout(() => {
             alert(fail_msg);
         }, timeout_val);
