@@ -285,13 +285,29 @@ export class ConfigurationBLL {
     updateTemplate(name: string, template: any) {
         if (!this._templates.hasOwnProperty(name)) {
             this._templates[name] = template;
-            this._names.push({ name: name, chname: this._templates[name].chname ? this._templates[name].chname : name });
+            this._names.push({ name: name, chname: this.getTemplateChineseName(name) });
         } else {
             this._templates[name] = template;
         }
 
         File.writeSync(this._templatepath, JSON.stringify(this._templates));
         AppStoreService.setLocalStorageItem(DataKey.kStrategyTemplates, JSON.stringify(this._templates));
+    }
+
+    getTemplateChineseName(name: string): string {
+        let nameMap: Object = {
+            "pairtrader": "统计套利",
+            "simplespreadtrader": "跨期套利",
+            "manualtrader": "手工交易",
+            "portfoliotrader": "篮子交易",
+            "indexspreadtrader": "做市交易",
+            "basketspreadtrader": "期现套利",
+        };
+
+        if (nameMap.hasOwnProperty(name))
+            return nameMap[name];
+
+        return name;
     }
 
     addLoopbackItems(item: any) {
