@@ -38,7 +38,7 @@ export class HomeComponent implements OnInit {
 
     onTabClick(tab: string) {
         if (this.disabled_tabs.indexOf(tab) >= 0) {
-            alert("当前为开放权限！");
+            alert("当前未开放权限！");
             return;
         }
 
