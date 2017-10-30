@@ -53,7 +53,7 @@ export class UConfig {
 		if (!fs.existsSync(UConfig.appdir))
 			fs.mkdirSync(UConfig.appdir);
 
-		UConfig.default = JSON.parse(fs.existsSync(default_cfg_file) ? JSON.parse(fs.readFileSync(default_cfg_file, "utf-8")) : default_cfg_file);
+		UConfig.default = JSON.parse(fs.existsSync(default_cfg_file) ? fs.readFileSync(default_cfg_file, "utf-8") : default_cfg_file);
 		if (!fs.existsSync(path.join(UConfig.appdir, "default-setting.json"))) {
 			fs.writeFileSync(path.join(UConfig.appdir, "default-setting.json"), JSON.stringify(UConfig.default), { encoding: "utf-8" });
 		} else {
