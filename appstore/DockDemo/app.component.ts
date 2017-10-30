@@ -715,8 +715,7 @@ export class AppComponent implements OnInit {
         this.dd_portfolioAccount = new DropDown();
         this.dd_portfolioAccount.Width = 110;
         this.dd_portfolioAccount.Left = statarbLeftAlign;
-        let accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
-        this.dd_portfolioAccount.Title = accountRtn + ": ";
+        this.dd_portfolioAccount.Title = this.langServ.getTranslateInfo(this.languageType, "Account") + ":";
 
 
         this.portfolioLabel = new MetaControl("textbox");
@@ -774,7 +773,7 @@ export class AppComponent implements OnInit {
         this.portfolioBuyCom.Width = 59;
         this.portfolioBuyCom.Left = 30;
 
-        this.portfolioBuyCom.Title = this.langServ.getTranslateInfo(this.languageType, "Buy") + ": ";
+        this.portfolioBuyCom.Title = this.langServ.getTranslateInfo(this.languageType, "Buy") + ":";
         this.portfolioBuyCom.addItem({ Text: "B5", Value: "0" });
         this.portfolioBuyCom.addItem({ Text: "B4", Value: "1" });
         this.portfolioBuyCom.addItem({ Text: "B3", Value: "2" });
@@ -2008,7 +2007,7 @@ export class AppComponent implements OnInit {
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
-                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function(cell) {
+                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function (cell) {
                         cell.Class = "warning";
                     };
                     this.strategyTable.columns[offset + idx].key = item.key;
@@ -2350,7 +2349,7 @@ export class AppComponent implements OnInit {
 
         let row2 = new HBox();
         let lbl_timestamp = new Label();
-        lbl_timestamp.Title = "Timestamp: ";
+        lbl_timestamp.Title = this.langServ.getTranslateInfo(this.languageType, "Timestamp") + ": ";
         row2.addChild(lbl_timestamp);
 
         let bookViewTable = new DataTable("table2");
@@ -2407,11 +2406,13 @@ export class AppComponent implements OnInit {
             return rtnArr;
         };
 
-        bookViewTable.onRowDBClick = (rowItem, rowIndex) => {
+        bookViewTable.onCellDBClick = (cellItem, cellIdx, rowIndex) => {
             if (dd_symbol.SelectedItem !== null) {
+                let rowItem = bookViewTable.rows[rowIndex];
                 [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
                 this.txt_Price.Text = rowItem.cells[1].Text;
-                this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+                // this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+                this.dd_Action.SelectedItem = cellIdx > 1 ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
             }
 
             Dialog.popup(this, this.tradeContent, { title: this.langServ.getTranslateInfo(this.languageType, "Trade"), height: 300 });

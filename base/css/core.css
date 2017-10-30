@@ -476,6 +476,8 @@ label{
     margin: 0px;
     line-height: 21px;
     height: 21px;
+    font-family: "Microsoft YaHei", "Segoe UI", "Open Sans", sans-serif, serif;
+    font-weight: normal;
 }
 button > pre, label > pre, pre {
     display: inline-block;
@@ -487,6 +489,8 @@ button > pre, label > pre, pre {
     line-height: 21px;
     overflow: hidden;
     text-overflow: ellipsis;
+    font-family: "Microsoft YaHei", "Segoe UI", "Open Sans", sans-serif, serif;
+    font-weight: normal;
 }
 
 .dropdown-toggle, .dropdown-toggle > prev{
