@@ -59,6 +59,15 @@ export class ConfigurationBLL {
                 this._svconfigs.push(item.substr(0, idx));
             }
         });
+
+        this._abpath = path.join(this._basedir, "..", "alphaviewer");
+        this._abconfigs = [];
+        File.readdirSync(this._abpath).forEach(item => {
+            if (item.length > 0 && !item.startsWith("Untitled")) {
+                let idx = item.indexOf(".");
+                this._abconfigs.push(item.substr(0, idx));
+            }
+        });
     }
 
     private _basedir: string;
@@ -79,6 +88,10 @@ export class ConfigurationBLL {
 
     private _svconfigs: string[];
     private _svpath: string;
+
+    private _abconfigs: string[];
+    private _abpath: string;
+
 
     private _names: any[];
     private _products: any[];

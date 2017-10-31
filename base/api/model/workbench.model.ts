@@ -14,6 +14,7 @@ export class DataKey {
 export class AppType {
     static readonly kStrategyApp = "DockDemo";
     static readonly kSpreadViewer = "SpreadViewer";
+    static readonly kAlphaViewer = "AlphaViewer";
 }
 
 export class WorkspaceConfig {

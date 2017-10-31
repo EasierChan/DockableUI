@@ -147,43 +147,44 @@ export class AppStore {
                     sender.send("appstore://updateApp", { type: event.type, winName: event.winName });
                     break;
                 default:
+                    sender.send("appstore://updateApp", event);
                     break;
             }
         });
 
         // begin test
-        let apps = [
-            {
-                id: "DockDemo",
-                name: "DockDemo",
-                desc: "TradeMonitor",
-                category: "Transanctional"
-            },
-            {
-                id: "SpreadViewer",
-                name: "hello spread",
-                desc: "TradeMonitor",
-                category: "Transanctional"
-            },
-            {
-                id: "LoopbackTestReport",
-                name: "hello spread",
-                desc: "TradeMonitor",
-                category: "Transanctional"
-            },
-            {
-                id: "Dialog",
-                name: "hello spread",
-                desc: "TradeMonitor",
-                category: "Transanctional"
-            }
-        ];
-        let appIds = [];
-        apps.forEach((item) => {
-            appIds.push(item.id);
-        });
+        // let apps = [
+        //     {
+        //         id: "DockDemo",
+        //         name: "DockDemo",
+        //         desc: "TradeMonitor",
+        //         category: "Transanctional"
+        //     },
+        //     {
+        //         id: "SpreadViewer",
+        //         name: "hello spread",
+        //         desc: "TradeMonitor",
+        //         category: "Transanctional"
+        //     },
+        //     {
+        //         id: "LoopbackTestReport",
+        //         name: "hello spread",
+        //         desc: "TradeMonitor",
+        //         category: "Transanctional"
+        //     },
+        //     {
+        //         id: "Dialog",
+        //         name: "hello spread",
+        //         desc: "TradeMonitor",
+        //         category: "Transanctional"
+        //     }
+        // ];
+        let appIds = ["DockDemo", "SpreadViewer", "Dialog", "AlphaViewer"];
+        // apps.forEach((item) => {
+        //     appIds.push(item.id);
+        // });
         AppStore.initStore(appIds);
-        AppStore._appInfo = apps;
+        // AppStore._appInfo = apps;
         // end test
         // if (AppStore._appInfo) {
         //     event.returnValue = AppStore._appInfo;
