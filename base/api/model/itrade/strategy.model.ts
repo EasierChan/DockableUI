@@ -400,13 +400,14 @@ class MarginPos extends Message {
         this.BuyFrzAmt = buf.readIntLE(offset, 8); offset += 8;
         this.SellFrzAmt = buf.readIntLE(offset, 8); offset += 8;
         this.BuyMargin = buf.readIntLE(offset, 8); offset += 8;
-        this.SellFrzAmt = buf.readIntLE(offset, 8); offset += 8;
+        this.SellMargin = buf.readIntLE(offset, 8); offset += 8;
         this.TotalMargin = buf.readIntLE(offset, 8); offset += 8;
         this.Fee = buf.readIntLE(offset, 8); offset += 8;
         this.PositionPL = buf.readIntLE(offset, 8); offset += 8;
         this.ClosePL = buf.readIntLE(offset, 8); offset += 8;
         this.PreFee = buf.readIntLE(offset, 8); offset += 8;
         this.PreFundVal = buf.readIntLE(offset, 8); offset += 8;
+        console.info(this.toString());
         return offset;
     }
 };

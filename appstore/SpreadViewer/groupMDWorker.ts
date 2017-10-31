@@ -3,6 +3,9 @@
  */
 (function () {
     "use strict";
+    const DB_NAME = "chronos-tickData";
+    const DB_VERSION = 1;
+    const DB_STORE_NAME = "tickData";
 
     let groups: any[];
     onmessage = (ev: MessageEvent) => {
@@ -143,5 +146,41 @@
         time: number;
         index: number;
         duration: number;
+    }
+
+    class DatabaseManager {
+
+        db: IDBDatabase;
+        request: IDBOpenDBRequest;
+        get_request: IDBRequest;
+        transaction: IDBTransaction;
+        store: IDBObjectStore;
+
+        removeDB(name: string): void {
+            indexedDB.deleteDatabase(name);
+        }
+
+        openDB(name: string, version?: number): void {
+            let request = indexedDB.open(name, version);
+            request.onsuccess = (ev: any) => {
+                this.db = ev.currentTarget.result;
+                console.info(`${name} database init Done.`);
+            };
+
+            request.onupgradeneeded = (ev: any) => {
+                if (this.db) this.db = null;
+                this.db = ev.currentTarget.result;
+                ev.data.legs.forEach(leg => {
+                    this.store = this.db.createObjectStore(leg, { keyPath: "time" });
+                    console.info(`createObjectStore ${leg}`);
+                });
+
+                console.info(`${name} database upgrade Done.`);
+            };
+
+            request.onerror = (ev: any) => {
+                console.error("${name} database open error: " + ev.currentTarget.errorCode);
+            };
+        }
     }
 })();
