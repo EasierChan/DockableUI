@@ -435,7 +435,6 @@ export class StrategyDealer {
                     body = Buffer.concat([body, fporder.toBuffer()], body.byteLength + FpQtyOrder.len);
                 });
 
-                console.info(fporder);
                 fporder = null;
                 this.tradePoint.sendQtp(this.appid, this.packid, { type: 5004, subtype: 0, body: body });
                 logger.info(`order-fp=>ordersize=${params.data.orders.length}`);
