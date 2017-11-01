@@ -121,7 +121,6 @@ export class AppComponent implements OnInit, OnDestroy {
             this.lines = this.option.lines
                 || [
                     { coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] },
-                    { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] },
                     { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }
                 ];
             this.name = this.option.name || "";
@@ -130,7 +129,6 @@ export class AppComponent implements OnInit, OnDestroy {
             this.codes = ["", "", ""];
             this.lines = [
                 { coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] },
-                { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] },
                 { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }
             ];
             this.name = "";
@@ -400,8 +398,8 @@ export class USpreadViewer {
         this.lines = lines;
         this.initPadding = initPadding;
 
-        let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[0].coeffs[1]}x${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
-        `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"}_price[0] - ${this.lines[1].coeffs[1]}x${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}_price[0]`,
+        let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"} - ${this.lines[0].coeffs[1]}x${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}`,
+        `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"} - ${this.lines[1].coeffs[1]}x${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}`,
         this.codes[0], this.codes[1]];
         this.spreadChart.chartOption = this.createLinesChart(names);
         this.durations = durations;
@@ -413,6 +411,7 @@ export class USpreadViewer {
         this.lastPoint = {};
         this.lastPoint[this.ukeys[0]] = { time: -1 };
         this.lastPoint[this.ukeys[1]] = { time: -1 };
+        this.lastPoint[this.ukeys[2]] = { time: -1 };
         this.interval = { inst: null, value: 1000 };
         this.msgs = {};
         this.clockPoint = new AxisPoint();
@@ -440,8 +439,8 @@ export class USpreadViewer {
             let bChanged = false;
 
             while (true) {
-                if (this.lastPoint[this.ukeys[0]] === undefined || this.lastPoint[this.ukeys[1]] === undefined ||
-                    this.lastPoint[this.ukeys[0]].time === -1 || this.lastPoint[this.ukeys[1]].time === -1)
+                if (this.lastPoint[this.ukeys[0]] === undefined || this.lastPoint[this.ukeys[1]] === undefined || this.lastPoint[this.ukeys[2]] === undefined ||
+                    this.lastPoint[this.ukeys[0]].time === -1 || this.lastPoint[this.ukeys[1]].time === -1 || this.lastPoint[this.ukeys[2]].time === -1)
                     break;
 
                 if (this.clockPoint.time > Math.min(this.lastPoint[this.ukeys[0]].time, this.lastPoint[this.ukeys[1]].time))
