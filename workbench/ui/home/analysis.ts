@@ -106,7 +106,7 @@ export class AnalysisComponent implements OnInit {
 
         this.alphaArea = new TileArea();
         this.alphaArea.title = "Alpha&基差";
-        this.analyticConfigs = this.configBll.getSVConfigs();
+        this.analyticConfigs = this.configBll.getABConfigs();
 
         this.analyticConfigs.forEach(item => {
             let tile = new Tile();

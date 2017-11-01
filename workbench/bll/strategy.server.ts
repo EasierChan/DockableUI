@@ -350,6 +350,10 @@ export class ConfigurationBLL {
         return this._svconfigs;
     }
 
+    getABConfigs() {
+        return this._abconfigs;
+    }
+
     addSVConfigItem(item) {
         if (!this._svconfigs.includes(item))
             this._svconfigs.push(item);
