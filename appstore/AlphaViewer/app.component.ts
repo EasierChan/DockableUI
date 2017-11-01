@@ -118,12 +118,21 @@ export class AppComponent implements OnInit, OnDestroy {
     ngOnInit() {
         if (this.option) {
             this.codes = this.option.codes || ["", "", ""];
-            this.lines = this.option.lines || [{ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }];
+            this.lines = this.option.lines
+                || [
+                    { coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] },
+                    { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] },
+                    { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }
+                ];
             this.name = this.option.name || "";
             this.durations = this.option.durations || [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
         } else {
             this.codes = ["", "", ""];
-            this.lines = [{ coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] }, { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }];
+            this.lines = [
+                { coeffs: [1, 1], levels: [1, -1], offsets: [0, 0] },
+                { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] },
+                { coeffs: [1, 1], levels: [-1, 1], offsets: [0, 0] }
+            ];
             this.name = "";
             this.durations = [[21, 0, 2, 30], [9, 0, 11, 30], [13, 0, 15, 30]];
         }
@@ -152,7 +161,7 @@ export class AppComponent implements OnInit, OnDestroy {
     registerListeners() {
         let self = this;
 
-        this.groupMDWorker = new Worker("groupMDWorker.js");
+        this.groupMDWorker = new Worker("../SpreadViewer/groupMDWorker.js");
         this.groupMDWorker.onmessage = (ev: MessageEvent) => {
             switch (ev.data.type) {
                 case "group-md":
@@ -227,71 +236,38 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if (this.codes[0].symbolCode.endsWith(".csv")
-            || this.codes[1].symbolCode.endsWith(".csv")) {
-            let nickCodes = [this.codes[0].symbolCode, this.codes[1].symbolCode];
-            let ukeys = [0, 0];
-
+        if (this.codes[0].symbolCode.endsWith(".csv")) {
+            let nickCodes = [this.codes[0].symbolCode, this.codes[1].symbolCode, this.codes[2].symbolCode];
+            let ukeys = [0, this.codes[1].ukey, this.codes[2].ukey];
             let group1 = {};
-            let ok1 = true;
-            if (this.codes[0].symbolCode.endsWith(".csv")) {
-                ok1 = false;
-                File.readLineByLine(this.codes[0].symbolCode, (linestr: string) => {
-                    linestr.trim();
-                    let fields = linestr.split(",");
-                    if (fields.length < 3) {
-                        console.error(`${linestr} must have 3 columns!`);
-                        return;
-                    }
+            let ok1 = false;
+            File.readLineByLine(this.codes[0].symbolCode, (linestr: string) => {
+                linestr.trim();
+                let fields = linestr.split(",");
+                if (fields.length < 3) {
+                    console.error(`${linestr} must have 3 columns!`);
+                    return;
+                }
 
-                    group1[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
-                }, () => {
-                    nickCodes[0] = "组合1";
-                    ukeys[0] = 1;
-                    this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group1)).forEach(item => {
-                        group1[item.windCode].ukey = item.ukey;
-                        this.groupUKeys.push(item.ukey);
-                    });
-                    ok1 = true;
+                group1[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
+            }, () => {
+                nickCodes[0] = "组合1";
+                ukeys[0] = 1;
+                this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group1)).forEach(item => {
+                    group1[item.windCode].ukey = item.ukey;
+                    this.groupUKeys.push(item.ukey);
                 });
-            } else {
-                ukeys[0] = this.codes[0].ukey;
-            }
-
-            let group2 = {};
-            let ok2 = true;
-            if (this.codes[1].symbolCode.endsWith(".csv")) {
-                ok2 = false;
-                File.readLineByLine(this.codes[1].symbolCode, (linestr: string) => {
-                    linestr.trim();
-                    let fields = linestr.split(",");
-
-                    group2[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
-                }, () => {
-                    nickCodes[1] = "组合2";
-                    ukeys[1] = 2;
-                    this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group2)).forEach(item => {
-                        group2[item.windCode].ukey = item.ukey;
-                        this.groupUKeys.push(item.ukey);
-                    });
-                    ok2 = true;
-                });
-            } else {
-                ukeys[1] = this.codes[1].ukey;
-            }
+                ok1 = true;
+            });
 
             this.interval = setInterval(() => {
-                if (ok1 && ok2) {
+                if (ok1) {
                     clearInterval(this.interval);
                     this.interval = null;
 
                     let groups = [];
                     if (nickCodes[0] !== this.codes[0].symbolCode) {
                         groups.push({ ukey: 1, items: group1 });
-                    }
-
-                    if (nickCodes[1] !== this.codes[1].symbolCode) {
-                        groups.push({ ukey: 2, items: group2 });
                     }
 
                     this.groupMDWorker.postMessage({ type: "init", groups: groups });
@@ -314,7 +290,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.kwlist = [];
                     this.kwlist = this.kwlist.concat(this.groupUKeys);
                     ukeys.forEach(ukey => {
-                        if (ukey > 2)
+                        if (ukey > 1)
                             this.kwlist.push(ukey);
                     });
 
@@ -325,22 +301,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 }
             }, 100);
         } else {
-            this.lines.forEach(line => {
-                for (let i = 0; i < this.lines.length; ++i) {
-                    line.coeffs[i] = parseFloat(line.coeffs[i]);
-                    line.levels[i] = parseFloat(line.levels[i]);
-                    line.offsets[i] = parseFloat(line.offsets[i]);
-                }
-            });
-
-            this.kwlist = [this.codes[0].ukey, this.codes[1].ukey];
-            this.spreadviewer = new USpreadViewer([this.codes[0].symbolCode, this.codes[1].symbolCode], this.kwlist, this.lines, this.durations);
-            this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
-
-            this.spreadviewer.emitter.subscribe((param) => {
-                if (param.type.startsWith("debug"))
-                    this.addTips(param.value);
-            });
+            console.error(`first is must be basket file.`);
         }
     }
 

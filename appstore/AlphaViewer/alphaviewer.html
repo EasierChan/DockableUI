@@ -3,12 +3,20 @@
         <div class="u-col item">
             <div class="u-row">
                 <span>篮子：</span>
-                <u-codes class="u-input-group" (onSelect)="firstLegClick($event)" (onInput)="onValueChanged($event, 0)" [selectedItem]="codes[0]" tabindex="1"></u-codes>
+                <u-codes class="u-input-group" (onSelect)="firstLegClick($event)" (onInput)="onValueChanged($event, 0)" [selectedItem]="codes[0]"
+                    tabindex="1"></u-codes>
                 <button type="button" class="btn-primary u-file" (click)="openFile(0)">...</button>
             </div>
             <div class="u-row">
                 <span>期货：</span>
-                <u-codes class="fill" (onSelect)="secondLegLick($event)" (onInput)="onValueChanged($event, 1)" [selectedItem]="codes[1]" tabindex="2"></u-codes>
+                <u-codes class="fill" (onSelect)="secondLegLick($event)" (onInput)="onValueChanged($event, 1)" [selectedItem]="codes[1]"
+                    tabindex="2"></u-codes>
+            </div>
+        </div>
+        <div class="u-col item">
+            <div class="u-row">
+                <pre style="font-size: 14px">x</pre>
+                <input type="text" class="btn-default" style="margin-left: 30px;">
             </div>
             <div class="u-row">
                 <span>指数：</span>

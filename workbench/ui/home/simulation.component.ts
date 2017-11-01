@@ -70,7 +70,7 @@ export class SimulationComponent implements OnInit {
             });
         });
 
-        this.strategyMenu.addItem(MenuItem.createSubmenu("移至实盘产品", subMenu));
+        // this.strategyMenu.addItem(MenuItem.createSubmenu("移至实盘产品", subMenu));
 
         this.strategyMenu.addItem("修改", () => {
             this.appsrv.startApp("策略配置", "Dialog", {
