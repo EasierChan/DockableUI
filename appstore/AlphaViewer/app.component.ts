@@ -37,7 +37,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private readonly apptype = "alphaviewer";
     option: any;
     languageType = 0;
-    spreadviewer: USpreadViewer;
+    spreadviewer: UAlphaViewer;
     codes: any[];
     lines: any[];
     name: string;
@@ -249,7 +249,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
                 group1[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
             }, () => {
-                nickCodes[0] = "组合1";
+                nickCodes[0] = "Alpha";
                 ukeys[0] = 1;
                 this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group1)).forEach(item => {
                     group1[item.windCode].ukey = item.ukey;
@@ -278,7 +278,7 @@ export class AppComponent implements OnInit, OnDestroy {
                         }
                     });
 
-                    this.spreadviewer = new USpreadViewer(nickCodes, ukeys, this.lines, this.durations);
+                    this.spreadviewer = new UAlphaViewer(nickCodes, ukeys, this.lines, this.durations);
 
                     this.spreadviewer.emitter.subscribe((param) => {
                         if (param.type.startsWith("debug"))
@@ -368,7 +368,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 }
 
-export class USpreadViewer {
+export class UAlphaViewer {
     initPadding; // unit is seconds
     padding = 60;
     ukeys: number[];
@@ -409,9 +409,9 @@ export class USpreadViewer {
         });
 
         this.lastPoint = {};
-        this.lastPoint[this.ukeys[0]] = { time: -1 };
-        this.lastPoint[this.ukeys[1]] = { time: -1 };
-        this.lastPoint[this.ukeys[2]] = { time: -1 };
+        this.ukeys.forEach(ukey => {
+            this.lastPoint[ukey] = { time: -1 };
+        });
         this.interval = { inst: null, value: 1000 };
         this.msgs = {};
         this.clockPoint = new AxisPoint();
@@ -431,8 +431,6 @@ export class USpreadViewer {
                 break;
         }
 
-        // this.worker = new Worker("spreadWorker.js");
-        // this.worker.postMessage({ type: "init", legs: this.ukeys, offset: [offset] });
         this.dataOption = { series: this.spreadChart.chartOption.series, xAxis: this.spreadChart.chartOption.xAxis, dataZoom: this.spreadChart.chartOption.dataZoom };
 
         this.interval.inst = setInterval(() => {
@@ -512,11 +510,11 @@ export class USpreadViewer {
         if (!this.msgs[mdItem.ukey][mdItem.time])
             this.msgs[mdItem.ukey][mdItem.time] = {};
 
-        this.msgs[mdItem.ukey][mdItem.time].askPrice1 = mdItem.ask_price[0] / USpreadViewer.YUAN_PER_UNIT;
-        this.msgs[mdItem.ukey][mdItem.time].bidPrice1 = mdItem.bid_price[0] / USpreadViewer.YUAN_PER_UNIT;
-        this.msgs[mdItem.ukey][mdItem.time].last = mdItem.last / USpreadViewer.YUAN_PER_UNIT;
+        this.msgs[mdItem.ukey][mdItem.time].askPrice1 = mdItem.ask_price[0] / UAlphaViewer.YUAN_PER_UNIT;
+        this.msgs[mdItem.ukey][mdItem.time].bidPrice1 = mdItem.bid_price[0] / UAlphaViewer.YUAN_PER_UNIT;
+        this.msgs[mdItem.ukey][mdItem.time].last = mdItem.last / UAlphaViewer.YUAN_PER_UNIT;
 
-        if (this.lastPoint[this.ukeys[0]].time !== -1 && this.lastPoint[this.ukeys[1]].time !== -1) {
+        if (this.getLastTimes().indexOf(-1) < 0) {
             let nextTime;
 
             while (mdItem.time > this.lastPoint[mdItem.ukey].time) {
@@ -533,7 +531,7 @@ export class USpreadViewer {
             }
 
             nextTime = null;
-        } else if (this.lastPoint[this.ukeys[0]].time === -1 && this.lastPoint[this.ukeys[1]].time === -1) { // first quote data
+        } else if (this.getLastTimes().every(val => { return val === -1; })) { // first quote data
             // init axises;
             this.lastPoint[mdItem.ukey].time = mdItem.time;
             this.dataPoint.duration = curDuration;
@@ -544,39 +542,38 @@ export class USpreadViewer {
             this.clockPoint.time = mdItem.time;
         } else { // only one is -1
             if (this.lastPoint[mdItem.ukey].time === -1) { // another leg's data come in.
-                if (mdItem.ukey === this.ukeys[0] && mdItem.time !== this.lastPoint[this.ukeys[1]].time) {
-                    if (mdItem.time > this.lastPoint[this.ukeys[1]].time) {
-                        this.msgs[this.ukeys[1]][mdItem.time] = {};
-                        Object.assign(this.msgs[this.ukeys[1]][mdItem.time], this.msgs[this.ukeys[1]][this.lastPoint[this.ukeys[1]].time]);
-                        this.moveTo(this.dataPoint, mdItem.time);
-                    } else {
-                        this.msgs[mdItem.ukey][this.lastPoint[this.ukeys[1]].time] = {};
-                        Object.assign(this.msgs[mdItem.ukey][this.lastPoint[this.ukeys[1]].time], this.msgs[mdItem.ukey][mdItem.time]);
-                        this.moveTo(this.dataPoint, this.lastPoint[this.ukeys[1]].time);
-                    }
+                this.moveTo(this.dataPoint, mdItem.time);
+                Object.assign(this.lastPoint[mdItem.ukey], this.dataPoint);
 
-                    Object.assign(this.clockPoint, this.dataPoint);
-                    Object.assign(this.lastPoint[this.ukeys[0]], this.clockPoint);
-                    Object.assign(this.lastPoint[this.ukeys[1]], this.clockPoint);
-                } else if (mdItem.ukey === this.ukeys[1] && mdItem.time !== this.lastPoint[this.ukeys[0]].time) {
-                    if (mdItem.time > this.lastPoint[this.ukeys[0]].time) {
-                        this.msgs[this.ukeys[0]][mdItem.time] = {};
-                        Object.assign(this.msgs[this.ukeys[0]][mdItem.time], this.msgs[this.ukeys[0]][this.lastPoint[this.ukeys[0]].time]);
-                        this.moveTo(this.dataPoint, mdItem.time);
-                    } else {
-                        this.msgs[mdItem.ukey][this.lastPoint[this.ukeys[0]].time] = {};
-                        Object.assign(this.msgs[mdItem.ukey][this.lastPoint[this.ukeys[0]].time], this.msgs[mdItem.ukey][mdItem.time]);
-                        this.moveTo(this.dataPoint, this.lastPoint[this.ukeys[0]].time);
-                    }
+                this.ukeys.forEach(ukey => {
+                    if (mdItem.time !== this.lastPoint[ukey].time) {
+                        if (mdItem.time > this.lastPoint[ukey].time) {
+                            this.msgs[ukey][mdItem.time] = {};
+                            Object.assign(this.msgs[ukey][mdItem.time], this.msgs[ukey][this.lastPoint[ukey].time]);
+                            this.moveTo(this.dataPoint, mdItem.time);
+                        } else {
+                            this.msgs[mdItem.ukey][this.lastPoint[ukey].time] = {};
+                            Object.assign(this.msgs[mdItem.ukey][this.lastPoint[ukey].time], this.msgs[mdItem.ukey][mdItem.time]);
+                            this.moveTo(this.dataPoint, this.lastPoint[ukey].time);
+                        }
 
-                    Object.assign(this.clockPoint, this.dataPoint);
-                    Object.assign(this.lastPoint[this.ukeys[0]], this.clockPoint);
-                    Object.assign(this.lastPoint[this.ukeys[1]], this.clockPoint);
-                }
+                        Object.assign(this.clockPoint, this.dataPoint);
+                        Object.assign(this.lastPoint[ukey], this.clockPoint);
+                    }
+                });
             } else { // also one leg data;
                 this.lastPoint[mdItem.ukey].time = mdItem.time;
             }
         }
+    }
+
+    getLastTimes(): number[] {
+        let res = [];
+        this.ukeys.forEach(ukey => {
+            res.push(this.lastPoint[ukey].time);
+        });
+
+        return res;
     }
 
     createLinesChart(lines: string[]) {
