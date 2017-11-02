@@ -116,13 +116,13 @@ export class AnalysisComponent implements OnInit {
         });
 
         this.alphaArea.onCreate = () => {
-            alert("当前未开放权限！");
-            return;
-            // this.appsrv.startApp("Untitled", AppType.kAlphaViewer, {
-            //     port: parseInt(this.quoteEndpoint[1]),
-            //     host: this.quoteEndpoint[0],
-            //     lang: this.setting.language
-            // });
+            // alert("当前未开放权限！");
+            // return;
+            this.appsrv.startApp("Untitled", AppType.kAlphaViewer, {
+                port: parseInt(this.quoteEndpoint[1]),
+                host: this.quoteEndpoint[0],
+                lang: this.setting.language
+            });
         };
 
         this.alphaArea.onClick = (event: MouseEvent, item: Tile) => {

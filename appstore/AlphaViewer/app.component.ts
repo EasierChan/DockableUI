@@ -249,7 +249,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
                 group1[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
             }, () => {
-                nickCodes[0] = "Alpha";
+                nickCodes[0] = "组合1";
                 ukeys[0] = 1;
                 this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group1)).forEach(item => {
                     group1[item.windCode].ukey = item.ukey;
@@ -400,7 +400,7 @@ export class UAlphaViewer {
 
         let names = [`${this.codes[0]}.${this.lines[0].levels[0] === 1 ? "ask" : "bid"} - ${this.lines[0].coeffs[1]}x${this.codes[1]}.${this.lines[0].levels[1] === 1 ? "ask" : "bid"}`,
         `${this.codes[0]}.${this.lines[1].levels[0] === 1 ? "ask" : "bid"} - ${this.lines[1].coeffs[1]}x${this.codes[1]}.${this.lines[1].levels[1] === 1 ? "ask" : "bid"}`,
-        this.codes[0], this.codes[1]];
+        this.codes[0], this.codes[1], "Alpha", "基差"];
         this.spreadChart.chartOption = this.createLinesChart(names);
         this.durations = durations;
         this.hoursOfDay = 0;
@@ -437,24 +437,28 @@ export class UAlphaViewer {
             let bChanged = false;
 
             while (true) {
-                if (this.lastPoint[this.ukeys[0]] === undefined || this.lastPoint[this.ukeys[1]] === undefined || this.lastPoint[this.ukeys[2]] === undefined ||
-                    this.lastPoint[this.ukeys[0]].time === -1 || this.lastPoint[this.ukeys[1]].time === -1 || this.lastPoint[this.ukeys[2]].time === -1)
+                if (this.getLastTimes().indexOf(-1) >= 0)
                     break;
 
-                if (this.clockPoint.time > Math.min(this.lastPoint[this.ukeys[0]].time, this.lastPoint[this.ukeys[1]].time))
+                if (this.clockPoint.time > this.minTime())
                     break;
 
                 this.emitter.emit({ type: "debug", value: `drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}` });
-                console.debug(`drawtime:${this.clockPoint.time}, ukey1:${this.lastPoint[this.ukeys[0]].time}, ukey2:${this.lastPoint[this.ukeys[1]].time}`);
                 try {
                     this.dataOption.series[0].data[this.clockPoint.index] =
-                        (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[0].offsets[0] - this.lines[0].offsets[1] -
-                            this.lines[0].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[0].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(4); // tslint:disable-line
+                        (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] -
+                            this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[0].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(4); // tslint:disable-line
                     this.dataOption.series[1].data[this.clockPoint.index] =
-                        (this.lines[1].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[1].offsets[0] - this.lines[1].offsets[1] -
-                            this.lines[1].coeffs[1] * this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(4); // tslint:disable-line
+                        (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] -
+                            this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(4); // tslint:disable-line
                     this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].last; // tslint:disable-line
                     this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].last; // tslint:disable-line
+                    // alpha
+                    this.dataOption.series[4].data[this.clockPoint.index] =
+                        this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time].last - this.msgs[this.ukeys[2]][this.clockPoint.time].last; // tslint:disable-line
+                    // 基差
+                    this.dataOption.series[5].data[this.clockPoint.index] =
+                        this.msgs[this.ukeys[1]][this.clockPoint.time].last - this.msgs[this.ukeys[2]][this.clockPoint.time].last; // tslint:disable-line
                     this.clockPoint.time = this.increaseTime(this.clockPoint);
                     ++this.clockPoint.index;
 
@@ -546,7 +550,7 @@ export class UAlphaViewer {
                 Object.assign(this.lastPoint[mdItem.ukey], this.dataPoint);
 
                 this.ukeys.forEach(ukey => {
-                    if (mdItem.time !== this.lastPoint[ukey].time) {
+                    if (this.lastPoint[ukey].time !== -1 && mdItem.time !== this.lastPoint[ukey].time) {
                         if (mdItem.time > this.lastPoint[ukey].time) {
                             this.msgs[ukey][mdItem.time] = {};
                             Object.assign(this.msgs[ukey][mdItem.time], this.msgs[ukey][this.lastPoint[ukey].time]);
@@ -574,6 +578,26 @@ export class UAlphaViewer {
         });
 
         return res;
+    }
+
+    minTime(): number {
+        let ret = this.lastPoint[this.ukeys[0]].time;
+        this.ukeys.forEach(ukey => {
+            if (this.lastPoint[ukey].time < ret)
+                ret = this.lastPoint[ukey].time;
+        });
+
+        return ret;
+    }
+
+    maxTime(): number {
+        let ret = this.lastPoint[this.ukeys[0]].time;
+        this.ukeys.forEach(ukey => {
+            if (this.lastPoint[ukey].time > ret)
+                ret = this.lastPoint[ukey].time;
+        });
+
+        return ret;
     }
 
     createLinesChart(lines: string[]) {
@@ -687,8 +711,18 @@ export class UAlphaViewer {
                 type: "line",
                 connectNulls: true,
                 data: []
+            }, {
+                name: lines[4],
+                type: "line",
+                connectNulls: true,
+                data: []
+            }, {
+                name: lines[5],
+                type: "line",
+                connectNulls: true,
+                data: []
             }],
-            color: ["#ee0202", "#02ee02", "#65A7EE", "#EED565"],
+            color: ["#ee0202", "#02ee02", "#65A7EE", "#EED565", "#ff8800", "#9933cc"],
             dataZoom: {
                 type: "inside",
                 xAxisIndex: [0, 1]

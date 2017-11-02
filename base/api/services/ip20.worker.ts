@@ -37,30 +37,24 @@ class IP20Parser extends Parser {
         if (this._oPool.length === 0)
             return false;
 
-        if (this._curHeader !== null)
+        if (this._curHeader !== null) {
+            logger.warn(`curHeader: ${JSON.stringify(this._curHeader)}, poolLen=${this._oPool.length}`);
             return true;
+        }
 
         let ret = false;
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+        let peekBuf = null;
 
         for (; bufCount < this._oPool.length; ++bufCount) {
-            buflen += this._oPool.peek(bufCount + 1)[bufCount].byteLength;
+            peekBuf = this._oPool.peek(bufCount + 1);
+            buflen += peekBuf[bufCount].byteLength;
             if (buflen >= ISONPack2Header.len) {
+                logger.info(`buflen=${buflen}, ISONPack2Header.len=${ISONPack2Header.len}, bufCount=${bufCount + 1}`);
                 this._curHeader = new ISONPack2Header();
-                let tempBuffer = null;
-
-                if (bufCount >= 1) {
-                    tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
-
-                    this._curHeader.fromBuffer(tempBuffer);
-                } else {
-                    this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0]);
-                    tempBuffer = this._oPool.peek(bufCount + 1)[0];
-                }
-
-                tempBuffer = null;
+                this._curHeader.fromBuffer(bufCount >= 1 ? Buffer.concat(peekBuf, buflen) : peekBuf[0]);
                 ret = true;
                 break;
             }
@@ -79,12 +73,14 @@ class IP20Parser extends Parser {
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+        let peekBuf = null;
 
         for (; bufCount < this._oPool.length; ++bufCount) {
-            buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
+            peekBuf = this._oPool.peek(bufCount + 1);
+            buflen += peekBuf[bufCount].byteLength;
             if (buflen >= this._curHeader.packlen) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                logger.info(`${kFileName}:105 processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}`);
+                logger.info(`processMsg: appid=${this._curHeader.appid}, packid=${this._curHeader.packid}, packlen=${this._curHeader.packlen}, buflen=${tempBuffer.length}`);
                 this.emit(this._curHeader.appid.toString(), this._curHeader, tempBuffer);
 
                 restLen = buflen - this._curHeader.packlen;
@@ -93,6 +89,7 @@ class IP20Parser extends Parser {
                     tempBuffer.copy(restBuf, 0, buflen - restLen);
                     this._oPool.prepend(restBuf);
                     restBuf = null;
+                    logger.warn(`restLen=${restLen}, tempBuffer=${tempBuffer.length}`);
                 }
 
                 this._curHeader = null;
@@ -122,17 +119,36 @@ class ISONPackParser extends IP20Parser {
         }, 500);
     }
 
+    processLoginMsg(args: any[]): void {
+        let header: ISONPack2Header = args[0];
+        let all = args[1];
+        let msg = new ISONPack2();
+        switch (header.packid) {
+            case 43: // Login
+            case 120: // login error
+            case 109:
+            case 110:
+                msg.fromBuffer(all);
+                this._client.emit("data", msg);
+                break;
+            default:
+                logger.warn(`unknown message: appid=${header.appid}, packid=${header.packid}, msglen=${header.packlen}`);
+                break;
+        }
+    }
+
     processTemplateMsg(args: any[]): void {
         let header: ISONPack2Header = args[0];
+        let all = args[1];
         let msg = new ISONPack2();
-        msg.fromBuffer(args[1]);
+        msg.fromBuffer(all);
         this._client.emit("data", msg);
-
         // switch (header.packid) {
         //     case 194:
+        //     case 216:
+        //     case 218:
         //     case 2001:
         //     case 2003:
-        //         msg = new ISONPack2();
         //         msg.fromBuffer(all);
         //         this._client.emit("data", msg);
         //         break;
@@ -161,7 +177,7 @@ class ISONPackClient extends TcpClient {
         this._parsers.push(parser);
     }
 
-    sendMessage(appid: number, packid: number, body: Object): void {
+    sendMessage(appid: number, packid: number, body: any): void {
         let pack = new ISONPack2();
         pack.content = body;
         pack.head.appid = appid;
@@ -185,9 +201,7 @@ class ISONPackClient extends TcpClient {
             clearInterval(this._intervalHeart);
             this._intervalHeart = null;
         }
-        this._parsers.forEach(parser => {
-            parser.dispose();
-        });
+
         super.dispose();
     }
 }
@@ -206,7 +220,6 @@ export class IP20Service {
         this._client.useSelfBuffer = true;
         this._parser = new ISONPackParser(this._client);
         this._client.addParser(this._parser);
-
         let self = this;
         this._client.on("data", msg => {
             msg = msg[0];
@@ -214,7 +227,7 @@ export class IP20Service {
                 self._messageMap[msg.head.appid][msg.head.packid](msg);
             }
             else
-                console.warn(`unknown message appid = ${msg.head.appid}, packid = ${msg.head.packid}`);
+                logger.warn(`unknown message appid = ${msg.head.appid}, packid = ${msg.head.packid}`);
         });
 
         this._client.on("connect", () => {
@@ -252,6 +265,8 @@ export class IP20Service {
             clearTimeout(this._timer);
             this._timer = null;
         }
+
+        this._client.dispose();
         this._client.connect(port, host);
     }
 
@@ -266,14 +281,14 @@ export class IP20Service {
         head.msglen = 0;
 
         if (msg.body === undefined || msg.body === null) {
-            this.send(appid, packid, head.toBuffer());
+            this.send(appid, 1000, head.toBuffer());
         } else if (msg.body instanceof Buffer) {
             head.msglen = msg.body.length;
-            this.send(appid, packid, Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen));
+            this.send(appid, 1000, Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen));
         } else {
             let buf = msg.body.toBuffer();
             head.msglen = buf.length;
-            this.send(appid, packid, Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
+            this.send(appid, 1000, Buffer.concat([head.toBuffer(), buf], Header.len + head.msglen));
         }
 
         head = null;
