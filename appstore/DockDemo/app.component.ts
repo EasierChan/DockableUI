@@ -612,15 +612,7 @@ export class AppComponent implements OnInit {
         this.commentTable = new DataTable("table2");
         this.commentTable.height = 400;
 
-        let commentTableArr: string[] = ["Key", "Value"];
-        let commentTableRtnArr: string[] = [];
-        for (let i = 0; i < commentTableArr.length; ++i) {
-            let commentRtn = this.langServ.get(commentTableArr[i]);
-            commentTableRtnArr.push(commentRtn);
-        }
-        commentTableRtnArr.forEach(item => {
-            this.commentTable.addColumn(item);
-        });
+        this.commentTable.addColumn(this.langServ.get("name"), this.langServ.get("value"));
         this.commentTable.columnConfigurable = true;
         this.commentContent.addChild(this.commentTable);
         this.commentPage.setContent(this.commentContent);
@@ -2223,6 +2215,8 @@ export class AppComponent implements OnInit {
         // 0 check value ,10,11 disable,12 value, row backcolor
         switch (flag) {
             case 1:
+                row.cells[0].Type = "plaintext";
+                row.cells[9].Type = "plaintext";
                 row.cells[0].Disable = true;
                 row.cells[0].Text = false;
                 row.cells[10].Disable = true;
@@ -2231,6 +2225,8 @@ export class AppComponent implements OnInit {
                 row.backgroundColor = "#585757";
                 break;
             case 2:
+                row.cells[0].Type = "plaintext";
+                row.cells[9].Type = "plaintext";
                 row.cells[0].Disable = true;
                 row.cells[0].Text = false;
                 row.cells[10].Disable = true;
