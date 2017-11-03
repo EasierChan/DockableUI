@@ -40,6 +40,10 @@ export class Pool<T>{
         return this._pool.splice(0, n);
     }
 
+    clear(): void {
+        this._pool.length = 0;
+    }
+
     get length(): number{
         return this._pool.length;
     }

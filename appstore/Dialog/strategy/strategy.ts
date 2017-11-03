@@ -2,7 +2,7 @@
 
 import { Component, OnInit, Input, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { IP20Service } from "../../../base/api/services/ip20.service";
-import { AppStoreService, SecuMasterService } from "../../../base/api/services/backend.service";
+import { AppStoreService, SecuMasterService, TranslateService } from "../../../base/api/services/backend.service";
 import { DataTable, TabPanel, TabPage, VBox, DataTableRow } from "../../../base/controls/control";
 import { WorkspaceConfig, StrategyInstance, DataKey, Channel } from "../../../base/api/model/workbench.model";
 
@@ -36,7 +36,9 @@ export class StrategyComponent implements OnInit, OnDestroy {
 
     strategyConfigPanel: TabPanel;
 
-    constructor(private tgw: IP20Service, private secuinfo: SecuMasterService) {
+    constructor(private tgw: IP20Service,
+        private secuinfo: SecuMasterService,
+        private langSrv: TranslateService) {
         this.enNameLabel = "策略服务名：";
         this.chNameLabel = "中文别名：";
         this.productLabel = "产品：";
@@ -70,9 +72,9 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.strategyConfigPanel.setActive("parameters");
 
         this.paramsTable = new DataTable("table2");
-        this.paramsTable.addColumn("name", "value");
+        this.paramsTable.addColumn(this.langSrv.get("name"), this.langSrv.get("value"));
         this.instrumentTable = new DataTable("table2");
-        this.instrumentTable.addColumn("name", "value");
+        this.instrumentTable.addColumn(this.langSrv.get("name"), this.langSrv.get("value"));
 
         let vboxParams = new VBox();
         vboxParams.addChild(this.paramsTable);
@@ -90,7 +92,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
                 if (strategy[strategy["Strategies"][0]].Parameter[prop].show === 1) {
                     let row: DataTableRow = this.paramsTable.newRow();
                     row.cells[0].Data = strategy[strategy["Strategies"][0]].Parameter[prop];
-                    row.cells[0].Text = prop;
+                    row.cells[0].Text = this.langSrv.get(prop);
                     row.cells[1].Type = "textbox";
                     let param = this.config.items[0].parameters.find(item => { return item.name === prop; });
                     row.cells[1].Text = param ? param.value : row.cells[0].Data.value;
@@ -101,7 +103,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
                 if (strategy[strategy["Strategies"][0]].Instrument[prop].show === 1) {
                     let row: DataTableRow = this.instrumentTable.newRow();
                     row.cells[0].Data = strategy[strategy["Strategies"][0]].Instrument[prop];
-                    row.cells[0].Text = prop;
+                    row.cells[0].Text = this.langSrv.get(prop);
                     row.cells[1].Type = "u-codes";
 
                     let instru = this.config.items[0].instruments.find(item => { return item.name === prop; });
@@ -162,7 +164,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
             if (strategy[strategy["Strategies"][0]].Parameter[prop].show === 1) {
                 let row: DataTableRow = this.paramsTable.newRow();
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Parameter[prop];
-                row.cells[0].Text = prop;
+                row.cells[0].Text = this.langSrv.get(prop);
                 row.cells[1].Type = "textbox";
                 row.cells[1].Text = row.cells[0].Data.value;
             }
@@ -172,7 +174,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
             if (strategy[strategy["Strategies"][0]].Instrument[prop].show === 1) {
                 let row: DataTableRow = this.instrumentTable.newRow();
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Instrument[prop];
-                row.cells[0].Text = prop;
+                row.cells[0].Text = this.langSrv.get(prop);
                 row.cells[1].Type = "u-codes";
                 let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(row.cells[0].Data.value);
                 row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(row.cells[0].Data.value) ? codeinfo[row.cells[0].Data.value].SecuCode : row.cells[0].Data.value };

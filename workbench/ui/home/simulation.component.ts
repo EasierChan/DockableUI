@@ -175,7 +175,8 @@ export class SimulationComponent implements OnInit {
     onStartApp() {
         if (!this.appsrv.startApp(this.selectedStrategyConfig.name, AppType.kStrategyApp, {
             appid: this.selectedStrategyConfig.appid,
-            name: this.selectedStrategyConfig.name
+            name: this.selectedStrategyConfig.name,
+            title: this.selectedStrategyConfig.chname
         })) {
             alert(`start ${this.selectedStrategyConfig.name} app error!`);
         }

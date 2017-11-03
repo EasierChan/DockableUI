@@ -121,9 +121,8 @@ export class StartUp implements IApplication {
             this._option = option ? option : {};
             this._option.layout = this.loadLayout();
             this._option.config = this.loadModulesConfig();
-
             this._mainWindow.loadURL(`${__dirname}/index.html`);
-            this._mainWindow.win.setTitle(name);
+            this._mainWindow.win.setTitle(this._option.title);
             this._mainWindow.setMenu(this._menuTemplate);
             StartUp.instanceMap[this._mainWindow.win.webContents.id] = this;
             // this._windowMgr.addContentWindow(this._mainWindow);

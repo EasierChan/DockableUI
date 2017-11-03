@@ -106,9 +106,9 @@ export class AnalysisComponent implements OnInit {
 
         this.alphaArea = new TileArea();
         this.alphaArea.title = "Alpha&基差";
-        this.analyticConfigs = this.configBll.getABConfigs();
+        this.alphaConfigs = this.configBll.getABConfigs();
 
-        this.analyticConfigs.forEach(item => {
+        this.alphaConfigs.forEach(item => {
             let tile = new Tile();
             tile.title = item;
             tile.iconName = "object-align-bottom";
@@ -163,6 +163,8 @@ export class AnalysisComponent implements OnInit {
                     this.analyticConfigs[idx] = params.newName;
                     this.analyticArea.getTileAt(idx).title = params.newName;
                 }
+
+                this.ref.detectChanges();
                 break;
             case "alphaviewer":
                 idx = this.alphaConfigs.indexOf(params.oldName);
@@ -177,6 +179,8 @@ export class AnalysisComponent implements OnInit {
                     this.alphaConfigs[idx] = params.newName;
                     this.alphaArea.getTileAt(idx).title = params.newName;
                 }
+
+                this.ref.detectChanges();
                 break;
         }
     }

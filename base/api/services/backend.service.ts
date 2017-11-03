@@ -217,8 +217,8 @@ export class SecuMasterService {
 
 @Injectable()
 export class TranslateService {
-    getTranslateInfo(type: number, ...word: string[]) {
-        return electron.ipcRenderer.sendSync("dal://itrade/translate/translateinfo", { type: type, data: word });
+    get(word: string) {
+        return electron.ipcRenderer.sendSync("dal://itrade/translate/translateinfo", { data: word });
     }
 }
 /**

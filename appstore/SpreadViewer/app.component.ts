@@ -216,6 +216,7 @@ export class AppComponent implements OnInit, OnDestroy {
             this.ref.detectChanges();
             this.quote.send(17, 101, { topic: 3112, kwlist: [] });
             this.groupUKeys = [];
+            this.kwlist = [];
         }
 
         if (this.codes[0].length < 1 || this.codes[1].length < 1) {

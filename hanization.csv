@@ -250,3 +250,6 @@ Max,最大值
 Tick,最小间隔
 Change,修改
 Currency,币种
+name,名称
+value,值
+Timestamp,时间戳

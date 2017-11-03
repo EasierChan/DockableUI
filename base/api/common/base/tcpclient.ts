@@ -43,7 +43,8 @@ export class TcpClient {
 
     connect(port: number, ip?: string): void {
         if (this._clientSock) {
-            return;
+            this._clientSock.close();
+            this._buffer_Queue.clear();
         }
 
         this._clientSock = new TcpSocket();
@@ -64,17 +65,17 @@ export class TcpClient {
         this._clientSock.on("error", (err: Error) => {
             this.emit("error");
             this._clientSock = null;
-            this._buffer_Queue = null;
+            this._buffer_Queue.clear();
         });
         this._clientSock.on("end", () => {
             this.emit("end");
             this._clientSock = null;
-            this._buffer_Queue = null;
+            this._buffer_Queue.clear();
         });
         this._clientSock.on("close", (has_error) => {
             this.emit("close");
             this._clientSock = null;
-            this._buffer_Queue = null;
+            this._buffer_Queue.clear();
         });
     }
 
@@ -84,7 +85,7 @@ export class TcpClient {
     }
 
     dispose(): void {
-        this._buffer_Queue = null;
+        this._buffer_Queue.clear();
     }
 
     // static dispose(): void {

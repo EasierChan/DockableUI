@@ -229,7 +229,7 @@ export class AppComponent implements OnInit {
 
         this.statusbar = new StatusBar();
         let order = "OrderStatus";
-        this.orderstatusPage = new TabPage(order, this.langServ.getTranslateInfo(this.languageType, order));
+        this.orderstatusPage = new TabPage(order, this.langServ.get(order));
         this.pageMap["OrderStatus"] = this.orderstatusPage;
         let orderstatusContent = new VBox();
 
@@ -237,7 +237,7 @@ export class AppComponent implements OnInit {
         let cb_handle = new CheckBox();
         cb_handle.Text = true;
         let handle = "Handle";
-        let rtnHandle = this.langServ.getTranslateInfo(this.languageType, handle);
+        let rtnHandle = this.langServ.get(handle);
         cb_handle.Title = rtnHandle;
         orderstatusHeader.addChild(cb_handle);
         let dd_status = new DropDown();
@@ -259,7 +259,7 @@ export class AppComponent implements OnInit {
         let cb_SelAll = new CheckBox();
         cb_SelAll.Left = 10;
         cb_SelAll.Text = false;
-        cb_SelAll.Title = this.langServ.getTranslateInfo(this.languageType, "All");
+        cb_SelAll.Title = this.langServ.get("All");
         orderstatusHeader.addChild(cb_SelAll);
         cb_SelAll.OnClick = () => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
@@ -274,7 +274,7 @@ export class AppComponent implements OnInit {
         let btn_cancel = new Button();
         btn_cancel.Left = 10;
         let cancel = "CancelSelected";
-        let rtnCancel = this.langServ.getTranslateInfo(this.languageType, cancel);
+        let rtnCancel = this.langServ.get(cancel);
         btn_cancel.Text = rtnCancel;
         orderstatusHeader.addChild(btn_cancel);
         orderstatusContent.addChild(orderstatusHeader);
@@ -327,7 +327,7 @@ export class AppComponent implements OnInit {
         let orderstatusTableRtnArr: string[] = [];
         let orderstatusTableTitleLen = orderstatusArr.length;
         for (let i = 0; i < orderstatusTableTitleLen; ++i) {
-            let orderstatusRtn = this.langServ.getTranslateInfo(this.languageType, orderstatusArr[i]);
+            let orderstatusRtn = this.langServ.get(orderstatusArr[i]);
             orderstatusTableRtnArr.push(orderstatusRtn);
         }
         orderstatusTableRtnArr.forEach(item => {
@@ -336,7 +336,7 @@ export class AppComponent implements OnInit {
         this.orderstatusTable.columnConfigurable = true;
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
-        this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.getTranslateInfo(this.languageType, "DoneOrders"));
+        this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.get("DoneOrders"));
         this.pageMap["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new VBox();
         this.doneOrdersTable = new DataTable("table2");
@@ -346,7 +346,7 @@ export class AppComponent implements OnInit {
         let doneOrderTableRtnArr: string[] = [];
         let doneOrderTableTittleLen = doneorderTableArr.length;
         for (let i = 0; i < doneOrderTableTittleLen; ++i) {
-            let doneOrderRtn = this.langServ.getTranslateInfo(this.languageType, doneorderTableArr[i]);
+            let doneOrderRtn = this.langServ.get(doneorderTableArr[i]);
             doneOrderTableRtnArr.push(doneOrderRtn);
         }
         doneOrderTableRtnArr.forEach(item => {
@@ -357,7 +357,7 @@ export class AppComponent implements OnInit {
         this.doneOrdersPage.setContent(doneOrdersContent);
 
 
-        this.accountPage = new TabPage("Account", this.langServ.getTranslateInfo(this.languageType, "Account"));
+        this.accountPage = new TabPage("Account", this.langServ.get("Account"));
         this.pageMap["Account"] = this.accountPage;
         let accountContent = new VBox();
         this.accountTable = new DataTable("table");
@@ -367,7 +367,7 @@ export class AppComponent implements OnInit {
         let accountTableRtnArr: string[] = [];
         let accountTableTittleLen = accountTableArr.length;
         for (let i = 0; i < accountTableTittleLen; ++i) {
-            let accountRtn = this.langServ.getTranslateInfo(this.languageType, accountTableArr[i]);
+            let accountRtn = this.langServ.get(accountTableArr[i]);
             accountTableRtnArr.push(accountRtn);
         }
         accountTableRtnArr.forEach(item => {
@@ -377,7 +377,7 @@ export class AppComponent implements OnInit {
         accountContent.addChild(this.accountTable);
         this.accountPage.setContent(accountContent);
 
-        this.positionPage = new TabPage("Position", this.langServ.getTranslateInfo(this.languageType, "Position"));
+        this.positionPage = new TabPage("Position", this.langServ.get("Position"));
         this.pageMap["Position"] = this.positionPage;
         let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
@@ -386,7 +386,7 @@ export class AppComponent implements OnInit {
         let positionTableRtnArr: string[] = [];
         let positionTableTittleLen = positionTableArr.length;
         for (let i = 0; i < positionTableTittleLen; ++i) {
-            let positionRtn = this.langServ.getTranslateInfo(this.languageType, positionTableArr[i]);
+            let positionRtn = this.langServ.get(positionTableArr[i]);
             positionTableRtnArr.push(positionRtn);
         }
         positionTableRtnArr.forEach(item => {
@@ -415,12 +415,12 @@ export class AppComponent implements OnInit {
                     break;
                 }
             }
-            let tradeRtn = this.langServ.getTranslateInfo(this.languageType, "Trade");
+            let tradeRtn = this.langServ.get("Trade");
             Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
         let leftAlign = 20;
         let rowSep = 5;
-        this.tradePage = new TabPage("ManulTrader", this.langServ.getTranslateInfo(this.languageType, "ManulTrader"));
+        this.tradePage = new TabPage("ManulTrader", this.langServ.get("ManulTrader"));
         this.tradeContent = new VBox();
         this.tradeContent.MinHeight = 500;
         this.tradeContent.MinWidth = 500;
@@ -428,7 +428,7 @@ export class AppComponent implements OnInit {
         let account_firrow = new HBox();
         this.dd_Account = new DropDown();
         this.dd_Account.Width = 120;
-        let dd_accountRtn = this.langServ.getTranslateInfo(this.languageType, "Account");
+        let dd_accountRtn = this.langServ.get("Account");
         let account_Label = new Label();
         if (this.languageType === 0)
             account_Label.Text = "  " + dd_accountRtn + ": ";
@@ -444,7 +444,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(account_firrow);
 
         let strategy_secrow = new HBox();
-        let dd_strategyRtn = this.langServ.getTranslateInfo(this.languageType, "Strategy");
+        let dd_strategyRtn = this.langServ.get("Strategy");
         let strategy_label = new Label();
         if (0 === this.languageType)
             strategy_label.Text = " " + dd_strategyRtn + ": ";
@@ -462,7 +462,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(strategy_secrow);
 
         let action_sevenrow = new HBox();
-        let dd_ActionRtn = this.langServ.getTranslateInfo(this.languageType, "Action");
+        let dd_ActionRtn = this.langServ.get("Action");
         let action_label = new Label();
         if (0 === this.languageType)
             action_label.Text = "   " + dd_ActionRtn + ": ";
@@ -474,8 +474,8 @@ export class AppComponent implements OnInit {
         this.dd_Action.Top = rowSep;
         this.dd_Action.Title = "";
         this.dd_Action.Width = 150;
-        let buyRtn = this.langServ.getTranslateInfo(this.languageType, "Buy");
-        let sellRtn = this.langServ.getTranslateInfo(this.languageType, "Sell");
+        let buyRtn = this.langServ.get("Buy");
+        let sellRtn = this.langServ.get("Sell");
         this.dd_Action.addItem({ Text: buyRtn, Value: 0 });
         this.dd_Action.addItem({ Text: sellRtn, Value: 1 });
         action_sevenrow.top = 5;
@@ -483,7 +483,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(action_sevenrow);
 
         let symbol_thirdrow = new HBox();
-        let txt_symbolRtn = this.langServ.getTranslateInfo(this.languageType, "Symbol");
+        let txt_symbolRtn = this.langServ.get("Symbol");
         let symbol_label = new Label();
         symbol_label.Left = leftAlign;
         if (0 === this.languageType)
@@ -502,7 +502,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(symbol_thirdrow);
 
         let ukey_fourthrow = new HBox();
-        let txt_UKeyRtn = this.langServ.getTranslateInfo(this.languageType, "U-key");
+        let txt_UKeyRtn = this.langServ.get("U-key");
         let ukey_label = new Label();
         ukey_label.Left = leftAlign;
         if (0 === this.languageType)
@@ -521,7 +521,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(ukey_fourthrow);
 
         let price_fifthrow = new HBox();
-        let txt_PriceRtn = this.langServ.getTranslateInfo(this.languageType, "Price");
+        let txt_PriceRtn = this.langServ.get("Price");
         let price_label = new Label();
         if (0 === this.languageType)
             price_label.Text = "    " + txt_PriceRtn + ": ";
@@ -538,7 +538,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(price_fifthrow);
 
         let volume_sixrow = new HBox();
-        let txt_VolumeRtn = this.langServ.getTranslateInfo(this.languageType, "Volume");
+        let txt_VolumeRtn = this.langServ.get("Volume");
         let volume_label = new Label();
         if (0 === this.languageType)
             volume_label.Text = "   " + txt_VolumeRtn + ": ";
@@ -557,11 +557,11 @@ export class AppComponent implements OnInit {
         let btn_row = new HBox();
         let btn_clear = new Button();
         btn_clear.Left = leftAlign;
-        btn_clear.Text = this.langServ.getTranslateInfo(this.languageType, "Close");
+        btn_clear.Text = this.langServ.get("Close");
         btn_row.addChild(btn_clear);
         let btn_submit = new Button();
         btn_submit.Left = 50;
-        btn_submit.Text = this.langServ.getTranslateInfo(this.languageType, "Submit");
+        btn_submit.Text = this.langServ.get("Submit");
         btn_clear.Class = btn_submit.Class = "primary";
         btn_row.top = 10;
         btn_row.left = 50;
@@ -607,7 +607,7 @@ export class AppComponent implements OnInit {
             this.dialog.hide();
         };
 
-        this.commentPage = new TabPage("Comment", this.langServ.getTranslateInfo(this.languageType, "Comment"));
+        this.commentPage = new TabPage("Comment", this.langServ.get("Comment"));
         this.commentContent = new VBox();
         this.commentTable = new DataTable("table2");
         this.commentTable.height = 400;
@@ -615,7 +615,7 @@ export class AppComponent implements OnInit {
         let commentTableArr: string[] = ["Key", "Value"];
         let commentTableRtnArr: string[] = [];
         for (let i = 0; i < commentTableArr.length; ++i) {
-            let commentRtn = this.langServ.getTranslateInfo(this.languageType, commentTableArr[i]);
+            let commentRtn = this.langServ.get(commentTableArr[i]);
             commentTableRtnArr.push(commentRtn);
         }
         commentTableRtnArr.forEach(item => {
@@ -625,11 +625,11 @@ export class AppComponent implements OnInit {
         this.commentContent.addChild(this.commentTable);
         this.commentPage.setContent(this.commentContent);
 
-        this.configPage = new TabPage("ParameterConfig", this.langServ.getTranslateInfo(this.languageType, "ParameterConfig"));
+        this.configPage = new TabPage("ParameterConfig", this.langServ.get("ParameterConfig"));
         this.configContent = new VBox();
         let configHeader = new HBox();
         let checkall = new CheckBox();
-        checkall.Title = this.langServ.getTranslateInfo(this.languageType, "Check");
+        checkall.Title = this.langServ.get("Check");
         let btn_apply = new Button();
         btn_apply.Left = 200;
         btn_apply.Text = "应用";
@@ -640,38 +640,38 @@ export class AppComponent implements OnInit {
         configHeader.addChild(checkall).addChild(btn_apply);
         this.configTable = new DataTable("table2");
         this.configTable.height = 390;
-        this.configTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "parameter"));
+        this.configTable.addColumn(this.langServ.get("parameter"));
         this.configTable.columnConfigurable = true;
         this.configContent.addChild(configHeader).addChild(this.configTable);
         this.configPage.setContent(this.configContent);
         checkall.OnClick = () => { this.configTable.rows.forEach(item => { item.cells[0].Text = !checkall.Text; }); };
 
-        this.gatewayPage = new TabPage("GateWay", this.langServ.getTranslateInfo(this.languageType, "Gateway"));
+        this.gatewayPage = new TabPage("GateWay", this.langServ.get("Gateway"));
         this.gatewayContent = new VBox();
         this.gatewayTable = new DataTable("table2");
         this.gatewayTable.height = 300;
-        this.gatewayTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "name"));
-        this.gatewayTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "status"));
+        this.gatewayTable.addColumn(this.langServ.get("name"));
+        this.gatewayTable.addColumn(this.langServ.get("status"));
         this.gatewayTable.columnConfigurable = true;
         this.gatewayContent.addChild(this.gatewayTable);
         this.gatewayPage.setContent(this.gatewayContent);
 
-        this.bookviewPage = new TabPage("BookView", this.langServ.getTranslateInfo(this.languageType, "BookView"));
+        this.bookviewPage = new TabPage("BookView", this.langServ.get("BookView"));
         this.createBookView("BookView");
 
-        this.logPage = new TabPage("Log", this.langServ.getTranslateInfo(this.languageType, "LOG"));
+        this.logPage = new TabPage("Log", this.langServ.get("LOG"));
         this.pageMap["Log"] = this.logPage;
         let logContent = new VBox();
         this.logTable = new DataTable("table2");
 
-        let logTimeTittleRtn = this.langServ.getTranslateInfo(this.languageType, "Time");
-        let logContentTittleRtn = this.langServ.getTranslateInfo(this.languageType, "Content");
+        let logTimeTittleRtn = this.langServ.get("Time");
+        let logContentTittleRtn = this.langServ.get("Content");
         this.logTable.addColumn(logTimeTittleRtn);
         this.logTable.addColumn(logContentTittleRtn);
         logContent.addChild(this.logTable);
         this.logPage.setContent(logContent);
 
-        this.statarbPage = new TabPage("StatArb", this.langServ.getTranslateInfo(this.languageType, "StatArb"));
+        this.statarbPage = new TabPage("StatArb", this.langServ.get("StatArb"));
         this.pageMap["StatArb"] = this.statarbPage;
         let statarbLeftAlign = 20;
         let statarbHeader = new HBox();
@@ -680,12 +680,12 @@ export class AppComponent implements OnInit {
         this.buyamountLabel.Width = 90;
         this.buyamountLabel.Text = "0";
 
-        this.buyamountLabel.Title = this.langServ.getTranslateInfo(this.languageType, "BUY.AMOUNT") + ":";
+        this.buyamountLabel.Title = this.langServ.get("BUY.AMOUNT") + ":";
         this.buyamountLabel.Disable = true;
         this.sellamountLabel = new MetaControl("textbox");
         this.sellamountLabel.Left = statarbLeftAlign;
         this.sellamountLabel.Width = 90;
-        this.sellamountLabel.Title = this.langServ.getTranslateInfo(this.languageType, "SELL.AMOUNT") + ":";
+        this.sellamountLabel.Title = this.langServ.get("SELL.AMOUNT") + ":";
         this.sellamountLabel.Disable = true;
         this.sellamountLabel.Text = "0";
         statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
@@ -695,7 +695,7 @@ export class AppComponent implements OnInit {
         let statarbTableRtnarr: string[] = [];
         let statarbTableTitleLen = statarbTablearr.length;
         for (let i = 0; i < statarbTableTitleLen; ++i) {
-            let statarbRtn = this.langServ.getTranslateInfo(this.languageType, statarbTablearr[i]);
+            let statarbRtn = this.langServ.get(statarbTablearr[i]);
             statarbTableRtnarr.push(statarbRtn);
         }
         statarbTableRtnarr.forEach(item => {
@@ -708,19 +708,19 @@ export class AppComponent implements OnInit {
         statarbContent.addChild(this.statarbTable);
         this.statarbPage.setContent(statarbContent);
 
-        this.portfolioPage = new TabPage("Portfolio", this.langServ.getTranslateInfo(this.languageType, "Portfolio"));
+        this.portfolioPage = new TabPage("Portfolio", this.langServ.get("Portfolio"));
         this.pageMap["Portfolio"] = this.portfolioPage;
         let loadItem = new HBox();
 
         this.dd_portfolioAccount = new DropDown();
         this.dd_portfolioAccount.Width = 110;
         this.dd_portfolioAccount.Left = statarbLeftAlign;
-        this.dd_portfolioAccount.Title = this.langServ.getTranslateInfo(this.languageType, "Account") + ":";
+        this.dd_portfolioAccount.Title = this.langServ.get("Account") + ":";
 
 
         this.portfolioLabel = new MetaControl("textbox");
         this.portfolioLabel.Width = 60;
-        let portfoliovalueRtn = this.langServ.getTranslateInfo(this.languageType, "PORTFOLIOValue");
+        let portfoliovalueRtn = this.langServ.get("PORTFOLIOValue");
         if (portfoliovalueRtn === "PORTFOLIOValue")
             this.portfolioLabel.Title = "PORTFOLIO Value:";
         else
@@ -730,7 +730,7 @@ export class AppComponent implements OnInit {
 
         this.portfolioDaypnl = new MetaControl("textbox");
         this.portfolioDaypnl.Width = 60;
-        let portfolioDaypnlRtn = this.langServ.getTranslateInfo(this.languageType, "PORTFOLIODaypnl");
+        let portfolioDaypnlRtn = this.langServ.get("PORTFOLIODaypnl");
         if (portfolioDaypnlRtn === "PORTFOLIODaypnl")
             this.portfolioDaypnl.Title = "PORTFOLIO Day pnl:";
         else
@@ -740,7 +740,7 @@ export class AppComponent implements OnInit {
 
         this.portfolioonpnl = new MetaControl("textbox");
         this.portfolioonpnl.Width = 60;
-        let portfolioonpnlRtn = this.langServ.getTranslateInfo(this.languageType, "PORTFOLIOO/NPnl");
+        let portfolioonpnlRtn = this.langServ.get("PORTFOLIOO/NPnl");
         if (portfolioonpnlRtn === "PORTFOLIOO/NPnl")
             this.portfolioonpnl.Title = "PORTFOLIO O/N Pnl:";
         else
@@ -750,14 +750,14 @@ export class AppComponent implements OnInit {
 
         this.portfolioCount = new MetaControl("textbox");
         this.portfolioCount.Width = 50;
-        let portfolioCountRtn = this.langServ.getTranslateInfo(this.languageType, "Count");
+        let portfolioCountRtn = this.langServ.get("Count");
         this.portfolioCount.Title = portfolioCountRtn + ":";
         this.portfolioCount.Left = 20;
         this.portfolioCount.Disable = true;
         this.portfolioCount.Text = 0;
 
         let btn_load = new Button();
-        let btn_loadRtn = this.langServ.getTranslateInfo(this.languageType, "LoadCSV");
+        let btn_loadRtn = this.langServ.get("LoadCSV");
         if (btn_loadRtn === "LoadCSV")
             btn_load.Text = " Load    CSV ";
         else
@@ -773,7 +773,7 @@ export class AppComponent implements OnInit {
         this.portfolioBuyCom.Width = 59;
         this.portfolioBuyCom.Left = 30;
 
-        this.portfolioBuyCom.Title = this.langServ.getTranslateInfo(this.languageType, "Buy") + ":";
+        this.portfolioBuyCom.Title = this.langServ.get("Buy") + ":";
         this.portfolioBuyCom.addItem({ Text: "B5", Value: "0" });
         this.portfolioBuyCom.addItem({ Text: "B4", Value: "1" });
         this.portfolioBuyCom.addItem({ Text: "B3", Value: "2" });
@@ -817,7 +817,7 @@ export class AppComponent implements OnInit {
         this.portfolioSellCom = new DropDown();
         this.portfolioSellCom.Width = 62;
         this.portfolioSellCom.Left = 20;
-        this.portfolioSellCom.Title = this.langServ.getTranslateInfo(this.languageType, "Sell") + ":";
+        this.portfolioSellCom.Title = this.langServ.get("Sell") + ":";
         this.portfolioSellCom.addItem({ Text: "B5", Value: "0" });
         this.portfolioSellCom.addItem({ Text: "B4", Value: "1" });
         this.portfolioSellCom.addItem({ Text: "B3", Value: "2" });
@@ -857,17 +857,17 @@ export class AppComponent implements OnInit {
         this.portfolioSellOffset.SelectedItem = this.portfolioSellOffset.Items[10];
 
         // this.allChk = new CheckBox(); this.allChk.Width = 30;
-        // this.allChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All");
+        // this.allChk.Title = " " + this.langServ.getTranslateInfo("All");
         // this.allChk.Text = false; this.allChk.Left = 22;
         let allbuyChk = new CheckBox(); allbuyChk.Width = 30;
-        allbuyChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All-Buy");
+        allbuyChk.Title = " " + this.langServ.get("All-Buy");
         allbuyChk.Text = false; allbuyChk.Left = 20;
         let allsellChk = new CheckBox(); allsellChk.Width = 30;
-        allsellChk.Title = " " + this.langServ.getTranslateInfo(this.languageType, "All-Sell");
+        allsellChk.Title = " " + this.langServ.get("All-Sell");
         allsellChk.Text = false; allsellChk.Left = 20;
 
         this.range = new URange(); this.range.Width = 168; this.range.Left = 20;
-        let orderRateRtn = this.langServ.getTranslateInfo(this.languageType, "orderrate");
+        let orderRateRtn = this.langServ.get("orderrate");
         if (orderRateRtn === "orderrate")
             this.range.Title = "Order Rate:";
         else
@@ -878,7 +878,7 @@ export class AppComponent implements OnInit {
         this.range.Text = 0; this.rateText.Text = 0;
 
         let btn_sendSel = new Button();
-        let sendSelRtn = this.langServ.getTranslateInfo(this.languageType, "sendselected");
+        let sendSelRtn = this.langServ.get("sendselected");
 
         if (sendSelRtn === "sendselected")
             btn_sendSel.Text = "Send Selected";
@@ -888,7 +888,7 @@ export class AppComponent implements OnInit {
         btn_sendSel.Left = 20;
         btn_sendSel.Class = "primary";
         let btn_cancelSel = new Button();
-        let cancelSelRtn = this.langServ.getTranslateInfo(this.languageType, "cancelselected");
+        let cancelSelRtn = this.langServ.get("cancelselected");
         if (cancelSelRtn === "cancelselected")
             btn_cancelSel.Text = "Cancel Selected";
         else
@@ -902,7 +902,7 @@ export class AppComponent implements OnInit {
         ["Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
             "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
             "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].forEach(col => {
-                this.portfolioTable.addColumn(this.langServ.getTranslateInfo(this.languageType, col));
+                this.portfolioTable.addColumn(this.langServ.get(col));
             });
 
         this.portfolioTable.columnConfigurable = true;
@@ -1060,39 +1060,39 @@ export class AppComponent implements OnInit {
 
 
 
-        this.profitPage = new TabPage("Profit", this.langServ.getTranslateInfo(this.languageType, "Profit"));
+        this.profitPage = new TabPage("Profit", this.langServ.get("Profit"));
         this.pageMap["Profit"] = this.profitPage;
         let profitleftAlign = 20;
         let profitHeader = new HBox();
         this.totalpnLabel = new MetaControl("textbox");
         this.totalpnLabel.Left = profitleftAlign;
         this.totalpnLabel.Width = 85;
-        this.totalpnLabel.Title = this.langServ.getTranslateInfo(this.languageType, "TOTALPNL") + ": ";
+        this.totalpnLabel.Title = this.langServ.get("TOTALPNL") + ": ";
         this.totalpnLabel.Disable = true;
         this.pospnlLabel = new MetaControl("textbox");
         this.pospnlLabel.Left = profitleftAlign;
         this.pospnlLabel.Width = 85;
-        this.pospnlLabel.Title = this.langServ.getTranslateInfo(this.languageType, "POSPNL") + ": ";
+        this.pospnlLabel.Title = this.langServ.get("POSPNL") + ": ";
         this.pospnlLabel.Disable = true;
         this.trapnlt = new MetaControl("textbox");
         this.trapnlt.Left = profitleftAlign;
         this.trapnlt.Width = 85;
-        this.trapnlt.Title = this.langServ.getTranslateInfo(this.languageType, "TRAPNL.T") + ": ";
+        this.trapnlt.Title = this.langServ.get("TRAPNL.T") + ": ";
         this.trapnlt.Disable = true;
         this.pospnlt = new MetaControl("textbox");
         this.pospnlt.Left = profitleftAlign;
         this.pospnlt.Width = 85;
-        this.pospnlt.Title = this.langServ.getTranslateInfo(this.languageType, "POSPNL.T") + ": ";
+        this.pospnlt.Title = this.langServ.get("POSPNL.T") + ": ";
         this.pospnlt.Disable = true;
         this.totalpnlt = new MetaControl("textbox");
         this.totalpnlt.Left = profitleftAlign;
         this.totalpnlt.Width = 85;
-        this.totalpnlt.Title = this.langServ.getTranslateInfo(this.languageType, "TOTALPNL.T") + ": ";
+        this.totalpnlt.Title = this.langServ.get("TOTALPNL.T") + ": ";
         this.totalpnlt.Disable = true;
         let reqbtn = new Button();
         reqbtn.Left = profitleftAlign;
         reqbtn.Width = 30;
-        reqbtn.Text = this.langServ.getTranslateInfo(this.languageType, "Req");
+        reqbtn.Text = this.langServ.get("Req");
         profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
         this.profitTable = new DataTable("table2");
         let profittableArr: string[] = ["U-Key", "Code", "Account", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
@@ -1101,7 +1101,7 @@ export class AppComponent implements OnInit {
         let profitTableTittleLen = profittableArr.length;
         let profitTableRtnArr: string[] = [];
         for (let i = 0; i < profitTableTittleLen; ++i) {
-            profitTableRtnArr.push(this.langServ.getTranslateInfo(this.languageType, profittableArr[i]));
+            profitTableRtnArr.push(this.langServ.get(profittableArr[i]));
         }
         profitTableRtnArr.forEach(item => {
             this.profitTable.addColumn(item);
@@ -1126,18 +1126,18 @@ export class AppComponent implements OnInit {
     }
 
     onStrategyTableInit() {
-        this.strategyPage = new TabPage("Strategy", this.langServ.getTranslateInfo(this.languageType, "StrategyMonitor"));
+        this.strategyPage = new TabPage("Strategy", this.langServ.get("StrategyMonitor"));
         let strategyHeader = new HBox();
         let startall = new Button();
-        startall.Text = this.langServ.getTranslateInfo(this.languageType, "StartAll");
+        startall.Text = this.langServ.get("StartAll");
         let pauseall = new Button();
-        pauseall.Text = this.langServ.getTranslateInfo(this.languageType, "PauseAll");
+        pauseall.Text = this.langServ.get("PauseAll");
         let stopall = new Button();
-        stopall.Text = this.langServ.getTranslateInfo(this.languageType, "StopAll");
+        stopall.Text = this.langServ.get("StopAll");
         let watchall = new Button();
-        watchall.Text = this.langServ.getTranslateInfo(this.languageType, "WatchAll");
+        watchall.Text = this.langServ.get("WatchAll");
         let configBtn = new Button();
-        configBtn.Text = this.langServ.getTranslateInfo(this.languageType, "Config");
+        configBtn.Text = this.langServ.get("Config");
         startall.OnClick = () => { this.operateStrategy(this.strategyTable.rows[0].cells[0].Text, 0); };
         pauseall.OnClick = () => { this.operateStrategy(this.strategyTable.rows[0].cells[0].Text, 1); };
         stopall.OnClick = () => { this.operateStrategy(this.strategyTable.rows[0].cells[0].Text, 2); };
@@ -1146,7 +1146,7 @@ export class AppComponent implements OnInit {
             this.configTable.rows.forEach(row => {
                 row.cells[0].Text = !this.option.config["strategy_table"].columnHideIDs.includes(row.cells[0].Data);
             });
-            Dialog.popup(this, this.configContent, { title: this.langServ.getTranslateInfo(this.languageType, "parameter"), height: 450 });
+            Dialog.popup(this, this.configContent, { title: this.langServ.get("parameter"), height: 450 });
         };
 
         strategyHeader.addChild(startall).addChild(pauseall).addChild(stopall).addChild(watchall).addChild(configBtn);
@@ -1154,7 +1154,7 @@ export class AppComponent implements OnInit {
         this.strategyTable = new DataTable();
         this.strategyTable.RowIndex = false;
         ["StrategyID", "Sym1", "Sym2", "Command", "Status", "PosPnl(K)", "TraPnl(K)"]
-            .forEach(item => { this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item)); });
+            .forEach(item => { this.strategyTable.addColumn(this.langServ.get(item)); });
         let strategyContent = new VBox();
         strategyContent.addChild(strategyHeader);
         strategyContent.addChild(this.strategyTable);
@@ -1739,7 +1739,7 @@ export class AppComponent implements OnInit {
                     row.cells[0].Text = o;
                     row.cells[1].Text = AppComponent.self.gatewayObj[o];
                 }
-                Dialog.popup(this, this.gatewayContent, { title: this.langServ.getTranslateInfo(this.languageType, "Gateway"), height: 300 });
+                Dialog.popup(this, this.gatewayContent, { title: this.langServ.get("Gateway"), height: 300 });
             }
         };
         tempmark.section = "right";
@@ -1975,7 +1975,7 @@ export class AppComponent implements OnInit {
                     this.option.config["strategy_table"] = { columnHideIDs: [] };
 
                 strategyKeyMap.comments1.forEach((item, idx) => {
-                    this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item.name));
+                    this.strategyTable.addColumn(this.langServ.get(item.name));
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
                     this.strategyTable.columns[offset + idx].key = item.key;
@@ -1993,7 +1993,7 @@ export class AppComponent implements OnInit {
                 }
 
                 strategyKeyMap.commands.forEach((item, idx) => {
-                    this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item.name));
+                    this.strategyTable.addColumn(this.langServ.get(item.name));
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = item.name;
                     this.strategyTable.rows[iRow].cells[offset + idx].Data = item;
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "button";
@@ -2003,7 +2003,7 @@ export class AppComponent implements OnInit {
 
                 offset += strategyKeyMap.commands.length;
                 strategyKeyMap.parameters.forEach((item, idx) => {
-                    this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item.name));
+                    this.strategyTable.addColumn(this.langServ.get(item.name));
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
@@ -2021,7 +2021,7 @@ export class AppComponent implements OnInit {
 
                 offset += strategyKeyMap.parameters.length;
                 if (strategyKeyMap.comments2.length > 0) {
-                    this.strategyTable.addColumn(this.langServ.getTranslateInfo(this.languageType, "comment"));
+                    this.strategyTable.addColumn(this.langServ.get("comment"));
                     this.strategyTable.rows[iRow].cells[offset].Text = "comment";
                     this.strategyTable.rows[iRow].cells[offset].Type = "button";
                     this.strategyTable.rows[iRow].cells[offset].Class = "primary";
@@ -2128,11 +2128,11 @@ export class AppComponent implements OnInit {
 
             this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text].comments2.forEach(item => {
                 let row = this.commentTable.newRow();
-                row.cells[0].Text = this.langServ.getTranslateInfo(this.languageType, item.name);
+                row.cells[0].Text = this.langServ.get(item.name);
                 row.cells[1].Text = item.value;
             });
 
-            Dialog.popup(this, this.commentContent, { title: this.langServ.getTranslateInfo(this.languageType, "Comment"), height: 450 });
+            Dialog.popup(this, this.commentContent, { title: this.langServ.get("Comment"), height: 450 });
             return;
         }
 
@@ -2329,13 +2329,13 @@ export class AppComponent implements OnInit {
     }
 
     createBookView(bookviewID) {
-        let bookviewPage = new TabPage(bookviewID, this.langServ.getTranslateInfo(this.languageType, "BookView"));
+        let bookviewPage = new TabPage(bookviewID, this.langServ.get("BookView"));
         this.pageMap[bookviewID] = bookviewPage;
 
         let row1 = new HBox();
         let dd_symbol = new DropDown();
         dd_symbol.AcceptInput = true;
-        dd_symbol.Title = this.langServ.getTranslateInfo(this.languageType, "Code") + ": ";
+        dd_symbol.Title = this.langServ.get("Code") + ": ";
         let code = null;
         if (this.appStorage && this.appStorage.bookView && this.appStorage.bookView.hasOwnProperty(bookviewID)) {
             code = this.appStorage.bookView[bookviewID].code;
@@ -2349,12 +2349,12 @@ export class AppComponent implements OnInit {
 
         let row2 = new HBox();
         let lbl_timestamp = new Label();
-        lbl_timestamp.Title = this.langServ.getTranslateInfo(this.languageType, "Timestamp") + ": ";
+        lbl_timestamp.Title = this.langServ.get("Timestamp") + ": ";
         row2.addChild(lbl_timestamp);
 
         let bookViewTable = new DataTable("table2");
         bookViewTable.align = "right";
-        ["BidVol", "Price", "AskVol", "TransVol"].forEach(item => { bookViewTable.addColumn(this.langServ.getTranslateInfo(this.languageType, item)); });
+        ["BidVol", "Price", "AskVol", "TransVol"].forEach(item => { bookViewTable.addColumn(this.langServ.get(item)); });
 
         for (let i = 0; i < 20; ++i) {
             let row = bookViewTable.newRow();
@@ -2415,7 +2415,7 @@ export class AppComponent implements OnInit {
                 this.dd_Action.SelectedItem = cellIdx > 1 ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
             }
 
-            Dialog.popup(this, this.tradeContent, { title: this.langServ.getTranslateInfo(this.languageType, "Trade"), height: 300 });
+            Dialog.popup(this, this.tradeContent, { title: this.langServ.get("Trade"), height: 300 });
         };
 
         let bookViewContent = new VBox();

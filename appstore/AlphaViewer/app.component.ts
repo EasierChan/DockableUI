@@ -227,6 +227,7 @@ export class AppComponent implements OnInit, OnDestroy {
             this.ref.detectChanges();
             this.quote.send(17, 101, { topic: 3112, kwlist: [] });
             this.groupUKeys = [];
+            this.kwlist = [];
         }
 
         if (this.codes[0].length < 1 || this.codes[1].length < 1) {
@@ -451,14 +452,14 @@ export class UAlphaViewer {
                     this.dataOption.series[1].data[this.clockPoint.index] =
                         (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] -
                             this.msgs[this.ukeys[1]][this.clockPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(4); // tslint:disable-line
-                    this.dataOption.series[2].data[this.clockPoint.index] = this.msgs[this.ukeys[0]][this.clockPoint.time].last; // tslint:disable-line
+                    this.dataOption.series[2].data[this.clockPoint.index] = this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time].last; // tslint:disable-line
                     this.dataOption.series[3].data[this.clockPoint.index] = this.msgs[this.ukeys[1]][this.clockPoint.time].last; // tslint:disable-line
                     // alpha
                     this.dataOption.series[4].data[this.clockPoint.index] =
-                        this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time].last - this.msgs[this.ukeys[2]][this.clockPoint.time].last; // tslint:disable-line
-                    // 基差
+                        (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.clockPoint.time].last - this.msgs[this.ukeys[2]][this.clockPoint.time].last).toFixed(4); // tslint:disable-line
+                    // -基差
                     this.dataOption.series[5].data[this.clockPoint.index] =
-                        this.msgs[this.ukeys[1]][this.clockPoint.time].last - this.msgs[this.ukeys[2]][this.clockPoint.time].last; // tslint:disable-line
+                        (this.msgs[this.ukeys[2]][this.clockPoint.time].last - this.msgs[this.ukeys[1]][this.clockPoint.time].last).toFixed(4); // tslint:disable-line
                     this.clockPoint.time = this.increaseTime(this.clockPoint);
                     ++this.clockPoint.index;
 
@@ -706,7 +707,7 @@ export class UAlphaViewer {
                 data: []
             }, {
                 xAxisIndex: 1,
-                yAxisIndex: 2,
+                yAxisIndex: 1,
                 name: lines[3],
                 type: "line",
                 connectNulls: true,
@@ -717,6 +718,8 @@ export class UAlphaViewer {
                 connectNulls: true,
                 data: []
             }, {
+                xAxisIndex: 1,
+                yAxisIndex: 2,
                 name: lines[5],
                 type: "line",
                 connectNulls: true,
