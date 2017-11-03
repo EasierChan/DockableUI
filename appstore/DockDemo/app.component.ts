@@ -2278,13 +2278,13 @@ export class AppComponent implements OnInit {
                     break;
                 case 1:
                     if (this.portfolioTable.rows[i].cells[3].Text > 0) {
-                        if (typeof this.portfolioTable.rows[i].cells[3].Text === "boolean")
+                        if (typeof this.portfolioTable.rows[i].cells[0].Text === "boolean")
                             this.portfolioTable.rows[i].cells[0].Text = check;
                     }
                     break;
                 case 2:
                     if (this.portfolioTable.rows[i].cells[3].Text < 0) {
-                        if (typeof this.portfolioTable.rows[i].cells[3].Text === "boolean")
+                        if (typeof this.portfolioTable.rows[i].cells[0].Text === "boolean")
                             this.portfolioTable.rows[i].cells[0].Text = check;
                     }
                     break;
