@@ -48,8 +48,12 @@ export class AppComponent implements OnInit, OnDestroy {
     groupUKeys: number[];
     quoteHeart: any = null;
     showSetting: boolean;
+    showOne: boolean;
+    showTwo: boolean;
     durations: number[][];
     kwlist: number[];
+    toggleOne: string;
+    toggleTwo: string;
     toggleText: string;
     bTip: boolean;
     tips: string[];
@@ -61,6 +65,8 @@ export class AppComponent implements OnInit, OnDestroy {
         private secuinfo: SecuMasterService, private ref: ChangeDetectorRef) {
         this.state.onInit(this, this.onReady);
         this.toggleText = "隐藏设置";
+        this.toggleOne = "切换图1";
+        this.toggleTwo = "切换图2";
     }
 
     onReady(option: any) {
@@ -133,6 +139,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.groupUKeys = [];
         this.kwlist = [];
         this.showSetting = true;
+        this.showOne = true;
+        this.showTwo = true;
         this.bTip = false;
         this.tips = [];
         this.statusbar = new StatusBar();
@@ -385,11 +393,34 @@ export class AppComponent implements OnInit, OnDestroy {
         }
     }
 
-    toggleView() {
-        this.showSetting = !this.showSetting;
-        this.toggleText = this.showSetting ? "隐藏设置" : "显示设置";
-        this.ref.detectChanges();
-        this.spreadviewer.spreadChart.instance.resize();
+    toggleView(type = 0) {
+        switch (type) {
+            case 0:
+                this.showSetting = !this.showSetting;
+                this.toggleText = this.showSetting ? "隐藏设置" : "显示设置";
+                this.ref.detectChanges();
+                this.spreadviewer.spreadChart.instance.resize();
+                return;
+            case 1:
+                this.showOne = !this.showOne;
+                break;
+            case 2:
+                this.showTwo = !this.showTwo;
+                break;
+        }
+
+        if (this.showOne && this.showTwo) {
+            this.spreadviewer.changeView(0);
+            return;
+        }
+
+        if (this.showOne && !this.showTwo) {
+            this.spreadviewer.changeView(1);
+            return;
+        }
+
+        if (!this.showOne && this.showTwo)
+            this.spreadviewer.changeView(2);
     }
 
     ngOnDestroy() {
@@ -937,6 +968,41 @@ export class USpreadViewer {
     changeYAxisInterval(min: number, max: number, interval: number) {
         if (this.spreadChart.instance) {
             this.spreadChart.instance.setOption({ yAxis: [{ min: min, max: max, interval: interval }] });
+        }
+    }
+
+    changeView(type: number) {
+        if (this.spreadChart.instance) {
+            let grid: any = [{
+                show: true,
+                top: 30,
+                left: "10%",
+                right: "8%",
+                height: "40%"
+            }, {
+                show: true,
+                left: "10%",
+                right: "8%",
+                bottom: "30"
+            }];
+
+            switch (type) {
+                case 1:
+                    grid[0].show = true;
+                    grid[0].height = "auto";
+                    grid[1].show = false;
+                    break;
+                case 2:
+                    grid[0].show = false;
+                    grid[1].show = true;
+                    grid[1].height = "auto";
+                    break;
+                default:
+                    break;
+            }
+
+            console.info(grid);
+            this.spreadChart.instance.setOption({ grid: grid });
         }
     }
 

@@ -2359,7 +2359,7 @@ export class TileArea extends Control {
         let tileCount = this.dataSource.items.length;
 
         for (let i = 0; i < tileCount; ++i) {
-            if (this.dataSource.items[i].title === name) {
+            if (this.dataSource.items[i].id === name) {
                 return this.dataSource.items[i];
             }
         }
@@ -2389,6 +2389,8 @@ export class Tile {
     backgroundColor: string;
     title: string;
     iconName: string;
+    id: any;
+    state: number;
     data: any;
 }
 

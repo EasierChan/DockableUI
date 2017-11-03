@@ -37,6 +37,10 @@
     align-items: center
 }
 
+.fill {
+    flex: auto;
+}
+
 select {
     padding: 0;
     height: 21px;
@@ -75,6 +79,10 @@ select {
     height: auto;
     line-height: auto;
     padding: 0 10px;
+}
+
+.right {
+    float: right;
 }
 
 .condition .u-file {

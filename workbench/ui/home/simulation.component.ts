@@ -111,7 +111,11 @@ export class SimulationComponent implements OnInit {
             }
 
             if (event.button === 0) {  // left click
-                this.onStartApp();
+                if (this.selectedStrategyConfig.state > 0) {
+                    this.onStartApp();
+                } else {
+                    alert("请先启动策略服务！");
+                }
             } else if (event.button === 2) { // right click
                 this.strategyMenu.popup();
             }
@@ -122,7 +126,7 @@ export class SimulationComponent implements OnInit {
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
-            tile.data = config.name;
+            tile.id = config.name;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
         });
@@ -131,18 +135,18 @@ export class SimulationComponent implements OnInit {
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
-            tile.data = config.name;
+            tile.id = config.name;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
         };
 
         this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
-            this.strategyArea.getTile(oldName).title = config.chname;
+            this.strategyArea.getTile(config.name).title = config.chname;
             this.ref.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
-            let tile = this.strategyArea.getTile(config.chname);
+            let tile = this.strategyArea.getTile(config.name);
             if (tile !== null)
                 tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
         };

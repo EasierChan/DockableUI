@@ -185,13 +185,11 @@ usercontrol.col > dock-control > .tab-panel {
 
 .panel-header-list > .tab > .header-close {
     visibility: hidden;
-    margin-left: 5px;
-    padding: 3px;
+    margin-left: 10px;
 }
 
 .panel-header-list > .tab > .header-close:hover {
-    border-radius: 10px;
-    background-color: rgba(255, 255, 255, 0.2);
+    font-weight: bolder;
 }
 
 .tab:hover > .header-close,

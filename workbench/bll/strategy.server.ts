@@ -327,8 +327,8 @@ export class ConfigurationBLL {
         let value = this._loopbackItems.find(aItem => { return aItem.id === item.id; });
         if (!value) {
             this._loopbackItems.push(item);
-            File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
         }
+        File.writeAsync(this._loopbackPath, JSON.stringify(this._loopbackItems));
     }
 
     removeLoopbackItem(item: any) { // write once

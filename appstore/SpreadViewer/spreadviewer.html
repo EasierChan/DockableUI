@@ -56,7 +56,10 @@
         <button type="button" class="btn-default operator" [class.active]="rangeType==1" (click)="changeChartOption(2)">10分</button>
         <button type="button" class="btn-default operator" [class.active]="rangeType==2" (click)="changeChartOption(3)">1时</button>
         <button type="button" class="btn-default operator" [class.active]="rangeType==3" (click)="changeChartOption(4)">1天</button>
-        <button type="button" class="btn-default operator" style="margin-right: 0; margin-left: auto;" (click)="toggleView()">{{toggleText}}</button>
+        <div class="fill"></div>
+        <!--<button type="button" class="btn-default operator right" (click)="toggleView(1)">{{toggleOne}}</button>
+        <button type="button" class="btn-default operator right" (click)="toggleView(2)">{{toggleTwo}}</button>-->
+        <button type="button" class="btn-default operator right" (click)="toggleView()">{{toggleText}}</button>
     </div>
     <div *ngIf="spreadviewer" echarts [options]="spreadviewer.spreadChart.chartOption" (chartInit)="spreadviewer.onChartInit($event, 0)"
         class="chart" #chart></div>
