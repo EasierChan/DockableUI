@@ -1008,7 +1008,7 @@ export class AppComponent implements OnInit {
             let sendArr = [];
 
             for (let i = 0; i < this.portfolioTable.rows.length; ++i) {
-                if (this.portfolioTable.rows[i].cells[0].Text) {
+                if (this.portfolioTable.rows[i].cells[0].Text === true) {
                     let qty = parseInt(this.portfolioTable.rows[i].cells[9].Text);
                     if (isNaN(qty)) {
                         alert("下单量必须是数值型");
@@ -2268,22 +2268,24 @@ export class AppComponent implements OnInit {
     }
 
     changeItems(type: number, check: boolean) {    // check if opposite
-        let len = AppComponent.self.portfolioTable.rows.length;
+        let len = this.portfolioTable.rows.length;
 
         for (let i = 0; i < len; ++i) {
 
             switch (type) {
                 case 0:
-                    AppComponent.self.portfolioTable.rows[i].cells[0].Text = check;
+                    this.portfolioTable.rows[i].cells[0].Text = check;
                     break;
                 case 1:
-                    if (AppComponent.self.portfolioTable.rows[i].cells[3].Text > 0) {
-                        AppComponent.self.portfolioTable.rows[i].cells[0].Text = check;
+                    if (this.portfolioTable.rows[i].cells[3].Text > 0) {
+                        if (typeof this.portfolioTable.rows[i].cells[3].Text === "boolean")
+                            this.portfolioTable.rows[i].cells[0].Text = check;
                     }
                     break;
                 case 2:
-                    if (AppComponent.self.portfolioTable.rows[i].cells[3].Text < 0) {
-                        AppComponent.self.portfolioTable.rows[i].cells[0].Text = check;
+                    if (this.portfolioTable.rows[i].cells[3].Text < 0) {
+                        if (typeof this.portfolioTable.rows[i].cells[3].Text === "boolean")
+                            this.portfolioTable.rows[i].cells[0].Text = check;
                     }
                     break;
             }
@@ -2295,7 +2297,7 @@ export class AppComponent implements OnInit {
         let len = AppComponent.self.portfolioTable.rows.length;
 
         for (let i = 0; i < len; ++i) {
-            if (AppComponent.self.portfolioTable.rows[i].cells[0].Text)
+            if (AppComponent.self.portfolioTable.rows[i].cells[0].Text === true)
                 res.push(AppComponent.self.portfolioTable.rows[i].cells[0].Data);
         }
 
