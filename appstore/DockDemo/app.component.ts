@@ -2121,7 +2121,7 @@ export class AppComponent implements OnInit {
             this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text].comments2.forEach(item => {
                 let row = this.commentTable.newRow();
                 row.cells[0].Text = this.langServ.get(item.name);
-                row.cells[1].Text = item.value;
+                row.cells[1].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
             });
 
             Dialog.popup(this, this.commentContent, { title: this.langServ.get("Comment"), height: 450 });

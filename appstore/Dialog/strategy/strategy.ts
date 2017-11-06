@@ -95,7 +95,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
                     row.cells[0].Text = this.langSrv.get(prop);
                     row.cells[1].Type = "textbox";
                     let param = this.config.items[0].parameters.find(item => { return item.name === prop; });
-                    row.cells[1].Text = param ? param.value : row.cells[0].Data.value;
+                    row.cells[1].Text = param ? param.value : (row.cells[0].Data.value / Math.pow(10, row.cells[0].Data.decimal)).toFixed(row.cells[0].Data.decimal);
                 }
             }
 
@@ -142,7 +142,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.config.items[0].instruments = [];
         if (this.paramsTable.rows.length > 0) {
             this.paramsTable.rows.forEach(row => {
-                this.config.items[0].parameters.push({ name: row.cells[0].Text, value: parseInt(row.cells[1].Text) });
+                this.config.items[0].parameters.push({ name: row.cells[0].Text, value: parseFloat(row.cells[1].Text) });
             });
         }
 
@@ -166,7 +166,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
                 row.cells[0].Data = strategy[strategy["Strategies"][0]].Parameter[prop];
                 row.cells[0].Text = this.langSrv.get(prop);
                 row.cells[1].Type = "textbox";
-                row.cells[1].Text = row.cells[0].Data.value;
+                row.cells[1].Text = (row.cells[0].Data.value / Math.pow(10, row.cells[0].Data.decimal)).toFixed(row.cells[0].Data.decimal);
             }
         }
 

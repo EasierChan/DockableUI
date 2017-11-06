@@ -260,7 +260,8 @@ export class ConfigurationBLL {
         let instruments = instance["Strategy"][instance["Strategy"]["Strategies"][0]]["Instrument"];
         config.items[0].parameters.forEach(param => {
             if (parameters.hasOwnProperty(param.name)) {
-                parameters[param.name].value = param.value;
+                let target = parameters[param.name];
+                target.value = param.value * Math.pow(10, target.decimal);
             }
         });
 
