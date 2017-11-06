@@ -2215,7 +2215,7 @@ export class AppComponent implements OnInit {
         // 0 check value ,10,11 disable,12 value, row backcolor
         switch (flag) {
             case 1:
-                row.cells[9].Type = "plaintext";
+                row.cells[9].ReadOnly = true;
                 row.cells[0].Type = "plaintext";
                 row.cells[0].Disable = true;
                 row.cells[0].Text = row.cells[0].Title;
@@ -2225,7 +2225,7 @@ export class AppComponent implements OnInit {
                 row.backgroundColor = "#585757";
                 break;
             case 2:
-                row.cells[9].Type = "plaintext";
+                row.cells[9].ReadOnly = true;
                 row.cells[0].Type = "plaintext";
                 row.cells[0].Disable = true;
                 row.cells[0].Text = row.cells[0].Title;
@@ -2277,13 +2277,13 @@ export class AppComponent implements OnInit {
                     this.portfolioTable.rows[i].cells[0].Text = check;
                     break;
                 case 1:
-                    if (this.portfolioTable.rows[i].cells[3].Text > 0) {
+                    if (this.portfolioTable.rows[i].cells[5].Text > 0) {
                         if (typeof this.portfolioTable.rows[i].cells[0].Text === "boolean")
                             this.portfolioTable.rows[i].cells[0].Text = check;
                     }
                     break;
                 case 2:
-                    if (this.portfolioTable.rows[i].cells[3].Text < 0) {
+                    if (this.portfolioTable.rows[i].cells[5].Text < 0) {
                         if (typeof this.portfolioTable.rows[i].cells[0].Text === "boolean")
                             this.portfolioTable.rows[i].cells[0].Text = check;
                     }
