@@ -700,26 +700,26 @@ export class UAlphaViewer {
                 data: []
             }, {
                 xAxisIndex: 1,
-                yAxisIndex: 1,
+                yAxisIndex: 2,
                 name: lines[2],
                 type: "line",
                 connectNulls: true,
                 data: []
             }, {
                 xAxisIndex: 1,
-                yAxisIndex: 1,
+                yAxisIndex: 2,
                 name: lines[3],
                 type: "line",
                 connectNulls: true,
                 data: []
             }, {
+                xAxisIndex: 1,
+                yAxisIndex: 1,
                 name: lines[4],
                 type: "line",
                 connectNulls: true,
                 data: []
             }, {
-                xAxisIndex: 1,
-                yAxisIndex: 2,
                 name: lines[5],
                 type: "line",
                 connectNulls: true,

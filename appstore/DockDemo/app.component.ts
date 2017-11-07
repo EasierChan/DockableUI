@@ -1521,11 +1521,11 @@ export class AppComponent implements OnInit {
 
         if (hasDone) {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
-            AppComponent.self.doneOrdersTable.detectChanges();
+            // this.doneOrdersTable.detectChanges();
         }
 
         if (hasUnDone) {
-            AppComponent.self.orderstatusTable.detectChanges();
+            // this.orderstatusTable.detectChanges();
         }
     }
 
@@ -1630,33 +1630,33 @@ export class AppComponent implements OnInit {
         let iRow;
         let secuCategory = 1;
         for (let iData = 0; iData < data.length; ++iData) {
-            for (iRow = 0; iRow < AppComponent.self.positionTable.rows.length; ++iRow) {
-                if (AppComponent.self.positionTable.rows[iRow].cells[2].Text === data[iData].record.code) { // refresh
-                    secuCategory = AppComponent.self.positionTable.rows[iRow].cells[1].Text;
+            for (iRow = 0; iRow < this.positionTable.rows.length; ++iRow) {
+                if (this.positionTable.rows[iRow].cells[2].Text === data[iData].record.code) { // refresh
+                    secuCategory = this.positionTable.rows[iRow].cells[1].Text;
 
                     if (secuCategory === 1) {
-                        AppComponent.self.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
-                        AppComponent.self.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
-                        AppComponent.self.positionTable.rows[iRow].cells[6].Text = data[iData].record.AvlCreRedempVol;
-                        AppComponent.self.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
-                        AppComponent.self.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
-                        AppComponent.self.positionTable.rows[iRow].cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
+                        this.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
+                        this.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
+                        this.positionTable.rows[iRow].cells[6].Text = data[iData].record.AvlCreRedempVol;
+                        this.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
+                        this.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
+                        this.positionTable.rows[iRow].cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
                         break;
-                    } else if (secuCategory === 2 && AppComponent.self.positionTable.rows[iRow].cells[12].Text === data[iData].record.type) {
-                        AppComponent.self.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
-                        AppComponent.self.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
-                        AppComponent.self.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
-                        AppComponent.self.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
-                        AppComponent.self.positionTable.rows[iRow].cells[9].Text = data[iData].record.TodayOpen;
-                        AppComponent.self.positionTable.rows[iRow].cells[10].Text = data[iData].record.AveragePrice / 10000;
+                    } else if (secuCategory === 2 && this.positionTable.rows[iRow].cells[12].Text === data[iData].record.type) {
+                        this.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
+                        this.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
+                        this.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
+                        this.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
+                        this.positionTable.rows[iRow].cells[9].Text = data[iData].record.TodayOpen;
+                        this.positionTable.rows[iRow].cells[10].Text = data[iData].record.AveragePrice / 10000;
                         break;
                     }
                 }
             }
 
-            if (iRow === AppComponent.self.positionTable.rows.length) {
+            if (iRow === this.positionTable.rows.length) {
                 if (data[iData].secucategory === 1) {
-                    let row = AppComponent.self.positionTable.newRow();
+                    let row = this.positionTable.newRow();
                     row.cells[0].Text = data[iData].record.account;
                     row.cells[1].Text = data[iData].secucategory;
                     row.cells[2].Text = data[iData].record.code;
@@ -1672,7 +1672,7 @@ export class AppComponent implements OnInit {
                     row.cells[11].Text = data[iData].strategyid;
                     row.cells[12].Text = data[iData].record.type;
                 } else {
-                    let row = AppComponent.self.positionTable.newRow();
+                    let row = this.positionTable.newRow();
                     row.cells[0].Text = data[iData].record.account;
                     row.cells[1].Text = data[iData].secucategory;
                     row.cells[2].Text = data[iData].record.code;
@@ -1693,7 +1693,7 @@ export class AppComponent implements OnInit {
 
         iRow = null;
         secuCategory = null;
-        AppComponent.self.positionTable.detectChanges();
+        // this.positionTable.detectChanges();
     }
 
     showComGWNetGuiInfo(data: any) {
@@ -1769,22 +1769,22 @@ export class AppComponent implements OnInit {
 
     showComProfitInfo(data: any) {
         for (let i = 0; i < data.length; ++i) {
-            let profitTableRows: number = AppComponent.self.profitTable.rows.length;
+            let profitTableRows: number = this.profitTable.rows.length;
             let profitUkey: number = data[i].innercode;
 
             if (profitTableRows === 0) {  // add
-                AppComponent.self.addProfitInfo(data[i]);
+                this.addProfitInfo(data[i]);
             } else {
                 let checkFlag: boolean = false;
                 for (let j = 0; j < profitTableRows; ++j) {
-                    let getUkey = AppComponent.self.profitTable.rows[j].cells[0].Text;
+                    let getUkey = this.profitTable.rows[j].cells[0].Text;
                     if (getUkey === profitUkey) { // refresh
                         checkFlag = true;
-                        AppComponent.self.refreshProfitInfo(data[i], j);
+                        this.refreshProfitInfo(data[i], j);
                     }
                 }
                 if (!checkFlag) {
-                    AppComponent.self.addProfitInfo(data[i]);
+                    this.addProfitInfo(data[i]);
                 }
                 checkFlag = false;
             }
@@ -1792,7 +1792,7 @@ export class AppComponent implements OnInit {
     }
 
     addProfitInfo(obj: any) {
-        let row = AppComponent.self.profitTable.newRow();
+        let row = this.profitTable.newRow();
         row.cells[0].Text = obj.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByInnerCode(obj.innercode);
         row.cells[1].Text = codeInfo.hasOwnProperty(obj.innercode) ? codeInfo[obj.innercode].SecuCode : "unknown";
@@ -1813,27 +1813,27 @@ export class AppComponent implements OnInit {
         row.cells[16].Text = obj.lastclose / 10000;
         row.cells[17].Text = obj.marketprice / 10000;
         row.cells[18].Text = obj.iopv;
-        AppComponent.self.profitTable.detectChanges();
+        // this.profitTable.detectChanges();
     }
 
     refreshProfitInfo(obj: any, idx: number) {
-        AppComponent.self.profitTable.rows[idx].cells[4].Text = obj.avgpriceforbuy / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[5].Text = obj.avgpriceforsell / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[6].Text = obj.positionpnl / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[7].Text = obj.tradingpnl / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[8].Text = obj.intradaytradingfee / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[9].Text = obj.tradingfee / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[10].Text = obj.lasttradingfee / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[11].Text = obj.lastpositionpnl / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[12].Text = obj.todaypositionpnl / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[13].Text = obj.pnl / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[14].Text = obj.lastposition;
-        AppComponent.self.profitTable.rows[idx].cells[15].Text = obj.todayposition;
-        AppComponent.self.profitTable.rows[idx].cells[16].Text = obj.lastclose / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[17].Text = obj.marketprice / 10000;
-        AppComponent.self.profitTable.rows[idx].cells[18].Text = obj.iopv;
+        this.profitTable.rows[idx].cells[4].Text = obj.avgpriceforbuy / 10000;
+        this.profitTable.rows[idx].cells[5].Text = obj.avgpriceforsell / 10000;
+        this.profitTable.rows[idx].cells[6].Text = obj.positionpnl / 10000;
+        this.profitTable.rows[idx].cells[7].Text = obj.tradingpnl / 10000;
+        this.profitTable.rows[idx].cells[8].Text = obj.intradaytradingfee / 10000;
+        this.profitTable.rows[idx].cells[9].Text = obj.tradingfee / 10000;
+        this.profitTable.rows[idx].cells[10].Text = obj.lasttradingfee / 10000;
+        this.profitTable.rows[idx].cells[11].Text = obj.lastpositionpnl / 10000;
+        this.profitTable.rows[idx].cells[12].Text = obj.todaypositionpnl / 10000;
+        this.profitTable.rows[idx].cells[13].Text = obj.pnl / 10000;
+        this.profitTable.rows[idx].cells[14].Text = obj.lastposition;
+        this.profitTable.rows[idx].cells[15].Text = obj.todayposition;
+        this.profitTable.rows[idx].cells[16].Text = obj.lastclose / 10000;
+        this.profitTable.rows[idx].cells[17].Text = obj.marketprice / 10000;
+        this.profitTable.rows[idx].cells[18].Text = obj.iopv;
 
-        AppComponent.self.profitTable.detectChanges();
+        // this.profitTable.detectChanges();
     }
 
     showComAccountPos(data: any) {
@@ -1878,7 +1878,7 @@ export class AppComponent implements OnInit {
             }
         }
 
-        this.accountTable.detectChanges();
+        // this.accountTable.detectChanges();
     }
 
     showStrategyCfg(data: any) {
@@ -2294,11 +2294,11 @@ export class AppComponent implements OnInit {
 
     getSelectedPortfolioItem() {
         let res = [];
-        let len = AppComponent.self.portfolioTable.rows.length;
+        let len = this.portfolioTable.rows.length;
 
         for (let i = 0; i < len; ++i) {
-            if (AppComponent.self.portfolioTable.rows[i].cells[0].Text === true)
-                res.push(AppComponent.self.portfolioTable.rows[i].cells[0].Data);
+            if (this.portfolioTable.rows[i].cells[0].Text === true)
+                res.push(this.portfolioTable.rows[i].cells[0].Data);
         }
 
         return res;

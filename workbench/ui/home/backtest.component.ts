@@ -53,7 +53,7 @@ export class BacktestComponent implements OnInit {
                     config.backtestConfig.name = config.name;
 
                     this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
-                    // this.configBll.addLoopbackItems(config.backtestConfig);
+                    this.configBll.addLoopbackItems(config.backtestConfig);
                 }
             }
         });
