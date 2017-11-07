@@ -50,7 +50,7 @@ export class ReportComponent implements OnInit {
             row.cells[4].OnClick = () => {
                 this.selectedItem = item;
                 this.chartOption = this.generateOption();
-                this.mock.send(this.backtestAppID, 8014, { nId: row.cells[0].Data.id });
+                this.mock.send(this.backtestAppID, 8014, { nId: 12 }); // row.cells[0].Data.id
                 this.page = 1;
                 this.bLoading = true;
             };
@@ -121,7 +121,7 @@ export class ReportComponent implements OnInit {
             let res = [];
             let time: string = null;
             profit.forEach((item, idx) => {
-                time = (item.time / 10).toFixed(0);
+                time = (item.time).toFixed(0);
                 time = [time.slice(-6, -4), time.slice(-4, -2), time.slice(-2)].join(":");
                 res.push(item.date + " " + time);
             });
@@ -135,18 +135,18 @@ export class ReportComponent implements OnInit {
             let lastIdx;
             profit.forEach((item, idx) => {
 
-                if (item.aeupl + item.apopl > 0) {
+                if (idx > 0 && item.marketvalue > profit[idx - 1].marketvalue) {
                     ++winCount;
                 }
 
                 if (idx === 0) {
-                    firstValue = item.cost + item.amt - item.aeupl - item.apopl;
-                    total_ratios.push((item.cost + item.amt) / firstValue);
+                    firstValue = item.beginmarketvalue;
+                    total_ratios.push(item.marketvalue / firstValue);
                     sumratio += total_ratios[idx];
                     return;
                 }
 
-                total_ratios.push((item.cost + item.amt) / firstValue);
+                total_ratios.push(item.marketvalue / firstValue);
                 sumratio += total_ratios[idx];
 
                 if (total_ratios[idx] >= total_ratios[idx - 1]) {
