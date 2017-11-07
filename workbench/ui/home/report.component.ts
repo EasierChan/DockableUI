@@ -26,6 +26,7 @@ export class ReportComponent implements OnInit {
     freeriskrate = 0.3;
     backtestAppID: number;
     selectedItem: any;
+    orderdetailsTable: DataTable;
 
     constructor(private mock: TradeService, private configBll: ConfigurationBLL,
         private appsrv: AppStoreService) {
@@ -50,12 +51,15 @@ export class ReportComponent implements OnInit {
             row.cells[4].OnClick = () => {
                 this.selectedItem = item;
                 this.chartOption = this.generateOption();
-                this.mock.send(this.backtestAppID, 8014, { nId: row.cells[0].Data.id }); // 
+                this.mock.send(this.backtestAppID, 8014, { nId: item.id }); // 
+                this.mock.send(this.backtestAppID, 8016, { nId: item.id });
                 this.page = 1;
-                this.bLoading = true;
+                // this.bLoading = true;
             };
         });
 
+        this.orderdetailsTable = new DataTable("table2");
+        this.orderdetailsTable.addColumn("订单号", "委托价", "委托量", "成交价", "成交量", "成交金额", "成交状态", "成交方向", "股票代码", "成交日期", "成交时间", "组合id");
         this.registerListener();
     }
 
@@ -67,6 +71,14 @@ export class ReportComponent implements OnInit {
                 callback: msg => {
                     console.info(msg);
                     this.setProfitOfItem(msg.content.nId, msg.content.Accpl);
+                }
+            },
+            {
+                appid: this.backtestAppID,
+                packid: 8017,
+                callback: msg => {
+                    console.info(msg);
+                    this.showOrderDetail(msg.content.nId, msg.content.orderdetails);
                 }
             }
         );
@@ -108,6 +120,28 @@ export class ReportComponent implements OnInit {
     chartInit(chart) {
         // console.info(chart);
         this.chart = chart;
+    }
+
+    showOrderDetail(id: number, orderdetails: any) {
+        if (id === this.selectedItem.id && Array.isArray(orderdetails)) {
+            this.orderdetailsTable.rows.length = 0;
+            orderdetails.forEach((item, index) => {
+                let row = this.orderdetailsTable.newRow();
+                // row.cells[0].Text = (parseInt(this.txt_pageidx.Text) - 1) * parseInt(this.txt_pagesize.Text) + index + 1;
+                row.cells[0].Text = item.orderid;
+                row.cells[1].Text = item.orderprice / 10000;
+                row.cells[2].Text = item.ordervolume;
+                row.cells[3].Text = item.dealprice / 10000;
+                row.cells[4].Text = item.dealvolume;
+                row.cells[5].Text = item.dealbalance / 10000;
+                row.cells[6].Text = item.orderstatus;
+                row.cells[7].Text = item.innercode;
+                row.cells[8].Text = item.tradedate;
+                row.cells[9].Text = item.accountid;
+                row.cells[10].Text = item.ordertime;
+                row.cells[11].Text = item.directive === 1 ? "B" : "S";
+            });
+        }
     }
 
     setProfitOfItem(id: number, profit: any) {
