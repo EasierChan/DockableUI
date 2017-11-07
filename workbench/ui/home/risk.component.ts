@@ -2,6 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { TradeService } from "../../bll/services";
+import { ConfigurationBLL } from "../../bll/strategy.server";
 import { DataTable } from "../../../base/controls/control";
 
 @Component({
@@ -17,7 +18,7 @@ export class RiskComponent implements OnInit {
     account_info: any[];
     tblock_info: any[];
 
-    constructor(private trade: TradeService) {
+    constructor(private trade: TradeService, private config: ConfigurationBLL) {
 
     }
 
@@ -70,9 +71,9 @@ export class RiskComponent implements OnInit {
                 });
 
                 msg.content.data.trade_block.forEach(item => {
-                    if (this.tblock_info.find(value => { return value.tblock_id === item.group_id; }) !== undefined) {
+                    if (this.tblock_info.find(value => { return value.caid === item.group_id; }) !== undefined) {
                         let row = this.strategyTable.newRow();
-                        row.cells[0].Text = this.tblock_info.find(value => { return value.tblock_id === item.group_id; }).name;
+                        row.cells[0].Text = this.tblock_info.find(value => { return value.caid === item.group_id; }).name;
                         row.cells[1].Text = this.risk_indexs.find(value => { return value.riskid === item.risk_id; }).riskname;
                         row.cells[2].Text = item.used_v1;
                         row.cells[3].Text = item.limit_v1;
@@ -268,27 +269,6 @@ export class RiskComponent implements OnInit {
             }
         ];
 
-        this.tblock_info = [
-            {
-                tblock_id: 101,
-                name: "弘金华银"
-            },
-            {
-                tblock_id: 102,
-                name: "弘金世纪1号"
-            },
-            {
-                tblock_id: 103,
-                name: "南华自营"
-            },
-            {
-                tblock_id: 104,
-                name: "博益安盈精英4号"
-            },
-            {
-                tblock_id: 105,
-                name: "弘金世纪3号"
-            }
-        ];
+        this.tblock_info = this.config.getProducts();
     }
 }
