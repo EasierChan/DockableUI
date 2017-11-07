@@ -2460,7 +2460,7 @@ export class AppComponent implements OnInit {
                 case "ps-data":
                     for (let idx = 0; idx < this.bookviewArr.length; ++idx) {
                         if (this.bookviewArr[idx].code === data.content.content.ukey) {
-                            this.bookviewArr[idx].lbl_timestamp.Text = new Date(data.content.content.time * 1000).toLocaleString();
+                            this.bookviewArr[idx].lbl_timestamp.Text = new Date(data.content.content.time * 1000).format("yyyy/MM/dd HH:mm:ss");
                             for (let i = 0; i < 10; ++i) {
                                 this.bookviewArr[idx].table.rows[i + 10].cells[0].Text = data.content.content.bid_volume[i] + "";
                                 this.bookviewArr[idx].table.rows[i + 10].cells[1].Text = (data.content.content.bid_price[i] / 10000).toFixed(4);
