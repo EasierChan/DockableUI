@@ -73,7 +73,7 @@ export class RiskComponent implements OnInit {
                 msg.content.data.trade_block.forEach(item => {
                     if (this.tblock_info.find(value => { return value.caid === item.group_id; }) !== undefined) {
                         let row = this.strategyTable.newRow();
-                        row.cells[0].Text = this.tblock_info.find(value => { return value.caid === item.group_id; }).name;
+                        row.cells[0].Text = this.tblock_info.find(value => { return value.caid === item.group_id; }).caname;
                         row.cells[1].Text = this.risk_indexs.find(value => { return value.riskid === item.risk_id; }).riskname;
                         row.cells[2].Text = item.used_v1;
                         row.cells[3].Text = item.limit_v1;
