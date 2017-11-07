@@ -1,120 +1,157 @@
 <div class="title">
   <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
   <span class="big">chronos</span>
-  <ul class="tabs">
-    <li *ngFor="let tab of tabs" [class.active]="activeTab==tab" (click)="activeTab=tab"><a>{{tab}}</a></li>
-  </ul>
   <u-codes class="u-input-group" (onSelect)="listClick($event)"></u-codes>
-  <!--<button class="btn btn-default" [disabled]="selectedValue" (click)="searchInfo()">搜索</button>-->
+  <button class="btn btn-default" [disabled]="selectedValue" (click)="search()">搜索</button>
 </div>
-<div *ngIf="activeTab=='证券信息'" class="u-col fill">
-  <div *ngIf="isStock" class="content">
-    <h6>{{codeName}}</h6>
-    <div class="u-row">
-      <section class="fill">
-        <b>{{summary.title}}</b>
-        <p>
-          {{summary.content}}
-        </p>
-      </section>
-      <section style="min-width: 300px">
-        <b>{{keyInfo.title}}</b>
-        <div class="holder">
-          <table>
-            <tr *ngFor="let item of keyInfo.content">
-              <td style="width: fit-content">{{item.name}}</td>
-              <td style="text-align: right">{{item.value}}</td>
-            </tr>
-          </table>
-        </div>
-      </section>
-    </div>
-    <div class="u-row">
-      <section class="fill">
-        <b>{{baseInfo.title}}</b>
-        <div class="holder">
-          <table>
-            <tr *ngFor="let item of baseInfo.content">
-              <td style="width: fit-content">{{item.name}}</td>
-              <td>{{item.value}}</td>
-            </tr>
-          </table>
-        </div>
-      </section>
-      <section style="width: 600px">
-        <b>{{mainIncome.title}}</b>
-        <div class="holder">
-          <div echarts [options]="mainIncome.content.option" (chartInit)="mainIncome.content.onInit($event)" style="height: 250px"></div>
-        </div>
-      </section>
-      <section style="width: 300px">
-        <b>{{tenInfo.title}}</b>
-        <div class="holder">
-          <dock-table [dataSource]="tenInfo.content.dataSource" [styleObj]="tenInfo.content.styleObj"></dock-table>
-        </div>
-      </section>
-    </div>
-    <div class="u-row">
-      <section class="fill">
-        <b>{{marketPerformance.title}}</b>
-        <div class="holder">
-          <div echarts [options]="marketPerformance.content.option" (chartInit)="marketPerformance.content.onInit($event)" style="height: 250px"></div>
-        </div>
-      </section>
-      <section style="width: 300px">
-        <b>{{numberInfo.title}}</b>
-        <div class="holder">
-          <dock-table [dataSource]="numberInfo.content.dataSource" [styleObj]="numberInfo.content.styleObj"></dock-table>
-        </div>
-      </section>
-      <section style="width: 300px">
-        <b>{{structureInfo.title}}</b>
-        <div class="holder">
-          <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
-        </div>
-      </section>
-    </div>
-    <!--<div class="u-row">
-      <section class="fill">
-        <b>{{instituteInfo.title}}</b>
-        <div class="holder">
-          <div echarts [options]="instituteInfo.content.option" style="height: 250px"></div>
-        </div>
-      </section>
-      <section style="width: 300px">
-        <b>{{structureInfo.title}}</b>
-        <div class="holder">
-          <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
-        </div>
-      </section>
-    </div>-->
+<div *ngIf="isStock" class="content">
+  <h6>{{codeName}}</h6>
+  <!--<div class="u-row">
+    <section class="fill">
+      <b>{{summary.title}}</b>
+      <p>
+        {{summary.content}}
+      </p>
+    </section>
+    <section style="min-width: 300px">
+      <b>{{keyInfo.title}}</b>
+      <div class="holder">
+        <table>
+          <tr *ngFor="let item of keyInfo.content">
+            <td style="width: fit-content">{{item.name}}</td>
+            <td style="text-align: right">{{item.value}}</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+  </div>-->
+  <div class="u-row">
+    <section class="fill">
+      <b>{{baseInfo.title}}</b>
+      <div class="holder">
+        <table>
+          <tr *ngFor="let item of baseInfo.content">
+            <td style="width: fit-content">{{item.name}}</td>
+            <td>{{item.value}}</td>
+          </tr>
+        </table>
+      </div>
+    </section>
   </div>
-  <div *ngIf="!isStock" class="content">
-    <div class="u-row">
-      <section class="fill">
-        <b>{{currentInfo.title}}</b>
-        <div class="holder">
-          <dock-table [dataSource]="currentInfo.content.dataSource" [styleObj]="currentInfo.content.styleObj"></dock-table>
-        </div>
-      </section>
-    </div>
-    <div class="u-row">
-      <section class="fill">
-        <b>{{standardInfo.title}}</b>
-        <div class="holder">
-          <table align="left">
-            <tr *ngFor="let row of standardInfo.content">
-              <td>{{row[0]}}</td>
-              <td>{{row[1]}}</td>
-              <td>{{row[2]}}</td>
-              <td>{{row[3]}}</td>
-            </tr>
-          </table>
-        </div>
-      </section>
-    </div>
+  <div class="u-row">
+    <section class="fill">
+      <b>{{marketInfo.title}}</b>
+      <div class="holder">
+        <table>
+          <tr *ngFor="let item of marketInfo.content">
+            <td style="width: fit-content">{{item.name}}</td>
+            <td>{{item.value}}</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+    <!--<section style="width: 600px">
+      <b>{{mainIncome.title}}</b>
+      <div class="holder">
+        <div echarts [options]="mainIncome.content.option" (chartInit)="mainIncome.content.onInit($event)" style="height: 250px"></div>
+      </div>
+    </section>-->
+    <!--<section style="width: 300px">
+      <b>{{tenInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="tenInfo.content.dataSource" [styleObj]="tenInfo.content.styleObj"></dock-table>
+      </div>
+    </section>-->
+  </div>
+  <div class="u-row">
+    <section class="fill">
+      <b>{{keyInfo.title}}</b>
+      <div class="holder">
+        <table>
+          <tr *ngFor="let item of keyInfo.content">
+            <td style="width: fit-content">{{item.name}}</td>
+            <td>{{item.value}}</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+  </div>
+  <!--<div class="u-row">
+    <section class="fill">
+      <b>{{marketPerformance.title}}</b>
+      <div class="holder">
+        <div echarts [options]="marketPerformance.content.option" (chartInit)="marketPerformance.content.onInit($event)" style="height: 250px"></div>
+      </div>
+    </section>
+    <section style="width: 300px">
+      <b>{{numberInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="numberInfo.content.dataSource" [styleObj]="numberInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+    <section style="width: 300px">
+      <b>{{structureInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>
+  <!--<div class="u-row">
+    <section class="fill">
+      <b>{{instituteInfo.title}}</b>
+      <div class="holder">
+        <div echarts [options]="instituteInfo.content.option" style="height: 250px"></div>
+      </div>
+    </section>
+    <section style="width: 300px">
+      <b>{{structureInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="structureInfo.content.dataSource" [styleObj]="structureInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>-->
+</div>
+<div *ngIf="!isStock" class="content">
+  <div class="u-row">
+    <section class="fill">
+      <b>{{contractSummary.title}}</b>
+      <p>
+        {{contractSummary.content}}
+      </p>
+    </section>
+  </div>
+  <!--<div class="u-row">
+    <section class="fill">
+      <b>{{currentInfo.title}}</b>
+      <div class="holder">
+        <dock-table [dataSource]="currentInfo.content.dataSource" [styleObj]="currentInfo.content.styleObj"></dock-table>
+      </div>
+    </section>
+  </div>-->
+  <div class="u-row">
+    <!--<section class="fill">
+      <b>{{standardInfo.title}}</b>
+      <div class="holder">
+        <table align="left">
+          <tr *ngFor="let row of standardInfo.content">
+            <td>{{row[0]}}</td>
+            <td>{{row[1]}}</td>
+            <td>{{row[2]}}</td>
+            <td>{{row[3]}}</td>
+          </tr>
+        </table>
+      </div>
+    </section>-->
+    <section class="fill">
+      <b>{{standardInfo.title}}</b>
+      <div class="holder">
+        <table>
+          <tr *ngFor="let item of standardInfo.content">
+            <td style="width: fit-content">{{item.name}}</td>
+            <td>{{item.value}}</td>
+          </tr>
+        </table>
+      </div>
+    </section>
   </div>
 </div>
-<!--<div *ngIf="activeTab=='历史行情'" class="content">
-  <div echarts [options]="chartOption" (chartInit)="chartInit($event)" class="fill"></div>
-</div>-->

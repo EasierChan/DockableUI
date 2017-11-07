@@ -3,7 +3,6 @@
 */
 .content {
     overflow-y: auto;
-    text-align: left;
 }
 .content > * {
     flex: none;
@@ -15,7 +14,7 @@
     flex-flow: row;
 }
 
-.fill{
+.u-row > .fill{
     flex: auto;
 }
 
