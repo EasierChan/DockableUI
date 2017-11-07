@@ -50,7 +50,7 @@ export class ReportComponent implements OnInit {
             row.cells[4].OnClick = () => {
                 this.selectedItem = item;
                 this.chartOption = this.generateOption();
-                this.mock.send(this.backtestAppID, 8014, { nId: 12 }); // row.cells[0].Data.id
+                this.mock.send(this.backtestAppID, 8014, { nId: row.cells[0].Data.id }); // 
                 this.page = 1;
                 this.bLoading = true;
             };
