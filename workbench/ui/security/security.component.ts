@@ -36,7 +36,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     timeout: any;
     MarketID: number;
 
-    constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
+    constructor(private quote: QuoteService) {
     }
 
     ngOnInit() {
