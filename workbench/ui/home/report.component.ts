@@ -35,7 +35,7 @@ export class ReportComponent implements OnInit {
     ngOnInit() {
         this.backtestAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.backtest;
         this.resTable = new DataTable("table2");
-        this.resTable.addColumn("选中", "名称", "开始时间", "结束时间", "查看");
+        this.resTable.addColumn("选中", "名称", "回测进度", "开始时间", "结束时间", "查看");
         this.resTable.columns[0].maxWidth = 20;
         this.resTable.columns[4].maxWidth = 50;
         this.configBll.getLoopbackItems().forEach(item => {
@@ -44,11 +44,12 @@ export class ReportComponent implements OnInit {
             row.cells[0].Data = item;
             row.cells[0].Text = false;
             row.cells[1].Text = item.name + "-" + item.id;
-            row.cells[2].Text = item.timebegin;
-            row.cells[3].Text = item.timeend;
-            row.cells[4].Type = "button";
-            row.cells[4].Text = "查看";
-            row.cells[4].OnClick = () => {
+            row.cells[2].Text = "0%";
+            row.cells[3].Text = item.timebegin;
+            row.cells[4].Text = item.timeend;
+            row.cells[5].Type = "button";
+            row.cells[5].Text = "查看";
+            row.cells[5].OnClick = () => {
                 this.selectedItem = item;
                 this.chartOption = this.generateOption();
                 this.mock.send(this.backtestAppID, 8014, { nId: item.id }); // 
@@ -102,19 +103,22 @@ export class ReportComponent implements OnInit {
 
     search(value) {
         this.resTable.rows.forEach(row => {
-            row.hidden = !row.cells[1].Text.startsWith(value);
+            row.hidden = !(row.cells[1].Text as String).includes(value);
         });
     }
 
     remove() {
-        this.resTable.rows.forEach(row => {
-            if (row.cells[0].Text) {
-                this.configBll.removeLoopbackItem(row.cells[0].Data);
+        let rows = this.resTable.rows;
+        for (let i = 0; i < rows.length; ) {
+            if (rows[i].cells[0].Text) {
+                this.configBll.removeLoopbackItem(rows[i].cells[0].Data);
+                rows.splice(i, 1);
+            } else {
+                ++i;
             }
-        });
+        }
 
         this.configBll.syncLoopbackItem();
-        this.resTable.detectChanges();
     }
 
     chartInit(chart) {
@@ -135,11 +139,11 @@ export class ReportComponent implements OnInit {
                 row.cells[4].Text = item.dealvolume;
                 row.cells[5].Text = item.dealbalance / 10000;
                 row.cells[6].Text = item.orderstatus;
-                row.cells[7].Text = item.innercode;
-                row.cells[8].Text = item.tradedate;
-                row.cells[9].Text = item.accountid;
+                row.cells[8].Text = item.innercode;
+                row.cells[9].Text = item.tradedate;
                 row.cells[10].Text = item.ordertime;
-                row.cells[11].Text = item.directive === 1 ? "B" : "S";
+                row.cells[11].Text = item.accountid;
+                row.cells[7].Text = item.directive === 1 ? "B" : "S";
             });
         }
     }

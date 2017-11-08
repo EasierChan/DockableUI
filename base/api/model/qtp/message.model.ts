@@ -39,19 +39,67 @@ export class Header extends Message {
 
 export class QTPMessage extends Message {
     header: Header = new Header();
-    body: Object;
+    body: string | Buffer;
+    private options: QtpMessageOption[] = [];
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        this.body = JSON.parse(buf.slice(offset, this.header.datalen + offset).toString());
+        let optlen = this.header.optslen;
+        while (optlen > 0) {
+            let option = new QtpMessageOption();
+            offset = option.fromBuffer(buf, offset);
+            this.options.push(option);
+            optlen -= option.len + 4;
+        }
+
+        this.body = Buffer.from(buf.slice(offset, offset + this.header.datalen));
         offset += this.header.datalen;
         return offset;
     }
 
     toBuffer(): Buffer {
-        this.header.datalen = JSON.stringify(this.body).length;
-        let buf = Buffer.alloc(Header.len + this.header.datalen);
-        this.header.toBuffer().copy(buf);
-        Buffer.from(JSON.stringify(this.body)).copy(buf, Header.len, 0);
+        let offset = 0;
+        this.header.datalen = this.body.length;
+        let buf = Buffer.alloc(Header.len + this.header.optslen + this.header.datalen);
+        this.header.toBuffer().copy(buf, offset);
+        offset += Header.len;
+
+        this.options.forEach((option) => {
+            option.toBuffer().copy(buf, offset);
+            offset += option.len + 4;
+        });
+
+        if (typeof this.body === "string")
+            Buffer.from(this.body as string).copy(buf, offset);
+        else
+            (this.body as Buffer).copy(buf, offset);
+
         return buf;
+    }
+
+    addOption(option: QtpMessageOption): void {
+        option.len = option.value.length;
+        this.header.optslen += option.len;
+        this.options.push(option);
+    }
+}
+
+class QtpMessageOption {
+    id: number; // uint_16
+    len: number; // uint_16
+    value: string; // string
+
+    toBuffer(): Buffer {
+        let buf = Buffer.alloc(4 + this.len);
+        buf.writeUInt16LE(this.id, 0);
+        buf.writeUInt16LE(this.len, 2);
+        buf.write(this.value, 4);
+        return buf;
+    }
+
+    fromBuffer(buf: Buffer, offset = 0): number {
+        this.id = buf.readUInt16LE(offset); offset += 2;
+        this.len = buf.readUInt16LE(offset); offset += 2;
+        this.value = buf.slice(offset, this.len).toString(); offset += this.len;
+        return offset;
     }
 }

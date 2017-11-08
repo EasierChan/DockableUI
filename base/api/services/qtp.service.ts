@@ -235,7 +235,7 @@ export class QtpService {
         this._client.connect(port, host);
     }
 
-    send(msgtype: number, body: Object) {
+    send(msgtype: number, body: string | Buffer) {
         let msg = new QTPMessage();
         msg.header.msgtype = msgtype;
         msg.body = body;
