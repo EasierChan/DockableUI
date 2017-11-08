@@ -103,3 +103,19 @@ class QtpMessageOption {
         return offset;
     }
 }
+
+export enum MessageOption {
+    kItemSize = 59901,
+    kItemCnt = 59902,
+    kInstanceID = 59903,
+    kSessionID = 59904,
+    kSubscribeKey = 59905
+}
+
+export enum MessgeType {
+    kLogin = 101,
+    kLoginAns = 102,
+    kSubscribe = 103,
+    kUnSubscribe = 104,
+    kPublish = 105
+}
