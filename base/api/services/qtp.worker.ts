@@ -18,38 +18,44 @@ class QTPParser extends Parser {
     }
 
     processRead(): void {
-        if (this.processMsgHeader() && this.processMsg() && this._oPool.length > 0) {
+        while (this.processMsgHeader() && this.processMsg()) {
             this._curHeader = null;
-            this.processRead();
+
+            if (this._oPool.length === 0)
+                break;
+
+            logger.info(`pool length: ${this._oPool.length}`);
         }
     }
     /**
      * process message head.
      */
     processMsgHeader(): boolean {
-        if (this._oPool.length === 0 || this._curHeader !== null)
+        if (this._oPool.length === 0)
             return false;
+
+        if (this._curHeader !== null) {
+            logger.warn(`curHeader: ${JSON.stringify(this._curHeader)}, poolLen=${this._oPool.length}`);
+            return true;
+        }
 
         let ret = false;
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+        let peekBuf = null;
+
         for (; bufCount < this._oPool.length; ++bufCount) {
-            buflen += this._oPool.peek(bufCount + 1)[bufCount].byteLength;
+            peekBuf = this._oPool.peek(bufCount + 1);
+            buflen += peekBuf[bufCount].byteLength;
             if (buflen >= Header.len) {
                 this._curHeader = new Header();
-                if (bufCount > 1) {
-                    let tempBuffer = Buffer.concat(this._oPool.peek(bufCount + 1), buflen);
-                    this._curHeader.fromBuffer(tempBuffer, 0);
-                    tempBuffer = null;
-                } else {
-                    this._curHeader.fromBuffer(this._oPool.peek(bufCount + 1)[0], 0);
-                }
+                this._curHeader.fromBuffer(bufCount >= 1 ? Buffer.concat(peekBuf, buflen) : peekBuf[0], 0);
                 ret = true;
                 break;
             }
-            console.info(this._oPool.length);
         }
+
         restLen = null;
         buflen = null;
         bufCount = null;
@@ -63,8 +69,12 @@ class QTPParser extends Parser {
         let bufCount = 0;
         let buflen = 0;
         let restLen = 0;
+        let peekBuf = null;
+
         for (; bufCount < this._oPool.length; ++bufCount) {
-            buflen += this._oPool.peek(bufCount + 1)[bufCount].length;
+            peekBuf = this._oPool.peek(bufCount + 1);
+            buflen += peekBuf[bufCount].byteLength;
+
             if (buflen >= this._curHeader.datalen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
                 console.info(`processMsg: appid=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
@@ -76,13 +86,16 @@ class QTPParser extends Parser {
                     tempBuffer.copy(restBuf, 0, buflen - restLen);
                     this._oPool.prepend(restBuf);
                     restBuf = null;
+                    logger.warn(`restLen=${restLen}, tempBuffer=${tempBuffer.length}`);
                 }
+
                 this._curHeader = null;
                 tempBuffer = null;
                 ret = true;
                 break;
             }
         }
+
         restLen = null;
         buflen = null;
         bufCount = null;
@@ -98,9 +111,6 @@ class QTPMessageParser extends QTPParser {
     }
 
     init(): void {
-        this.registerMsgFunction("8012", this, this.processQtpMsg);
-        this.registerMsgFunction("8015", this, this.processQtpMsg);
-        this.registerMsgFunction("8017", this, this.processQtpMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -112,19 +122,6 @@ class QTPMessageParser extends QTPParser {
         msg.header = header;
         msg.fromBuffer(all, Header.len);
         this._client.emit("data", msg);
-        // switch (header.msgtype) {
-        //     case 43: // Login
-        //         msg.fromBuffer(content);
-        //         this._client.emit("data", msg);
-        //         break;
-        //     case 120: // login error
-        //         msg.fromBuffer(content);
-        //         this._client.emit("data", msg);
-        //         break;
-        //     default:
-        //         logger.warn(`unknown message: appid=${header.msgtype}`);
-        //         break;
-        // }
     }
 
     dispose(): void {
@@ -178,12 +175,14 @@ export class QtpService {
     private _timer: any;
     private _port: number;
     private _host: string;
+    private _parser: QTPMessageParser;
 
     constructor() {
         this._messageMap = new Object();
         this._client = new QTPClient();
         this._client.useSelfBuffer = true;
-        this._client.addParser(new QTPMessageParser(this._client));
+        this._parser = new QTPMessageParser(this._client);
+        this._client.addParser(this._parser);
         let self = this;
 
         this._client.on("data", msg => {
@@ -235,7 +234,7 @@ export class QtpService {
         this._client.connect(port, host);
     }
 
-    send(msgtype: number, body: Object) {
+    send(msgtype: number, body: string | Buffer) {
         let msg = new QTPMessage();
         msg.header.msgtype = msgtype;
         msg.body = body;
@@ -247,12 +246,16 @@ export class QtpService {
      */
     addSlot(...slots: Slot[]) {
         slots.forEach(slot => {
-            if (!this._messageMap.hasOwnProperty(slot.msgtype))
+            if (!this._messageMap.hasOwnProperty(slot.msgtype)) {
                 this._messageMap[slot.msgtype] = new Object();
+                this._parser.registerMsgFunction(slot.msgtype, this._parser, this._parser.processQtpMsg);
+            }
             this._messageMap[slot.msgtype] = {
                 callback: slot.callback,
                 context: slot.context
             };
+
+
         });
     }
     onConnect: Function;
