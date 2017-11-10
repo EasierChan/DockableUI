@@ -11,13 +11,13 @@
   <div class="content">
     <h6>{{codeName}}</h6>
     <div class="u-row" style="min-height: 100px;">
-      <section class="fill">
+      <section class="fill" style="width: 100px">
         <b>{{summary.title}}</b>
         <p>
           {{summary.content}}
         </p>
       </section>
-      <section class="fill">
+      <section class="fill" style="width: 100px">
         <b>{{mdSection.title}}</b>
         <div class="holder">
           <div echarts [options]="mdSection.content.option" (chartInit)="mdSection.content.onInit($event)" style="height: 300px"></div>

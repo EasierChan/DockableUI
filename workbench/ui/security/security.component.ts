@@ -29,8 +29,6 @@ export class SecurityComponent implements OnInit, OnDestroy {
     isStock: boolean;
     marketID: number;
     marketInfo: Section;
-    // history tab;
-    historyMDChart: ECharts;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
     }
@@ -50,6 +48,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.mdSection.content = this.createMDChart();
         this.mdSection.content.onInit = (chart: ECharts) => {
             this.marketChart = chart;
+            console.info("init done");
         };
 
         this.keyInfo = new Section();
@@ -692,10 +691,21 @@ export class SecurityComponent implements OnInit, OnDestroy {
                 }
             }
         });
-    }
 
-    chartInit(chart) {
-        this.historyMDChart = chart;
+        this.quote.addSlot({
+            appid: 181,
+            packid: 10002,
+            callback: (msg) => {
+                let option = this.mdSection.content.option;
+
+                msg.content.data.forEach(item => {
+                    option.xAxis.data.push(new Date(item.t).format("HH:mm:ss"));
+                    option.series[0].data.push(item.p);
+                });
+
+                this.marketChart.setOption(this.mdSection.content.option);
+            }
+        });
     }
 
     listClick(item) {
@@ -708,7 +718,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     searchMD() {
-        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.selectedItem.ukey, dataType: 101001, dateFrom: 20171018 });
+        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.selectedItem.ukey, dataType: 101001, dateFrom: 20171106 });
     }
 
     searchInfo() {
@@ -728,50 +738,49 @@ export class SecurityComponent implements OnInit, OnDestroy {
         return {
             option: {
                 title: {
-                    show: false
+                    show: false,
                 },
                 tooltip: {
                     trigger: "axis",
                     axisPointer: {
-                        type: "cross"
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
                     }
                 },
                 legend: {
-                    data: ["分时线"]
-                },
-                grid: {
-                    left: "10%",
-                    right: "10%",
-                    bottom: "15%"
+                    data: ["分时线"],
+                    textStyle: { color: "#F3F3F5" }
                 },
                 xAxis: {
-                    type: "category",
                     data: [],
-                    scale: true,
-                    boundaryGap: false,
-                    axisLine: { onZero: false },
-                    splitLine: { show: false },
-                    splitNumber: 20,
-                    min: "dataMin",
-                    max: "dataMax"
+                    type: "category",
+                    axisLabel: {
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    boundaryGap: true
                 },
                 yAxis: {
-                    scale: true,
-                    splitArea: {
-                        show: true
-                    }
-                }, series: [
-                    {
-                        name: "分时线",
-                        type: "line",
-                        data: [],
-                        smooth: false,
-                        lineStyle: {
-                            normal: { opacity: 0.5 }
-                        }
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
                     },
-
-                ]
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                },
+                series: [{
+                    name: "分时线",
+                    type: "line",
+                    data: []
+                }]
             }
         };
     }

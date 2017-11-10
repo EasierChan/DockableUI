@@ -29,6 +29,7 @@ export class EchartsDirective implements OnChanges, OnDestroy {
 
     private myChart: any = null;
     private currentWindowWidth: any = null;
+    private currentWindowHeight: any = null;
 
     constructor(private el: ElementRef, private renderer: Renderer, private _ngZone: NgZone) {
     }
@@ -50,8 +51,9 @@ export class EchartsDirective implements OnChanges, OnDestroy {
     }
 
     @HostListener("window:resize", ["$event"]) onWindowResize(event: any) {
-        if (event.target.innerWidth !== this.currentWindowWidth) {
+        if (event.target.innerWidth !== this.currentWindowWidth || event.target.innerHeight !== this.currentWindowHeight) {
             this.currentWindowWidth = event.target.innerWidth;
+            this.currentWindowHeight = event.target.innerWidth;
             if (this.myChart) {
                 this.myChart.resize();
             }
