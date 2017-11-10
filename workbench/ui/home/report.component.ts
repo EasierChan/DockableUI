@@ -27,12 +27,14 @@ export class ReportComponent implements OnInit {
     backtestAppID: number;
     selectedItem: any;
     orderdetailsTable: DataTable;
+    nIds: number[];
 
     constructor(private mock: TradeService, private configBll: ConfigurationBLL,
         private appsrv: AppStoreService) {
     }
 
     ngOnInit() {
+        this.nIds = [];
         this.backtestAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.backtest;
         this.resTable = new DataTable("table2");
         this.resTable.addColumn("选中", "名称", "回测进度", "开始时间", "结束时间", "查看");
@@ -57,6 +59,7 @@ export class ReportComponent implements OnInit {
                 this.page = 1;
                 // this.bLoading = true;
             };
+            this.nIds.push(item.id);
         });
 
         this.orderdetailsTable = new DataTable("table2");
@@ -81,8 +84,24 @@ export class ReportComponent implements OnInit {
                     console.info(msg);
                     this.showOrderDetail(msg.content.nId, msg.content.orderdetails);
                 }
+            },
+            {
+                appid: this.backtestAppID,
+                packid: 8025,
+                callback: msg => {
+                    console.info(msg);
+                    this.updateProgress(msg.content.data);
+                }
+            },
+            {
+                appid: this.backtestAppID,
+                packid: 8027,
+                callback: msg => {
+
+                }
             }
         );
+        this.mock.send(this.backtestAppID, 8024, { reqsn: 1, nIds: this.nIds });
     }
 
     back() {
@@ -108,22 +127,37 @@ export class ReportComponent implements OnInit {
     }
 
     remove() {
+        let IDs = [];
         let rows = this.resTable.rows;
-        for (let i = 0; i < rows.length; ) {
+        for (let i = 0; i < rows.length;) {
             if (rows[i].cells[0].Text) {
                 this.configBll.removeLoopbackItem(rows[i].cells[0].Data);
+                IDs.push(rows[i].cells[0].Data.id);
                 rows.splice(i, 1);
             } else {
                 ++i;
             }
         }
 
+        this.mock.send(this.backtestAppID, 8024, { reqsn: 2, nIds: IDs });
         this.configBll.syncLoopbackItem();
     }
 
     chartInit(chart) {
         // console.info(chart);
         this.chart = chart;
+    }
+
+    updateProgress(resArr: any[]) {
+        let rowMap = {};
+        this.resTable.rows.forEach((row, index) => {
+            rowMap[row.cells[0].Data.id] = index;
+        });
+
+        resArr.forEach(item => {
+            if (rowMap.hasOwnProperty(item.nId))
+                this.resTable.rows[rowMap[item.nId]].cells[2].Text = item.status + "%";
+        });
     }
 
     showOrderDetail(id: number, orderdetails: any) {
