@@ -14,7 +14,7 @@ import {
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox, File } from "../../base/api/services/backend.service";
+import { AppStateCheckerRef, SecuMasterService, MessageBox, File, ULogger, Environment } from "../../base/api/services/backend.service";
 import * as echarts from "echarts";
 
 /**
@@ -155,6 +155,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.statusbar.items.push(info);
         this.loginTGW(null);
         this.registerListeners();
+        ULogger.init(`${this.option.name}.log`, Environment.getDataPath(this.apptype));
     }
 
     registerListeners() {
@@ -166,6 +167,9 @@ export class AppComponent implements OnInit, OnDestroy {
                 case "group-md":
                     if (this.spreadviewer)
                         self.spreadviewer.addMDData(ev.data.value);
+                    break;
+                case "log-error":
+                    ULogger.error(ev.data.value);
                     break;
                 default:
                     break;

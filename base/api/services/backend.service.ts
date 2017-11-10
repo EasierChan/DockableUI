@@ -399,9 +399,6 @@ export class CryptoService {
 
 export class ULogger {
     static stream = null;
-    static info = ULogger.log;
-    static error = ULogger.log;
-    static warn = ULogger.log;
     static formatStr;
 
     static init(name = "log", logdir = "."): void {
@@ -416,9 +413,33 @@ export class ULogger {
     static log(msg: string) {
         let date = new Date();
         if (ULogger.stream)
-            ULogger.stream.write(`[${date.format(ULogger.formatStr)}] ${msg}\n`, "utf8");
+            ULogger.stream.write(`[${date.format(ULogger.formatStr)}][DEFAULT] ${msg}\n`, "utf8");
         else
             console.log(msg);
+    }
+
+    static info(msg: string) {
+        let date = new Date();
+        if (ULogger.stream)
+            ULogger.stream.write(`[${date.format(ULogger.formatStr)}][INFO] ${msg}\n`, "utf8");
+        else
+            console.info(msg);
+    }
+
+    static error(msg: string) {
+        let date = new Date();
+        if (ULogger.stream)
+            ULogger.stream.write(`[${date.format(ULogger.formatStr)}][ERROR] ${msg}\n`, "utf8");
+        else
+            console.error(msg);
+    }
+
+    static warn(msg: string) {
+        let date = new Date();
+        if (ULogger.stream)
+            ULogger.stream.write(`[${date.format(ULogger.formatStr)}][WARN] ${msg}\n`, "utf8");
+        else
+            console.warn(msg);
     }
 }
 

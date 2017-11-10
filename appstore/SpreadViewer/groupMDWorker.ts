@@ -38,14 +38,23 @@
             case "add-md":
                 for (let i = 0; i < groups.length; ++i) {
                     if (groups[i].ukeys.includes(ev.data.value.ukey)) {
-                        if (Math.min(ev.data.value.ask_price[0], ev.data.value.bid_price[0], ev.data.value.last) < 0.01) {
-                            console.error(ev.data.value);
+                        if (Math.max(ev.data.value.ask_price[0], ev.data.value.bid_price[0], ev.data.value.last) < 0.01) {
+                            postMessage({
+                                type: "log-error", value: JSON.stringify(ev.data.value)
+                            });
+
+                            ev.data.value.ask_price[0]
+                                = ev.data.value.bid_price[0]
+                                = ev.data.value.last
+                                = groups[i].items[ev.data.value.ukey].replace_amount / groups[i].items[ev.data.value.ukey].count;
                         }
 
                         groups[i].items[ev.data.value.ukey][ev.data.value.time] = {
-                            askPrice1: ev.data.value.ask_price[0] < 0.01 ? Math.max(ev.data.value.bid_price[0], ev.data.value.last) : ev.data.value.ask_price[0],
+                            askPrice1: ev.data.value.ask_price[0] < 0.01
+                                ? (ev.data.value.bid_price[0] > 0 ? ev.data.value.bid_price[0] : ev.data.value.last)
+                                : ev.data.value.ask_price[0],
                             bidPrice1: ev.data.value.bid_price[0] < 0.01
-                                ? (ev.data.value.ask_price[0] > 0 ? Math.min(ev.data.value.ask_price[0], ev.data.value.last) : ev.data.value.last)
+                                ? (ev.data.value.ask_price[0] > 0 ? ev.data.value.ask_price[0] : ev.data.value.last)
                                 : ev.data.value.bid_price[0],
                             last: ev.data.value.last
                         };
@@ -106,15 +115,6 @@
                             askPrice1 = null;
                             last = null;
                         } else {
-                            groups[i].ukeys.forEach(ukey => {
-                                if (!groups[i].lastIdx.hasOwnProperty(ukey)) {
-                                    console.warn(`lost ${ukey} Market data.`);
-                                }
-                            });
-
-                            // if (ev.data.value.time < groups[i].min) {
-                            //     groups[i].min = ev.data.value.time;
-                            // }
                             // post this group's md
                             let bidPrice1 = 0;
                             let askPrice1 = 0;
@@ -126,6 +126,7 @@
                                     askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1;
                                     last += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].last;
                                 } else {
+                                    console.warn(`lost ${ukey} Market data.`);
                                     bidPrice1 += groups[i].items[ukey].replace_amount;
                                     askPrice1 += groups[i].items[ukey].replace_amount;
                                     last += groups[i].items[ukey].replace_amount;
