@@ -11,12 +11,14 @@ import {
     VBox, HBox, TextBox, Button, DockContainer
 } from "../../base/controls/control";
 
-import { AppStoreService, ChildProcess, Http, ULogger } from "../../base/api/services/backend.service";
-import { TradeService, QuoteService, } from "../bll/services";
+import {
+    AppStoreService, ChildProcess, Http, ULogger,
+    Environment, SecuMasterService, TranslateService
+} from "../../base/api/services/backend.service";
+import { TradeService, QuoteService } from "../bll/services";
 import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
-import { AppStateCheckerRef, File, Environment, Sound, SecuMasterService, TranslateService } from "../../base/api/services/backend.service";
 import { ActionBar, Label } from "../../base/controls/control";
 /**
  * for actionBar test
