@@ -608,6 +608,7 @@ export class USpreadViewer {
         } else if (this.lastPoint[this.ukeys[0]].time === -1 && this.lastPoint[this.ukeys[1]].time === -1) { // first quote data
             // init axises;
             this.lastPoint[mdItem.ukey].time = mdItem.time;
+            this.lastPoint[mdItem.ukey].duration = curDuration;
             this.dataPoint.duration = curDuration;
             this.dataPoint.time = mdItem.time;
             this.initOption(mdItem.time);

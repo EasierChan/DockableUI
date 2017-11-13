@@ -22,12 +22,17 @@
                         min: Infinity,
                         max: -Infinity,
                         askPrice1: 0,
-                        bidPrice1: 0
+                        bidPrice1: 0,
+                        last: 0
                     };
 
                     for (let prop in group.items) {
                         newItem.ukeys.push(group.items[prop].ukey);
                         newItem.items[group.items[prop].ukey] = { count: parseInt(group.items[prop].count), replace_amount: parseInt(group.items[prop].replace_amount) };
+
+                        newItem.bidPrice1 += newItem.items[group.items[prop].ukey].replace_amount;
+                        newItem.askPrice1 += newItem.items[group.items[prop].ukey].replace_amount;
+                        newItem.last += newItem.items[group.items[prop].ukey].replace_amount;
                     };
 
                     groups.push(newItem);
@@ -36,8 +41,9 @@
                 // console.info(groups);
                 break;
             case "add-md":
+                let ukey = ev.data.value.ukey;
                 for (let i = 0; i < groups.length; ++i) {
-                    if (groups[i].ukeys.includes(ev.data.value.ukey)) {
+                    if (groups[i].ukeys.includes(ukey)) {
                         if (Math.max(ev.data.value.ask_price[0], ev.data.value.bid_price[0], ev.data.value.last) < 0.01) {
                             postMessage({
                                 type: "log-error", value: JSON.stringify(ev.data.value)
@@ -46,10 +52,10 @@
                             ev.data.value.ask_price[0]
                                 = ev.data.value.bid_price[0]
                                 = ev.data.value.last
-                                = groups[i].items[ev.data.value.ukey].replace_amount / groups[i].items[ev.data.value.ukey].count;
+                                = groups[i].items[ukey].replace_amount / groups[i].items[ukey].count;
                         }
 
-                        groups[i].items[ev.data.value.ukey][ev.data.value.time] = {
+                        groups[i].items[ukey][ev.data.value.time] = {
                             askPrice1: ev.data.value.ask_price[0] < 0.01
                                 ? (ev.data.value.bid_price[0] > 0 ? ev.data.value.bid_price[0] : ev.data.value.last)
                                 : ev.data.value.ask_price[0],
@@ -59,87 +65,24 @@
                             last: ev.data.value.last
                         };
 
-                        groups[i].lastIdx[ev.data.value.ukey] = ev.data.value.time;
-
-                        if (Object.getOwnPropertyNames(groups[i].lastIdx).length === groups[i].ukeys.length) {
-                            // post this group's md
-                            let bidPrice1 = 0;
-                            let askPrice1 = 0;
-                            let last = 0;
-
-                            groups[i].ukeys.forEach(ukey => {
-                                if (groups[i].lastIdx[ukey] < groups[i].min)
-                                    groups[i].min = groups[i].lastIdx[ukey];
-                                if (groups[i].lastIdx[ukey] > groups[i].max)
-                                    groups[i].max = groups[i].lastIdx[ukey];
-
-                                bidPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1;
-                                askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1;
-                                last += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].last;
-                            });
-
-                            if (groups[i].lastestIdx === 0) {
-                                groups[i].lastestIdx = groups[i].max;
-                                postMessage({
-                                    type: "group-md", value: {
-                                        ukey: groups[i].key, time: groups[i].lastestIdx,
-                                        ask_price: [askPrice1], bid_price: [bidPrice1], last: last
-                                    }
-                                });
-                            } else if (groups[i].min >= groups[i].lastestIdx) {
-                                groups[i].lastestIdx = groups[i].min;
-
-                                postMessage({
-                                    type: "group-md", value: {
-                                        ukey: groups[i].key, time: groups[i].min,
-                                        ask_price: [askPrice1], bid_price: [bidPrice1], last: last
-                                    }
-                                });
-                            } else {
-                                console.warn(`[min: ${groups[i].min}] need larger than [last: ${groups[i].lastestIdx}]`);
-                                groups[i].ukeys.forEach(ukey => {
-                                    if (groups[i].lastIdx[ukey] <= groups[i].min) {
-                                        console.warn(`wait ukeys: ${ukey}`);
-                                    }
-                                });
-
-                                postMessage({
-                                    type: "group-md", value: {
-                                        ukey: groups[i].key, time: ev.data.value.time,
-                                        ask_price: [askPrice1], bid_price: [bidPrice1], last: last
-                                    }
-                                });
-                            }
-
-                            bidPrice1 = null;
-                            askPrice1 = null;
-                            last = null;
+                        if (groups[i].lastIdx.hasOwnProperty(ukey)) {
+                            groups[i].askPrice1 += groups[i].items[ukey].count * (ev.data.value.ask_price[0] - groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1);
+                            groups[i].bidPrice1 += groups[i].items[ukey].count * (ev.data.value.bid_price[0] - groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1);
+                            groups[i].last += groups[i].items[ukey].count * (ev.data.value.last - groups[i].items[ukey][groups[i].lastIdx[ukey]].last);
                         } else {
-                            // post this group's md
-                            let bidPrice1 = 0;
-                            let askPrice1 = 0;
-                            let last = 0;
-
-                            groups[i].ukeys.forEach(ukey => {
-                                if (groups[i].lastIdx.hasOwnProperty(ukey)) {
-                                    bidPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1;
-                                    askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1;
-                                    last += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].last;
-                                } else {
-                                    console.warn(`lost ${ukey} Market data.`);
-                                    bidPrice1 += groups[i].items[ukey].replace_amount;
-                                    askPrice1 += groups[i].items[ukey].replace_amount;
-                                    last += groups[i].items[ukey].replace_amount;
-                                }
-                            });
-
-                            postMessage({
-                                type: "group-md", value: {
-                                    ukey: groups[i].key, time: ev.data.value.time,
-                                    ask_price: [askPrice1], bid_price: [bidPrice1], last: last
-                                }
-                            });
+                            groups[i].askPrice1 += groups[i].items[ukey].count * ev.data.value.ask_price[0] - groups[i].items[ukey].replace_amount;
+                            groups[i].bidPrice1 += groups[i].items[ukey].count * ev.data.value.bid_price[0] - groups[i].items[ukey].replace_amount;
+                            groups[i].last += groups[i].items[ukey].count * ev.data.value.last - groups[i].items[ukey].replace_amount;
                         }
+
+                        groups[i].lastIdx[ukey] = ev.data.value.time;
+
+                        postMessage({
+                            type: "group-md", value: {
+                                ukey: groups[i].key, time: ev.data.value.time,
+                                ask_price: [groups[i].askPrice1], bid_price: [groups[i].bidPrice1], last: groups[i].last
+                            }
+                        });
                         break;
                     }
                 }
