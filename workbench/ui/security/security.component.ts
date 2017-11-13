@@ -208,7 +208,6 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.standardInfo.content = [];
         this.standardInfo.content.push(["合约编码", "--", "市场编码", "--"]);
         this.standardInfo.content.push(["标的中文名称", "--", "标的英文名称", "--"]);
-        this.standardInfo.content.push(["标的中文名称", "--", "标的英文名称", "--"]);
         this.standardInfo.content.push(["报价单位", "--", "最小变动价位", "--"]);
         this.standardInfo.content.push(["每日价格最大波动限制", "--", "合约交割月份", "--"]);
         this.standardInfo.content.push(["交易时间", "--", "最后交易日", "--"]);
@@ -626,6 +625,10 @@ export class SecurityComponent implements OnInit, OnDestroy {
 
                         if (msg.content.Structs[0].delist_date === 99999999) {
                             this.baseInfo.content[15].value = "未退市";
+                        }  else {
+                            let delistDate = msg.content.Structs[0].delist_date.toString().substr(0, 4) + "," + msg.content.Structs[0].delist_date.toString().substr(4, 2) +
+                            "," + msg.content.Structs[0].delist_date.toString().substr(6, 2);
+                            this.baseInfo.content[15].value = delistDate;
                         }
 
                         let tradingDay = msg.content.Structs[0].trading_day.toString().substr(0, 4) + "," + msg.content.Structs[0].trading_day.toString().substr(4, 2) +
@@ -636,27 +639,27 @@ export class SecurityComponent implements OnInit, OnDestroy {
                             "," + msg.content.Structs[0].pre_trading_day.toString().substr(6, 2);
                         this.marketInfo.content[1].value = preTradingDay;
 
-                        this.marketInfo.content[2].value = msg.content.Structs[0].upper_limit;
-                        this.marketInfo.content[3].value = msg.content.Structs[0].lower_limit;
-                        this.marketInfo.content[4].value = msg.content.Structs[0].pre_close;
-                        this.marketInfo.content[5].value = msg.content.Structs[0].pre_settlement;
+                        this.marketInfo.content[2].value = msg.content.Structs[0].upper_limit / 10000;
+                        this.marketInfo.content[3].value = msg.content.Structs[0].lower_limit / 10000;
+                        this.marketInfo.content[4].value = msg.content.Structs[0].pre_close / 10000;
+                        this.marketInfo.content[5].value = msg.content.Structs[0].pre_settlement / 10000;
                         this.marketInfo.content[6].value = msg.content.Structs[0].pre_interest;
                         this.marketInfo.content[7].value = msg.content.Structs[0].pre_volume;
                         this.keyInfo.content[0].value = msg.content.Structs[0].total_share;
                         this.keyInfo.content[1].value = msg.content.Structs[0].float_share;
                         this.keyInfo.content[2].value = msg.content.Structs[0].associate_code;
-                        this.keyInfo.content[3].value = msg.content.Structs[0].exercise_price;
+                        this.keyInfo.content[3].value = msg.content.Structs[0].exercise_price / 10000;
                         this.keyInfo.content[4].value = msg.content.Structs[0].min_order_size;
                         this.keyInfo.content[5].value = msg.content.Structs[0].max_order_size;
                         this.keyInfo.content[6].value = msg.content.Structs[0].lot_size;
                         this.keyInfo.content[7].value = msg.content.Structs[0].money_avail;
-                        this.marketInfo.content[5].value = msg.content.Structs[0].pre_settlement;
+                        this.marketInfo.content[5].value = msg.content.Structs[0].pre_settlement / 10000;
                         this.marketInfo.content[6].value = msg.content.Structs[0].pre_interest;
                         this.marketInfo.content[7].value = msg.content.Structs[0].pre_volume;
                         this.keyInfo.content[0].value = msg.content.Structs[0].total_share;
                         this.keyInfo.content[1].value = msg.content.Structs[0].float_share;
                         this.keyInfo.content[2].value = msg.content.Structs[0].associate_code;
-                        this.keyInfo.content[3].value = msg.content.Structs[0].exercise_price;
+                        this.keyInfo.content[3].value = msg.content.Structs[0].exercise_price / 10000;
                         this.keyInfo.content[4].value = msg.content.Structs[0].min_order_size;
                         this.keyInfo.content[5].value = msg.content.Structs[0].max_order_size;
                         this.keyInfo.content[6].value = msg.content.Structs[0].lot_size;
@@ -682,9 +685,69 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         this.standardInfo.content[6][3] = msg.content.Structs[0].min_trading_margin_desc;
                         this.standardInfo.content[7][1] = msg.content.Structs[0].trading_fee_desc;
                         this.standardInfo.content[7][3] = msg.content.Structs[0].delivery_methods_desc;
-                        this.standardInfo.content[8][1] = msg.content.Structs[0].list_date;
-                        this.standardInfo.content[8][3] = msg.content.Structs[0].delist_date;
-                        this.standardInfo.content[9][1] = msg.content.Structs[0].currency_id;
+
+                        let listDate = msg.content.Structs[0].list_date.toString().substr(0, 4) + "," + msg.content.Structs[0].list_date.toString().substr(4, 2) +
+                        "," + msg.content.Structs[0].list_date.toString().substr(6, 2);
+                        this.standardInfo.content[8][1] = listDate;
+
+                        if (msg.content.Structs[0].delist_date === 99999999) {
+                            this.standardInfo.content[8][3] = "未退市";
+                        }  else {
+                            let delistDate = msg.content.Structs[0].delist_date.toString().substr(0, 4) + "," + msg.content.Structs[0].delist_date.toString().substr(4, 2) +
+                            "," + msg.content.Structs[0].delist_date.toString().substr(6, 2);
+                            this.standardInfo.content[8][3] = delistDate;
+                        }
+
+                        switch (msg.content.Structs[0].currency_id) {
+                            case 1:
+                                this.standardInfo.content[9][1] = "人民币";
+                                break;
+                            case 2:
+                                this.standardInfo.content[9][1] = "美元";
+                                break;
+                            case 3:
+                                this.standardInfo.content[9][1] = "欧元";
+                                break;
+                            case 4:
+                                this.standardInfo.content[9][1] = "日元";
+                                break;
+                            case 5:
+                                this.standardInfo.content[9][1] = "英镑";
+                                break;
+                            case 6:
+                                this.standardInfo.content[9][1] = "卢布";
+                                break;
+                            case 7:
+                                this.standardInfo.content[9][1] = "瑞士法郎";
+                                break;
+                            case 8:
+                                this.standardInfo.content[9][1] = "港币";
+                                break;
+                            case 9:
+                                this.standardInfo.content[9][1] = "澳元";
+                                break;
+                            case 10:
+                                this.standardInfo.content[9][1] = "韩元";
+                                break;
+                            case 11:
+                                this.standardInfo.content[9][1] = "泰铢";
+                                break;
+                            case 12:
+                                this.standardInfo.content[9][1] = "巴西雷亚尔";
+                                break;
+                            case 13:
+                                this.standardInfo.content[9][1] = "新西兰元";
+                                break;
+                            case 14:
+                                this.standardInfo.content[9][1] = "新加坡元";
+                                break;
+                            case 15:
+                                this.standardInfo.content[9][1] = "马来西亚林吉特";
+                                break;
+                            case 16:
+                                this.standardInfo.content[9][1] = "加元";
+                                break;
+                        }
                     } else {
                         alert("未找到" + this.selectedItem.symbolCode + "的证券信息！");
                     }
