@@ -110,27 +110,84 @@
             indexedDB.deleteDatabase(name);
         }
 
-        openDB(name: string, version?: number): void {
-            let request = indexedDB.open(name, version);
-            request.onsuccess = (ev: any) => {
-                this.db = ev.currentTarget.result;
-                console.info(`${name} database init Done.`);
+        openDB(name: string, version?: number): Promise<any> {
+            return new Promise<any>((resolve, reject) => {
+
+                let request = indexedDB.open(name, version);
+
+                request.onsuccess = (ev: any) => {
+                    this.db = request.result;
+                    console.info(`${name} database init Done.`);
+                    resolve();
+                };
+
+                request.onupgradeneeded = (ev_upgrade: any) => {
+                    this.db = request.result;
+                    console.info(`${name} database upgrade Done.`);
+                    resolve();
+                };
+
+                request.onerror = (ev: any) => {
+                    console.error("${name} database open error: " + ev.currentTarget.errorCode);
+                    reject(ev.currentTarget.errorCode);
+                };
+            });
+        }
+
+        createTable(name: string) {
+            this.db.createObjectStore(name, { keyPath: "ukey.time" });
+        }
+
+        insert(row: Object, tableName: string) {
+            let trans = this.db.transaction(tableName, "readwrite");
+            let store = trans.objectStore(tableName);
+            let request = store.put(row);
+
+            request.onerror = (event) => {
+                console.info(event.error);
             };
 
-            request.onupgradeneeded = (ev: any) => {
-                if (this.db) this.db = null;
-                this.db = ev.currentTarget.result;
-                ev.data.legs.forEach(leg => {
-                    this.store = this.db.createObjectStore(leg, { keyPath: "time" });
-                    console.info(`createObjectStore ${leg}`);
-                });
-
-                console.info(`${name} database upgrade Done.`);
+            trans.oncomplete = (ev) => {
+                ;
             };
+        }
 
-            request.onerror = (ev: any) => {
-                console.error("${name} database open error: " + ev.currentTarget.errorCode);
-            };
+        select(tableName: string, key: string): Promise<any> {
+            return new Promise<any>((resolve, reject) => {
+                let trans = this.db.transaction(tableName, "readwrite");
+                let store = trans.objectStore(tableName);
+                let request = store.get(key);
+
+                request.onsuccess = (ev: any) => {
+                    resolve(ev.target.result);
+                };
+
+                request.onerror = (event) => {
+                    reject(event.error);
+                };
+            });
+        }
+
+        update(tableName: string, key: string, pairs: any[]): Promise<any> {
+            return new Promise<any>((resolve, reject) => {
+                let trans = this.db.transaction(tableName, "readwrite");
+                let store = trans.objectStore(tableName);
+                let request = store.get(key);
+
+                request.onsuccess = (ev: any) => {
+                    let ret = ev.target.result;
+
+                    pairs.forEach(pair => {
+                        ret[pair.key] = pair.value;
+                    });
+
+                    store.put(ret);
+                };
+
+                request.onerror = (event) => {
+                    reject(event.error);
+                };
+            });
         }
     }
 })();
