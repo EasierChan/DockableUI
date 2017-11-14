@@ -383,4 +383,14 @@ export class ConfigurationBLL {
             alert(fail_msg);
         }, timeout_val);
     }
+
+    private _data: any = {};
+
+    set(key, value) {
+        this._data[key] = value;
+    }
+
+    get(key) {
+        return this._data[key];
+    }
 }

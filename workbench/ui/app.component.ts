@@ -332,6 +332,13 @@ export class AppComponent implements OnInit, OnDestroy {
                                 this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms) });
                             });
                         }
+                        break;
+                    case "getRiskIndexAns":
+                        this.configBll.set("risk_index", JSON.parse(msg.content.body).body);
+                        break;
+                    case "getAssetAccountAns":
+                        this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
+                        break;
                 }
             }
         });

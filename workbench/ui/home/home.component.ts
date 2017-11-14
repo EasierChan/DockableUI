@@ -33,7 +33,7 @@ export class HomeComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.disabled_tabs = ["实盘交易", "风控"]; // 
+        this.disabled_tabs = ["实盘交易"]; // 
     }
 
     onTabClick(tab: string) {
