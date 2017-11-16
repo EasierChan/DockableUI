@@ -8,13 +8,18 @@ export class DataSet {
             name: "主页",
             icon: "home",
             // tabs: ["Dashboard", "Trading", "Simulation", "Risk", "Admin"]
-            tabs: ["首页", "实盘交易", "仿真交易", "风控"] // , "管理"
+            tabs: ["首页"] // , "管理"
         },
         {
-            name: "历史回测",
+            name: "实盘信息",
+            icon: "globe",
+            tabs: ["实盘交易", "风控"]
+        },
+        {
+            name: "模拟交易",
             icon: "retweet",
             // tabs: ["BackTest", "Report"]
-            tabs: ["回测", "回测报表"]
+            tabs: ["仿真交易", "回测", "回测报表"]
         },
         {
             name: "未来预测",

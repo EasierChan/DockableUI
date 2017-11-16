@@ -2053,7 +2053,7 @@ export class DataTableRowCell extends MetaControl {
     private color: string;
     private bgcolor: string;
 
-    constructor(type: "textbox" | "button" | "plaintext" | "checkbox" = "plaintext") {
+    constructor(type: "textbox" | "button" | "plaintext" | "checkbox" | "date" = "plaintext") {
         super(type);
     }
 

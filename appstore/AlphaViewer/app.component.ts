@@ -726,7 +726,7 @@ export class UAlphaViewer {
                 connectNulls: true,
                 data: []
             }],
-            color: ["#ee0202", "#02ee02", "#65A7EE", "#EED565", "#ff8800", "#9933cc"],
+            color: ["#ee0202", "#02ee02", "#65A7EE", "#EED565", "#9933cc", "#ff8800"],
             dataZoom: {
                 type: "inside",
                 xAxisIndex: [0, 1]

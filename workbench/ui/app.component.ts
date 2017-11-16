@@ -149,6 +149,26 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
+                case "实盘信息":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
+                    this.curPage = "home";
+                    this.homeMod = item.title;
+                    this.activeTab = DataSet.tabs(this.homeMod)[1];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "模拟交易":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
+                    this.curPage = "home";
+                    this.homeMod = item.title;
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
                 case "历史回测":
                     if (!this.appSrv.isLoginTrade()) {
                         this.actionBar.click(this.actionBar.getItem("个人中心"));
