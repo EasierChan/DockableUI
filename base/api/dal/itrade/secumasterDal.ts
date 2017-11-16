@@ -5,8 +5,8 @@
 
 import { IPCManager } from "../ipcManager";
 import { Path } from "../../common/base/paths";
-import { AppStoreService } from "../../services/backend.service";
 import { IP20Factory } from "../../services/ip20.worker";
+import { UConfig } from "../../common/base/configurator"
 import * as fs from "fs";
 import * as path from "path";
 
@@ -15,20 +15,23 @@ class SecuMaster {
     private static innerCodeObj = new Object();
     private static pinyinObj = new Object();
     private static windObj = new Object();
-    static secumasterData: string;
-    static appsrv: AppStoreService;
+    private static secumasterData: string;
+    private static line_sep: string = "\n";
+    private static field_sep: string = "#&#";
+    private static hasQuote: boolean;
+    
     /**
      * updated by cl, 2017/08/19
      * clean code and 
      */
     static init() {
-        console.log("secumaster start");
-        SecuMaster.secumasterData = "";
+        SecuMaster.hasQuote = false;
+        let [addr, port] = UConfig.default.endpoints[0].quote_addr.split(":");
+        SecuMaster.secumasterData = "ukeycode,jycode,inputcode,chabbr,windcode,tradingtime,presettlement" + SecuMaster.line_sep;
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
             ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        // let [addr, port] = SecuMaster.appsrv.getSetting().endpoints[0].quote_addr.split(":");
         
         IP20Factory.instance.addSlot({
             appid: 142,
@@ -36,13 +39,16 @@ class SecuMaster {
             callback: (msg) => {
                 for (let i = 0; i < msg.content.Count; ++i) {
                     let secuData = "";
-                    secuData = msg.content.Structs[i].ukey + "," + msg.content.Structs[i].jy_code + "," + msg.content.Structs[i].input_code + "," + 
-                    msg.content.Structs[i].market_abbr + "," +msg.content.Structs[i].wind_code + "," + msg.content.Structs[i].trading_time + "," + 
-                    msg.content.Structs[i].pre_settlement + "\n";
-                    SecuMaster.secumasterData +=secuData;
+                    let inputcodeArr = msg.content.Structs[i].input_code.split(",");
+                    secuData = msg.content.Structs[i].ukey + SecuMaster.field_sep + msg.content.Structs[i].jy_code + SecuMaster.field_sep + inputcodeArr[0] + SecuMaster.field_sep + 
+                    msg.content.Structs[i].market_abbr + SecuMaster.field_sep +msg.content.Structs[i].wind_code + SecuMaster.field_sep + msg.content.Structs[i].trading_time + SecuMaster.field_sep + 
+                    msg.content.Structs[i].pre_settlement + SecuMaster.line_sep;
+                    SecuMaster.secumasterData += secuData;
                 }
                 if (msg.content.IsLast === "Y") {
                     console.log(SecuMaster.secumasterData);
+                    SecuMaster.hasQuote = true;
+                    SecuMaster.processingData();
                 }
             }
         });
@@ -55,42 +61,43 @@ class SecuMaster {
             }
         });
 
-        IP20Factory.instance.connect("8021", "172.24.50.10");
+        IP20Factory.instance.connect(port, addr);
 
         IP20Factory.instance.onConnect = () => {
             IP20Factory.instance.send(17, 41, { "cellid": "1", "userid": "8.999", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp });
         };
-        let fpath = path.join(path.dirname(process.execPath), "secumain.csv");
-        if (!fs.existsSync(fpath)) {
-            fpath = path.join(__dirname, "../../../../secumain.csv");
+
+        setTimeout(SecuMaster.getSecumasterByCsv, 12000);
+    }
+
+    static getSecumasterByCsv() {
+        console.log("after 12s!")
+        if (!SecuMaster.hasQuote) {
+            let fpath = path.join(path.dirname(process.execPath), "secumaster.csv");
+            if (!fs.existsSync(fpath)) {
+                fpath = path.join("/mnt/dropbox/secumaster/secumaster.csv");
+            }
+            SecuMaster.secumasterData = fs.readFileSync(path.join(fpath), { encoding: "utf-8" });
+            console.log("has no quote!");
+            SecuMaster.processingData();
         }
+    }
 
-        try {
-            let content = fs.readFileSync(path.join(fpath), { encoding: "utf-8" });
-            
-            content.split("\n").forEach((linestr) => {
-                let arr = linestr.split(",");
-                let arrLen = arr.length;
+    static processingData() {
+        SecuMaster.secumasterData.split(SecuMaster.line_sep).forEach((linestr) => {
+        let fields = linestr.split(SecuMaster.field_sep);
+        let fieldsLen = fields.length;
 
-                if (arrLen === 5) {
-                    SecuMaster.pinyinObj[arr[2] + ","] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: parseInt(arr[0]) };
-                    SecuMaster.secuUkeyObj[arr[0]] = SecuMaster.pinyinObj[arr[2] + ","];
-                    SecuMaster.innerCodeObj[arr[1]] = SecuMaster.pinyinObj[arr[2] + ","];
-                    if (arr[4].length > 0)
-                        SecuMaster.windObj[arr[4]] = SecuMaster.pinyinObj[arr[2] + ","];
-                } else if (arrLen === 6) {
-                    SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: parseInt(arr[0]) };
-                    SecuMaster.secuUkeyObj[arr[0]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
-                    SecuMaster.innerCodeObj[arr[1]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
-                    if (arr[5].length > 0)
-                        SecuMaster.windObj[arr[5]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
-                }
-            });
+        
+        SecuMaster.pinyinObj[fields[2] + ","] = { InnerCode: fields[1], SecuCode: fields[2], SecuAbbr: fields[3], ukey: parseInt(fields[0]) };
+        SecuMaster.secuUkeyObj[fields[0]] = SecuMaster.pinyinObj[fields[2] + ","];
+        SecuMaster.innerCodeObj[fields[1]] = SecuMaster.pinyinObj[fields[2] + ","];
+        SecuMaster.windObj[fields[4]] = SecuMaster.pinyinObj[fields[2] + ","];
+    
+        });
 
-            content = null;
-        } catch (e) {
-            console.info(e);
-        }
+        SecuMaster.secumasterData = null;
+        SecuMaster.secumasterData = null;
     }
 
     static getSecuinfoByInnerCode(innercodes: number[]) {

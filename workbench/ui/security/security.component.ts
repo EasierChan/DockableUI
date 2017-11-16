@@ -765,7 +765,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         console.log(msg);
                         for (let i = 0; i < msg.content.Count; ++i) {
                             let secuData = "";
-                            secuData = msg.content.Structs[i].ukey + "," + msg.content.Structs[i].jy_code + "," + msg.content.Structs[i].input_code + "," + 
+                            let inputcodeArr = msg.content.Structs[i].input_code.split(",");
+                            secuData = msg.content.Structs[i].ukey + "," + msg.content.Structs[i].jy_code + "," + inputcodeArr[0] + "," + 
                             msg.content.Structs[i].market_abbr + "," +msg.content.Structs[i].wind_code + "," + msg.content.Structs[i].trading_time + "," + 
                             msg.content.Structs[i].pre_settlement + "\n";
                             this.secumasterData +=secuData;
