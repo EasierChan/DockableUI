@@ -52,6 +52,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     todoRowIndex: number;
     bestUkCodeList: any[];
     worstUkCodeList: any[];
+    nowDate: any;
 
 
     constructor(private tradePoint: TradeService, private quote: QuoteService) {
@@ -62,6 +63,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        let d = new Date();
+        this.nowDate = d.getFullYear() + '-' + (Number(d.getMonth()) + 1) + '-' + d.getDate();
         let vertual = {
             totalProfitAndLoss: 11,
             floatProfitAndLoss: 2,
@@ -158,7 +161,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         createtime: this.todoList.rows[rowIndex].cells[2].Text
                     }
                 });
-                this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
             } else if (cellIndex == 3) {
 
                 if (this.todoList.rows[rowIndex].cells[3].Text == 'update') {
@@ -170,15 +172,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             createtime: this.todoList.rows[rowIndex].cells[2].Text
                         }
                     });
-                    this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
-                } else {
+                } else if (this.todoList.rows[rowIndex].cells[3].Text == 'delete') {
                     this.tradePoint.send(260, 251, { head: { realActor: "deleteTodo" }, body: { id: operateId } });
                 }
             }
         }
 
         this.todoList.onCellDBClick = (cellItem, cellIndex, rowIndex) => {
-            cellItem.Type = "textbox";
+            if (cellIndex == 1) {
+                cellItem.Type = "textbox";
+            } else if (cellIndex == 2) {
+                cellItem.Type = "date";
+            }
             this.todoList.rows[rowIndex].cells[3].Text = 'update'
 
         }
@@ -238,6 +243,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
             packid: 251,
             callback: (msg) => {
                 switch (msg.content.head.actor) {
+                    case 'getAlarmMessageAns':
+                    console.log('getAlarmMessageAns--------------');
+                    console.log(JSON.parse(msg.content.body).body)
+                        break;
 
                     case 'getProductAns':
                         let productScaleChangeOpt = {
@@ -371,15 +380,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         break;
                     case 'getTodoListAns':
                         this.todoListData = JSON.parse(msg.content.body).body;
+                        console.log('rodoLis==============');
+                        console.log(this.todoListData)
                         this.todoList.rows.length = 0;
-                        let d = new Date();
-                        let nowDate = new Date(d.getFullYear() + '-' + (Number(d.getMonth()) + 1) + '-' + d.getDate());
+
+
 
 
                         this.todoListData.forEach(item => {
                             let row = this.todoList.newRow();
                             let todoTime = new Date(item.createtime.substring(0, 10));
-                            if (nowDate > todoTime) {
+                            if (new Date(this.nowDate) > todoTime) {
                                 row.backgroundColor = 'rgb(226, 131, 131)';
                             }
 
@@ -403,12 +414,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     case 'createTodoAns':
                         if (JSON.parse(msg.content.body).msret.msgcode == '00') {
                             this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
+                            // let row = this.todoList.newRow();
+
+                            // row.cells[0].Type = "checkbox";
+                            // row.cells[0].Text = false;
+                            // row.cells[1].Text = this.addTodoContent;
+                            // row.cells[2].Text = this.nowDate;
+                            // row.cells[3].Type = "button";
+                            // row.cells[3].Text = 'delete';
                         }
 
                         break;
                     case 'editTodoAns':
                         if (JSON.parse(msg.content.body).msret.msgcode == '00') {
-                         
+                            this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
                         }
                         break;
                     case 'deleteTodoAns':
@@ -422,7 +441,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
 
 
-
+        this.tradePoint.send(260, 251, { head: { realActor: "getAlarmMessage" }, body: {} });
         this.tradePoint.send(260, 251, { head: { realActor: "getProduct" }, body: {} });
         //AI看盘数据
         this.tradePoint.send(260, 251, { head: { realActor: "getWorstStocks" }, body: {} });
