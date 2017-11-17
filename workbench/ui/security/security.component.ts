@@ -29,16 +29,9 @@ export class SecurityComponent implements OnInit, OnDestroy {
     isStock: boolean;
     marketID: number;
     marketInfo: Section;
-    flag: number;
-    flagArr: any[];
-    flagNum: number;
-    secumasterData: string;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
-        this.flag = 1;
-        this.flagNum = 1;
-        this.flagArr = [];
-        this.secumasterData = "ukeycode,jycode,inputcode,chabbr,windcode,tradingtime,presettlement\n";
+
     }
 
     ngOnInit() {
@@ -225,11 +218,6 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.standardInfo.content.push(["上市日期", "--", "下市日期", "--"]);
         this.standardInfo.content.push(["交易货币", "--", "", " "]);
         this.isStock = true;
-
-        // let date = new Date();
-        // let time = date.toLocaleTimeString();
-        // console.log(this.flag, time);
-        // this.quote.send(142, 26, { Seqno: 3, SecurityID: 0, TableType: 5, MarketID: 0, Date: 0, SerialID: 0, PackSize: 10, Field: "ukey,market_abbr,jy_code,wind_code,pre_settlement,trading_time,input_code" });
 
         // 历史行情
         this.registerListener();
@@ -761,31 +749,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                                 this.standardInfo.content[9][1] = "加元";
                                 break;
                         }
-                    } else if (msg.content.Seqno === 3) {
-                        console.log(msg);
-                        for (let i = 0; i < msg.content.Count; ++i) {
-                            let secuData = "";
-                            let inputcodeArr = msg.content.Structs[i].input_code.split(",");
-                            secuData = msg.content.Structs[i].ukey + "," + msg.content.Structs[i].jy_code + "," + inputcodeArr[0] + "," + 
-                            msg.content.Structs[i].market_abbr + "," +msg.content.Structs[i].wind_code + "," + msg.content.Structs[i].trading_time + "," + 
-                            msg.content.Structs[i].pre_settlement + "\n";
-                            this.secumasterData +=secuData;
-                        }
-                        let flagData = {start: 0, end: 0};
-                        if (msg.content.SerialID !== this.flag) {
-                            flagData.start = this.flag;
-                            flagData.end = msg.content.SerialID - 1;
-                            this.flagArr.push(flagData);
-                        }
-                        if (msg.content.IsLast === "Y") {
-                            let date = new Date();
-                            let time = date.toLocaleTimeString();
-                            console.log(this.flagNum, this.flagArr, time);
-                            File.writeSync("/mnt/dropbox/secumaster/secumaster.csv", this.secumasterData);
-                        }
-                        this.flag = msg.content.SerialID + 1;
-                        this.flagNum += 1;
-                    }
+                    } 
                 } else {
                         alert("未找到" + this.selectedItem.symbolCode + "的证券信息！");
                 }
