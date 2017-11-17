@@ -33,6 +33,11 @@
             </label>
             <u-codes *ngIf="cell.styleObj.type=='u-codes'" [selectedItem]="cell.dataSource.text" (onSelect)="cell.dataSource.click({row: i, item: $event})"></u-codes>
             <button-group *ngIf="cell.styleObj.type=='button-group'" [buttons]="cell.dataSource.text" [option]="cell._dataObj" (onClick)="cell.dataSource.click($event)"></button-group>
+            <label *ngIf="cell.styleObj.type=='date'" [style.margin-left.px]="cell.styleObj?.left" [style.margin-top.px]="cell.styleObj?.top">
+              <pre>{{cell.dataSource.title}}</pre>
+                <input type="date" [(ngModel)]="cell.dataSource.text" [name]="cell.dataSource.name" [style.width.px]="cell.styleObj?.width"
+                class="btn-{{cell.className}} btn-xs" [disabled]="cell.styleObj?.disable" [readonly]="cell.styleObj?.readonly">
+            </label>
           </td>
         </template>
       </tr>
