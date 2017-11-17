@@ -23,6 +23,10 @@
               [name]="cell.dataSource.name">
             {{cell.dataSource.text}}
           </button>
+          <button *ngIf="cell.styleObj.type=='icon'" class="btn btn-default btn-{{cell.className}} btn-xs" [disabled]="cell.styleObj.disable"
+              [name]="cell.dataSource.name" aria-label="cell.dataSource.title">
+              <span class="glyphicon glyphicon-{{cell.dataSource.title}}"></span> {{cell.dataSource.text}}
+          </button>
             <input *ngIf="cell.styleObj.type=='textbox'" type="text" (change)="cell.dataSource?.change()" [(ngModel)]="cell.dataSource.text" [readonly]="cell.styleObj.readonly"
               [name]="cell.dataSource.name" class="btn-default btn-{{cell.className}} btn-xs" ondragstart="return false;">
             <span *ngIf="cell.styleObj.type=='plaintext'">{{cell.dataSource.text}}</span>
