@@ -818,6 +818,25 @@ export class USpreadViewer {
             (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true);
     }
 
+    padData(begPoint: AxisPoint, endPoint) {
+        // put data in left padding
+        this.dataOption.series[0].data.unshift(
+            (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.minPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[0].offsets[0] - this.lines[0].offsets[1] -
+                this.lines[0].coeffs[1] * this.msgs[this.ukeys[1]][this.minPoint.time][this.lines[0].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(4)
+        ); // tslint:disable-line
+        this.dataOption.series[1].data.unshift(
+            (this.lines[1].coeffs[0] * this.msgs[this.ukeys[0]][this.minPoint.time][this.lines[1].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[1].offsets[0] - this.lines[1].offsets[1] -
+                this.lines[1].coeffs[1] * this.msgs[this.ukeys[1]][this.minPoint.time][this.lines[1].levels[1] === 1 ? "askPrice1" : "bidPrice1"]).toFixed(4)
+        ); // tslint:disable-line
+        this.dataOption.series[2].data.unshift(
+            this.msgs[this.ukeys[0]][this.minPoint.time].last
+        ); // tslint:disable-line
+        this.dataOption.series[3].data.unshift(
+            this.msgs[this.ukeys[1]][this.minPoint.time].last
+        ); // tslint:disable-line
+        // end put
+    }
+
     changeXAxisRange(type: number = 1) {
         let padding = 1;
         switch (type) {
