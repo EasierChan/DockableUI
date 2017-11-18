@@ -1781,7 +1781,8 @@ export class DataTable extends Control {
             width: null,
             height: null,
             cellpadding: null,
-            bRowIndex: true
+            bRowIndex: true,
+            bColumnHeader: true,
         };
 
         this.dataSource.sort = (col: DataTableColumn, idx: number) => {
@@ -1816,6 +1817,10 @@ export class DataTable extends Control {
 
     set RowIndex(value: boolean) {
         this.styleObj.bRowIndex = value;
+    }
+
+    set ColumnHeader(show: boolean) {
+        this.styleObj.bColumnHeader = show;
     }
 
     addColumn(...columns: string[]): DataTable {
