@@ -23,7 +23,15 @@
     background-color: #222A41;
 }
 
+.u-col .section {
+    margin-bottom: 10px;
+}
+
 .section > .title {
+    background-color: #1A2237;
+}
+
+.title {
     background-color: #1A2237;
 }
 
@@ -35,4 +43,22 @@
 
 dock-table2 {
     width: auto;
+}
+
+.u-wrap {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+.u-wrap .u-col {
+    min-width: 500px;
+    margin-right: 10px;
+}
+
+.select-area {
+    margin-bottom: 10px;
+}
+
+.select-area select {
+    background: #000010;
 }
