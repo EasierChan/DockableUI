@@ -4,7 +4,7 @@
     </div>
     <section class="leftSection">
         <div class="marketPrefile_con chartCon">
-            <p class="chartTit">marketProfile container</p>
+            <p class="chartTit">主要指数</p>
             <div>
                 lllllallal allProductWeight
             </div>
@@ -12,11 +12,9 @@
         <div class="aiArea chartCon">
             <p class="chartTit">AI看盘</p>
             <div class="theBestList">
-                <p class="">最好的30个股票</p>
                 <dock-table2 [dataSource]="bestStockList.dataSource" [styleObj]="bestStockList.styleObj"></dock-table2>
             </div>
             <div class="theWorstList">
-                <p class="">最差的30个股票</p>
                 <dock-table2 [dataSource]="worstStockList.dataSource" [styleObj]="worstStockList.styleObj"></dock-table2>
 
             </div>
@@ -25,45 +23,31 @@
 
     <section class="middleSection">
         <div class="productChart chartCon ">
-            <p class="chartTit">产品数据分析</p>
-            <!--<span class='choose'> choose</span>-->
+            <p class="chartTit">产品概览 <span (click)="getNowProductData()" class="nextProductBtn">next Product</span></p>
             <div echarts [options]="productNet.content.option" (chartInit)="productNet.content.onInit($event)" style="height: 250px"></div>
-            <!--<div echarts [options]="productNet.content.option" style="height: 250px"></div>-->
             <div class="producAnalysis">
-               
-                <span class="profitAndLoss">
-                    <span class="fontCon">
-                        <p>总盈亏：{{totalProfitAndLoss}}</p>
-                        <p>浮动盈亏：{{floatProfitAndLoss}}</p>
-                    </span>
-
-                </span>
-                 <span class="productWeight">
-                    <div echarts [options]="productWeight.content.option" (chartInit)="productWeight.content.onInit($event)"style="height: 150px ;"></div>
-                </span>
-                <span class="productRisk">
-                     <span class="fontCon">
-                        <p>敞口率：{{riskExposure}}%</p>
-                        <p>风险度：{{riskDegree}}%</p>
-                     </span>
-                </span>
+                <p class="fontCon "><span class="name">当日盈亏</span><br/><span class="value">{{totalProfitAndLoss}}</span></p>
+                <p class="fontCon"><span class="name">浮动盈亏</span><br/><span class="value">{{floatProfitAndLoss}}</span></p>
+                <p class="fontCon"><span class="name">敞口率</span><br/><span class="value">{{riskExposure}}%</span></p>
+                <p class="fontCon"><span class="name">风险度</span><br/><span class="value">{{riskDegree}}%</span></p>
+                
             </div>
         </div>
         <div class="chartCon productScale">
-            <p class="chartTit">产品规模统计</p>
-            <div echarts [options]="productScale.content.option"  (chartInit)="productScale.content.onInit($event)" style="height: 300px"></div>
+            <p class="chartTit">产品规模</p>
+            <div echarts [options]="productScale.content.option" (chartInit)="productScale.content.onInit($event)" style="height: 300px"></div>
 
         </div>
         <div class="chartCon allProductWeight">
             <p class="chartTit">产品资产比重</p>
-            <div echarts [options]="allProductWeight.content.option"  (chartInit)="allProductWeight.content.onInit($event)" style="height: 400px"></div>
+            <div echarts [options]="allProductWeight.content.option" (chartInit)="allProductWeight.content.onInit($event)" style="height: 400px"></div>
 
         </div>
     </section>
 
     <section class="rightSection">
         <div class="alarmCon chartCon">
-            <p class="chartTit">alarm分析</p>
+            <p class="chartTit">告警</p>
             <div class="alarmTab">
                 <dock-table2 [dataSource]="riskTable.dataSource" [styleObj]="riskTable.styleObj"></dock-table2>
             </div>
@@ -72,46 +56,16 @@
         <div class="todoCon chartCon">
             <p class="chartTit">TODO</p>
             <div class="todoInput">
-                <input type="text" placeholder="输入要做的事情" [(ngModel)] = "addTodoContent"/>
-                <a href="javascript:;" (click) = "addTodoEvent()" class="addTodoList">add</a>
-                <!--<input type="text" placeholder="输入要做的事情" /><a href="javascript:;"  class="addTodoList">submit</a>-->
+                <input type="text" placeholder="输入要做的事情" [(ngModel)]="addTodoContent" />
+                <a href="javascript:;" (click)="addTodoEvent()" class="addTodoList">add</a>
             </div>
             <div class="todoList">
                 <dock-table2 [dataSource]="todoList.dataSource" [styleObj]="todoList.styleObj"></dock-table2>
-                <!--<ul>
-                    <li *ngFor = "let todo of todoListData">
-                        <input type="checkbox"/>
-                        <span>{{todo.message}}</span>
-                        <span>{{todo.time}}</span>
-                        <span>delete</span>
-                    </li>
-                </ul>-->
+
             </div>
         </div>
-        <div class="messageCon chartCon">
-            <p class="chartTit">Message</p>
-        </div>
+       
 
     </section>
-    <!--<div class="strategyChart chartCon">
-        <b>策略净值走势</b>
-        <div echarts [options]="combStrategyNet.content.option" (chartInit)="combStrategyNet.content.onInit($event)" style="height: 250px"></div>
-    </div>-->
 
-
-    <!--<div class="u-row other">
-        <section class="fill" style="overflow-x: auto">
-            <b>productMarketWeight</b>
-            <div echarts [options]="productMarketWeight.content.option" (chartInit)="productMarketWeight.content.onInit($event)" style="height: 250px"></div>
-        </section>
-      
-    </div>
-
-     <div class="u-row other">
-        <section class="fill" style="overflow-x: auto">
-            <b>test</b>
-            <div echarts [options]="myFristEchartSection.content.option" (chartInit)="myFristEchartSection.content.onInit($event)" style="height: 250px"></div>
-        </section>
-      
-    </div>-->
 </div>

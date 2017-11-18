@@ -110,7 +110,7 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
-        let disables = ["未来预测", "证券信息", "实盘信息"]; // 
+        let disables = []; // 
         this.actionBar.onClick = (item) => {
             if (disables.indexOf(item.title) >= 0) {
                 alert("当前未开放权限");
