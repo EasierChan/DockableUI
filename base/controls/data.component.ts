@@ -15,6 +15,7 @@ import * as echarts from "echarts";
     moduleId: module.id,
     selector: "dock-table",
     templateUrl: "data.table.html",
+    styleUrls: ["datatable.css"],
     inputs: ["className", "dataSource", "styleObj"]
 })
 export class DataTableComponent implements OnInit, AfterViewInit {
@@ -62,6 +63,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
     moduleId: module.id,
     selector: "dock-table2",
     templateUrl: "data.scrollerbar-table.html",
+    styleUrls: ["datatable.css"],
     inputs: ["className", "dataSource", "styleObj"]
 })
 export class ScrollerBarTable implements OnInit {
