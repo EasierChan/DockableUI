@@ -1,6 +1,6 @@
 .dash-body {
     flex: auto;
-    display: flex;
+    /*display: flex;*/
     flex-flow: column;
     overflow-y: auto;
 }
@@ -18,8 +18,14 @@ table {
     margin-left: 10px;
 }
 
-.fill {
+.fill_left {
     flex: auto;
+    width: 50%;
+}
+
+.fill_right {
+    flex: auto;
+    width: calc(50% - 35px);
 }
 
 .dash-body > .banner {
@@ -27,7 +33,7 @@ table {
     /*height: 200px;
     min-height: 200px;*/
     background-color: #222A41;
-    background-image: url('../base/images/main.jpg');
+    /*background-image: url('../base/images/main.jpg');*/
     background-position: center;
     background-repeat: no-repeat;
 }
@@ -35,13 +41,13 @@ table {
 .dash-body > .marketdata,
 .dash-body > .other {
     margin-top: 10px;
-    height: 250px;
-    min-height: 250px;
+    height: 390px;
+    min-height: 390px;
     flex: none;
 }
 
 .dash-body > .other {
-    height: 300px;
+    height: 350px;
 }
 
 section {
@@ -52,5 +58,136 @@ section {
 section > .holder {
     flex: auto;
     padding: 5px;
-    background-color: #222A41;
-};
+    background-color: #222A41 !important;
+    text-align: center;
+}
+
+
+.dash-body section{
+    float: left;
+}
+
+.chartCon{
+    /*border: 2px solid #032d60;*/
+    box-shadow: inset 0 0 20px #424b62;
+    box-sizing: border-box;
+    padding: 15px;
+
+}
+
+.chartTit{
+    height: 30px;
+    background: #424b62;
+    line-height: 30px;
+    padding-left: 10px;
+    border-radius: 2px;
+    /*color: #d59e20;*/
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    border: 2px solid rgba(136, 136, 136, 0.41);
+}
+.leftSection{
+     width: 40%;
+}
+.middleSection{
+     width: 30%;
+}
+.rightSection{
+     width: 30%;
+}
+.marketPrefile_con{
+   
+    height: 700px;
+}
+.producAnalysis{
+    display: flex;
+}
+.producAnalysis .profitAndLoss,
+.producAnalysis .productRisk,
+.producAnalysis .productWeight{
+    width: 100px;
+    flex: 1;
+    box-sizing: border-box;
+    padding: 10px;
+    position: relative;
+}
+.producAnalysis .fontCon{
+    position: absolute;
+    min-width: 70%;
+    max-width: 90%;
+    text-align: left;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 5px;
+    background: #848a98;
+    color: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 10px;
+}
+
+.aiArea{
+    min-height: 350px;
+}
+.aiArea>div{
+    float: left;
+    width: 50%;
+    overflow-x: auto;
+}
+.aiArea>.theBestList{
+    padding-right: 10px;
+}
+
+.alarmCon .alarmTab{
+     width:100%;
+     overflow-x: auto;
+}
+
+
+.todoCon{
+    min-height: 200px;
+}
+.todoCon .todoInput  .addTodoList{
+    float: right;
+    cursor: pointer;
+    width: 50px;
+    height: 25px;
+    background: #464c61;
+    text-align: center;
+    line-height: 25px;
+    border-radius: 3px;
+    color: #fff;
+    text-decoration: none;
+   
+}
+.todoCon  .addTodoList:hover,
+.todoCon  .addTodoList:active{
+    border: 1px solid rgb(33, 156, 111);
+}
+
+.todoCon .todoList{
+    width: 100%;
+    overflow-x: scroll;
+}
+.todoCon .todoInput{
+    padding: 10px 10px 20px 10px;
+}
+.todoCon .todoInput input{
+    color: #717171;
+    outline: 0;
+    height: 18px;
+    padding: 6px 11px;
+    line-height: 18px;
+    font-size: 13px;
+    background-color: #f5f5f5;
+    min-height: 29px;
+    border: 1px solid #5d5f63;
+    border-radius: 3px;
+    width: 80%;
+}
+
+
+
+
+
