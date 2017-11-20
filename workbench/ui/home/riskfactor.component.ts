@@ -1,24 +1,22 @@
 "use strict";
 
-import { Component, HostListener, OnDestroy } from "@angular/core";
+import { Component, OnDestroy } from "@angular/core";
 import { File, path } from "../../../base/api/services/backend.service"; // File operator
 import { TradeService } from "../../bll/services";
-import { FormsModule } from "@angular/forms";
-import { CommonModule, DatePipe } from "@angular/common";
+import { DatePipe } from "@angular/common";
 import { AppStoreService } from "../../../base/api/services/backend.service";
 import * as echarts from "echarts";
 const fs = require("@node/fs");
 
 @Component({
     moduleId: module.id,
-    selector: "riskfactor",
+    selector: "rf-profit",
     templateUrl: "riskfactor.component.html",
     styleUrls: ["home.component.css", "riskfactor.component.css"],
     providers: [DatePipe],
     inputs: ["activeTab"]
 })
-
-export class RiskFactorComponent implements OnDestroy {
+export class FactorProfitComponent implements OnDestroy {
     activeTab: string;
 
     static self: any;
@@ -110,7 +108,7 @@ export class RiskFactorComponent implements OnDestroy {
     productAppID: number; // added by cl
 
     constructor(private tradePoint: TradeService, private appsrv: AppStoreService, private datePipe: DatePipe) {
-        RiskFactorComponent.self = this;
+        FactorProfitComponent.self = this;
         // this.loadData();
         this.iproducts = [];
         this.productfuturehold = "";
@@ -162,27 +160,27 @@ export class RiskFactorComponent implements OnDestroy {
                 callback: (msg) => {
                     let data = JSON.parse(msg.content.body);
                     if (data.msret.msgcode === "00") {
-                        RiskFactorComponent.self.productData = data.body;
-                        console.log(RiskFactorComponent.self.productData);
-                        console.log(RiskFactorComponent.self.productData[0].tblock_full_name);
-                        RiskFactorComponent.self.iproducts = [];
+                        FactorProfitComponent.self.productData = data.body;
+                        console.log(FactorProfitComponent.self.productData);
+                        console.log(FactorProfitComponent.self.productData[0].tblock_full_name);
+                        FactorProfitComponent.self.iproducts = [];
 
-                        for (let i = 0; i < RiskFactorComponent.self.productData.length; i++) {
-                            RiskFactorComponent.self.iproducts.push(RiskFactorComponent.self.productData[i].tblock_full_name);
+                        for (let i = 0; i < FactorProfitComponent.self.productData.length; i++) {
+                            FactorProfitComponent.self.iproducts.push(FactorProfitComponent.self.productData[i].tblock_full_name);
                         }
                     } else {
                         alert("Get product info Failed! " + data.msret.msg);
                     }
-                    RiskFactorComponent.self.iproduct = RiskFactorComponent.self.iproducts[0];
+                    FactorProfitComponent.self.iproduct = FactorProfitComponent.self.iproducts[0];
                     let tblockId = 0;
-                    if (RiskFactorComponent.productIndex === undefined) {
-                        tblockId = RiskFactorComponent.self.productData[0].tblock_id;
+                    if (FactorProfitComponent.productIndex === undefined) {
+                        tblockId = FactorProfitComponent.self.productData[0].tblock_id;
                     } else {
-                        tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
+                        tblockId = FactorProfitComponent.self.productData[FactorProfitComponent.productIndex].tblock_id;
                     }
                     console.log(tblockId);
-                    console.log(RiskFactorComponent.self.istrategys);
-                    RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
+                    console.log(FactorProfitComponent.self.istrategys);
+                    FactorProfitComponent.self.istrategy = FactorProfitComponent.self.istrategys[0];
                     this.tradePoint.send(this.productAppID, 218, { body: { tblock_id: tblockId } });
                 }
             });
@@ -195,45 +193,45 @@ export class RiskFactorComponent implements OnDestroy {
                     console.log(msg);
                     let data = JSON.parse(msg.content.body);
                     if (data.msret.msgcode === "00") {
-                        RiskFactorComponent.self.strategyData = data.body;
-                        for (let i = 0; i < RiskFactorComponent.self.strategyData.length; i++) {
-                            RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
+                        FactorProfitComponent.self.strategyData = data.body;
+                        for (let i = 0; i < FactorProfitComponent.self.strategyData.length; i++) {
+                            FactorProfitComponent.self.istrategys.push(FactorProfitComponent.self.strategyData[i].strategy_name);
                         }
                     } else {
                         alert("Get product info Failed! " + data.msret.msg);
                     }
 
-                    if (RiskFactorComponent.startdateStat !== undefined) {
-                        console.log(RiskFactorComponent.startdateStat);
-                        this.startdate = RiskFactorComponent.startdateStat;
+                    if (FactorProfitComponent.startdateStat !== undefined) {
+                        console.log(FactorProfitComponent.startdateStat);
+                        this.startdate = FactorProfitComponent.startdateStat;
                     }
-                    if (RiskFactorComponent.enddateStat !== undefined) {
-                        console.log(RiskFactorComponent.enddateStat);
-                        this.enddate = RiskFactorComponent.enddateStat;
+                    if (FactorProfitComponent.enddateStat !== undefined) {
+                        console.log(FactorProfitComponent.enddateStat);
+                        this.enddate = FactorProfitComponent.enddateStat;
                     }
-                    if (RiskFactorComponent.hedgeStat !== undefined) {
-                        console.log(RiskFactorComponent.hedgeStat);
-                        this.hedge = RiskFactorComponent.hedgeStat;
+                    if (FactorProfitComponent.hedgeStat !== undefined) {
+                        console.log(FactorProfitComponent.hedgeStat);
+                        this.hedge = FactorProfitComponent.hedgeStat;
                     }
-                    if (RiskFactorComponent.hedgeratioStat !== undefined) {
-                        console.log(RiskFactorComponent.hedgeratioStat);
-                        this.hedgeRadio = RiskFactorComponent.hedgeratioStat;
+                    if (FactorProfitComponent.hedgeratioStat !== undefined) {
+                        console.log(FactorProfitComponent.hedgeratioStat);
+                        this.hedgeRadio = FactorProfitComponent.hedgeratioStat;
                     }
-                    if (RiskFactorComponent.productsStat !== undefined) {
-                        console.log(RiskFactorComponent.productsStat);
-                        this.iproducts = RiskFactorComponent.productsStat;
+                    if (FactorProfitComponent.productsStat !== undefined) {
+                        console.log(FactorProfitComponent.productsStat);
+                        this.iproducts = FactorProfitComponent.productsStat;
                     }
-                    if (RiskFactorComponent.strategiesStat !== undefined) {
-                        console.log(RiskFactorComponent.strategiesStat);
-                        this.istrategys = RiskFactorComponent.strategiesStat;
+                    if (FactorProfitComponent.strategiesStat !== undefined) {
+                        console.log(FactorProfitComponent.strategiesStat);
+                        this.istrategys = FactorProfitComponent.strategiesStat;
                     }
-                    if (RiskFactorComponent.productStat !== undefined) {
-                        console.log(RiskFactorComponent.productStat);
-                        this.iproduct = RiskFactorComponent.productStat;
+                    if (FactorProfitComponent.productStat !== undefined) {
+                        console.log(FactorProfitComponent.productStat);
+                        this.iproduct = FactorProfitComponent.productStat;
                     }
-                    if (RiskFactorComponent.strategyStat !== undefined) {
-                        console.log(RiskFactorComponent.strategyStat);
-                        this.istrategy = RiskFactorComponent.strategyStat;
+                    if (FactorProfitComponent.strategyStat !== undefined) {
+                        console.log(FactorProfitComponent.strategyStat);
+                        this.istrategy = FactorProfitComponent.strategyStat;
                     }
 
                     this.lookReturn();
@@ -268,13 +266,13 @@ export class RiskFactorComponent implements OnDestroy {
             console.log(this.activeTab);
             this.opendate = "2017-06-26";
             this.closedate = "2017-07-26";
-            if (RiskFactorComponent.opendateStat !== undefined) {
-                console.log(RiskFactorComponent.opendateStat);
-                this.opendate = RiskFactorComponent.opendateStat;
+            if (FactorProfitComponent.opendateStat !== undefined) {
+                console.log(FactorProfitComponent.opendateStat);
+                this.opendate = FactorProfitComponent.opendateStat;
             }
-            if (RiskFactorComponent.closedateStat !== undefined) {
-                console.log(RiskFactorComponent.closedateStat);
-                this.closedate = RiskFactorComponent.closedateStat;
+            if (FactorProfitComponent.closedateStat !== undefined) {
+                console.log(FactorProfitComponent.closedateStat);
+                this.closedate = FactorProfitComponent.closedateStat;
             }
             this.searchresult();
         }
@@ -316,12 +314,12 @@ export class RiskFactorComponent implements OnDestroy {
 
     nextDropdown() {
         // get strategies of this product
-        RiskFactorComponent.self.istrategys = ["选择所有策略"];
-        console.log(RiskFactorComponent.self.productData);
+        FactorProfitComponent.self.istrategys = ["选择所有策略"];
+        console.log(FactorProfitComponent.self.productData);
         let productlist = document.getElementById("product") as HTMLSelectElement;
-        RiskFactorComponent.productIndex = productlist.selectedIndex;
-        let tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
-        console.log(RiskFactorComponent.productIndex);
+        FactorProfitComponent.productIndex = productlist.selectedIndex;
+        let tblockId = FactorProfitComponent.self.productData[FactorProfitComponent.productIndex].tblock_id;
+        console.log(FactorProfitComponent.productIndex);
         // strategies
         this.tradePoint.addSlot({
             appid: this.productAppID,
@@ -330,24 +328,24 @@ export class RiskFactorComponent implements OnDestroy {
                 console.log(msg);
                 let data = JSON.parse(msg.content.body);
                 if (data.msret.msgcode === "00") {
-                    RiskFactorComponent.self.strategyData = data.body;
-                    for (let i = 0; i < RiskFactorComponent.self.strategyData.length; i++) {
-                        RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
+                    FactorProfitComponent.self.strategyData = data.body;
+                    for (let i = 0; i < FactorProfitComponent.self.strategyData.length; i++) {
+                        FactorProfitComponent.self.istrategys.push(FactorProfitComponent.self.strategyData[i].strategy_name);
                     }
                 } else {
                     alert("Get product info Failed! " + data.msret.msg);
                 }
             }
         });
-        console.log(RiskFactorComponent.self.istrategys);
-        RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
+        console.log(FactorProfitComponent.self.istrategys);
+        FactorProfitComponent.self.istrategy = FactorProfitComponent.self.istrategys[0];
         this.tradePoint.send(this.productAppID, 218, { body: { tblock_id: tblockId } });
-        RiskFactorComponent.strategyIndex = 0;
+        FactorProfitComponent.strategyIndex = 0;
     }
 
     nextStrategyDropdown() {
         let strategylist = document.getElementById("strategy") as HTMLSelectElement;
-        RiskFactorComponent.strategyIndex = strategylist.selectedIndex;
+        FactorProfitComponent.strategyIndex = strategylist.selectedIndex;
     }
 
     // 读取风险因子收益并格式化数据
@@ -627,23 +625,23 @@ export class RiskFactorComponent implements OnDestroy {
         this.endDate = this.enddate.replace(/-/g, "");
 
         let productlist = document.getElementById("product") as HTMLSelectElement;
-        if (RiskFactorComponent.productIndex === undefined) {
-            RiskFactorComponent.productIndex = productlist.selectedIndex;
+        if (FactorProfitComponent.productIndex === undefined) {
+            FactorProfitComponent.productIndex = productlist.selectedIndex;
         }
         console.log(this.iproduct);
-        console.log(RiskFactorComponent.productIndex);
-        if (RiskFactorComponent.productIndex === -1) {
+        console.log(FactorProfitComponent.productIndex);
+        if (FactorProfitComponent.productIndex === -1) {
             return;
         }
-        let tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
+        let tblockId = FactorProfitComponent.self.productData[FactorProfitComponent.productIndex].tblock_id;
 
         if (!isNaN(this.hedgeRadio)) {
             let strategylist = document.getElementById("strategy") as HTMLSelectElement;
-            if (RiskFactorComponent.strategyIndex === undefined) {
-                RiskFactorComponent.strategyIndex = strategylist.selectedIndex;
+            if (FactorProfitComponent.strategyIndex === undefined) {
+                FactorProfitComponent.strategyIndex = strategylist.selectedIndex;
             }
             console.log(this.istrategy);
-            console.log(RiskFactorComponent.strategyIndex);
+            console.log(FactorProfitComponent.strategyIndex);
             // setNetTableValue
             this.tradePoint.addSlot({
                 appid: this.productAppID,
@@ -685,9 +683,9 @@ export class RiskFactorComponent implements OnDestroy {
                 }
             });
 
-            if (RiskFactorComponent.strategyIndex > 0) {
-                console.log(RiskFactorComponent.strategyIndex - 1);
-                let strategyId = RiskFactorComponent.self.strategyData[RiskFactorComponent.strategyIndex - 1].strategy_id;
+            if (FactorProfitComponent.strategyIndex > 0) {
+                console.log(FactorProfitComponent.strategyIndex - 1);
+                let strategyId = FactorProfitComponent.self.strategyData[FactorProfitComponent.strategyIndex - 1].strategy_id;
                 console.log(this.startDate, strategyId);
                 console.log(this.startDate, tblockId);
                 // strategyfuturehold
@@ -2023,39 +2021,39 @@ export class RiskFactorComponent implements OnDestroy {
         // 保存用户设置
         if (this.activeTab === "风险因子分析") {
             if (this.iproduct) {
-                RiskFactorComponent.productStat = this.iproduct;
+                FactorProfitComponent.productStat = this.iproduct;
             }
             if (this.istrategy) {
-                RiskFactorComponent.strategyStat = this.istrategy;
+                FactorProfitComponent.strategyStat = this.istrategy;
             }
             if (this.iproducts) {
-                RiskFactorComponent.productsStat = this.iproducts;
+                FactorProfitComponent.productsStat = this.iproducts;
             }
             if (this.istrategys) {
-                RiskFactorComponent.strategiesStat = this.istrategys;
+                FactorProfitComponent.strategiesStat = this.istrategys;
             }
             if (this.startdate) {
-                RiskFactorComponent.startdateStat = this.startdate;
+                FactorProfitComponent.startdateStat = this.startdate;
             }
             if (this.enddate) {
-                RiskFactorComponent.enddateStat = this.enddate;
+                FactorProfitComponent.enddateStat = this.enddate;
             }
             if (this.hedge) {
-                RiskFactorComponent.hedgeStat = this.hedge;
+                FactorProfitComponent.hedgeStat = this.hedge;
             }
             if (this.hedgeRadio) {
-                RiskFactorComponent.hedgeratioStat = this.hedgeRadio;
+                FactorProfitComponent.hedgeratioStat = this.hedgeRadio;
             } else {
-                RiskFactorComponent.hedgeratioStat = 0;
+                FactorProfitComponent.hedgeratioStat = 0;
             }
         }
         // 保存用户设置
         if (this.activeTab === "Alpha因子") {
             if (this.opendate) {
-                RiskFactorComponent.opendateStat = this.opendate;
+                FactorProfitComponent.opendateStat = this.opendate;
             }
             if (this.closedate) {
-                RiskFactorComponent.closedateStat = this.closedate;
+                FactorProfitComponent.closedateStat = this.closedate;
             }
         }
         // 垃圾回收
@@ -2132,4 +2130,40 @@ export class RiskFactorComponent implements OnDestroy {
             this.alphaChart = null;
         }
     }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "rf-analysis",
+    templateUrl: "riskfactor.component.html",
+    styleUrls: ["home.component.css", "riskfactor.component.css"],
+    providers: [DatePipe],
+    inputs: ["activeTab"]
+})
+export class FactorAnalysisComponent {
+
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "rf-alpha",
+    templateUrl: "riskfactor.component.html",
+    styleUrls: ["home.component.css", "riskfactor.component.css"],
+    providers: [DatePipe],
+    inputs: ["activeTab"]
+})
+export class FactorAlphaComponent {
+
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "rf-aibrand",
+    templateUrl: "riskfactor.component.html",
+    styleUrls: ["home.component.css", "riskfactor.component.css"],
+    providers: [DatePipe],
+    inputs: ["activeTab"]
+})
+export class AIBrandComponent {
+
 }
