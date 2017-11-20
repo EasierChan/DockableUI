@@ -290,6 +290,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 }
 
                 console.info(msg);
+                this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
                 switch (msg.content.head.actor) {
                     case "getProductAns":
                         let productInfo: Object = {};
@@ -337,9 +338,6 @@ export class AppComponent implements OnInit, OnDestroy {
                         break;
                     case "getAssetAccountAns":
                         this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
-                        break;
-                    default:
-                        this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
                         break;
                 }
             }
