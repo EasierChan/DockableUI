@@ -338,6 +338,9 @@ export class AppComponent implements OnInit, OnDestroy {
                     case "getAssetAccountAns":
                         this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
                         break;
+                    default:
+                        this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
+                        break;
                 }
             }
         });
