@@ -660,19 +660,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
                             default:
                                 preVolume = msg.content.Structs[0].pre_volume;                                                                  
                         }
-                        this.marketInfo.content[7].value = preVolume;
-                        
-                        this.keyInfo.content[0].value = msg.content.Structs[0].total_share;
-                        this.keyInfo.content[1].value = msg.content.Structs[0].float_share;
-                        this.keyInfo.content[2].value = msg.content.Structs[0].associate_code;
-                        this.keyInfo.content[3].value = msg.content.Structs[0].exercise_price / 10000;
-                        this.keyInfo.content[4].value = msg.content.Structs[0].min_order_size;
-                        this.keyInfo.content[5].value = msg.content.Structs[0].max_order_size;
-                        this.keyInfo.content[6].value = msg.content.Structs[0].lot_size;
-                        this.keyInfo.content[7].value = msg.content.Structs[0].money_avail;
-                        this.marketInfo.content[5].value = msg.content.Structs[0].pre_settlement / 10000;
-                        this.marketInfo.content[6].value = msg.content.Structs[0].pre_interest;
-                        this.marketInfo.content[7].value = msg.content.Structs[0].pre_volume;
+                        this.marketInfo.content[7].value = preVolume.toFixed(0);
+
                         this.keyInfo.content[0].value = msg.content.Structs[0].total_share;
                         this.keyInfo.content[1].value = msg.content.Structs[0].float_share;
                         this.keyInfo.content[2].value = msg.content.Structs[0].associate_code;
