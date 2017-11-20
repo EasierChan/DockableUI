@@ -35,7 +35,8 @@ class SecuMaster {
         }
 
         let [addr, port] = UConfig.default.endpoints[0].quote_addr.split(":");
-        SecuMaster.secumasterData = "ukeycode,jycode,inputcode,chabbr,windcode,tradingtime,presettlement" + SecuMaster.line_sep;
+        SecuMaster.secumasterData = "ukeycode" + SecuMaster.field_sep + "jycode" + SecuMaster.field_sep + "inputcode" + SecuMaster.field_sep + 
+        "chabbr" + SecuMaster.field_sep + "windcode" + SecuMaster.field_sep + "tradingtime" + SecuMaster.field_sep + "presettlement" + SecuMaster.line_sep;
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
