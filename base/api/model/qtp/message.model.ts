@@ -112,10 +112,14 @@ export enum MessageOption {
     kSubscribeKey = 59905
 }
 
-export enum MessgeType {
+export enum MessageType {
     kLogin = 101,
     kLoginAns = 102,
     kSubscribe = 103,
     kUnSubscribe = 104,
     kPublish = 105
+}
+
+export enum ServiceType {
+    kLogin = 10
 }

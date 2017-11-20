@@ -3,8 +3,8 @@
 import { Component, OnInit } from "@angular/core";
 import { AppStoreService, CryptoService, MessageBox } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL, DataKey } from "../../bll/strategy.server";
-import { TradeService, QuoteService } from "../../bll/services";
-
+import { QtpService, QuoteService } from "../../bll/services";
+import { MessageType, ServiceType, QTPMessage } from "../../../base/api/model/qtp/message.model";
 @Component({
     moduleId: module.id,
     selector: "user",
@@ -28,7 +28,7 @@ export class UserComponent implements OnInit {
 
     private _userid: string;
 
-    constructor(private tradeSrv: TradeService,
+    constructor(private tradeSrv: QtpService,
         private quoteSrv: QuoteService,
         private appSrv: AppStoreService,
         private cryptoSrv: CryptoService,
@@ -79,32 +79,38 @@ export class UserComponent implements OnInit {
             }
         });
 
-        this.tradeSrv.addSlot({ // login success
-            appid: 17,
-            packid: 43,
-            callback: msg => {
-                if (msg.content.conlvl <= 2 || parseInt(msg.content.msret.msgcode) !== 0) {
-                    alert(msg.content.msret.msg);
-                    return;
-                }
+        // this.tradeSrv.addSlot({ // login success
+        //     appid: 17,
+        //     packid: 43,
+        //     callback: msg => {
+        //         if (msg.content.conlvl <= 2 || parseInt(msg.content.msret.msgcode) !== 0) {
+        //             alert(msg.content.msret.msg);
+        //             return;
+        //         }
 
-                this.appSrv.setLoginTrade(msg.content.conlvl > 2);
-                // to request template
-                this.tradeSrv.send(this.productAppID, 251, { "head": { "realActor": "getStrategyServerTemplate" }, body: {} });
-                this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getProduct" }, body: {} });
-                this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getAssetAccount" }, body: {} });
-                this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getRiskIndex" }, body: {} });
-                console.info(`subscribe=> ${this.configBll.strategyKeys}`);
-                this.tradeSrv.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+        //         this.appSrv.setLoginTrade(msg.content.conlvl > 2);
+        //         // to request template
+        //         this.tradeSrv.send(this.productAppID, 251, { "head": { "realActor": "getStrategyServerTemplate" }, body: {} });
+        //         this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getProduct" }, body: {} });
+        //         this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getAssetAccount" }, body: {} });
+        //         this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getRiskIndex" }, body: {} });
+        //         console.info(`subscribe=> ${this.configBll.strategyKeys}`);
+        //         this.tradeSrv.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
 
-                if (this.tradeHeart !== null) {
-                    clearInterval(this.tradeHeart);
-                    this.tradeHeart = null;
-                }
+        //         if (this.tradeHeart !== null) {
+        //             clearInterval(this.tradeHeart);
+        //             this.tradeHeart = null;
+        //         }
 
-                this.tradeHeart = setInterval(() => {
-                    this.tradeSrv.send(17, 0, {});
-                }, 60000);
+        //         this.tradeHeart = setInterval(() => {
+        //             this.tradeSrv.send(17, 0, {});
+        //         }, 60000);
+        //     }
+        // });
+        this.tradeSrv.addSlot({
+            msgtype: MessageType.kLoginAns,
+            callback: (msg) => {
+                
             }
         });
 
@@ -116,18 +122,18 @@ export class UserComponent implements OnInit {
             }
         });
 
-        this.tradeSrv.addSlot({ // login failed
-            appid: 17,
-            packid: 120,
-            callback: msg => {
-                console.info(msg);
-                MessageBox.show("error", "TGW ERROR", msg.content.msg, (response) => {
-                    if (response === 1) {
-                        this.appSrv.setLoginTrade(false);
-                    }
-                }, ["忽略", "重新登录"], 0, 0);
-            }
-        });
+        // this.tradeSrv.addSlot({ // login failed
+        //     appid: 17,
+        //     packid: 120,
+        //     callback: msg => {
+        //         console.info(msg);
+        //         MessageBox.show("error", "TGW ERROR", msg.content.msg, (response) => {
+        //             if (response === 1) {
+        //                 this.appSrv.setLoginTrade(false);
+        //             }
+        //         }, ["忽略", "重新登录"], 0, 0);
+        //     }
+        // });
     }
 
     login() {
@@ -157,7 +163,8 @@ export class UserComponent implements OnInit {
         this.tradeSrv.onConnect = () => {
             this.isTcpConnect = true;
             loginObj = { maid: this.maid, cellid: this.maid, userid: this.getUserid(), password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
-            this.tradeSrv.send(17, 41, loginObj); // login
+
+            this.tradeSrv.send(MessageType.kLogin, JSON.stringify({ data: { user_id: 100101, password: "88888" } }), ServiceType.kLogin, 0);
             this.appSrv.setUserProfile({ username: this.getUserid(), password: loginObj.password, roles: [], apps: [] });
             AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
 
