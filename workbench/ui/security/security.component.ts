@@ -41,7 +41,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.symbol = "--";
         this.code = "--";
         this.summary = new Section();
-        this.summary.title = "公司简介/合约简介";
+        this.summary.title = "合约简介";
         this.summary.content = "";
 
         this.mdSection = new Section();
@@ -751,7 +751,11 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         }
                     } 
                 } else {
+                    if (msg.content.Seqno === 1) {
                         alert("未找到" + this.selectedItem.symbolCode + "的证券信息！");
+                    } else if (msg.content.Seqno === 2) {
+                        alert("未找到" + this.selectedItem.symbolCode + "的合约信息！");                        
+                    }
                 }
             }
         });
