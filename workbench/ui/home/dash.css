@@ -88,6 +88,10 @@ section > .holder {
     font-size: 14px;
     /*border: 2px solid rgba(136, 136, 136, 0.41);*/
 }
+
+.chartBody{
+    padding: 10px;
+}
 .leftSection{
      width: 40%;
 }
@@ -107,8 +111,7 @@ section > .holder {
 }
 .producAnalysis{
     display: flex;
-    margin-top: 26px;
-    padding-left: 10px;
+    margin-top: 20px;
 }
 
 .producAnalysis .fontCon{
@@ -122,16 +125,16 @@ section > .holder {
 .producAnalysis .fontCon:nth-of-type(1),
 .producAnalysis .fontCon:nth-of-type(2){
     width: 100px;
-    flex: 3;
+    flex: 2;
 }
 .producAnalysis .fontCon:nth-of-type(1){
    border-left: 4px solid #f3c239;
 }
 .producAnalysis .fontCon:nth-of-type(2){
-   border-left: 4px solid #75bbea;
+   border-left: 4px solid #f77749;
 }
 .producAnalysis .fontCon:nth-of-type(3){
-   border-left: 4px solid #ff7a4d;
+   border-left: 4px solid #25bf7c;
 }
 .producAnalysis .fontCon:nth-of-type(4){
    border-left: 4px solid #ff5564;
@@ -139,27 +142,27 @@ section > .holder {
 .producAnalysis .fontCon:nth-of-type(3),
 .producAnalysis .fontCon:nth-of-type(4){
     width: 100px;
-    flex: 2;
+    flex: 1;
 }
 
-.producAnalysis .fontCon .value{
+.producAnalysis .fontCon .value .num{
     font-size: 24px;
     color: #f3c239;
 }
-.producAnalysis .fontCon:nth-of-type(2) .value{
-    color: #75bbea;
+.producAnalysis .fontCon:nth-of-type(2) .value .num{
+    color: #f77749;
 }
-.producAnalysis .fontCon:nth-of-type(3) .value{
-    color: #ff7a4d;
+.producAnalysis .fontCon:nth-of-type(3) .value .num{
+    color: #25bf7c;
 }
-.producAnalysis .fontCon:nth-of-type(4) .value{
+.producAnalysis .fontCon:nth-of-type(4) .value .num{
     color: #ff5564;
 }
 
 .aiArea{
     min-height: 350px;
 }
-.aiArea>div{
+.aiArea .chartBody>div{
     float: left;
     width: 50%;
     overflow-x: auto;
@@ -215,18 +218,14 @@ section > .holder {
     border: 1px solid #5d5f63;
     border-radius: 3px;
     width: 80%;
+    box-shadow: 0 0px 10px inset;
 }
 
-.chartTit .nextProductBtn{
+.chartTit span{
     float: right;
-    padding: 10px;
-    background: #ccc;
-    font-size: 12px;
-    border-radius: 3px;
-    cursor: pointer;
-    line-height: 0;
-    margin-top: 5px;
     margin-right: 10px;
+    color: #f3c239;
+    line-height: 30px;
 }
 
 
