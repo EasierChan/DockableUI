@@ -108,9 +108,10 @@ export class UserComponent implements OnInit {
         //     }
         // });
         this.tradeSrv.addSlot({
+            service: ServiceType.kLogin,
             msgtype: MessageType.kLoginAns,
             callback: (msg) => {
-                
+                console.info(msg.toString());
             }
         });
 

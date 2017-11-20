@@ -11,6 +11,7 @@ process.on("message", (m: Pack, sock) => {
         case "start":
             QTPFactory.instance.addSlot(
                 {
+                    service: 0,
                     msgtype: 8013,
                     callback: msg => {
                         console.info(msg);
@@ -19,6 +20,7 @@ process.on("message", (m: Pack, sock) => {
                     context: this
                 },
                 {
+                    service: 0,
                     msgtype: 8015,
                     callback: msg => {
                         process.send({ event: "data", content: { type: 8015, data: msg } });
@@ -26,6 +28,7 @@ process.on("message", (m: Pack, sock) => {
                     context: this
                 },
                 {
+                    service: 0,
                     msgtype: 8017,
                     callback: msg => {
                         if (msg.packidx === 1) {

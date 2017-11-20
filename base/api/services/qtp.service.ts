@@ -77,8 +77,8 @@ class QTPParser extends Parser {
 
             if (buflen >= this._curHeader.datalen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                console.info(`processMsg: appid=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
-                this.emit(this._curHeader.msgtype.toString(), this._curHeader, tempBuffer);
+                console.info(`processMsg: service=${this._curHeader.service}, msgtype=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
+                this.emit(this._curHeader.service.toString(), this._curHeader, tempBuffer);
 
                 restLen = buflen - Header.len - this._curHeader.datalen;
                 if (restLen > 0) {
@@ -188,14 +188,14 @@ export class QtpService {
 
         this._client.on("data", msg => {
             msg = msg[0];
-            if (self._messageMap.hasOwnProperty(msg.header.msgtype)) {
-                if (self._messageMap[msg.header.msgtype].context)
-                    self._messageMap[msg.header.msgtype].callback.call(self._messageMap[msg.header.msgtype].context, msg.body);
+            if (self._messageMap.hasOwnProperty(msg.header.service) && self._messageMap[msg.header.service].hasOwnProperty(msg.header.msgtype)) {
+                if (self._messageMap[msg.header.service][msg.header.msgtype].context)
+                    self._messageMap[msg.header.service][msg.header.msgtype].callback.call(self._messageMap[msg.header.service][msg.header.msgtype].context, msg.body);
                 else
-                    self._messageMap[msg.header.msgtype].callback(msg.body);
+                    self._messageMap[msg.header.service][msg.header.msgtype].callback(msg.body);
             }
             else
-                console.warn(`unknown message appid = ${msg.header.msgtype}`);
+                console.warn(`unknown message appid = ${msg.header.service}`);
         });
         this._client.on("close", () => {
             console.info("remote closed");
@@ -253,10 +253,10 @@ export class QtpService {
     addSlot(...slots: Slot[]) {
         slots.forEach(slot => {
             if (!this._messageMap.hasOwnProperty(slot.msgtype)) {
-                this._messageMap[slot.msgtype] = new Object();
-                this._parser.registerMsgFunction(slot.msgtype, this._parser, this._parser.processQtpMsg);
+                this._messageMap[slot.service] = new Object();
+                this._parser.registerMsgFunction(slot.service, this._parser, this._parser.processQtpMsg);
             }
-            this._messageMap[slot.msgtype] = {
+            this._messageMap[slot.service][slot.msgtype] = {
                 callback: slot.callback,
                 context: slot.context
             };
@@ -269,6 +269,7 @@ export class QtpService {
 }
 
 export interface Slot {
+    service: number;
     msgtype: number;
     callback: Function;
     context?: any;
