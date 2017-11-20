@@ -1,11 +1,172 @@
 /**
  * deal with group Market data.
  */
+
+
+class DatabaseManager {
+    db: IDBDatabase;
+
+    constructor() {
+    }
+
+    removeDB(name: string): void {
+        indexedDB.deleteDatabase(name);
+    }
+
+    openDB(name: string, version: number, tables: Table[]): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+
+            let request = indexedDB.open(name, version);
+
+            request.onsuccess = (ev: any) => {
+                this.db = request.result;
+                console.info("database init Done.");
+                resolve();
+            };
+
+            request.onupgradeneeded = (ev_upgrade: any) => {
+                this.db = request.result;
+                console.info(`database upgrade Done.`);
+                tables.forEach(table => {
+                    let store: IDBObjectStore;
+
+                    if (table.key)
+                        store = this.db.createObjectStore(table.name, { keyPath: table.key });
+                    else
+                        store = this.db.createObjectStore(table.name, { autoIncrement: true });
+
+                    if (table.indexers) {
+                        table.indexers.forEach(indexer => {
+                            store.createIndex(indexer.name, indexer.keyPath, { unique: indexer.unique });
+                        });
+                    }
+                });
+            };
+
+            request.onerror = (ev: any) => {
+                console.error("database open error: " + ev.currentTarget.errorCode);
+                reject(ev.currentTarget.errorCode);
+            };
+        });
+    }
+
+
+    insert(row: Object, tableName: string) {
+        let trans = this.db.transaction(tableName, "readwrite");
+        let store = trans.objectStore(tableName);
+        let request = store.add(row);
+
+        request.onerror = (event) => {
+            console.info(event);
+        };
+
+        trans.oncomplete = (ev) => {
+            ;
+        };
+    }
+
+    selectByKey(tableName: string, value: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let trans = this.db.transaction(tableName, "readonly");
+            let store = trans.objectStore(tableName);
+            let request = store.get(value);
+
+            request.onsuccess = (ev: any) => {
+                resolve(ev.target.result);
+            };
+
+            request.onerror = (event) => {
+                reject(event.error);
+            };
+        });
+    }
+
+    selectByIndexer(tableName: string, indexer: Indexer, value: any | any[]): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let trans = this.db.transaction(tableName, "readonly");
+            let store = trans.objectStore(tableName);
+            let index = store.index(indexer.name);
+            let request = index.openCursor(value);
+            let tempArr = [];
+
+            request.onsuccess = (ev: any) => {
+                let cursor: IDBCursorWithValue = ev.target.result;
+
+                if (cursor) {
+                    tempArr.push(cursor.value);
+                    cursor.continue();
+                }
+            };
+
+            request.transaction.oncomplete = (ev: any) => {
+                resolve(tempArr);
+                tempArr = null;
+            };
+
+            request.onerror = (event) => {
+                reject(event.error);
+            };
+        });
+    }
+
+    delete(tableName: string, indexer: Indexer, value): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let trans = this.db.transaction(tableName, "readwrite");
+            let store = trans.objectStore(tableName);
+            let index = store.index(indexer.name);
+            let request = index.openKeyCursor(IDBKeyRange.upperBound(value));
+
+            request.onsuccess = (ev: any) => {
+                let cursor: IDBCursor = ev.target.result;
+                console.info(cursor);
+                if (cursor) {
+                    store.delete(cursor.primaryKey);
+                    cursor.continue();
+                }
+            };
+
+            request.transaction.oncomplete = () => {
+                resolve();
+            };
+
+            request.onerror = (event) => {
+                reject(event.error);
+            };
+        });
+    }
+}
+
+class Table {
+    name: string;
+    key: string;
+    indexers?: Indexer[];
+}
+
+class Indexer {
+    name: string;
+    keyPath: string | string[];
+    unique?: boolean;
+}
+
+
 (function () {
     "use strict";
     const DB_NAME = "chronos-tickData";
     const DB_VERSION = 1;
-    const DB_STORE_NAME = "tickData";
+    let localDB = new DatabaseManager();
+    let table = new Table();
+    table.name = "tick";
+    table.indexers = [{
+        name: "ukeytime",
+        keyPath: ["ukey", "time"],
+        unique: true
+    }, {
+        name: "ukey",
+        keyPath: "ukey"
+    }, {
+        name: "time",
+        keyPath: "time"
+    }];
 
     let groups: any[];
     onmessage = (ev: MessageEvent) => {
@@ -38,10 +199,13 @@
                     groups.push(newItem);
                 });
 
+                // localDB.openDB(DB_NAME, DB_VERSION, [table]);
                 // console.info(groups);
                 break;
             case "add-md":
                 let ukey = ev.data.value.ukey;
+                // localDB.insert(ev.data.value, table.name);
+
                 for (let i = 0; i < groups.length; ++i) {
                     if (groups[i].ukeys.includes(ukey)) {
                         if (Math.max(ev.data.value.ask_price[0], ev.data.value.bid_price[0], ev.data.value.last) < 0.01) {
@@ -87,107 +251,12 @@
                     }
                 }
                 break;
+            case "get-md":
+                localDB.selectByIndexer(table.name, table.indexers[2], IDBKeyRange.upperBound(""));
+                break;
             default:
                 break;
         }
     };
 
-    class AxisPoint {
-        time: number;
-        index: number;
-        duration: number;
-    }
-
-    class DatabaseManager {
-
-        db: IDBDatabase;
-        request: IDBOpenDBRequest;
-        get_request: IDBRequest;
-        transaction: IDBTransaction;
-        store: IDBObjectStore;
-
-        removeDB(name: string): void {
-            indexedDB.deleteDatabase(name);
-        }
-
-        openDB(name: string, version?: number): Promise<any> {
-            return new Promise<any>((resolve, reject) => {
-
-                let request = indexedDB.open(name, version);
-
-                request.onsuccess = (ev: any) => {
-                    this.db = request.result;
-                    console.info(`${name} database init Done.`);
-                    resolve();
-                };
-
-                request.onupgradeneeded = (ev_upgrade: any) => {
-                    this.db = request.result;
-                    console.info(`${name} database upgrade Done.`);
-                    resolve();
-                };
-
-                request.onerror = (ev: any) => {
-                    console.error("${name} database open error: " + ev.currentTarget.errorCode);
-                    reject(ev.currentTarget.errorCode);
-                };
-            });
-        }
-
-        createTable(name: string) {
-            this.db.createObjectStore(name, { keyPath: "ukey.time" });
-        }
-
-        insert(row: Object, tableName: string) {
-            let trans = this.db.transaction(tableName, "readwrite");
-            let store = trans.objectStore(tableName);
-            let request = store.put(row);
-
-            request.onerror = (event) => {
-                console.info(event.error);
-            };
-
-            trans.oncomplete = (ev) => {
-                ;
-            };
-        }
-
-        select(tableName: string, key: string): Promise<any> {
-            return new Promise<any>((resolve, reject) => {
-                let trans = this.db.transaction(tableName, "readwrite");
-                let store = trans.objectStore(tableName);
-                let request = store.get(key);
-
-                request.onsuccess = (ev: any) => {
-                    resolve(ev.target.result);
-                };
-
-                request.onerror = (event) => {
-                    reject(event.error);
-                };
-            });
-        }
-
-        update(tableName: string, key: string, pairs: any[]): Promise<any> {
-            return new Promise<any>((resolve, reject) => {
-                let trans = this.db.transaction(tableName, "readwrite");
-                let store = trans.objectStore(tableName);
-                let request = store.get(key);
-
-                request.onsuccess = (ev: any) => {
-                    let ret = ev.target.result;
-
-                    pairs.forEach(pair => {
-                        ret[pair.key] = pair.value;
-                    });
-
-                    store.put(ret);
-                };
-
-                request.onerror = (event) => {
-                    reject(event.error);
-                };
-            });
-        }
-    }
 })();

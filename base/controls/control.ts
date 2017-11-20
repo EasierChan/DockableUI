@@ -905,7 +905,8 @@ export class HBox extends ComboControl {
 export class MetaControl extends Control {
     protected _dataObj: any;
     constructor(
-        type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range" | "date" | "u-codes" | "button-group") {
+        type: "button" | "textbox" | "dropdown" | "radio" | "checkbox" | "plaintext" | "range" | "date" | "u-codes" | "button-group"
+            | "progresser") {
         super();
         this.styleObj = {
             type: type,
@@ -1013,6 +1014,14 @@ export class MetaControl extends Control {
     get Data() {
         return this._dataObj;
     }
+
+    set Colors(value: string[]) {
+        this.styleObj.colors = value;
+    }
+
+    get Colors() {
+        return this.styleObj.colors;
+    }
 }
 
 export class Button extends MetaControl {
@@ -1042,6 +1051,12 @@ export class Label extends MetaControl {
 export class CheckBox extends MetaControl {
     constructor() {
         super("checkbox");
+    }
+}
+
+export class Progresser extends MetaControl {
+    constructor() {
+        super("progresser");
     }
 }
 
@@ -1781,7 +1796,8 @@ export class DataTable extends Control {
             width: null,
             height: null,
             cellpadding: null,
-            bRowIndex: true
+            bRowIndex: true,
+            bColumnHeader: true,
         };
 
         this.dataSource.sort = (col: DataTableColumn, idx: number) => {
@@ -1816,6 +1832,10 @@ export class DataTable extends Control {
 
     set RowIndex(value: boolean) {
         this.styleObj.bRowIndex = value;
+    }
+
+    set ColumnHeader(show: boolean) {
+        this.styleObj.bColumnHeader = show;
     }
 
     addColumn(...columns: string[]): DataTable {

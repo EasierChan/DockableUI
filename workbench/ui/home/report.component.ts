@@ -40,17 +40,24 @@ export class ReportComponent implements OnInit {
         this.resTable.addColumn("选中", "名称", "回测进度", "开始时间", "结束时间", "查看");
         this.resTable.columns[0].maxWidth = 20;
         this.resTable.columns[4].maxWidth = 50;
+        // this.resTable.ColumnHeader = false;
         this.configBll.getLoopbackItems().forEach(item => {
             let row = this.resTable.newRow();
             row.cells[0].Type = "checkbox";
             row.cells[0].Data = item;
             row.cells[0].Text = false;
             row.cells[1].Text = item.name + "-" + item.id;
-            row.cells[2].Text = "0%";
+            row.cells[2].Text = 0;
+            row.cells[2].Title = "0%";
+            row.cells[2].Type = "progresser";
+            row.cells[2].Colors = ["red", "blue"];
             row.cells[3].Text = item.timebegin;
             row.cells[4].Text = item.timeend;
-            row.cells[5].Type = "button";
+            row.cells[5].Type = "icon-button";
+            row.cells[5].Title = "pencil";
             row.cells[5].Text = "查看";
+            row.cells[5].Class = "primary";
+            row.cells[5].Color = "red";
             row.cells[5].OnClick = () => {
                 this.selectedItem = item;
                 this.chartOption = this.generateOption();
@@ -129,7 +136,7 @@ export class ReportComponent implements OnInit {
     remove() {
         let IDs = [];
         let rows = this.resTable.rows;
-        for (let i = 0; i < rows.length;) {
+        for (let i = 0; i < rows.length; ) {
             if (rows[i].cells[0].Text) {
                 this.configBll.removeLoopbackItem(rows[i].cells[0].Data);
                 IDs.push(rows[i].cells[0].Data.id);
@@ -156,7 +163,8 @@ export class ReportComponent implements OnInit {
 
         resArr.forEach(item => {
             if (rowMap.hasOwnProperty(item.nId))
-                this.resTable.rows[rowMap[item.nId]].cells[2].Text = item.status + "%";
+                this.resTable.rows[rowMap[item.nId]].cells[2].Text = item.status;
+                this.resTable.rows[rowMap[item.nId]].cells[2].Title = item.status + "%";
         });
     }
 

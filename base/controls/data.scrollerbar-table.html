@@ -1,6 +1,6 @@
 <!--<div #scollerTable class="scroller-table">-->
 <table #content class="table table-condensed table-hover">
-  <thead>
+  <thead *ngIf="styleObj.bColumnHeader">
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
       <th *ngIf="styleObj.bRowIndex">#</th>
       <template ngFor let-col [ngForOf]="dataSource.columns" let-i="index">
@@ -23,9 +23,15 @@
               [name]="cell.dataSource.name">
             {{cell.dataSource.text}}
           </button>
-            <input *ngIf="cell.styleObj.type=='textbox'" type="text" (change)="cell.dataSource?.change()" [(ngModel)]="cell.dataSource.text" [readonly]="cell.styleObj.readonly"
-              [name]="cell.dataSource.name" class="btn-default btn-{{cell.className}} btn-xs" ondragstart="return false;">
-            <span *ngIf="cell.styleObj.type=='plaintext'">{{cell.dataSource.text}}</span>
+            <button *ngIf="cell.styleObj.type=='icon-button'" class="btn btn-default btn-{{cell.className}} btn-xs" [disabled]="cell.styleObj.disable"
+              [name]="cell.dataSource.name" aria-label="cell.dataSource.title">
+              <span class="glyphicon glyphicon-{{cell.dataSource.title}}"></span> {{cell.dataSource.text}}
+          </button>
+            <span *ngIf="cell.styleObj.type=='icon'" class="glyphicon glyphicon-{{cell.dataSource.title}}">{{cell.dataSource.text}}</span>
+            <input *ngIf="cell.styleObj.type=='textbox'" type="text" (change)="cell.dataSource?.change()" [(ngModel)]="cell.dataSource.text"
+              [readonly]="cell.styleObj.readonly" [name]="cell.dataSource.name" class="btn-default btn-{{cell.className}} btn-xs"
+              ondragstart="return false;">
+            <span *ngIf="cell.styleObj.type=='plaintext'" [title]="cell.dataSource.text">{{cell.dataSource.text}}</span>
             <label *ngIf="cell.styleObj.type=='checkbox'" [style.margin-left.px]="cell.styleObj.left" [style.margin-top.px]="cell.styleObj.top">
                 <input [name]="cell.dataSource.name" type="checkbox" [(ngModel)]="cell.dataSource.text"
                  [disabled]="cell.styleObj?.disable" style="width: 12px;"> 
@@ -33,6 +39,16 @@
             </label>
             <u-codes *ngIf="cell.styleObj.type=='u-codes'" [selectedItem]="cell.dataSource.text" (onSelect)="cell.dataSource.click({row: i, item: $event})"></u-codes>
             <button-group *ngIf="cell.styleObj.type=='button-group'" [buttons]="cell.dataSource.text" [option]="cell._dataObj" (onClick)="cell.dataSource.click($event)"></button-group>
+            <label *ngIf="cell.styleObj.type=='date'" [style.margin-left.px]="cell.styleObj?.left" [style.margin-top.px]="cell.styleObj?.top">
+              <pre>{{cell.dataSource.title}}</pre>
+                <input type="date" [(ngModel)]="cell.dataSource.text" [name]="cell.dataSource.name" [style.width.px]="cell.styleObj?.width"
+                class="btn-{{cell.className}} btn-xs" [disabled]="cell.styleObj?.disable" [readonly]="cell.styleObj?.readonly">
+            </label>
+            <div *ngIf="cell.styleObj.type=='progresser'" class="progresser" [style.background-color]="cell.styleObj.colors[0]">
+              <span [style.width.%]="cell.dataSource.text" [style.background-color]="cell.styleObj.colors[1]">
+                {{cell.dataSource.title}}
+              </span>
+            </div>
           </td>
         </template>
       </tr>
@@ -40,14 +56,14 @@
   </tbody>
 </table>
 <table #head class="table table-condensed" cellspacing="0" style="position:absolute;top:0;display:none;">
-  <thead>
+  <thead *ngIf="styleObj.bColumnHeader">
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
       <th *ngIf="styleObj.bRowIndex">#</th>
       <template ngFor let-col [ngForOf]="dataSource.columns" let-i="index">
         <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment" (click)="dataSource.sort(col, i)">
           {{col.columnHeader}}
           <span class="easiericon" [class.easiericon-sort-asc]="col.sortable && col.columnHeader==dataSource.sortKey&&dataSource.bAsc"
-            [class.easiericon-sort-desc]="col.sortable&&col.columnHeader==dataSource.sortKey&&!dataSource.bAsc"></span>
+            [class.easiericon-sort-desc]="col.sortable&&col.columnHeader==dataSource.sortKey&&!dataSource.bAsc" [style.backgroundColor]="cell?.color"></span>
         </th>
       </template>
     </tr>
