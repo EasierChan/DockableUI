@@ -1,10 +1,12 @@
 <div class="content">
     <div class="u-col">
         <div class="u-row select-area">
-            <select (change)="changeAccount()" [ngModel]="selectedAccount" name="account" id="">
+            <select #$account (change)="changeAccount($account.value)" [(ngModel)]="selectedAccount" name="account" id="">
+                <option value="0">账户</option>
                 <option *ngFor="let account of accounts" [value]="account.group_id">{{account.name}}</option>
             </select>
-            <select (change)="changeProduct()" [ngModel]="selectedProduct" name="product" id="">
+            <select #$product (change)="changeProduct($product.value)" [(ngModel)]="selectedProduct" name="product" id="">
+                <option value="0">产品</option>
                 <option *ngFor="let product of products" [value]="product.group_id">{{product.name}}</option>
             </select>
         </div>
@@ -15,17 +17,18 @@
             </div>
         </div>
         <div class="u-col fill">
-            <div class="title"><b>{{true ? '产品' : '帐号'}}风控</b></div>
+            <div *ngIf="selectedProduct" class="title"><b>产品风控</b></div>
+            <div *ngIf="selectedAccount" class="title"><b>帐号风控</b></div>
             <div class="u-col holder">
-                <dock-table2 ng-if="true" [dataSource]="strategyTable.dataSource" [styleObj]="strategyTable.styleObj"></dock-table2>
-                <dock-table2 ng-if="false" [dataSource]="accountTable.dataSource" [styleObj]="accountTable.styleObj"></dock-table2>
+                <dock-table2 *ngIf="selectedProduct" [dataSource]="strategyTable.dataSource" [styleObj]="strategyTable.styleObj"></dock-table2>
+                <dock-table2 *ngIf="selectedAccount" [dataSource]="accountTable.dataSource" [styleObj]="accountTable.styleObj"></dock-table2>
             </div>
             <div class="u-wrap">
                 <div class="u-col holder">
-                    <dock-table2 [dataSource]="marketTable.dataSource" [styleObj]="marketTable.styleObj"></dock-table2>
+                    <dock-table2 [dataSource]="marketPlateTable.dataSource" [styleObj]="marketPlateTable.styleObj"></dock-table2>
                 </div>
                 <div class="u-col holder">
-                    <dock-table2 [dataSource]="varTable.dataSource" [styleObj]="varTable.styleObj"></dock-table2>
+                    <dock-table2 [dataSource]="varietiTable.dataSource" [styleObj]="varietiTable.styleObj"></dock-table2>
                 </div>
                 <div class="u-col holder">
                     <dock-table2 [dataSource]="ukeyTable.dataSource" [styleObj]="ukeyTable.styleObj"></dock-table2>
