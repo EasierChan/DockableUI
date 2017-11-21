@@ -648,17 +648,17 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         
                         let preVolume = 0;
                         switch (msg.content.Structs[0].major_type) {
-                            case 1:
-                                preVolume = msg.content.Structs[0].pre_volume / 100;
+                            case 4:
+                                preVolume = msg.content.Structs[0].pre_volume;
                                 break;
+                            case 10:
+                                preVolume = msg.content.Structs[0].pre_volume;
+                                break;  
                             case 2:
                                 preVolume = msg.content.Structs[0].pre_volume / 10;
-                                break;  
-                            case 3:
-                                preVolume = msg.content.Structs[0].pre_volume / 100;
-                                break;
+                                break;                               
                             default:
-                                preVolume = msg.content.Structs[0].pre_volume;                                                                  
+                                preVolume = msg.content.Structs[0].pre_volume / 100;                                                                  
                         }
                         this.marketInfo.content[7].value = preVolume.toFixed(0);
 
