@@ -55,6 +55,11 @@ class SecuMaster {
                     SecuMaster.secumasterData += secuData;
                 }
                 if (msg.content.IsLast === "Y") {
+                    // let fpath = path.join(path.dirname(process.execPath), "secumaster.csv");
+                    // if (!fs.existsSync(fpath)) {
+                    //     fpath = path.join(__dirname, "../../../../secumaster.csv");
+                    // }
+                    // fs.writeFileSync(fpath, SecuMaster.secumasterData);
                     SecuMaster.processingData();
                 }
             }
