@@ -383,4 +383,25 @@ export class ConfigurationBLL {
             alert(fail_msg);
         }, timeout_val);
     }
+
+    private _emitter: Object = {};
+    emit(name, value) {
+        if (this._emitter.hasOwnProperty(name)) {
+            (this._emitter[name])(value);
+        }
+    }
+
+    on(name, cb: (data) => void) {
+        this._emitter[name] = cb;
+    }
+
+    private _data: any = {};
+
+    set(key, value) {
+        this._data[key] = value;
+    }
+
+    get(key) {
+        return this._data[key];
+    }
 }

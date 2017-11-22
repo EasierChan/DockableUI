@@ -5,28 +5,33 @@ import { Injectable } from "@angular/core";
 export class DataSet {
     static modules = [
         {
-            name: "主页",
+            name: "资讯动态",
             icon: "home",
             // tabs: ["Dashboard", "Trading", "Simulation", "Risk", "Admin"]
-            tabs: ["首页", "实盘交易", "仿真交易", "风控"] // , "管理"
+            tabs: ["资讯动态"] // , "管理"
         },
         {
-            name: "历史回测",
+            name: "实盘交易",
+            icon: "globe",
+            tabs: ["产品", "策略", "风控"]
+        },
+        {
+            name: "模拟交易",
             icon: "retweet",
             // tabs: ["BackTest", "Report"]
-            tabs: ["回测", "回测报表"]
+            tabs: ["仿真交易", "回测", "回测报表"]
         },
         {
-            name: "未来预测",
+            name: "智能预测",
             icon: "road",
             // tabs: ["Profit", "RiskFactors"]
-            tabs: ["风险因子收益", "风险因子分析", "Alpha因子"]
+            tabs: ["风险因子收益", "风险因子分析", "Alpha因子", "AI看盘"]
         },
         {
-            name: "分析",
+            name: "行情分析",
             icon: "stats",
             // tabs: ["Profit", "RiskFactors"]
-            tabs: ["分析"]
+            tabs: ["价差分析"]
         }
     ];
 

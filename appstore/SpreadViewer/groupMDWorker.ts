@@ -1,11 +1,184 @@
 /**
  * deal with group Market data.
  */
+
+
+class DatabaseManager {
+    db: IDBDatabase;
+
+    constructor() {
+    }
+
+    removeDB(name: string): void {
+        indexedDB.deleteDatabase(name);
+    }
+
+    openDB(name: string, version: number, tables: Table[]): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+
+            let request = indexedDB.open(name, version);
+
+            request.onsuccess = (ev: any) => {
+                this.db = request.result;
+                console.info("database init Done.");
+                resolve();
+            };
+
+            request.onupgradeneeded = (ev_upgrade: any) => {
+                this.db = request.result;
+                console.info(`database upgrade Done.`);
+                tables.forEach(table => {
+                    let store: IDBObjectStore;
+
+                    if (table.key)
+                        store = this.db.createObjectStore(table.name, { keyPath: table.key });
+                    else
+                        store = this.db.createObjectStore(table.name, { autoIncrement: true });
+
+                    if (table.indexers) {
+                        table.indexers.forEach(indexer => {
+                            store.createIndex(indexer.name, indexer.keyPath, { unique: indexer.unique });
+                        });
+                    }
+                });
+            };
+
+            request.onerror = (ev: any) => {
+                console.error("database open error: " + ev.currentTarget.errorCode);
+                reject(ev.currentTarget.errorCode);
+            };
+        });
+    }
+
+
+    insert(row: Object, tableName: string) {
+        let trans = this.db.transaction(tableName, "readwrite");
+        let store = trans.objectStore(tableName);
+        let request = store.add(row);
+
+        request.onerror = (event) => {
+            console.info(event);
+        };
+
+        trans.oncomplete = (ev) => {
+            ;
+        };
+    }
+
+    selectByKey(tableName: string, value: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let trans = this.db.transaction(tableName, "readonly");
+            let store = trans.objectStore(tableName);
+            let request = store.get(value);
+
+            request.onsuccess = (ev: any) => {
+                resolve(ev.target.result);
+            };
+
+            request.onerror = (event) => {
+                reject(event.error);
+            };
+        });
+    }
+
+    selectByIndexer(tableName: string, indexer: Indexer, value: any | any[]): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let trans = this.db.transaction(tableName, "readonly");
+            let store = trans.objectStore(tableName);
+            let index = store.index(indexer.name);
+            let request = index.openCursor(value);
+            let tempArr = [];
+
+            request.onsuccess = (ev: any) => {
+                let cursor: IDBCursorWithValue = ev.target.result;
+
+                if (cursor) {
+                    tempArr.push(cursor.value);
+                    cursor.continue();
+                }
+            };
+
+            request.transaction.oncomplete = (ev: any) => {
+                resolve(tempArr);
+                tempArr = null;
+            };
+
+            request.onerror = (event) => {
+                reject(event.error);
+            };
+        });
+    }
+
+    delete(tableName: string, indexer: Indexer, value): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            let trans = this.db.transaction(tableName, "readwrite");
+            let store = trans.objectStore(tableName);
+            let index = store.index(indexer.name);
+            let request = index.openKeyCursor(IDBKeyRange.upperBound(value));
+
+            request.onsuccess = (ev: any) => {
+                let cursor: IDBCursor = ev.target.result;
+                console.info(cursor);
+                if (cursor) {
+                    store.delete(cursor.primaryKey);
+                    cursor.continue();
+                }
+            };
+
+            request.transaction.oncomplete = () => {
+                resolve();
+            };
+
+            request.onerror = (event) => {
+                reject(event.error);
+            };
+        });
+    }
+}
+
+class Table {
+    name: string;
+    key: string;
+    indexers?: Indexer[];
+}
+
+class Indexer {
+    name: string;
+    keyPath: string | string[];
+    unique?: boolean;
+}
+
+
 (function () {
     "use strict";
     const DB_NAME = "chronos-tickData";
     const DB_VERSION = 1;
-    const DB_STORE_NAME = "tickData";
+    let localDB = new DatabaseManager();
+    let table = new Table();
+    table.name = "tick";
+    table.indexers = [{
+        name: "ukeytime",
+        keyPath: ["ukey", "time"],
+        unique: true
+    }, {
+        name: "ukey",
+        keyPath: "ukey"
+    }, {
+        name: "time",
+        keyPath: "time"
+    }];
+
+    // 
+    let util = {
+        EPS: 0.01,
+        isEqual: (a: number, b: number): boolean => {
+            return (Math.abs(a - b) < util.EPS);
+        },
+
+        isLager: (a: number, b: number): boolean => {
+            return !((a - b) < util.EPS);
+        }
+    };
 
     let groups: any[];
     onmessage = (ev: MessageEvent) => {
@@ -22,22 +195,31 @@
                         min: Infinity,
                         max: -Infinity,
                         askPrice1: 0,
-                        bidPrice1: 0
+                        bidPrice1: 0,
+                        last: 0
                     };
 
                     for (let prop in group.items) {
                         newItem.ukeys.push(group.items[prop].ukey);
                         newItem.items[group.items[prop].ukey] = { count: parseInt(group.items[prop].count), replace_amount: parseInt(group.items[prop].replace_amount) };
+
+                        newItem.bidPrice1 += newItem.items[group.items[prop].ukey].replace_amount;
+                        newItem.askPrice1 += newItem.items[group.items[prop].ukey].replace_amount;
+                        newItem.last += newItem.items[group.items[prop].ukey].replace_amount;
                     };
 
                     groups.push(newItem);
                 });
 
+                // localDB.openDB(DB_NAME, DB_VERSION, [table]);
                 // console.info(groups);
                 break;
             case "add-md":
+                let ukey = ev.data.value.ukey;
+                // localDB.insert(ev.data.value, table.name);
+
                 for (let i = 0; i < groups.length; ++i) {
-                    if (groups[i].ukeys.includes(ev.data.value.ukey)) {
+                    if (groups[i].ukeys.includes(ukey)) {
                         if (Math.max(ev.data.value.ask_price[0], ev.data.value.bid_price[0], ev.data.value.last) < 0.01) {
                             postMessage({
                                 type: "log-error", value: JSON.stringify(ev.data.value)
@@ -46,148 +228,46 @@
                             ev.data.value.ask_price[0]
                                 = ev.data.value.bid_price[0]
                                 = ev.data.value.last
-                                = groups[i].items[ev.data.value.ukey].replace_amount / groups[i].items[ev.data.value.ukey].count;
+                                = groups[i].items[ukey].replace_amount / groups[i].items[ukey].count;
                         }
 
-                        groups[i].items[ev.data.value.ukey][ev.data.value.time] = {
-                            askPrice1: ev.data.value.ask_price[0] < 0.01
-                                ? (ev.data.value.bid_price[0] > 0 ? ev.data.value.bid_price[0] : ev.data.value.last)
+                        groups[i].items[ukey][ev.data.value.time] = {
+                            askPrice1: util.isEqual(ev.data.value.ask_price[0], 0)
+                                ? (util.isLager(ev.data.value.bid_price[0], 0) ? ev.data.value.bid_price[0] : ev.data.value.last)
                                 : ev.data.value.ask_price[0],
-                            bidPrice1: ev.data.value.bid_price[0] < 0.01
-                                ? (ev.data.value.ask_price[0] > 0 ? ev.data.value.ask_price[0] : ev.data.value.last)
+                            bidPrice1: util.isEqual(ev.data.value.bid_price[0], 0)
+                                ? (util.isLager(ev.data.value.ask_price[0], 0) ? ev.data.value.ask_price[0] : ev.data.value.last)
                                 : ev.data.value.bid_price[0],
                             last: ev.data.value.last
                         };
 
-                        groups[i].lastIdx[ev.data.value.ukey] = ev.data.value.time;
-
-                        if (Object.getOwnPropertyNames(groups[i].lastIdx).length === groups[i].ukeys.length) {
-                            // post this group's md
-                            let bidPrice1 = 0;
-                            let askPrice1 = 0;
-                            let last = 0;
-
-                            groups[i].ukeys.forEach(ukey => {
-                                if (groups[i].lastIdx[ukey] < groups[i].min)
-                                    groups[i].min = groups[i].lastIdx[ukey];
-                                if (groups[i].lastIdx[ukey] > groups[i].max)
-                                    groups[i].max = groups[i].lastIdx[ukey];
-
-                                bidPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1;
-                                askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1;
-                                last += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].last;
-                            });
-
-                            if (groups[i].lastestIdx === 0) {
-                                groups[i].lastestIdx = groups[i].max;
-                                postMessage({
-                                    type: "group-md", value: {
-                                        ukey: groups[i].key, time: groups[i].lastestIdx,
-                                        ask_price: [askPrice1], bid_price: [bidPrice1], last: last
-                                    }
-                                });
-                            } else if (groups[i].min >= groups[i].lastestIdx) {
-                                groups[i].lastestIdx = groups[i].min;
-
-                                postMessage({
-                                    type: "group-md", value: {
-                                        ukey: groups[i].key, time: groups[i].min,
-                                        ask_price: [askPrice1], bid_price: [bidPrice1], last: last
-                                    }
-                                });
-                            } else {
-                                console.warn(`[min: ${groups[i].min}] need larger than [last: ${groups[i].lastestIdx}]`);
-                                groups[i].ukeys.forEach(ukey => {
-                                    if (groups[i].lastIdx[ukey] <= groups[i].min) {
-                                        console.warn(`wait ukeys: ${ukey}`);
-                                    }
-                                });
-
-                                postMessage({
-                                    type: "group-md", value: {
-                                        ukey: groups[i].key, time: ev.data.value.time,
-                                        ask_price: [askPrice1], bid_price: [bidPrice1], last: last
-                                    }
-                                });
-                            }
-
-                            bidPrice1 = null;
-                            askPrice1 = null;
-                            last = null;
+                        if (groups[i].lastIdx.hasOwnProperty(ukey)) {
+                            groups[i].askPrice1 += groups[i].items[ukey].count * (groups[i].items[ukey][ev.data.value.time].askPrice1 - groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1);
+                            groups[i].bidPrice1 += groups[i].items[ukey].count * (groups[i].items[ukey][ev.data.value.time].bidPrice1 - groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1);
+                            groups[i].last += groups[i].items[ukey].count * (groups[i].items[ukey][ev.data.value.time].last - groups[i].items[ukey][groups[i].lastIdx[ukey]].last);
                         } else {
-                            // post this group's md
-                            let bidPrice1 = 0;
-                            let askPrice1 = 0;
-                            let last = 0;
-
-                            groups[i].ukeys.forEach(ukey => {
-                                if (groups[i].lastIdx.hasOwnProperty(ukey)) {
-                                    bidPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1;
-                                    askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1;
-                                    last += groups[i].items[ukey].count * groups[i].items[ukey][groups[i].lastIdx[ukey]].last;
-                                } else {
-                                    console.warn(`lost ${ukey} Market data.`);
-                                    bidPrice1 += groups[i].items[ukey].replace_amount;
-                                    askPrice1 += groups[i].items[ukey].replace_amount;
-                                    last += groups[i].items[ukey].replace_amount;
-                                }
-                            });
-
-                            postMessage({
-                                type: "group-md", value: {
-                                    ukey: groups[i].key, time: ev.data.value.time,
-                                    ask_price: [askPrice1], bid_price: [bidPrice1], last: last
-                                }
-                            });
+                            groups[i].askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][ev.data.value.time].askPrice1 - groups[i].items[ukey].replace_amount;
+                            groups[i].bidPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][ev.data.value.time].bidPrice1 - groups[i].items[ukey].replace_amount;
+                            groups[i].last += groups[i].items[ukey].count * groups[i].items[ukey][ev.data.value.time].last - groups[i].items[ukey].replace_amount;
                         }
+
+                        groups[i].lastIdx[ukey] = ev.data.value.time;
+
+                        postMessage({
+                            type: "group-md", value: {
+                                ukey: groups[i].key, time: ev.data.value.time,
+                                ask_price: [groups[i].askPrice1], bid_price: [groups[i].bidPrice1], last: groups[i].last
+                            }
+                        });
                         break;
                     }
                 }
+                break;
+            case "get-md":
+                localDB.selectByIndexer(table.name, table.indexers[2], IDBKeyRange.upperBound(""));
                 break;
             default:
                 break;
         }
     };
-
-    class AxisPoint {
-        time: number;
-        index: number;
-        duration: number;
-    }
-
-    class DatabaseManager {
-
-        db: IDBDatabase;
-        request: IDBOpenDBRequest;
-        get_request: IDBRequest;
-        transaction: IDBTransaction;
-        store: IDBObjectStore;
-
-        removeDB(name: string): void {
-            indexedDB.deleteDatabase(name);
-        }
-
-        openDB(name: string, version?: number): void {
-            let request = indexedDB.open(name, version);
-            request.onsuccess = (ev: any) => {
-                this.db = ev.currentTarget.result;
-                console.info(`${name} database init Done.`);
-            };
-
-            request.onupgradeneeded = (ev: any) => {
-                if (this.db) this.db = null;
-                this.db = ev.currentTarget.result;
-                ev.data.legs.forEach(leg => {
-                    this.store = this.db.createObjectStore(leg, { keyPath: "time" });
-                    console.info(`createObjectStore ${leg}`);
-                });
-
-                console.info(`${name} database upgrade Done.`);
-            };
-
-            request.onerror = (ev: any) => {
-                console.error("${name} database open error: " + ev.currentTarget.errorCode);
-            };
-        }
-    }
 })();

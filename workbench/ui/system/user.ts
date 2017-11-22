@@ -92,6 +92,8 @@ export class UserComponent implements OnInit {
                 // to request template
                 this.tradeSrv.send(this.productAppID, 251, { "head": { "realActor": "getStrategyServerTemplate" }, body: {} });
                 this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getProduct" }, body: {} });
+                this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getAssetAccount" }, body: {} });
+                this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getRiskIndex" }, body: {} });
                 console.info(`subscribe=> ${this.configBll.strategyKeys}`);
                 this.tradeSrv.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
 

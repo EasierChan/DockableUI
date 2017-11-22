@@ -539,6 +539,7 @@ export class UAlphaViewer {
         } else if (this.getLastTimes().every(val => { return val === -1; })) { // first quote data
             // init axises;
             this.lastPoint[mdItem.ukey].time = mdItem.time;
+            this.lastPoint[mdItem.ukey].duration = curDuration;
             this.dataPoint.duration = curDuration;
             this.dataPoint.time = mdItem.time;
             this.initOption(mdItem.time);
@@ -725,7 +726,7 @@ export class UAlphaViewer {
                 connectNulls: true,
                 data: []
             }],
-            color: ["#ee0202", "#02ee02", "#65A7EE", "#EED565", "#ff8800", "#9933cc"],
+            color: ["#ee0202", "#02ee02", "#65A7EE", "#EED565", "#9933cc", "#ff8800"],
             dataZoom: {
                 type: "inside",
                 xAxisIndex: [0, 1]

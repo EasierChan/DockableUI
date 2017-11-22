@@ -82,27 +82,6 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
-        // this.actionBar.addFeature({
-        //     iconName: "time",
-        //     tooltip: "时间回溯",
-        //     title: "时间回溯",
-        //     active: false
-        // });
-
-        // this.actionBar.addFeature({
-        //     iconName: "stats",
-        //     tooltip: "超级图表",
-        //     title: "超级图表",
-        //     active: false
-        // });
-
-        // this.actionBar.addFeature({
-        //     iconName: "eye-open",
-        //     tooltip: "产品监控",
-        //     title: "产品监控",
-        //     active: false
-        // });
-
         this.actionBar.addSettings({
             iconName: "user",
             tooltip: "个人中心",
@@ -117,12 +96,12 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
-        this.actionBar.addSettings({
-            iconName: "info-sign",
-            tooltip: "支持",
-            title: "支持",
-            active: false
-        });
+        // this.actionBar.addSettings({
+        //     iconName: "info-sign",
+        //     tooltip: "支持",
+        //     title: "支持",
+        //     active: false
+        // });
 
         this.actionBar.addSettings({
             iconName: "off",
@@ -131,7 +110,7 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
-        let disables = ["未来预测"]; // , "证券信息"
+        let disables = ["智能预测", "证券信息", "实盘交易"]; // 
         this.actionBar.onClick = (item) => {
             if (disables.indexOf(item.title) >= 0) {
                 alert("当前未开放权限");
@@ -139,7 +118,27 @@ export class AppComponent implements OnInit, OnDestroy {
             }
 
             switch (item.title) {
-                case "主页":
+                case "资讯动态":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
+                    this.curPage = "home";
+                    this.homeMod = item.title;
+                    this.activeTab = DataSet.tabs(this.homeMod)[0];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "实盘交易":
+                    if (!this.appSrv.isLoginTrade()) {
+                        this.actionBar.click(this.actionBar.getItem("个人中心"));
+                        break;
+                    }
+                    this.curPage = "home";
+                    this.homeMod = item.title;
+                    this.activeTab = DataSet.tabs(this.homeMod)[1];
+                    this.actionBar.activeItem = item;
+                    break;
+                case "模拟交易":
                     if (!this.appSrv.isLoginTrade()) {
                         this.actionBar.click(this.actionBar.getItem("个人中心"));
                         break;
@@ -159,7 +158,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
-                case "未来预测":
+                case "智能预测":
                     if (!this.appSrv.isLoginTrade()) {
                         this.actionBar.click(this.actionBar.getItem("个人中心"));
                         break;
@@ -169,7 +168,7 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.activeTab = DataSet.tabs(this.homeMod)[0];
                     this.actionBar.activeItem = item;
                     break;
-                case "分析":
+                case "行情分析":
                     if (!this.appSrv.isLoginTrade()) {
                         this.actionBar.click(this.actionBar.getItem("个人中心"));
                         break;
@@ -217,10 +216,10 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.curPage = "user";
                     this.actionBar.activeItem = item;
                     break;
-                case "支持":
-                    this.curPage = "support";
-                    this.actionBar.activeItem = item;
-                    break;
+                // case "支持":
+                //     this.curPage = "support";
+                //     this.actionBar.activeItem = item;
+                //     break;
                 case "退出":
                     this.appSrv.quitAll();
                     break;
@@ -234,11 +233,11 @@ export class AppComponent implements OnInit, OnDestroy {
         ULogger.init("log", Environment.getDataPath("workbench"));
 
         if (this.appSrv.isLoginTrade()) {
-            this.actionBar.click(this.actionBar.getItem("主页"));
+            this.actionBar.click(this.actionBar.getItem("资讯动态"));
         } else {
             this.actionBar.click(this.actionBar.getItem("个人中心"));
             this.appSrv.loginSuccess = () => {
-                this.actionBar.click(this.actionBar.getItem("主页"));
+                this.actionBar.click(this.actionBar.getItem("资讯动态"));
             };
 
             this.appSrv.loginFailed = () => {
@@ -307,6 +306,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
                         this.configBll.setProducts(products);
 
+                        this.configBll.emit(msg.content.head.actor, data);
                         products = null;
                         productInfo = null;
                         data = null;
@@ -332,6 +332,20 @@ export class AppComponent implements OnInit, OnDestroy {
                                 this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms) });
                             });
                         }
+                        break;
+                    case "getRiskIndexAns":
+                        let riskAns = JSON.parse(msg.content.body);
+                        this.configBll.set("risk_index", JSON.parse(msg.content.body).body);
+                        this.configBll.emit(msg.content.head.actor, riskAns);
+                        break;
+                    case "getAssetAccountAns":
+                        let accountAns = JSON.parse(msg.content.body);
+                        this.configBll.set("asset_account", accountAns.body);
+                        this.configBll.emit(msg.content.head.actor, accountAns);
+                        break;
+                    default:
+                        this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
+                        break;
                 }
             }
         });

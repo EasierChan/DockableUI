@@ -36,7 +36,7 @@ export class SettingComponent implements OnInit {
         row.cells[1].Text = "1.0.0";
 
         row = this.versionTable.newRow();
-        row.cells[0].Text = "版本（N)";
+        row.cells[0].Text = "版本（N）";
         row.cells[1].Text = "7.1.0";
 
         row = this.versionTable.newRow();
