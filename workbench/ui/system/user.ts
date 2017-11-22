@@ -98,14 +98,14 @@ export class UserComponent implements OnInit {
                 }
 
                 this.appSrv.setLoginTrade(true);
-                if (this.tradeHeart !== null) {
-                    clearInterval(this.tradeHeart);
-                    this.tradeHeart = null;
-                }
+                // if (this.tradeHeart !== null) {
+                //     clearInterval(this.tradeHeart);
+                //     this.tradeHeart = null;
+                // }
 
-                this.tradeHeart = setInterval(() => {
-                    this.tradeSrv.send(0, "", ServiceType.kFGS);
-                }, 60000);
+                // this.tradeHeart = setInterval(() => {
+                //     this.tradeSrv.send(0, "", ServiceType.kFGS);
+                // }, 60000);
             }
         });
 

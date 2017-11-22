@@ -39,7 +39,7 @@ export class Header extends Message {
 
 export class QTPMessage extends Message {
     header: Header = new Header();
-    body: string | Buffer;
+    body: String | Buffer;
     private options: QtpMessageOption[] = [];
 
     fromBuffer(buf: Buffer, offset = 0): number {
@@ -58,7 +58,14 @@ export class QTPMessage extends Message {
 
     toBuffer(): Buffer {
         let offset = 0;
-        this.header.datalen = this.body.length;
+        let bodyBuf: Buffer;
+
+        if (typeof this.body === "string")
+            bodyBuf = Buffer.from(this.body as string);
+        else
+            bodyBuf = (this.body as Buffer);
+
+        this.header.datalen = bodyBuf.byteLength;
         let buf = Buffer.alloc(Header.len + this.header.optslen + this.header.datalen);
         this.header.toBuffer().copy(buf, offset);
         offset += Header.len;
@@ -68,16 +75,12 @@ export class QTPMessage extends Message {
             offset += option.len + 4;
         });
 
-        if (typeof this.body === "string")
-            Buffer.from(this.body as string).copy(buf, offset);
-        else
-            (this.body as Buffer).copy(buf, offset);
-
+        bodyBuf.copy(buf, offset);
         return buf;
     }
 
     addOption(option: QtpMessageOption): void {
-        option.len = option.value.length;
+        option.len = option.value.byteLength;
         this.header.optslen += option.len;
         this.options.push(option);
     }
