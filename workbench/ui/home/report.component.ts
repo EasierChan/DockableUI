@@ -3,9 +3,10 @@
 import { Component, OnInit } from "@angular/core";
 import { DataTable } from "../../../base/controls/control";
 import { AppStoreService } from "../../../base/api/services/backend.service";
-import { TradeService } from "../../bll/services";
+import { QtpService } from "../../bll/services";
 import { ECharts } from "echarts";
 import { ConfigurationBLL } from "../../bll/strategy.server";
+import { SSGW_MSG, ServiceType } from "../../../base/api/model";
 
 
 @Component({
@@ -24,18 +25,16 @@ export class ReportComponent implements OnInit {
     percentProfitable: any;
     sharpeRatio: any;
     freeriskrate = 0.3;
-    backtestAppID: number;
     selectedItem: any;
     orderdetailsTable: DataTable;
     nIds: number[];
 
-    constructor(private mock: TradeService, private configBll: ConfigurationBLL,
+    constructor(private mock: QtpService, private configBll: ConfigurationBLL,
         private appsrv: AppStoreService) {
     }
 
     ngOnInit() {
         this.nIds = [];
-        this.backtestAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.backtest;
         this.resTable = new DataTable("table2");
         this.resTable.addColumn("选中", "名称", "回测进度", "开始时间", "结束时间", "查看");
         this.resTable.columns[0].maxWidth = 20;
@@ -61,8 +60,8 @@ export class ReportComponent implements OnInit {
             row.cells[5].OnClick = () => {
                 this.selectedItem = item;
                 this.chartOption = this.generateOption();
-                this.mock.send(this.backtestAppID, 8014, { nId: item.id }); // 
-                this.mock.send(this.backtestAppID, 8016, { nId: item.id });
+                this.mock.send(8014, JSON.stringify({ nId: item.id }), ServiceType.kBackServer); // 
+                this.mock.send(8016, JSON.stringify({ nId: item.id }), ServiceType.kBackServer);
                 this.page = 1;
                 // this.bLoading = true;
             };
@@ -77,38 +76,39 @@ export class ReportComponent implements OnInit {
     registerListener() {
         this.mock.addSlot(
             {
-                appid: this.backtestAppID,
-                packid: 8015,
+                service: ServiceType.kBackServer,
+                msgtype: 8015,
                 callback: msg => {
-                    console.info(msg);
+                    console.info(msg.toString());
                     this.setProfitOfItem(msg.content.nId, msg.content.Accpl);
                 }
             },
             {
-                appid: this.backtestAppID,
-                packid: 8017,
+                service: ServiceType.kBackServer,
+                msgtype: 8017,
                 callback: msg => {
-                    console.info(msg);
+                    console.info(msg.toString());
                     this.showOrderDetail(msg.content.nId, msg.content.orderdetails);
                 }
             },
             {
-                appid: this.backtestAppID,
-                packid: 8025,
+                service: ServiceType.kBackServer,
+                msgtype: 8025,
                 callback: msg => {
-                    console.info(msg);
-                    this.updateProgress(msg.content.data);
+                    console.info(msg.toString());
+                    let obj = JSON.parse(msg.toString());
+                    this.updateProgress(obj.data);
                 }
             },
             {
-                appid: this.backtestAppID,
-                packid: 8027,
+                service: ServiceType.kBackServer,
+                msgtype: 8027,
                 callback: msg => {
 
                 }
             }
         );
-        this.mock.send(this.backtestAppID, 8024, { reqsn: 1, nIds: this.nIds });
+        this.mock.send(8024, JSON.stringify({ reqsn: 1, nIds: this.nIds }), ServiceType.kBackServer);
     }
 
     back() {
@@ -146,7 +146,7 @@ export class ReportComponent implements OnInit {
             }
         }
 
-        this.mock.send(this.backtestAppID, 8024, { reqsn: 2, nIds: IDs });
+        this.mock.send(8024, JSON.stringify({ reqsn: 2, nIds: IDs }), ServiceType.kBackServer);
         this.configBll.syncLoopbackItem();
     }
 
@@ -164,7 +164,7 @@ export class ReportComponent implements OnInit {
         resArr.forEach(item => {
             if (rowMap.hasOwnProperty(item.nId))
                 this.resTable.rows[rowMap[item.nId]].cells[2].Text = item.status;
-                this.resTable.rows[rowMap[item.nId]].cells[2].Title = item.status + "%";
+            this.resTable.rows[rowMap[item.nId]].cells[2].Title = item.status + "%";
         });
     }
 

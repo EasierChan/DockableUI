@@ -1,6 +1,7 @@
 "use strict";
 
 import { IP20Service } from "../../../base/api/services/ip20.worker";
+import { QtpService } from "../../../base/api/services/qtp.worker";
 import { Header, Message } from "../../../base/api/model/itrade/message.model";
 import {
     RegisterMessage, ComStrategyInfo, ComGuiAckStrategy, ComTotalProfitInfo,
@@ -11,6 +12,7 @@ import {
 } from "../../../base/api/model/itrade/strategy.model";
 import { Sound } from "../../../base/api/services/backend.worker";
 import { ULogger } from "../../../base/api/common/base/logger";
+import { FGS_MSG, ServiceType, OptionType, QtpMessageOption } from "../../../base/api/model";
 
 ULogger.init("alert", process.argv[2]);
 const logger = ULogger.file();
@@ -117,15 +119,13 @@ interface WSIP20 {
 
 
 export class StrategyDealer {
-    tradePoint: IP20Service;
+    tradePoint: QtpService;
     appid: number;
-    packid: number;
     loginInfo: any;
 
     constructor(appid: number, loginInfo) {
-        this.tradePoint = new IP20Service();
+        this.tradePoint = new QtpService();
         this.appid = appid;
-        this.packid = 1000;
         this.loginInfo = loginInfo;
     }
 
@@ -140,56 +140,33 @@ export class StrategyDealer {
         let tradeHeart = null;
         this.tradePoint.onConnect = () => {
             process.send({ event: "ss-connect" });
-            loginTGW(this.tradePoint, this.loginInfo);
+            this.tradePoint.send(FGS_MSG.kLogin, JSON.stringify({ data: this.loginInfo }), ServiceType.kLogin);
         };
 
         this.tradePoint.onClose = () => {
             process.send({ event: "ss-close" });
         };
 
-        this.tradePoint.addSlot(
-            {
-                appid: 17,
-                packid: 43,
-                callback: (msg) => {
-                    logger.info(`tgw ans=>${msg}`);
-                    lasttry = Date.now();
-                    this.registerMessages();
+        this.tradePoint.addSlot({
+            service: ServiceType.kLogin,
+            msgtype: FGS_MSG.kLoginAns,
+            callback: (msg) => {
+                logger.info(`tgw ans=>${msg}`);
+                lasttry = Date.now();
+                this.registerMessages();
 
-                    if (tradeHeart !== null) {
-                        clearInterval(tradeHeart);
-                        tradeHeart = null;
-                    }
+                if (tradeHeart !== null) {
+                    clearInterval(tradeHeart);
+                    tradeHeart = null;
+                }
 
-                    tradeHeart = setInterval(() => {
-                        this.tradePoint.send(17, 0, {});
-                    }, 60000);
-                }
-            }, {
-                appid: 17,
-                packid: 120,
-                callback: (msg) => {
-                    if (Date.now() - lasttry > 5000) {
-                        lasttry = Date.now();
-                        this.registerMessages();
-                    } else {
-                        clearTimeout(tryTimer);
-                        tryTimer = setTimeout(() => {
-                            this.registerMessages();
-                        }, 5000 - (Date.now() - lasttry));
-                    }
-
-                    logger.info(`tradeWorker:173: tgw ans=>${JSON.stringify(msg.content)}`);
-                }
-            }, {
-                appid: 17,
-                packid: 110,
-                callback(msg) {
-                    logger.info(`tradeWorker:179: tgw ans=>${JSON.stringify(msg.content)}`);
-                }
-            }, {
-                appid: this.appid,
-                packid: 1001,
+                tradeHeart = setInterval(() => {
+                    this.tradePoint.send(0, "", ServiceType.kFGS);
+                }, 60000);
+            }
+        }, {
+                service: ServiceType.kStrategy,
+                msgtype: this.appid,
                 callback: (msg) => {
                     this.decode(msg.content);
                 }
@@ -239,7 +216,7 @@ export class StrategyDealer {
                     ask.toBuffer().copy(askBuf, askOffset);
                 }
 
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2028, subtype: 0, body: askBuf });
+                this.sendQtp({ type: 2028, subtype: 0, body: askBuf });
                 askBuf = null;
                 ask = null;
                 askOffset = null;
@@ -415,7 +392,7 @@ export class StrategyDealer {
                 order.data = order.ordertype === EOrderType.ORDER_TYPE_ORDER ? new ComOrder() : new ComOrderCancel();
                 Object.assign(order.data, params.data.data);
                 order.toBuffer().copy(body, offset);
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2020, subtype: 0, body: body });
+                this.sendQtp({ type: 2020, subtype: 0, body: body });
                 logger.info(`order=>ordersize=1`);
                 break;
             case "order-fp":
@@ -436,7 +413,7 @@ export class StrategyDealer {
                 });
 
                 fporder = null;
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5004, subtype: 0, body: body });
+                this.sendQtp({ type: 5004, subtype: 0, body: body });
                 logger.info(`order-fp=>ordersize=${params.data.orders.length}`);
                 break;
             case "cancel-fp":
@@ -446,7 +423,7 @@ export class StrategyDealer {
                 params.data.ukeys.forEach(ukey => {
                     body.writeUInt32LE(ukey, offset); offset += 4;
                 });
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5005, subtype: 0, body: body });
+                this.sendQtp({ type: 5005, subtype: 0, body: body });
                 break;
             case "basket-fp":
                 body = Buffer.alloc(FpHead.len + 8 + params.data.list.length * 12);
@@ -462,12 +439,12 @@ export class StrategyDealer {
                     body.writeInt32LE(item.currPos, offset); offset += 4;
                     body.writeInt32LE(item.targetPos, offset); offset += 4;
                 });
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5001, subtype: 0, body: body });
+                this.sendQtp({ type: 5001, subtype: 0, body: body });
                 logger.info(`basket-order-size = ${basketHead.count}`);
                 break;
             case "getProfitInfo":
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2047, subtype: 0, body: null });
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2044, subtype: 0, body: null });
+                this.sendQtp({ type: 2047, subtype: 0, body: null });
+                this.sendQtp({ type: 2044, subtype: 0, body: null });
                 break;
             case "strategy-param":
                 body = Buffer.alloc(4 + params.data.length * ComStrategyCfg.len);
@@ -482,7 +459,7 @@ export class StrategyDealer {
                     cfg.toBuffer().copy(body, offset); offset += ComStrategyCfg.len;
                 });
 
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 2030, subtype: 0, body: body });
+                this.sendQtp({ type: 2030, subtype: 0, body: body });
                 break;
             case "strategy-cmd":
                 body = new Buffer(8);
@@ -504,19 +481,32 @@ export class StrategyDealer {
                         break;
                 }
 
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: type, subtype: 0, body: body });
+                this.sendQtp({ type: type, subtype: 0, body: body });
                 break;
             case "account-position-load":
                 let fpHead = new FpHead();
                 fpHead.account = params.account;
                 fpHead.count = 0;
-                this.tradePoint.sendQtp(this.appid, this.packid, { type: 5002, subtype: 0, body: fpHead.toBuffer() });
+                this.sendQtp({ type: 5002, subtype: 0, body: fpHead.toBuffer() });
                 fpHead = null;
                 break;
             default:
                 break;
         }
         body = null;
+    }
+
+    sendQtp(msg: { type: number, subtype: number, body: any }) {
+        let head = new Header();
+        head.type = msg.type;
+        head.subtype = msg.subtype;
+        head.msglen = msg.body.length;
+        let option = new QtpMessageOption();
+        option.id = OptionType.kInstanceID;
+        option.value = Buffer.alloc(8, 0);
+        option.value.writeIntLE(this.appid, 0, 8);
+        this.tradePoint.sendWithOption(this.appid, [option], Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen), ServiceType.kStrategy);
+        head = null;
     }
 
     registerMessages() {
@@ -626,7 +616,7 @@ export class StrategyDealer {
         header.subtype = 1002;
         registerMsg.headers.push(header);
 
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2998, subtype: 0, body: registerMsg.toBuffer() });
+        this.sendQtp({ type: 2998, subtype: 0, body: registerMsg.toBuffer() });
 
         registerMsg = new RegisterMessage();
         header = new Header();
@@ -649,17 +639,17 @@ export class StrategyDealer {
         header.type = 5021;
         registerMsg.headers.push(header);
 
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2998, subtype: 0, body: registerMsg.toBuffer() });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2010, subtype: 0, body: null });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2012, subtype: 0, body: null });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2016, subtype: 0, body: null });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2044, subtype: 0, body: null });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 2024, subtype: 1000, body: null });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 3503, subtype: 0, body: null });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 3509, subtype: 0, body: null });
-        this.tradePoint.sendQtp(this.appid, this.packid, { type: 3010, subtype: 0, body: null });
+        this.sendQtp({ type: 2998, subtype: 0, body: registerMsg.toBuffer() });
+        this.sendQtp({ type: 2010, subtype: 0, body: null });
+        this.sendQtp({ type: 2012, subtype: 0, body: null });
+        this.sendQtp({ type: 2016, subtype: 0, body: null });
+        this.sendQtp({ type: 2044, subtype: 0, body: null });
+        this.sendQtp({ type: 2024, subtype: 1000, body: null });
+        this.sendQtp({ type: 3503, subtype: 0, body: null });
+        this.sendQtp({ type: 3509, subtype: 0, body: null });
+        this.sendQtp({ type: 3010, subtype: 0, body: null });
         setInterval(() => {
-            this.tradePoint.sendQtp(this.appid, this.packid, { type: 255, subtype: 0, body: null });
+            this.sendQtp({ type: 255, subtype: 0, body: null });
         }, 30000);
         header = null;
         registerMsg = null;

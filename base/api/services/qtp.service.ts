@@ -78,21 +78,26 @@ class QTPParser extends Parser {
             if (buflen >= this._curHeader.datalen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
                 console.info(`processMsg: service=${this._curHeader.service}, msgtype=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
-                this.emit(this._curHeader.service.toString(), this._curHeader, tempBuffer);
+                try {
+                    this.emit(this._curHeader.service.toString(), this._curHeader, tempBuffer);
+                } catch (err) {
+                    console.error(err);
+                } finally {
+                    restLen = buflen - Header.len - this._curHeader.datalen;
+                    if (restLen > 0) {
+                        let restBuf = Buffer.alloc(restLen);
+                        tempBuffer.copy(restBuf, 0, buflen - restLen);
+                        this._oPool.prepend(restBuf);
+                        restBuf = null;
+                        logger.warn(`restLen=${restLen}, tempBuffer=${tempBuffer.length}`);
+                    }
 
-                restLen = buflen - Header.len - this._curHeader.datalen;
-                if (restLen > 0) {
-                    let restBuf = Buffer.alloc(restLen);
-                    tempBuffer.copy(restBuf, 0, buflen - restLen);
-                    this._oPool.prepend(restBuf);
-                    restBuf = null;
-                    logger.warn(`restLen=${restLen}, tempBuffer=${tempBuffer.length}`);
+                    this._curHeader = null;
+                    tempBuffer = null;
+                    ret = true;
+                    break;
                 }
 
-                this._curHeader = null;
-                tempBuffer = null;
-                ret = true;
-                break;
             }
         }
 
@@ -252,7 +257,7 @@ export class QtpService {
      */
     addSlot(...slots: Slot[]) {
         slots.forEach(slot => {
-            if (!this._messageMap.hasOwnProperty(slot.msgtype)) {
+            if (!this._messageMap.hasOwnProperty(slot.service)) {
                 this._messageMap[slot.service] = new Object();
                 this._parser.registerMsgFunction(slot.service, this._parser, this._parser.processQtpMsg);
             }

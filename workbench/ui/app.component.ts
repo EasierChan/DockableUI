@@ -20,6 +20,7 @@ import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
 import { ActionBar, Label } from "../../base/controls/control";
+import { FGS_MSG, ServiceType } from "../../base/api/model";
 /**
  * for actionBar test
  */
@@ -111,7 +112,7 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
-        let disables = ["智能预测", "证券信息", "实盘交易"]; // 
+        let disables = ["智能预测", "证券信息"]; // 
         this.actionBar.onClick = (item) => {
             if (disables.indexOf(item.title) >= 0) {
                 alert("当前未开放权限");
@@ -248,6 +249,13 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     registerListeners() {
+        this.tradeEndPoint.addSlot({
+            service: ServiceType.kFGS,
+            msgtype: FGS_MSG.kFGSAns,
+            callback: (msg) => {
+                console.info(msg.toString());
+            }
+        });
         // this.tradeEndPoint.addSlot({
         //     appid: this.ssgwAppID,
         //     packid: 2001, // 创建策略回报

@@ -9,7 +9,7 @@ import { TcpClient } from "../browser/tcpclient";
 
 import { Injectable, EventEmitter } from "@angular/core";
 import { TValueCallback } from "../common/base/common";
-import { Header, MsgType } from "../model/itrade/message.model";
+import { Header, SSMsgType } from "../model/itrade/message.model";
 import {
     MsgUpdateDate, DepthMarketData,
     MsgBidAskIOPV, SZSnapshotMsg
@@ -37,7 +37,7 @@ export class PriceService extends EventEmitter<any> {
         this._messageMap = new Object();
     }
     /**
-     * QTS::MSG::PS_MSG_TYPE_MARKETDATA
+     * QTS::MSG::PS_MARKETDATA
      */
     // subscribeMarketData(innerCode: number, typestr: string, listener: TValueCallback<any>): void {
     //     electron.ipcRenderer.send("dal://itrade/ps/marketdata", { type: typestr, code: innerCode });
@@ -98,7 +98,7 @@ export class PriceService extends EventEmitter<any> {
         }, this._interval);
     }
 
-    register(innercodes: number[], subtype = MsgType.PS_MSG_TYPE_MARKETDATA): void {
+    register(innercodes: number[], subtype = SSMsgType.PS_MARKETDATA): void {
         if (!this._innercodesMap.hasOwnProperty(subtype))
             this._innercodesMap[subtype] = [];
 
@@ -109,9 +109,9 @@ export class PriceService extends EventEmitter<any> {
         this.sendCodes();
     }
 
-    private sendCodes(subtype = MsgType.PS_MSG_TYPE_MARKETDATA) {
+    private sendCodes(subtype = SSMsgType.PS_MARKETDATA) {
         let header: Header = new Header();
-        header.type = MsgType.PS_MSG_REGISTER;
+        header.type = SSMsgType.PS_REGISTER;
         header.subtype = subtype;
         header.msglen = 0;
         // console.log(JSON.stringify(obj));
@@ -208,8 +208,8 @@ export class MDParser extends ItradeParser {
     }
 
     init(): void {
-        this.registerMsgFunction(MsgType.PS_MSG_TYPE_MARKETDATA.toString(), this, this.processMarketDataMsg);
-        this.registerMsgFunction(MsgType.PS_MSG_TYPE_UPDATE_DATE.toString(), this, this.processMarketDataMsg);
+        this.registerMsgFunction(SSMsgType.PS_MARKETDATA.toString(), this, this.processMarketDataMsg);
+        this.registerMsgFunction(SSMsgType.PS_UPDATE_DATE.toString(), this, this.processMarketDataMsg);
         this._intervalRead = setInterval(() => {
             this.processRead();
         }, 500);
@@ -218,28 +218,28 @@ export class MDParser extends ItradeParser {
     processMarketDataMsg(msg): void {
         let [header, body] = msg;
         switch (header.subtype) {
-            case MsgType.MSG_TYPE_UPDATE_DATE:
+            case SSMsgType.PS_UPDATE_DATE_SUB:
                 let msg = new MsgUpdateDate();
                 msg.fromBuffer(body, 0);
                 // this._client.emit("data", msg);
                 logger.info("updatedate data: ", msg.newDate);
                 break;
-            case MsgType.MSG_TYPE_FUTURES:
+            case SSMsgType.PS_FUTURES:
                 let futuredata = new DepthMarketData();
                 futuredata.fromBuffer(body, 0);
                 this._client.emit("data", futuredata);
                 // logger.info("futures data: ", futuredata.toString());
                 break;
-            case MsgType.PS_MSG_TYPE_IOPV_P:
-            case MsgType.PS_MSG_TYPE_IOPV_M:
-            case MsgType.PS_MSG_TYPE_IOPV_T:
-            case MsgType.PS_MSG_TYPE_IOPV_R:
+            case SSMsgType.PS_IOPV_P:
+            case SSMsgType.PS_IOPV_M:
+            case SSMsgType.PS_IOPV_T:
+            case SSMsgType.PS_IOPV_R:
                 let iopvdata = new MsgBidAskIOPV();
                 iopvdata.fromBuffer(body, 0);
                 this._client.emit("data", iopvdata);
                 // logger.info("iopv data: ", iopvdata.toString());
                 break;
-            case MsgType.MSG_TYPE_SZ_SNAPSHOT:
+            case SSMsgType.PS_SZ_SNAPSHOT:
                 let szsnapshot = new SZSnapshotMsg();
                 szsnapshot.fromBuffer(body, 0);
                 this._client.emit("data", szsnapshot);
@@ -271,9 +271,9 @@ export class PSClient extends TcpClient {
 
     sendMessage(header: Header, body: any): void {
         switch (header.type) {
-            case MsgType.PS_MSG_REGISTER:
+            case SSMsgType.PS_REGISTER:
                 switch (header.subtype) {
-                    case MsgType.PS_MSG_TYPE_MARKETDATA:
+                    case SSMsgType.PS_MARKETDATA:
                         header.msglen = body.innerCodes.length * 4 + 4;
                         let buf: Buffer = Buffer.alloc(8 + header.msglen);
                         let offset = 8;

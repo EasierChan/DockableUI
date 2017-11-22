@@ -1,6 +1,6 @@
 "use strict";
 
-import { IHeader, MsgType, Header, Message } from "../model/itrade/message.model";
+import { IHeader, SSMsgType, Header, Message } from "../model/itrade/message.model";
 import {
     ComStrategyInfo, ComRecordPos, ESSSecuCategory, ComEquitPos, ComOrderData, AlphaSignalInfo,
     ComFuturePos, ComGWNetGuiInfo, ComProfitInfo, ComOrderRecord, ComContract, TimeVal,

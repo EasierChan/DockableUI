@@ -1,7 +1,7 @@
 "use strict";
 
 import { DefaultLogger } from "../../common/base/logger";
-import { Header, MsgType } from "../../model/itrade/message.model";
+import { Header, SSMsgType } from "../../model/itrade/message.model";
 import { ItradeClient, ItradeResolver } from "./base";
 import { IPCManager } from "../ipcManager";
 import {
@@ -12,18 +12,18 @@ export class PriceResolver extends ItradeResolver {
     readContent(header: Header, content: Buffer): void {
 
         switch (header.type) {
-            case MsgType.PS_MSG_TYPE_UPDATE_DATE:
+            case SSMsgType.PS_UPDATE_DATE:
                 let msgupdate = new MsgUpdateDate();
                 msgupdate.fromBuffer(content, 0);
                 DefaultLogger.debug("market date: ", msgupdate.newDate);
                 // DefaultLogger.info(msgupdate.toString());
                 // this.emit("dal://itrade/data/ps", msgupdate);
                 break;
-            case MsgType.PS_MSG_TYPE_MARKETDATA:
+            case SSMsgType.PS_MARKETDATA:
                 // deserializeMarketData();
                 DefaultLogger.debug("=== New Quote Data ===");
                 switch (header.subtype) {
-                    case MsgType.MSG_TYPE_FUTURES:
+                    case SSMsgType.PS_FUTURES:
                         let futureMarketData = new DepthMarketData();
                         futureMarketData.fromBuffer(content, 0);
                         // DefaultLogger.debug(futureMarketData.toString());
@@ -36,10 +36,10 @@ export class PriceResolver extends ItradeResolver {
                 break;
             default:
                 switch (header.subtype) {
-                    case MsgType.PS_MSG_TYPE_IOPV_P:
-                    case MsgType.PS_MSG_TYPE_IOPV_M:
-                    case MsgType.PS_MSG_TYPE_IOPV_T:
-                    case MsgType.PS_MSG_TYPE_IOPV_R:
+                    case SSMsgType.PS_IOPV_P:
+                    case SSMsgType.PS_IOPV_M:
+                    case SSMsgType.PS_IOPV_T:
+                    case SSMsgType.PS_IOPV_R:
                         // deserializeMarketDataIopvItem();
                         let iopvMsg = new MsgBidAskIOPV();
                         iopvMsg.fromBuffer(content, 0);
@@ -73,24 +73,24 @@ export class PriceDal {
 
         switch (name) {
             case "IOPVP":
-                type = MsgType.PS_MSG_REGISTER;
-                subtype = MsgType.PS_MSG_TYPE_IOPV_P;
+                type = SSMsgType.PS_REGISTER;
+                subtype = SSMsgType.PS_IOPV_P;
                 break;
             case "IOPVT":
-                type = MsgType.PS_MSG_REGISTER;
-                subtype = MsgType.PS_MSG_TYPE_IOPV_T;
+                type = SSMsgType.PS_REGISTER;
+                subtype = SSMsgType.PS_IOPV_T;
                 break;
             case "IOPVM":
-                type = MsgType.PS_MSG_REGISTER;
-                subtype = MsgType.PS_MSG_TYPE_IOPV_M;
+                type = SSMsgType.PS_REGISTER;
+                subtype = SSMsgType.PS_IOPV_M;
                 break;
             case "IOPVR":
-                type = MsgType.PS_MSG_REGISTER;
-                subtype = MsgType.PS_MSG_TYPE_IOPV_R;
+                type = SSMsgType.PS_REGISTER;
+                subtype = SSMsgType.PS_IOPV_R;
                 break;
             case "MARKETDATA":
-                type = MsgType.PS_MSG_REGISTER;
-                subtype = MsgType.PS_MSG_TYPE_MARKETDATA;
+                type = SSMsgType.PS_REGISTER;
+                subtype = SSMsgType.PS_MARKETDATA;
                 break;
             default:
                 DefaultLogger.info("Wrong type in message, must be IOPV or FUTURES, but got ", name);
@@ -114,7 +114,7 @@ export class PriceDal {
             switch (name) {
                 case "MARKETDATA":
                     switch (data.type) {
-                        case MsgType.MSG_TYPE_FUTURES:
+                        case SSMsgType.PS_FUTURES:
                             // DefaultLogger.info(data.toString());
                             cb(data);
                             break;

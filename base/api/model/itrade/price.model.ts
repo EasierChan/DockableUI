@@ -1,6 +1,6 @@
 "use strict";
 
-import { MsgType, Message } from "./message.model";
+import { SSMsgType, Message } from "./message.model";
 
 export class MsgUpdateDate extends Message {
     static len: number = 20;
@@ -140,7 +140,7 @@ export class DepthMarketData extends Message {
 export class SZSnapshotMsg extends Message {
     static len: number = 296;
     securityID: string;
-    type: number = MsgType.MSG_TYPE_SZ_SNAPSHOT;
+    type: number = SSMsgType.PS_SZ_SNAPSHOT;
     market: number;
     category: number;
     ukey: number;

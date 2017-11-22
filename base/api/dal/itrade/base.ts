@@ -7,7 +7,7 @@ import { EventEmitter } from "events";
 import { TcpClient } from "../../common/base/client";
 import { IResolver } from "../../common/base/resolver";
 import { DefaultLogger } from "../../common/base/logger";
-import { IHeader, MsgType } from "../../model/itrade/message.model";
+import { IHeader, SSMsgType } from "../../model/itrade/message.model";
 
 
 export class ItradeClient extends TcpClient {
@@ -49,7 +49,7 @@ export class ItradeClient extends TcpClient {
 
     sendHeartBeat(interval: number = 30): void {
         this._timer = setInterval(() => {
-            this.sendWithHead(MsgType.MSG_HEARTBEAT, 0, null);
+            this.sendWithHead(SSMsgType.MSG_HEARTBEAT, 0, null);
         }, interval * 1000);
     }
 

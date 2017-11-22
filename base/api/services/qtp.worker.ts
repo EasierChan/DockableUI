@@ -7,7 +7,7 @@ import { TcpClient } from "../common/base/tcpclient";
 import { Parser } from "../common/base/parser";
 import { Pool } from "../common/base/pool";
 import { DefaultLogger } from "../common/base/logger";
-import { Header, QTPMessage } from "../model/qtp/message.model";
+import { Header, QTPMessage, QtpMessageOption } from "../model/qtp/message.model";
 
 const logger = DefaultLogger;
 
@@ -246,12 +246,27 @@ export class QtpService {
         this._client.sendMessage(msg);
     }
 
+    sendWithOption(msgtype: number, options: QtpMessageOption[], body: string | Buffer, service?: number, topic?: number) {
+        let msg = new QTPMessage();
+        msg.header.msgtype = msgtype;
+        options.forEach(option => {
+            msg.addOption(option);
+        });
+
+        if (service) msg.header.service = service;
+
+        if (topic) msg.header.topic = topic;
+
+        msg.body = body;
+        this._client.sendMessage(msg);
+    }
+
     /**
      *
      */
     addSlot(...slots: Slot[]) {
         slots.forEach(slot => {
-            if (!this._messageMap.hasOwnProperty(slot.msgtype)) {
+            if (!this._messageMap.hasOwnProperty(slot.service)) {
                 this._messageMap[slot.service] = new Object();
                 this._parser.registerMsgFunction(slot.service, this._parser, this._parser.processQtpMsg);
             }

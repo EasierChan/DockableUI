@@ -7,7 +7,7 @@ import { Message } from "../app.model";
 
 export class Header extends Message {
     static len = 12;
-    version: number = 0;
+    version: number = 0x1;
     service: number = 0;
     msgtype: number = 0;
     topic: number = 0;
@@ -83,28 +83,28 @@ export class QTPMessage extends Message {
     }
 }
 
-class QtpMessageOption {
+export class QtpMessageOption {
     id: number; // uint_16
     len: number; // uint_16
-    value: string; // string
+    value: Buffer; // string
 
     toBuffer(): Buffer {
         let buf = Buffer.alloc(4 + this.len);
         buf.writeUInt16LE(this.id, 0);
         buf.writeUInt16LE(this.len, 2);
-        buf.write(this.value, 4);
+        this.value.copy(buf, 4);
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
         this.id = buf.readUInt16LE(offset); offset += 2;
         this.len = buf.readUInt16LE(offset); offset += 2;
-        this.value = buf.slice(offset, this.len).toString(); offset += this.len;
+        this.value = buf.slice(offset, this.len); offset += this.len;
         return offset;
     }
 }
 
-export enum MessageOption {
+export enum OptionType {
     kItemSize = 59901,
     kItemCnt = 59902,
     kInstanceID = 59903,
@@ -112,7 +112,8 @@ export enum MessageOption {
     kSubscribeKey = 59905
 }
 
-export enum MessageType {
+export enum FGS_MSG {
+    kFGSAns = 100,
     kLogin = 101,
     kLoginAns = 102,
     kSubscribe = 103,
@@ -121,5 +122,13 @@ export enum MessageType {
 }
 
 export enum ServiceType {
-    kLogin = 10
+    kFGS = 0,
+    kLogin = 10,
+    kStrategy = 20,
+    kSSGW = 21,
+    kCOMS = 30,
+    kCMS = 40,
+    kSDS = 50,
+    kBackServer = 60,
+    kSimServer = 61
 }

@@ -4,7 +4,8 @@ import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
 import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType, Channel } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
-import { TradeService } from "../../bll/services";
+import { QtpService } from "../../bll/services";
+import { SSGW_MSG, ServiceType } from "../../../base/api/model";
 
 @Component({
     moduleId: module.id,
@@ -23,20 +24,19 @@ export class BacktestComponent implements OnInit {
     ssgwAppID: number;
     backtestAppID: number;
 
-    constructor(private appsrv: AppStoreService, private tradeEndPoint: TradeService, private configBll: ConfigurationBLL, private ref: ChangeDetectorRef) {
+    constructor(private appsrv: AppStoreService, private tradeEndPoint: QtpService, private configBll: ConfigurationBLL, private ref: ChangeDetectorRef) {
     }
 
     ngOnInit() {
         this.ssgwAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.ssgw;
-        this.backtestAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.backtest;
         this.registerListeners();
         this.initializeStrategies();
     }
 
     registerListeners() {
         this.tradeEndPoint.addSlot({
-            appid: this.backtestAppID,
-            packid: 8012,
+            service: ServiceType.kBackServer,
+            msgtype: 8012,
             callback: msg => {
                 console.info(msg);
                 let config: WorkspaceConfig;
@@ -52,25 +52,34 @@ export class BacktestComponent implements OnInit {
                     config.backtestConfig.id = msg.content.nId;
                     config.backtestConfig.name = config.name;
 
-                    this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
+                    this.tradeEndPoint.send(SSGW_MSG.kCreate, JSON.stringify({
+                        data: {
+                            strategy: { type: config.strategyType, config: config }
+                        },
+                        userid: this.appsrv.getUserProfile().username
+                    }), ServiceType.kSSGW);
                     this.configBll.addLoopbackItems(config.backtestConfig);
                 }
             }
         });
 
         this.tradeEndPoint.addSlot({
-            appid: this.ssgwAppID,
-            packid: 2015,
+            service: ServiceType.kSSGW,
+            msgtype: SSGW_MSG.kDeleteAns,
             callback: (msg) => {
                 console.info(msg);
                 if (msg.content.body.error_id === 0) {
                     let config = this.strategyConfigs.find((item) => { return item.name === msg.content.body.name; });
 
                     if (config) {
-                        this.operateStrategyServer(config, 0);
+                        this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
+                            data: { strategy: { strategy_server_id: config.appid } },
+                            userid: this.appsrv.getUserProfile().username
+                        }), ServiceType.kSSGW);
+
                         this.configBll.removeConfig(config);
                         this.strategyArea.removeTile(config.chname);
-                        this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+                        // this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
                     }
                 }
             }
@@ -81,19 +90,32 @@ export class BacktestComponent implements OnInit {
         // strategyMenu
         this.strategyMenu = new Menu();
         this.strategyMenu.addItem("启动", () => {
-            this.operateStrategyServer(this.selectedStrategyConfig, 1);
+            this.tradeEndPoint.send(SSGW_MSG.kStart, JSON.stringify({
+                data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
+                userid: this.appsrv.getUserProfile().username
+            }), ServiceType.kSSGW);
         });
         this.strategyMenu.addItem("停止", () => {
-            this.operateStrategyServer(this.selectedStrategyConfig, 0);
+            this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
+                data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
+                userid: this.appsrv.getUserProfile().username
+            }), ServiceType.kSSGW);
         });
         this.strategyMenu.addItem("移至仿真", () => {
-            this.operateStrategyServer(this.selectedStrategyConfig, 0);
+            this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
+                data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
+                userid: this.appsrv.getUserProfile().username
+            }), ServiceType.kSSGW);
 
             this.configBll.moveConfig(this.selectedStrategyConfig, Channel.SIMULATION);
             this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
-            this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: this.selectedStrategyConfig.name, config: JSON.stringify({ SS: this.configBll.genInstance(this.selectedStrategyConfig) }) } });
+            this.tradeEndPoint.send(SSGW_MSG.kCreate, JSON.stringify({
+                data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
+                userid: this.appsrv.getUserProfile().username
+            }), ServiceType.kSSGW);
             this.selectedStrategyConfig = null;
         });
+
         this.strategyMenu.addItem("修改", () => {
             this.appsrv.startApp("策略配置", "Dialog", {
                 dlg_name: "strategy",
@@ -102,17 +124,22 @@ export class BacktestComponent implements OnInit {
                 forbidNames: this.getTileNames()
             });
         });
+
         this.strategyMenu.addItem("删除", () => {
             if (!confirm("确定删除？"))
                 return;
 
-            this.tradeEndPoint.send(this.ssgwAppID, 2014, { body: { name: this.selectedStrategyConfig.name } });
+            this.tradeEndPoint.send(SSGW_MSG.kCreate, JSON.stringify({
+                data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
+                userid: this.appsrv.getUserProfile().username
+            }), ServiceType.kSSGW);
         });
         // end strategyMenu
 
         this.strategyArea = new TileArea();
         this.strategyArea.title = "策略";
         this.strategyArea.onCreate = () => {
+            AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
             let config = new WorkspaceConfig();
             config.activeChannel = Channel.BACKTEST;
             this.appsrv.startApp("策略配置", "Dialog", {
@@ -202,12 +229,8 @@ export class BacktestComponent implements OnInit {
         };
 
         this.requestMap[tmpobj.reqsn] = config.name;
-        this.tradeEndPoint.send(this.backtestAppID, 8010, tmpobj);
+        this.tradeEndPoint.send(8010, JSON.stringify(tmpobj), ServiceType.kBackServer);
         this.configBll.wait("策略操作失败");
-    }
-
-    operateStrategyServer(config: WorkspaceConfig, action: number) {
-        this.tradeEndPoint.send(this.ssgwAppID, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
 
     onStartApp() {

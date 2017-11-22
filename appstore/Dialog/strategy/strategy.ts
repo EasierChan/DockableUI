@@ -1,7 +1,6 @@
 "use strict";
 
 import { Component, OnInit, Input, OnDestroy, ChangeDetectorRef } from "@angular/core";
-import { IP20Service } from "../../../base/api/services/ip20.service";
 import { AppStoreService, SecuMasterService, TranslateService } from "../../../base/api/services/backend.service";
 import { DataTable, TabPanel, TabPage, VBox, DataTableRow } from "../../../base/controls/control";
 import { WorkspaceConfig, StrategyInstance, DataKey, Channel } from "../../../base/api/model/workbench.model";
@@ -30,13 +29,13 @@ export class StrategyComponent implements OnInit, OnDestroy {
     strategyType: string;
     productLabel: string;
     productID: string;
-    strategyTemplates: any;
+    strategyTemplates: Object;
     paramsTable: DataTable;
     instrumentTable: DataTable;
 
     strategyConfigPanel: TabPanel;
 
-    constructor(private tgw: IP20Service,
+    constructor(
         private secuinfo: SecuMasterService,
         private langSrv: TranslateService) {
         this.enNameLabel = "策略服务名：";
@@ -82,7 +81,6 @@ export class StrategyComponent implements OnInit, OnDestroy {
         let vboxInstrument = new VBox();
         vboxInstrument.addChild(this.instrumentTable);
         instrumentPage.setContent(vboxInstrument);
-        AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
         this.strategyTemplates = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyTemplates));
         if (this.strategyType !== undefined) {
             this.isCreate = false;

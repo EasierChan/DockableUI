@@ -1,10 +1,11 @@
 "use strict";
 
 import { Component, OnInit } from "@angular/core";
-import { TradeService } from "../../bll/services";
+import { QtpService } from "../../bll/services";
 import { AppStoreService } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL } from "../../bll/strategy.server";
 import { DataTable } from "../../../base/controls/control";
+import { ServiceType } from "../../../base/api/model";
 
 @Component({
     moduleId: module.id,
@@ -20,7 +21,7 @@ export class RiskComponent implements OnInit {
     tblock_info: any[];
     productAppID: number;
 
-    constructor(private trade: TradeService, private config: ConfigurationBLL,
+    constructor(private trade: QtpService, private config: ConfigurationBLL,
         private appSrv: AppStoreService) {
 
     }
@@ -39,11 +40,12 @@ export class RiskComponent implements OnInit {
 
     registerListeners() {
         this.trade.addSlot({
-            appid: 130,
-            packid: 2002,
+            service: ServiceType.kCOMS,
+            msgtype: 4010,
             callback: (msg) => {
-                console.info(msg);
-                msg.content.data.trade_account.forEach(item => {
+                console.info(msg.toString());
+                let obj = JSON.parse(msg.toString());
+                obj.data.trade_account.forEach(item => {
                     let account = this.account_info.find(value => { return parseInt(value.acid) === item.group_id; });
                     if (account !== undefined && item.ukey !== 0) {
                         let row = this.accountTable.newRow();
@@ -107,7 +109,7 @@ export class RiskComponent implements OnInit {
             }
         });
 
-        this.trade.send(130, 2001, {});
+        this.trade.send(4009, "", ServiceType.kCOMS);
     }
 
     loadExternalData() {

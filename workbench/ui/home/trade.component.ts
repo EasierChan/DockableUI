@@ -117,6 +117,7 @@ export class TradeComponent implements OnInit {
         this.strategyArea = new TileArea();
         this.strategyArea.title = "策略";
         this.strategyArea.onCreate = () => {
+            AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
             let config = new WorkspaceConfig();
             config.activeChannel = Channel.ONLINE;
             this.appsrv.startApp("策略配置", "Dialog", {

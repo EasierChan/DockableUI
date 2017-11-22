@@ -7,7 +7,7 @@
 import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
-import { Header, MsgType, Message } from "../model/itrade/message.model";
+import { Header, SSMsgType, Message } from "../model/itrade/message.model";
 import {
     ComStrategyInfo, ComTotalProfitInfo, ComGuiAckStrategy,
     ComStrategyCfg, ComOrderRecord, ComAccountPos, ComRecordPos,

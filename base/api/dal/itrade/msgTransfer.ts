@@ -1,5 +1,5 @@
 "use strict";
-import { MsgType } from "../../model/itrade/message.model";
+import { SSMsgType } from "../../model/itrade/message.model";
 
 export class MessageTranfer {
     /**

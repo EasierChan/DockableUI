@@ -4,6 +4,7 @@
 "use strict";
 
 const fork = require("@node/child_process").fork;
+const path = require("@node/path");
 
 class UWorker {
     child: any;
@@ -44,6 +45,8 @@ export class WorkerFactory {
     static createWorker(url: string, logdir: string) {
         if (!url.endsWith(".js"))
             url += ".js";
+
+        let aa = path.resolve(".", url);
         return new UWorker(url, logdir);
     }
 }

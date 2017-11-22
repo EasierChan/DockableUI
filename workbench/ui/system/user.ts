@@ -4,7 +4,7 @@ import { Component, OnInit } from "@angular/core";
 import { AppStoreService, CryptoService, MessageBox } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL, DataKey } from "../../bll/strategy.server";
 import { QtpService, QuoteService } from "../../bll/services";
-import { MessageType, ServiceType, QTPMessage } from "../../../base/api/model/qtp/message.model";
+import { FGS_MSG, ServiceType, QTPMessage } from "../../../base/api/model/qtp/message.model";
 @Component({
     moduleId: module.id,
     selector: "user",
@@ -23,10 +23,9 @@ export class UserComponent implements OnInit {
     operNum: string;
     password: string;
     productAppID: number;
-    scmsAppID: number;
     isTcpConnect: boolean;
 
-    private _userid: string;
+    private userid: string;
 
     constructor(private tradeSrv: QtpService,
         private quoteSrv: QuoteService,
@@ -34,7 +33,6 @@ export class UserComponent implements OnInit {
         private cryptoSrv: CryptoService,
         private configBll: ConfigurationBLL) {
         this.name = "个人中心";
-        this.maid = "";
         this.password = "";
         this.quoteHeart = null;
         this.tradeHeart = null;
@@ -42,23 +40,13 @@ export class UserComponent implements OnInit {
 
     ngOnInit() {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
-        this.scmsAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.scms;
-        this._userid = this.appSrv.getUserProfile().username;
+        this.userid = this.appSrv.getUserProfile().username;
         this.isTcpConnect = false;
         this.registerListeners();
     }
 
     get setting() {
         return this.appSrv.getSetting();
-    }
-
-    getUserid(): string {
-        this._userid = [this.maid, this.operNum].join(".");
-        return this._userid;
-    }
-
-    setUserid(value: string) {
-        this._userid = value;
     }
 
     registerListeners() {
@@ -97,21 +85,27 @@ export class UserComponent implements OnInit {
         //         console.info(`subscribe=> ${this.configBll.strategyKeys}`);
         //         this.tradeSrv.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
 
-        //         if (this.tradeHeart !== null) {
-        //             clearInterval(this.tradeHeart);
-        //             this.tradeHeart = null;
-        //         }
-
-        //         this.tradeHeart = setInterval(() => {
-        //             this.tradeSrv.send(17, 0, {});
-        //         }, 60000);
         //     }
         // });
         this.tradeSrv.addSlot({
             service: ServiceType.kLogin,
-            msgtype: MessageType.kLoginAns,
+            msgtype: FGS_MSG.kLoginAns,
             callback: (msg) => {
-                console.info(msg.toString());
+                let obj = JSON.parse(msg.toString());
+                if (obj.data.ret_code !== 0) {
+                    alert(obj.data.ret_msg);
+                    return;
+                }
+
+                this.appSrv.setLoginTrade(true);
+                if (this.tradeHeart !== null) {
+                    clearInterval(this.tradeHeart);
+                    this.tradeHeart = null;
+                }
+
+                this.tradeHeart = setInterval(() => {
+                    this.tradeSrv.send(0, "", ServiceType.kFGS);
+                }, 60000);
             }
         });
 
@@ -122,29 +116,11 @@ export class UserComponent implements OnInit {
                 console.info(msg);
             }
         });
-
-        // this.tradeSrv.addSlot({ // login failed
-        //     appid: 17,
-        //     packid: 120,
-        //     callback: msg => {
-        //         console.info(msg);
-        //         MessageBox.show("error", "TGW ERROR", msg.content.msg, (response) => {
-        //             if (response === 1) {
-        //                 this.appSrv.setLoginTrade(false);
-        //             }
-        //         }, ["忽略", "重新登录"], 0, 0);
-        //     }
-        // });
     }
 
     login() {
         if (this.appSrv.isLoginTrade()) {
             this.appSrv.setLoginTrade(true);
-            return;
-        }
-
-        if (!/^\d+$/.test(this.operNum) || !/^\d+$/.test(this.maid)) {
-            alert("操作员和资产单元都只能是数字");
             return;
         }
 
@@ -163,10 +139,10 @@ export class UserComponent implements OnInit {
 
         this.tradeSrv.onConnect = () => {
             this.isTcpConnect = true;
-            loginObj = { maid: this.maid, cellid: this.maid, userid: this.getUserid(), password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
+            loginObj = { user_id: this.userid, password: this.cryptoSrv.getTGWPass(this.password) };
 
-            this.tradeSrv.send(MessageType.kLogin, JSON.stringify({ data: { user_id: 100101, password: "88888" } }), ServiceType.kLogin, 0);
-            this.appSrv.setUserProfile({ username: this.getUserid(), password: loginObj.password, roles: [], apps: [] });
+            this.tradeSrv.send(FGS_MSG.kLogin, JSON.stringify({ data: loginObj }), ServiceType.kLogin, 0);
+            this.appSrv.setUserProfile({ username: this.userid, password: loginObj.password, roles: [], apps: [] });
             AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
 
             this.tradeSrv.onClose = () => {
