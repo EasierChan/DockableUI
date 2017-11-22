@@ -6,7 +6,7 @@
 import { IPCManager } from "../ipcManager";
 import { Path } from "../../common/base/paths";
 import { IP20Factory } from "../../services/ip20.worker";
-import { UConfig } from "../../common/base/configurator"
+import { UConfig } from "../../common/base/configurator";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -35,7 +35,7 @@ class SecuMaster {
         }
 
         let [addr, port] = UConfig.default.endpoints[0].quote_addr.split(":");
-        SecuMaster.secumasterData = "ukeycode" + SecuMaster.field_sep + "jycode" + SecuMaster.field_sep + "inputcode" + SecuMaster.field_sep + 
+        SecuMaster.secumasterData = "ukeycode" + SecuMaster.field_sep + "jycode" + SecuMaster.field_sep + "inputcode" + SecuMaster.field_sep +
         "chabbr" + SecuMaster.field_sep + "windcode" + SecuMaster.field_sep + "tradingtime" + SecuMaster.field_sep + "presettlement" + SecuMaster.line_sep;
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
