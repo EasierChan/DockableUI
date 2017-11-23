@@ -5,6 +5,7 @@ import { TileArea, Tile } from "../../../base/controls/control";
 import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType, Channel } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
 import { TradeService } from "../../bll/services";
+import { SSGW_MSG, ServiceType } from "../../../base/api/model";
 
 @Component({
     moduleId: module.id,
@@ -35,7 +36,6 @@ export class TradeComponent implements OnInit {
         this.ssgwAppID = this.setting.endpoints[0].tgw_apps.ssgw;
         this.areas = [];
         this.registerListeners();
-        this.initializeProducts();
         this.initializeStrategies();
     }
 
@@ -51,7 +51,10 @@ export class TradeComponent implements OnInit {
                     let config = this.strategyConfigs.find((item) => { return item.name === msg.content.body.name; });
 
                     if (config) {
-                        this.operateStrategyServer(config, 0);
+                        this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
+                            data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
+                            userid: this.appsrv.getUserProfile().username
+                        }), ServiceType.kSSGW);
                         this.configBll.removeConfig(config);
                         this.strategyArea.removeTile(config.chname);
                         this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
@@ -61,40 +64,20 @@ export class TradeComponent implements OnInit {
         });
     }
 
-    initializeProducts() {
-        this.productArea = new TileArea();
-        this.productArea.title = "产品";
-        this.productArea.onClick = (event: MouseEvent, item: Tile) => {
-            if (event.button === 0) {  // left click
-                this.appsrv.startApp("产品信息", "Dialog", {
-                    dlg_name: "product",
-                    productID: item.id
-                });
-            }
-        };
-
-        this.products = this.configBll.getProducts();
-        if (this.products) {
-            this.products.forEach(product => {
-                let tile = new Tile();
-                tile.title = product.caname;
-                tile.iconName = "folder-close";
-                tile.id = product.caid;
-                this.productArea.addTile(tile);
-            });
-        }
-
-        this.areas.push(this.productArea);
-    }
-
     initializeStrategies() {
         // strategyMenu
         this.strategyMenu = new Menu();
         this.strategyMenu.addItem("启动", () => {
-            this.operateStrategyServer(this.selectedStrategyConfig, 1);
+            this.tradeEndPoint.send(SSGW_MSG.kStart, JSON.stringify({
+                data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
+                userid: this.appsrv.getUserProfile().username
+            }), ServiceType.kSSGW);
         });
         this.strategyMenu.addItem("停止", () => {
-            this.operateStrategyServer(this.selectedStrategyConfig, 0);
+            this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
+                data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
+                userid: this.appsrv.getUserProfile().username
+            }), ServiceType.kSSGW);
         });
         this.strategyMenu.addItem("修改", () => {
             this.appsrv.startApp("策略配置", "Dialog", {
@@ -110,7 +93,12 @@ export class TradeComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
-            this.tradeEndPoint.send(this.ssgwAppID, 2014, { body: { name: this.selectedStrategyConfig.name } });
+            this.tradeEndPoint.send(SSGW_MSG.kDelete, JSON.stringify({
+                data: {
+                    strategy: { strategy_server_id: this.selectedStrategyConfig.appid }
+                },
+                userid: this.appsrv.getUserProfile().username
+            }), ServiceType.kSSGW);
         });
         // end strategyMenu
 
@@ -195,13 +183,16 @@ export class TradeComponent implements OnInit {
 
     updateStrategyConfig(config: WorkspaceConfig) {
         this.configBll.tempConfig = config;
-
-        this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: config.name, config: JSON.stringify({ SS: this.configBll.genInstance(config) }) } });
+        this.tradeEndPoint.send(SSGW_MSG.kCreate, JSON.stringify({
+            data: {
+                strategy: {
+                    type: config.strategyType,
+                    ui_params: config
+                }
+            },
+            userid: this.appsrv.getUserProfile().username
+        }), ServiceType.kSSGW);
         this.configBll.wait("策略操作失败");
-    }
-
-    operateStrategyServer(config: WorkspaceConfig, action: number) {
-        this.tradeEndPoint.send(this.ssgwAppID, 2002, { routerid: 0, strategyserver: { name: config.name, action: action } });
     }
 
     onStartApp() {

@@ -102,7 +102,7 @@ interface DockDemoConfig {
     layout?: Object;
 }
 
-IPCManager.register(`app://loopbacktest/init`, (e, param) => {
+IPCManager.register(`app://product-trader/init`, (e, param) => {
     if (StartUp.instanceMap.hasOwnProperty(e.sender.id)) {
         e.returnValue = StartUp.instanceMap[e.sender.id]._option;
         return;

@@ -24,7 +24,7 @@ declare let window: any;
     ]
 })
 export class AppComponent implements OnInit {
-    private readonly apptype = "loopbacktest";
+    private readonly apptype = "product-trader";
     main: any;
     option: any;
     dd_tests: DropDown;
@@ -42,7 +42,6 @@ export class AppComponent implements OnInit {
     constructor(private state: AppStateCheckerRef) {
         this.state.onInit(this, this.onReady);
         this.state.onDestory(this, this.onDestroy);
-        this.createWorker();
     }
 
     onReady(option: any) {
@@ -52,30 +51,9 @@ export class AppComponent implements OnInit {
     }
 
     onDestroy() {
-        this.worker.dispose();
     }
 
     createWorker() {
-        let self = this;
-        this.worker = WorkerFactory.createWorker(`${__dirname}/messageWorker.js`, this.option.name);
-        this.worker.onData = data => {
-            switch (data.event) {
-                case "data":
-                    switch (data.content.type) {
-                        case 8015:
-                            self.setProfitOfItem(data.content.data.nId, data.content.data.Accpl);
-                            break;
-                        case 8017:
-                            self.setDetailsOfItem(data.content.nId, data.content.data);
-                            break;
-                    }
-                    break;
-                default:
-                    console.error(`unknown data event => ${data.event}!`);
-                    break;
-            }
-        };
-        this.worker.send({ command: "start", params: { port: this.option.port, host: this.option.host } });
     }
 
     ngOnInit() {
@@ -281,154 +259,5 @@ export class AppComponent implements OnInit {
                 }, 1000);
             }
         };
-    }
-
-    setDetailsOfItem(id: number, orderdetails: any) {
-        if (id === this.dd_tests.SelectedItem.Value.id && Array.isArray(orderdetails)) {
-            this.table.rows.length = 0;
-            orderdetails.forEach((item, index) => {
-                let row = this.table.newRow();
-                row.cells[0].Text = (parseInt(this.txt_pageidx.Text) - 1) * parseInt(this.txt_pagesize.Text) + index + 1;
-                row.cells[1].Text = item.orderid;
-                row.cells[2].Text = item.tradedate;
-                row.cells[3].Text = item.accountid;
-                row.cells[4].Text = item.innercode;
-                row.cells[5].Text = item.orderstatus;
-                row.cells[6].Text = item.ordertime;
-                row.cells[7].Text = item.orderprice / 10000;
-                row.cells[8].Text = item.ordervolume;
-                row.cells[9].Text = item.dealprice / 10000;
-                row.cells[10].Text = item.dealvolume;
-                row.cells[11].Text = item.dealbalance / 10000;
-                row.cells[12].Text = item.directive === 1 ? "B" : "S";
-            });
-            this.table.detectChanges();
-        }
-    }
-
-    setProfitOfItem(id: number, profit: any) {
-        let self = this;
-        let total_ratios = [];
-        let bottoms = [];
-        let tops = [];
-        let winCount = 0, sumratio = 0;
-
-        this.chart.changeOption({
-            xAxis: [
-                {
-                    type: "category",
-                    boundaryGap: false,
-                    data: (function () {
-                        // let beginYear = self.dd_tests.SelectedItem.Value.timebegin / 10000;
-                        // let beginMonth = self.dd_tests.SelectedItem.Value.timebegin % 10000 / 100;
-                        // let beginDay = self.dd_tests.SelectedItem.Value.timebegin % 100;
-                        // let endYear = self.dd_tests.SelectedItem.Value.timeend / 10000;
-                        // let endMonth = self.dd_tests.SelectedItem.Value.timeend % 10000 / 100;
-                        // let endDay = self.dd_tests.SelectedItem.Value.timeend % 100;
-                        // let beginDate = new Date(beginYear, beginMonth - 1, beginDay);
-                        // let endDate = new Date(endYear, endMonth - 1, endDay);
-                        // let res = [];
-                        // while (beginDate.valueOf() <= endDate.valueOf()) {
-                        //     res.push(beginDate.toLocaleDateString());
-                        //     beginDate.setDate(++beginDay);
-                        // }
-                        // return res;
-                        let res = [];
-                        let time: string = null;
-                        profit.forEach((item, idx) => {
-                            time = (item.time / 10).toFixed(0);
-                            time = [time.slice(-6, -4), time.slice(-4, -2), time.slice(-2)].join(":");
-                            res.push(item.date + " " + time);
-                        });
-                        return res;
-                    })()
-                }
-            ], series: [
-                {
-                    name: "净值",
-                    type: "line",
-                    data: (function () {
-                        total_ratios = [];
-                        let tmp = null;
-                        let firstValue = 0;
-                        let lastIdx;
-                        profit.forEach((item, idx) => {
-
-                            if (item.aeupl + item.apopl > 0) {
-                                ++winCount;
-                            }
-
-                            if (idx === 0) {
-                                firstValue = item.cost + item.amt - item.aeupl - item.apopl;
-                                total_ratios.push((item.cost + item.amt) / firstValue);
-                                sumratio += total_ratios[idx];
-                                return;
-                            }
-
-                            total_ratios.push((item.cost + item.amt) / firstValue);
-                            sumratio += total_ratios[idx];
-
-                            if (total_ratios[idx] >= total_ratios[idx - 1]) {
-                                if (idx === 1) {
-                                    tops.push(idx);
-                                } else {
-                                    lastIdx = tops.pop();
-                                    if (typeof lastIdx === undefined || idx === lastIdx + 1)
-                                        tops.push(idx);
-                                    else
-                                        tops.push(lastIdx, idx);
-                                }
-                            } else {
-                                if (idx === 1) {
-                                    tops.push(0);
-                                    bottoms.push(idx);
-                                } else {
-                                    lastIdx = bottoms.pop();
-                                    if (typeof lastIdx === undefined || idx === lastIdx + 1)
-                                        bottoms.push(idx);
-                                    else
-                                        bottoms.push(lastIdx, idx);
-                                }
-                            }
-                        });
-                        return total_ratios;
-                    })()
-                }
-            ]
-        });
-
-        let maxRetraceRatio = 0;
-        let drawdown = 0;
-        if (tops.length > 0 && bottoms.length > 0) {
-            tops.forEach((itop, itopIdx) => {
-                bottoms.filter(idx => { return idx > itop && (idx < tops[itopIdx + 1] || tops.length === itopIdx + 1); }).forEach(ibot => {
-                    maxRetraceRatio = total_ratios[itop] - total_ratios[ibot] > maxRetraceRatio ? total_ratios[itop] - total_ratios[ibot] : maxRetraceRatio;
-                    drawdown = maxRetraceRatio / total_ratios[itop];
-                });
-            });
-        }
-        // console.info(maxRetraceRatio);
-        this.lbl_maxRetracementRatio.Text = (drawdown * 100).toFixed(2) + "%";
-        this.lbl_percentProfitable.Text = (winCount * 100 / profit.length).toFixed(2) + "%";
-        let avgratio = sumratio / profit.length;
-        let variance = 0;
-        total_ratios.forEach(ratio => {
-            variance += Math.pow(ratio - avgratio, 2);
-        });
-
-        // console.info(total_ratios, variance);
-        if (variance !== 0) {
-            let value = null;
-            let multiper;
-            if (this.dd_tests.SelectedItem.Value.unit === 0)
-                multiper = 365 * 24 * 60 / parseInt(this.dd_tests.SelectedItem.Value.period);
-            else
-                multiper = 365 / parseInt(this.dd_tests.SelectedItem.Value.period);
-            value = ((total_ratios.pop() - 1) * multiper / profit.length - parseFloat(this.txt_freeriskrate.Text)) / (Math.sqrt(variance) * multiper);
-            // console.info(value, variance);
-            this.lbl_sharpeRatio.Text = value.toFixed(4);
-        } else {
-            this.lbl_sharpeRatio.Text = 0;
-        }
     }
 }

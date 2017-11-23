@@ -43,7 +43,6 @@ export class RiskComponent implements OnInit {
             service: ServiceType.kCOMS,
             msgtype: 4010,
             callback: (msg) => {
-                console.info(msg.toString());
                 let obj = JSON.parse(msg.toString());
                 obj.data.trade_account.forEach(item => {
                     let account = this.account_info.find(value => { return parseInt(value.acid) === item.group_id; });
@@ -76,8 +75,8 @@ export class RiskComponent implements OnInit {
                     }
                 });
 
-                msg.content.data.trade_block.forEach(item => {
-                    let ca = this.tblock_info.find(value => { return parseInt(value.caid) === item.group_id; }) ;
+                obj.data.trade_block.forEach(item => {
+                    let ca = this.tblock_info.find(value => { return parseInt(value.caid) === item.group_id; });
                     let risk = this.risk_indexs.find(value => { return parseInt(value.riskid) === item.risk_id; });
                     if (ca !== undefined) {
                         let row = this.strategyTable.newRow();
@@ -113,8 +112,8 @@ export class RiskComponent implements OnInit {
     }
 
     loadExternalData() {
-        this.risk_indexs = this.config.get("risk_index");
-        this.account_info = this.config.get("asset_account");
+        this.risk_indexs = this.config.get("risk_index") || [];
+        this.account_info = this.config.get("asset_account") || [];
         this.tblock_info = this.config.getProducts();
     }
 }

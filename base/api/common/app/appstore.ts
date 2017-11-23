@@ -179,7 +179,7 @@ export class AppStore {
         //         category: "Transanctional"
         //     }
         // ];
-        let appIds = ["DockDemo", "SpreadViewer", "Dialog", "AlphaViewer"];
+        let appIds = ["DockDemo", "SpreadViewer", "Dialog", "AlphaViewer", "ProductTrader"];
         // apps.forEach((item) => {
         //     appIds.push(item.id);
         // });

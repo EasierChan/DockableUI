@@ -8,7 +8,7 @@
 <div class="content">
   <dashboard *ngIf="activeTab=='Dashboard'||activeTab=='资讯动态'" class="fill"></dashboard>
   <trade *ngIf="activeTab=='Trading'||activeTab=='策略'" class="fill"></trade>
-  <trade *ngIf="activeTab=='Trading'||activeTab=='产品'" class="fill"></trade>
+  <products *ngIf="activeTab=='Trading'||activeTab=='产品'" class="fill"></products>
   <simulation *ngIf="activeTab=='Simulation'||activeTab=='仿真交易'"></simulation>
   <risk *ngIf="activeTab=='Risk'||activeTab=='风控'" class="fill"></risk>
   <admin *ngIf="activeTab=='Admin'||activeTab=='管理'"></admin>

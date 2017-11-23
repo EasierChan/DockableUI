@@ -10,7 +10,7 @@ export interface IApp {
 }
 
 export class UserProfile {
-    username: string;
+    username: any;
     password: string;
     roles: string[];
     apps: string[];
