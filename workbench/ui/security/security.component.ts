@@ -457,10 +457,10 @@ export class SecurityComponent implements OnInit, OnDestroy {
                                 break;
                         }
 
-                        let tradingTime = msg.content.Structs[0].trading_time.substr(0, 3) + ":" + msg.content.Structs[0].trading_time.substr(3, 5) + ":" +
-                            msg.content.Structs[0].trading_time.substr(8, 7) + ":" + msg.content.Structs[0].trading_time.substr(15, 5) + ":" +
-                            msg.content.Structs[0].trading_time.substr(20, 3);
-                        this.baseInfo.content[10].value = tradingTime;
+                        // let tradingTime = msg.content.Structs[0].trading_time.substr(0, 3) + ":" + msg.content.Structs[0].trading_time.substr(3, 5) + ":" +
+                        //     msg.content.Structs[0].trading_time.substr(8, 7) + ":" + msg.content.Structs[0].trading_time.substr(15, 5) + ":" +
+                        //     msg.content.Structs[0].trading_time.substr(20, 3);
+                        this.baseInfo.content[10].value = msg.content.Structs[0].trading_time;
 
                         switch (msg.content.Structs[0].currency_id) {
                             case 1:
