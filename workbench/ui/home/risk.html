@@ -1,4 +1,4 @@
-<div class="content">
+<!--<div class="content">
     <div class="u-col">
         <div class="u-row select-area">
             <select #$account (change)="changeAccount($account.value)" [(ngModel)]="selectedAccount" name="account" id="">
@@ -13,28 +13,83 @@
         <div class="u-col section">
             <div class="title"><b>风控预警</b></div>
             <div class="u-col holder">
-                <dock-table2 [dataSource]="warnTable.dataSource" [styleObj]="warnTable.styleObj"></dock-table2>
+                <dock-table2 class="table-container" [dataSource]="warnTable.dataSource" [styleObj]="warnTable.styleObj"></dock-table2>
             </div>
         </div>
         <div class="u-col fill">
             <div *ngIf="selectedProduct" class="title"><b>产品风控</b></div>
             <div *ngIf="selectedAccount" class="title"><b>帐号风控</b></div>
             <div class="u-col holder">
-                <dock-table2 *ngIf="selectedProduct" [dataSource]="strategyTable.dataSource" [styleObj]="strategyTable.styleObj"></dock-table2>
-                <dock-table2 *ngIf="selectedAccount" [dataSource]="accountTable.dataSource" [styleObj]="accountTable.styleObj"></dock-table2>
+                <dock-table2 class="table-container" *ngIf="selectedProduct" [dataSource]="strategyTable.dataSource" [styleObj]="strategyTable.styleObj"></dock-table2>
+                <dock-table2 class="table-container" *ngIf="selectedAccount" [dataSource]="accountTable.dataSource" [styleObj]="accountTable.styleObj"></dock-table2>
             </div>
             <div class="u-wrap">
                 <div class="u-col holder">
-                    <dock-table2 [dataSource]="marketPlateTable.dataSource" [styleObj]="marketPlateTable.styleObj"></dock-table2>
+                    <dock-table2 class="table-container" [dataSource]="marketPlateTable.dataSource" [styleObj]="marketPlateTable.styleObj"></dock-table2>
                 </div>
                 <div class="u-col holder">
-                    <dock-table2 [dataSource]="varietiTable.dataSource" [styleObj]="varietiTable.styleObj"></dock-table2>
+                    <dock-table2 class="table-container" [dataSource]="varietiTable.dataSource" [styleObj]="varietiTable.styleObj"></dock-table2>
                 </div>
                 <div class="u-col holder">
-                    <dock-table2 [dataSource]="ukeyTable.dataSource" [styleObj]="ukeyTable.styleObj"></dock-table2>
+                    <dock-table2 class="table-container" [dataSource]="ukeyTable.dataSource" [styleObj]="ukeyTable.styleObj"></dock-table2>
                 </div>
                 <div class="u-col holder">
-                    <dock-table2 [dataSource]="tactfulTable.dataSource" [styleObj]="tactfulTable.styleObj"></dock-table2>
+                    <dock-table2 class="table-container" [dataSource]="tactfulTable.dataSource" [styleObj]="tactfulTable.styleObj"></dock-table2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>-->
+
+<div class="content u-row fill">
+    <div class="list-section u-col" style="width: auto;">
+        <div class="list-title u-row">
+            <div class="tab" [class.active]="selectedTab === 0" (click)="checkoutTab(0)">产品</div>
+            <div class="tab" [class.active]="selectedTab === 1" (click)="checkoutTab(1)">帐号</div>
+        </div>
+        <ul class="list">
+            <li *ngFor="let item of groupList" (click)="checkoutGroup(item.group_id)" class="list-item" [class.active]="selectedGroup && selectedGroup.groupId===item.group_id">{{item.name}}</li>
+        </ul>
+    </div>
+    <div class="data-section u-col">
+        <div class="table-section">
+            <div class="title"><b>风控预警</b></div>
+            <div class="u-col holder">
+                <dock-table2 class="table-container" [dataSource]="warnTable.dataSource" [styleObj]="warnTable.styleObj"></dock-table2>
+            </div>
+        </div>
+        <div class="table-section">
+            <div class="title"><b>{{groupList===accounts ? '帐号' : '产品'}}风控</b></div>
+            <div class="u-col holder">
+                <dock-table2 class="table-container" [dataSource]="singleTable.dataSource" [styleObj]="singleTable.styleObj"></dock-table2>
+            </div>
+        </div>
+        <div class="categ-section u-wrap">
+            <div class="table-section">
+                <div class="title"><b>市场/板块</b></div>
+                <div class="u-col holder">
+                    <dock-table2 class="table-container" [dataSource]="marketPlateTable.dataSource" [styleObj]="marketPlateTable.styleObj"></dock-table2>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <div class="title"><b>品种</b></div>
+                <div class="u-col holder">
+                    <dock-table2 class="table-container" [dataSource]="varietiTable.dataSource" [styleObj]="varietiTable.styleObj"></dock-table2>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <div class="title"><b>ukey</b></div>
+                <div class="u-col holder">
+                    <dock-table2 class="table-container" [dataSource]="ukeyTable.dataSource" [styleObj]="ukeyTable.styleObj"></dock-table2>
+                </div>
+            </div>
+
+            <div class="table-section">
+                <div class="title"><b>策略</b></div>
+                <div class="u-col holder">
+                    <dock-table2 class="table-container" [dataSource]="tactfulTable.dataSource" [styleObj]="tactfulTable.styleObj"></dock-table2>
                 </div>
             </div>
         </div>
