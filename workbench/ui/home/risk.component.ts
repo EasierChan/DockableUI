@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, OnInit, DoCheck, Input } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { TradeService } from "../../bll/services";
 import { AppStoreService } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL } from "../../bll/strategy.server";
@@ -12,30 +12,30 @@ import { DataTable } from "../../../base/controls/control";
     templateUrl: "risk.html",
     styleUrls: ["home.component.css", "risk.css"]
 })
-export class RiskComponent implements OnInit, DoCheck {
-    strategyTable: DataTable;
-    accountTable: DataTable;
+export class RiskComponent implements OnInit {
     warnTable: DataTable;
     singleTable: DataTable;
     marketPlateTable: DataTable;
     varietiTable: DataTable;
     ukeyTable: DataTable;
     tactfulTable: DataTable;
-    accountMap: any;
-    productMap: any;
-    accounts: any[];
-    products: any[];
-    groupList: any[] = [];
-    selectedGroupId: number;
-    selectedGroupInfo: any;
-    selectedGroup: any;
-    selectedTab: number = 0;
-    selectedAccount: any;
-    selectedProduct: any;
     risk_indexs: any[];
     account_info: any[];
     tblock_info: any[];
     productAppID: number;
+    tab: {
+        tabList: {
+            tabId: number;
+            name: string;
+            contentList: any[];
+        }[];
+        selectedTab: {
+            name:string;
+            contentList: any[];
+        };
+        selectedChild?: any;
+    };
+    riskData:any;
 
     constructor(private trade: TradeService, private config: ConfigurationBLL,
         private appSrv: AppStoreService) {
@@ -44,138 +44,220 @@ export class RiskComponent implements OnInit, DoCheck {
 
     ngOnInit() {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
-        // this.checkoutTab(0);
-        // this.checkoutGroup()
-        this.reLoadAllTable()
         this.loadExternalData();
+        this.initTab();
+        this.reLoadAllTable()
         this.registerListeners();
     }
 
-    convertData(msg) {
-        this.selectedAccount = 0
-        this.selectedProduct = 0
-        this.accountMap = this.sortOutGroup(msg.content.data.trade_account, 'account')
-        this.productMap = this.sortOutGroup(msg.content.data.trade_block, 'product')
-        this.accounts = Object.keys(this.accountMap).map(key => {
-            return {
-                group_id: parseInt(key),
-                name: this.account_info.find(value => { return parseInt(value.acid) === parseInt(key) }).acname
+    registerListeners() {
+        this.trade.addSlot({
+            appid: 130,
+            packid: 2002,
+            callback: (msg) => {
+                console.info(msg);
+                this.riskData = msg.content.data;
             }
-        })
-        this.products = Object.keys(this.productMap).map(key => {
-            return {
-                group_id: parseInt(key),
-                name: this.tblock_info.find(value => { return parseInt(value.caid) === parseInt(key) }).caname
-            }
-        })
-        this.groupList = this.products
+        });
+
+        this.trade.send(130, 2001, {});
     }
 
-    sortOutGroup(riskList, groupType:string) {
-        let riskMap = {}
-        riskList.forEach(item => {
-            item._groupType = groupType;
-            riskMap[item.group_id] = riskMap[item.group_id] || []
-            riskMap[item.group_id].push(item)
-        })
-        return riskMap
-    }
-    
-    ngDoCheck() {
-        // console.log('ngDoCheck')
-    }
-
-    ngOnChanges(changeRecord) {
-        // console.log('ngChanges')
-    }
-
-    mockWarning() {
-        let row = this.warnTable.newRow()
-        row.cells[0].Text = '产品'
-        row.cells[1].Text = '板块'
-        row.cells[2].Text = '中小板'
-        row.cells[3].Text = '1000'
-        row.cells[4].Text = '1200'
-        row.cells[5].Text = '1100'
-        row.cells[6].Text = '预警'
-
-        let rowS = this.warnTable.newRow()
-        rowS.cells[0].Text = '账户'
-        rowS.cells[1].Text = '市场'
-        rowS.cells[2].Text = '深圳'
-        rowS.cells[3].Text = '1000'
-        rowS.cells[4].Text = '1999'
-        rowS.cells[5].Text = '2000'
-        rowS.cells[6].Text = '预警'
-    }
-
-
-    mockMsg() {
-        let msg = {
-            content: {
-                data: {
-                    trade_account: [],
-                    trade_block: []
+    initTab() {
+        this.tab = {
+            tabList: [
+                {
+                    tabId: 0,
+                    name: '帐号',
+                    contentList: this.account_info.map(value => {
+                        return {
+                            name: value.acname,
+                            groupId: value.acid
+                        }
+                    })
+                },
+                {
+                    tabId: 1,
+                    name: '产品',
+                    contentList: this.tblock_info.map(value => {
+                        return {
+                            name: value.caname,
+                            groupId: value.caid
+                        }
+                    })
                 }
-            }
+            ],
+            selectedTab: null
         }
-        for(let i =0; i < 20; i++) {
-            msg.content.data.trade_account.push(this.mock('account'))
-            msg.content.data.trade_block.push(this.mock('product'))
-        }
-        return msg
+        this.tab.selectedTab = this.tab.tabList[0]
     }
 
-    random(n:number) {
-        return Math.floor(Math.random() * (n + 1))
+    reLoadAllTable() {
+        this.reLoadTable('warn');
+        this.reLoadTable('single');
+        this.reLoadTable('marketPlate');
+        this.reLoadTable('varieti');
+        this.reLoadTable('ukey');
+        this.reLoadTable('tactful');
     }
 
-    mock(name) {
-        let group_id
-        if(name === 'account') {
-            let validAcount = this.account_info.filter(item => item.acname)
-            group_id = validAcount[Math.floor(validAcount.length * Math.random())].acid
-        } else if(name === 'product') {
-            let validProduct = this.tblock_info.filter(item => item.caname)
-            group_id = validProduct[Math.floor(validProduct.length * Math.random())].caid
+    loadExternalData() {
+        this.risk_indexs = this.config.get("risk_index");
+        this.account_info = this.config.get("asset_account");
+        this.tblock_info = this.config.getProducts();
+    }
+
+    parseRiskRecord(riskRecord:any) {
+        let categroy: string;
+        let categroyTop: string;
+        switch(riskRecord.catg_lv1) {
+            case 0:
+                categroy = null;
+                categroyTop = null;
+                break;
+            case 1:
+                categroy = this.mapMarket(riskRecord.catg_lv2);
+                categroyTop = '市场';
+                break;
+            case 2:
+                categroy = this.mapPlate(riskRecord.catg_lv2);
+                categroyTop = '板块';
+                break;
+            case 3:
+                categroy = this.mapVarieti(riskRecord.catg_lv2);
+                categroyTop = '品种';
+                break;
         }
-        let catg_lv1 =this.random(3)
-        let catg_lv2, ukey;
-        if(catg_lv1 === 0) {
-            catg_lv2 = 0;
-            if(this.random(1)) {
-                ukey = this.random(100000) + 1;
-            } else ukey = 0
-        } else {
-            catg_lv2 = this.random(2)
-            ukey = 0;
+        let isDanger = riskRecord.used_v1 >= riskRecord.limit_v2; // 
+        let dangerType = 'normal'
+        if (isDanger) dangerType = 'warn';
+        if (riskRecord.used_v1 >= riskRecord.limit_v1) dangerType = 'danger';
+        let groupType = this.getRiskRecordByGroupId(riskRecord.group_id).type
+        let groupTypeMap = {
+            account: '帐号',
+            product: '产品'
         }
         return {
-            used_v1: 1000,
-            used_v2: 1200,
-            limit_v1: 1200,
-            limit_v2: 900,
-            catg_lv1: catg_lv1,
-            catg_lv2: catg_lv2,
-            ukey: ukey,
-            operate: Math.floor(Math.random() * 5 + 1),
-            risk_id: this.risk_indexs[Math.floor(this.risk_indexs.length * Math.random())].riskid,
-            risk_stat: 0,
-            group_id: group_id
+            groupType: groupTypeMap[groupType],
+            used_v1: riskRecord.used_v1,
+            limit_v1: riskRecord.limit_v1,
+            operate: this.mapOperate(riskRecord.operate),
+            status: riskRecord.risk_stat === 1 ? '启用' : '禁用',
+            riskName: this.risk_indexs.find(value => { return parseInt(value.riskid) === parseInt(riskRecord.risk_id) }).riskname,
+            ukey: riskRecord.ukey,
+            name: this.tab.selectedChild.name,
+            categroy: categroy,
+            categropTop: categroyTop,
+            isDanger,
+            dangerType
         }
     }
 
-    riskSingle() {
-
+    addARiskRecord(riskRecord:any) {
+        let cellData = this.parseRiskRecord(riskRecord);
+        if(cellData.isDanger) {
+            let row = this.warnTable.newRow();
+            row.cells[0].Text = cellData.groupType;
+            row.cells[1].Text = cellData.categropTop;
+            row.cells[2].Text = cellData.categroy;
+            row.cells[3].Text = '指标';
+            row.cells[4].Text = cellData.limit_v1;
+            row.cells[5].Text = cellData.used_v1;
+            row.cells[6].Text = cellData.dangerType;
+        }
+        if (riskRecord.ukey === 0 && riskRecord.catg_lv1 === 0) {
+            let row = this.singleTable.newRow()
+            row.cells[0].Text = cellData.name;
+            row.cells[1].Text = cellData.riskName;
+            row.cells[2].Text = cellData.used_v1;
+            row.cells[3].Text = cellData.limit_v1;
+            row.cells[4].Text = cellData.operate;
+            row.cells[5].Text = cellData.status;
+        } else if(riskRecord.ukey === 0 && (riskRecord.catg_lv1 === 1 || riskRecord.catg_lv1 === 2)) {
+            let row = this.marketPlateTable.newRow();
+            row.cells[0].Text = cellData.categroy;
+            row.cells[1].Text = cellData.riskName;
+            row.cells[2].Text = cellData.used_v1;
+            row.cells[3].Text = cellData.limit_v1;
+            row.cells[4].Text = cellData.operate;
+            row.cells[5].Text = cellData.status;
+        } else if(riskRecord.ukey === 0 && riskRecord.catg_lv1 === 3) {
+            let row = this.varietiTable.newRow()
+            row.cells[0].Text = cellData.categroy;
+            row.cells[1].Text = cellData.riskName;
+            row.cells[2].Text = cellData.used_v1;
+            row.cells[3].Text = cellData.limit_v1;
+            row.cells[4].Text = cellData.operate;
+            row.cells[5].Text = cellData.status;
+        } else if(riskRecord.ukey !== 0 && riskRecord.catg_lv1 === 0) {
+            let row = this.ukeyTable.newRow()
+            row.cells[0].Text = cellData.ukey;
+            row.cells[1].Text = cellData.riskName;
+            row.cells[2].Text = cellData.used_v1;
+            row.cells[3].Text = cellData.limit_v1;
+            row.cells[4].Text = cellData.operate;
+            row.cells[5].Text = cellData.status;
+        }
     }
 
-    riskCateg() {
-
+    reLoadTable(name:string) {
+        let table: DataTable = new DataTable('table2');
+        switch(name) {
+            case 'warn':
+                table.addColumn("类型", "分类", "类目", "指标", "阈值", "当前", "状态");
+                this.warnTable = table;
+                break;
+            case 'single':
+                table.addColumn(this.tab.selectedTab.name + 'ID', "风控名称", "当前值", "阈值", "触发方式", "状态");
+                this.singleTable = table;
+                break;
+            case 'marketPlate':
+                table.addColumn("市场（板块）", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                this.marketPlateTable = table;
+                break;
+            case 'varieti':
+                table.addColumn("品种", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                this.varietiTable = table;
+                break;
+            case 'ukey':
+                table.addColumn("ukey", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                this.ukeyTable = table;
+                break;
+            case 'tactful':
+                table.addColumn("策略", "指标", "阈值", "当前", "状态");
+                this.tactfulTable = table;
+                break;
+        }
     }
 
-    riskUkey() {
-
+    getRiskRecordByGroupId(groupId) {
+        let riskList = this.riskData.trade_account.filter(value => value.group_id === groupId);
+        let type:string;
+        if(riskList.length) {
+            type = 'account';
+        } else {
+            riskList = this.riskData.trade_block.filter(value => value.group_id === groupId);
+            type = 'product';
+        }
+        return {
+            riskList,
+            type
+        }
     }
+
+
+    checkoutGroup(groupId) {
+        this.tab.selectedChild = this.tab.selectedTab.contentList.find(value => value.groupId === groupId)
+        this.reLoadAllTable();
+        this.getRiskRecordByGroupId(parseInt(groupId)).riskList.forEach(item => this.addARiskRecord(item))
+    
+    }
+
+    checkoutTab(tabId) {
+        this.tab.selectedTab = this.tab.tabList.find(value => value.tabId === tabId)
+    }
+
+
 
     mapOperate(operate:number) {
         let value:string
@@ -300,337 +382,5 @@ export class RiskComponent implements OnInit, DoCheck {
                 break;
         }
         return value        
-    }
-
-    createSingleTable(riskRecord: any[]) {
-        riskRecord.forEach(item => {
-            let row, name
-            if(this.selectedAccount) {
-                row = this.accountTable.newRow()
-                name = this.selectedGroupInfo.acname
-            } else if(this.selectedProduct) {
-                row = this.strategyTable.newRow()
-                name = this.selectedGroupInfo.caname
-            }
-            row.cells[0].Text = name
-            row.cells[1].Text = this.risk_indexs.find(value => { return parseInt(value.riskid) === parseInt(item.risk_id) }).riskname;
-            row.cells[2].Text = item.used_v1
-            row.cells[3].Text = item.limit_v1;
-            row.cells[4].Text = this.mapOperate(item.operate)
-            row.cells[5].Text = item.risk_stat === 1 ? "启用" : "禁用";
-        })
-    }
-
-    createMarketPlateTable(riskRecord: any[]) {
-        riskRecord.forEach(item => {
-            let row = this.marketPlateTable.newRow()
-            row.cells[0].Text = item.catg_lv1 === 1 ? this.mapMarket(item.catg_lv2) : this.mapPlate(item.catg_lv2)
-            row.cells[1].Text = this.selectedAccount ? this.selectedGroupInfo.acname : this.selectedGroupInfo.caname
-            row.cells[2].Text = item.used_v1
-            row.cells[3].Text = item.limit_v1
-            row.cells[4].Text = this.mapOperate(item.operate)
-            row.cells[5].Text = item.risk_stat === 1 ? "启用" : "禁用";
-        })
-    }
-
-    createVarietiTable(riskRecord: any[]) {
-        riskRecord.forEach(item => {
-            let row = this.varietiTable.newRow()
-            row.cells[0].Text = this.mapVarieti(item.catg_lv2)
-            row.cells[1].Text = this.selectedAccount ? this.selectedGroupInfo.acname : this.selectedGroupInfo.caname
-            row.cells[2].Text = item.used_v1
-            row.cells[3].Text = item.limit_v1
-            row.cells[4].Text = this.mapOperate(item.operate)
-            row.cells[5].Text = item.risk_stat === 1 ? "启用" : "禁用";
-        })
-    }
-
-    createUkeyTable(riskRecord: any[]) {
-        riskRecord.forEach(item => {
-            let row = this.ukeyTable.newRow()
-            row.cells[0].Text = item.ukey
-            row.cells[1].Text = this.selectedAccount ? this.selectedGroupInfo.acname : this.selectedGroupInfo.caname
-            row.cells[2].Text = item.used_v1
-            row.cells[3].Text = item.limit_v1
-            row.cells[4].Text = this.mapOperate(item.operate)
-            row.cells[5].Text = item.risk_stat === 1 ? "启用" : "禁用";
-        })
-    }
-
-    parseRiskRecord(riskRecord:any) {
-        let categroy: string;
-        let categroyTop: string;
-        switch(riskRecord.catg_lv1) {
-            case 0:
-                categroy = null;
-                categroyTop = null;
-                break;
-            case 1:
-                categroy = this.mapMarket(riskRecord.catg_lv2);
-                categroyTop = '市场';
-                break;
-            case 2:
-                categroy = this.mapPlate(riskRecord.catg_lv2);
-                categroyTop = '板块';
-                break;
-            case 3:
-                categroy = this.mapVarieti(riskRecord.catg_lv2);
-                categroyTop = '品种';
-                break;
-        }
-        let isDanger = riskRecord.used_v1 >= riskRecord.limit_v2; // 
-        let dangerType = 'normal'
-        if (isDanger) dangerType = 'warn';
-        if (riskRecord.used_v1 >= riskRecord.limit_v1) dangerType = 'danger';
-        let groupTypeMap = {
-            account: '帐号',
-            product: '产品'
-        }
-        return {
-            groupType: groupTypeMap[riskRecord._groupType],
-            used_v1: riskRecord.used_v1,
-            limit_v1: riskRecord.limit_v1,
-            operate: this.mapOperate(riskRecord.operate),
-            status: riskRecord.risk_stat === 1 ? '启用' : '禁用',
-            riskName: this.risk_indexs.find(value => { return parseInt(value.riskid) === parseInt(riskRecord.risk_id) }).riskname,
-            ukey: riskRecord.ukey,
-            name: this.selectedTab === 0 ? this.selectedGroup.caname : this.selectedGroup.acname,
-            categroy: categroy,
-            categropTop: categroyTop,
-            isDanger,
-            dangerType
-        }
-    }
-
-    assortRisk(riskRecord: any[]) {
-        this.createSingleTable(riskRecord.filter(item => item.ukey === 0 && item.catg_lv1 === 0))
-        
-        this.createMarketPlateTable(riskRecord.filter(item => item.ukey === 0 && (item.catg_lv1 === 1 || item.catg_lv1 === 2)))
-
-        this.createVarietiTable(riskRecord.filter(item => item.ukey === 0 && item.catg_lv1 === 3))
-
-        this.createUkeyTable(riskRecord.filter(item => item.ukey !== 0 && item.catg_lv1 === 0))
-    }
-
-    addARiskRecord(riskRecord:any) {
-        let cellData = this.parseRiskRecord(riskRecord);
-        if(cellData.isDanger) {
-            let row = this.warnTable.newRow();
-            row.cells[0].Text = cellData.groupType;
-            row.cells[1].Text = cellData.categropTop;
-            row.cells[2].Text = cellData.categroy;
-            row.cells[3].Text = '指标';
-            row.cells[4].Text = cellData.limit_v1;
-            row.cells[5].Text = cellData.used_v1;
-            row.cells[6].Text = cellData.dangerType;
-        }
-        if (riskRecord.ukey === 0 && riskRecord.catg_lv1 === 0) {
-            let row = this.singleTable.newRow()
-            row.cells[0].Text = cellData.name;
-            row.cells[1].Text = cellData.riskName;
-            row.cells[2].Text = cellData.used_v1;
-            row.cells[3].Text = cellData.limit_v1;
-            row.cells[4].Text = cellData.operate;
-            row.cells[5].Text = cellData.status;
-        } else if(riskRecord.ukey === 0 && (riskRecord.catg_lv1 === 1 || riskRecord.catg_lv1 === 2)) {
-            let row = this.marketPlateTable.newRow();
-            row.cells[0].Text = cellData.categroy;
-            row.cells[1].Text = cellData.riskName;
-            row.cells[2].Text = cellData.used_v1;
-            row.cells[3].Text = cellData.limit_v1;
-            row.cells[4].Text = cellData.operate;
-            row.cells[5].Text = cellData.status;
-        } else if(riskRecord.ukey === 0 && riskRecord.catg_lv1 === 3) {
-            let row = this.varietiTable.newRow()
-            row.cells[0].Text = cellData.categroy;
-            row.cells[1].Text = cellData.riskName;
-            row.cells[2].Text = cellData.used_v1;
-            row.cells[3].Text = cellData.limit_v1;
-            row.cells[4].Text = cellData.operate;
-            row.cells[5].Text = cellData.status;
-        } else if(riskRecord.ukey !== 0 && riskRecord.catg_lv1 === 0) {
-            let row = this.ukeyTable.newRow()
-            row.cells[0].Text = cellData.ukey;
-            row.cells[1].Text = cellData.riskName;
-            row.cells[2].Text = cellData.used_v1;
-            row.cells[3].Text = cellData.limit_v1;
-            row.cells[4].Text = cellData.operate;
-            row.cells[5].Text = cellData.status;
-        }
-    }
-    
-    changeAccount(value) {
-        let group_id = parseInt(value)
-        this.selectedAccount = group_id
-        if(group_id) {
-            this.selectedProduct = 0
-            this.selectedGroupInfo = this.account_info.find(value => { return parseInt(value.acid) === group_id })
-            this.accountTable = new DataTable("table2");
-            this.accountTable.addColumn("账户ID", "风控名称", "当前值", "阈值", "触发方式", "状态");
-            this.assortRisk(this.accountMap[group_id])
-        }
-    }
-
-    changeProduct(value) {
-        let group_id = parseInt(value)
-        this.selectedProduct = group_id
-        if(group_id) {
-            this.selectedAccount = 0
-            this.selectedGroupInfo = this.tblock_info.find(value => { return parseInt(value.caid) === group_id })
-            this.strategyTable =  new DataTable("table2");
-            this.strategyTable.addColumn("产品ID", "风控名称", "当前值", "阈值", "触发方式", "状态");
-            this.assortRisk(this.productMap[group_id])
-        }
-    }
-
-    reLoadTable(name:string) {
-        let table: DataTable = new DataTable('table2');
-        switch(name) {
-            case 'warn':
-                table.addColumn("类型", "分类", "类目", "指标", "阈值", "当前", "状态");
-                table.backgroundColor = 'red'
-                this.warnTable = table;
-                break;
-            case 'single':
-                table.addColumn(this.selectedTab === 0 ? '产品ID' : '帐号ID', "风控名称", "当前值", "阈值", "触发方式", "状态");
-                this.singleTable = table;
-                break;
-            case 'marketPlate':
-                table.addColumn("市场（板块）", "风控名称", "当前值", "阈值", "触发方式", "状态");
-                this.marketPlateTable = table;
-                break;
-            case 'varieti':
-                table.addColumn("品种", "风控名称", "当前值", "阈值", "触发方式", "状态");
-                this.varietiTable = table;
-                break;
-            case 'ukey':
-                table.addColumn("ukey", "风控名称", "当前值", "阈值", "触发方式", "状态");
-                this.ukeyTable = table;
-                break;
-            case 'tactful':
-                table.addColumn("策略", "指标", "阈值", "当前", "状态");
-                this.tactfulTable = table;
-                break;
-        }
-    }
-
-    reLoadAllTable() {
-        this.reLoadTable('warn');
-        this.reLoadTable('single');
-        this.reLoadTable('marketPlate');
-        this.reLoadTable('varieti');
-        this.reLoadTable('ukey');
-        this.reLoadTable('tactful');
-    }
-
-    checkoutGroup(groupId) {
-        let info = this.tblock_info.find(value => parseInt(value.caid) === parseInt(groupId)) 
-            || this.account_info.find(value => parseInt(value.acid) === parseInt(groupId));
-        this.selectedGroup = Object.assign({ groupId: parseInt(groupId) }, info);
-        let riskRecords = this.accountMap[groupId.toString()] || this.productMap[groupId.toString()];
-        this.reLoadAllTable();
-        riskRecords.forEach(item => {
-            this.addARiskRecord(item);
-        })
-    }
-
-    checkoutTab(flag) {
-        let tab = parseInt(flag);
-        this.selectedTab = tab;
-        switch(tab) {
-            case 0:
-                this.groupList = this.products;
-                break;
-            case 1:
-                this.groupList = this.accounts;
-                break;
-        }
-    }
-
-    registerListeners() {
-        let flag = 0
-        setTimeout(() => {
-            if(!flag) {
-                this.convertData(this.mockMsg())
-            }
-        }, 1500)
-        this.trade.addSlot({
-            appid: 130,
-            packid: 2002,
-            callback: (msg) => {
-                console.info(msg);
-                flag =1
-                this.convertData(msg)
-                // msg.content.data.trade_account.forEach(item => {
-                //     let account = this.account_info.find(value => { return parseInt(value.acid) === item.group_id; });
-                //     if (account !== undefined && item.ukey !== 0) {
-                //         let row = this.accountTable.newRow();
-                //         row.cells[0].Text = account.acname;
-                //         row.cells[1].Text = this.risk_indexs.find(value => { return value.riskid === item.risk_id; }).riskname;
-                //         row.cells[2].Text = item.ukey;
-                //         row.cells[3].Text = item.used_v1;
-                //         row.cells[4].Text = item.limit_v1;
-                //         switch (item.operate) {
-                //             case 1:
-                //                 row.cells[5].Text = "大于";
-                //                 break;
-                //             case 2:
-                //                 row.cells[5].Text = "大于等于";
-                //                 break;
-                //             case 3:
-                //                 row.cells[5].Text = "等于";
-                //                 break;
-                //             case 4:
-                //                 row.cells[5].Text = "小于等于";
-                //                 break;
-                //             case 5:
-                //                 row.cells[5].Text = "小于";
-                //                 break;
-                //         }
-
-                //         row.cells[6].Text = item.risk_stat === 1 ? "启用" : "禁用";
-                //     }
-                // });
-
-                // msg.content.data.trade_block.forEach(item => {
-                //     let ca = this.tblock_info.find(value => { return parseInt(value.caid) === item.group_id; }) ;
-                //     let risk = this.risk_indexs.find(value => { return parseInt(value.riskid) === item.risk_id; });
-                //     if (ca !== undefined) {
-                //         let row = this.strategyTable.newRow();
-                //         row.cells[0].Text = ca.caname;
-                //         row.cells[1].Text = risk.riskname;
-                //         row.cells[2].Text = item.used_v1;
-                //         row.cells[3].Text = item.limit_v1;
-                //         switch (item.operate) {
-                //             case 1:
-                //                 row.cells[4].Text = "大于";
-                //                 break;
-                //             case 2:
-                //                 row.cells[4].Text = "大于等于";
-                //                 break;
-                //             case 3:
-                //                 row.cells[4].Text = "等于";
-                //                 break;
-                //             case 4:
-                //                 row.cells[4].Text = "小于等于";
-                //                 break;
-                //             case 5:
-                //                 row.cells[4].Text = "小于";
-                //                 break;
-                //         }
-
-                //         row.cells[5].Text = item.risk_stat === 1 ? "启用" : "禁用";
-                //     }
-                // });
-            }
-        });
-
-        this.trade.send(130, 2001, {});
-    }
-
-    loadExternalData() {
-        this.risk_indexs = this.config.get("risk_index");
-        this.account_info = this.config.get("asset_account");
-        this.tblock_info = this.config.getProducts();
     }
 }

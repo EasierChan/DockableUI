@@ -26,12 +26,11 @@
 
 .list-section {
     min-width: 200px;
-    background: #000;
 }
 
 .list-title {
     width: 100%;
-    background: #222A41;
+    background: rgb(56,63,84);
 }
 
 .list-title .tab {
@@ -40,14 +39,15 @@
     padding: 0 5px;
     line-height: 23px;
     cursor: pointer;
-    background: #222A41;
+    /*background: rgb(56,63,84);*/
 }
 
 .list-title .active {
-    background: #000;
+    background: rgba(1, 3, 12, .37);
 }
 
 .list-section ul {
+    background-color: rgba(1, 3, 12, .37);
     cursor: pointer;
 }
 
@@ -70,8 +70,13 @@
     /*background: #000;*/
 }
 
-.data-section > div {
-    flex: 1;
+.data-section > .table-section {
+    flex: 3;
+    margin-bottom: 10px;
+}
+
+.data-section > .categ-section {
+    flex: 4;
 }
 
 .warn-section {
@@ -88,12 +93,14 @@
     background: rgb(56,63,84);
 }
 .table-section .table-container {
+    flex: 1;
     background: rgba(1, 3, 12, .37);
 }
 
 .categ-section .table-section {
     width: 49.5%;
-
+    height: 49%;
+    margin-bottom: 1%;
 }
 
 .categ-section .table-section:nth-child(odd) {
