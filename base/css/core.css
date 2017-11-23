@@ -506,15 +506,15 @@ input[type="radio"], input[type="checkbox"]{
 }
 
 .u-checkbox {
-    height: 21px;
+    height: 16px;
     position: relative;
 }
 .u-ok-round{
     display: inline-block;
-    width: 21px;
-    height: 21px;
+    width: 16px;
+    height: 16px;
     position: absolute;
-    top: 0;
+    top: 2px;
     left: 0;
     border-radius: 50px;
     border: 1px solid rgba(62, 62, 66, 1);
@@ -528,8 +528,8 @@ input[type="radio"], input[type="checkbox"]{
     border-top: none;
     border-right: none;
     position: absolute;
-    top: 6px;
-    left: 5px;
+    top: 4px;
+    left: 3px;
     background: transparent;
     transform: rotate(-45deg);
 }
@@ -538,7 +538,7 @@ input[type="radio"], input[type="checkbox"]{
 }
 .u-checkbox input[type=checkbox] {
     visibility: hidden;
-    margin-right: 15px;
+    margin-right: 8px;
 }
 
 input[type=date]::-webkit-clear-button {
