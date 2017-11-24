@@ -269,22 +269,51 @@ export class AppComponent implements OnInit, OnDestroy {
                         return;
                     }
 
+                    let config = this.configBll.tempConfig;
+
+                    if (config) {
+                        config.appid = createAns.data.strategy_server_id;
+                        config.items[0].key = createAns.data.strategies[0].strategy_id;
+                        config.items[0].accounts = createAns.data.strategies[0].portfolios;
+                        let idx = this.configBll.servers.indexOf(config.appid);
+                        if (idx < 0)
+                            this.configBll.servers.push(config.appid);
+                        else
+                            this.configBll.servers[idx] = config.appid;
+
+                        this.configBll.updateConfig(config);
+                        // this.tradeEndPoint.subscribe(8000, this.configBll.servers);
+                    }
+                }
+            },
+            {
+                service: ServiceType.kSSGW,
+                msgtype: SSGW_MSG.kModifyAns, // 创建策略回报
+                callback: msg => {
+                    console.debug(msg.toString());
+                    let createAns = JSON.parse(msg.toString());
+
+                    if (createAns.data.msgret.error_id !== 0) {
+                        console.error(`errorid: ${createAns.data.msgret.error_id}.`);
+                        return;
+                    }
+
                     let config;
-                    if (this.configBll.tempConfig && this.configBll.tempConfig.name === msg.content.body.name) {
+                    if (this.configBll.tempConfig && this.configBll.tempConfig.appid === createAns.data.strategy_server_id) {
                         config = this.configBll.tempConfig;
                     } else {
-                        config = this.configBll.getAllConfigs().find(item => { return item.name === msg.content.body.name; });
+                        config = this.configBll.getAllConfigs().find(item => { return item.appid === createAns.data.strategy_server_id; });
                     }
 
                     if (config) {
-                        config.appid = createAns.data.strategy.strategy_server_id;
-                        config.items[0].key = createAns.data.strategy.strategy_id;
-                        config.accounts = createAns.data.strategy.portfolio_id;
-                        let idx = this.configBll.strategyKeys.indexOf(config.items[0].key);
+                        config.appid = createAns.data.strategy_server_id;
+                        config.items[0].key = createAns.data.strategies[0].strategy_id;
+                        config.accounts = createAns.data.strategies[0].portfolios;
+                        let idx = this.configBll.servers.indexOf(config.items[0].key);
                         if (idx < 0)
-                            this.configBll.strategyKeys.push(config.items[0].key);
+                            this.configBll.servers.push(config.items[0].key);
                         else
-                            this.configBll.strategyKeys[idx] = config.items[0].key;
+                            this.configBll.servers[idx] = config.items[0].key;
 
                         this.configBll.updateConfig(config);
                         // this.tradeEndPoint.subscribe(8000, this.configBll.strategyKeys);

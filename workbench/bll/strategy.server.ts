@@ -29,7 +29,7 @@ export class ConfigurationBLL {
         this._ss_simulation_configs = [];
         this._ss_backtest_configs = [];
         this._ss_realtrade_configs = [];
-        this.strategyKeys = [];
+        this.servers = [];
         this._ssconfigs = WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []);
         this._ssconfigs.forEach(item => {
             switch (item.activeChannel) {
@@ -45,7 +45,7 @@ export class ConfigurationBLL {
             }
 
             item.state = 0;
-            this.strategyKeys.push(item.items[0].key);
+            this.servers.push(item.items[0].key);
         });
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");
@@ -96,7 +96,7 @@ export class ConfigurationBLL {
     private _names: any[];
     private _products: any[];
 
-    strategyKeys: number[];
+    servers: number[];
     onCreated: Function;
     onUpdated: Function;
     onStateChanged: Function;
@@ -208,9 +208,9 @@ export class ConfigurationBLL {
                         break;
                 }
 
-                let idx = this.strategyKeys.indexOf(config.items[0].key);
+                let idx = this.servers.indexOf(config.items[0].key);
                 if (idx >= 0) {
-                    this.strategyKeys.splice(idx, 1);
+                    this.servers.splice(idx, 1);
                 }
 
                 File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));

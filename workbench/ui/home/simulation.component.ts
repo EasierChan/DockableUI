@@ -187,7 +187,8 @@ export class SimulationComponent implements OnInit {
 
     updateStrategyConfig(config: WorkspaceConfig) {
         this.configBll.tempConfig = config;
-        this.tradeEndPoint.send(SSGW_MSG.kCreate, JSON.stringify({
+
+        this.tradeEndPoint.send(config.appid === undefined ? SSGW_MSG.kCreate : SSGW_MSG.kModify, JSON.stringify({
             data: {
                 strategy: {
                     type: config.strategyType,
@@ -196,6 +197,7 @@ export class SimulationComponent implements OnInit {
             },
             userid: this.appsrv.getUserProfile().username
         }), ServiceType.kSSGW);
+
         this.configBll.wait("策略操作失败", 2000);
     }
 

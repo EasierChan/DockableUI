@@ -57,7 +57,7 @@ export class TradeComponent implements OnInit {
                         }), ServiceType.kSSGW);
                         this.configBll.removeConfig(config);
                         this.strategyArea.removeTile(config.chname);
-                        this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+                        this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.servers });
                     }
                 }
             }
@@ -183,7 +183,8 @@ export class TradeComponent implements OnInit {
 
     updateStrategyConfig(config: WorkspaceConfig) {
         this.configBll.tempConfig = config;
-        this.tradeEndPoint.send(SSGW_MSG.kCreate, JSON.stringify({
+
+        this.tradeEndPoint.send(config.appid === undefined ? SSGW_MSG.kCreate : SSGW_MSG.kModify, JSON.stringify({
             data: {
                 strategy: {
                     type: config.strategyType,
@@ -192,6 +193,7 @@ export class TradeComponent implements OnInit {
             },
             userid: this.appsrv.getUserProfile().username
         }), ServiceType.kSSGW);
+
         this.configBll.wait("策略操作失败");
     }
 

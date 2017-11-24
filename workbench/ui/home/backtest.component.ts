@@ -52,7 +52,7 @@ export class BacktestComponent implements OnInit {
                     config.backtestConfig.id = msg.content.nId;
                     config.backtestConfig.name = config.name;
 
-                    this.tradeEndPoint.send(SSGW_MSG.kCreate, JSON.stringify({
+                    this.tradeEndPoint.send(config.appid === undefined ? SSGW_MSG.kCreate : SSGW_MSG.kModify, JSON.stringify({
                         data: {
                             strategy: { type: config.strategyType, config: config }
                         },
