@@ -110,7 +110,7 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
-        let disables = ["智能预测", "证券信息"]; // , "实盘交易"
+        let disables = ["智能预测"]; // , "实盘交易"
         this.actionBar.onClick = (item) => {
             if (disables.indexOf(item.title) >= 0) {
                 alert("当前未开放权限");
@@ -306,6 +306,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
                         this.configBll.setProducts(products);
 
+                        this.configBll.emit(msg.content.head.actor, data);
                         products = null;
                         productInfo = null;
                         data = null;
@@ -333,10 +334,17 @@ export class AppComponent implements OnInit, OnDestroy {
                         }
                         break;
                     case "getRiskIndexAns":
+                        let riskAns = JSON.parse(msg.content.body);
                         this.configBll.set("risk_index", JSON.parse(msg.content.body).body);
+                        this.configBll.emit(msg.content.head.actor, riskAns);
                         break;
                     case "getAssetAccountAns":
-                        this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
+                        let accountAns = JSON.parse(msg.content.body);
+                        this.configBll.set("asset_account", accountAns.body);
+                        this.configBll.emit(msg.content.head.actor, accountAns);
+                        break;
+                    default:
+                        this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
                         break;
                 }
             }

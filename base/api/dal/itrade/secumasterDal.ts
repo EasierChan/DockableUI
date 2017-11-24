@@ -5,6 +5,8 @@
 
 import { IPCManager } from "../ipcManager";
 import { Path } from "../../common/base/paths";
+import { IP20Factory } from "../../services/ip20.worker";
+import { UConfig } from "../../common/base/configurator";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -13,43 +15,83 @@ class SecuMaster {
     private static innerCodeObj = new Object();
     private static pinyinObj = new Object();
     private static windObj = new Object();
+    private static secumasterData: string;
+    private static line_sep: string = "\n";
+    private static field_sep: string = "#&#";
 
     /**
      * updated by cl, 2017/08/19
      * clean code and 
      */
     static init() {
-        let fpath = path.join(path.dirname(process.execPath), "secumain.csv");
+        SecuMaster.secumasterData = "";
+        let fpath = path.join(path.dirname(process.execPath), "secumaster.csv");
         if (!fs.existsSync(fpath)) {
-            fpath = path.join(__dirname, "../../../../secumain.csv");
+            fpath = path.join(__dirname, "../../../../secumaster.csv");
+        }
+        if (fs.existsSync(fpath)) {
+            SecuMaster.secumasterData = fs.readFileSync(path.join(fpath), { encoding: "utf-8" });
+            SecuMaster.processingData();
         }
 
-        try {
-            let content = fs.readFileSync(path.join(fpath), { encoding: "utf-8" });
+        let [addr, port] = UConfig.default.endpoints[0].quote_addr.split(":");
+        SecuMaster.secumasterData = "ukeycode" + SecuMaster.field_sep + "jycode" + SecuMaster.field_sep + "inputcode" + SecuMaster.field_sep +
+        "chabbr" + SecuMaster.field_sep + "windcode" + SecuMaster.field_sep + "tradingtime" + SecuMaster.field_sep + "presettlement" + SecuMaster.line_sep;
+        let timestamp: Date = new Date();
+        let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
+            ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
+            ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
 
-            content.split("\n").forEach((linestr) => {
-                let arr = linestr.split(",");
-                let arrLen = arr.length;
-
-                if (arrLen === 5) {
-                    SecuMaster.pinyinObj[arr[2] + ","] = { InnerCode: arr[1], SecuCode: arr[2], SecuAbbr: arr[3], ukey: parseInt(arr[0]) };
-                    SecuMaster.secuUkeyObj[arr[0]] = SecuMaster.pinyinObj[arr[2] + ","];
-                    SecuMaster.innerCodeObj[arr[1]] = SecuMaster.pinyinObj[arr[2] + ","];
-                    if (arr[4].length > 0)
-                        SecuMaster.windObj[arr[4]] = SecuMaster.pinyinObj[arr[2] + ","];
-                } else if (arrLen === 6) {
-                    SecuMaster.pinyinObj[arr[2] + "," + arr[3]] = { InnerCode: arr[1], SecuCode: arr[3], SecuAbbr: arr[4], ukey: parseInt(arr[0]) };
-                    SecuMaster.secuUkeyObj[arr[0]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
-                    SecuMaster.innerCodeObj[arr[1]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
-                    if (arr[5].length > 0)
-                        SecuMaster.windObj[arr[5]] = SecuMaster.pinyinObj[arr[2] + "," + arr[3]];
+        IP20Factory.instance.addSlot({
+            appid: 142,
+            packid: 27,
+            callback: (msg) => {
+                for (let i = 0; i < msg.content.Count; ++i) {
+                    let secuData = "";
+                    let inputcodeArr = msg.content.Structs[i].input_code.split(",");
+                    secuData = msg.content.Structs[i].ukey + SecuMaster.field_sep + msg.content.Structs[i].jy_code + SecuMaster.field_sep + inputcodeArr[0] + SecuMaster.field_sep +
+                    msg.content.Structs[i].market_abbr + SecuMaster.field_sep + msg.content.Structs[i].wind_code + SecuMaster.field_sep + msg.content.Structs[i].trading_time + SecuMaster.field_sep +
+                    msg.content.Structs[i].pre_settlement + SecuMaster.line_sep;
+                    SecuMaster.secumasterData += secuData;
                 }
-            });
+                if (msg.content.IsLast === "Y") {
+                    // let fpath = path.join(path.dirname(process.execPath), "secumaster.csv");
+                    // if (!fs.existsSync(fpath)) {
+                    //     fpath = path.join(__dirname, "../../../../secumaster.csv");
+                    // }
+                    // fs.writeFileSync(fpath, SecuMaster.secumasterData);
+                    SecuMaster.processingData();
+                }
+            }
+        });
 
-            content = null;
-        } catch (e) {
-            console.info(e);
-        }
+        IP20Factory.instance.addSlot({
+            appid: 17,
+            packid: 43,
+            callback: (msg) => {
+                IP20Factory.instance.send(142, 26, { Seqno: 3, SecurityID: 0, TableType: 5, MarketID: 0, Date: 0, SerialID: 0, PackSize: 10, Field: "ukey,market_abbr,jy_code,wind_code,pre_settlement,trading_time,input_code" });
+            }
+        });
+
+        IP20Factory.instance.connect(port, addr);
+
+        IP20Factory.instance.onConnect = () => {
+            IP20Factory.instance.send(17, 41, { "cellid": "1", "userid": "8.999", "password": "*32C5A4C0E3733FA7CC2555663E6DB6A5A6FB7F0EDECAC9704A503124C34AA88B", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp });
+        };
+    }
+
+    static processingData() {
+        console.log("processingData", SecuMaster.secumasterData.length);
+        SecuMaster.secumasterData.split(SecuMaster.line_sep).forEach((linestr) => {
+            let fields = linestr.split(SecuMaster.field_sep);
+            let lineObj = { InnerCode: fields[1], SecuCode: fields[4], SecuAbbr: fields[3], ukey: parseInt(fields[0]), TradeTime: fields[5], PreClose: fields[6], pinyin: fields[2] };
+            SecuMaster.pinyinObj[fields[2] + "," + fields[4]] = lineObj;
+            SecuMaster.secuUkeyObj[fields[0]] = lineObj;
+            SecuMaster.innerCodeObj[fields[1]] = lineObj;
+            SecuMaster.windObj[fields[4]] = lineObj;
+        });
+
+        SecuMaster.secumasterData = null;
     }
 
     static getSecuinfoByInnerCode(innercodes: number[]) {

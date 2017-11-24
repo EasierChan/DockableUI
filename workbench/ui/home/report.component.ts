@@ -47,8 +47,8 @@ export class ReportComponent implements OnInit {
             row.cells[0].Data = item;
             row.cells[0].Text = false;
             row.cells[1].Text = item.name + "-" + item.id;
-            row.cells[2].Text = "50";
-            row.cells[2].Title = "50%";
+            row.cells[2].Text = 0;
+            row.cells[2].Title = "0%";
             row.cells[2].Type = "progresser";
             row.cells[2].Colors = ["red", "blue"];
             row.cells[3].Text = item.timebegin;
@@ -163,7 +163,8 @@ export class ReportComponent implements OnInit {
 
         resArr.forEach(item => {
             if (rowMap.hasOwnProperty(item.nId))
-                this.resTable.rows[rowMap[item.nId]].cells[2].Text = item.status + "%";
+                this.resTable.rows[rowMap[item.nId]].cells[2].Text = item.status;
+                this.resTable.rows[rowMap[item.nId]].cells[2].Title = item.status + "%";
         });
     }
 

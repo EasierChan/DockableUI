@@ -1,32 +1,83 @@
 <div class="dash-body">
     <div class="banner">
+        <img src="../base/images/banner.jpg" alt="量化科技金融" style="width: 100%; height: 100%; objet-fit: contain;">
     </div>
-    <!--<div class="u-row marketdata">
-        <section class="fill">
-            <b>{{codeTableSection.title}}</b>
-            <div class="holder">
-                <dock-table2 [dataSource]="codeTableSection.content.dataSource" [styleObj]="codeTableSection.content.styleObj"></dock-table2>
+    <section class="leftSection">
+        <div class="marketPrefile_con chartCon">
+            <p class="chartTit">主要指数</p>
+            <div class="chartBody">
+                lllllallal allProductWeight
             </div>
-        </section>
-        <section class="fill">
-            <b>{{codeChartSection.title}}</b>
-            <div class="holder">
-                <div echarts [options]="codeChartSection.content.option" (chartInit)="onChartInit($event)" style="height: 220px;"></div>
+        </div>
+        <div class="aiArea chartCon">
+            <p class="chartTit">AI看盘</p>
+            <div class="chartBody">
+                <div class="theBestList">
+                    <dock-table2 [dataSource]="bestStockList.dataSource" [styleObj]="bestStockList.styleObj"></dock-table2>
+                </div>
+                <div class="theWorstList">
+                    <dock-table2 [dataSource]="worstStockList.dataSource" [styleObj]="worstStockList.styleObj"></dock-table2>
+
+                </div>
             </div>
-        </section>
-    </div>
-    <div class="u-row other">
-        <section class="fill">
-            <b>{{eventSection.title}}</b>
-            <div class="holder">
-                <dock-table2 [dataSource]="eventSection.content.dataSource" [styleObj]="eventSection.content.styleObj"></dock-table2>
+
+        </div>
+    </section>
+
+    <section class="middleSection">
+        <div class="productChart chartCon ">
+            <p class="chartTit">产品概览  <span (click)="getNowProductDataNext()" class="glyphicon glyphicon-chevron-right"></span><span (click)="getNowProductDataBefore()" class="glyphicon glyphicon-chevron-left"></span></p>
+            <div class="chartBody">
+                <div echarts [options]="productNet.content.option" (chartInit)="productNet.content.onInit($event)" style="height: 250px"></div>
+                <div class="producAnalysis">
+                    <p class="fontCon "><span class="name">当日盈亏</span><br/><span class="value"><span class="num">{{totalProfitAndLoss}}</span>千元</span></p>
+                    <p class="fontCon"><span class="name">浮动盈亏</span><br/><span class="value"><span class="num">{{floatProfitAndLoss}}</span>千元</span></p>
+                    <p class="fontCon"><span class="name">敞口率</span><br/><span class="value"><span class="num">{{riskExposure}}</span>%</span></p>
+                    <p class="fontCon"><span class="name">风险度</span><br/><span class="value"><span class="num">{{riskDegree}}</span>%</span></p>
+
+                </div>
             </div>
-        </section>
-        <section class="fill">
-            <b>{{todoSection.title}}</b>
-            <div class="holder">
-                <dock-table2 [dataSource]="todoSection.content.dataSource" [styleObj]="todoSection.content.styleObj"></dock-table2>
+
+        </div>
+        <div class="chartCon productScale">
+            <p class="chartTit">产品规模</p>
+            <div class="chartBody">
+                <div echarts [options]="productScale.content.option" (chartInit)="productScale.content.onInit($event)" style="height: 300px"></div>
+
             </div>
-        </section>
-    </div>-->
+
+        </div>
+        <div class="chartCon allProductWeight">
+            <p class="chartTit">产品资产比重</p>
+            <div class="chartBody">
+                <div echarts [options]="allProductWeight.content.option" (chartInit)="allProductWeight.content.onInit($event)" style="height: 400px"></div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <section class="rightSection">
+        <div class="alarmCon chartCon">
+            <p class="chartTit">告警</p>
+            <div class="alarmTab chartBody">
+                <dock-table2 [dataSource]="alarmTable.dataSource" [styleObj]="alarmTable.styleObj"></dock-table2>
+            </div>
+
+        </div>
+        <div class="todoCon chartCon">
+            <p class="chartTit">TODO</p>
+            <div class="todoInput">
+                <input type="text" placeholder="输入要做的事情" [(ngModel)]="addTodoContent" />
+                <a href="javascript:;" (click)="addTodoEvent()" class="addTodoList">add</a>
+            </div>
+            <div class="todoList chartBody">
+                <dock-table2 [dataSource]="todoList.dataSource" [styleObj]="todoList.styleObj"></dock-table2>
+
+            </div>
+        </div>
+
+
+    </section>
+
 </div>
