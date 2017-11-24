@@ -2,9 +2,9 @@
 <table #content class="table table-condensed table-hover">
   <thead *ngIf="styleObj.bColumnHeader">
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
-      <th *ngIf="styleObj.bRowIndex">#</th>
+      <th *ngIf="styleObj.bRowIndex" [style.text-align]="styleObj.alignment">#</th>
       <template ngFor let-col [ngForOf]="dataSource.columns" let-i="index">
-        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment" (click)="dataSource.sort(col, i)" [style.max-width.px]="dataSource.columns[i]?.maxWidth">
+        <th *ngIf="!col.bHidden" [style.text-align]="col.alignment ? col.alignment: styleObj.alignment" (click)="dataSource.sort(col, i)" [style.max-width.px]="dataSource.columns[i]?.maxWidth">
           {{col.columnHeader}}
           <span class="easiericon" [class.easiericon-sort-asc]="col.sortable&&col.columnHeader==dataSource.sortKey&&dataSource.bAsc"
             [class.easiericon-sort-desc]="col.sortable&&col.columnHeader==dataSource.sortKey&&!dataSource.bAsc"></span>
@@ -12,13 +12,14 @@
       </template>
     </tr>
   </thead>
-  <tbody [style.text-align]="styleObj?.alignment">
+  <tbody [style.text-align]="styleObj.alignment">
     <template ngFor let-row [ngForOf]="dataSource.rows" let-i="index">
       <tr *ngIf="!row.bHidden" [style.background-color]="row?.bgcolor">
         <td *ngIf="styleObj.bRowIndex" [style.padding.px]="styleObj.cellpadding">{{i + 1}}</td>
         <template ngFor let-cell [ngForOf]="row.cells" let-cellIndex="index">
           <td *ngIf="!dataSource.columns[cellIndex].bHidden" [style.background-color]="cell?.bgColor" (click)="cell.dataSource.click(cellIndex, i)"
-            [style.padding.px]="styleObj.cellpadding" [style.color]="cell?.color" [style.max-width.px]="dataSource.columns[cellIndex]?.maxWidth">
+            [style.padding.px]="styleObj.cellpadding" [style.color]="cell?.color" [style.max-width.px]="dataSource.columns[cellIndex]?.maxWidth"
+            [style.text-align]="dataSource.columns[cellIndex]?.alignment">
             <button *ngIf="cell.styleObj.type=='button'" class="btn btn-default btn-{{cell.className}} btn-xs" [disabled]="cell.styleObj.disable"
               [name]="cell.dataSource.name">
             {{cell.dataSource.text}}
@@ -30,8 +31,8 @@
             <span *ngIf="cell.styleObj.type=='icon'" class="glyphicon glyphicon-{{cell.dataSource.title}}">{{cell.dataSource.text}}</span>
             <input *ngIf="cell.styleObj.type=='textbox'" type="text" (change)="cell.dataSource?.change()" [(ngModel)]="cell.dataSource.text"
               [readonly]="cell.styleObj.readonly" [name]="cell.dataSource.name" class="btn-default btn-{{cell.className}} btn-xs"
-              ondragstart="return false;">
-            <span *ngIf="cell.styleObj.type=='plaintext'" [title]="cell.dataSource.text">{{cell.dataSource.text}}</span>
+              ondragstart="return false;" >
+            <span *ngIf="cell.styleObj.type=='plaintext'" [style.max-width.px]="dataSource.columns[cellIndex]?.maxWidth" [title]="cell.dataSource.text">{{cell.dataSource.text}}</span>
             <label *ngIf="cell.styleObj.type=='checkbox'" class="u-checkbox" [style.margin-left.px]="cell.styleObj.left" [style.margin-top.px]="cell.styleObj.top">
                 <input [name]="cell.dataSource.name" type="checkbox" [(ngModel)]="cell.dataSource.text"
                 [disabled]="cell.styleObj?.disable" style="width: 12px;">
@@ -59,9 +60,9 @@
 <table #head class="table table-condensed" cellspacing="0" style="position:absolute;top:0;display:none;">
   <thead *ngIf="styleObj.bColumnHeader">
     <tr (mouseup)="dataSource.tableHeaderClick($event)">
-      <th *ngIf="styleObj.bRowIndex">#</th>
+      <th *ngIf="styleObj.bRowIndex" [style.text-align]="styleObj.alignment">#</th>
       <template ngFor let-col [ngForOf]="dataSource.columns" let-i="index">
-        <th *ngIf="!col.bHidden" [style.text-align]="styleObj?.alignment" (click)="dataSource.sort(col, i)">
+        <th *ngIf="!col.bHidden" (click)="dataSource.sort(col, i)" [style.text-align]="col.alignment ? col.alignment: styleObj?.alignment">
           {{col.columnHeader}}
           <span class="easiericon" [class.easiericon-sort-asc]="col.sortable && col.columnHeader==dataSource.sortKey&&dataSource.bAsc"
             [class.easiericon-sort-desc]="col.sortable&&col.columnHeader==dataSource.sortKey&&!dataSource.bAsc" [style.backgroundColor]="cell?.color"></span>

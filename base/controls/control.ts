@@ -2106,6 +2106,7 @@ export class DataTableColumn {
     private compare: (prev, next) => number;
     private limitWidth: number;
     private akey: any;
+    private alignment: string;
 
     constructor(private columnHeader: string,
         private bHidden: boolean = false,
@@ -2157,6 +2158,10 @@ export class DataTableColumn {
 
     get key() {
         return this.akey;
+    }
+
+    set align(value: string) {
+        this.alignment = value;
     }
 }
 

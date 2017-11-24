@@ -234,6 +234,10 @@ td input {
     width: 100%;
 }
 
+td > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 /*.scroller-table{
     position: relative;
     width: 100%;
