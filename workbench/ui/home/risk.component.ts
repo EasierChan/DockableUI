@@ -30,15 +30,14 @@ export class RiskComponent implements OnInit {
             contentList: any[];
         }[];
         selectedTab: {
-            name:string;
+            name: string;
             contentList: any[];
         };
         selectedChild?: any;
     };
-    riskData:any;
+    riskData: any;
 
-    constructor(private trade: TradeService, private config: ConfigurationBLL,
-        private appSrv: AppStoreService) {
+    constructor(private trade: TradeService, private config: ConfigurationBLL, private appSrv: AppStoreService) {
 
     }
 
@@ -46,7 +45,7 @@ export class RiskComponent implements OnInit {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
         this.loadExternalData();
         this.initTab();
-        this.reLoadAllTable()
+        this.reLoadAllTable();
         this.registerListeners();
     }
 
@@ -59,7 +58,6 @@ export class RiskComponent implements OnInit {
                 this.riskData = msg.content.data;
             }
         });
-
         this.trade.send(130, 2001, {});
     }
 
@@ -68,7 +66,7 @@ export class RiskComponent implements OnInit {
             tabList: [
                 {
                     tabId: 0,
-                    name: '帐号',
+                    name: "帐号",
                     contentList: this.account_info.map(value => {
                         return {
                             name: value.acname,
@@ -78,7 +76,7 @@ export class RiskComponent implements OnInit {
                 },
                 {
                     tabId: 1,
-                    name: '产品',
+                    name: "产品",
                     contentList: this.tblock_info.map(value => {
                         return {
                             name: value.caname,
@@ -88,17 +86,17 @@ export class RiskComponent implements OnInit {
                 }
             ],
             selectedTab: null
-        }
-        this.tab.selectedTab = this.tab.tabList[0]
+        };
+        this.tab.selectedTab = this.tab.tabList[0];
     }
 
     reLoadAllTable() {
-        this.reLoadTable('warn');
-        this.reLoadTable('single');
-        this.reLoadTable('marketPlate');
-        this.reLoadTable('varieti');
-        this.reLoadTable('ukey');
-        this.reLoadTable('tactful');
+        this.reLoadTable("warn");
+        this.reLoadTable("single");
+        this.reLoadTable("marketPlate");
+        this.reLoadTable("varieti");
+        this.reLoadTable("ukey");
+        this.reLoadTable("tactful");
     }
 
     loadExternalData() {
@@ -117,32 +115,32 @@ export class RiskComponent implements OnInit {
                 break;
             case 1:
                 categroy = this.mapMarket(riskRecord.catg_lv2);
-                categroyTop = '市场';
+                categroyTop = "市场";
                 break;
             case 2:
                 categroy = this.mapPlate(riskRecord.catg_lv2);
-                categroyTop = '板块';
+                categroyTop = "板块";
                 break;
             case 3:
                 categroy = this.mapVarieti(riskRecord.catg_lv2);
-                categroyTop = '品种';
+                categroyTop = "品种";
                 break;
         }
         let isDanger = riskRecord.used_v1 >= riskRecord.limit_v2; // 
-        let dangerType = 'normal'
-        if (isDanger) dangerType = 'warn';
-        if (riskRecord.used_v1 >= riskRecord.limit_v1) dangerType = 'danger';
-        let groupType = this.getRiskRecordByGroupId(riskRecord.group_id).type
+        let dangerType = "normal";
+        if (isDanger) dangerType = "warn";
+        if (riskRecord.used_v1 >= riskRecord.limit_v1) dangerType = "danger";
+        let groupType = this.getRiskRecordByGroupId(riskRecord.group_id).type;
         let groupTypeMap = {
-            account: '帐号',
-            product: '产品'
-        }
+            account: "帐号",
+            product: "产品"
+        };
         return {
             groupType: groupTypeMap[groupType],
             used_v1: riskRecord.used_v1,
             limit_v1: riskRecord.limit_v1,
             operate: this.mapOperate(riskRecord.operate),
-            status: riskRecord.risk_stat === 1 ? '启用' : '禁用',
+            status: riskRecord.risk_stat === 1 ? "启用" : "禁用",
             riskName: this.risk_indexs.find(value => { return parseInt(value.riskid) === parseInt(riskRecord.risk_id) }).riskname,
             ukey: riskRecord.ukey,
             name: this.tab.selectedChild.name,
@@ -155,12 +153,12 @@ export class RiskComponent implements OnInit {
 
     addARiskRecord(riskRecord:any) {
         let cellData = this.parseRiskRecord(riskRecord);
-        if(cellData.isDanger) {
+        if(cellData.isDanger) { // 预警信息
             let row = this.warnTable.newRow();
             row.cells[0].Text = cellData.groupType;
             row.cells[1].Text = cellData.categropTop;
             row.cells[2].Text = cellData.categroy;
-            row.cells[3].Text = '指标';
+            row.cells[3].Text = "指标";
             row.cells[4].Text = cellData.limit_v1;
             row.cells[5].Text = cellData.used_v1;
             row.cells[6].Text = cellData.dangerType;
@@ -182,7 +180,7 @@ export class RiskComponent implements OnInit {
             row.cells[4].Text = cellData.operate;
             row.cells[5].Text = cellData.status;
         } else if(riskRecord.ukey === 0 && riskRecord.catg_lv1 === 3) {
-            let row = this.varietiTable.newRow()
+            let row = this.varietiTable.newRow();
             row.cells[0].Text = cellData.categroy;
             row.cells[1].Text = cellData.riskName;
             row.cells[2].Text = cellData.used_v1;
@@ -190,7 +188,7 @@ export class RiskComponent implements OnInit {
             row.cells[4].Text = cellData.operate;
             row.cells[5].Text = cellData.status;
         } else if(riskRecord.ukey !== 0 && riskRecord.catg_lv1 === 0) {
-            let row = this.ukeyTable.newRow()
+            let row = this.ukeyTable.newRow();
             row.cells[0].Text = cellData.ukey;
             row.cells[1].Text = cellData.riskName;
             row.cells[2].Text = cellData.used_v1;
@@ -201,29 +199,29 @@ export class RiskComponent implements OnInit {
     }
 
     reLoadTable(name:string) {
-        let table: DataTable = new DataTable('table2');
+        let table: DataTable = new DataTable("table2");
         switch(name) {
-            case 'warn':
+            case "warn":
                 table.addColumn("类型", "分类", "类目", "指标", "阈值", "当前", "状态");
                 this.warnTable = table;
                 break;
-            case 'single':
-                table.addColumn(this.tab.selectedTab.name + 'ID', "风控名称", "当前值", "阈值", "触发方式", "状态");
+            case "single":
+                table.addColumn(this.tab.selectedTab.name + "ID", "风控名称", "当前值", "阈值", "触发方式", "状态");
                 this.singleTable = table;
                 break;
-            case 'marketPlate':
+            case "marketPlate":
                 table.addColumn("市场（板块）", "风控名称", "当前值", "阈值", "触发方式", "状态");
                 this.marketPlateTable = table;
                 break;
-            case 'varieti':
+            case "varieti":
                 table.addColumn("品种", "风控名称", "当前值", "阈值", "触发方式", "状态");
                 this.varietiTable = table;
                 break;
-            case 'ukey':
+            case "ukey":
                 table.addColumn("ukey", "风控名称", "当前值", "阈值", "触发方式", "状态");
                 this.ukeyTable = table;
                 break;
-            case 'tactful':
+            case "tactful":
                 table.addColumn("策略", "指标", "阈值", "当前", "状态");
                 this.tactfulTable = table;
                 break;
@@ -234,10 +232,10 @@ export class RiskComponent implements OnInit {
         let riskList = this.riskData.trade_account.filter(value => value.group_id === groupId);
         let type:string;
         if(riskList.length) {
-            type = 'account';
+            type = "account";
         } else {
             riskList = this.riskData.trade_block.filter(value => value.group_id === groupId);
-            type = 'product';
+            type = "product";
         }
         return {
             riskList,
@@ -245,22 +243,19 @@ export class RiskComponent implements OnInit {
         }
     }
 
-
     checkoutGroup(groupId) {
-        this.tab.selectedChild = this.tab.selectedTab.contentList.find(value => value.groupId === groupId)
+        this.tab.selectedChild = this.tab.selectedTab.contentList.find(value => value.groupId === groupId);
         this.reLoadAllTable();
-        this.getRiskRecordByGroupId(parseInt(groupId)).riskList.forEach(item => this.addARiskRecord(item))
+        this.getRiskRecordByGroupId(parseInt(groupId)).riskList.forEach(item => this.addARiskRecord(item));
     
     }
 
     checkoutTab(tabId) {
-        this.tab.selectedTab = this.tab.tabList.find(value => value.tabId === tabId)
+        this.tab.selectedTab = this.tab.tabList.find(value => value.tabId === tabId);
     }
 
-
-
     mapOperate(operate:number) {
-        let value:string
+        let value:string;
         switch (operate) {
             case 1:
                 value = "大于";
@@ -282,7 +277,7 @@ export class RiskComponent implements OnInit {
     }
 
     mapCategroy_lv1(catg_lv1: number) {
-        let value: string
+        let value: string;
         switch (catg_lv1) {
             case 0:
                 value = "无";
@@ -301,7 +296,7 @@ export class RiskComponent implements OnInit {
     }
 
     mapMarket(catg_lv2: number) {
-        let value: string
+        let value: string;
         switch (catg_lv2) {
             case 0:
                 value = "无";
@@ -320,65 +315,65 @@ export class RiskComponent implements OnInit {
     }
 
     mapPlate(catg_lv2: number) {
-        let value: string
+        let value: string;
         switch (catg_lv2) {
             case 0:
-                value = '无'
+                value = "无";
                 break;
             case 1:
-                value = '主板'
+                value = "主板";
                 break;
             case 2:
-                value = '中小板'
+                value = "中小板";
                 break;
             case 3:
-                value = '创业板'
+                value = "创业板";
                 break;
             case 4:
-                value = '三板'
+                value = "三板";
                 break;
             case 5:
-                value = 'all'
+                value = "all";
                 break;
         }
         return value
     }
 
     mapVarieti(catg_lv2: number) {
-        let value: string
+        let value: string;
         switch (catg_lv2) {
             case 0:
-                value = '无'
+                value = "无";
                 break;
             case 1:
-                value = '股票'
+                value = "股票";
                 break;
             case 2:
-                value = '债券'
+                value = "债券";
                 break;
             case 3:
-                value = '基金'
+                value = "基金";
                 break;
             case 4:
-                value = '现货'
+                value = "现货";
                 break;
             case 5:
-                value = '货币市场工具 包括货币基金,回购,票据,短期债等等'
+                value = "货币市场工具 包括货币基金,回购,票据,短期债等等";
                 break;
             case 6:
-                value = '指数'
+                value = "指数";
                 break;
             case 7:
-                value = '期货'
+                value = "期货";
                 break;
             case 8:
-                value = '权证'
+                value = "权证";
                 break;
             case 9:
-                value = '个股期权'
+                value = "个股期权";
                 break;
             case 10:
-                value = 'all'
+                value = "all";
                 break;
         }
         return value        

@@ -4,7 +4,7 @@
             <div *ngFor="let item of tab.tabList" class="tab" [class.active]="tab.selectedTab && tab.selectedTab.tabId === item.tabId" (click)="checkoutTab(item.tabId)">{{item.name}}</div>
         </div>
         <ul class="list">
-            <li *ngFor="let item of tab.selectedTab.contentList" (click)="checkoutGroup(item.groupId)" class="list-item" [class.active]="false">{{item.name}}</li>
+            <li *ngFor="let item of tab.selectedTab.contentList" (click)="checkoutGroup(item.groupId)" class="list-item" [class.active]="tab.selectedChild && tab.selectedChild.groupId === item.groupId">{{item.name}}</li>
         </ul>
     </div>
     <div class="data-section u-col">
@@ -16,8 +16,7 @@
             <div class="title"><b>{{groupList===accounts ? '帐号' : '产品'}}风控</b></div>
             <dock-table2 class="table-container" [dataSource]="singleTable.dataSource" [styleObj]="singleTable.styleObj"></dock-table2>
         </div>
-        
-        <div class="categ-section u-wrap">
+        <div class="u-row">
             <div class="table-section u-col">
                 <div class="title"><b>市场/板块</b></div>
                 <dock-table2 class="table-container" [dataSource]="marketPlateTable.dataSource" [styleObj]="marketPlateTable.styleObj"></dock-table2>
@@ -26,6 +25,8 @@
                 <div class="title"><b>品种</b></div>
                 <dock-table2 class="table-container" [dataSource]="varietiTable.dataSource" [styleObj]="varietiTable.styleObj"></dock-table2>
             </div>
+        </div>
+        <div class="u-row">
             <div class="table-section u-col">
                 <div class="title"><b>ukey</b></div>
                 <dock-table2 class="table-container" [dataSource]="ukeyTable.dataSource" [styleObj]="ukeyTable.styleObj"></dock-table2>
