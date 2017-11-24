@@ -31,6 +31,7 @@ section {
 
 .dash-body section{
     float: left;
+    margin-bottom: 50px;
 }
 
 .chartCon{
@@ -61,6 +62,10 @@ section {
 .leftSection{
      width: 40%;
 }
+
+.mainStockCon .selfSelectStockChart{
+    border-top: 10px solid rgb(56, 63, 84);
+}
 .middleSection{
      width: 30%;
 }
@@ -71,9 +76,8 @@ section {
 .rightSection{
      width: 30%;
 }
-.marketPrefile_con{
-   
-    height: 700px;
+.mainStockCon{
+    min-height: 600px;
 }
 .producAnalysis{
     display: flex;
@@ -146,8 +150,8 @@ section {
 }
 
 
-.todoCon{
-    min-height: 200px;
+.todoCon,.alarmCon{
+    min-height: 300px;
 }
 .todoCon .todoInput  .addTodoList{
     float: right;
