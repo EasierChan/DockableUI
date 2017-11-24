@@ -298,26 +298,7 @@ export class AppComponent implements OnInit, OnDestroy {
                         return;
                     }
 
-                    let config;
-                    if (this.configBll.tempConfig && this.configBll.tempConfig.appid === createAns.data.strategy_server_id) {
-                        config = this.configBll.tempConfig;
-                    } else {
-                        config = this.configBll.getAllConfigs().find(item => { return item.appid === createAns.data.strategy_server_id; });
-                    }
-
-                    if (config) {
-                        config.appid = createAns.data.strategy_server_id;
-                        config.items[0].key = createAns.data.strategies[0].strategy_id;
-                        config.accounts = createAns.data.strategies[0].portfolios;
-                        let idx = this.configBll.servers.indexOf(config.items[0].key);
-                        if (idx < 0)
-                            this.configBll.servers.push(config.items[0].key);
-                        else
-                            this.configBll.servers[idx] = config.items[0].key;
-
-                        this.configBll.updateConfig(config);
-                        // this.tradeEndPoint.subscribe(8000, this.configBll.strategyKeys);
-                    }
+                    this.configBll.updateConfig(this.configBll.tempConfig);
                 }
             }
         );
