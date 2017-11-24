@@ -12,20 +12,6 @@
     <h6>{{codeName}}</h6>
     <div class="u-row" style="min-height: 100px;">
       <section class="fill" style="width: 100px">
-        <b>{{summary.title}}</b>
-        <p>
-          {{summary.content}}
-        </p>
-      </section>
-      <section class="fill" style="width: 100px">
-        <b>{{mdSection.title}}</b>
-        <div class="holder">
-          <div echarts [options]="mdSection.content.option" (chartInit)="mdSection.content.onInit($event)" style="height: 300px"></div>
-        </div>
-      </section>
-    </div>
-    <div class="u-row">
-      <section class="fill">
         <b>{{baseInfo.title}}</b>
         <div class="holder">
           <table>
@@ -36,7 +22,15 @@
           </table>
         </div>
       </section>
-      <section class="fill">
+      <section class="fill" style="width: 100px">
+        <b>{{mdSection.title}}</b>
+        <div class="holder">
+          <div echarts [options]="mdSection.content.option" (chartInit)="mdSection.content.onInit($event)" style="height: 300px"></div>
+        </div>
+      </section>
+    </div>
+    <div class="u-row">
+      <section class="fill" style="width: 100px">
         <b>{{marketInfo.title}}</b>
         <div class="holder">
           <table>
@@ -47,7 +41,7 @@
           </table>
         </div>
       </section>
-      <section style="min-width: 300px">
+      <section class="fill" style="width: 100px">
         <b>{{keyInfo.title}}</b>
         <div class="holder">
           <table>
@@ -60,15 +54,21 @@
       </section>
     </div>
     <div *ngIf="!isStock" class="u-row">
-      <section class="fill">
+      <section class="fill" style="width: 100px">
+        <b>{{summary.title}}</b>
+        <p>
+          {{summary.content}}
+        </p>
+      </section>
+      <section class="fill" style="width: 100px">
         <b>{{standardInfo.title}}</b>
         <div class="holder">
-          <table align="left">
+          <table align="left" style="table-layout: fixed">
             <tr *ngFor="let row of standardInfo.content">
-              <td>{{row[0]}}</td>
-              <td>{{row[1]}}</td>
-              <td>{{row[2]}}</td>
-              <td>{{row[3]}}</td>
+              <td style="word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="{{row[0]}}">{{row[0]}}</td>
+              <td style="word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="{{row[1]}}">{{row[1]}}</td>
+              <td style="word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="{{row[2]}}">{{row[2]}}</td>
+              <td style="word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="{{row[3]}}">{{row[3]}}</td>
             </tr>
           </table>
         </div>
