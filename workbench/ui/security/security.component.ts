@@ -770,11 +770,15 @@ export class SecurityComponent implements OnInit, OnDestroy {
             packid: 10002,
             callback: (msg) => {
                 let option = this.mdSection.content.option;
-
+                let startTime = parseInt(this.selectedItem.TradeTime.substr(1,4));
                 msg.content.data.forEach(item => {
-                    option.xAxis.data.push(new Date(item.t).format("HH:mm:ss"));
-                    if (item.p !== 0) {
-                        option.series[0].data.push(item.p);
+                    let time = new Date(item.t).format("HH:mm:ss");
+                    let subTime = parseInt(time.substr(0,2) + time.substr(3,2));
+                    if (subTime >= startTime) {
+                        option.xAxis.data.push(time);
+                        if (item.p !== 0) {
+                            option.series[0].data.push(item.p);
+                        }
                     }
                 });
 
