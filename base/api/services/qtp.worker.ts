@@ -7,7 +7,7 @@ import { TcpClient } from "../common/base/tcpclient";
 import { Parser } from "../common/base/parser";
 import { Pool } from "../common/base/pool";
 import { DefaultLogger } from "../common/base/logger";
-import { Header, QTPMessage, QtpMessageOption } from "../model/qtp/message.model";
+import { Header, QTPMessage, QtpMessageOption, FGS_MSG, OptionType } from "../model/qtp/message.model";
 
 const logger = DefaultLogger;
 
@@ -264,6 +264,31 @@ export class QtpService {
 
         msg.body = body;
         this._client.sendMessage(msg);
+    }
+
+    subscribe(topic: number, keys: number[]): void {
+        let msg = new QTPMessage();
+        msg.header.msgtype = FGS_MSG.kSubscribe;
+        msg.header.topic = topic;
+
+        let optCount = new QtpMessageOption();
+        optCount.id = OptionType.kItemCnt;
+        optCount.value = Buffer.alloc(8, 0);
+        optCount.value.writeIntLE(keys.length, 0, 8);
+        msg.addOption(optCount);
+
+        let optSize = new QtpMessageOption();
+        optSize.id = OptionType.kItemSize;
+        optSize.value = Buffer.alloc(8, 0);
+        optSize.value.writeIntLE(8, 0, 8);
+        msg.addOption(optSize);
+
+        msg.body = Buffer.alloc(keys.length * 8);
+        let offset = 0;
+        keys.forEach(key => {
+            (msg.body as Buffer).writeIntLE(key, offset, 8);
+            offset += 8;
+        });
     }
 
     /**

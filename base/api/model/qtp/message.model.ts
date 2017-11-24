@@ -102,7 +102,7 @@ export class QtpMessageOption {
     fromBuffer(buf: Buffer, offset = 0): number {
         this.id = buf.readUInt16LE(offset); offset += 2;
         this.len = buf.readUInt16LE(offset); offset += 2;
-        this.value = buf.slice(offset, this.len); offset += this.len;
+        this.value = buf.slice(offset, offset + this.len); offset += this.len;
         return offset;
     }
 }

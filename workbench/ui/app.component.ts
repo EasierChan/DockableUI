@@ -20,7 +20,7 @@ import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
 import { ActionBar, Label } from "../../base/controls/control";
-import { FGS_MSG, ServiceType } from "../../base/api/model";
+import { FGS_MSG, SSGW_MSG, ServiceType } from "../../base/api/model";
 /**
  * for actionBar test
  */
@@ -249,44 +249,49 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     registerListeners() {
-        this.tradeEndPoint.addSlot({
-            service: ServiceType.kFGS,
-            msgtype: FGS_MSG.kFGSAns,
-            callback: (msg) => {
-                console.info(msg.toString());
+        this.tradeEndPoint.addSlot(
+            {
+                service: ServiceType.kFGS,
+                msgtype: FGS_MSG.kFGSAns,
+                callback: (msg) => {
+                    console.info(msg.toString());
+                }
+            },
+            {
+                service: ServiceType.kSSGW,
+                msgtype: SSGW_MSG.kCreateAns, // 创建策略回报
+                callback: msg => {
+                    console.debug(msg.toString());
+                    let createAns = JSON.parse(msg.toString());
+
+                    if (createAns.data.msgret.error_id !== 0) {
+                        console.error(`errorid: ${createAns.data.msgret.error_id}.`);
+                        return;
+                    }
+
+                    let config;
+                    if (this.configBll.tempConfig && this.configBll.tempConfig.name === msg.content.body.name) {
+                        config = this.configBll.tempConfig;
+                    } else {
+                        config = this.configBll.getAllConfigs().find(item => { return item.name === msg.content.body.name; });
+                    }
+
+                    if (config) {
+                        config.appid = createAns.data.strategy.strategy_server_id;
+                        config.items[0].key = createAns.data.strategy.strategy_id;
+                        config.accounts = createAns.data.strategy.portfolio_id;
+                        let idx = this.configBll.strategyKeys.indexOf(config.items[0].key);
+                        if (idx < 0)
+                            this.configBll.strategyKeys.push(config.items[0].key);
+                        else
+                            this.configBll.strategyKeys[idx] = config.items[0].key;
+
+                        this.configBll.updateConfig(config);
+                        // this.tradeEndPoint.subscribe(8000, this.configBll.strategyKeys);
+                    }
+                }
             }
-        });
-        // this.tradeEndPoint.addSlot({
-        //     appid: this.ssgwAppID,
-        //     packid: 2001, // 创建策略回报
-        //     callback: msg => {
-        //         console.debug(msg);
-        //         if (msg.content.body.errorid !== 0) {
-        //             console.error(`errorid: ${msg.content.body.errorid}, errmsg: ${msg.content.body.description}`);
-        //             return;
-        //         }
-
-        //         let config;
-        //         if (this.configBll.tempConfig && this.configBll.tempConfig.name === msg.content.body.name) {
-        //             config = this.configBll.tempConfig;
-        //         } else {
-        //             config = this.configBll.getAllConfigs().find(item => { return item.name === msg.content.body.name; });
-        //         }
-
-        //         if (config) {
-        //             config.appid = msg.content.body.appid;
-        //             config.items[0].key = msg.content.body.strategy_key;
-        //             let idx = this.configBll.strategyKeys.indexOf(config.items[0].key);
-        //             if (idx < 0)
-        //                 this.configBll.strategyKeys.push(config.items[0].key);
-        //             else
-        //                 this.configBll.strategyKeys[idx] = config.items[0].key;
-
-        //             this.configBll.updateConfig(config);
-        //             this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
-        //         }
-        //     }
-        // });
+        );
 
         // this.tradeEndPoint.addSlot({
         //     appid: this.productAppID,
@@ -352,20 +357,20 @@ export class AppComponent implements OnInit, OnDestroy {
         //     }
         // });
 
-        // this.tradeEndPoint.addSlot({
-        //     appid: 17,
-        //     packid: 110,
-        //     callback: (msg) => {
-        //         // console.info(msg);
-        //         let target = this.configBll.getAllConfigs().find(citem => { return citem.name === msg.content.strategyserver.name; });
+        this.tradeEndPoint.addSlot({
+            service: ServiceType.kFGS,
+            msgtype: FGS_MSG.kPublish,
+            callback: (msg) => {
+                console.info(msg.toString());
+                // let target = this.configBll.getAllConfigs().find(citem => { return citem.name === msg.content.strategyserver.name; });
 
-        //         if (target !== undefined) {
-        //             target.state = msg.content.strategyserver.stat;
-        //             if (this.configBll.onStateChanged)
-        //                 this.configBll.onStateChanged(target);
-        //         }
-        //     }
-        // });
+                // if (target !== undefined) {
+                //     target.state = msg.content.strategyserver.stat;
+                //     if (this.configBll.onStateChanged)
+                //         this.configBll.onStateChanged(target);
+                // }
+            }
+        });
     }
 
     ngOnDestroy() {

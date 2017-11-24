@@ -52,7 +52,7 @@ export class WorkspaceConfig {
 export class StrategyInstance {
     key: number;
     name: string;
-    accounts: string;
+    accounts: number[];
     algoes: number[];
     checks: number[];
     sendChecks?: Object[];

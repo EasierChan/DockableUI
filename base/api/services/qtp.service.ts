@@ -6,7 +6,7 @@
 import { TcpClient } from "../browser/tcpclient";
 import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
-import { Header, QTPMessage } from "../model/qtp/message.model";
+import { Header, QTPMessage, QtpMessageOption, FGS_MSG, OptionType } from "../model/qtp/message.model";
 import { Injectable } from "@angular/core";
 
 const logger = console;
@@ -250,6 +250,46 @@ export class QtpService {
 
         msg.body = body;
         this._client.sendMessage(msg);
+    }
+
+    sendWithOption(msgtype: number, options: QtpMessageOption[], body: string | Buffer, service?: number, topic?: number) {
+        let msg = new QTPMessage();
+        msg.header.msgtype = msgtype;
+        options.forEach(option => {
+            msg.addOption(option);
+        });
+
+        if (service) msg.header.service = service;
+
+        if (topic) msg.header.topic = topic;
+
+        msg.body = body;
+        this._client.sendMessage(msg);
+    }
+
+    subscribe(topic: number, keys: number[]): void {
+        let msg = new QTPMessage();
+        msg.header.msgtype = FGS_MSG.kSubscribe;
+        msg.header.topic = topic;
+
+        let optCount = new QtpMessageOption();
+        optCount.id = OptionType.kItemCnt;
+        optCount.value = Buffer.alloc(8, 0);
+        optCount.value.writeIntLE(keys.length, 0, 8);
+        msg.addOption(optCount);
+
+        let optSize = new QtpMessageOption();
+        optSize.id = OptionType.kItemSize;
+        optSize.value = Buffer.alloc(8, 0);
+        optSize.value.writeIntLE(8, 0, 8);
+        msg.addOption(optSize);
+
+        msg.body = Buffer.alloc(keys.length * 8);
+        let offset = 0;
+        keys.forEach(key => {
+            (msg.body as Buffer).writeIntLE(key, offset, 8);
+            offset += 8;
+        });
     }
 
     /**
