@@ -9,6 +9,9 @@
     "removeComments": false,
     "noImplicitAny": false
   },
+  "linter": {
+    "findConfiguration": ""
+  },
   "exclude": [
     "node_modules/",
     "workbench/appcomponent.ts",
