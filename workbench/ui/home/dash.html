@@ -3,10 +3,17 @@
         <img src="../base/images/banner.jpg" alt="量化科技金融" style="width: 100%; height: 100%; objet-fit: contain;">
     </div>
     <section class="leftSection">
-        <div class="marketPrefile_con chartCon">
+        <div class="mainStockCon chartCon">
             <p class="chartTit">主要指数</p>
             <div class="chartBody">
-                lllllallal allProductWeight
+                <div class="selfSelectStockList">
+                    <dock-table2 [dataSource]="selfStockTable.dataSource" [styleObj]="selfStockTable.styleObj"></dock-table2>
+                </div>
+                <div class="selfSelectStockChart">
+                    <!--<div echarts [options]="selfStockPrice.content.option" (chartInit)="selfStockPrice.content.onInit($event)" style="height: 200px"></div>-->
+                    <div echarts [options]="selfStockPrice.content.option" (chartInit)="selfStockPrice.content.onInit($event)" style="height: 240px"></div>
+                    <div echarts [options]="selfStockMoney.content.option" (chartInit)="selfStockMoney.content.onInit($event)" style="height: 130px"></div>
+                </div>
             </div>
         </div>
         <div class="aiArea chartCon">
@@ -26,14 +33,19 @@
 
     <section class="middleSection">
         <div class="productChart chartCon ">
-            <p class="chartTit">产品概览  <span (click)="getNowProductDataNext()" class="glyphicon glyphicon-chevron-right"></span><span (click)="getNowProductDataBefore()" class="glyphicon glyphicon-chevron-left"></span></p>
+            <p class="chartTit">产品概览 <span (click)="getNowProductDataNext()" class="glyphicon glyphicon-chevron-right"></span><span (click)="getNowProductDataBefore()"
+                    class="glyphicon glyphicon-chevron-left"></span></p>
             <div class="chartBody">
                 <div echarts [options]="productNet.content.option" (chartInit)="productNet.content.onInit($event)" style="height: 250px"></div>
                 <div class="producAnalysis">
-                    <p class="fontCon "><span class="name">当日盈亏</span><br/><span class="value"><span class="num">{{totalProfitAndLoss}}</span>千元</span></p>
-                    <p class="fontCon"><span class="name">浮动盈亏</span><br/><span class="value"><span class="num">{{floatProfitAndLoss}}</span>千元</span></p>
-                    <p class="fontCon"><span class="name">敞口率</span><br/><span class="value"><span class="num">{{riskExposure}}</span>%</span></p>
-                    <p class="fontCon"><span class="name">风险度</span><br/><span class="value"><span class="num">{{riskDegree}}</span>%</span></p>
+                    <p class="fontCon "><span class="name">当日盈亏</span><br/><span class="value"><span class="num">{{totalProfitAndLoss}}</span>                        K</span>
+                    </p>
+                    <p class="fontCon"><span class="name">浮动盈亏</span><br/><span class="value"><span class="num">{{floatProfitAndLoss}}</span>                        K</span>
+                    </p>
+                    <p class="fontCon"><span class="name">敞口率</span><br/><span class="value"><span class="num">{{riskExposure}}</span> %</span>
+                    </p>
+                    <p class="fontCon"><span class="name">风险度</span><br/><span class="value"><span class="num">{{riskDegree}}</span> %</span>
+                    </p>
 
                 </div>
             </div>
