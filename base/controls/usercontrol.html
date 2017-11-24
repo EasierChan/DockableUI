@@ -41,9 +41,10 @@
                 <pre>{{child.dataSource.title}}</pre>
                 <input [name]="child.dataSource.name" type="radio" [(ngModel)]="child.dataSource.text" [disabled]="child.styleObj?.disable"> 
              </label>
-  <label *ngIf="child.styleObj.type=='checkbox'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top">
+  <label *ngIf="child.styleObj.type=='checkbox'" class="u-checkbox" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top">
                 <input [name]="child.dataSource.name" type="checkbox" [(ngModel)]="child.dataSource.text"
                  [disabled]="child.styleObj?.disable" (click)="child.dataSource.click()"> 
+                <span class="u-ok-round"></span>
                 <span style="white-space: nowrap">{{child.dataSource.title}}</span>
             </label>
   <label *ngIf="child.styleObj.type=='range'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top">
