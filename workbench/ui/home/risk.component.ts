@@ -35,7 +35,13 @@ export class RiskComponent implements OnInit {
         };
         selectedChild?: any;
     };
-    riskData: any;
+    riskData: {
+        trade_account: any[];
+        trade_block: any[];
+    } = {
+        trade_account: [],
+        trade_block: []
+    }
 
     constructor(private trade: TradeService, private config: ConfigurationBLL, private appSrv: AppStoreService) {
 
