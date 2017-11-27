@@ -791,7 +791,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
         console.info(item);
         this.selectedItem = item;
         if (this.selectedItem === undefined) {
-            alert("无效证券代码");
+            alert("无效证券代码！");
             return;
         }
         this.searchInfo();
