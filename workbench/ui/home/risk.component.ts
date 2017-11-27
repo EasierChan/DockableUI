@@ -76,7 +76,9 @@ export class RiskComponent implements OnInit {
                     contentList: this.account_info.map(value => {
                         return {
                             name: value.acname,
-                            groupId: value.acid
+                            groupId: value.acid,
+                            acid: value.acid,
+                            caid: value.caid
                         }
                     })
                 },
@@ -86,7 +88,9 @@ export class RiskComponent implements OnInit {
                     contentList: this.tblock_info.map(value => {
                         return {
                             name: value.caname,
-                            groupId: value.caid
+                            groupId: value.caid,
+                            caid: value.caid,
+                            acid: null
                         }
                     })
                 }
@@ -136,13 +140,8 @@ export class RiskComponent implements OnInit {
         let dangerType = "normal";
         if (isDanger) dangerType = "warn";
         if (riskRecord.used_v1 >= riskRecord.limit_v1) dangerType = "danger";
-        let groupType = this.getRiskRecordByGroupId(riskRecord.group_id).type;
-        let groupTypeMap = {
-            account: "帐号",
-            product: "产品"
-        };
         return {
-            groupType: groupTypeMap[groupType],
+            groupType: riskRecord.acid ? "帐号" : "产品",
             used_v1: riskRecord.used_v1,
             limit_v1: riskRecord.limit_v1,
             operate: this.mapOperate(riskRecord.operate),
@@ -234,6 +233,11 @@ export class RiskComponent implements OnInit {
         }
     }
 
+    filterRisk(acid:number, caid:number) {
+        if(acid) return this.riskData.trade_account.filter(value => value.group_id === acid);
+        return this.riskData.trade_block.filter(value => value.group_id === caid);
+    }
+
     getRiskRecordByGroupId(groupId) {
         let riskList = this.riskData.trade_account.filter(value => value.group_id === groupId);
         let type:string;
@@ -249,10 +253,16 @@ export class RiskComponent implements OnInit {
         }
     }
 
-    checkoutGroup(groupId) {
-        this.tab.selectedChild = this.tab.selectedTab.contentList.find(value => value.groupId === groupId);
+    checkoutGroup(acid, caid) {
+        this.tab.selectedChild = this.tab.selectedTab.contentList.find(value => {
+            return acid ? acid === value.acid : caid === value.caid
+        });
         this.reLoadAllTable();
-        this.getRiskRecordByGroupId(parseInt(groupId)).riskList.forEach(item => this.addARiskRecord(item));
+        this.filterRisk(acid, caid).forEach(item => {
+            item.acid = acid;
+            item.caid = caid;
+            this.addARiskRecord(item);
+        });
     
     }
 
