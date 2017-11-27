@@ -58,6 +58,7 @@ section {
 
 .chartBody{
     padding: 10px;
+    /*overflow-x: auto;*/
 }
 .leftSection{
      width: 40%;
@@ -136,7 +137,7 @@ section {
 .aiArea .chartBody>div{
     float: left;
     width: 50%;
-    overflow-x: auto;
+    /*overflow-x: auto;*/
     padding-left: 10px;
 }
 .aiArea .chartBody>.theBestList{
@@ -146,7 +147,7 @@ section {
 
 .alarmCon .alarmTab{
      width:100%;
-     overflow-x: auto;
+     /*overflow-x: auto;*/
 }
 
 
@@ -173,7 +174,7 @@ section {
 
 .todoCon .todoList{
     width: 100%;
-    overflow-x: scroll;
+    /*overflow-x: scroll;*/
 }
 .todoCon .todoInput{
     padding: 10px 10px 20px 10px;
