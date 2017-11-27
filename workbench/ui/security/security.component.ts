@@ -791,7 +791,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
         console.info(item);
         this.selectedItem = item;
         if (this.selectedItem === undefined) {
-            alert("undefined windcode!");
+            alert("undefined windcode !");
             return;
         }
         this.searchInfo();
