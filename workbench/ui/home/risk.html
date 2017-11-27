@@ -4,7 +4,7 @@
             <div *ngFor="let item of tab.tabList" class="tab" [class.active]="tab.selectedTab && tab.selectedTab.tabId === item.tabId" (click)="checkoutTab(item.tabId)">{{item.name}}</div>
         </div>
         <ul class="list">
-            <li *ngFor="let item of tab.selectedTab.contentList" (click)="checkoutGroup(item.groupId)" class="list-item" [class.active]="tab.selectedChild && tab.selectedChild.groupId === item.groupId">{{item.name}}</li>
+            <li *ngFor="let item of tab.selectedTab.contentList" (click)="checkoutGroup(item.acid, item.caid)" class="list-item" [class.active]="tab.selectedChild && tab.selectedChild.acid === item.acid && tab.selectedChild.caid === item.caid">{{item.name}}</li>
         </ul>
     </div>
     <div class="data-section u-col">
