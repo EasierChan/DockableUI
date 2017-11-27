@@ -45,7 +45,8 @@ export class ConfigurationBLL {
             }
 
             item.state = 0;
-            this.strategyKeys.push(item.items[0].key);
+            if (item.items[0].key)
+                this.strategyKeys.push(item.items[0].key);
         });
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");
