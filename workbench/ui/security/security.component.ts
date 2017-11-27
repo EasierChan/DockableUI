@@ -645,7 +645,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         this.marketInfo.content[4].value = msg.content.Structs[0].pre_close / 10000;
                         this.marketInfo.content[5].value = msg.content.Structs[0].pre_settlement / 10000;
                         this.marketInfo.content[6].value = msg.content.Structs[0].pre_interest;
-                        
+
                         let preVolume = 0;
                         switch (msg.content.Structs[0].major_type) {
                             case 4:
@@ -653,12 +653,12 @@ export class SecurityComponent implements OnInit, OnDestroy {
                                 break;
                             case 10:
                                 preVolume = msg.content.Structs[0].pre_volume;
-                                break;  
+                                break;
                             case 2:
                                 preVolume = msg.content.Structs[0].pre_volume / 10;
-                                break;                               
+                                break;
                             default:
-                                preVolume = msg.content.Structs[0].pre_volume / 100;                                                                  
+                                preVolume = msg.content.Structs[0].pre_volume / 100;
                         }
                         this.marketInfo.content[7].value = preVolume.toFixed(0);
 
@@ -754,12 +754,12 @@ export class SecurityComponent implements OnInit, OnDestroy {
                                 this.standardInfo.content[9][1] = "加元";
                                 break;
                         }
-                    } 
+                    }
                 } else {
                     if (msg.content.Seqno === 1) {
                         alert("未找到" + this.selectedItem.symbolCode + "的证券信息！");
                     } else if (msg.content.Seqno === 2) {
-                        alert("未找到" + this.selectedItem.symbolCode + "的合约信息！");                        
+                        alert("未找到" + this.selectedItem.symbolCode + "的合约信息！");
                     }
                 }
             }
@@ -790,6 +790,10 @@ export class SecurityComponent implements OnInit, OnDestroy {
     listClick(item) {
         console.info(item);
         this.selectedItem = item;
+        if (this.selectedItem === undefined) {
+            alert("无效证券代码！");
+            return;
+        }
         this.searchInfo();
         this.searchMD();
 
