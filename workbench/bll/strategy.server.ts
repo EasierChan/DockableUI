@@ -137,7 +137,7 @@ export class ConfigurationBLL {
             let info = "";
             let i = 0;
             for (; i < this._ssconfigs.length; ++i) {
-                if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
+                if (config.appid === this._ssconfigs[i].appid && config.activeChannel === this._ssconfigs[i].activeChannel) {
                     let oldName = this._ssconfigs[i].chname;
 
                     switch (config.activeChannel) {
