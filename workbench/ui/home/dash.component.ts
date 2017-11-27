@@ -74,19 +74,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     refStockIncrease: number = 0;
     selfStockXdata: any[] = [];
-    selfStockLineData: any[] = [];
-    selfStockBarData: any[] = [];
+
+    // selfStockBarData: any[] = [];
     selfStockUkList: number[] = [];
     dashAllUkcodeList: number[] = [];
 
-
-    selfStockLineyAxisMin: number = 0;
-    selfStockLineyAxisMax: number = 0;
-    selfStockBaryAxisMax: number = 0;
+    // selfStockLineData: any[] = [];
+    // selfStockLineyAxisMin: number = 0;
+    // selfStockLineyAxisMax: number = 0;
+    // selfStockBaryAxisMax: number = 0;
     mainStockUk: number = 2490369;
     preMainStockUk: number = 2490369;
 
-    selfStockName: string;
+    // selfStockName: string;
 
 
     //千分符
@@ -143,6 +143,89 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return h + ':' + m;
     }
 
+    initSelfStockBar() {
+        this.preTurnOver = 0;
+        this.nowTurnover = 0;
+        this.selfStockBarChange.series[0].data = [];
+        this.selfStockBarChange.series[0].data.length = this.selfStockXdata.length;
+        // this.selfStockBarChange.series[0].data = this.selfStockBarData;
+        this.selfStockBarChange.yAxis.max = 0;
+    }
+    initSelfStockLine() {
+        this.selfStockLineChange.series[0].data = [];
+        this.selfStockLineChange.series[0].data.length = this.selfStockXdata.length;
+        // this.selfStockLineChange.series[0].data = this.selfStockLineData;
+        // this.selfStockLineyAxisMin = 0;
+        // this.selfStockLineyAxisMax = 1;
+        this.selfStockLineChange.yAxis.min = 0;
+        this.selfStockLineChange.yAxis.max = 1;
+    }
+    selfStockLineChange = {
+        title: {
+            text: ''
+        },
+        grid: {
+            bottom: 10,
+            top: 30,
+        },
+        xAxis: {
+            show: false
+        },
+        yAxis: {
+            min: 0,
+            max: 1,
+            interval: 0.5
+        },
+        series: [
+            {
+                data: [],
+                connectNulls: true,
+                markLine: {
+                    data: [
+                        {
+                            name: '昨收值',
+                            yAxis: 1
+                        }
+                    ],
+                    label: {
+                        normal: {
+                            show: false,
+                            // position:'middle'
+                        }
+                    },
+                    lineStyle: {
+                        normal: {
+                            color: '#f3c239'
+                        }
+                    }
+                }
+            }
+        ]
+    }
+    selfStockBarChange = {
+        grid: {
+            top: 0
+        },
+        series: [
+            {
+                name: '成交金额',
+                type: 'bar',
+                data: []
+            }
+        ],
+        yAxis: {
+            axisLabel: {
+                showMinLabel: false,
+                formatter: function (value, index) {
+                    return value.toFixed(0) + '万';
+                },
+                showMaxLabel: false
+            },
+            interval: 1,
+            min: 0,
+            max: 0
+        }
+    }
     ngOnInit() {
         for (var i = 9; i <= 14; i++) {
             if (i != 12) {
@@ -156,42 +239,57 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
             }
         }
+
         this.selfStockXdata.push('15:00');
         //重要指数的uk列表
         this.selfStockUkList = [2490369, 1441794, 2490383, 2490381, 1441854, 1441876, 1441949];
         this.dashAllUkcodeList.push(2490887);
         this.dashAllUkcodeList = this.dashAllUkcodeList.concat(this.selfStockUkList);
 
-        this.selfStockLineData.length = this.selfStockXdata.length;
-        this.selfStockBarData.length = this.selfStockXdata.length;
 
 
         let d = new Date();
         this.nowDate = d.getFullYear() + '-' + (Number(d.getMonth()) + 1) + '-' + d.getDate();
         this.selfStockData = [{ name: '上证指数', stockCode: '000001.SH', 'ukey': 2490369 }, { name: '深证成指', stockCode: '399001.SZ', ukey: 1441794 }, { name: '沪深300', stockCode: '000300.SH', ukey: 2490383 }, { name: '上证50', stockCode: '000016.SH', ukey: 2490381 }, { name: '中证500', stockCode: '399905.SZ', ukey: 1441854 }, { name: '中小板指', stockCode: '399005.SZ', ukey: 1441876 }, { name: '创业版指', stockCode: '399006.SZ', ukey: 1441949 }]
 
-        this.selfStockName = this.selfStockData[0].stockCode + '[' + this.selfStockData[0].name + ']';
+        this.selfStockLineChange.title.text = this.selfStockData[0].stockCode + '[' + this.selfStockData[0].name + ']';
         console.log(this.secuinfo.getSecuinfoByUKey(2490369, 1441794, 2490383, 2490381, 1441854, 1441876, 1441949));
         this.bestStockList = new DataTable("table2");
         this.worstStockList = new DataTable("table2");
-        this.worstStockList.align = 'right';
-        this.bestStockList.align = 'right';
+        this.worstStockList.addColumn("股票代码", "价格", "涨幅", "超额收益");
+        this.worstStockList.columns[1].align = 'right';
+        this.worstStockList.columns[2].align = 'right';
+        this.worstStockList.columns[3].align = 'right';
+        this.worstStockList.columns[0].maxWidth = 80;
+        this.bestStockList.addColumn("股票代码", "价格", "涨幅", "超额收益");
+        this.bestStockList.columns[1].align = 'right';
+        this.bestStockList.columns[2].align = 'right';
+        this.bestStockList.columns[3].align = 'right';
+
+        this.bestStockList.columns[0].maxWidth = 80;
+
         this.selfStockTable = new DataTable("table2");
         this.selfStockTable.addColumn('代码', '名称', '现价', '涨跌', '涨跌幅', '成交量', '成交金额');
-        
-        this.selfStockTable.align = 'right';
+
+        this.selfStockTable.columns[2].align = 'right';
+        this.selfStockTable.columns[3].align = 'right';
+        this.selfStockTable.columns[4].align = 'right';
+        this.selfStockTable.columns[5].align = 'right';
+        this.selfStockTable.columns[6].align = 'right';
         this.selfStockTable.columns[0].maxWidth = 100;
 
         this.selfStockTable.onRowDBClick = (rowItem, rowIndex) => {//点击切换指数行情
-            this.selfStockName = rowItem.cells[0].Text + '[' + rowItem.cells[1].Text + ']';
+            this.selfStockLineChange.title.text = rowItem.cells[0].Text + '[' + rowItem.cells[1].Text + ']';
+
             this.mainStockUk = rowItem.cells[1].Data;
-            this.preTurnOver = 0;
-            this.nowTurnover = 0;
-            this.selfStockBarData = [];
-            this.selfStockBarData.length = this.selfStockXdata.length;
-            this.selfStockBaryAxisMax = 0;
-            
+
             console.log(rowIndex);
+            this.initSelfStockLine();
+            this.selfStockLineChange.yAxis.interval = 0.5;
+            this.selfStockPriceLine.setOption(this.selfStockLineChange);
+            this.initSelfStockBar();
+            this.selfStockMoneyBar.setOption(this.selfStockBarChange);
+            this.preMainStockUk = this.mainStockUk;
         }
 
 
@@ -211,6 +309,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.todoList.RowIndex = false; // 去除序列
         this.todoList.addColumn("是否完成", "消息", "创建时间", "操作");
         this.todoList.ColumnHeader = false;
+        this.todoList.columns[1].maxWidth = 250;
         this.todoList.columns[0].maxWidth = 20;
         this.todoList.columns[3].maxWidth = 50;
 
@@ -299,124 +398,61 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     if (msg.content.ukey == this.mainStockUk) {//实时行情
                         console.log('this.mainStockUk' + this.mainStockUk)
                         // console.log(msg)
-                        let selfStockLineChange = {
-                            title: {
-                                text: this.selfStockName
-                            },
-                            grid: {
-                                bottom: 10,
-                                top: 30,
-                            },
-                            xAxis: {
-                                show: false
-                            },
-                            yAxis: {
-                                min: 0,
-                                max: 1,
-                                interval: 0.5,
-                                axisLabel: {
-                                    color: function (value, index) {
-                                        return value > 6167 ? '#f00' : '#0f0';
-                                    }
-                                }
-                            },
-                            series: [
-                                {
-                                    data: this.selfStockLineData,
-                                    connectNulls: true,
-                                    markLine:{
-                                        data:[
-                                            {
-                                                name:'昨收值',
-                                                yAxis:1
-                                            }
-                                        ]
-                                    }
-                                }
-                            ]
-                        }
-                        let selfStockBarChange = {
-                            grid: {
-                                top: 0
-                            },
-                            series: [
-                                {
-                                    name: '成交金额',
-                                    type: 'bar',
-                                    data: this.selfStockBarData
-                                }
-                            ],
-                            yAxis: {
-                                axisLabel: {
-                                    showMinLabel: false,
-                                    formatter: function (value, index) {
-                                        return value.toFixed(0) + '万';
-                                    },
-                                    showMaxLabel: false
-                                },
-                                interval: 1,
-                                min: 0,
-                                max: 0
-                            }
-                        }
+
+
 
                         let marketTime = this.myGetTime(msg.content.time);//当前行情的时间
                         let middle = Math.round(msg.content.pre_close / 10000);//昨收
-                        selfStockLineChange.series[0].markLine.data[0].yAxis = msg.content.pre_close / 10000;
+                        this.selfStockLineChange.series[0].markLine.data[0].yAxis = msg.content.pre_close / 10000;
                         let marketIndex = this.selfStockXdata.indexOf(marketTime);//当前行情在echarts中的位置
                         let turnover = Math.round(msg.content.turnover / 100) / 100;//当前时刻行情的成交金额
 
                         if (marketIndex != -1) {
                             if (marketIndex == 0) {//init
-                                this.preTurnOver = 0;
-                                this.nowTurnover = 0;
+                                this.initSelfStockLine();
+                                this.selfStockLineChange.yAxis.interval = 0.5;
+                                this.selfStockPriceLine.setOption(this.selfStockLineChange);
+                                this.initSelfStockBar();
+                                this.selfStockMoneyBar.setOption(this.selfStockBarChange);
                             }
-                            if (this.preMainStockUk != this.mainStockUk) {//切换股票的时候line抚初值
-                                this.selfStockLineData = [];
-                                this.selfStockLineData.length = this.selfStockXdata.length;
-                                this.selfStockLineyAxisMin = 0;
-                                this.selfStockLineyAxisMax = 1;
-                                selfStockLineChange.yAxis.interval = 0.5;
-                                this.selfStockPriceLine.setOption(selfStockLineChange);
-                                this.preMainStockUk = this.mainStockUk;
-                            }
+
                             if (this.preMarketTime != marketTime) {
                                 this.nowTurnover = 0;//一分钟内的累计成交量
                                 let lastPrice = Number((msg.content.last / 10000).toFixed(2));
-                                selfStockLineChange.series[0].data[marketIndex] = lastPrice;
-                                if (this.selfStockLineyAxisMin > lastPrice) {
-                                    this.selfStockLineyAxisMin = lastPrice;
+                                this.selfStockLineChange.series[0].data[marketIndex] = lastPrice;
+                                if (this.selfStockLineChange.yAxis.min > lastPrice) {
+                                    this.selfStockLineChange.yAxis.min = lastPrice;
                                 }
-                                if (this.selfStockLineyAxisMax < lastPrice) {
-                                    this.selfStockLineyAxisMax = lastPrice;
-                                }
-
-                                if (this.selfStockLineyAxisMin == 0 && this.selfStockLineyAxisMax != 0) {
-                                    this.selfStockLineyAxisMin = this.selfStockLineyAxisMax;
+                                if (this.selfStockLineChange.yAxis.max < lastPrice) {
+                                    this.selfStockLineChange.yAxis.max = lastPrice;
                                 }
 
-                                let abs = Math.abs(middle - this.selfStockLineyAxisMin) >= Math.abs(middle - this.selfStockLineyAxisMax) ? Math.ceil(Math.abs(middle - this.selfStockLineyAxisMin)) : Math.ceil(Math.abs(middle - this.selfStockLineyAxisMax));
+                                if (this.selfStockLineChange.yAxis.min == 0 && this.selfStockLineChange.yAxis.max != 0) {
+                                    this.selfStockLineChange.yAxis.min = this.selfStockLineChange.yAxis.max;
+                                }
+
+                                let abs = Math.abs(middle - this.selfStockLineChange.yAxis.min) >= Math.abs(middle - this.selfStockLineChange.yAxis.max) ? Math.ceil(Math.abs(middle - this.selfStockLineChange.yAxis.min)) : Math.ceil(Math.abs(middle - this.selfStockLineChange.yAxis.max));
                                 abs = Math.ceil(abs / 4) * 4;
-                                selfStockLineChange.yAxis.interval = abs / 2;
-                                selfStockLineChange.yAxis.min = middle - abs;
-                                selfStockLineChange.yAxis.max = middle + abs;
-                                this.selfStockPriceLine.setOption(selfStockLineChange);
+                                this.selfStockLineChange.yAxis.interval = abs / 2;
+                                this.selfStockLineChange.yAxis.min = middle - abs;
+                                this.selfStockLineChange.yAxis.max = middle + abs;
+                                this.selfStockPriceLine.setOption(this.selfStockLineChange);
                                 console.log(marketTime)
                                 console.log(marketIndex)
                                 console.log('现价' + lastPrice)
                             }
                             if (this.preTurnOver != 0) {
                                 this.nowTurnover = Number((turnover - this.preTurnOver + this.nowTurnover).toFixed(2));//当前时间的成交量
-                                if (this.selfStockBaryAxisMax < this.nowTurnover) {
-                                    this.selfStockBaryAxisMax = this.nowTurnover;
+                                if (this.selfStockBarChange.yAxis.max < this.nowTurnover) {
+                                    this.selfStockBarChange.yAxis.max = this.nowTurnover;
                                 }
-                                selfStockBarChange.yAxis.max = Math.ceil(this.selfStockBaryAxisMax / 2) * 2;
-                                selfStockBarChange.yAxis.interval = selfStockBarChange.yAxis.max / 2;
+                                this.selfStockBarChange.yAxis.max = Math.ceil(this.selfStockBarChange.yAxis.max / 2) * 2;
+                                this.selfStockBarChange.yAxis.interval = this.selfStockBarChange.yAxis.max / 2;
                             }
                             this.preTurnOver = turnover;//上一时刻的成交量
                             this.preMarketTime = marketTime;//上一时刻的时间
-                            selfStockBarChange.series[0].data[marketIndex] = this.nowTurnover;
-                            this.selfStockMoneyBar.setOption(selfStockBarChange);
+                            this.selfStockBarChange.series[0].data[marketIndex] = this.nowTurnover;
+                            this.selfStockMoneyBar.setOption(this.selfStockBarChange);
                             console.log('成交金额' + this.nowTurnover);
                         }
                     }
@@ -428,7 +464,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 // console.log('stockIncrease' + stockIncrease)
 
                 if (this.ukCodeList.indexOf(msg.content.ukey) != -1) {
-
                     let ukInBestIndex = this.bestStockUktoIndex[msg.content.ukey];
                     let ukInWorstIndex = this.worstStockUktoIndex[msg.content.ukey];
                     if (this.refStockIncrease != 0) {//参考股的数值回来才有超额涨幅
@@ -586,8 +621,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.config.on('getBestStocksAns', data => {
             this.aiStockDate.bestStockListData = data.body;
             this.bestStockList.RowIndex = false; // 去除序列
-            this.bestStockList.addColumn("股票代码", "价格", "涨幅", "超额收益");
-            this.bestStockList.columns[0].maxWidth = 80;
+
 
             this.bestStockList.backgroundColor = '#fff'
             // this.bestStockList.columns[1].hidden = true;
@@ -611,8 +645,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.config.on('getWorstStocksAns', data => {
             this.aiStockDate.worstStockListData = data.body;
             this.worstStockList.RowIndex = false; // 去除序列
-            this.worstStockList.addColumn("股票代码", "价格", "涨幅", "超额收益");
-            this.worstStockList.columns[0].maxWidth = 80;
+
             this.aiStockDate.worstStockListData.forEach((item, index) => {
                 this.ukCodeList.push(Number(item.ukcode));
                 this.dashAllUkcodeList.push(Number(item.ukcode));
@@ -756,7 +789,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return {
             option: {
                 title: {
-                    top:10,
+                    top: 10,
                     left: '40',
                     textStyle: {
                         color: '#d0d0d0',
