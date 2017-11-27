@@ -370,8 +370,8 @@ export class AppComponent implements OnInit, OnDestroy {
         this.tradeEndPoint.addSlot({
             service: ServiceType.kFGS,
             msgtype: FGS_MSG.kPublish,
-            callback: (msg) => {
-                console.info(msg.toString());
+            callback: (body, options) => {
+                console.info(body, options);
                 // let target = this.configBll.getAllConfigs().find(citem => { return citem.name === msg.content.strategyserver.name; });
 
                 // if (target !== undefined) {

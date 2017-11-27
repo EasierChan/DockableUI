@@ -135,7 +135,9 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.config.strategyType = this.strategyType;
         this.config.productID = this.productID;
 
-        this.config.items = [new StrategyInstance()];
+        if (this.isCreate)
+            this.config.items = [new StrategyInstance()];
+
         this.config.items[0].parameters = [];
         this.config.items[0].instruments = [];
         if (this.paramsTable.rows.length > 0) {

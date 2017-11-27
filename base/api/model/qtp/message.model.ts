@@ -40,7 +40,7 @@ export class Header extends Message {
 export class QTPMessage extends Message {
     header: Header = new Header();
     body: String | Buffer;
-    private options: QtpMessageOption[] = [];
+    options: QtpMessageOption[] = [];
 
     fromBuffer(buf: Buffer, offset = 0): number {
         let optlen = this.header.optslen;
@@ -51,8 +51,11 @@ export class QTPMessage extends Message {
             optlen -= option.len + 4;
         }
 
-        this.body = Buffer.from(buf.slice(offset, offset + this.header.datalen));
-        offset += this.header.datalen;
+        if (this.header.datalen > 0) {
+            this.body = Buffer.from(buf.slice(offset, offset + this.header.datalen));
+            offset += this.header.datalen;
+        }
+
         return offset;
     }
 
@@ -60,12 +63,15 @@ export class QTPMessage extends Message {
         let offset = 0;
         let bodyBuf: Buffer;
 
-        if (typeof this.body === "string")
-            bodyBuf = Buffer.from(this.body as string);
-        else
-            bodyBuf = (this.body as Buffer);
+        if (this.body) {
+            if (typeof this.body === "string")
+                bodyBuf = Buffer.from(this.body as string);
+            else
+                bodyBuf = (this.body as Buffer);
 
-        this.header.datalen = bodyBuf.byteLength;
+            this.header.datalen = bodyBuf.byteLength;
+        }
+
         let buf = Buffer.alloc(Header.len + this.header.optslen + this.header.datalen);
         this.header.toBuffer().copy(buf, offset);
         offset += Header.len;
@@ -75,13 +81,15 @@ export class QTPMessage extends Message {
             offset += option.len + 4;
         });
 
-        bodyBuf.copy(buf, offset);
+        if (this.body)
+            bodyBuf.copy(buf, offset);
+
         return buf;
     }
 
     addOption(option: QtpMessageOption): void {
         option.len = option.value.byteLength;
-        this.header.optslen += option.len;
+        this.header.optslen += option.len + 4;
         this.options.push(option);
     }
 }
@@ -119,9 +127,9 @@ export enum FGS_MSG {
     kFGSAns = 100,
     kLogin = 101,
     kLoginAns = 102,
-    kSubscribe = 103,
-    kUnSubscribe = 104,
-    kPublish = 105
+    kSubscribe = 105,
+    kUnSubscribe = 106,
+    kPublish = 107
 }
 
 export enum ServiceType {

@@ -83,7 +83,7 @@ class QTPParser extends Parser {
                 } catch (err) {
                     console.error(err);
                 } finally {
-                    restLen = buflen - Header.len - this._curHeader.datalen;
+                    restLen = buflen - Header.len - this._curHeader.datalen - this._curHeader.optslen;
                     if (restLen > 0) {
                         let restBuf = Buffer.alloc(restLen);
                         tempBuffer.copy(restBuf, 0, buflen - restLen);
@@ -195,9 +195,9 @@ export class QtpService {
             msg = msg[0];
             if (self._messageMap.hasOwnProperty(msg.header.service) && self._messageMap[msg.header.service].hasOwnProperty(msg.header.msgtype)) {
                 if (self._messageMap[msg.header.service][msg.header.msgtype].context)
-                    self._messageMap[msg.header.service][msg.header.msgtype].callback.call(self._messageMap[msg.header.service][msg.header.msgtype].context, msg.body);
+                    self._messageMap[msg.header.service][msg.header.msgtype].callback.call(self._messageMap[msg.header.service][msg.header.msgtype].context, msg.body, msg.options);
                 else
-                    self._messageMap[msg.header.service][msg.header.msgtype].callback(msg.body);
+                    self._messageMap[msg.header.service][msg.header.msgtype].callback(msg.body, msg.options);
             }
             else
                 console.warn(`unknown message appid = ${msg.header.service}`);
@@ -290,6 +290,8 @@ export class QtpService {
             (msg.body as Buffer).writeIntLE(key, offset, 8);
             offset += 8;
         });
+
+        this._client.sendMessage(msg);
     }
 
     /**
