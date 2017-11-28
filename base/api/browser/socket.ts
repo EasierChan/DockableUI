@@ -35,6 +35,7 @@ export class TcpSocket {
      */
     connect(port: number, ip = localhost): void {
         if (this._sock && this._sock !== null) {
+            this._sock.removeAllListeners();
             this._sock.end();
         }
         this._ip = ip;

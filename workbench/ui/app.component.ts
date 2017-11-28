@@ -303,69 +303,70 @@ export class AppComponent implements OnInit, OnDestroy {
             }
         );
 
-        // this.tradeEndPoint.addSlot({
-        //     appid: this.productAppID,
-        //     packid: 251,
-        //     callback: msg => {
+        this.tradeEndPoint.addSlot({
+            service: ServiceType.kCMS,
+            msgtype: 251,
+            callback: msg => {
+                console.info(msg.toString());
+                return;
+                if (msg.content.msret.msgcode !== "00") {
+                    alert("Get product info Failed! " + msg.content.msret.msg);
+                    return;
+                }
 
-        //         if (msg.content.msret.msgcode !== "00") {
-        //             alert("Get product info Failed! " + msg.content.msret.msg);
-        //             return;
-        //         }
+                console.info(msg);
+                this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
+                switch (msg.content.head.actor) {
+                    case "getProductAns":
+                        let productInfo: Object = {};
 
-        //         console.info(msg);
-        //         this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
-        //         switch (msg.content.head.actor) {
-        //             case "getProductAns":
-        //                 let productInfo: Object = {};
+                        let data = JSON.parse(msg.content.body);
+                        data.body.forEach(item => {
+                            productInfo[item.caid] = item;
+                        });
 
-        //                 let data = JSON.parse(msg.content.body);
-        //                 data.body.forEach(item => {
-        //                     productInfo[item.caid] = item;
-        //                 });
+                        let products = [];
+                        for (let prop in productInfo) {
+                            products.push(productInfo[prop]);
+                        }
 
-        //                 let products = [];
-        //                 for (let prop in productInfo) {
-        //                     products.push(productInfo[prop]);
-        //                 }
+                        this.configBll.setProducts(products);
 
-        //                 this.configBll.setProducts(products);
+                        products = null;
+                        productInfo = null;
+                        data = null;
+                        break;
+                    case "getStrategyServerTemplateAns":
+                        // console.info(msg);
+                        if (msg.content.head.pkgCnt > 1) {
+                            if (this.isonpacks[msg.content.head.pkgId] === undefined)
+                                this.isonpacks[msg.content.head.pkgId] = "";
+                            if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
+                                let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
+                                templatelist.body.forEach(template => {
+                                    this.configBll.updateTemplate(template.temp_name, JSON.parse(template.parms).SS);
+                                });
 
-        //                 products = null;
-        //                 productInfo = null;
-        //                 data = null;
-        //                 break;
-        //             case "getStrategyServerTemplateAns":
-        //                 // console.info(msg);
-        //                 if (msg.content.head.pkgCnt > 1) {
-        //                     if (this.isonpacks[msg.content.head.pkgId] === undefined)
-        //                         this.isonpacks[msg.content.head.pkgId] = "";
-        //                     if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
-        //                         let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
-        //                         templatelist.body.forEach(template => {
-        //                             this.configBll.updateTemplate(template.temp_name, JSON.parse(template.parms).SS);
-        //                         });
-
-        //                         delete this.isonpacks[msg.content.head.pkgId];
-        //                     } else {
-        //                         this.isonpacks[msg.content.head.pkgId] = this.isonpacks[msg.content.head.pkgId].concat(msg.content.body);
-        //                     }
-        //                 } else {
-        //                     let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
-        //                     templatelist.body.forEach(template => {
-        //                         this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms) });
-        //                     });
-        //                 }
-        //                 break;
-        //             case "getRiskIndexAns":
-        //                 this.configBll.set("risk_index", JSON.parse(msg.content.body).body);
-        //                 break;
-        //             case "getAssetAccountAns":
-        //                 this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
-        //                 break;
-        //         }
-        //     }
-        // });
+                                delete this.isonpacks[msg.content.head.pkgId];
+                            } else {
+                                this.isonpacks[msg.content.head.pkgId] = this.isonpacks[msg.content.head.pkgId].concat(msg.content.body);
+                            }
+                        } else {
+                            let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
+                            templatelist.body.forEach(template => {
+                                this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms) });
+                            });
+                        }
+                        break;
+                    case "getRiskIndexAns":
+                        this.configBll.set("risk_index", JSON.parse(msg.content.body).body);
+                        break;
+                    case "getAssetAccountAns":
+                        this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
+                        break;
+                }
+            }
+        });
 
         this.tradeEndPoint.addSlot({
             service: ServiceType.kFGS,

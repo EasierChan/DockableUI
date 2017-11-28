@@ -98,14 +98,7 @@ export class UserComponent implements OnInit {
                 }
 
                 this.appSrv.setLoginTrade(true);
-                // if (this.tradeHeart !== null) {
-                //     clearInterval(this.tradeHeart);
-                //     this.tradeHeart = null;
-                // }
-
-                // this.tradeHeart = setInterval(() => {
-                //     this.tradeSrv.send(0, "", ServiceType.kFGS);
-                // }, 60000);
+                this.tradeSrv.send(251, JSON.stringify({ "head": { "realActor": "getStrategyServerTemplate" }, body: { userid: parseInt(this.userid) } }), ServiceType.kCMS);
             }
         });
 
