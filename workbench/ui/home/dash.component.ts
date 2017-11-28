@@ -58,18 +58,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     todoRowIndex: number;
     ukCodeList: any[] = [];
-    productDataSort: any[] = [];
+    productDataSort: any[] = []
     nowDate: any;
     nowProductCaid: string = '';
     nowProductIndex: number;
     nowOperateStat: number;
     nowOperateId: number;
-    preTurnOver: number = 0;//
-    preMarketTime: string = ''
-    nowTurnover: number = 0;
-    mainStockPreclose: number = 0;
+    preTurnOver: number = 0;//上一时刻的成交金额
+    preMarketTime: string = ''//上一时刻的时间
+    nowTurnover: number = 0;//上一时刻的成交金额
+    mainStockPreclose: number = 0;//主要指数的昨收
 
-    // currentMarketData: any = {};
+
     bestStockUktoIndex: any = {};
     worstStockUktoIndex: any = {};
 
@@ -371,47 +371,43 @@ export class DashboardComponent implements OnInit, OnDestroy {
             appid: 17,
             packid: 110,
             callback: (msg) => {
-
                 let stockIncrease = msg.content.last > msg.content.pre_close ? '+' + Math.round(1000 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close) / 100 : Math.round(1000 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close) / 100;
                 // this.currentMarketData[msg.content.ukey] = { 'stockPrice': msg.content.last, 'stockIncrease': stockIncrease };
 
-                if (this.selfStockUkList.indexOf(msg.content.ukey) != -1) {//主要指数
-                    //主要指数列表
-                    this.selfStockData.forEach((item, index) => {
-                        if (item.ukey == msg.content.ukey) {
-                            this.selfStockTable.rows[index].cells[2].Text = (msg.content.last / 10000).toFixed(2);
-                            this.selfStockTable.rows[index].cells[3].Text = ((msg.content.last - msg.content.pre_close) / 10000).toFixed(2);
-                            this.selfStockTable.rows[index].cells[4].Text = (100 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2) + '%';
-                            this.selfStockTable.rows[index].cells[5].Text = (msg.content.volume / 10000).toFixed(2);
-                            this.selfStockTable.rows[index].cells[6].Text = (msg.content.turnover / 10000).toFixed(2);
-                            if (msg.content.last > msg.content.pre_close) {
-                                this.selfStockTable.rows[index].cells[2].Color = 'rgb(234, 47, 47)';
-                                this.selfStockTable.rows[index].cells[3].Color = 'rgb(234, 47, 47)';
-                                this.selfStockTable.rows[index].cells[4].Color = 'rgb(234, 47, 47)';
-                                this.selfStockTable.rows[index].cells[3].Text = '+' + ((msg.content.last - msg.content.pre_close) / 10000).toFixed(2);
-                                this.selfStockTable.rows[index].cells[4].Text = '+' + (100 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2) + '%';
-                            } else if (msg.content.last < msg.content.pre_close) {
-                                this.selfStockTable.rows[index].cells[2].Color = 'rgb(55, 177, 78)';
-                                this.selfStockTable.rows[index].cells[3].Color = 'rgb(55, 177, 78)';
-                                this.selfStockTable.rows[index].cells[4].Color = 'rgb(55, 177, 78)';
+                let marketTime = this.myGetTime(msg.content.time);//当前行情的时间
+                let marketIndex = this.selfStockXdata.indexOf(marketTime);//当前行情在echarts中的位置
+                if (marketIndex != -1) {//找到相应的时间轴索引
+                    if (this.selfStockUkList.indexOf(msg.content.ukey) != -1) {//主要指数
+                        //主要指数列表
+                        this.selfStockData.forEach((item, index) => {
+                            if (item.ukey == msg.content.ukey) {
+                                this.selfStockTable.rows[index].cells[2].Text = (msg.content.last / 10000).toFixed(2);
+                                this.selfStockTable.rows[index].cells[3].Text = ((msg.content.last - msg.content.pre_close) / 10000).toFixed(2);
+                                this.selfStockTable.rows[index].cells[4].Text = (100 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2) + '%';
+                                this.selfStockTable.rows[index].cells[5].Text = (msg.content.volume / 10000).toFixed(2) + '万';
+                                this.selfStockTable.rows[index].cells[6].Text = (msg.content.turnover / 10000).toFixed(2) + '万';
+                                if (msg.content.last > msg.content.pre_close) {
+                                    this.selfStockTable.rows[index].cells[2].Color = 'rgb(234, 47, 47)';
+                                    this.selfStockTable.rows[index].cells[3].Color = 'rgb(234, 47, 47)';
+                                    this.selfStockTable.rows[index].cells[4].Color = 'rgb(234, 47, 47)';
+                                    this.selfStockTable.rows[index].cells[3].Text = '+' + ((msg.content.last - msg.content.pre_close) / 10000).toFixed(2);
+                                    this.selfStockTable.rows[index].cells[4].Text = '+' + (100 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2) + '%';
+                                } else if (msg.content.last < msg.content.pre_close) {
+                                    this.selfStockTable.rows[index].cells[2].Color = 'rgb(55, 177, 78)';
+                                    this.selfStockTable.rows[index].cells[3].Color = 'rgb(55, 177, 78)';
+                                    this.selfStockTable.rows[index].cells[4].Color = 'rgb(55, 177, 78)';
+                                }
                             }
-                        }
-                    })
-                    if (msg.content.ukey == this.mainStockUk) {//实时行情
-                        console.log('this.mainStockUk' + this.mainStockUk)
+                        })
 
-                        let marketTime = this.myGetTime(msg.content.time);//当前行情的时间
-
-                        let middle = Math.round(msg.content.pre_close / 10000);//昨收
-
-
-                        let marketIndex = this.selfStockXdata.indexOf(marketTime);//当前行情在echarts中的位置
-                        let turnover = Math.round(msg.content.turnover / 100) / 100;//当前时刻行情的成交金额
-
-                        if (marketIndex != -1) {//找到相应的时间轴索引
-
+                        if (msg.content.ukey == this.mainStockUk) {//主要指数的实时行情
+                            console.log('this.mainStockUk' + this.mainStockUk)
+                            let middle = Math.round(msg.content.pre_close / 10000);//昨收值
+                            let turnover = Math.round(msg.content.turnover / 100) / 100;//当前时刻行情的成交金额
                             if (marketIndex == 0) {//找到的是第一个值的时候，比如第二天
                                 this.initSelfStockLine(middle);
+                                this.selfStockBarChange.series[0].data[marketIndex] = turnover;
+                                this.preTurnOver = turnover;//上一时刻的成交量
                                 this.selfStockPriceLine.setOption(this.selfStockLineChange);
                                 this.initSelfStockBar();
                                 this.selfStockMoneyBar.setOption(this.selfStockBarChange);
@@ -423,8 +419,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 this.preMarketTime = marketTime;//上一时刻的时间
                             }
                             let lastPrice = Number((msg.content.last / 10000).toFixed(2));//现价
-                            // this.selfStockLineChange.yAxis.min = Math.ceil(lastPrice) - 1;
-                            // this.selfStockLineChange.yAxis.max = Math.ceil(lastPrice) + 1;
                             this.selfStockLineChange.series[0].data[marketIndex] = lastPrice;
                             if (this.selfStockLineChange.yAxis.min > lastPrice) {
                                 this.selfStockLineChange.yAxis.min = lastPrice;
@@ -446,14 +440,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
                             //切换页面或刚进入页面的时候初始化
                             if (this.preTurnOver == 0 && marketIndex != 0) {
-                                this.preTurnOver = turnover;//上一时刻的成交量
+                                this.preTurnOver = turnover;//上一时刻的成交金额
                                 this.selfStockLineChange.series[0].markLine.data[0].yAxis = msg.content.pre_close / 10000;//zuoshou
                                 this.selfStockLineChange.yAxis.min = middle - 2;
                                 this.selfStockLineChange.yAxis.max = middle + 2;
                                 this.selfStockLineChange.yAxis.interval = 1;
                                 this.selfStockPriceLine.setOption(this.selfStockLineChange);
                             } else if (this.preTurnOver != 0) {
-                                this.nowTurnover = Number((turnover - this.preTurnOver + this.nowTurnover).toFixed(2));//当前时间的成交量
+                                this.nowTurnover = Number((turnover - this.preTurnOver + this.nowTurnover).toFixed(2));//当前时间的成金额
                                 this.preTurnOver = turnover;//上一时刻的成交量
 
                                 if (this.selfStockBarChange.yAxis.max < this.nowTurnover) {//设置成交金额的最大值
@@ -469,61 +463,64 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
                         }
                     }
-                }
-                if (msg.content.ukey == 2490646) {//中证1000的涨幅
-                    this.refStockIncrease = Number(stockIncrease);
-                    console.log('this.refStockIncrease' + this.refStockIncrease);
-                }
-                // console.log('stockIncrease' + stockIncrease)
 
-                if (this.ukCodeList.indexOf(msg.content.ukey) != -1) {
-                    let ukInBestIndex = this.bestStockUktoIndex[msg.content.ukey];
-                    let ukInWorstIndex = this.worstStockUktoIndex[msg.content.ukey];
-                    if (this.refStockIncrease != 0) {//参考股的数值回来才有超额涨幅
-                        //超额涨幅
-                        let overStockIncrease = Number((Number(stockIncrease) - this.refStockIncrease).toFixed(2));
+                    if (msg.content.ukey == 2490646) {//中证1000的涨幅
+                        this.refStockIncrease = Number(stockIncrease);
+                        console.log('this.refStockIncrease' + this.refStockIncrease);
+                    }
+                    // console.log('stockIncrease' + stockIncrease)
+                    if (msg.content.ukey == 2162982) {
+                        console.log(msg)
+                    }
+                    if (this.ukCodeList.indexOf(msg.content.ukey) != -1) {//AI看盘的实时行情
+                        let ukInBestIndex = this.bestStockUktoIndex[msg.content.ukey];
+                        let ukInWorstIndex = this.worstStockUktoIndex[msg.content.ukey];
+                        if (this.refStockIncrease != 0) {//参考股的数值回来才有超额涨幅
+                            //超额涨幅
+                            let overStockIncrease = Number((Number(stockIncrease) - this.refStockIncrease).toFixed(2));
+                            if (ukInBestIndex != undefined) {
+                                if (overStockIncrease > 0) {
+                                    this.bestStockList.rows[ukInBestIndex].cells[3].Text = '+' + overStockIncrease + '%';
+                                    this.bestStockList.rows[ukInBestIndex].cells[3].Color = 'rgb(234, 47, 47)';
+                                } else if (overStockIncrease < 0) {
+                                    this.bestStockList.rows[ukInBestIndex].cells[3].Text = overStockIncrease + '%';
+                                    this.bestStockList.rows[ukInBestIndex].cells[3].Color = 'rgb(55, 177, 78)';
+                                }
+                            }
+                            if (ukInWorstIndex != undefined) {
+                                if (overStockIncrease > 0) {
+                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Text = '+' + overStockIncrease + '%';
+                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Color = 'rgb(234, 47, 47)';
+                                } else if (overStockIncrease < 0) {
+                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Text = overStockIncrease + '%';
+                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Color = 'rgb(55, 177, 78)';
+                                }
+                            }
+                        }
                         if (ukInBestIndex != undefined) {
-                            if (overStockIncrease > 0) {
-                                this.bestStockList.rows[ukInBestIndex].cells[3].Text = '+' + overStockIncrease + '%';
-                                this.bestStockList.rows[ukInBestIndex].cells[3].Color = 'rgb(234, 47, 47)';
-                            } else if (overStockIncrease < 0) {
-                                this.bestStockList.rows[ukInBestIndex].cells[3].Text = overStockIncrease + '%';
-                                this.bestStockList.rows[ukInBestIndex].cells[3].Color = 'rgb(55, 177, 78)';
+                            this.bestStockList.rows[ukInBestIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
+                            this.bestStockList.rows[ukInBestIndex].cells[2].Text = stockIncrease + '%';
+                            if (Number(stockIncrease) > 0) {
+                                this.bestStockList.rows[ukInBestIndex].cells[2].Color = 'rgb(234, 47, 47)';
+                            } else if (Number(stockIncrease) < 0) {
+                                this.bestStockList.rows[ukInBestIndex].cells[2].Color = 'rgb(55, 177, 78)';
                             }
                         }
                         if (ukInWorstIndex != undefined) {
-                            if (overStockIncrease > 0) {
-                                this.worstStockList.rows[ukInWorstIndex].cells[3].Text = '+' + overStockIncrease + '%';
-                                this.worstStockList.rows[ukInWorstIndex].cells[3].Color = 'rgb(234, 47, 47)';
-                            } else if (overStockIncrease < 0) {
-                                this.worstStockList.rows[ukInWorstIndex].cells[3].Text = overStockIncrease + '%';
-                                this.worstStockList.rows[ukInWorstIndex].cells[3].Color = 'rgb(55, 177, 78)';
+                            this.worstStockList.rows[ukInWorstIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
+                            this.worstStockList.rows[ukInWorstIndex].cells[2].Text = stockIncrease + '%';
+                            if (Number(stockIncrease) > 0) {
+                                this.worstStockList.rows[ukInWorstIndex].cells[2].Color = 'rgb(234, 47, 47)';
+                            } else if (Number(stockIncrease) < 0) {
+                                this.worstStockList.rows[ukInWorstIndex].cells[2].Color = 'rgb(55, 177, 78)';
                             }
-                        }
-                    }
-                    if (ukInBestIndex != undefined) {
-                        this.bestStockList.rows[ukInBestIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
-                        this.bestStockList.rows[ukInBestIndex].cells[2].Text = stockIncrease + '%';
-                        if (Number(stockIncrease) > 0) {
-                            this.bestStockList.rows[ukInBestIndex].cells[2].Color = 'rgb(234, 47, 47)';
-                        } else if (Number(stockIncrease) < 0) {
-                            this.bestStockList.rows[ukInBestIndex].cells[2].Color = 'rgb(55, 177, 78)';
-                        }
-                    }
-                    if (ukInWorstIndex != undefined) {
-                        this.worstStockList.rows[ukInWorstIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
-                        this.worstStockList.rows[ukInWorstIndex].cells[2].Text = stockIncrease + '%';
-                        if (Number(stockIncrease) > 0) {
-                            this.worstStockList.rows[ukInWorstIndex].cells[2].Color = 'rgb(234, 47, 47)';
-                        } else if (Number(stockIncrease) < 0) {
-                            this.worstStockList.rows[ukInWorstIndex].cells[2].Color = 'rgb(55, 177, 78)';
                         }
                     }
                 }
             }
         });
 
-        //预警接口
+        //预警接口 
         this.config.on("getAlarmMessageAns", (data) => {
             let alarmlvObj = { '0': '不重要', '1': '一般', '2': '危险', '3': '紧急' };
             let statObj = { '0': '未处理', '1': '处理中' };
@@ -616,6 +613,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     allProWeightGaugeChangeOpt.xAxis[0].data.push(item.caname);
                     let money = Number(item.stock_validamt) + Number(item.futures_validamt) + Number(item.futures_value) - Number(item.totalmargin);
                     let totalMoney = money + Number(item.stock_validamt) + Number(item.totalmargin) + Number(item.subject_amount);
+                    if(totalMoney == 0){
+                        totalMoney = 1;
+                    }
                     //股票可用资金
                     allProWeightGaugeChangeOpt.series[0].data.push(Math.round(10000 * Number(item.stock_validamt) / totalMoney) / 100);
                     //期货保证金
@@ -676,7 +676,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         //todo列表
         this.config.on('getTodoListAns', data => {
-            this.todoListData = data.body;
+            this.todoListData = data.body.reverse();
             this.todoList.rows.length = 0;
 
             this.todoListData.forEach((item, itemIndex) => {
@@ -699,7 +699,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 row.cells[1].Type == "plaintext"
                 row.cells[2].Text = item.createtime.substring(0, 10);
                 row.cells[3].Type = "button-group";
-                // row.cells[3].Class = 'success'
+                row.cells[3].Class = 'default';
                 row.cells[3].Text = ["edit", "trash"];
 
 
@@ -1111,7 +1111,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-
+        this.quote.send(17, 101, { topic: 3112, kwlist: [] });
     }
 }
 
