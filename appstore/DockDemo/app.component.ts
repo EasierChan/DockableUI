@@ -234,15 +234,13 @@ export class AppComponent implements OnInit {
         let orderstatusContent = new VBox();
 
         let orderstatusHeader = new HBox();
-        let cb_handle = new CheckBox();
-        cb_handle.Text = true;
-        let handle = "Handle";
-        let rtnHandle = this.langServ.get(handle);
-        cb_handle.Title = rtnHandle;
+        let cb_handle = new Label();
+        cb_handle.Text = this.langServ.get("Handle");
+        // cb_handle.Title = this.langServ.get("Handle");
         orderstatusHeader.addChild(cb_handle);
         let dd_status = new DropDown();
         dd_status.Left = 10;
-        dd_status.addItem({ Text: "all    ", Value: "-1" });
+        dd_status.addItem({ Text: "-全部-", Value: "-1" });
         dd_status.addItem({ Text: "0.无效", Value: "0" });
         dd_status.addItem({ Text: "1.未报", Value: "1" });
         dd_status.addItem({ Text: "2.待报", Value: "2" });
@@ -273,15 +271,13 @@ export class AppComponent implements OnInit {
 
         let btn_cancel = new Button();
         btn_cancel.Left = 10;
-        let cancel = "CancelSelected";
-        let rtnCancel = this.langServ.get(cancel);
-        btn_cancel.Text = rtnCancel;
+        btn_cancel.Text = this.langServ.get("CancelSelected");
         orderstatusHeader.addChild(btn_cancel);
         orderstatusContent.addChild(orderstatusHeader);
         cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = false;
-        cb_handle.OnClick = () => {
-            cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
-        };
+        // cb_handle.OnClick = () => {
+        //     cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
+        // };
         dd_status.SelectChange = (item) => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
                 if (dd_status.SelectedItem.Value === "-1") {   // all
@@ -323,7 +319,7 @@ export class AppComponent implements OnInit {
 
         this.orderstatusTable = new DataTable("table2");
         let orderstatusArr: string[] = ["Check", "U-Key", "SymbolCode", "OrderId", "Time", "Strategy",
-            "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account"];
+            "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "PortfolioList"];
         let orderstatusTableRtnArr: string[] = [];
         let orderstatusTableTitleLen = orderstatusArr.length;
         for (let i = 0; i < orderstatusTableTitleLen; ++i) {
@@ -341,7 +337,7 @@ export class AppComponent implements OnInit {
         let doneOrdersContent = new VBox();
         this.doneOrdersTable = new DataTable("table2");
         let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
-            "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "Account", "OrderTime",
+            "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "PortfolioList", "OrderTime",
             "OrderPrice", "SymbolCode"];
         let doneOrderTableRtnArr: string[] = [];
         let doneOrderTableTittleLen = doneorderTableArr.length;
@@ -357,11 +353,11 @@ export class AppComponent implements OnInit {
         this.doneOrdersPage.setContent(doneOrdersContent);
 
 
-        this.accountPage = new TabPage("Account", this.langServ.get("Account"));
+        this.accountPage = new TabPage("Account", this.langServ.get("PortfolioList"));
         this.pageMap["Account"] = this.accountPage;
         let accountContent = new VBox();
         this.accountTable = new DataTable("table");
-        let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
+        let accountTableArr: string[] = ["PortfolioID", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
             "ShangHai", "ShenZhen", "BuyFrzAmt", "SellFrzAmt", "Buymargin", "SellMargin", "TotalMargin", "Fee",
             "PositionPL", "ClosePL"];
         let accountTableRtnArr: string[] = [];
@@ -381,7 +377,7 @@ export class AppComponent implements OnInit {
         this.pageMap["Position"] = this.positionPage;
         let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
-        let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
+        let positionTableArr: string[] = ["PortfolioID", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
             "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"];
         let positionTableRtnArr: string[] = [];
         let positionTableTittleLen = positionTableArr.length;
@@ -428,7 +424,7 @@ export class AppComponent implements OnInit {
         let account_firrow = new HBox();
         this.dd_Account = new DropDown();
         this.dd_Account.Width = 120;
-        let dd_accountRtn = this.langServ.get("Account");
+        let dd_accountRtn = this.langServ.get("PortfolioID");
         let account_Label = new Label();
         if (this.languageType === 0)
             account_Label.Text = "  " + dd_accountRtn + ": ";
@@ -707,7 +703,7 @@ export class AppComponent implements OnInit {
         this.dd_portfolioAccount = new DropDown();
         this.dd_portfolioAccount.Width = 110;
         this.dd_portfolioAccount.Left = statarbLeftAlign;
-        this.dd_portfolioAccount.Title = this.langServ.get("Account") + ":";
+        this.dd_portfolioAccount.Title = this.langServ.get("PortfolioID") + ":";
 
 
         this.portfolioLabel = new MetaControl("textbox");
@@ -1087,7 +1083,7 @@ export class AppComponent implements OnInit {
         reqbtn.Text = this.langServ.get("Req");
         profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
         this.profitTable = new DataTable("table2");
-        let profittableArr: string[] = ["U-Key", "Code", "Account", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
+        let profittableArr: string[] = ["U-Key", "Code", "PortfolioID", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
             "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
             "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"];
         let profitTableTittleLen = profittableArr.length;
@@ -2084,7 +2080,7 @@ export class AppComponent implements OnInit {
                         let commandIdx = strategyKeyMap.commands.findIndex(item => { return data[iData].key === item.key; });
                         if (commandIdx >= 0) { // update
                             let iCol = this.kInitColumns + strategyKeyMap.comments1.length + commandIdx;
-                            this.strategyTable.rows[iRow].cells[iCol].Text = data[iData].name;
+                            this.strategyTable.rows[iRow].cells[iCol].Text = this.langServ.get(data[iData].name);
                             this.strategyTable.rows[iRow].cells[iCol].Data = data[iData];
                             this.strategyTable.rows[iRow].cells[iCol].Disable = data[iData].value === 0;
                         }
