@@ -166,7 +166,7 @@ export class StrategyDealer {
             }
         }, {
                 service: ServiceType.kStrategy,
-                msgtype: this.appid,
+                msgtype: 1001,
                 callback: (msg) => {
                     this.decode(msg.content);
                 }
@@ -505,7 +505,7 @@ export class StrategyDealer {
         option.id = OptionType.kInstanceID;
         option.value = Buffer.alloc(8, 0);
         option.value.writeIntLE(this.appid, 0, 8);
-        this.tradePoint.sendWithOption(this.appid, [option], Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen), ServiceType.kStrategy);
+        this.tradePoint.sendWithOption(1000, [option], Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen), ServiceType.kStrategy);
         head = null;
     }
 
