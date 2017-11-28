@@ -522,221 +522,238 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         //预警接口 
         this.config.on("getAlarmMessageAns", (data) => {
-            let alarmlvObj = { '0': '不重要', '1': '一般', '2': '危险', '3': '紧急' };
-            let statObj = { '0': '未处理', '1': '处理中' };
-            this.alarmTableData = data.body;
+            if (data.msret.msgcode == '00') {
+                let alarmlvObj = { '0': '不重要', '1': '一般', '2': '危险', '3': '紧急' };
+                let statObj = { '0': '未处理', '1': '处理中' };
+                this.alarmTableData = data.body;
 
 
-            this.alarmTableData.forEach(item => {
-                if (item.stat == '0' || item.stat == '1') {
-                    let alarmtime = item.alarmtime.substring(0, 10);
-                    let row = this.alarmTable.newRow();
-                    row.cells[0].Text = item.appname;
-                    row.cells[1].Text = item.content;
-                    row.cells[2].Text = alarmlvObj[item.alarmlv];
-                    row.cells[3].Text = statObj[item.stat];
-                    if (this.nowDate == alarmtime) {
-                        row.cells[4].Text = item.alarmtime.substring(10);
-                    } else {
-                        row.cells[4].Text = alarmtime;
+                this.alarmTableData.forEach(item => {
+                    if (item.stat == '0' || item.stat == '1') {
+                        let alarmtime = item.alarmtime.substring(0, 10);
+                        let row = this.alarmTable.newRow();
+                        row.cells[0].Text = item.appname;
+                        row.cells[1].Text = item.content;
+                        row.cells[2].Text = alarmlvObj[item.alarmlv];
+                        row.cells[3].Text = statObj[item.stat];
+                        if (this.nowDate == alarmtime) {
+                            row.cells[4].Text = item.alarmtime.substring(10);
+                        } else {
+                            row.cells[4].Text = alarmtime;
+                        }
                     }
-                }
-            })
+                })
+            }
         });
 
         //产品信息
         this.config.on("getProductAns", (data) => {
-            let productScaleChangeOpt = {
-                yAxis: { data: [] },
-                series: [{ data: [] }]
-            }
+            if (data.msret.msgcode == '00') {
+                let productScaleChangeOpt = {
+                    yAxis: { data: [] },
+                    series: [{ data: [] }]
+                }
 
-            this.productData = data.body;
-            this.nowProductIndex = this.productData.length;
-            this.productDataSort = this.productData.sort(this.compare('totalint'));
-            this.productDataSort.forEach(item => {
-                productScaleChangeOpt.yAxis.data.push(item.caname);
-                productScaleChangeOpt.series[0].data.push(Math.log(item.totalint < 1 ? 1 : item.totalint) / Math.log(2));
-            })
-            this.productScaleBar.setOption(productScaleChangeOpt);
-            this.nowProductCaid = this.productData[0].caid;
-            this.productNetData = [];
-            this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: {} });
-            this.tradePoint.send(260, 251, { head: { realActor: "getProductNet" }, body: { caid: this.nowProductCaid } });
+                this.productData = data.body;
+                this.nowProductIndex = this.productData.length;
+                this.productDataSort = this.productData.sort(this.compare('totalint'));
+                this.productDataSort.forEach(item => {
+                    productScaleChangeOpt.yAxis.data.push(item.caname);
+                    productScaleChangeOpt.series[0].data.push(Math.log(item.totalint < 1 ? 1 : item.totalint) / Math.log(2));
+                })
+                this.productScaleBar.setOption(productScaleChangeOpt);
+                this.nowProductCaid = this.productData[0].caid;
+                this.productNetData = [];
+                this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: {} });
+                this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: {caid: this.nowProductCaid } });
+                this.tradePoint.send(260, 251, { head: { realActor: "getProductNet" }, body: { caid: this.nowProductCaid } });
+
+            }
 
         })
 
         //产品净值
         this.config.on("getProductNetAns", (data) => {
-            let productNetChangeOpt = {
-                title: { text: '' },
-                xAxis: [{ data: [] }],
-                series: [{ data: [] }]
+            if (data.msret.msgcode == '00') {
+                let productNetChangeOpt = {
+                    title: { text: '' },
+                    xAxis: [{ data: [] }],
+                    series: [{ data: [] }]
+                }
+                this.productNetData = data.body;
+                this.productNetData.forEach(item => {
+                    productNetChangeOpt.xAxis[0].data.push(item.trday);
+                    productNetChangeOpt.title.text = item.caname;
+                    productNetChangeOpt.series[0].data.push(item.netvalue);
+                })
+                this.productNetChart.setOption(productNetChangeOpt);
             }
-            this.productNetData = data.body;
-            this.productNetData.forEach(item => {
-                productNetChangeOpt.xAxis[0].data.push(item.trday);
-                productNetChangeOpt.title.text = item.caname;
-                productNetChangeOpt.series[0].data.push(item.netvalue);
-            })
-            this.productNetChart.setOption(productNetChangeOpt);
         })
 
         //getMonitorProductsAns
         this.config.on("getMonitorProductsAns", (data) => {
+            if (data.msret.msgcode == '00') {
+                this.monitorProductsData = data.body;
+                if (this.monitorProductsData[0].caid == this.nowProductCaid && this.monitorProductsData.length == 1) {//获取单个产品数据
 
-            this.monitorProductsData = data.body;
+                    this.nowMonitorProductsData = this.monitorProductsData;
+                    //期货权益
+                    this.futuresProfit = Number(this.nowMonitorProductsData[0].futures_validamt) + Number(this.nowMonitorProductsData[0].futures_value);
+                    //风险度
+                    this.riskDegree = (this.futuresProfit == 0) ? 0 : Number(Math.round(10000 * (Number(this.nowMonitorProductsData[0].totalmargin) / this.futuresProfit)) / 100)
+                    //当日盈亏
 
-            this.nowMonitorProductsData = this.monitorProductsData.filter(item => {
-                return item.caid == this.nowProductCaid;
-            })
-            //期货权益
-            this.futuresProfit = Number(this.nowMonitorProductsData[0].futures_validamt) + Number(this.nowMonitorProductsData[0].futures_value);
-            //风险度
-            this.riskDegree = (this.futuresProfit == 0) ? 0 : Number(Math.round(10000 * (Number(this.nowMonitorProductsData[0].totalmargin) / this.futuresProfit)) / 100)
-            //当日盈亏
+                    this.totalProfitAndLoss = this.toThousands(((Number(this.nowMonitorProductsData[0].hold_closepl) + Number(this.nowMonitorProductsData[0].hold_posipl)) / 1000).toFixed(1));
+                    //浮动盈亏 
+                    this.floatProfitAndLoss = this.toThousands((this.nowMonitorProductsData[0].hold_posipl / 1000).toFixed(1));
 
-            this.totalProfitAndLoss = this.toThousands((Number(this.nowMonitorProductsData[0].hold_closepl) + Number(this.nowMonitorProductsData[0].hold_posipl)) / 1000);
-            //浮动盈亏 
-            this.floatProfitAndLoss = this.toThousands(this.nowMonitorProductsData[0].hold_posipl / 1000);
+                    //敞口比例
+                    this.riskExposure = (Number(this.nowMonitorProductsData[0].totalint) == 0) ? 0 : Math.round(10000 * Number(Number(this.nowMonitorProductsData[0].risk_exposure) / Number(this.nowMonitorProductsData[0].totalint))) / 100;
 
-            //敞口率
-            this.riskExposure = (Number(this.nowMonitorProductsData[0].totalint) == 0) ? 0 : Math.round(10000 * Number(Number(this.nowMonitorProductsData[0].risk_exposure) / Number(this.nowMonitorProductsData[0].totalint))) / 100;
-
-            let allProWeightGaugeChangeOpt = {
-                xAxis: [{ data: [] }],
-                series: [{ data: [] }, { data: [] }, { data: [] }, { data: [] }]
-            }
-            //产品资产比重改变值
-            if (this.monitorProductsData.length > 1) {
-                this.monitorProductsData.forEach(item => {
-                    allProWeightGaugeChangeOpt.xAxis[0].data.push(item.caname);
-                    let money = Number(item.stock_validamt) + Number(item.futures_validamt) + Number(item.futures_value) - Number(item.totalmargin);
-                    let totalMoney = money + Number(item.stock_validamt) + Number(item.totalmargin) + Number(item.subject_amount);
-                    if(totalMoney == 0){
-                        totalMoney = 1;
+                } else {
+                    let allProWeightGaugeChangeOpt = {
+                        xAxis: [{ data: [] }],
+                        series: [{ data: [] }, { data: [] }, { data: [] }, { data: [] }]
                     }
-                    //股票可用资金
-                    allProWeightGaugeChangeOpt.series[0].data.push(Math.round(10000 * Number(item.stock_validamt) / totalMoney) / 100);
-                    //期货保证金
-                    allProWeightGaugeChangeOpt.series[1].data.push(Math.round(10000 * Number(item.totalmargin) / totalMoney) / 100);
-                    //现金
-                    allProWeightGaugeChangeOpt.series[2].data.push(Math.round(10000 * money / totalMoney) / 100);
-                    //其他资产
-                    allProWeightGaugeChangeOpt.series[3].data.push(Math.round(10000 * Number(item.subject_amount) / totalMoney) / 100);
-                })
-                this.allProductWeightGauge.setOption(allProWeightGaugeChangeOpt);
+                    //产品资产比重改变值
+                    if (this.monitorProductsData.length > 1) {
+                        this.monitorProductsData.forEach(item => {
+                            allProWeightGaugeChangeOpt.xAxis[0].data.push(item.caname);
+                            let money = Number(item.stock_validamt) + Number(item.futures_validamt) + Number(item.futures_value) - Number(item.totalmargin);
+                            let totalMoney = money + Number(item.stock_validamt) + Number(item.totalmargin) + Number(item.subject_amount);
+                            if (totalMoney == 0) {
+                                totalMoney = 1;
+                            }
+                            //股票可用资金
+                            allProWeightGaugeChangeOpt.series[0].data.push(Math.round(10000 * Number(item.stock_validamt) / totalMoney) / 100);
+                            //期货保证金
+                            allProWeightGaugeChangeOpt.series[1].data.push(Math.round(10000 * Number(item.totalmargin) / totalMoney) / 100);
+                            //现金
+                            allProWeightGaugeChangeOpt.series[2].data.push(Math.round(10000 * money / totalMoney) / 100);
+                            //其他资产
+                            allProWeightGaugeChangeOpt.series[3].data.push(Math.round(10000 * Number(item.subject_amount) / totalMoney) / 100);
+                        })
+                        this.allProductWeightGauge.setOption(allProWeightGaugeChangeOpt);
+                    }
+                }
             }
         })
 
         //最好的30股票
 
         this.config.on('getBestStocksAns', data => {
-            this.aiStockDate.bestStockListData = data.body;
-            this.bestStockList.RowIndex = false; // 去除序列
+            if (data.msret.msgcode == '00') {
+                this.aiStockDate.bestStockListData = data.body;
+                this.bestStockList.RowIndex = false; // 去除序列
 
 
-            this.bestStockList.backgroundColor = '#fff'
+                this.bestStockList.backgroundColor = '#fff'
 
-            this.aiStockDate.bestStockListData.forEach((item, index) => {
-                this.ukCodeList.push(Number(item.ukcode));
-                this.dashAllUkcodeList.push(Number(item.ukcode));
-                let row = this.bestStockList.newRow();
-                this.bestStockUktoIndex[item.ukcode] = index;
+                this.aiStockDate.bestStockListData.forEach((item, index) => {
+                    this.ukCodeList.push(Number(item.ukcode));
+                    this.dashAllUkcodeList.push(Number(item.ukcode));
+                    let row = this.bestStockList.newRow();
+                    this.bestStockUktoIndex[item.ukcode] = index;
 
-                row.cells[0].Text = item.windcode;
-                row.cells[0].Color = "rgb(234, 47, 47)";
-                row.cells[1].Text = '--';
-                row.cells[2].Text = '--';
-                row.cells[3].Text = '--';
-
-            })
-            this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
+                    row.cells[0].Text = item.windcode;
+                    row.cells[0].Color = "rgb(234, 47, 47)";
+                    row.cells[1].Text = '--';
+                    row.cells[2].Text = '--';
+                    row.cells[3].Text = '--';
+                })
+                this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
+            }
         })
 
         //最差的30股
         this.config.on('getWorstStocksAns', data => {
-            this.aiStockDate.worstStockListData = data.body;
-            this.worstStockList.RowIndex = false; // 去除序列
+            if (data.msret.msgcode == '00') {
+                this.aiStockDate.worstStockListData = data.body;
+                this.worstStockList.RowIndex = false; // 去除序列
 
-            this.aiStockDate.worstStockListData.forEach((item, index) => {
-                this.ukCodeList.push(Number(item.ukcode));
-                this.dashAllUkcodeList.push(Number(item.ukcode));
-                let row = this.worstStockList.newRow();
-                this.worstStockUktoIndex[item.ukcode] = index;
+                this.aiStockDate.worstStockListData.forEach((item, index) => {
+                    this.ukCodeList.push(Number(item.ukcode));
+                    this.dashAllUkcodeList.push(Number(item.ukcode));
+                    let row = this.worstStockList.newRow();
+                    this.worstStockUktoIndex[item.ukcode] = index;
 
-                row.cells[0].Text = item.windcode;
-                row.cells[0].Color = "rgb(55, 177, 78)";
-                row.cells[1].Text = '--';
-                row.cells[2].Text = '--';
-                row.cells[3].Text = '--';
-            })
-            this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
+                    row.cells[0].Text = item.windcode;
+                    row.cells[0].Color = "rgb(55, 177, 78)";
+                    row.cells[1].Text = '--';
+                    row.cells[2].Text = '--';
+                    row.cells[3].Text = '--';
+                })
+                this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
+            }
+
         })
 
         //todo列表
         this.config.on('getTodoListAns', data => {
-            this.todoListData = data.body.reverse();
-            this.todoList.rows.length = 0;
+            if (data.msret.msgcode == '00') {
+                this.todoListData = data.body.reverse();
+                this.todoList.rows.length = 0;
 
-            this.todoListData.forEach((item, itemIndex) => {
-                let row = this.todoList.newRow();
-                let todoTime = new Date(item.createtime.substring(0, 10));
-                if (item.stat == '1') {
-                    row.cells[1].Color = 'rgb(93, 83, 84)';
-                    row.cells[2].Color = 'rgb(93, 83, 84)';
-                } else if (new Date(this.nowDate) > todoTime) {
-                    row.cells[1].Color = 'rgb(234, 47, 47)';
-                    row.cells[2].Color = 'rgb(234, 47, 47)';
-                }
-
-                row.cells[0].Type = "checkbox";
-                row.cells[0].Text = item.stat;
-                row.cells[0].Data = item.id;
-                row.cells[0].Text = (item.stat == '1') ? true : false;
-
-                row.cells[1].Text = item.content;
-                row.cells[1].Type == "plaintext"
-                row.cells[2].Text = item.createtime.substring(0, 10);
-                row.cells[3].Type = "button-group";
-                row.cells[3].Class = 'default';
-                row.cells[3].Text = ["edit", "trash"];
-
-
-                row.cells[3].OnClick = (index) => {
-                    this.todoRowIndex = itemIndex;
-                    this.nowOperateId = item.id
-                    this.nowOperateStat = item.stat;
-
-                    if (row.cells[1].Type == "textbox") {
-                        if (index == 1) {//确认编辑
-                            this.tradePoint.send(260, 251, {
-                                head: { realActor: "editTodo" }, body: {
-                                    id: this.nowOperateId,
-                                    stat: this.nowOperateStat,
-                                    content: row.cells[1].Text,
-                                    createtime: row.cells[2].Text
-                                }
-                            });
-                        } else if (index == 0) {//取消编辑
-                            row.cells[1].Text = item.content;
-                            row.cells[2].Text = item.createtime.substring(0, 10);
-                            row.cells[3].Text = ["edit", "trash"];
-                            row.cells[1].Type = "plaintext";
-                            row.cells[2].Type = "plaintext";
-                        }
-                    } else if (row.cells[1].Type == "plaintext") {
-                        if (index == 1) {//删除操作
-                            this.tradePoint.send(260, 251, { head: { realActor: "deleteTodo" }, body: { id: this.nowOperateId } });
-                        } else if (index == 0) {//编辑
-                            row.cells[1].Type = "textbox";
-                            row.cells[2].Type = "date";
-                            row.cells[3].Text = ["ok", "remove"];
-                        }
+                this.todoListData.forEach((item, itemIndex) => {
+                    let row = this.todoList.newRow();
+                    let todoTime = new Date(item.createtime.substring(0, 10));
+                    if (item.stat == '1') {
+                        row.cells[1].Color = 'rgb(93, 83, 84)';
+                        row.cells[2].Color = 'rgb(93, 83, 84)';
+                    } else if (new Date(this.nowDate) > todoTime) {
+                        row.cells[1].Color = 'rgb(234, 47, 47)';
+                        row.cells[2].Color = 'rgb(234, 47, 47)';
                     }
-                };
-            })
-            this.addTodoContent = '';
+
+                    row.cells[0].Type = "checkbox";
+                    row.cells[0].Text = item.stat;
+                    row.cells[0].Data = item.id;
+                    row.cells[0].Text = (item.stat == '1') ? true : false;
+
+                    row.cells[1].Text = item.content;
+                    row.cells[1].Type == "plaintext"
+                    row.cells[2].Text = item.createtime.substring(0, 10);
+                    row.cells[3].Type = "button-group";
+                    row.cells[3].Class = 'default';
+                    row.cells[3].Text = ["edit", "trash"];
+
+
+                    row.cells[3].OnClick = (index) => {
+                        this.todoRowIndex = itemIndex;
+                        this.nowOperateId = item.id
+                        this.nowOperateStat = item.stat;
+
+                        if (row.cells[1].Type == "textbox") {
+                            if (index == 1) {//确认编辑
+                                this.tradePoint.send(260, 251, {
+                                    head: { realActor: "editTodo" }, body: {
+                                        id: this.nowOperateId,
+                                        stat: this.nowOperateStat,
+                                        content: row.cells[1].Text,
+                                        createtime: row.cells[2].Text
+                                    }
+                                });
+                            } else if (index == 0) {//取消编辑
+                                row.cells[1].Text = item.content;
+                                row.cells[2].Text = item.createtime.substring(0, 10);
+                                row.cells[3].Text = ["edit", "trash"];
+                                row.cells[1].Type = "plaintext";
+                                row.cells[2].Type = "plaintext";
+                            }
+                        } else if (row.cells[1].Type == "plaintext") {
+                            if (index == 1) {//删除操作
+                                this.tradePoint.send(260, 251, { head: { realActor: "deleteTodo" }, body: { id: this.nowOperateId } });
+                            } else if (index == 0) {//编辑
+                                row.cells[1].Type = "textbox";
+                                row.cells[2].Type = "date";
+                                row.cells[3].Text = ["ok", "remove"];
+                            }
+                        }
+                    };
+                })
+                this.addTodoContent = '';
+            }
+
         })
 
         //addTodo
