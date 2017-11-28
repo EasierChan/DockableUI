@@ -45,7 +45,7 @@ export class ConfigurationBLL {
             }
 
             item.state = 0;
-            this.servers.push(item.items[0].key);
+            this.servers.push(item.appid);
         });
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");

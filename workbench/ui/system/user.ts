@@ -99,6 +99,8 @@ export class UserComponent implements OnInit {
 
                 this.appSrv.setLoginTrade(true);
                 this.tradeSrv.send(251, JSON.stringify({ "head": { "realActor": "getStrategyServerTemplate" }, body: { userid: parseInt(this.userid) } }), ServiceType.kCMS);
+                console.info(`subscribe=> ${this.configBll.servers}`);
+                this.tradeSrv.subscribe(2001, this.configBll.servers);
             }
         });
 

@@ -274,14 +274,14 @@ export class QtpService {
 
         let optCount = new QtpMessageOption();
         optCount.id = OptionType.kItemCnt;
-        optCount.value = Buffer.alloc(8, 0);
-        optCount.value.writeIntLE(keys.length, 0, 8);
+        optCount.value = Buffer.alloc(4, 0);
+        optCount.value.writeUInt32LE(keys.length, 0);
         msg.addOption(optCount);
 
         let optSize = new QtpMessageOption();
         optSize.id = OptionType.kItemSize;
-        optSize.value = Buffer.alloc(8, 0);
-        optSize.value.writeIntLE(8, 0, 8);
+        optSize.value = Buffer.alloc(4, 0);
+        optSize.value.writeUInt32LE(8, 0);
         msg.addOption(optSize);
 
         msg.body = Buffer.alloc(keys.length * 8);

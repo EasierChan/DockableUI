@@ -37,8 +37,8 @@ export class SimulationComponent implements OnInit {
                 console.info(msg.toString());
                 let deleteAns = JSON.parse(msg.toString());
 
-                if (deleteAns.data.msret.error_id !== 0) {
-                    alert(deleteAns.data.msret.error_msg);
+                if (deleteAns.data.msgret.error_id !== 0) {
+                    alert(deleteAns.data.msgret.error_msg);
                     return;
                 }
 
