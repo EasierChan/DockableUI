@@ -47,18 +47,23 @@ export class TradeComponent implements OnInit {
             packid: 2015,
             callback: (msg) => {
                 console.info(msg);
-                if (msg.content.body.error_id === 0) {
-                    let config = this.strategyConfigs.find((item) => { return item.name === msg.content.body.name; });
+                let deleteAns = JSON.parse(msg.toString());
 
-                    if (config) {
-                        this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
-                            data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
-                            userid: this.appsrv.getUserProfile().username
-                        }), ServiceType.kSSGW);
-                        this.configBll.removeConfig(config);
-                        this.strategyArea.removeTile(config.chname);
-                        this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.servers });
-                    }
+                if (deleteAns.data.msret.error_id !== 0) {
+                    alert(deleteAns.data.msret.error_msg);
+                    return;
+                }
+
+                let config = this.strategyConfigs.find((item) => { return item.appid === deleteAns.data.strategy_server_id; });
+
+                if (config) {
+                    this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
+                        data: { strategy: { strategy_server_id: config.appid } },
+                        userid: this.appsrv.getUserProfile().username
+                    }), ServiceType.kSSGW);
+                    this.configBll.removeConfig(config);
+                    this.strategyArea.removeTile(config.chname);
+                    this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.servers });
                 }
             }
         });
