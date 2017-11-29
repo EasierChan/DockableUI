@@ -76,9 +76,9 @@ export class RiskComponent implements OnInit {
                     contentList: this.account_info.map(value => {
                         return {
                             name: value.acname,
-                            groupId: value.acid,
-                            acid: value.acid,
-                            caid: value.caid
+                            groupId: parseInt(value.acid),
+                            acid: parseInt(value.acid),
+                            caid: parseInt(value.caid)
                         }
                     })
                 },
@@ -88,8 +88,8 @@ export class RiskComponent implements OnInit {
                     contentList: this.tblock_info.map(value => {
                         return {
                             name: value.caname,
-                            groupId: value.caid,
-                            caid: value.caid,
+                            groupId: parseInt(value.caid),
+                            caid: parseInt(value.caid),
                             acid: null
                         }
                     })
@@ -263,7 +263,6 @@ export class RiskComponent implements OnInit {
             item.caid = caid;
             this.addARiskRecord(item);
         });
-    
     }
 
     checkoutTab(tabId) {

@@ -159,6 +159,7 @@ export class UserComponent implements OnInit {
             loginObj = { maid: this.maid, cellid: this.maid, userid: this.getUserid(), password: this.cryptoSrv.getTGWPass(this.password), termid: "12.345", conlvl: 999, clientesn: "", clienttm: stimestamp };
             this.tradeSrv.send(17, 41, loginObj); // login
             this.appSrv.setUserProfile({ username: this.getUserid(), password: loginObj.password, roles: [], apps: [] });
+            this.configBll.set("user", { maid: this.maid, userid: this.getUserid() });
             AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
 
             this.tradeSrv.onClose = () => {
