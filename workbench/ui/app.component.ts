@@ -282,7 +282,7 @@ export class AppComponent implements OnInit, OnDestroy {
                             this.configBll.servers[idx] = config.appid;
 
                         this.configBll.updateConfig(config);
-                        // this.tradeEndPoint.subscribe(8000, this.configBll.servers);
+                        this.tradeEndPoint.subscribe(2001, [config.appid]);
                     }
                 }
             },
@@ -304,18 +304,9 @@ export class AppComponent implements OnInit, OnDestroy {
         );
 
         this.tradeEndPoint.addSlotOfCMS("getStrategyServerTemplate", msg => {
-            // console.info(msg);
-            // this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
             JSON.parse(msg.toString()).body.forEach(template => {
-                this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms) });
+                this.configBll.updateTemplate(template.temp_name, JSON.parse(template.parms).SS);
             });
-            //     case "getRiskIndexAns":
-            //         this.configBll.set("risk_index", JSON.parse(msg.content.body).body);
-            //         break;
-            //     case "getAssetAccountAns":
-            //         this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
-            //         break;
-            // }
         }, this);
 
         this.tradeEndPoint.addSlotOfCMS("getProduct", (msg) => {
@@ -331,6 +322,7 @@ export class AppComponent implements OnInit, OnDestroy {
             }
 
             this.configBll.setProducts(products);
+            this.configBll.emit("getProduct", this.configBll.getProducts());
         }, this);
 
         this.tradeEndPoint.addSlotOfCMS("getAssetAccount", (msg) => {
@@ -341,8 +333,34 @@ export class AppComponent implements OnInit, OnDestroy {
             this.configBll.set("risk_index", JSON.parse(msg.toString()).body);
         }, this);
 
-        this.tradeEndPoint.onTopic(2001, (body) => {
-            console.info(body);
+        this.tradeEndPoint.onTopic(2001, (key, body) => {
+            let target = this.configBll.getAllConfigs().find(citem => { return citem.appid === key; });
+
+            if (target !== undefined) {
+                target.state = 1;
+                if (this.configBll.onStateChanged)
+                    this.configBll.onStateChanged(target);
+            }
+        });
+
+        this.tradeEndPoint.onTopic(1, (key, body) => {
+            let data = (body as Buffer);
+            let instanceID = data.readIntLE(0, 8);
+
+            switch (key) {
+                case ServiceType.kStrategy:
+                    let target = this.configBll.getAllConfigs().find(citem => { return citem.appid === instanceID; });
+
+                    if (target !== undefined) {
+                        target.state = 0;
+                        if (this.configBll.onStateChanged)
+                            this.configBll.onStateChanged(target);
+                    }
+                    break;
+                default:
+                    console.info(`key= ${key}, instanceID=${instanceID}`);
+                    break;
+            }
         });
     }
 

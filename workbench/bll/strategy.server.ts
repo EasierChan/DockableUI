@@ -19,11 +19,11 @@ export class ConfigurationBLL {
         this._templates = {};
         this._basedir = path.join(Environment.getDataPath("workbench"));
         this._templatepath = path.join(this._basedir, "templates.json");
-        this._templates = File.parseJSON(this._templatepath) || {};
+        // this._templates = File.parseJSON(this._templatepath) || {};
 
-        for (let prop in this._templates) {
-            this._names.push({ name: prop, chname: this._templates[prop].chname ? this._templates[prop].chname : prop });
-        }
+        // for (let prop in this._templates) {
+        //     this._names.push({ name: prop, chname: this._templates[prop].chname ? this._templates[prop].chname : prop });
+        // }
 
         this._ssconfigpath = path.join(this._basedir, "instances.json");
         this._ss_simulation_configs = [];

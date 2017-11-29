@@ -289,9 +289,9 @@ export class QtpService {
         this._client.sendMessage(msg);
     }
 
-    subscribe(topic: number, keys: number[]): void {
+    subscribe(topic: number, keys: number[], opposite: boolean = false): void {
         let msg = new QTPMessage();
-        msg.header.msgtype = FGS_MSG.kSubscribe;
+        msg.header.msgtype = opposite ? FGS_MSG.kUnSubscribe : FGS_MSG.kSubscribe;
         msg.header.topic = topic;
 
         let optCount = new QtpMessageOption();

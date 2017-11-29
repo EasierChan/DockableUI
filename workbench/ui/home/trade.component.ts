@@ -4,7 +4,7 @@ import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { TileArea, Tile } from "../../../base/controls/control";
 import { ConfigurationBLL, WorkspaceConfig, DataKey, AppType, Channel } from "../../bll/strategy.server";
 import { Menu, AppStoreService } from "../../../base/api/services/backend.service";
-import { TradeService } from "../../bll/services";
+import { QtpService } from "../../bll/services";
 import { SSGW_MSG, ServiceType } from "../../../base/api/model";
 
 @Component({
@@ -28,7 +28,7 @@ export class TradeComponent implements OnInit {
     setting: any;
     ssgwAppID: number;
 
-    constructor(private appsrv: AppStoreService, private tradeEndPoint: TradeService, private configBll: ConfigurationBLL, private ref: ChangeDetectorRef) {
+    constructor(private appsrv: AppStoreService, private tradeEndPoint: QtpService, private configBll: ConfigurationBLL, private ref: ChangeDetectorRef) {
     }
 
     ngOnInit() {
@@ -43,8 +43,8 @@ export class TradeComponent implements OnInit {
         // subscribe strategy status
 
         this.tradeEndPoint.addSlot({
-            appid: this.ssgwAppID,
-            packid: 2015,
+            service: ServiceType.kSSGW,
+            msgtype: SSGW_MSG.kDeleteAns,
             callback: (msg) => {
                 console.info(msg);
                 let deleteAns = JSON.parse(msg.toString());
@@ -63,7 +63,7 @@ export class TradeComponent implements OnInit {
                     }), ServiceType.kSSGW);
                     this.configBll.removeConfig(config);
                     this.strategyArea.removeTile(config.chname);
-                    this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.servers });
+                    this.tradeEndPoint.subscribe(2001, [config.appid], true);
                 }
             }
         });

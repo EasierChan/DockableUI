@@ -52,7 +52,7 @@ export class SimulationComponent implements OnInit {
 
                     this.configBll.removeConfig(config);
                     this.strategyArea.removeTile(config.chname);
-                    // this.tradeEndPoint.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
+                    this.tradeEndPoint.subscribe(2001, [config.appid], true);
                 }
             }
         });

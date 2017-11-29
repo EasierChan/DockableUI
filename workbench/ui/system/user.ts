@@ -84,7 +84,7 @@ export class UserComponent implements OnInit {
                 this.tradeSrv.sendToCMS("getRiskIndex", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
 
                 this.tradeSrv.subscribe(2001, this.configBll.servers);
-                this.tradeSrv.subscribe(1, [ServiceType.kLogin]);
+                this.tradeSrv.subscribe(1, [ServiceType.kStrategy]);
             }
         });
 
