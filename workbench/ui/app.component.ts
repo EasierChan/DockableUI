@@ -303,84 +303,46 @@ export class AppComponent implements OnInit, OnDestroy {
             }
         );
 
-        this.tradeEndPoint.addSlot({
-            service: ServiceType.kCMS,
-            msgtype: 251,
-            callback: msg => {
-                console.info(msg.toString());
-                return;
-                if (msg.content.msret.msgcode !== "00") {
-                    alert("Get product info Failed! " + msg.content.msret.msg);
-                    return;
-                }
+        this.tradeEndPoint.addSlotOfCMS("getStrategyServerTemplate", msg => {
+            // console.info(msg);
+            // this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
+            JSON.parse(msg.toString()).body.forEach(template => {
+                this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms) });
+            });
+            //     case "getRiskIndexAns":
+            //         this.configBll.set("risk_index", JSON.parse(msg.content.body).body);
+            //         break;
+            //     case "getAssetAccountAns":
+            //         this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
+            //         break;
+            // }
+        }, this);
 
-                console.info(msg);
-                this.configBll.emit(msg.content.head.actor, JSON.parse(msg.content.body));
-                switch (msg.content.head.actor) {
-                    case "getProductAns":
-                        let productInfo: Object = {};
+        this.tradeEndPoint.addSlotOfCMS("getProduct", (msg) => {
+            let productInfo: Object = {};
 
-                        let data = JSON.parse(msg.content.body);
-                        data.body.forEach(item => {
-                            productInfo[item.caid] = item;
-                        });
+            JSON.parse(msg.toString()).body.forEach(item => {
+                productInfo[item.caid] = item;
+            });
 
-                        let products = [];
-                        for (let prop in productInfo) {
-                            products.push(productInfo[prop]);
-                        }
-
-                        this.configBll.setProducts(products);
-
-                        products = null;
-                        productInfo = null;
-                        data = null;
-                        break;
-                    case "getStrategyServerTemplateAns":
-                        // console.info(msg);
-                        if (msg.content.head.pkgCnt > 1) {
-                            if (this.isonpacks[msg.content.head.pkgId] === undefined)
-                                this.isonpacks[msg.content.head.pkgId] = "";
-                            if (msg.content.head.pkgIdx === msg.content.head.pkgCnt - 1) {
-                                let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
-                                templatelist.body.forEach(template => {
-                                    this.configBll.updateTemplate(template.temp_name, JSON.parse(template.parms).SS);
-                                });
-
-                                delete this.isonpacks[msg.content.head.pkgId];
-                            } else {
-                                this.isonpacks[msg.content.head.pkgId] = this.isonpacks[msg.content.head.pkgId].concat(msg.content.body);
-                            }
-                        } else {
-                            let templatelist = JSON.parse(this.isonpacks[msg.content.head.pkgId].concat(msg.content.body));
-                            templatelist.body.forEach(template => {
-                                this.configBll.updateTemplate(template.temp_name, { id: template.tempid, body: JSON.parse(template.parms) });
-                            });
-                        }
-                        break;
-                    case "getRiskIndexAns":
-                        this.configBll.set("risk_index", JSON.parse(msg.content.body).body);
-                        break;
-                    case "getAssetAccountAns":
-                        this.configBll.set("asset_account", JSON.parse(msg.content.body).body);
-                        break;
-                }
+            let products = [];
+            for (let prop in productInfo) {
+                products.push(productInfo[prop]);
             }
-        });
 
-        this.tradeEndPoint.addSlot({
-            service: ServiceType.kFGS,
-            msgtype: FGS_MSG.kPublish,
-            callback: (body, options) => {
-                console.info(body, options);
-                // let target = this.configBll.getAllConfigs().find(citem => { return citem.name === msg.content.strategyserver.name; });
+            this.configBll.setProducts(products);
+        }, this);
 
-                // if (target !== undefined) {
-                //     target.state = msg.content.strategyserver.stat;
-                //     if (this.configBll.onStateChanged)
-                //         this.configBll.onStateChanged(target);
-                // }
-            }
+        this.tradeEndPoint.addSlotOfCMS("getAssetAccount", (msg) => {
+            this.configBll.set("asset_account", JSON.parse(msg.toString()).body);
+        }, this);
+
+        this.tradeEndPoint.addSlotOfCMS("getRiskIndex", (msg) => {
+            this.configBll.set("risk_index", JSON.parse(msg.toString()).body);
+        }, this);
+
+        this.tradeEndPoint.onTopic(2001, (body) => {
+            console.info(body);
         });
     }
 

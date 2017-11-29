@@ -67,26 +67,6 @@ export class UserComponent implements OnInit {
             }
         });
 
-        // this.tradeSrv.addSlot({ // login success
-        //     appid: 17,
-        //     packid: 43,
-        //     callback: msg => {
-        //         if (msg.content.conlvl <= 2 || parseInt(msg.content.msret.msgcode) !== 0) {
-        //             alert(msg.content.msret.msg);
-        //             return;
-        //         }
-
-        //         this.appSrv.setLoginTrade(msg.content.conlvl > 2);
-        //         // to request template
-        //         this.tradeSrv.send(this.productAppID, 251, { "head": { "realActor": "getStrategyServerTemplate" }, body: {} });
-        //         this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getProduct" }, body: {} });
-        //         this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getAssetAccount" }, body: {} });
-        //         this.tradeSrv.send(this.productAppID, 251, { head: { realActor: "getRiskIndex" }, body: {} });
-        //         console.info(`subscribe=> ${this.configBll.strategyKeys}`);
-        //         this.tradeSrv.send(17, 101, { topic: 8000, kwlist: this.configBll.strategyKeys });
-
-        //     }
-        // });
         this.tradeSrv.addSlot({
             service: ServiceType.kLogin,
             msgtype: FGS_MSG.kLoginAns,
@@ -98,8 +78,11 @@ export class UserComponent implements OnInit {
                 }
 
                 this.appSrv.setLoginTrade(true);
-                this.tradeSrv.send(251, JSON.stringify({ "head": { "realActor": "getStrategyServerTemplate" }, body: { userid: parseInt(this.userid) } }), ServiceType.kCMS);
-                console.info(`subscribe=> ${this.configBll.servers}`);
+                this.tradeSrv.sendToCMS("getStrategyServerTemplate", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
+                this.tradeSrv.sendToCMS("getProduct", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
+                this.tradeSrv.sendToCMS("getAssetAccount", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
+                this.tradeSrv.sendToCMS("getRiskIndex", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
+
                 this.tradeSrv.subscribe(2001, this.configBll.servers);
                 this.tradeSrv.subscribe(1, [ServiceType.kLogin]);
             }

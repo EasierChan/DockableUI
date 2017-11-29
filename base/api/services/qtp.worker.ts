@@ -7,7 +7,7 @@ import { TcpClient } from "../common/base/tcpclient";
 import { Parser } from "../common/base/parser";
 import { Pool } from "../common/base/pool";
 import { DefaultLogger } from "../common/base/logger";
-import { Header, QTPMessage, QtpMessageOption, FGS_MSG, OptionType } from "../model/qtp/message.model";
+import { Header, QTPMessage, QtpMessageOption, FGS_MSG, OptionType, ServiceType } from "../model/qtp/message.model";
 
 const logger = DefaultLogger;
 
@@ -177,21 +177,44 @@ class QTPClient extends TcpClient {
 export class QtpService {
     private _client: QTPClient;
     private _messageMap: Object;
+    private _topicMap: Object;
+    private _cmsMap: Object;
     private _timer: any;
     private _port: number;
     private _host: string;
     private _parser: QTPMessageParser;
 
     constructor() {
-        this._messageMap = new Object();
+        this._messageMap = {};
+        this._topicMap = {};
+        this._cmsMap = {};
         this._client = new QTPClient();
         this._client.useSelfBuffer = true;
         this._parser = new QTPMessageParser(this._client);
         this._client.addParser(this._parser);
         let self = this;
 
-        this._client.on("data", msg => {
-            msg = msg[0];
+        this._client.on("data", msgarr => {
+            let msg = msgarr[0] as QTPMessage;
+
+            if (msg.header.service === ServiceType.kFGS && msg.header.msgtype === FGS_MSG.kPublish) {
+                console.info(`topic: ${msg.header.topic}`);
+
+                for (let i = 0; i < msg.options.length; ++i) {
+                    if (msg.options[i].id === OptionType.kSubscribeKey) {
+                        let key = msg.options[i].value.readIntLE(0, 8);
+                        if (self._topicMap[msg.header.topic].context)
+                            self._topicMap[msg.header.topic].callback.call(self._topicMap[msg.header.topic].context, key, msg.body);
+                        else
+                            self._topicMap[msg.header.topic].callback(key, msg.body);
+
+                        break;
+                    }
+                }
+
+                return;
+            }
+
             if (self._messageMap.hasOwnProperty(msg.header.service) && self._messageMap[msg.header.service].hasOwnProperty(msg.header.msgtype)) {
                 if (self._messageMap[msg.header.service][msg.header.msgtype].context)
                     self._messageMap[msg.header.service][msg.header.msgtype].callback.call(self._messageMap[msg.header.service][msg.header.msgtype].context, msg.body, msg.options);
@@ -293,6 +316,10 @@ export class QtpService {
         this._client.sendMessage(msg);
     }
 
+    onTopic(topic, callback: Function, context?: any) {
+        this._topicMap[topic] = { callback: callback, context: context };
+    }
+
     /**
      *
      */
@@ -302,14 +329,49 @@ export class QtpService {
                 this._messageMap[slot.service] = new Object();
                 this._parser.registerMsgFunction(slot.service, this._parser, this._parser.processQtpMsg);
             }
+
             this._messageMap[slot.service][slot.msgtype] = {
                 callback: slot.callback,
                 context: slot.context
             };
-
-
         });
     }
+
+    sendToCMS(recActor: string, body: string | Buffer) {
+        let recOpt: QtpMessageOption = new QtpMessageOption();
+        recOpt.id = 12;
+        recOpt.value = Buffer.from(recActor);
+
+        let reqOpt: QtpMessageOption = new QtpMessageOption();
+        reqOpt.id = 14;
+        reqOpt.value = Buffer.alloc(4, 0);
+        reqOpt.value.writeInt32LE(1, 0);
+
+        let sendOpt: QtpMessageOption = new QtpMessageOption();
+        sendOpt.id = 13;
+        sendOpt.value = Buffer.from(recActor);
+
+        this.sendWithOption(12, [recOpt, reqOpt, sendOpt], body, ServiceType.kCMS);
+    }
+
+    addSlotOfCMS(name: string, cb: Function, context: any) {
+        this._cmsMap[name] = { callback: cb, context: context };
+
+        this.addSlot({
+            service: ServiceType.kCMS,
+            msgtype: 12,
+            callback: (body, options: QtpMessageOption[]) => {
+                for (let i = 0; i < options.length; ++i) {
+                    if (options[i].id === 12) {
+                        this._cmsMap[options[i].value.toString()].callback.call(context, body);
+                        break;
+                    }
+                }
+
+            }
+        });
+    }
+
     onConnect: Function;
     onClose: Function;
 }
