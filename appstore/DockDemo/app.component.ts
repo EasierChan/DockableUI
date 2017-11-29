@@ -319,7 +319,7 @@ export class AppComponent implements OnInit {
 
         this.orderstatusTable = new DataTable("table2");
         let orderstatusArr: string[] = ["Check", "U-Key", "SymbolCode", "OrderId", "Time", "Strategy",
-            "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "PortfolioList"];
+            "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "PortfolioID"];
         let orderstatusTableRtnArr: string[] = [];
         let orderstatusTableTitleLen = orderstatusArr.length;
         for (let i = 0; i < orderstatusTableTitleLen; ++i) {
@@ -337,7 +337,7 @@ export class AppComponent implements OnInit {
         let doneOrdersContent = new VBox();
         this.doneOrdersTable = new DataTable("table2");
         let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
-            "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "PortfolioList", "OrderTime",
+            "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "PortfolioID", "OrderTime",
             "OrderPrice", "SymbolCode"];
         let doneOrderTableRtnArr: string[] = [];
         let doneOrderTableTittleLen = doneorderTableArr.length;
