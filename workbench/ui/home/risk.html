@@ -13,7 +13,7 @@
             <dock-table2 class="table-container" [dataSource]="warnTable.dataSource" [styleObj]="warnTable.styleObj"></dock-table2>
         </div>
         <div class="table-section u-col">
-            <div class="title"><b>{{groupList===accounts ? '帐号' : '产品'}}风控</b></div>
+            <div class="title"><b>{{tab.selectedChild ? tab.selectedChild.acid ? '帐号' : '产品' : tab.selectedTab.name}}风控</b></div>
             <dock-table2 class="table-container" [dataSource]="singleTable.dataSource" [styleObj]="singleTable.styleObj"></dock-table2>
         </div>
         <div class="u-row">
