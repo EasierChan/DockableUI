@@ -86,7 +86,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     userId: number;//
 
 
-
     //千分符
     toThousands(num) {
         var number = typeof (num) != 'String' ? num.toString() : num;
@@ -220,41 +219,56 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     historyMarkey() {
+        let d = new Date();
+        let time = (d.getHours() < 10 ? ('0' + d.getHours()) : d.getHours()) + '' + (d.getMinutes() < 10 ? ('0' + d.getMinutes()) : d.getMinutes()) + '' + (d.getSeconds() < 10 ? ('0' + d.getSeconds()) : d.getSeconds()) + '000';
+        let partIndex = 1;
         //接历史行情
-        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.mainStockUk, dateFrom: 20171102, dateTo: 20171102, timeTo: 113000000, timeFrom: 93000000, dataType: 101001 });
+        this.quote.send(181, 10001, { requestId: 1, dataType: 101002, ukeyCode: this.mainStockUk, dateFrom: 20171124, dateTo: 20171124, timeFrom: 93000000, timeTo: time });
         this.quote.addSlot({
             appid: 181,
             packid: 10002,
             callback: (msg) => {
-                console.log(msg.content.data);
-                let historyStockLineData;
-                let yData = [];
-                historyStockLineData = msg.content.data.filter((item, index, arr) => {
-                    if (index < msg.content.data.length - 2) {
-                        let time = this.myGetTime(arr[index].t / 1000);
-                        let nextTime = this.myGetTime(arr[index + 1].t / 1000);
-                        item.time = time;
-                        if (time != nextTime) {
-                            yData.push(item.p);
-                            return item;
+                console.log(msg);
+                let historyStockLineData = [];
+                if (partIndex == msg.content.head.partOrder) {
+                    historyStockLineData = historyStockLineData.concat(msg.content.data);
+                    partIndex++;
+                }
+                if (msg.content.head.totalParts + 1 == partIndex) {
+                    let yData = [];
+                    let yBarData = [];
+                    if (historyStockLineData.length > 0) {
+                        historyStockLineData.forEach((item, index, arr) => {
+                            yData.push(item.c);
+                            yBarData.push(item.u)
+                        })
+                        let min = Math.min.apply(null, yData);
+                        let max = Math.max.apply(null, yData);
+
+                        let middle = Number(this.mainStockPreclose);
+                        let barMax = Math.max.apply(null, yBarData);
+                        this.selfStockBarChange.yAxis.max = barMax / 10000;
+                        this.selfStockBarChange.yAxis.interval = this.selfStockBarChange.yAxis.max / 2;
+                        
+                        historyStockLineData.forEach((item, index) => {
+                            let time = this.myGetTime(item.t / 1000);
+                            let marketIndex = this.selfStockXdata.indexOf(time);//当前行情在echarts中的位置
+                            this.selfStockLineChange.series[0].data[marketIndex] = item.c;
+                            this.selfStockBarChange.series[0].data[marketIndex] = item.u / 10000;
+                        })
+
+                        let abs = Math.abs(middle - min) >= Math.abs(middle - max) ? Math.ceil(Math.abs(middle - min)) : Math.ceil(Math.abs(middle - max));
+                        this.selfStockLineChange.yAxis.min = middle - abs;
+                        this.selfStockLineChange.yAxis.max = middle + abs;
+                        this.selfStockLineChange.yAxis.interval = abs / 2;
+                        if (this.selfStockPriceLine) {
+                            this.selfStockPriceLine.setOption(this.selfStockLineChange);
+                        }
+
+                        if (this.selfStockMoneyBar) {
+                            this.selfStockMoneyBar.setOption(this.selfStockBarChange);
                         }
                     }
-                })
-                let min = Math.min.apply(null, yData);
-                let max = Math.max.apply(null, yData);
-                let middle = Number(this.mainStockPreclose);
-
-                historyStockLineData.forEach((item, index) => {
-                    let marketIndex = this.selfStockXdata.indexOf(item.time);//当前行情在echarts中的位置
-                    this.selfStockLineChange.series[0].data[marketIndex] = item.p;
-                })
-
-                let abs = Math.abs(middle - min) >= Math.abs(middle - max) ? Math.ceil(Math.abs(middle - min)) : Math.ceil(Math.abs(middle - max));
-                this.selfStockLineChange.yAxis.min = middle - abs;
-                this.selfStockLineChange.yAxis.max = middle + abs;
-                this.selfStockLineChange.yAxis.interval = abs / 2;
-                if (this.selfStockPriceLine) {
-                    this.selfStockPriceLine.setOption(this.selfStockLineChange);
                 }
             }
         })
@@ -352,7 +366,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.initSelfStockBar();
             this.selfStockMoneyBar.setOption(this.selfStockBarChange);
             this.preMainStockUk = this.mainStockUk;
-            this.historyMarkey();
+            //this.historyMarkey();//接历史行情，分时K线
         }
 
         this.todoList = new DataTable("table2");
