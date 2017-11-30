@@ -80,15 +80,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
     selfStockUkList: number[] = [];
     dashAllUkcodeList: number[] = [];
 
-    mainStockUk: number = 2490369;
-    preMainStockUk: number = 2490369;
+    mainStockUk: number;
+    preMainStockUk: number;
+    maid: number;//
+    userId: number;//
 
 
 
     //千分符
     toThousands(num) {
         var number = typeof (num) != 'String' ? num.toString() : num;
-
         var numArr = number.split('.');
         var newstr = numArr[0].replace(/\d{1,3}(?=(\d{3})+$)/g, function (s) {
             return s + ','
@@ -105,7 +106,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     addTodoEvent() {
-        this.tradePoint.send(260, 251, { head: { realActor: "createTodo" }, body: { content: this.addTodoContent, stat: '0' } });
+        this.tradePoint.send(260, 251, { head: { realActor: "createTodo" }, body: { content: this.addTodoContent, stat: '0', maid: this.maid, oid: this.userId } });
     }
 
     getNowProductDataBefore() {
@@ -118,7 +119,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     getNowProductDataNext() {
-
         this.nowProductIndex++;
         this.nowProductIndex = this.nowProductIndex % this.productData.length;
         this.nowProductCaid = this.productData[this.nowProductIndex].caid;
@@ -218,8 +218,51 @@ export class DashboardComponent implements OnInit, OnDestroy {
             max: 0
         }
     }
+
+    historyMarkey() {
+        //接历史行情
+        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.mainStockUk, dateFrom: 20171102, dateTo: 20171102, timeTo: 113000000, timeFrom: 93000000, dataType: 101001 });
+        this.quote.addSlot({
+            appid: 181,
+            packid: 10002,
+            callback: (msg) => {
+                console.log(msg.content.data);
+                let historyStockLineData;
+                let yData = [];
+                historyStockLineData = msg.content.data.filter((item, index, arr) => {
+                    if (index < msg.content.data.length - 2) {
+                        let time = this.myGetTime(arr[index].t / 1000);
+                        let nextTime = this.myGetTime(arr[index + 1].t / 1000);
+                        item.time = time;
+                        if (time != nextTime) {
+                            yData.push(item.p);
+                            return item;
+                        }
+                    }
+                })
+                let min = Math.min.apply(null, yData);
+                let max = Math.max.apply(null, yData);
+                let middle = Number(this.mainStockPreclose);
+
+                historyStockLineData.forEach((item, index) => {
+                    let marketIndex = this.selfStockXdata.indexOf(item.time);//当前行情在echarts中的位置
+                    this.selfStockLineChange.series[0].data[marketIndex] = item.p;
+                })
+
+                let abs = Math.abs(middle - min) >= Math.abs(middle - max) ? Math.ceil(Math.abs(middle - min)) : Math.ceil(Math.abs(middle - max));
+                this.selfStockLineChange.yAxis.min = middle - abs;
+                this.selfStockLineChange.yAxis.max = middle + abs;
+                this.selfStockLineChange.yAxis.interval = abs / 2;
+                if (this.selfStockPriceLine) {
+                    this.selfStockPriceLine.setOption(this.selfStockLineChange);
+                }
+            }
+        })
+    }
     ngOnInit() {
 
+        this.maid = Number(this.config.get("user").maid);
+        this.userId = Number(this.config.get("user").userid.split('.').join(''));
         for (var i = 9; i <= 14; i++) {
             if (i != 12) {
                 for (var j = 0; j < 60; j++) {
@@ -255,7 +298,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
 
         this.selfStockLineChange.title.text = this.selfStockData[0].stockCode + '[' + this.selfStockData[0].name + ']';
-
+        this.mainStockPreclose = this.selfStockData[0].pre_close;
+        this.mainStockUk = this.selfStockData[0].ukey;
 
         this.bestStockList = new DataTable("table2");
         this.worstStockList = new DataTable("table2");
@@ -295,6 +339,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         })
 
         this.selfStockTable.onRowDBClick = (rowItem, rowIndex) => {//点击切换指数行情
+
             this.selfStockLineChange.title.text = rowItem.cells[0].Text + '[' + rowItem.cells[1].Text + ']';
 
             this.mainStockUk = rowItem.cells[1].Data;
@@ -307,8 +352,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.initSelfStockBar();
             this.selfStockMoneyBar.setOption(this.selfStockBarChange);
             this.preMainStockUk = this.mainStockUk;
+            this.historyMarkey();
         }
-
 
         this.todoList = new DataTable("table2");
         this.todoList.RowIndex = false; // 去除序列
@@ -328,6 +373,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     head: { realActor: "editTodo" }, body: {
                         id: this.nowOperateId,
                         stat: this.nowOperateStat,
+                        maid: this.maid,
+                        oid: this.userId,
                         content: this.todoList.rows[rowIndex].cells[1].Text,
                         createtime: this.todoList.rows[rowIndex].cells[2].Text
                     }
@@ -338,7 +385,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.alarmTable = new DataTable("table2");
         this.alarmTable.RowIndex = false; // 去除序列
         this.alarmTable.addColumn("来源", "内容", "严重程度", "状态", "时间");
-
 
         this.selfStockPrice = new Section();
         this.selfStockPrice.content = this.createSelfStockPriceChart();
@@ -357,15 +403,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         this.registerListener();
 
-        //接历史行情
-        this.quote.send(181, 10001, { requestId: 1, ukeyCode: 2490369, dateFrom: 20171102, dateTo: 20171102, timeTo: 113000000, timeFrom: 93000000 });
-        this.quote.addSlot({
-            appid: 181,
-            packid: 10002,
-            callback: (msg) => {
-                console.log(msg)
-            }
-        })
+
         //接实时行情
         this.quote.addSlot({
             appid: 17,
@@ -379,6 +417,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 if (marketIndex != -1) {//找到相应的时间轴索引
                     if (this.selfStockUkList.indexOf(msg.content.ukey) != -1) {//主要指数
                         //主要指数列表
+                        this.mainStockUk = this.selfStockData[0].ukey;
                         this.selfStockData.forEach((item, index) => {
                             if (item.ukey == msg.content.ukey) {
                                 this.selfStockTable.rows[index].cells[2].Text = (msg.content.last / 10000).toFixed(2);
@@ -404,14 +443,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             console.log('this.mainStockUk' + this.mainStockUk)
                             let middle = Math.round(msg.content.pre_close / 10000);//昨收值
                             let turnover = Math.round(msg.content.turnover / 100) / 100;//当前时刻行情的成交金额
-                            if (marketIndex == 0) {//找到的是第一个值的时候，比如第二天
-                                this.initSelfStockLine(middle);
-                                this.selfStockBarChange.series[0].data[marketIndex] = turnover;
-                                this.preTurnOver = turnover;//上一时刻的成交量
-                                this.selfStockPriceLine.setOption(this.selfStockLineChange);
-                                this.initSelfStockBar();
-                                this.selfStockMoneyBar.setOption(this.selfStockBarChange);
-                            }
+
 
                             if (this.preMarketTime != marketTime) {
                                 console.log('zong=======成交金额' + this.nowTurnover);
@@ -433,11 +465,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             this.selfStockLineChange.yAxis.interval = abs / 2;
                             this.selfStockLineChange.yAxis.min = middle - abs;
                             this.selfStockLineChange.yAxis.max = middle + abs;
-                            this.selfStockPriceLine.setOption(this.selfStockLineChange);
+                            if (this.selfStockPriceLine) {
+                                this.selfStockPriceLine.setOption(this.selfStockLineChange);
+                            }
                             console.log(marketTime)
                             console.log(marketIndex)
                             console.log('现价' + lastPrice)
+                            if (marketIndex == 0 && this.preTurnOver == 0) {//找到的是第一个值的时候，比如第二天
+                                // this.initSelfStockLine(middle);
+                                this.preTurnOver = turnover;//上一时刻的成交量
+                                if (this.selfStockPriceLine) {
+                                    this.selfStockPriceLine.setOption(this.selfStockLineChange);
+                                }
 
+                                this.initSelfStockBar();
+                                if (this.selfStockMoneyBar) {
+                                    this.selfStockMoneyBar.setOption(this.selfStockBarChange);
+                                }
+                            }
                             //切换页面或刚进入页面的时候初始化
                             if (this.preTurnOver == 0 && marketIndex != 0) {
                                 this.preTurnOver = turnover;//上一时刻的成交金额
@@ -445,7 +490,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 this.selfStockLineChange.yAxis.min = middle - 2;
                                 this.selfStockLineChange.yAxis.max = middle + 2;
                                 this.selfStockLineChange.yAxis.interval = 1;
-                                this.selfStockPriceLine.setOption(this.selfStockLineChange);
+                                if (this.selfStockPriceLine) {
+                                    this.selfStockPriceLine.setOption(this.selfStockLineChange);
+                                }
+
                             } else if (this.preTurnOver != 0) {
                                 this.nowTurnover = Number((turnover - this.preTurnOver + this.nowTurnover).toFixed(2));//当前时间的成金额
                                 this.preTurnOver = turnover;//上一时刻的成交量
@@ -457,7 +505,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 this.selfStockBarChange.yAxis.max = Math.ceil(this.selfStockBarChange.yAxis.max / 2) * 2;
                                 this.selfStockBarChange.yAxis.interval = this.selfStockBarChange.yAxis.max / 2;
                                 this.selfStockBarChange.series[0].data[marketIndex] = this.nowTurnover;
-                                this.selfStockMoneyBar.setOption(this.selfStockBarChange);
+                                if (this.selfStockMoneyBar) {
+                                    this.selfStockMoneyBar.setOption(this.selfStockBarChange);
+                                }
+
                                 console.log('成交金额' + this.nowTurnover);
                             }
 
@@ -468,10 +519,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         this.refStockIncrease = Number(stockIncrease);
                         console.log('this.refStockIncrease' + this.refStockIncrease);
                     }
-                    // console.log('stockIncrease' + stockIncrease)
-                    if (msg.content.ukey == 2162982) {
-                        console.log(msg)
-                    }
+
                     if (this.ukCodeList.indexOf(msg.content.ukey) != -1) {//AI看盘的实时行情
                         let ukInBestIndex = this.bestStockUktoIndex[msg.content.ukey];
                         let ukInWorstIndex = this.worstStockUktoIndex[msg.content.ukey];
@@ -522,12 +570,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         //预警接口 
         this.config.on("getAlarmMessageAns", (data) => {
-            if (data.msret.msgcode == '00') {
-                let alarmlvObj = { '0': '不重要', '1': '一般', '2': '危险', '3': '紧急' };
-                let statObj = { '0': '未处理', '1': '处理中' };
-                this.alarmTableData = data.body;
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
 
+            let alarmlvObj = { '0': '不重要', '1': '一般', '2': '危险', '3': '紧急' };
+            let statObj = { '0': '未处理', '1': '处理中' };
 
+            this.alarmTableData = data.body;
+            if (this.alarmTableData.length > 0) {
                 this.alarmTableData.forEach(item => {
                     if (item.stat == '0' || item.stat == '1') {
                         let alarmtime = item.alarmtime.substring(0, 10);
@@ -548,13 +600,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         //产品信息
         this.config.on("getProductAns", (data) => {
-            if (data.msret.msgcode == '00') {
-                let productScaleChangeOpt = {
-                    yAxis: { data: [] },
-                    series: [{ data: [] }]
-                }
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            let productScaleChangeOpt = {
+                yAxis: { data: [] },
+                series: [{ data: [] }]
+            }
 
-                this.productData = data.body;
+            this.productData = data.body;
+            if (this.productData.length > 0) {
                 this.nowProductIndex = this.productData.length;
                 this.productDataSort = this.productData.sort(this.compare('totalint'));
                 this.productDataSort.forEach(item => {
@@ -565,22 +621,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.nowProductCaid = this.productData[0].caid;
                 this.productNetData = [];
                 this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: {} });
-                this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: {caid: this.nowProductCaid } });
+                this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: { caid: this.nowProductCaid } });
                 this.tradePoint.send(260, 251, { head: { realActor: "getProductNet" }, body: { caid: this.nowProductCaid } });
-
             }
-
         })
 
         //产品净值
         this.config.on("getProductNetAns", (data) => {
-            if (data.msret.msgcode == '00') {
-                let productNetChangeOpt = {
-                    title: { text: '' },
-                    xAxis: [{ data: [] }],
-                    series: [{ data: [] }]
-                }
-                this.productNetData = data.body;
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            let productNetChangeOpt = {
+                title: { text: '' },
+                xAxis: [{ data: [] }],
+                series: [{ data: [] }]
+            }
+            this.productNetData = data.body;
+            if (this.productNetData.length > 0) {
                 this.productNetData.forEach(item => {
                     productNetChangeOpt.xAxis[0].data.push(item.trday);
                     productNetChangeOpt.title.text = item.caname;
@@ -592,8 +650,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         //getMonitorProductsAns
         this.config.on("getMonitorProductsAns", (data) => {
-            if (data.msret.msgcode == '00') {
-                this.monitorProductsData = data.body;
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            this.monitorProductsData = data.body;
+            if (this.monitorProductsData.length > 0) {
                 if (this.monitorProductsData[0].caid == this.nowProductCaid && this.monitorProductsData.length == 1) {//获取单个产品数据
 
                     this.nowMonitorProductsData = this.monitorProductsData;
@@ -642,13 +704,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         //最好的30股票
 
         this.config.on('getBestStocksAns', data => {
-            if (data.msret.msgcode == '00') {
-                this.aiStockDate.bestStockListData = data.body;
-                this.bestStockList.RowIndex = false; // 去除序列
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            this.aiStockDate.bestStockListData = data.body;
+            this.bestStockList.RowIndex = false; // 去除序列
 
 
-                this.bestStockList.backgroundColor = '#fff'
-
+            this.bestStockList.backgroundColor = '#fff'
+            if (this.aiStockDate.bestStockListData.length > 0) {
                 this.aiStockDate.bestStockListData.forEach((item, index) => {
                     this.ukCodeList.push(Number(item.ukcode));
                     this.dashAllUkcodeList.push(Number(item.ukcode));
@@ -661,16 +726,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     row.cells[2].Text = '--';
                     row.cells[3].Text = '--';
                 })
-                this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
             }
+            this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
         })
 
         //最差的30股
         this.config.on('getWorstStocksAns', data => {
-            if (data.msret.msgcode == '00') {
-                this.aiStockDate.worstStockListData = data.body;
-                this.worstStockList.RowIndex = false; // 去除序列
-
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            this.aiStockDate.worstStockListData = data.body;
+            this.worstStockList.RowIndex = false; // 去除序列
+            if (this.aiStockDate.worstStockListData.length > 0) {
                 this.aiStockDate.worstStockListData.forEach((item, index) => {
                     this.ukCodeList.push(Number(item.ukcode));
                     this.dashAllUkcodeList.push(Number(item.ukcode));
@@ -683,26 +751,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     row.cells[2].Text = '--';
                     row.cells[3].Text = '--';
                 })
-                this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
             }
+            this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
 
         })
 
         //todo列表
         this.config.on('getTodoListAns', data => {
-            if (data.msret.msgcode == '00') {
-                this.todoListData = data.body.reverse();
-                this.todoList.rows.length = 0;
-
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            this.todoListData = data.body.reverse();
+            this.todoList.rows.length = 0;
+            if (this.todoListData.length > 0) {
                 this.todoListData.forEach((item, itemIndex) => {
                     let row = this.todoList.newRow();
                     let todoTime = new Date(item.createtime.substring(0, 10));
+
                     if (item.stat == '1') {
                         row.cells[1].Color = 'rgb(93, 83, 84)';
                         row.cells[2].Color = 'rgb(93, 83, 84)';
-                    } else if (new Date(this.nowDate) > todoTime) {
-                        row.cells[1].Color = 'rgb(234, 47, 47)';
-                        row.cells[2].Color = 'rgb(234, 47, 47)';
+                    } else {
+                        if (new Date(this.nowDate) > todoTime) {
+                            row.cells[1].Color = 'rgb(234, 47, 47)';
+                            row.cells[2].Color = 'rgb(234, 47, 47)';
+                        } else {
+                            row.cells[1].Color = 'rgb(208, 208, 208)';
+                            row.cells[2].Color = 'rgb(208, 208, 208)';
+                        }
                     }
 
                     row.cells[0].Type = "checkbox";
@@ -717,23 +794,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     row.cells[3].Class = 'default';
                     row.cells[3].Text = ["edit", "trash"];
 
-
-                    row.cells[3].OnClick = (index) => {
-                        this.todoRowIndex = itemIndex;
-                        this.nowOperateId = item.id
+                    row.cells[3].OnClick = (index, cellIndex, rowIndex) => {
+                        this.todoRowIndex = rowIndex;
+                        this.nowOperateId = item.id;
                         this.nowOperateStat = item.stat;
 
                         if (row.cells[1].Type == "textbox") {
-                            if (index == 1) {//确认编辑
+                            if (index == 0) {//确认编辑
                                 this.tradePoint.send(260, 251, {
                                     head: { realActor: "editTodo" }, body: {
                                         id: this.nowOperateId,
                                         stat: this.nowOperateStat,
                                         content: row.cells[1].Text,
-                                        createtime: row.cells[2].Text
+                                        createtime: row.cells[2].Text,
+                                        maid: this.maid,
+                                        oid: this.userId
+
                                     }
                                 });
-                            } else if (index == 0) {//取消编辑
+                            } else if (index == 1) {//取消编辑
                                 row.cells[1].Text = item.content;
                                 row.cells[2].Text = item.createtime.substring(0, 10);
                                 row.cells[3].Text = ["edit", "trash"];
@@ -751,28 +830,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         }
                     };
                 })
-                this.addTodoContent = '';
             }
-
+            this.addTodoContent = '';
         })
 
         //addTodo
         this.config.on('createTodoAns', data => {
-            if (data.msret.msgcode == '00') {
-                this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
             }
+            this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
         })
 
         //editTodo
         this.config.on('editTodoAns', data => {
-            if (data.msret.msgcode == '00') {
-                this.todoList.rows[this.todoRowIndex].cells[3].Text = ["edit", "trash"];;
-                this.todoList.rows[this.todoRowIndex].cells[1].Type = "plaintext";
-                this.todoList.rows[this.todoRowIndex].cells[2].Type = "plaintext";
-                if (this.nowOperateStat == 1) {//已完成
-                    this.todoList.rows[this.todoRowIndex].cells[1].Color = 'rgb(93, 83, 84)';
-                    this.todoList.rows[this.todoRowIndex].cells[2].Color = 'rgb(93, 83, 84)';
-                } else if (this.nowOperateStat == 0 && new Date(this.nowDate) > new Date(this.todoList.rows[this.todoRowIndex].cells[2].Text)) {//未完成已过期
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            let isPast = new Date(this.nowDate) > new Date(this.todoList.rows[this.todoRowIndex].cells[2].Text);
+            this.todoList.rows[this.todoRowIndex].cells[3].Text = ["edit", "trash"];;
+            this.todoList.rows[this.todoRowIndex].cells[1].Type = "plaintext";
+            this.todoList.rows[this.todoRowIndex].cells[2].Type = "plaintext";
+            this.nowOperateStat = this.todoList.rows[this.todoRowIndex].cells[0].Text
+            if (this.nowOperateStat) {//已完成
+                this.todoList.rows[this.todoRowIndex].cells[1].Color = 'rgb(93, 83, 84)';
+                this.todoList.rows[this.todoRowIndex].cells[2].Color = 'rgb(93, 83, 84)';
+            } else {//未完成
+                if (isPast) {//已过期
                     this.todoList.rows[this.todoRowIndex].cells[1].Color = 'rgb(234, 47, 47)';
                     this.todoList.rows[this.todoRowIndex].cells[2].Color = 'rgb(234, 47, 47)';
                 } else {
@@ -784,10 +870,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         //删除todo列表
         this.config.on('deleteTodoAns', data => {
-            if (data.msret.msgcode == '00') {
-
-                this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
             }
+            this.todoList.rows.splice(this.todoRowIndex, 1);
         })
         this.tradePoint.send(260, 251, { head: { realActor: "getAlarmMessage" }, body: {} });
 
@@ -1128,7 +1215,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        //防止订阅的行情在其他页面的时候回来，离开页面的时候取消订阅，销毁图表。回来时判断
         this.quote.send(17, 101, { topic: 3112, kwlist: [] });
+        if (this.productNetChart) {
+            this.productNetChart.dispose();
+            this.productNetChart = null;
+        }
+        if (this.allProductWeightGauge) {
+            this.allProductWeightGauge.dispose();
+            this.allProductWeightGauge = null;
+        }
+        if (this.productScaleBar) {
+            this.productScaleBar.dispose();
+            this.productScaleBar = null;
+        }
+        if (this.selfStockPriceLine) {
+            this.selfStockPriceLine.dispose();
+            this.selfStockPriceLine = null;
+        }
+        if (this.selfStockMoneyBar) {
+            this.selfStockMoneyBar.dispose();
+            this.selfStockMoneyBar = null;
+        }
     }
 }
 

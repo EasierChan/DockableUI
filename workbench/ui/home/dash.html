@@ -81,7 +81,7 @@
             <p class="chartTit">TODO</p>
             <div class="todoInput">
                 <input type="text" placeholder="输入要做的事情" [(ngModel)]="addTodoContent" />
-                <a href="javascript:;" (click)="addTodoEvent()" class="addTodoList">add</a>
+                <a href="javascript:;" (click)="addTodoEvent()" class="addTodoList">添加</a>
             </div>
             <div class="todoList chartBody">
                 <dock-table2 [dataSource]="todoList.dataSource" [styleObj]="todoList.styleObj"></dock-table2>
