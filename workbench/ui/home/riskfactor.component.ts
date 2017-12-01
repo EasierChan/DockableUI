@@ -165,6 +165,7 @@ export class FactorProfitComponent implements OnDestroy {
 
     // 设置收益的两个图表
     setRiskFactorReturnEchart(riskFactorInfoArray) {
+        console.log(this.riskFactorInfoArray);
 
         if (riskFactorInfoArray.length === 0 || riskFactorInfoArray[0].returns.length === 0) {
             console.log("风险因子收益没有数据,请检查重试!");
@@ -526,12 +527,10 @@ export class FactorAnalysisComponent implements OnDestroy {
             }
         }];
 
-        let date1 = new Date().setMonth((new Date().getMonth() - 1));
+        let date1 = new Date().setMonth((new Date().getMonth() - 3));
         let date2 = new Date();
-        // this.startdate = this.datePipe.transform(date1, "yyyy-MM-dd");
-        // this.enddate = this.datePipe.transform(date2, "yyyy-MM-dd");
-        this.startdate = "2017-06-26";
-        this.enddate = "2017-07-26";
+        this.startdate = this.datePipe.transform(date1, "yyyy-MM-dd");
+        this.enddate = this.datePipe.transform(date2, "yyyy-MM-dd");
         this.hedgeRadio = 1;
 
         if (this.activeTab === "风险因子分析") {
@@ -732,6 +731,169 @@ export class FactorAnalysisComponent implements OnDestroy {
         window.onresize = () => {
             this.resizeFunction();
         };
+    }
+
+    registerListener() {
+        this.tradePoint.addSlot({
+            appid: 260,
+            packid: 251,
+            callback: (msg) => {
+                switch (msg.content.head.actor) {
+                    case "getProductNetAns":
+                        console.log("NetTableValue", msg);
+                        this.netValueString += msg.content.body;
+
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.netValueString;
+                            this.hadNetData = true;
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取净值数据失败：" + msg.content.msret.msg);
+                                return;
+                            }
+
+                            let netTableValue = JSON.parse(msg.content.body);
+                            if (netTableValue.msret.msgcode === "00") {
+                                this.netTableValue = netTableValue.body;
+
+                                this.netTableValue.forEach((currentValue, index, array) => {
+                                    let netvalue = parseFloat(currentValue.netvalue);
+                                    if (isNaN(netvalue)) {
+                                        currentValue.netvalue = 0;
+                                    } else {
+                                        currentValue.netvalue = netvalue;
+                                    }
+                                });
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+                                    this.beginCalculateRiskFactor();
+                                }
+
+                            } else {
+                                alert("获取净值数据失败：" + netTableValue.msret.msg);
+                            }
+                        }
+                        break;
+
+                    case "getStrategyFuturesHoldWeightAns": 
+                        console.log("strategyfuturehold", msg);
+                        this.strategyfuturehold += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.strategyfuturehold;
+                            // console.log(this.strategyfuturehold);
+                            // console.log("strategyfuturehold", msg);
+                            this.hadFutureHold = true;
+
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取策略期货持仓失败：" + msg.content.msret.msg);
+                                return;
+                            }
+
+                            let strategyFutureHold = JSON.parse(msg.content.body);
+
+                            if (strategyFutureHold.msret.msgcode === "00") {
+                                this.futurePosition = strategyFutureHold.body;
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+                                    this.beginCalculateRiskFactor();
+                                }
+                            } else {
+                                alert("获取策略期货持仓失败：" + msg.content.msret.msg);
+                            }
+                        }
+                        break;
+
+                    case "getStrategyStockHoldWeightAns":
+                        console.log("strategystockhold", msg);
+                        this.strategystockhold += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.strategystockhold;
+
+                            // console.log("strategystockhold", msg);
+                            this.hadStockHold = true;
+
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取策略股票持仓失败：" + msg.content.msret.msg);
+                                return;
+                            }
+
+                            let strategystockhold = JSON.parse(msg.content.body);
+
+                            if (strategystockhold.msret.msgcode === "00") {
+                                this.getGroupPosition(strategystockhold.body);
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+
+                                    this.beginCalculateRiskFactor();
+                                }
+                            } else {
+                                alert("获取策略股票持仓失败：" + strategystockhold.msret.msg);
+                            }
+                            // console.log("strategystockhold", strategystockhold, this.groupPosition);
+                        }
+                        break;
+
+                    case "getProductFuturesHoldWeightAns":
+                        console.log("productfuture",msg);
+                        this.productfuturehold += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.productfuturehold;
+
+                            this.hadFutureHold = true;
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取产品期货持仓失败：" + msg.content.msret.msg);
+                                return;
+                            }
+                            let productFutureHold = JSON.parse(msg.content.body);
+                            if (productFutureHold.msret.msgcode === "00") {
+                                this.futurePosition = productFutureHold.body;
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+                                    this.beginCalculateRiskFactor();
+                                }
+                            } else {
+                                alert("获取产品期货持仓失败：" + productFutureHold.msret.msg);
+                            }
+                            // console.log("productFutureHold", productFutureHold, this.groupPosition);
+                        }
+                        break;
+
+                    case "getProductStockHoldWeightAns":
+                        console.log("productstockhold",msg);
+                        this.productstockhold += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.productstockhold;
+
+                            // console.log("productstockhold", msg);
+                            this.hadStockHold = true;
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取产品股票持仓失败：" + msg.content.msret.msg);
+                                return;
+                            }
+                            let productStockHold = JSON.parse(msg.content.body);
+                            if (productStockHold.msret.msgcode === "00") {
+                                this.getGroupPosition(productStockHold.body);
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+                                    this.beginCalculateRiskFactor();
+                                }
+
+                            } else {
+                                alert("获取产品股票持仓失败：" + productStockHold.msret.msg);
+                            }
+                            // console.log("productStockHold", productStockHold, this.groupPosition);
+                        }
+                        break;
+
+                    case "getFactorStockExposureAns":
+                        console.log("expo", msg);
+                        break;    
+
+                    default: 
+
+                }
+            }
+        });
     }
 
     loadData() {
@@ -1101,6 +1263,7 @@ export class FactorAnalysisComponent implements OnDestroy {
         }
 
         if (!isNaN(this.hedgeRadio)) {
+            this.getExposure();
             let strategylist = document.getElementById("strategy") as HTMLSelectElement;
             if (FactorAnalysisComponent.strategyIndex === undefined) {
                 FactorAnalysisComponent.strategyIndex = strategylist.selectedIndex;
@@ -1108,47 +1271,7 @@ export class FactorAnalysisComponent implements OnDestroy {
             console.log(this.istrategy);
             console.log(FactorAnalysisComponent.strategyIndex);
             // setNetTableValue
-            this.tradePoint.addSlot({
-                appid: 260,
-                packid: 251,
-                callback: (msg) => {
-                    if (msg.content.head.actor === "getProductNetAns") {
-                        console.log("receive setNetTableValue", msg);
-                        this.netValueString += msg.content.body;
-
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            msg.content.body = this.netValueString;
-                            this.hadNetData = true;
-                            if (msg.content.msret.msgcode !== "00") {
-                                alert("获取净值数据失败：" + msg.content.msret.msg);
-                                return;
-                            }
-
-                            let netTableValue = JSON.parse(msg.content.body);
-                            if (netTableValue.msret.msgcode === "00") {
-                                this.netTableValue = netTableValue.body;
-
-                                this.netTableValue.forEach((currentValue, index, array) => {
-                                    let netvalue = parseFloat(currentValue.netvalue);
-                                    if (isNaN(netvalue)) {
-                                        currentValue.netvalue = 0;
-                                    } else {
-                                        currentValue.netvalue = netvalue;
-                                    }
-                                });
-                                console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-                                    this.beginCalculateRiskFactor();
-                                }
-
-                            } else {
-                                alert("获取净值数据失败：" + netTableValue.msret.msg);
-                            }
-                        }
-                    }
-
-                }
-            });
+            this.registerListener();
 
             if (FactorAnalysisComponent.strategyIndex > 0) {
                 console.log(FactorAnalysisComponent.strategyIndex - 1);
@@ -1157,79 +1280,17 @@ export class FactorAnalysisComponent implements OnDestroy {
                 console.log(this.startDate, tblockId);
                 // strategyfuturehold
                 // strategystockhold
-                this.tradePoint.addSlot({
-                    appid: 260,
-                    packid: 251,
-                    callback: (msg) => {
-                        if (msg.content.head.actor === "getStrategyFuturesHoldWeightAns") {
-                            console.log("strategyfuturehold", msg, msg.content.head.pkgCnt, msg.content.head.pkgIdx);
-                            this.strategyfuturehold += msg.content.body;
-                            if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                                msg.content.body = this.strategyfuturehold;
-                                // console.log(this.strategyfuturehold);
-                                console.log("strategyfuturehold", msg);
-                                this.hadFutureHold = true;
+                this.registerListener();
 
-                                if (msg.content.msret.msgcode !== "00") {
-                                    alert("获取策略期货持仓失败：" + msg.content.msret.msg);
-                                    return;
-                                }
-
-                                let strategyFutureHold = JSON.parse(msg.content.body);
-
-                                if (strategyFutureHold.msret.msgcode === "00") {
-                                    this.futurePosition = strategyFutureHold.body;
-                                    console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-
-                                    if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-                                        this.beginCalculateRiskFactor();
-                                    }
-                                } else {
-                                    alert("获取策略期货持仓失败：" + msg.content.msret.msg);
-                                }
-                            }
-                        }
-
-                        if (msg.content.head.actor === "getStrategyStockHoldWeightAns") {
-                            console.log("strategystockhold", msg, msg.content.head.pkgCnt, msg.content.head.pkgIdx);
-                            this.strategystockhold += msg.content.body;
-                            if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                                msg.content.body = this.strategystockhold;
-
-                                console.log("strategystockhold", msg);
-                                this.hadStockHold = true;
-
-                                if (msg.content.msret.msgcode !== "00") {
-                                    alert("获取策略股票持仓失败：" + msg.content.msret.msg);
-                                    return;
-                                }
-
-                                let strategystockhold = JSON.parse(msg.content.body);
-
-                                if (strategystockhold.msret.msgcode === "00") {
-                                    this.getGroupPosition(strategystockhold.body);
-                                    console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-                                    if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-
-                                        this.beginCalculateRiskFactor();
-                                    }
-                                } else {
-                                    alert("获取策略股票持仓失败：" + strategystockhold.msret.msg);
-                                }
-                                console.log("strategystockhold", strategystockhold, this.groupPosition);
-                            }
-                        }
-                    }
-                });
                 this.strategyfuturehold = "";
                 this.hadFutureHold = false;
                 this.futurePosition = [];
-                this.tradePoint.send(260, 251, { head:{realActor:"getStrategyFuturesHoldWeight"}, body: { begin_date: this.startDate, end_date: this.startDate, trid: strategyId } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getStrategyFuturesHoldWeight"}, body: { begin_date: this.startDate, end_date: this.endDate, trid: strategyId } });
 
                 this.strategystockhold = "";
                 this.hadStockHold = false;
                 this.groupPosition = [];
-                this.tradePoint.send(260, 251, { head:{realActor:"getStrategyStockHoldWeight"}, body: {begin_date: this.startDate, end_date: this.startDate, trid: strategyId } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getStrategyStockHoldWeight"}, body: {begin_date: this.startDate, end_date: this.endDate, trid: strategyId } });
 
                 this.hadNetData = false;
                 this.netTableValue = [];
@@ -1240,71 +1301,17 @@ export class FactorAnalysisComponent implements OnDestroy {
                 console.log(this.startDate, tblockId);
                 // productfuturehold
                 // productstockhold
-                this.tradePoint.addSlot({
-                    appid: 260,
-                    packid: 251,
-                    callback: (msg) => {
-                        if (msg.content.head.actor === "getProductFuturesHoldWeightAns") {
-                            console.log("productfuture",msg);
-                            this.productfuturehold += msg.content.body;
-                            if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                                msg.content.body = this.productfuturehold;
+                this.registerListener();
 
-                                this.hadFutureHold = true;
-                                if (msg.content.msret.msgcode !== "00") {
-                                    alert("获取产品期货持仓失败：" + msg.content.msret.msg);
-                                    return;
-                                }
-                                let productFutureHold = JSON.parse(msg.content.body);
-                                if (productFutureHold.msret.msgcode === "00") {
-                                    this.futurePosition = productFutureHold.body;
-                                    console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-                                    if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-                                        this.beginCalculateRiskFactor();
-                                    }
-                                } else {
-                                    alert("获取产品期货持仓失败：" + productFutureHold.msret.msg);
-                                }
-                                console.log("productFutureHold", productFutureHold, this.groupPosition);
-                            }
-                        }
-
-                        if (msg.content.head.actor === "getProductStockHoldWeightAns") {
-                            this.productstockhold += msg.content.body;
-                            if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                                msg.content.body = this.productstockhold;
-
-                                console.log("productstockhold", msg);
-                                this.hadStockHold = true;
-                                if (msg.content.msret.msgcode !== "00") {
-                                    alert("获取产品股票持仓失败：" + msg.content.msret.msg);
-                                    return;
-                                }
-                                let productStockHold = JSON.parse(msg.content.body);
-                                if (productStockHold.msret.msgcode === "00") {
-                                    this.getGroupPosition(productStockHold.body);
-                                    console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-                                    if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-                                        this.beginCalculateRiskFactor();
-                                    }
-
-                                } else {
-                                    alert("获取产品股票持仓失败：" + productStockHold.msret.msg);
-                                }
-                                console.log("productStockHold", productStockHold, this.groupPosition);
-                            }
-                        }
-                    }
-                });
                 this.productfuturehold = "";
                 this.hadFutureHold = false;
                 this.futurePosition = [];
-                this.tradePoint.send(260, 251, { head:{realActor:"getProductFuturesHoldWeight"}, body: { begin_date: this.startDate, end_date: this.startDate, caid: tblockId } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getProductFuturesHoldWeight"}, body: { begin_date: this.startDate, end_date: this.endDate, caid: tblockId } });
 
                 this.productstockhold = "";
                 this.hadStockHold = false;
                 this.groupPosition = [];
-                this.tradePoint.send(260, 251, { head:{realActor:"getProductStockHoldWeight"}, body: { begin_date: this.startDate, end_date: this.startDate, caid: tblockId } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getProductStockHoldWeight"}, body: { begin_date: this.startDate, end_date: this.endDate, caid: tblockId } });
 
                 this.hadNetData = false;
                 this.netTableValue = [];
@@ -1315,6 +1322,10 @@ export class FactorAnalysisComponent implements OnDestroy {
         } else {
             alert("对冲比例必须为数字或空！");
         }
+    }
+
+    getExposure() {
+        this.tradePoint.send(260, 251, { head:{realActor:"getFactorStockExposure"}, body: { begin_date: this.startDate, end_date: this.endDate } });
     }
 
     searchresult() {
@@ -2043,6 +2054,7 @@ export class FactorAnalysisComponent implements OnDestroy {
 
     // 设置风险因子暴露的两个图表
     setriskFactorExposureEchart(everyDayExposure, groupPosition, riskFactorReturn) {
+        console.log(riskFactorReturn);
 
         let riskFactorExposureXAxis = [], riskFactorExposureSeries = [],
             chartLegendData = [], everydayExposureXAxis = [], everydayExposureSeries = [];
@@ -2604,10 +2616,11 @@ export class FactorAlphaComponent {
     defaultMedia: any;
     getAlphaFactorReturnString: string = "";
     getFactorCorrelationString: string = "";
+    riskFactorInfoArray: any[] = [];
+    alphaFactorInfoArray: any[] = [];
     alphaRelevance: any[] = []; // alpha相关性
     alphaRelevanceResult: any[] = []; // alpha相关性结果
     hotChartData: any[] = []; // 存放图标的data
-    alphaData: any[] = []; // alpha
     dataDir: string; 
     getFactorInfoString: string = "";
 
@@ -2654,6 +2667,7 @@ export class FactorAlphaComponent {
             appid: 260,
             packid: 251,
             callback: (msg) => {
+                console.log(msg);
                 switch (msg.content.head.actor) {
                     case "getFactorInfoAns":
                         this.getFactorInfoString += msg.content.body;
@@ -2665,11 +2679,12 @@ export class FactorAlphaComponent {
                                     factorInfo.factortype = parseInt(factorInfo.factortype);
                                     factorInfo.returns = [];
                                     if (factorInfo.factortype === 1) {
-                                        FactorProfitComponent.self.alphaFactorInfoArray.push(factorInfo);
+                                        FactorAlphaComponent.self.alphaFactorInfoArray.push(factorInfo);
                                     } else if (factorInfo.factortype === 2) {
-                                        FactorProfitComponent.self.riskFactorInfoArray.push(factorInfo);
+                                        FactorAlphaComponent.self.riskFactorInfoArray.push(factorInfo);
                                     }
                                 });
+                                console.log(FactorAlphaComponent.self.alphaFactorInfoArray);
                                 this.searchresult();
                             } else {
                                 alert("Get getFactorInfo Failed! " + data1.msret.msg);
@@ -2695,40 +2710,6 @@ export class FactorAlphaComponent {
         this.alphaChart.resize();
     }
 
-    // 读取alpha相关性数据
-    readAndHandleAlphaRelevance(exposureFilePath) {
-        this.alphaRelevance = this.readDataFromCsvFile(exposureFilePath);
-    }
-
-    // 读取alpha因子数据
-    readAndHandleAlpha() {
-        this.alphaData = this.readDataFromCsvFile(path.join(this.dataDir, "alpha", "alpha_ret.csv"));
-        // 处理获取的风险因子收益数据
-        if (this.riskFactorReturn.length < 2) {
-            alert("风险因子收益没有数据,请导入数据后重试");
-            return;
-        }
-
-        for (let i = 1; i < this.alphaData.length; ++i) {
-
-            for (let j = 1; j < this.alphaData[0].length; ++j) {
-                let value = parseFloat(this.alphaData[i][j]);
-
-                if (isNaN(value)) {
-                    this.alphaData[i][j] = 0;
-                } else {
-                    this.alphaData[i][j] = value;
-                }
-
-                // if (i > 1) {
-                //     this.riskFactorReturn[i][j] += this.riskFactorReturn[i-1][j];
-                // }
-
-            }
-        }
-        console.log(this.alphaData);
-    }
-
     searchresult() {
         this.openDate = this.opendate.replace(/-/g, "");
         this.closeDate = this.closedate.replace(/-/g, "");
@@ -2737,37 +2718,47 @@ export class FactorAlphaComponent {
             appid: 260,
             packid: 251,
             callback: (msg) => {
-                // console.log(msg);
                 switch (msg.content.head.actor) {
                     case "getAlphaFactorReturnAns":
-                        this.getRiskFactorReturnString += msg.content.body;
+                        this.getAlphaFactorReturnString += msg.content.body;
                         if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            let data2 = JSON.parse(this.getRiskFactorReturnString);
+                            let data2 = JSON.parse(this.getAlphaFactorReturnString);
                             if (data2.msret.msgcode === "00") {
                                 let i = 0 , j = 0;
-                                for (; i < FactorProfitComponent.self.riskFactorInfoArray.length; i++) {
+                                for (; i < FactorAlphaComponent.self.alphaFactorInfoArray.length; i++) {
                                     for (; j < data2.body.length; j++) {
-                                        if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid == data2.body[j].factorid ) {
+                                        if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid == data2.body[j].factorid ) {
                                             data2.body[j].factor_returns = parseFloat(data2.body[j].factor_returns);
-                                            FactorProfitComponent.self.riskFactorInfoArray[i].returns.push(data2.body[j]) ;
-                                        } else if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid > data2.body[j].factorid) {
+                                            FactorAlphaComponent.self.alphaFactorInfoArray[i].returns.push(data2.body[j]) ;
+                                        } else if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid > data2.body[j].factorid) {
                                             continue;
                                         } else {
                                             break;
                                         }
                                     }
                                 }
-                                this.setRiskFactorReturnEchart(this.riskFactorInfoArray);
+                                this.setRiskFactorReturnEchart(this.alphaFactorInfoArray);
                             } else {
-                                alert("Get getRiskFactorReturn Failed! " + data2.msret.msg);
+                                alert("Get getAlphaFactorReturn Failed! " + data2.msret.msg);
                             }
                         }
                         break;
-                    case "getFactorInfo2":
-
-                        break;
-                    case "getFactorInfo3":
-
+                    case "getFactorCorrelationAns":
+                        this.getFactorCorrelationString += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            let data1 = JSON.parse(this.getFactorCorrelationString);
+                            if (data1.msret.msgcode === "00") {
+                                console.log(data1.body);
+                                data1.body.forEach((item) => {
+                                    let relevanceArr = [parseInt(item.factorid1) - 1, parseInt(item.factorid2) - 1, parseFloat(item.value)];
+                                    this.alphaRelevance.push(relevanceArr);
+                                });
+                                console.log(this.alphaRelevance);
+                                this.averageValue(this.alphaRelevance);
+                            } else {
+                                alert("Get getFactorCorrelation Failed! " + data1.msret.msg);
+                            }
+                        }
                         break;
                     default:
 
@@ -2775,98 +2766,86 @@ export class FactorAlphaComponent {
             }
         });
 
+        this.getAlphaFactorReturnString = "";
+        FactorAlphaComponent.self.alphaFactorInfoArray.forEach((item) => {
+            item.returns = [];
+        });
         this.tradePoint.send(260, 251, {head:{realActor:"getAlphaFactorReturn"}, body: { begin_date: this.openDate, end_date: this.closeDate } });
 
-        let startDateIndex = 1, endDateIndex = this.alphaData.length - 2;
-        for (let i = 0; i < this.alphaData.length; i++) {
-            if (this.alphaData[i][0] === this.openDate) {
-                startDateIndex = i;
-            }
-            if (this.alphaData[i][0] === this.closeDate) {
-                endDateIndex = i;
-            }
-        }
-        console.log(startDateIndex, endDateIndex);
-        this.setAlphaEchart(this.alphaData, startDateIndex, endDateIndex, this.alphaChart);
-
-        let alphaRelevanceFile = [], dirAlphaFiles = [];
-
-        try {
-            dirAlphaFiles = fs.readdirSync(path.join(this.dataDir, "correlation_matrix"));
-        } catch (err) {
-            console.log("err", err);
-            return;
-        }
-
-        if (dirAlphaFiles.length === 0) {
-            alert("您选择的路径内没有文件,无法计算");
-            return;
-        }
-        for (let fileIndex = 0; fileIndex < dirAlphaFiles.length; ++fileIndex) {   // csv文件在打开时可能还有其他的文件存在
-            if ((this.openDate === "" || this.closeDate === "")) {
-                alert("请选择时间范围");
-                return;
-            }
-            if (this.openDate !== "" && dirAlphaFiles[fileIndex] < (this.openDate + ".csv")) {
-                continue;
-            }
-            if (this.closeDate !== "" && dirAlphaFiles[fileIndex] > (this.closeDate + ".csv")) {
-                continue;
-            }
-            alphaRelevanceFile.push(dirAlphaFiles[fileIndex]);
-        }
-        console.log("alphaRelevanceFile", alphaRelevanceFile);
-        for (let fileIndex = 0; fileIndex < alphaRelevanceFile.length; ++fileIndex) {
-            this.readAndHandleAlphaRelevance(path.join(this.dataDir, "correlation_matrix", alphaRelevanceFile[fileIndex]));
-            if (fileIndex === 0) {
-                this.alphaRelevanceResult = this.alphaRelevance;
-            }
-            this.alphaRelevanceResult = this.averageValue(this.alphaRelevanceResult, this.alphaRelevance);
-        }
-        for (let i = 1; i < this.alphaRelevanceResult.length; i++) {
-            for (let j = 1; j < this.alphaRelevanceResult[1].length; j++) {
-                this.alphaRelevanceResult[i][j] = this.alphaRelevanceResult[i][j].toFixed(4);
-            }
-        }
-        this.setAlphaHotEchart(this.alphaRelevanceResult, this.alphaHotChart);
+        this.getFactorCorrelationString = "";
+        this.alphaRelevance = [];
+        this.hotChartData = [];
+        this.tradePoint.send(260, 251, {head:{realActor:"getFactorCorrelation"}, body: { begin_date: this.openDate, end_date: this.closeDate } });
 
     }
 
     // 计算平均值
-    averageValue(arrA, arrB) {
-        for (let i = 1; i < arrB.length; i++) {
-            for (let j = 1; j < arrB[i].length; j++) {
-                arrA[i][j] = parseFloat(arrA[i][j]);
-                arrB[i][j] = parseFloat(arrB[i][j]);
-                if (isNaN(arrA[i][j])) {
-                    arrA[i][j] = 0;
-                }
-                if (isNaN(arrB[i][j])) {
-                    arrB[i][j] = 0;
-                }
-                arrA[i][j] = (arrA[i][j] + arrB[i][j]) / 2;
-                // arrA[i][j] = arrA[i][j].toFixed(2);
+    averageValue(arr) {
+        let id1 = 1, id2 = 0, flag = 0;
+        for (let i = 0; i < arr.length; ++i) {
+            if (arr[i][0] === id1 && arr[i][1] === id2){
+                flag++;
+                id1 = arr[i][0];
+                id2 = arr[i][1];
+            } else {
+                break;
             }
         }
-        return arrA;
+        console.log(flag);
+        let result = [];
+        for (let i = 0; i < arr.length; i += flag) {
+            result.push(arr.slice(i, i + flag));
+        }
+        for (let j = 0; j < result.length; ++j) {
+            let sum = 0, average = 0;
+            for (let k = 0; k < result[j].length; ++k) {
+                sum += parseFloat(result[j][k][2]);
+            }
+            console.log(sum);
+            average = parseFloat((sum / result[j].length).toFixed(4));
+            result[j][0][2] = average;
+            result[j][1][0] = result[j][0][1];
+            result[j][1][1] = result[j][0][0];
+            result[j][1][2] = result[j][0][2];
+            this.hotChartData.push(result[j][0], result[j][1]);
+        }
+        for (let index = 0; index < this.alphaFactorInfoArray.length; ++index) {
+            let arr = [index, index, 1];
+            this.hotChartData.push(arr);
+        }
+        console.log(this.hotChartData);
+        this.setAlphaHotEchart();
     }
 
     // 设置alpha因子展示
-    setAlphaEchart(alphaData, startIndex, endIndex, lineChart) {
+    setRiskFactorReturnEchart(alphaFactorInfoArray) {
+        console.log(this.alphaFactorInfoArray);
+
+        if (alphaFactorInfoArray.length === 0 || alphaFactorInfoArray[0].returns.length === 0) {
+            console.log("alpha因子收益没有数据,请检查重试!");
+            return;
+        }
+        let startDateIndex = 0, endDateIndex = alphaFactorInfoArray[0].returns.length - 1;
+
+        this.setAlphaEchart(alphaFactorInfoArray, startDateIndex, endDateIndex, this.alphaChart);
+    }
+
+        
+    setAlphaEchart(alphaFactorInfoArray, startIndex, endIndex, lineChart) {
         let chartLegendData = [], xAxisDatas = [], series = [];    // 分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
         let allRiskReturnXAxis = [], allRiskReturnSeries = [];   // 统计总共的x坐标数组,和具体每一条曲线的数据
 
-        for (let riskIndex = 1; riskIndex < alphaData[0].length; ++riskIndex) {    // 遍历每一个风险因子
-            let lengendData = { name: alphaData[0][riskIndex] }; // ,textStyle: { color: "#F3F3F5" }
+        for (let riskIndex = 0; riskIndex < alphaFactorInfoArray.length; ++riskIndex) {    // 遍历每一个风险因子
+            let lengendData = { name: alphaFactorInfoArray[riskIndex].factorname }; // ,textStyle: { color: "#F3F3F5" }
             chartLegendData.push(lengendData);
-            allRiskReturnXAxis.push(alphaData[0][riskIndex]);  // 柱状图的x轴分类
+            allRiskReturnXAxis.push(alphaFactorInfoArray[riskIndex].factorname);  // 柱状图的x轴分类
 
             // 具体每一条曲线的数据
-            let seriesData = { name: alphaData[0][riskIndex], type: "line", data: [] };
+            let seriesData = { name: alphaFactorInfoArray[riskIndex].factorname, type: "line", data: [] };
             let riskFactorAllDateReturn = 0;
 
             for (let i = startIndex; i <= endIndex; ++i) {
-                riskFactorAllDateReturn += alphaData[i][riskIndex];
+                riskFactorAllDateReturn += alphaFactorInfoArray[riskIndex].returns[i].factor_returns;
                 seriesData.data.push(riskFactorAllDateReturn);
             }
 
@@ -2876,9 +2855,10 @@ export class FactorAlphaComponent {
 
         // 设置x坐标日期数组
         for (let i = startIndex; i <= endIndex; ++i) {
-            xAxisDatas.push(alphaData[i][this.rfrDateIndex]);
+            xAxisDatas.push(alphaFactorInfoArray[0].returns[i].trday);
         }
-        console.log(chartLegendData, xAxisDatas, series);
+        console.log(chartLegendData, allRiskReturnXAxis, series, allRiskReturnSeries, xAxisDatas);
+
         let option = {
             baseOption: {
                 title: {
@@ -2953,18 +2933,13 @@ export class FactorAlphaComponent {
     }
 
     // 设置热力图
-    setAlphaHotEchart(alphaArr, hotchart) {
-        console.log(alphaArr);
+    setAlphaHotEchart() {
         let xdata = [];
         let ydata = [];
-        xdata.push(alphaArr[0][1], alphaArr[0][2], alphaArr[0][3], alphaArr[0][4], alphaArr[0][5], alphaArr[0][6], alphaArr[0][7], alphaArr[0][8], alphaArr[0][9]);
-        ydata = xdata;
-
-        for (let i = 0; i < alphaArr.length - 1; i++) {
-            for (let j = 0; j < alphaArr[0].length - 1; j++) {
-                this.hotChartData.push([i, j, alphaArr[i + 1][j + 1]]);
-            }
+        for (let i = 0; i < this.alphaFactorInfoArray.length; ++i) {
+            xdata.push(this.alphaFactorInfoArray[i].factorname);
         }
+        ydata = xdata;
         console.log(xdata, ydata, this.hotChartData);
         this.hotChartData = this.hotChartData.map(function (item) {
             return [item[1], item[0], item[2] || "-"];
@@ -3037,7 +3012,7 @@ export class FactorAlphaComponent {
                 }
             }]
         };
-        hotchart.setOption(option);
+        this.alphaHotChart.setOption(option);
     }
 
     /**
