@@ -28,7 +28,6 @@ process.on("message", (m: WSIP20, sock) => {
             quotePoint = new IP20Service();
             let quoteHeart = null;
             quotePoint.onConnect = () => {
-                process.send({ event: "ps-connect" });
                 loginTGW(quotePoint);
             };
 
@@ -47,6 +46,7 @@ process.on("message", (m: WSIP20, sock) => {
                     packid: 43,
                     callback(msg) {
                         logger.info(`tgw ans=>${msg}`);
+                        process.send({ event: "ps-connect" });
 
                         if (quoteHeart !== null) {
                             clearInterval(quoteHeart);
@@ -139,7 +139,6 @@ export class StrategyDealer {
         let tryTimer = null;
         let tradeHeart = null;
         this.tradePoint.onConnect = () => {
-            process.send({ event: "ss-connect" });
             this.tradePoint.send(FGS_MSG.kLogin, JSON.stringify({ data: this.loginInfo }), ServiceType.kLogin);
         };
 
@@ -152,8 +151,18 @@ export class StrategyDealer {
             msgtype: FGS_MSG.kLoginAns,
             callback: (msg) => {
                 logger.info(`tgw ans=>${msg}`);
+                process.send({ event: "ss-connect" });
+
                 lasttry = Date.now();
                 this.registerMessages();
+                this.tradePoint.subscribe(1, [ServiceType.kStrategy]);
+                this.tradePoint.onTopic(1, (key, body) => {
+                    let data = (body as Buffer);
+                    if (data.readIntLE(0, 8) === this.appid) {
+                        process.send({ event: "ss-close" });
+                        data = null;
+                    }
+                });
 
                 if (tradeHeart !== null) {
                     clearInterval(tradeHeart);
@@ -167,8 +176,8 @@ export class StrategyDealer {
         }, {
                 service: ServiceType.kStrategy,
                 msgtype: 1001,
-                callback: (msg) => {
-                    this.decode(msg.content);
+                callback: (body) => {
+                    this.decode(body);
                 }
             }
         );
@@ -500,12 +509,12 @@ export class StrategyDealer {
         let head = new Header();
         head.type = msg.type;
         head.subtype = msg.subtype;
-        head.msglen = msg.body.length;
+        head.msglen = msg.body ? msg.body.byteLength : 0;
         let option = new QtpMessageOption();
         option.id = OptionType.kInstanceID;
         option.value = Buffer.alloc(8, 0);
         option.value.writeIntLE(this.appid, 0, 8);
-        this.tradePoint.sendWithOption(1000, [option], Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen), ServiceType.kStrategy);
+        this.tradePoint.sendWithOption(1000, [option], msg.body ? Buffer.concat([head.toBuffer(), msg.body], Header.len + head.msglen) : head.toBuffer(), ServiceType.kStrategy);
         head = null;
     }
 

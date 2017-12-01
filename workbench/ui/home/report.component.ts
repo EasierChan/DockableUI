@@ -79,23 +79,22 @@ export class ReportComponent implements OnInit {
                 service: ServiceType.kBackServer,
                 msgtype: 8015,
                 callback: msg => {
-                    console.info(msg.toString());
-                    this.setProfitOfItem(msg.content.nId, msg.content.Accpl);
+                    let obj = JSON.parse(msg.toString());
+                    this.setProfitOfItem(obj.nId, obj.Accpl);
                 }
             },
             {
                 service: ServiceType.kBackServer,
                 msgtype: 8017,
                 callback: msg => {
-                    console.info(msg.toString());
-                    this.showOrderDetail(msg.content.nId, msg.content.orderdetails);
+                    let obj = JSON.parse(msg.toString());
+                    this.showOrderDetail(obj.nId, obj.orderdetails);
                 }
             },
             {
                 service: ServiceType.kBackServer,
                 msgtype: 8025,
                 callback: msg => {
-                    console.info(msg.toString());
                     let obj = JSON.parse(msg.toString());
                     this.updateProgress(obj.data);
                 }

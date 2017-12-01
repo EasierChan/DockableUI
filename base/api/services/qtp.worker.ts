@@ -9,7 +9,7 @@ import { Pool } from "../common/base/pool";
 import { DefaultLogger } from "../common/base/logger";
 import { Header, QTPMessage, QtpMessageOption, FGS_MSG, OptionType, ServiceType } from "../model/qtp/message.model";
 
-const logger = DefaultLogger;
+const logger = console;
 
 class QTPParser extends Parser {
     private _curHeader: Header = null;
@@ -78,7 +78,6 @@ class QTPParser extends Parser {
             if (buflen >= this._curHeader.datalen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
                 console.info(`processMsg: service=${this._curHeader.service}, msgtype=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
-                this.emit(this._curHeader.service.toString(), this._curHeader, tempBuffer);
                 try {
                     this.emit(this._curHeader.service.toString(), this._curHeader, tempBuffer);
                 } catch (err) {

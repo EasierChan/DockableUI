@@ -64,13 +64,13 @@ export class TcpClient {
 
         this._clientSock.on("error", (err) => {
             this.emit("error");
-            this._clientSock = null;
-            this._buffer_Queue.clear();
+            // this._clientSock = null;
+            // this._buffer_Queue.clear();
         });
         this._clientSock.on("end", (err) => {
             this.emit("end");
-            this._clientSock = null;
-            this._buffer_Queue.clear();
+            // this._clientSock = null;
+            // this._buffer_Queue.clear();
         });
         this._clientSock.on("close", (err) => {
             if (this._clientSock) {

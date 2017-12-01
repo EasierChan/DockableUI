@@ -1222,22 +1222,19 @@ export class AppComponent implements OnInit {
         AppComponent.self.addStatus(data, "SS");
     }
 
-    addStatus(data: any, mark: string) {
-        let markLen = AppComponent.self.statusbar.items.length;
-        if (markLen === 0) { // add
-            AppComponent.self.addStatusBarMark({ name: mark, connected: data });
-        } else {
-            let markFlag: Boolean = false;
-            for (let i = 0; i < markLen; ++i) {
-                let text = AppComponent.self.statusbar.items[i].text;
-                if (text === mark) {
-                    AppComponent.self.statusbar.items[i].color = data ? "#26d288" : "#ff5564";
-                    markFlag = true;
-                }
+    addStatus(data: boolean, mark: string) {
+        let markLen = this.statusbar.items.length;
+        let i;
+
+        for (let i = 0; i < markLen; ++i) {
+            if (this.statusbar.items[i].text === mark) {
+                this.statusbar.items[i].color = data ? "#26d288" : "#ff5564";
+                break;
             }
-            if (!markFlag)
-                AppComponent.self.addStatusBarMark({ name: mark, connected: data });
         }
+
+        if (i === markLen)
+            this.addStatusBarMark({ name: mark, connected: data });
     }
 
     changeConfigArrVal(name: string, show: boolean) {
@@ -2456,6 +2453,7 @@ export class AppComponent implements OnInit {
 
     createBackgroundWork() {
         AppComponent.bgWorker.onData = data => {
+            console.info(data.event);
             switch (data.event) {
                 case "ps-data":
                     for (let idx = 0; idx < this.bookviewArr.length; ++idx) {
@@ -2477,8 +2475,10 @@ export class AppComponent implements OnInit {
                     this.addStatus(false, "PS");
                     break;
                 case "ss-connect":
+                    this.addStatus(true, "SS");
                     break;
                 case "ss-close":
+                    this.addStatus(false, "SS");
                     break;
                 case "ss-data":
                     // console.info(`ss-data: type=${data.content.type}, len=${data.content.data.length}`);
@@ -2550,6 +2550,7 @@ export class AppComponent implements OnInit {
                     // console.debug(`elapsed time: ${Date.now() - timer}`);
                     break;
                 default:
+                    console.info(`unhandled type ${data.event}`);
                     break;
             }
         };
