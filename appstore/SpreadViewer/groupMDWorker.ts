@@ -168,6 +168,18 @@ class Indexer {
         keyPath: "time"
     }];
 
+    // 
+    let util = {
+        EPS: 0.01,
+        isEqual: (a: number, b: number): boolean => {
+            return (Math.abs(a - b) < util.EPS);
+        },
+
+        isLager: (a: number, b: number): boolean => {
+            return !((a - b) < util.EPS);
+        }
+    };
+
     let groups: any[];
     onmessage = (ev: MessageEvent) => {
         switch (ev.data.type) {
@@ -220,23 +232,23 @@ class Indexer {
                         }
 
                         groups[i].items[ukey][ev.data.value.time] = {
-                            askPrice1: ev.data.value.ask_price[0] < 0.01
-                                ? (ev.data.value.bid_price[0] > 0 ? ev.data.value.bid_price[0] : ev.data.value.last)
+                            askPrice1: util.isEqual(ev.data.value.ask_price[0], 0)
+                                ? (util.isLager(ev.data.value.bid_price[0], 0) ? ev.data.value.bid_price[0] : ev.data.value.last)
                                 : ev.data.value.ask_price[0],
-                            bidPrice1: ev.data.value.bid_price[0] < 0.01
-                                ? (ev.data.value.ask_price[0] > 0 ? ev.data.value.ask_price[0] : ev.data.value.last)
+                            bidPrice1: util.isEqual(ev.data.value.bid_price[0], 0)
+                                ? (util.isLager(ev.data.value.ask_price[0], 0) ? ev.data.value.ask_price[0] : ev.data.value.last)
                                 : ev.data.value.bid_price[0],
                             last: ev.data.value.last
                         };
 
                         if (groups[i].lastIdx.hasOwnProperty(ukey)) {
-                            groups[i].askPrice1 += groups[i].items[ukey].count * (ev.data.value.ask_price[0] - groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1);
-                            groups[i].bidPrice1 += groups[i].items[ukey].count * (ev.data.value.bid_price[0] - groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1);
-                            groups[i].last += groups[i].items[ukey].count * (ev.data.value.last - groups[i].items[ukey][groups[i].lastIdx[ukey]].last);
+                            groups[i].askPrice1 += groups[i].items[ukey].count * (groups[i].items[ukey][ev.data.value.time].askPrice1 - groups[i].items[ukey][groups[i].lastIdx[ukey]].askPrice1);
+                            groups[i].bidPrice1 += groups[i].items[ukey].count * (groups[i].items[ukey][ev.data.value.time].bidPrice1 - groups[i].items[ukey][groups[i].lastIdx[ukey]].bidPrice1);
+                            groups[i].last += groups[i].items[ukey].count * (groups[i].items[ukey][ev.data.value.time].last - groups[i].items[ukey][groups[i].lastIdx[ukey]].last);
                         } else {
-                            groups[i].askPrice1 += groups[i].items[ukey].count * ev.data.value.ask_price[0] - groups[i].items[ukey].replace_amount;
-                            groups[i].bidPrice1 += groups[i].items[ukey].count * ev.data.value.bid_price[0] - groups[i].items[ukey].replace_amount;
-                            groups[i].last += groups[i].items[ukey].count * ev.data.value.last - groups[i].items[ukey].replace_amount;
+                            groups[i].askPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][ev.data.value.time].askPrice1 - groups[i].items[ukey].replace_amount;
+                            groups[i].bidPrice1 += groups[i].items[ukey].count * groups[i].items[ukey][ev.data.value.time].bidPrice1 - groups[i].items[ukey].replace_amount;
+                            groups[i].last += groups[i].items[ukey].count * groups[i].items[ukey][ev.data.value.time].last - groups[i].items[ukey].replace_amount;
                         }
 
                         groups[i].lastIdx[ukey] = ev.data.value.time;
@@ -258,5 +270,4 @@ class Indexer {
                 break;
         }
     };
-
 })();

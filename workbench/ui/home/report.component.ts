@@ -49,7 +49,7 @@ export class ReportComponent implements OnInit {
             row.cells[2].Text = 0;
             row.cells[2].Title = "0%";
             row.cells[2].Type = "progresser";
-            row.cells[2].Colors = ["red", "blue"];
+            row.cells[2].Colors = ["#d0d0d0", "#90c007"];
             row.cells[3].Text = item.timebegin;
             row.cells[4].Text = item.timeend;
             row.cells[5].Type = "icon-button";

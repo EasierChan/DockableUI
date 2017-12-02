@@ -1,6 +1,6 @@
 .dash-body {
     flex: auto;
-    display: flex;
+    /*display: flex;*/
     flex-flow: column;
     overflow-y: auto;
 }
@@ -9,48 +9,199 @@ table {
     background-color: transparent;
 }
 
-.u-row {
-    display: flex;
-    flex-flow: row;
-}
 
-.u-row > *:not(*:first-child) {
-    margin-left: 10px;
-}
-
-.fill {
-    flex: auto;
-}
 
 .dash-body > .banner {
     flex: auto;
     /*height: 200px;
     min-height: 200px;*/
     background-color: #222A41;
-    background-image: url('../base/images/main.jpg');
+    /*background-image: url('../base/images/main.jpg');*/
     background-position: center;
     background-repeat: no-repeat;
 }
 
-.dash-body > .marketdata,
-.dash-body > .other {
-    margin-top: 10px;
-    height: 250px;
-    min-height: 250px;
-    flex: none;
-}
 
-.dash-body > .other {
-    height: 300px;
-}
 
 section {
     display: flex;
     flex-flow: column;
 }
 
-section > .holder {
-    flex: auto;
-    padding: 5px;
-    background-color: #222A41;
-};
+
+.dash-body section{
+    float: left;
+    margin-bottom: 50px;
+}
+
+.chartCon{
+    /*border: 2px solid #032d60;*/
+    box-sizing: border-box;
+    border-top: 10px solid rgb(26, 34, 55);
+    border-bottom: 10px solid rgb(26, 34, 55);
+    background: rgba(1, 3, 12, 0.37);
+}
+
+
+.chartTit{
+    height: 30px;
+    background: rgb(56, 63, 84);
+    line-height: 30px;
+    padding-left: 10px;
+    /*border-radius: 2px;*/
+    /*color: #d59e20;*/
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    /*border: 2px solid rgba(136, 136, 136, 0.41);*/
+}
+
+.chartBody{
+    padding: 10px;
+    /*overflow-x: auto;*/
+}
+.leftSection{
+     width: 40%;
+}
+
+.mainStockCon .selfSelectStockChart{
+    border-top: 10px solid rgb(56, 63, 84);
+}
+.middleSection{
+     width: 30%;
+}
+.middleSection .chartCon{
+    border-left: 20px solid rgb(26, 34, 55);
+    border-right: 20px solid rgb(26, 34, 55);
+}
+.rightSection{
+     width: 30%;
+}
+.mainStockCon{
+    min-height: 600px;
+}
+.producAnalysis{
+    display: flex;
+    margin-top: 20px;
+}
+
+.producAnalysis .fontCon{
+    border: 6px solid rgba(1, 3, 12, 0.37);
+    border-top: 0;
+    border-bottom: 0;
+    text-align: left;
+    background: rgba(132, 138, 152, 0.14);
+    padding: 8px;
+    font-size: 10px;
+}
+.producAnalysis .fontCon:nth-of-type(1),
+.producAnalysis .fontCon:nth-of-type(2){
+    width: 100px;
+    flex: 2;
+}
+.producAnalysis .fontCon:nth-of-type(1){
+   border-left: 4px solid #f3c239;
+}
+.producAnalysis .fontCon:nth-of-type(2){
+   border-left: 4px solid #f77749;
+}
+.producAnalysis .fontCon:nth-of-type(3){
+   border-left: 4px solid #25bf7c;
+}
+.producAnalysis .fontCon:nth-of-type(4){
+   border-left: 4px solid #ff5564;
+}
+.producAnalysis .fontCon:nth-of-type(3),
+.producAnalysis .fontCon:nth-of-type(4){
+    width: 100px;
+    flex: 1;
+}
+
+.producAnalysis .fontCon .value .num{
+    font-size: 24px;
+    color: #f3c239;
+}
+.producAnalysis .fontCon:nth-of-type(2) .value .num{
+    color: #f77749;
+}
+.producAnalysis .fontCon:nth-of-type(3) .value .num{
+    color: #25bf7c;
+}
+.producAnalysis .fontCon:nth-of-type(4) .value .num{
+    color: #ff5564;
+}
+
+.aiArea{
+    min-height: 350px;
+}
+.aiArea .chartBody>div{
+    float: left;
+    width: 50%;
+    /*overflow-x: auto;*/
+    padding-left: 10px;
+}
+.aiArea .chartBody>.theBestList{
+    padding-left: 0;
+    padding-right: 10px;
+}
+
+.alarmCon .alarmTab{
+     width:100%;
+     /*overflow-x: auto;*/
+}
+
+
+.todoCon,.alarmCon{
+    min-height: 300px;
+}
+.todoCon .todoInput  .addTodoList{
+    float: right;
+    cursor: pointer;
+    width: 19%;
+    height: 28px;
+    background: #464c61;
+    text-align: center;
+    line-height: 28px;
+    border-radius: 3px;
+    color: #fff;
+    text-decoration: none;
+   
+}
+.todoCon  .addTodoList:hover,
+.todoCon  .addTodoList:active{
+    border: 1px solid rgb(33, 156, 111);
+}
+
+.todoCon .todoList{
+    width: 100%;
+    /*overflow-x: scroll;*/
+}
+.todoCon .todoInput{
+    padding: 10px 10px 20px 10px;
+}
+.todoCon .todoInput input{
+    color: #717171;
+    outline: 0;
+    height: 18px;
+    padding: 6px 11px;
+    line-height: 18px;
+    font-size: 13px;
+    background-color: rgba(245, 245, 245, 0);
+    min-height: 29px;
+    border: 1px solid #5d5f63;
+    border-radius: 3px;
+    width: 80%;
+    box-shadow: 0 0px 10px inset;
+}
+
+.chartTit span{
+    float: right;
+    margin-right: 10px;
+    color: #f3c239;
+    line-height: 30px;
+}
+
+
+
+
+

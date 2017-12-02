@@ -234,26 +234,24 @@ export class AppComponent implements OnInit {
         let orderstatusContent = new VBox();
 
         let orderstatusHeader = new HBox();
-        let cb_handle = new CheckBox();
-        cb_handle.Text = true;
-        let handle = "Handle";
-        let rtnHandle = this.langServ.get(handle);
-        cb_handle.Title = rtnHandle;
+        let cb_handle = new Label();
+        cb_handle.Text = this.langServ.get("Status") + "：";
+        // cb_handle.Title = this.langServ.get("Handle");
         orderstatusHeader.addChild(cb_handle);
         let dd_status = new DropDown();
         dd_status.Left = 10;
-        dd_status.addItem({ Text: "all    ", Value: "-1" });
-        dd_status.addItem({ Text: "0.无效", Value: "0" });
-        dd_status.addItem({ Text: "1.未报", Value: "1" });
-        dd_status.addItem({ Text: "2.待报", Value: "2" });
-        dd_status.addItem({ Text: "3.已报", Value: "3" });
-        dd_status.addItem({ Text: "4.已报待撤", Value: "4" });
-        dd_status.addItem({ Text: "5.部成待撤", Value: "5" });
-        dd_status.addItem({ Text: "6.部撤", Value: "6" });
-        dd_status.addItem({ Text: "7.已撤", Value: "7" });
-        dd_status.addItem({ Text: "8.部成", Value: "8" });
-        dd_status.addItem({ Text: "9.已成", Value: "9" });
-        dd_status.addItem({ Text: "10.废单", Value: "10" });
+        dd_status.addItem({ Text: "-全部-", Value: -1 });
+        dd_status.addItem({ Text: "0.无效", Value: EOrderStatus.ORDER_STATUS_INVALID });
+        dd_status.addItem({ Text: "1.未报", Value: EOrderStatus.ORDER_STATUS_INIT });
+        dd_status.addItem({ Text: "2.待报", Value: EOrderStatus.ORDER_STATUS_WAIT_SEND });
+        dd_status.addItem({ Text: "3.已报", Value: EOrderStatus.ORDER_STATUS_SEND });
+        dd_status.addItem({ Text: "4.已报待撤", Value: EOrderStatus.ORDER_STATUS_SEND_WAIT_CANCEL });
+        dd_status.addItem({ Text: "5.部成待撤", Value: EOrderStatus.ORDER_STATUS_PART_WAIT_CANCEL });
+        dd_status.addItem({ Text: "6.部撤", Value: EOrderStatus.ORDER_STATUS_PART_CANCELED });
+        dd_status.addItem({ Text: "7.已撤", Value: EOrderStatus.ORDER_STATUS_CANCELED });
+        dd_status.addItem({ Text: "8.部成", Value: EOrderStatus.ORDER_STATUS_PART_DEALED });
+        dd_status.addItem({ Text: "9.已成", Value: EOrderStatus.ORDER_STATUS_DEALED });
+        dd_status.addItem({ Text: "10.废单", Value: EOrderStatus.ORDER_STATUS_DISCARDED });
         orderstatusHeader.addChild(dd_status);
 
         let cb_SelAll = new CheckBox();
@@ -273,37 +271,35 @@ export class AppComponent implements OnInit {
 
         let btn_cancel = new Button();
         btn_cancel.Left = 10;
-        let cancel = "CancelSelected";
-        let rtnCancel = this.langServ.get(cancel);
-        btn_cancel.Text = rtnCancel;
+        btn_cancel.Text = this.langServ.get("CancelSelected");
         orderstatusHeader.addChild(btn_cancel);
         orderstatusContent.addChild(orderstatusHeader);
         cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = false;
-        cb_handle.OnClick = () => {
-            cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
-        };
+        // cb_handle.OnClick = () => {
+        //     cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
+        // };
         dd_status.SelectChange = (item) => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
                 if (dd_status.SelectedItem.Value === "-1") {   // all
-                    AppComponent.self.orderstatusTable.rows[i].hidden = false;
+                    this.orderstatusTable.rows[i].hidden = false;
                 } else {
-                    AppComponent.self.orderstatusTable.rows[i].hidden = AppComponent.self.orderstatusTable.rows[i].cells[10].Text !== dd_status.SelectedItem.Text;
+                    this.orderstatusTable.rows[i].hidden = this.orderstatusTable.cell(i, this.langServ.get("Status")).Data !== dd_status.SelectedItem.Value;
                 }
             }
         };
 
         btn_cancel.OnClick = () => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
-                let getStatus = parseInt(this.orderstatusTable.rows[i].cells[10].Data);
-                let strategyid = this.orderstatusTable.rows[i].cells[5].Text;
-                let ukey = this.orderstatusTable.rows[i].cells[1].Text;
-                let orderid = this.orderstatusTable.rows[i].cells[3].Text;
-                let account = this.orderstatusTable.rows[i].cells[11].Text;
+                let getStatus = this.orderstatusTable.cell(i, this.langServ.get("Status")).Data;
+                let strategyid = this.orderstatusTable.cell(i, this.langServ.get("Strategy")).Text;
+                let ukey = this.orderstatusTable.cell(i, this.langServ.get("UKEY")).Text;
+                let orderid = this.orderstatusTable.cell(i, this.langServ.get("OrderId")).Text;
+                let account = this.orderstatusTable.cell(i, this.langServ.get("PortfolioID")).Text;
                 let date = new Date();
                 if (getStatus === 6 || getStatus === 7 || getStatus === 9 || getStatus === 10)
                     continue;
 
-                if (!AppComponent.self.orderstatusTable.rows[i].cells[0].Text)
+                if (!this.orderstatusTable.rows[i].cells[0].Text)
                     continue;
 
                 let order = new ComConOrder();
@@ -322,57 +318,36 @@ export class AppComponent implements OnInit {
         };
 
         this.orderstatusTable = new DataTable("table2");
-        let orderstatusArr: string[] = ["Check", "U-Key", "SymbolCode", "OrderId", "Time", "Strategy",
-            "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "Account"];
-        let orderstatusTableRtnArr: string[] = [];
-        let orderstatusTableTitleLen = orderstatusArr.length;
-        for (let i = 0; i < orderstatusTableTitleLen; ++i) {
-            let orderstatusRtn = this.langServ.get(orderstatusArr[i]);
-            orderstatusTableRtnArr.push(orderstatusRtn);
-        }
-        orderstatusTableRtnArr.forEach(item => {
-            this.orderstatusTable.addColumn2(new DataTableColumn(item, false, true));
-        });
+        ["Check", "OrderId", "UKEY", "SymbolCode", "Symbol", "Strategy", "PortfolioID", "OrderPrice", "OrderVol", "OrderTime",
+            "Ask/Bid", "OrderStatus"].forEach(item => {
+                this.orderstatusTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
+            });
         this.orderstatusTable.columnConfigurable = true;
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
+
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.get("DoneOrders"));
         this.pageMap["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new VBox();
         this.doneOrdersTable = new DataTable("table2");
-        let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
-            "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "Account", "OrderTime",
-            "OrderPrice", "SymbolCode"];
-        let doneOrderTableRtnArr: string[] = [];
-        let doneOrderTableTittleLen = doneorderTableArr.length;
-        for (let i = 0; i < doneOrderTableTittleLen; ++i) {
-            let doneOrderRtn = this.langServ.get(doneorderTableArr[i]);
-            doneOrderTableRtnArr.push(doneOrderRtn);
-        }
-        doneOrderTableRtnArr.forEach(item => {
-            this.doneOrdersTable.addColumn2(new DataTableColumn(item, false, true));
-        });
+        ["OrderId", "UKEY", "SymbolCode", "Symbol", "Strategy", "PortfolioID", "OrderPrice", "OrderVol", "OrderTime",
+            "Ask/Bid", "OrderStatus", "DonePrice", "DoneVol", "DoneTime", "OrderType"].forEach(item => {
+                this.doneOrdersTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
+            });
         this.doneOrdersTable.columnConfigurable = true;
         doneOrdersContent.addChild(this.doneOrdersTable);
         this.doneOrdersPage.setContent(doneOrdersContent);
 
-
-        this.accountPage = new TabPage("Account", this.langServ.get("Account"));
+        this.accountPage = new TabPage("Account", this.langServ.get("PortfolioList"));
         this.pageMap["Account"] = this.accountPage;
         let accountContent = new VBox();
         this.accountTable = new DataTable("table");
-        let accountTableArr: string[] = ["Account", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
+        this.accountTable.RowIndex = false;
+        ["PortfolioID", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
             "ShangHai", "ShenZhen", "BuyFrzAmt", "SellFrzAmt", "Buymargin", "SellMargin", "TotalMargin", "Fee",
-            "PositionPL", "ClosePL"];
-        let accountTableRtnArr: string[] = [];
-        let accountTableTittleLen = accountTableArr.length;
-        for (let i = 0; i < accountTableTittleLen; ++i) {
-            let accountRtn = this.langServ.get(accountTableArr[i]);
-            accountTableRtnArr.push(accountRtn);
-        }
-        accountTableRtnArr.forEach(item => {
-            this.accountTable.addColumn(item);
-        });
+            "PositionPL", "ClosePL"].forEach(item => {
+                this.accountTable.addColumn(this.langServ.get(item));
+            });
         this.accountTable.columnConfigurable = true;
         accountContent.addChild(this.accountTable);
         this.accountPage.setContent(accountContent);
@@ -381,7 +356,7 @@ export class AppComponent implements OnInit {
         this.pageMap["Position"] = this.positionPage;
         let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
-        let positionTableArr: string[] = ["Account", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
+        let positionTableArr: string[] = ["PortfolioID", "secucategory", "UKEY", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
             "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"];
         let positionTableRtnArr: string[] = [];
         let positionTableTittleLen = positionTableArr.length;
@@ -428,7 +403,7 @@ export class AppComponent implements OnInit {
         let account_firrow = new HBox();
         this.dd_Account = new DropDown();
         this.dd_Account.Width = 120;
-        let dd_accountRtn = this.langServ.get("Account");
+        let dd_accountRtn = this.langServ.get("PortfolioID");
         let account_Label = new Label();
         if (this.languageType === 0)
             account_Label.Text = "  " + dd_accountRtn + ": ";
@@ -502,7 +477,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(symbol_thirdrow);
 
         let ukey_fourthrow = new HBox();
-        let txt_UKeyRtn = this.langServ.get("U-key");
+        let txt_UKeyRtn = this.langServ.get("UKEY");
         let ukey_label = new Label();
         ukey_label.Left = leftAlign;
         if (0 === this.languageType)
@@ -707,7 +682,7 @@ export class AppComponent implements OnInit {
         this.dd_portfolioAccount = new DropDown();
         this.dd_portfolioAccount.Width = 110;
         this.dd_portfolioAccount.Left = statarbLeftAlign;
-        this.dd_portfolioAccount.Title = this.langServ.get("Account") + ":";
+        this.dd_portfolioAccount.Title = this.langServ.get("PortfolioID") + ":";
 
 
         this.portfolioLabel = new MetaControl("textbox");
@@ -891,7 +866,7 @@ export class AppComponent implements OnInit {
             .addChild(allsellChk).addChild(this.range).addChild(this.rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
 
         this.portfolioTable = new DataTable("table2");
-        ["Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+        ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
             "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
             "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].forEach(col => {
                 this.portfolioTable.addColumn(this.langServ.get(col));
@@ -1087,7 +1062,7 @@ export class AppComponent implements OnInit {
         reqbtn.Text = this.langServ.get("Req");
         profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
         this.profitTable = new DataTable("table2");
-        let profittableArr: string[] = ["U-Key", "Code", "Account", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
+        let profittableArr: string[] = ["UKEY", "Code", "PortfolioID", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
             "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
             "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"];
         let profitTableTittleLen = profittableArr.length;
@@ -1439,70 +1414,57 @@ export class AppComponent implements OnInit {
 
     showComOrderRecord(data: any) {
         console.info(`showComOrderRecord: len = ${data.length}`);
-        let hasDone = false, hasUnDone = false;
+        let hasDone = false;
         let j;
         for (let iData = 0; iData < data.length; ++iData) {
             let orderStatus = data[iData].od.status;
             if (orderStatus === 9 || orderStatus === 6 || orderStatus === 7) {
                 // remove from orderstatus table
                 for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
-                    if (data[iData].od.orderid === this.orderstatusTable.rows[i].cells[3].Text) {
+                    if (data[iData].od.orderid === this.orderstatusTable.cell(i, this.langServ.get("OrderId")).Text) {
                         this.orderstatusTable.rows.splice(i, 1);
                         break;
                     }
                 }
 
                 for (j = 0; j < this.doneOrdersTable.rows.length; ++j) {
-                    if (data[iData].od.orderid === this.doneOrdersTable.rows[j].cells[2].Text) { // refresh
-                        this.doneOrdersTable.rows[j].cells[4].Text = data[iData].od.action === 0 ? "Buy" : "Sell";
-                        this.doneOrdersTable.rows[j].cells[5].Text = data[iData].od.oprice / 10000;
-                        this.doneOrdersTable.rows[j].cells[6].Text = data[iData].od.ivolume;
-                        this.doneOrdersTable.rows[j].cells[7].Text = this.parseOrderStatus(data[iData].od.status);
-                        this.doneOrdersTable.rows[j].cells[8].Text = this.formatTime(data[iData].od.odatetime.tv_sec);
-                        this.doneOrdersTable.rows[j].cells[9].Text = data[iData].od.ovolume;
-                        this.doneOrdersTable.rows[j].cells[10].Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
-                        this.doneOrdersTable.rows[j].cells[12].Text = this.formatTime(data[iData].od.idatetime.tv_sec);
-                        this.doneOrdersTable.rows[j].cells[13].Text = data[iData].od.iprice / 10000;
+                    if (data[iData].od.orderid === this.doneOrdersTable.cell(j, this.langServ.get("OrderId")).Text) { // refresh
+                        this.doneOrdersTable.cell(j, this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
+                        this.doneOrdersTable.cell(j, this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderPrice")).Text = data[iData].od.iprice / 10000;
                         break;
                     }
                 }
 
                 if (j === this.doneOrdersTable.rows.length) {
                     let row = this.doneOrdersTable.newRow(true);
-                    row.cells[0].Text = data[iData].od.innercode;
+                    row.cell(this.langServ.get("UKEY")).Text = data[iData].od.innercode;
                     let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].od.innercode);
-                    row.cells[1].Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuAbbr : "unknown";
-                    row.cells[14].Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuCode : "unknown";
-                    row.cells[2].Text = data[iData].od.orderid;
-                    row.cells[3].Text = data[iData].od.strategyid;
-                    let action: number = data[iData].od.action;
-                    if (action === 0)
-                        row.cells[4].Text = "Buy";
-                    else if (action === 1)
-                        row.cells[4].Text = "Sell";
-                    else
-                        row.cells[4].Text = "";
-                    row.cells[5].Text = data[iData].od.oprice / 10000;
-                    row.cells[6].Text = data[iData].od.ivolume;
-                    row.cells[7].Text = this.parseOrderStatus(data[iData].od.status);
-                    row.cells[8].Text = this.formatTime(data[iData].od.odatetime.tv_sec);
-                    row.cells[9].Text = data[iData].od.ovolume;
-                    let orderPriceType = data[iData].donetype;
-                    if (orderPriceType === 1)
-                        row.cells[10].Text = "Active";
-                    else if (orderPriceType === 2)
-                        row.cells[10].Text = "Passive";
-                    else
-                        row.cells[10].Text = "UNKNOWN";
-                    row.cells[11].Text = data[iData].con.account;
-                    row.cells[12].Text = this.formatTime(data[iData].od.idatetime.tv_sec);
-                    row.cells[13].Text = data[iData].od.iprice / 10000;
+                    row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuAbbr : "unknown";
+                    row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuCode : "unknown";
+                    row.cell(this.langServ.get("OrderId")).Text = data[iData].od.orderid;
+                    row.cell(this.langServ.get("Strategy")).Text = data[iData].od.strategyid;
+                    row.cell(this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
+                    row.cell(this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
+                    row.cell(this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
+                    row.cell(this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
+                    row.cell(this.langServ.get("DoneTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
+                    row.cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
+                    row.cell(this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
+                    row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
+                    row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
+                    row.cell(this.langServ.get("OrderPrice")).Text = data[iData].od.iprice / 10000;
                 }
 
-                hasDone = true;
             } else {
                 for (j = 0; j < this.orderstatusTable.rows.length; ++j) {
-                    if (data[iData].od.orderid === this.orderstatusTable.rows[j].cells[3].Text) {  // refresh
+                    if (data[iData].od.orderid === this.orderstatusTable.cell(j, this.langServ.get("OrderId")).Text) {  // refresh
                         this.refreshUndoneOrderInfo(data[iData], j);
                         break;
                     }
@@ -1511,18 +1473,12 @@ export class AppComponent implements OnInit {
                 if (j === this.orderstatusTable.rows.length) {
                     this.addUndoneOrderInfo(data[iData]);
                 }
-
-                hasUnDone = true;
             }
         }
 
         if (hasDone) {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
             // this.doneOrdersTable.detectChanges();
-        }
-
-        if (hasUnDone) {
-            // this.orderstatusTable.detectChanges();
         }
     }
 
@@ -1531,26 +1487,19 @@ export class AppComponent implements OnInit {
         row.cells[0].Type = "checkbox";
         row.cells[0].Text = false;
         row.cells[0].Data = obj.od.innercode;
-        row.cells[0].Disable = (6 === obj.od.status || 7 === obj.od.status);
-        row.cells[1].Text = obj.od.innercode;
+        row.cell(this.langServ.get("UKEY")).Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByInnerCode(obj.od.innercode);
-        row.cells[2].Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
-        row.cells[3].Text = obj.od.orderid;
-        row.cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
-        row.cells[5].Text = obj.od.strategyid;
-        let action: number = obj.od.action;
-        if (action === 0)
-            row.cells[6].Text = "Buy";
-        else if (action === 1)
-            row.cells[6].Text = "Sell";
-        else
-            row.cells[6].Text = "";
-        row.cells[7].Text = obj.od.oprice / 10000;
-        row.cells[8].Text = obj.od.ovolume;
-        row.cells[9].Text = obj.od.ivolume;
-        row.cells[10].Text = this.parseOrderStatus(obj.od.status);
-        row.cells[10].Data = obj.od.status;
-        row.cells[11].Text = obj.con.account;
+        row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
+        row.cell(this.langServ.get("OrderId")).Text = obj.od.orderid;
+        row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(obj.od.odatetime.tv_sec);
+        row.cell(this.langServ.get("Strategy")).Text = obj.od.strategyid;
+        row.cell(this.langServ.get("Ask/Bid")).Text = obj.od.action === 0 ? "Buy" : "Sell";
+        row.cell(this.langServ.get("OrderPrice")).Text = obj.od.oprice / 10000;
+        row.cell(this.langServ.get("OrderVol")).Text = obj.od.ovolume;
+        let statusCell = row.cell(this.langServ.get("OrderStatus"));
+        statusCell.Text = this.parseOrderStatus(obj.od.status);
+        statusCell.Data = obj.od.status;
+        row.cell(this.langServ.get("PortfolioID")).Text = obj.con.account;
     }
 
     formatTime(time: any): String {
@@ -1600,24 +1549,18 @@ export class AppComponent implements OnInit {
     }
 
     refreshUndoneOrderInfo(obj: any, idx: number) {
-        this.orderstatusTable.rows[idx].cells[4].Text = this.formatTime(obj.od.odatetime.tv_sec);
-        let action: number = obj.od.action;
-        if (action === 0)
-            this.orderstatusTable.rows[idx].cells[6].Text = "Buy";
-        else if (action === 1)
-            this.orderstatusTable.rows[idx].cells[6].Text = "Sell";
-        else
-            this.orderstatusTable.rows[idx].cells[6].Text = "";
-        this.orderstatusTable.rows[idx].cells[7].Text = obj.od.oprice / 10000;
-        this.orderstatusTable.rows[idx].cells[8].Text = obj.od.ovolume;
-        this.orderstatusTable.rows[idx].cells[9].Text = obj.od.ivolume;
-        this.orderstatusTable.rows[idx].cells[10].Text = this.parseOrderStatus(obj.od.status);
-        this.orderstatusTable.rows[idx].cells[10].Data = obj.od.status;
-        if (6 === obj.od.status || 7 === obj.od.status) {
-            this.orderstatusTable.rows[idx].cells[0].Disable = true;
-            if (this.orderstatusTable.rows[idx].cells[0].Text)
-                this.orderstatusTable.rows[idx].cells[0].Text = !this.orderstatusTable.rows[idx].cells[0].Text;
-        }
+        this.orderstatusTable.cell(idx, this.langServ.get("OrderTime")).Text = this.formatTime(obj.od.odatetime.tv_sec);
+        this.orderstatusTable.cell(idx, this.langServ.get("Ask/Bid")).Text = obj.od.action === 0 ? "Buy" : "Sell";
+        this.orderstatusTable.cell(idx, this.langServ.get("OrderPrice")).Text = obj.od.oprice / 10000;
+        this.orderstatusTable.cell(idx, this.langServ.get("OrderVol")).Text = obj.od.ovolume;
+        this.orderstatusTable.cell(idx, this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(obj.od.status);
+        this.orderstatusTable.cell(idx, this.langServ.get("OrderStatus")).Data = obj.od.status;
+
+        // if (6 === obj.od.status || 7 === obj.od.status) {
+        //     this.orderstatusTable.rows[idx].cells[0].Disable = true;
+        //     if (this.orderstatusTable.rows[idx].cells[0].Text)
+        //         this.orderstatusTable.rows[idx].cells[0].Text = !this.orderstatusTable.rows[idx].cells[0].Text;
+        // }
     }
 
     /**
@@ -1983,7 +1926,7 @@ export class AppComponent implements OnInit {
 
                 strategyKeyMap.commands.forEach((item, idx) => {
                     this.strategyTable.addColumn(this.langServ.get(item.name));
-                    this.strategyTable.rows[iRow].cells[offset + idx].Text = item.name;
+                    this.strategyTable.rows[iRow].cells[offset + idx].Text = this.langServ.get(item.name);
                     this.strategyTable.rows[iRow].cells[offset + idx].Data = item;
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "button";
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = "primary";
@@ -2011,7 +1954,8 @@ export class AppComponent implements OnInit {
                 offset += strategyKeyMap.parameters.length;
                 if (strategyKeyMap.comments2.length > 0) {
                     this.strategyTable.addColumn(this.langServ.get("comment"));
-                    this.strategyTable.rows[iRow].cells[offset].Text = "comment";
+                    this.strategyTable.rows[iRow].cells[offset].Text = this.langServ.get("comment");
+                    this.strategyTable.rows[iRow].cells[offset].Data = { name: "comment" };
                     this.strategyTable.rows[iRow].cells[offset].Type = "button";
                     this.strategyTable.rows[iRow].cells[offset].Class = "primary";
                 }
@@ -2081,7 +2025,7 @@ export class AppComponent implements OnInit {
                         let commandIdx = strategyKeyMap.commands.findIndex(item => { return data[iData].key === item.key; });
                         if (commandIdx >= 0) { // update
                             let iCol = this.kInitColumns + strategyKeyMap.comments1.length + commandIdx;
-                            this.strategyTable.rows[iRow].cells[iCol].Text = data[iData].name;
+                            this.strategyTable.rows[iRow].cells[iCol].Text = this.langServ.get(data[iData].name);
                             this.strategyTable.rows[iRow].cells[iCol].Data = data[iData];
                             this.strategyTable.rows[iRow].cells[iCol].Disable = data[iData].value === 0;
                         }
@@ -2093,7 +2037,7 @@ export class AppComponent implements OnInit {
 
     strategyOnCellClick(cell: any, cellIdx: number, rowIdx: number) {
         console.info(cell);
-        if (cell.Text === "submit") {  // submit
+        if (cell.Data && cell.Data.name === "submit") {  // submit
             let strategyKeyMap = this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text];
             let paramIdx = this.kInitColumns + strategyKeyMap.comments1.length + strategyKeyMap.commands.length;
             let dvalue = 0;
@@ -2112,7 +2056,7 @@ export class AppComponent implements OnInit {
             return;
         }
 
-        if (cell.Text === "comment") {
+        if (cell.Data && cell.Data.name === "comment") {
             this.commentTable.rows.length = 0;
 
             this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text].comments2.forEach(item => {
@@ -2332,6 +2276,7 @@ export class AppComponent implements OnInit {
         dd_symbol.AcceptInput = true;
         dd_symbol.Title = this.langServ.get("Code") + ": ";
         let code = null;
+
         if (this.appStorage && this.appStorage.bookView && this.appStorage.bookView.hasOwnProperty(bookviewID)) {
             code = this.appStorage.bookView[bookviewID].code;
             if (code !== null) {
@@ -2340,6 +2285,7 @@ export class AppComponent implements OnInit {
                 dd_symbol.SelectedItem = { Text: codeInfo[code].symbolCode, Value: codeInfo[code].InnerCode + "," + codeInfo[code].SecuCode + "," + codeInfo[code].ukey };
             }
         }
+
         row1.addChild(dd_symbol);
 
         let row2 = new HBox();
@@ -2348,15 +2294,19 @@ export class AppComponent implements OnInit {
         row2.addChild(lbl_timestamp);
 
         let bookViewTable = new DataTable("table2");
+        bookViewTable.RowIndex = false;
         bookViewTable.align = "right";
         ["BidVol", "Price", "AskVol", "TransVol"].forEach(item => { bookViewTable.addColumn(this.langServ.get(item)); });
+        bookViewTable.columns[3].hidden = true;
 
         for (let i = 0; i < 20; ++i) {
             let row = bookViewTable.newRow();
-            row.cells[0].bgColor = "#FE6635";
+            row.cells[0].bgColor = "rgb(32, 158, 218)";
             row.cells[0].Text = "";
-            row.cells[1].bgColor = "#5895ca";
-            row.cells[2].bgColor = "#D31d45";
+            row.cells[1].Text = "0.0000";
+            row.cells[1].bgColor = "rgb(216, 212, 214)";
+            row.cells[1].Color = "#333";
+            row.cells[2].bgColor = "rgb(214, 35, 33)";
             row.cells[3].bgColor = "transparent";
         }
 
@@ -2407,7 +2357,17 @@ export class AppComponent implements OnInit {
                 [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
                 this.txt_Price.Text = rowItem.cells[1].Text;
                 // this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
-                this.dd_Action.SelectedItem = cellIdx > 1 ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+                switch (cellIdx) {
+                    case 0:
+                        this.dd_Action.SelectedItem = this.dd_Action.Items[0];
+                        break;
+                    case 1:
+                        this.dd_Action.SelectedItem = rowIndex < 10 ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+                        break;
+                    case 2:
+                        this.dd_Action.SelectedItem = this.dd_Action.Items[1];
+                        break;
+                }
             }
 
             Dialog.popup(this, this.tradeContent, { title: this.langServ.get("Trade"), height: 300 });

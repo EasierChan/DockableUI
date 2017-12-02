@@ -121,25 +121,26 @@ export class ISONPack2 extends Message {
         if (this.content) {
             let contentBuf = null;
             if (this.content instanceof Buffer) {
-                contentBuf = Buffer.alloc(this.content.length + 4, 0);
+                contentBuf = Buffer.alloc(this.content.byteLength + 4, 0);
                 this.head.bitmap = 0x20;
-                contentBuf.writeUInt32LE(contentBuf.length, 0);
+                contentBuf.writeUInt32LE(contentBuf.byteLength, 0);
                 this.content.copy(contentBuf, 4);
             } else {
                 let contentstr = JSON.stringify(this.content);
-                contentBuf = Buffer.alloc(contentstr.length + 1 + 4, 0);
-                Buffer.from(contentstr).copy(contentBuf, 4);
-                contentBuf.writeUInt32LE(contentBuf.length, 0);
+                let tempBuf = Buffer.from(contentstr);
+                contentBuf = Buffer.alloc(tempBuf.byteLength + 1 + 4, 0);
+                tempBuf.copy(contentBuf, 4);
+                contentBuf.writeUInt32LE(contentBuf.byteLength, 0);
             }
 
-            this.head.packlen = ISONPack2Header.len + contentBuf.length;
+            this.head.packlen = ISONPack2Header.len + contentBuf.byteLength;
             let tail = (this.head.packlen + 11) % 4;
             let crclen = 11 - tail;
             this.head.packlen = this.head.packlen + crclen;
 
             let buf = Buffer.alloc(crclen - 4, 0);
             buf.writeUInt32LE(crclen, 0);
-            contentBuf = Buffer.concat([this.head.toBuffer(), contentBuf, buf], ISONPack2Header.len + contentBuf.length + crclen - 4);
+            contentBuf = Buffer.concat([this.head.toBuffer(), contentBuf, buf], ISONPack2Header.len + contentBuf.byteLength + crclen - 4);
 
             let crcCode = crc32(0, contentBuf);
 

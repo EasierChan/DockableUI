@@ -14,12 +14,35 @@ import { ServiceType } from "../../../base/api/model";
     styleUrls: ["home.component.css", "risk.css"]
 })
 export class RiskComponent implements OnInit {
-    strategyTable: DataTable;
-    accountTable: DataTable;
+    warnTable: DataTable;
+    singleTable: DataTable;
+    marketPlateTable: DataTable;
+    varietiTable: DataTable;
+    ukeyTable: DataTable;
+    tactfulTable: DataTable;
     risk_indexs: any[];
     account_info: any[];
     tblock_info: any[];
     productAppID: number;
+    tab: {
+        tabList: {
+            tabId: number;
+            name: string;
+            contentList: any[];
+        }[];
+        selectedTab: {
+            name: string;
+            contentList: any[];
+        };
+        selectedChild?: any;
+    };
+    riskData: {
+        trade_account: any[];
+        trade_block: any[];
+    } = {
+        trade_account: [],
+        trade_block: []
+    }
 
     constructor(private trade: QtpService, private config: ConfigurationBLL,
         private appSrv: AppStoreService) {
@@ -28,13 +51,9 @@ export class RiskComponent implements OnInit {
 
     ngOnInit() {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
-        this.strategyTable = new DataTable("table2");
-        this.strategyTable.addColumn("产品ID", "风控名称", "当前值", "阈值", "触发方式", "状态");
-
-        this.accountTable = new DataTable("table2");
-        this.accountTable.addColumn("账户ID", "风控名称", "UKEY", "当前值", "阈值", "触发方式", "状态");
-
         this.loadExternalData();
+        this.initTab();
+        this.reLoadAllTable();
         this.registerListeners();
     }
 
@@ -44,76 +63,337 @@ export class RiskComponent implements OnInit {
             msgtype: 4010,
             callback: (msg) => {
                 let obj = JSON.parse(msg.toString());
-                obj.data.trade_account.forEach(item => {
-                    let account = this.account_info.find(value => { return parseInt(value.acid) === item.group_id; });
-                    if (account !== undefined && item.ukey !== 0) {
-                        let row = this.accountTable.newRow();
-                        row.cells[0].Text = account.acname;
-                        row.cells[1].Text = this.risk_indexs.find(value => { return value.riskid === item.risk_id; }).riskname;
-                        row.cells[2].Text = item.ukey;
-                        row.cells[3].Text = item.used_v1;
-                        row.cells[4].Text = item.limit_v1;
-                        switch (item.operate) {
-                            case 1:
-                                row.cells[5].Text = "大于";
-                                break;
-                            case 2:
-                                row.cells[5].Text = "大于等于";
-                                break;
-                            case 3:
-                                row.cells[5].Text = "等于";
-                                break;
-                            case 4:
-                                row.cells[5].Text = "小于等于";
-                                break;
-                            case 5:
-                                row.cells[5].Text = "小于";
-                                break;
-                        }
-
-                        row.cells[6].Text = item.risk_stat === 1 ? "启用" : "禁用";
-                    }
-                });
-
-                obj.data.trade_block.forEach(item => {
-                    let ca = this.tblock_info.find(value => { return parseInt(value.caid) === item.group_id; });
-                    let risk = this.risk_indexs.find(value => { return parseInt(value.riskid) === item.risk_id; });
-                    if (ca !== undefined) {
-                        let row = this.strategyTable.newRow();
-                        row.cells[0].Text = ca.caname;
-                        row.cells[1].Text = risk.riskname;
-                        row.cells[2].Text = item.used_v1;
-                        row.cells[3].Text = item.limit_v1;
-                        switch (item.operate) {
-                            case 1:
-                                row.cells[4].Text = "大于";
-                                break;
-                            case 2:
-                                row.cells[4].Text = "大于等于";
-                                break;
-                            case 3:
-                                row.cells[4].Text = "等于";
-                                break;
-                            case 4:
-                                row.cells[4].Text = "小于等于";
-                                break;
-                            case 5:
-                                row.cells[4].Text = "小于";
-                                break;
-                        }
-
-                        row.cells[5].Text = item.risk_stat === 1 ? "启用" : "禁用";
-                    }
-                });
+                this.riskData = obj.data;
             }
         });
 
         this.trade.send(4009, "", ServiceType.kCOMS);
     }
 
+    initTab() {
+        this.tab = {
+            tabList: [
+                {
+                    tabId: 0,
+                    name: "帐号",
+                    contentList: this.account_info.map(value => {
+                        return {
+                            name: value.acname,
+                            groupId: parseInt(value.acid),
+                            acid: parseInt(value.acid),
+                            caid: parseInt(value.caid)
+                        }
+                    })
+                },
+                {
+                    tabId: 1,
+                    name: "产品",
+                    contentList: this.tblock_info.map(value => {
+                        return {
+                            name: value.caname,
+                            groupId: parseInt(value.caid),
+                            caid: parseInt(value.caid),
+                            acid: null
+                        }
+                    })
+                }
+            ],
+            selectedTab: null
+        };
+        this.tab.selectedTab = this.tab.tabList[0];
+    }
+
+    reLoadAllTable() {
+        this.reLoadTable("warn");
+        this.reLoadTable("single");
+        this.reLoadTable("marketPlate");
+        this.reLoadTable("varieti");
+        this.reLoadTable("ukey");
+        this.reLoadTable("tactful");
+    }
+
     loadExternalData() {
         this.risk_indexs = this.config.get("risk_index") || [];
         this.account_info = this.config.get("asset_account") || [];
         this.tblock_info = this.config.getProducts();
+    }
+
+    parseRiskRecord(riskRecord:any) {
+        let categroy: string;
+        let categroyTop: string;
+        switch(riskRecord.catg_lv1) {
+            case 0:
+                categroy = null;
+                categroyTop = null;
+                break;
+            case 1:
+                categroy = this.mapMarket(riskRecord.catg_lv2);
+                categroyTop = "市场";
+                break;
+            case 2:
+                categroy = this.mapPlate(riskRecord.catg_lv2);
+                categroyTop = "板块";
+                break;
+            case 3:
+                categroy = this.mapVarieti(riskRecord.catg_lv2);
+                categroyTop = "品种";
+                break;
+        }
+        let isDanger = riskRecord.used_v1 >= riskRecord.limit_v2; // 
+        let dangerType = "normal";
+        if (isDanger) dangerType = "warn";
+        if (riskRecord.used_v1 >= riskRecord.limit_v1) dangerType = "danger";
+        return {
+            groupType: riskRecord.acid ? "帐号" : "产品",
+            used_v1: riskRecord.used_v1,
+            limit_v1: riskRecord.limit_v1,
+            operate: this.mapOperate(riskRecord.operate),
+            status: riskRecord.risk_stat === 1 ? "启用" : "禁用",
+            riskName: this.risk_indexs.find(value => { return parseInt(value.riskid) === parseInt(riskRecord.risk_id) }).riskname,
+            ukey: riskRecord.ukey,
+            name: this.tab.selectedChild.name,
+            categroy: categroy,
+            categropTop: categroyTop,
+            isDanger,
+            dangerType
+        }
+    }
+
+    addARiskRecord(riskRecord:any) {
+        let cellData = this.parseRiskRecord(riskRecord);
+        if(cellData.isDanger) { // 预警信息
+            let row = this.warnTable.newRow();
+            row.cells[0].Text = cellData.groupType;
+            row.cells[1].Text = cellData.categropTop;
+            row.cells[2].Text = cellData.categroy;
+            row.cells[3].Text = "指标";
+            row.cells[4].Text = cellData.limit_v1;
+            row.cells[5].Text = cellData.used_v1;
+            row.cells[6].Text = cellData.dangerType;
+        }
+        if (riskRecord.ukey === 0 && riskRecord.catg_lv1 === 0) {
+            let row = this.singleTable.newRow()
+            row.cells[0].Text = cellData.name;
+            row.cells[1].Text = cellData.riskName;
+            row.cells[2].Text = cellData.used_v1;
+            row.cells[3].Text = cellData.limit_v1;
+            row.cells[4].Text = cellData.operate;
+            row.cells[5].Text = cellData.status;
+        } else if(riskRecord.ukey === 0 && (riskRecord.catg_lv1 === 1 || riskRecord.catg_lv1 === 2)) {
+            let row = this.marketPlateTable.newRow();
+            row.cells[0].Text = cellData.categroy;
+            row.cells[1].Text = cellData.riskName;
+            row.cells[2].Text = cellData.used_v1;
+            row.cells[3].Text = cellData.limit_v1;
+            row.cells[4].Text = cellData.operate;
+            row.cells[5].Text = cellData.status;
+        } else if(riskRecord.ukey === 0 && riskRecord.catg_lv1 === 3) {
+            let row = this.varietiTable.newRow();
+            row.cells[0].Text = cellData.categroy;
+            row.cells[1].Text = cellData.riskName;
+            row.cells[2].Text = cellData.used_v1;
+            row.cells[3].Text = cellData.limit_v1;
+            row.cells[4].Text = cellData.operate;
+            row.cells[5].Text = cellData.status;
+        } else if(riskRecord.ukey !== 0 && riskRecord.catg_lv1 === 0) {
+            let row = this.ukeyTable.newRow();
+            row.cells[0].Text = cellData.ukey;
+            row.cells[1].Text = cellData.riskName;
+            row.cells[2].Text = cellData.used_v1;
+            row.cells[3].Text = cellData.limit_v1;
+            row.cells[4].Text = cellData.operate;
+            row.cells[5].Text = cellData.status;
+        }
+    }
+
+    reLoadTable(name:string) {
+        let table: DataTable = new DataTable("table2");
+        switch(name) {
+            case "warn":
+                table.addColumn("类型", "分类", "类目", "指标", "阈值", "当前", "状态");
+                this.warnTable = table;
+                break;
+            case "single":
+                table.addColumn(this.tab.selectedTab.name + "ID", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                this.singleTable = table;
+                break;
+            case "marketPlate":
+                table.addColumn("市场（板块）", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                this.marketPlateTable = table;
+                break;
+            case "varieti":
+                table.addColumn("品种", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                this.varietiTable = table;
+                break;
+            case "ukey":
+                table.addColumn("ukey", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                this.ukeyTable = table;
+                break;
+            case "tactful":
+                table.addColumn("策略", "指标", "阈值", "当前", "状态");
+                this.tactfulTable = table;
+                break;
+        }
+    }
+
+    filterRisk(acid:number, caid:number) {
+        if(acid) return this.riskData.trade_account.filter(value => value.group_id === acid);
+        return this.riskData.trade_block.filter(value => value.group_id === caid);
+    }
+
+    getRiskRecordByGroupId(groupId) {
+        let riskList = this.riskData.trade_account.filter(value => value.group_id === groupId);
+        let type:string;
+        if(riskList.length) {
+            type = "account";
+        } else {
+            riskList = this.riskData.trade_block.filter(value => value.group_id === groupId);
+            type = "product";
+        }
+        return {
+            riskList,
+            type
+        }
+    }
+
+    checkoutGroup(acid, caid) {
+        this.tab.selectedChild = this.tab.selectedTab.contentList.find(value => {
+            return acid ? acid === value.acid : caid === value.caid
+        });
+        this.reLoadAllTable();
+        this.filterRisk(acid, caid).forEach(item => {
+            item.acid = acid;
+            item.caid = caid;
+            this.addARiskRecord(item);
+        });
+    }
+
+    checkoutTab(tabId) {
+        this.tab.selectedTab = this.tab.tabList.find(value => value.tabId === tabId);
+    }
+
+    mapOperate(operate:number) {
+        let value:string;
+        switch (operate) {
+            case 1:
+                value = "大于";
+                break;
+            case 2:
+                value = "大于等于";
+                break;
+            case 3:
+                value = "等于";
+                break;
+            case 4:
+                value = "小于等于";
+                break;
+            case 5:
+                value = "小于";
+                break;
+        }
+        return value
+    }
+
+    mapCategroy_lv1(catg_lv1: number) {
+        let value: string;
+        switch (catg_lv1) {
+            case 0:
+                value = "无";
+                break;
+            case 1:
+                value = "市场";
+                break;
+            case 2:
+                value = "板块";
+                break;
+            case 3:
+                value = "品种";
+                break;
+        }
+        return value        
+    }
+
+    mapMarket(catg_lv2: number) {
+        let value: string;
+        switch (catg_lv2) {
+            case 0:
+                value = "无";
+                break;
+            case 1:
+                value = "深圳";
+                break;
+            case 2:
+                value = "上海";
+                break;
+            case 3:
+                value = "all";
+                break;
+        }
+        return value
+    }
+
+    mapPlate(catg_lv2: number) {
+        let value: string;
+        switch (catg_lv2) {
+            case 0:
+                value = "无";
+                break;
+            case 1:
+                value = "主板";
+                break;
+            case 2:
+                value = "中小板";
+                break;
+            case 3:
+                value = "创业板";
+                break;
+            case 4:
+                value = "三板";
+                break;
+            case 5:
+                value = "all";
+                break;
+        }
+        return value
+    }
+
+    mapVarieti(catg_lv2: number) {
+        let value: string;
+        switch (catg_lv2) {
+            case 0:
+                value = "无";
+                break;
+            case 1:
+                value = "股票";
+                break;
+            case 2:
+                value = "债券";
+                break;
+            case 3:
+                value = "基金";
+                break;
+            case 4:
+                value = "现货";
+                break;
+            case 5:
+                value = "货币市场工具 包括货币基金,回购,票据,短期债等等";
+                break;
+            case 6:
+                value = "指数";
+                break;
+            case 7:
+                value = "期货";
+                break;
+            case 8:
+                value = "权证";
+                break;
+            case 9:
+                value = "个股期权";
+                break;
+            case 10:
+                value = "all";
+                break;
+        }
+        return value        
     }
 }

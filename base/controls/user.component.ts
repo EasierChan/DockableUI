@@ -518,15 +518,16 @@ export class CodeComponent {
     moduleId: module.id,
     selector: "button-group",
     template: `
-        <button *ngFor="let item of buttons; let index = index" type="button" class="btn btn-xs btn-primary" (click)="itemClick($event, index)" [disabled]="option?.disable.includes(index)">
+        <button *ngFor="let item of buttons; let index = index" type="button" class="btn btn-xs btn-{{btnClass}}" (click)="itemClick($event, index)" [disabled]="option?.disable.includes(index)">
             <span class="glyphicon glyphicon-{{item}}" aria-hidden="true"></span>
         </button>
     `,
-    inputs: ["buttons", "option"]
+    inputs: ["buttons", "option", "btnClass"]
 })
 export class ButtonGroupComponent implements OnInit {
     buttons: string[];
     option: any;
+    btnClass: string;
 
     @HostBinding("class") cssClass: string = "btn-group";
     @HostBinding("style.width.px") width: number;
