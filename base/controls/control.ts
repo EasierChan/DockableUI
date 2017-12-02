@@ -1820,7 +1820,7 @@ export class DataTable extends Control {
     }
 
     newRow(bInsertFirst: boolean = false): DataTableRow {
-        let row = new DataTableRow(this.columns.length);
+        let row = new DataTableRow(this.columns.length, this);
         row.onCellClick = this._cellclick;
         row.onRowClick = this._rowclick;
         row.onCellDBClick = this._cellDBClick;
@@ -1828,6 +1828,17 @@ export class DataTable extends Control {
         bInsertFirst ? this.rows.unshift(row) : this.rows.push(row);
         this.dataSource.rows = this.rows;
         return row;
+    }
+
+    cell(rowIndex: number, colName: string): DataTableRowCell {
+        if (rowIndex < 0 || rowIndex >= this.rows.length)
+            return null;
+
+        let colIdx = this.columns.findIndex(item => { return item.Name === colName; });
+        if (colIdx < 0)
+            return null;
+
+        return this.rows[rowIndex].cells[colIdx];
     }
 
     set RowIndex(value: boolean) {
@@ -1969,11 +1980,10 @@ export class DataTable extends Control {
 
 export class DataTableRow extends Control {
     cells: DataTableRowCell[] = [];
-    private parent: DataTable;
     private bHidden: boolean;
     private bgcolor: string;
     private static _timeout: any;
-    constructor(private columns: number) {
+    constructor(private columns: number, private parent: DataTable) {
         super();
         this.bHidden = false;
         this.dataSource = {
@@ -2013,8 +2023,17 @@ export class DataTableRow extends Control {
         }
     }
 
+    cell(colName: string): DataTableRowCell {
+        let idx = this.parent.columns.findIndex(item => { return item.Name === colName; });
+        if (idx < 0)
+            return null;
+
+        return this.cells[idx];
+    }
+
     insertCell(cell: DataTableRowCell, index: number): void {
         this.cells.splice(index, 0, cell);
+        this.columns += 1;
         this.cells[index].OnClick = (cellIndex, rowIndex) => {
             if (DataTableRow._timeout) {
                 clearTimeout(DataTableRow._timeout);
