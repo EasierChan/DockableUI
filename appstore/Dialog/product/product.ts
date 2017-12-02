@@ -1,7 +1,7 @@
 "use strict";
 
 import { Component, OnInit } from "@angular/core";
-import { IP20Service } from "../../../base/api/services/ip20.service";
+import { QtpService } from "../../../base/api/services/qtp.service";
 import { DataTable } from "../../../base/controls/control";
 import { AppStoreService } from "../../../base/api/services/backend.service";
 
@@ -18,7 +18,7 @@ export class ProductComponent implements OnInit {
     isonpack: any;
     productAppID: number;
 
-    constructor(private tgw: IP20Service, private appsrv: AppStoreService) {
+    constructor(private fgs: QtpService, private appsrv: AppStoreService) {
     }
 
     ngOnInit() {
@@ -41,74 +41,70 @@ export class ProductComponent implements OnInit {
     }
 
     registerListener() {
-        this.tgw.addSlot({
-            appid: this.productAppID,
-            packid: 251,
-            callback: (msg) => {
-                console.info(msg);
-                switch (msg.content.head.actor) {
-                    case "getMonitorProductsAns":
-                        let productDetail = JSON.parse(msg.content.body).body[0];
-                        this.productDetail.rows[0][1] = productDetail.product_name;
-                        this.productDetail.rows[0][3] = productDetail.pretotalint;
-                        this.productDetail.rows[0][5] = productDetail.pre_netvalue;
-                        this.productDetail.rows[0][7] = productDetail.netvalue;
-                        this.productDetail.rows[1][1] = productDetail.mtm_closepl;
-                        this.productDetail.rows[1][3] = productDetail.mtm_posipl;
-                        this.productDetail.rows[1][5] = productDetail.totalmargin;
-                        this.productDetail.rows[1][7] = productDetail.stock_validamt;
-                        this.productDetail.rows[2][1] = productDetail.futures_validamt;
-                        this.productDetail.rows[2][3] = productDetail.future_interests;
-                        this.productDetail.rows[2][5] = productDetail.stock_value;
-                        this.productDetail.rows[2][7] = productDetail.spifCap;
-                        this.productDetail.rows[3][1] = productDetail.risk_exposure; //
-                        this.productDetail.rows[3][3] = productDetail.commodityFuturesCap;
-                        this.productDetail.rows[3][5] = productDetail.commodityFuturesNetting;
-                        this.productDetail.rows[3][7] = productDetail.futures_risk;
-                        productDetail = null;
-                        break;
-                    case "getProductStockHoldWeightAns":
-                        if (msg.content.head.pkgCnt === msg.content.head.pkgIdx + 1) {
-                            let stockArr = msg.content.head.pkgCnt === 1 ? JSON.parse(msg.content.body).body
-                                : JSON.parse(this.isonpack[msg.content.head.pkgId] + msg.content.body).body;
-
-                            stockArr.forEach(item => {
-                                let row = this.stockTable.newRow();
-                                row.cells[0].Text = item.marketcode;
-                                row.cells[1].Text = item.chabbr;
-                                row.cells[2].Text = item.total_vol;
-                                row.cells[3].Text = item.total_cost;
-                            });
-
-                            stockArr = null;
-                        } else {
-                            this.isonpack[msg.content.head.pkgId] = this.isonpack.hasOwnProperty(msg.content.head.pkgId)
-                                ? this.isonpack[msg.content.head.pkgId] + msg.content.body : msg.content.body;
-                        }
-                        break;
-                    case "getProductFuturesHoldWeightAns":
-                        if (msg.content.head.pkgCnt === msg.content.head.pkgIdx + 1) {
-                            let futureArr = msg.content.head.pkgCnt === 1 ? JSON.parse(msg.content.body).body
-                                : JSON.parse(this.isonpack[msg.content.head.pkgId] + msg.content.body).body;
-
-                            futureArr.forEach(item => {
-                                let row = this.futureTable.newRow();
-                                row.cells[0].Text = item.marketcode;
-                                row.cells[1].Text = item.chabbr;
-                                row.cells[2].Text = item.direction === "B" ? "多仓" : "空仓";
-                                row.cells[3].Text = item.total_vol;
-                                row.cells[4].Text = item.total_cost;
-                            });
-
-                            futureArr = null;
-                        } else {
-                            this.isonpack[msg.content.head.pkgId] = this.isonpack.hasOwnProperty(msg.content.head.pkgId)
-                                ? this.isonpack[msg.content.head.pkgId] + msg.content.body : msg.content.body;
-                        }
-                        break;
-                }
+        this.fgs.addSlotOfCMS("getMonitorProducts", (msg) => {
+            let obj = JSON.parse(msg.toString());
+            if (obj.msret.msgcode !== "00") {
+                console.error(obj.msret.msg);
+                return;
             }
-        });
+            let productDetail = obj.body[0];
+            this.productDetail.rows[0][1] = productDetail.product_name;
+            this.productDetail.rows[0][3] = productDetail.pretotalint;
+            this.productDetail.rows[0][5] = productDetail.pre_netvalue;
+            this.productDetail.rows[0][7] = productDetail.netvalue;
+            this.productDetail.rows[1][1] = productDetail.mtm_closepl;
+            this.productDetail.rows[1][3] = productDetail.mtm_posipl;
+            this.productDetail.rows[1][5] = productDetail.totalmargin;
+            this.productDetail.rows[1][7] = productDetail.stock_validamt;
+            this.productDetail.rows[2][1] = productDetail.futures_validamt;
+            this.productDetail.rows[2][3] = productDetail.future_interests;
+            this.productDetail.rows[2][5] = productDetail.stock_value;
+            this.productDetail.rows[2][7] = productDetail.spifCap;
+            this.productDetail.rows[3][1] = productDetail.risk_exposure; //
+            this.productDetail.rows[3][3] = productDetail.commodityFuturesCap;
+            this.productDetail.rows[3][5] = productDetail.commodityFuturesNetting;
+            this.productDetail.rows[3][7] = productDetail.futures_risk;
+            productDetail = null;
+        }, this);
+
+        this.fgs.addSlotOfCMS("getProductStockHoldWeight", (msg) => {
+            let obj = JSON.parse(msg.toString());
+            if (obj.msret.msgcode !== "00") {
+                console.error(obj.msret.msg);
+                return;
+            }
+
+            let stockArr = obj.body;
+            stockArr.forEach(item => {
+                let row = this.stockTable.newRow();
+                row.cells[0].Text = item.marketcode;
+                row.cells[1].Text = item.chabbr;
+                row.cells[2].Text = item.total_vol;
+                row.cells[3].Text = item.total_cost;
+            });
+
+            stockArr = null;
+        }, this);
+        this.fgs.addSlotOfCMS("getProductFuturesHoldWeight", (msg) => {
+            let obj = JSON.parse(msg.toString());
+            if (obj.msret.msgcode !== "00") {
+                console.error(obj.msret.msg);
+                return;
+            }
+
+            let futureArr = obj.body;
+
+            futureArr.forEach(item => {
+                let row = this.futureTable.newRow();
+                row.cells[0].Text = item.marketcode;
+                row.cells[1].Text = item.chabbr;
+                row.cells[2].Text = item.direction === "B" ? "多仓" : "空仓";
+                row.cells[3].Text = item.total_vol;
+                row.cells[4].Text = item.total_cost;
+            });
+
+            futureArr = null;
+        }, this);
     }
 }
 

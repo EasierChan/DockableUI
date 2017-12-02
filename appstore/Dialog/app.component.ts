@@ -6,9 +6,10 @@
 "use strict";
 
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
-import { IP20Service } from "../../base/api/services/ip20.service";
+import { QtpService } from "../../base/api/services/qtp.service";
 import { AppStateCheckerRef, AppStoreService, TranslateService } from "../../base/api/services/backend.service";
 import { ProductComponent } from "./product/product";
+import { FGS_MSG, ServiceType, QTPMessage } from "../../base/api/model/qtp/message.model";
 import { DataKey } from "../../base/api/model/workbench.model";
 
 @Component({
@@ -22,7 +23,7 @@ import { DataKey } from "../../base/api/model/workbench.model";
     providers: [
         AppStateCheckerRef,
         TranslateService,
-        IP20Service,
+        QtpService,
         AppStoreService
     ]
 })
@@ -34,7 +35,7 @@ export class AppComponent implements OnInit {
     productAppID: number;
 
     constructor(private state: AppStateCheckerRef, private langServ: TranslateService,
-        private tradePoint: IP20Service, private appsrv: AppStoreService) {
+        private tradePoint: QtpService, private appsrv: AppStoreService) {
         this.state.onInit(this, this.onReady);
     }
 
@@ -59,33 +60,25 @@ export class AppComponent implements OnInit {
         let [addr, port] = this.appsrv.getSetting().endpoints[0].trade_addr.split(":");
         this.tradePoint.connect(port, addr);
 
-        let timestamp: Date = new Date();
-        let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
-            ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
-            ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
         let loginObj = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo));
-        loginObj.clienttm = stimestamp;
 
         this.tradePoint.addSlot({
-            appid: 17,
-            packid: 43,
-            callback: msg => {
-                console.info(`tgw ans=>${msg}`);
+            service: ServiceType.kLogin,
+            msgtype: FGS_MSG.kLoginAns,
+            callback: (msg) => {
+                let obj = JSON.parse(msg.toString());
+                if (obj.data.ret_code !== 0) {
+                    alert(obj.data.ret_msg);
+                    return;
+                }
+
                 if (afterLogin)
                     afterLogin();
             }
         });
 
-        this.tradePoint.addSlot({
-            appid: 17,
-            packid: 120,
-            callback: msg => {
-                console.info(msg);
-            }
-        });
-
         this.tradePoint.onConnect = () => {
-            this.tradePoint.send(17, 41, loginObj);
+            this.tradePoint.send(FGS_MSG.kLogin, JSON.stringify({ data: loginObj }), ServiceType.kLogin);
         };
     }
 
@@ -98,9 +91,9 @@ export class AppComponent implements OnInit {
                 this.loginTGW(() => {
                     let today = new Date();
                     let dateStr = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + (today.getDate());
-                    this.tradePoint.send(this.productAppID, 251, { head: { realActor: "getMonitorProducts" }, body: { caid: this.option.productID } });
-                    this.tradePoint.send(this.productAppID, 251, { head: { realActor: "getProductStockHoldWeight" }, body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
-                    this.tradePoint.send(this.productAppID, 251, { head: { realActor: "getProductFuturesHoldWeight" }, body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } });
+                    this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { body: { caid: this.option.productID } } }));
+                    this.tradePoint.sendToCMS("getProductStockHoldWeight", JSON.stringify({ data: { body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } } }));
+                    this.tradePoint.sendToCMS("getProductFuturesHoldWeight", JSON.stringify({ data: { body: { caid: this.option.productID, begin_date: dateStr.toString(), end_date: dateStr.toString() } } }));
                 });
                 break;
             case "strategy":
