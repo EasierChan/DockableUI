@@ -362,7 +362,8 @@ export class QtpService {
             callback: (body, options: QtpMessageOption[]) => {
                 for (let i = 0; i < options.length; ++i) {
                     if (options[i].id === 12) {
-                        this._cmsMap[options[i].value.toString()].callback.call(context, body);
+                        if (this._cmsMap.hasOwnProperty(options[i].value.toString()))
+                            this._cmsMap[options[i].value.toString()].callback.call(context, body);
                         break;
                     }
                 }

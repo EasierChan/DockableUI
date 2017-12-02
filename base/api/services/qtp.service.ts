@@ -217,6 +217,8 @@ export class QtpService {
             }
 
             if (self._messageMap.hasOwnProperty(msg.header.service) && self._messageMap[msg.header.service].hasOwnProperty(msg.header.msgtype)) {
+
+
                 if (self._messageMap[msg.header.service][msg.header.msgtype].context)
                     self._messageMap[msg.header.service][msg.header.msgtype].callback.call(self._messageMap[msg.header.service][msg.header.msgtype].context, msg.body, msg.options);
                 else
@@ -363,7 +365,8 @@ export class QtpService {
             callback: (body, options: QtpMessageOption[]) => {
                 for (let i = 0; i < options.length; ++i) {
                     if (options[i].id === 12) {
-                        this._cmsMap[options[i].value.toString()].callback.call(context, body);
+                        if (this._cmsMap.hasOwnProperty(options[i].value.toString()))
+                            this._cmsMap[options[i].value.toString()].callback.call(context, body);
                         break;
                     }
                 }
