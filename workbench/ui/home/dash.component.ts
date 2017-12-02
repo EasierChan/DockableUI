@@ -1,10 +1,11 @@
 "use strict";
 
 import { Component, OnInit, OnDestroy } from "@angular/core";
-import { TradeService, QuoteService } from "../../bll/services";
+import { QtpService, QuoteService } from "../../bll/services";
 import { DataTable, DataTableColumn, DataTableRow, ChartViewer, Section, ListItem } from "../../../base/controls/control";
 import { SecuMasterService, AppStoreService } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL } from "../../bll/strategy.server";
+import { ServiceType } from "../../../base/api/model";
 import * as echarts from "echarts";
 import { ECharts } from "echarts";
 
@@ -82,7 +83,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     mainStockUk: number;
     preMainStockUk: number;
-    maid: number;//
     userId: number;//
 
 
@@ -99,13 +99,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
         return newstr;
     }
 
-    constructor(private tradePoint: TradeService, private quote: QuoteService, private config: ConfigurationBLL,
+    constructor(private tradePoint: QtpService, private quote: QuoteService, private config: ConfigurationBLL,
         private secuinfo: SecuMasterService, private appsvr: AppStoreService) {
 
     }
 
     addTodoEvent() {
-        this.tradePoint.send(260, 251, { head: { realActor: "createTodo" }, body: { content: this.addTodoContent, stat: '0', maid: this.maid, oid: this.userId } });
+        this.tradePoint.sendToCMS("createTodo", JSON.stringify({ data: { body: { content: this.addTodoContent, stat: '0', oid: this.userId } } }));
     }
 
     getNowProductDataBefore() {
@@ -113,16 +113,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.nowProductIndex = this.nowProductIndex + this.productData.length - 1;
         this.nowProductIndex = this.nowProductIndex % this.productData.length;
         this.nowProductCaid = this.productData[this.nowProductIndex].caid;
-        this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: { caid: this.nowProductCaid } });
-        this.tradePoint.send(260, 251, { head: { realActor: "getProductNet" }, body: { caid: this.nowProductCaid } });
+        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { body: { caid: this.nowProductCaid } } }));
     }
 
     getNowProductDataNext() {
         this.nowProductIndex++;
         this.nowProductIndex = this.nowProductIndex % this.productData.length;
         this.nowProductCaid = this.productData[this.nowProductIndex].caid;
-        this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: { caid: this.nowProductCaid } });
-        this.tradePoint.send(260, 251, { head: { realActor: "getProductNet" }, body: { caid: this.nowProductCaid } });
+        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { body: { caid: this.nowProductCaid } } }));
     }
 
     compare(property) {
@@ -249,7 +249,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         let barMax = Math.max.apply(null, yBarData);
                         this.selfStockBarChange.yAxis.max = barMax / 10000;
                         this.selfStockBarChange.yAxis.interval = this.selfStockBarChange.yAxis.max / 2;
-                        
+
                         historyStockLineData.forEach((item, index) => {
                             let time = this.myGetTime(item.t / 1000);
                             let marketIndex = this.selfStockXdata.indexOf(time);//当前行情在echarts中的位置
@@ -274,9 +274,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         })
     }
     ngOnInit() {
-
-        this.maid = Number(this.config.get("user").maid);
-        this.userId = Number(this.config.get("user").userid.split('.').join(''));
+        this.userId = Number(this.config.get("user").userid);
         for (var i = 9; i <= 14; i++) {
             if (i != 12) {
                 for (var j = 0; j < 60; j++) {
@@ -383,16 +381,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.nowOperateId = cellItem.Data;
             this.nowOperateStat = cellItem.dataSource.text == true ? 1 : 0;
             if (cellIndex == 0) {
-                this.tradePoint.send(260, 251, {
-                    head: { realActor: "editTodo" }, body: {
-                        id: this.nowOperateId,
-                        stat: this.nowOperateStat,
-                        maid: this.maid,
-                        oid: this.userId,
-                        content: this.todoList.rows[rowIndex].cells[1].Text,
-                        createtime: this.todoList.rows[rowIndex].cells[2].Text
+                this.tradePoint.sendToCMS("editTodo", JSON.stringify({
+                    data: {
+                        body: {
+                            id: this.nowOperateId,
+                            stat: this.nowOperateStat,
+                            oid: this.userId,
+                            content: this.todoList.rows[rowIndex].cells[1].Text,
+                            createtime: this.todoList.rows[rowIndex].cells[2].Text
+                        }
                     }
-                });
+                }));
             }
         }
 
@@ -583,7 +582,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         });
 
         //预警接口 
-        this.config.on("getAlarmMessageAns", (data) => {
+        this.tradePoint.addSlotOfCMS("getAlarmMessageAns", (data) => {
             if (data.msret.msgcode != '00') {
                 alert(data.msret.msg)
                 return;
@@ -610,7 +609,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     }
                 })
             }
-        });
+        }, this);
 
         //产品信息
         this.config.on("getProductAns", (data) => {
@@ -634,14 +633,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.productScaleBar.setOption(productScaleChangeOpt);
                 this.nowProductCaid = this.productData[0].caid;
                 this.productNetData = [];
-                this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: {} });
-                this.tradePoint.send(260, 251, { head: { realActor: "getMonitorProducts" }, body: { caid: this.nowProductCaid } });
-                this.tradePoint.send(260, 251, { head: { realActor: "getProductNet" }, body: { caid: this.nowProductCaid } });
+                this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { body: {} } }));
+                this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { body: { caid: this.nowProductCaid } } }));
+                this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { body: { caid: this.nowProductCaid } } }));
             }
         })
 
         //产品净值
-        this.config.on("getProductNetAns", (data) => {
+        this.tradePoint.addSlotOfCMS("getProductNetAns", (data) => {
             if (data.msret.msgcode != '00') {
                 alert(data.msret.msg)
                 return;
@@ -660,10 +659,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 })
                 this.productNetChart.setOption(productNetChangeOpt);
             }
-        })
+        }, this)
 
         //getMonitorProductsAns
-        this.config.on("getMonitorProductsAns", (data) => {
+        this.tradePoint.addSlotOfCMS("getMonitorProductsAns", (data) => {
             if (data.msret.msgcode != '00') {
                 alert(data.msret.msg)
                 return;
@@ -713,11 +712,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     }
                 }
             }
-        })
+        }, this)
 
         //最好的30股票
 
-        this.config.on('getBestStocksAns', data => {
+        this.tradePoint.addSlotOfCMS('getBestStocksAns', data => {
             if (data.msret.msgcode != '00') {
                 alert(data.msret.msg)
                 return;
@@ -742,10 +741,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 })
             }
             this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-        })
+        }, this)
 
         //最差的30股
-        this.config.on('getWorstStocksAns', data => {
+        this.tradePoint.addSlotOfCMS('getWorstStocksAns', data => {
             if (data.msret.msgcode != '00') {
                 alert(data.msret.msg)
                 return;
@@ -768,10 +767,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
             this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
 
-        })
+        }, this)
 
         //todo列表
-        this.config.on('getTodoListAns', data => {
+        this.tradePoint.addSlotOfCMS('getTodoListAns', data => {
             if (data.msret.msgcode != '00') {
                 alert(data.msret.msg)
                 return;
@@ -815,17 +814,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
                         if (row.cells[1].Type == "textbox") {
                             if (index == 0) {//确认编辑
-                                this.tradePoint.send(260, 251, {
-                                    head: { realActor: "editTodo" }, body: {
-                                        id: this.nowOperateId,
-                                        stat: this.nowOperateStat,
-                                        content: row.cells[1].Text,
-                                        createtime: row.cells[2].Text,
-                                        maid: this.maid,
-                                        oid: this.userId
-
+                                this.tradePoint.sendToCMS("editTodo", JSON.stringify({
+                                    data: {
+                                        body: {
+                                            id: this.nowOperateId,
+                                            stat: this.nowOperateStat,
+                                            content: row.cells[1].Text,
+                                            createtime: row.cells[2].Text,
+                                            oid: this.userId
+                                        }
                                     }
-                                });
+                                }));
                             } else if (index == 1) {//取消编辑
                                 row.cells[1].Text = item.content;
                                 row.cells[2].Text = item.createtime.substring(0, 10);
@@ -835,7 +834,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             }
                         } else if (row.cells[1].Type == "plaintext") {
                             if (index == 1) {//删除操作
-                                this.tradePoint.send(260, 251, { head: { realActor: "deleteTodo" }, body: { id: this.nowOperateId } });
+                                this.tradePoint.sendToCMS("deleteTodo", JSON.stringify({ data: { body: { id: this.nowOperateId } } }));
                             } else if (index == 0) {//编辑
                                 row.cells[1].Type = "textbox";
                                 row.cells[2].Type = "date";
@@ -846,19 +845,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 })
             }
             this.addTodoContent = '';
-        })
+        }, this)
 
         //addTodo
-        this.config.on('createTodoAns', data => {
+        this.tradePoint.addSlotOfCMS('createTodoAns', data => {
             if (data.msret.msgcode != '00') {
                 alert(data.msret.msg)
                 return;
             }
-            this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
-        })
+            this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { body: {} } }));
+        }, this)
 
         //editTodo
-        this.config.on('editTodoAns', data => {
+        this.tradePoint.addSlotOfCMS('editTodoAns', data => {
             if (data.msret.msgcode != '00') {
                 alert(data.msret.msg)
                 return;
@@ -880,7 +879,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     this.todoList.rows[this.todoRowIndex].cells[2].Color = 'rgb(208, 208, 208)';
                 }
             }
-        })
+        }, this)
 
         //删除todo列表
         this.config.on('deleteTodoAns', data => {
@@ -890,14 +889,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
             this.todoList.rows.splice(this.todoRowIndex, 1);
         })
-        this.tradePoint.send(260, 251, { head: { realActor: "getAlarmMessage" }, body: {} });
+        this.tradePoint.sendToCMS("getAlarmMessage", JSON.stringify({ data: { body: {} } }));
 
-        this.tradePoint.send(260, 251, { head: { realActor: "getProduct" }, body: {} });
+        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { body: {} } }));
         //AI看盘数据
-        this.tradePoint.send(260, 251, { head: { realActor: "getWorstStocks" }, body: {} });
-        this.tradePoint.send(260, 251, { head: { realActor: "getBestStocks" }, body: {} });
+        this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { body: {} } }));
+        this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { body: {} } }));
         //获取todo列表
-        this.tradePoint.send(260, 251, { head: { realActor: "getTodoList" }, body: {} });
+        this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { body: {} } }));
     }
 
     registerListener() {
