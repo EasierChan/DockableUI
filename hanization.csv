@@ -76,7 +76,7 @@ TotalMargin,总保证金
 PositionPL,持仓盈亏
 ClosePL,平仓盈亏
 OrderStatus,订单状态
-CancelSelected,选中撤单
+CancelSelected,撤选中单
 PORTFOLIOO/NPnl,昨仓盈亏
 U-Key,U-key
 Symbol,证券名称
@@ -85,7 +85,7 @@ Time,时间
 Strategy,策略
 Ask/Bid,买/卖
 Price,价格
-OrderVol,送单量
+OrderVol,委托量
 DoneVol,成交量
 Status,状态
 Account,账户
@@ -118,8 +118,8 @@ ShangHai,上海
 ShenZhen,深圳
 Fee,费用
 OrderType,订单类型
-OrderTime,成交时间
-OrderPrice,成交价
+OrderTime,委托时间
+OrderPrice,委托价格
 SymbolCode,证券代码
 Content,内容
 Position,仓位
@@ -315,3 +315,5 @@ Command,命令
 PortfolioID,组合ID
 PortfolioList,组合列表
 Timestamp,时间戳
+DoneTime,成交时间
+DonePrice,成交价格
