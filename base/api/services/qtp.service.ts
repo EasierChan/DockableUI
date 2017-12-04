@@ -265,19 +265,19 @@ export class QtpService {
         this._client.connect(port, host);
     }
 
-    send(msgtype: number, body: string | Buffer, service?: number, topic?: number) {
+    send(msgtype: number, body: string | Buffer, service?: number, version?: number) {
         let msg = new QTPMessage();
         msg.header.msgtype = msgtype;
 
         if (service) msg.header.service = service;
 
-        if (topic) msg.header.topic = topic;
+        if (version) msg.header.version = version;
 
         msg.body = body;
         this._client.sendMessage(msg);
     }
 
-    sendWithOption(msgtype: number, options: QtpMessageOption[], body: string | Buffer, service?: number, topic?: number) {
+    sendWithOption(msgtype: number, options: QtpMessageOption[], body: string | Buffer, service?: number, version?: number) {
         let msg = new QTPMessage();
         msg.header.msgtype = msgtype;
         options.forEach(option => {
@@ -286,7 +286,7 @@ export class QtpService {
 
         if (service) msg.header.service = service;
 
-        if (topic) msg.header.topic = topic;
+        if (version) msg.header.version = version;
 
         msg.body = body;
         this._client.sendMessage(msg);
