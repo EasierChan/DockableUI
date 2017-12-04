@@ -1,6 +1,7 @@
 "use strict";
 
 import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from "@angular/core";
+import { DatePipe } from "@angular/common";
 import { DataTable, DataTableColumn, ChartViewer, Section, ListItem } from "../../../base/controls/control";
 import { SecuMasterService, File } from "../../../base/api/services/backend.service";
 import { TradeService, QuoteService } from "../../bll/services";
@@ -10,7 +11,8 @@ import { ECharts } from "echarts";
     moduleId: module.id,
     selector: "security-master",
     templateUrl: "security.component.html",
-    styleUrls: ["../home/home.component.css", "security.component.css"]
+    styleUrls: ["../home/home.component.css", "security.component.css"],
+    providers:[DatePipe]
 })
 export class SecurityComponent implements OnInit, OnDestroy {
     tabs: string[];
@@ -30,7 +32,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     marketID: number;
     marketInfo: Section;
 
-    constructor(private quote: QuoteService, private secuinfo: SecuMasterService) {
+    constructor(private quote: QuoteService, private secuinfo: SecuMasterService, private datePipe: DatePipe) {
 
     }
 
@@ -45,7 +47,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.summary.content = "";
 
         this.mdSection = new Section();
-        this.mdSection.title = "分时图";
+        this.mdSection.title = "日K线图";
         this.mdSection.content = this.createMDChart();
         this.mdSection.content.onInit = (chart: ECharts) => {
             this.marketChart = chart;
@@ -770,16 +772,10 @@ export class SecurityComponent implements OnInit, OnDestroy {
             packid: 10002,
             callback: (msg) => {
                 let option = this.mdSection.content.option;
-                let startTime = parseInt(this.selectedItem.TradeTime.substr(1,4));
                 msg.content.data.forEach(item => {
-                    let time = new Date(item.t).format("HH:mm:ss");
-                    let subTime = parseInt(time.substr(0,2) + time.substr(3,2));
-                    if (subTime >= startTime) {
-                        option.xAxis.data.push(time);
-                        if (item.p !== 0) {
-                            option.series[0].data.push(item.p);
-                        }
-                    }
+                option.xAxis.data.push(item.d);
+                let kData = [String(item.o), String(item.c), String(item.l), String(item.h)];
+                option.series[0].data.push(kData);
                 });
 
                 this.marketChart.setOption(this.mdSection.content.option);
@@ -801,9 +797,12 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     searchMD() {
+        let date = new Date().setMonth((new Date().getMonth() - 12));
+        let date1 = this.datePipe.transform(date, "yyyyMMdd");
+        console.log(date, date1);
         this.mdSection.content.option.xAxis.data = [];
         this.mdSection.content.option.series[0].data = [];
-        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.selectedItem.ukey, dataType: 101001, dateFrom: 0 });
+        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.selectedItem.ukey, dataType: 101003, dateFrom: date1 });
     }
 
     searchInfo() {
@@ -825,46 +824,84 @@ export class SecurityComponent implements OnInit, OnDestroy {
                 title: {
                     show: false,
                 },
+                backgroundColor: "21202D",
                 tooltip: {
                     trigger: "axis",
                     axisPointer: {
+                        animation: false,
                         type: "cross",
-                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" },
+                        lineStyle: {
+                            color: "#376df4",
+                            width: 2,
+                            opacity: 1
+                        }
                     }
                 },
                 legend: {
-                    data: ["分时线"],
-                    textStyle: { color: "#F3F3F5" }
+                    data: ["日K线"],
+                    inactiveColor: "#777",
+                    textStyle: {
+                        color: "#fff"
+                    }
                 },
                 xAxis: {
                     data: [],
                     type: "category",
-                    axisLabel: {
-                        textStyle: { color: "#F3F3F5" }
-                    },
                     axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
-                    },
-                    axisTick: {
-                        alignWithLabel: true
-                    },
-                    boundaryGap: true
+                        lineStyle: { color: "#8392A5" }
+                    }
                 },
                 yAxis: {
-                    axisLabel: {
-                        show: true,
-                        textStyle: { color: "#F3F3F5" }
-                    },
                     axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
+                        lineStyle: { color: "#8392A5" }
                     },
                     scale: true,
-                    boundaryGap: [0.2, 0.2]
+                    splitLine: {
+                        lineStyle: {
+                            type: 'dashed',
+                            color: 'rgb(56, 63, 84)'
+                        }
+                    },
                 },
+                grid: {
+                    bottom: 80
+                },
+                dataZoom: [{
+                    type: "inside",
+                    xAxisIndex: 0,
+                    start: 0,
+                    end: 100
+                }, {
+                    start: 0,
+                    end: 10,
+                    handleIcon: "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+                    handleSize: "60%",
+                    textStyle: {
+                        color: "#FFF"
+                    },
+                    handleStyle: {
+                        color: "#fff",
+                        shadowBlur: 3,
+                        shadowColor: "rgba(0, 0, 0, 0.6)",
+                        shadowOffsetX: 2,
+                        shadowOffsetY: 2
+                    },
+                    type: "inside"
+                }],
+                animation: false,
                 series: [{
-                    name: "分时线",
-                    type: "line",
-                    data: []
+                    name: "日K线",
+                    type: "candlestick",
+                    data: [],
+                    itemStyle: {
+                        normal: {
+                            color: "#FD1050",
+                            color0: "#7FFFAA",
+                            borderColor: "#FD1050",
+                            borderColor0: "#7FFFAA"
+                        }
+                    }
                 }]
             }
         };
