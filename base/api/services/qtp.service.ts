@@ -198,12 +198,16 @@ export class QtpService {
         this._client.on("data", msgarr => {
             let msg = msgarr[0] as QTPMessage;
 
-            if (msg.header.service === ServiceType.kFGS && msg.header.msgtype === FGS_MSG.kPublish) {
+            if (msg.header.service === ServiceType.kFGS
+                && (msg.header.msgtype === FGS_MSG.kPublish || msg.header.msgtype === FGS_MSG.kComboPublish)) {
                 console.info(`topic: ${msg.header.topic}`);
 
                 for (let i = 0; i < msg.options.length; ++i) {
                     if (msg.options[i].id === OptionType.kSubscribeKey) {
-                        let key = msg.options[i].value.readIntLE(0, 8);
+                        let key = msg.header.msgtype === FGS_MSG.kPublish
+                            ? msg.options[i].value.readIntLE(0, 8)
+                            : msg.options[i].value.toString();
+
                         if (self._topicMap[msg.header.topic].context)
                             self._topicMap[msg.header.topic].callback.call(self._topicMap[msg.header.topic].context, key, msg.body);
                         else
@@ -316,6 +320,15 @@ export class QtpService {
             offset += 8;
         });
 
+        this._client.sendMessage(msg);
+    }
+
+    subscribeCom(topic: number, comkeys: Object, opposite: boolean = false) {
+        let msg = new QTPMessage();
+        msg.header.msgtype = opposite ? FGS_MSG.kComboUnsubscribe : FGS_MSG.kComboSubscribe;
+        msg.header.topic = topic;
+
+        msg.body = JSON.stringify(comkeys);
         this._client.sendMessage(msg);
     }
 

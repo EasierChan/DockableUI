@@ -129,7 +129,10 @@ export enum FGS_MSG {
     kLoginAns = 102,
     kSubscribe = 105,
     kUnSubscribe = 106,
-    kPublish = 107
+    kPublish = 107,
+    kComboSubscribe = 108,
+    kComboUnsubscribe = 109,
+    kComboPublish = 100
 }
 
 export enum ServiceType {
