@@ -16,7 +16,7 @@ export class RiskComponent implements OnInit {
     warnTable: DataTable;
     isCollapsed: boolean;
     singleTable: DataTable;
-    singleTableName: string = "产品帐号";
+    singleTableName: string = "账户";
     marketPlateTable: DataTable;
     varietiTable: DataTable;
     ukeyTable: DataTable;
@@ -77,7 +77,7 @@ export class RiskComponent implements OnInit {
             .forEach(item => {
                 let row = this.warnTable.newRow();
                 let { categroy, categroyTop } = this.getRiskCatg(item);
-                row.cells[0].Text = "帐号";
+                row.cells[0].Text = "账户";
                 row.cells[1].Text = this.account_info.find(value => Number(value.acid) === item.group_id).acname,
                 row.cells[2].Text = categroyTop;
                 row.cells[3].Text = categroy;
@@ -107,7 +107,7 @@ export class RiskComponent implements OnInit {
             tabList: [],
             selectedTab: null
         };
-        this.addTabItem("帐号", this.account_info.map(value => {
+        this.addTabItem("账户", this.account_info.map(value => {
             return {
                 name: value.acname,
                 id: value.acid
@@ -217,11 +217,11 @@ export class RiskComponent implements OnInit {
         let table: DataTable = new DataTable("table2");
         switch(name) {
             case "warn":
-                table.addColumn("类型", "帐号/产品ID", "分类", "类目", "风控名称", "阈值", "当前", "状态");
+                table.addColumn("类型", "账户/产品ID", "分类", "类目", "风控名称", "阈值", "当前", "状态");
                 this.warnTable = table;
                 break;
             case "single":
-                table.addColumn("帐号/产品ID", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                table.addColumn("账户/产品ID", "风控名称", "当前值", "阈值", "触发方式", "状态");
                 this.singleTable = table;
                 break;
             case "marketPlate":
@@ -289,7 +289,7 @@ export class RiskComponent implements OnInit {
         }
         if (riskRecord.ukey) {
             categroy = riskRecord.ukey;
-            categroyTop = '板地';
+            categroyTop = '标的';
         }
         return { categroy, categroyTop }
     }
