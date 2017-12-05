@@ -285,7 +285,8 @@ export class FactorProfitComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: series,
                 animationThreshold: 10000
@@ -1743,7 +1744,8 @@ export class FactorAnalysisComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: series,
                 animationThreshold: 10000
@@ -1951,7 +1953,8 @@ export class FactorAnalysisComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: series,
                 animationThreshold: 10000
@@ -2151,7 +2154,8 @@ export class FactorAnalysisComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: everydayExposureSeries
                 // color: [
@@ -2356,7 +2360,8 @@ export class FactorAnalysisComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: everyDayReturnAttrSeries
                 // color: [
@@ -2525,7 +2530,8 @@ export class FactorAnalysisComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: [{
                     name: "股票归因",
@@ -2917,7 +2923,8 @@ export class FactorAlphaComponent {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: series,
                 animationThreshold: 10000
