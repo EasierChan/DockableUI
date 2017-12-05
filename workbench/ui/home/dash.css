@@ -167,7 +167,7 @@ section {
     text-decoration: none;
    
 }
-/*.todoCon .todoInput .addTodoList:hover,*/
+.todoCon .todoInput .addTodoList:hover,
 .todoCon .todoInput .addTodoList:active{
     background: rgb(131, 191, 246);
 }
@@ -191,12 +191,8 @@ section {
     border: 1px solid #5d5f63;
     border-radius: 3px;
     width: 80%;
-    box-shadow: 0 0px 10px inset;
-   
 }
-.todoCon .todoInput input:focus{
-     box-shadow: none;
-}
+
 .todoCon .todoInput input::-webkit-input-placeholder{
     color: rgba(136, 136, 136, 0.55);
 }
@@ -210,6 +206,7 @@ section {
     margin-right: 10px;
     color: #ccc;
     line-height: 30px;
+    cursor: pointer;
 }
 .chartTit span:hover,
 .chartTit span:active{
@@ -234,6 +231,8 @@ section {
 .selfSelectStockChart>p span.minPrice .value{
    color: rgb(55, 177, 78);
 }
+
+
 
 
 
