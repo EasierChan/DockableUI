@@ -386,7 +386,7 @@ export class ConfigurationBLL {
 
     private _emitter: Object = {};
     emit(name, value) {
-        if (this._emitter.hasOwnProperty(name)) {
+        if (this._emitter.hasOwnProperty(name) && this._emitter[name] instanceof Function) {
             (this._emitter[name])(value);
         }
     }
