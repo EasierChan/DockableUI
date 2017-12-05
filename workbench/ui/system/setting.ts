@@ -33,7 +33,7 @@ export class SettingComponent implements OnInit {
         this.versionTable.addColumn("名称", "信息");
         let row = this.versionTable.newRow();
         row.cells[0].Text = "版本（主）";
-        row.cells[1].Text = "1.0.0";
+        row.cells[1].Text = "1.0.1.1";
 
         row = this.versionTable.newRow();
         row.cells[0].Text = "版本（N）";

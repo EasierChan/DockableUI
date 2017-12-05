@@ -112,6 +112,10 @@ export class AppComponent implements OnInit, OnDestroy {
             active: false
         });
 
+        this.actionBar.onToggleView = () => {
+            this.configBll.emit("toggle-view", null);
+        };
+
         let disables = []; // , "实盘交易"
         this.actionBar.onClick = (item) => {
             if (disables.indexOf(item.title) >= 0) {

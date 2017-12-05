@@ -2263,20 +2263,22 @@ export class ActionBar extends Control {
             showDetailView: false
         };
 
-        let self = this;
         this.dataSource = {
             features: [],
             settings: [],
-            menuClick() {
-                self.styleObj.showDetailView = !self.styleObj.showDetailView;
-                self.width = self.styleObj.showDetailView ? 200 : 50;
+            menuClick: () => {
+                this.styleObj.showDetailView = !this.styleObj.showDetailView;
+                this.width = this.styleObj.showDetailView ? 200 : 50;
+                if (this.onToggleView) this.onToggleView();
             },
-            onClick(item: ActionItem) {
-                if (self._onClick)
-                    self._onClick(item);
+            onClick: (item: ActionItem) => {
+                if (this._onClick)
+                    this._onClick(item);
             }
         };
     }
+
+    onToggleView: Function;
 
     addFeature(item: ActionItem): void {
         if (item.active) {
