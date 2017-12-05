@@ -314,9 +314,15 @@ export class AppComponent implements OnInit, OnDestroy {
         }, this);
 
         this.tradeEndPoint.addSlotOfCMS("getProduct", (msg) => {
+            let ret = JSON.parse(msg.toString());
+            if (ret.msret.msgcode !== "00") {
+                console.error(ret.msret.msg);
+                return;
+            }
+
             let productInfo: Object = {};
 
-            JSON.parse(msg.toString()).body.forEach(item => {
+            ret.body.forEach(item => {
                 productInfo[item.caid] = item;
             });
 
