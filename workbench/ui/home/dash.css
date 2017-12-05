@@ -97,7 +97,7 @@ section {
 .producAnalysis .fontCon:nth-of-type(1),
 .producAnalysis .fontCon:nth-of-type(2){
     width: 100px;
-    flex: 2;
+    flex: 3;
 }
 .producAnalysis .fontCon:nth-of-type(1){
    border-left: 4px solid #f3c239;
@@ -114,7 +114,7 @@ section {
 .producAnalysis .fontCon:nth-of-type(3),
 .producAnalysis .fontCon:nth-of-type(4){
     width: 100px;
-    flex: 1;
+    flex: 2;
 }
 
 .producAnalysis .fontCon .value .num{
@@ -167,9 +167,9 @@ section {
     text-decoration: none;
    
 }
-.todoCon  .addTodoList:hover,
-.todoCon  .addTodoList:active{
-    border: 1px solid rgb(33, 156, 111);
+.todoCon .todoInput .addTodoList:hover,
+.todoCon .todoInput .addTodoList:active{
+    background: rgb(131, 191, 246);
 }
 
 .todoCon .todoList{
@@ -191,15 +191,47 @@ section {
     border: 1px solid #5d5f63;
     border-radius: 3px;
     width: 80%;
-    box-shadow: 0 0px 10px inset;
 }
+
+.todoCon .todoInput input::-webkit-input-placeholder{
+    color: rgba(136, 136, 136, 0.55);
+}
+.todoCon .todoInput input:focus::-webkit-input-placeholder{
+    color: rgb(16, 23, 39);
+}
+
 
 .chartTit span{
     float: right;
     margin-right: 10px;
-    color: #f3c239;
+    color: #ccc;
     line-height: 30px;
+    cursor: pointer;
 }
+.chartTit span:hover,
+.chartTit span:active{
+    color: #f3c239;
+}
+.selfSelectStockChart>p{
+    padding-left: 50px;
+    margin: 0;
+    margin-top: 20px;
+}
+.selfSelectStockChart>p span{
+    margin-right: 20px;
+}
+.selfSelectStockChart>p span i{
+    font-style: normal;
+}
+.selfSelectStockChart>p span.maxPrice .value{
+   color: rgb(234, 47, 47);
+}
+
+.selfSelectStockChart>p span.preClose .value,
+.selfSelectStockChart>p span.minPrice .value{
+   color: rgb(55, 177, 78);
+}
+
 
 
 

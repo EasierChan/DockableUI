@@ -235,7 +235,7 @@ export class AppComponent implements OnInit {
 
         let orderstatusHeader = new HBox();
         let cb_handle = new Label();
-        cb_handle.Text = this.langServ.get("Handle");
+        cb_handle.Text = this.langServ.get("Status") + "：";
         // cb_handle.Title = this.langServ.get("Handle");
         orderstatusHeader.addChild(cb_handle);
         let dd_status = new DropDown();
@@ -318,7 +318,7 @@ export class AppComponent implements OnInit {
         };
 
         this.orderstatusTable = new DataTable("table2");
-        let orderstatusArr: string[] = ["Check", "U-Key", "SymbolCode", "OrderId", "Time", "Strategy",
+        let orderstatusArr: string[] = ["Check", "UKEY", "SymbolCode", "OrderId", "Time", "Strategy",
             "Ask/Bid", "Price", "OrderVol", "DoneVol", "Status", "PortfolioID"];
         let orderstatusTableRtnArr: string[] = [];
         let orderstatusTableTitleLen = orderstatusArr.length;
@@ -336,7 +336,7 @@ export class AppComponent implements OnInit {
         this.pageMap["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new VBox();
         this.doneOrdersTable = new DataTable("table2");
-        let doneorderTableArr: string[] = ["U-Key", "Symbol", "OrderId", "Strategy",
+        let doneorderTableArr: string[] = ["UKEY", "Symbol", "OrderId", "Strategy",
             "Ask/Bid", "Price", "DoneVol", "Status", "Time", "OrderVol", "OrderType", "PortfolioID", "OrderTime",
             "OrderPrice", "SymbolCode"];
         let doneOrderTableRtnArr: string[] = [];
@@ -377,7 +377,7 @@ export class AppComponent implements OnInit {
         this.pageMap["Position"] = this.positionPage;
         let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
-        let positionTableArr: string[] = ["PortfolioID", "secucategory", "U-Key", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
+        let positionTableArr: string[] = ["PortfolioID", "secucategory", "UKEY", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
             "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"];
         let positionTableRtnArr: string[] = [];
         let positionTableTittleLen = positionTableArr.length;
@@ -498,7 +498,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(symbol_thirdrow);
 
         let ukey_fourthrow = new HBox();
-        let txt_UKeyRtn = this.langServ.get("U-key");
+        let txt_UKeyRtn = this.langServ.get("UKEY");
         let ukey_label = new Label();
         ukey_label.Left = leftAlign;
         if (0 === this.languageType)
@@ -887,7 +887,7 @@ export class AppComponent implements OnInit {
             .addChild(allsellChk).addChild(this.range).addChild(this.rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
 
         this.portfolioTable = new DataTable("table2");
-        ["Symbol", "Name", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+        ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
             "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
             "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].forEach(col => {
                 this.portfolioTable.addColumn(this.langServ.get(col));
@@ -1083,7 +1083,7 @@ export class AppComponent implements OnInit {
         reqbtn.Text = this.langServ.get("Req");
         profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
         this.profitTable = new DataTable("table2");
-        let profittableArr: string[] = ["U-Key", "Code", "PortfolioID", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
+        let profittableArr: string[] = ["UKEY", "Code", "PortfolioID", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
             "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
             "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"];
         let profitTableTittleLen = profittableArr.length;
@@ -1982,7 +1982,7 @@ export class AppComponent implements OnInit {
 
                 strategyKeyMap.commands.forEach((item, idx) => {
                     this.strategyTable.addColumn(this.langServ.get(item.name));
-                    this.strategyTable.rows[iRow].cells[offset + idx].Text = item.name;
+                    this.strategyTable.rows[iRow].cells[offset + idx].Text = this.langServ.get(item.name);
                     this.strategyTable.rows[iRow].cells[offset + idx].Data = item;
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "button";
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = "primary";
@@ -2010,7 +2010,8 @@ export class AppComponent implements OnInit {
                 offset += strategyKeyMap.parameters.length;
                 if (strategyKeyMap.comments2.length > 0) {
                     this.strategyTable.addColumn(this.langServ.get("comment"));
-                    this.strategyTable.rows[iRow].cells[offset].Text = "comment";
+                    this.strategyTable.rows[iRow].cells[offset].Text = this.langServ.get("comment");
+                    this.strategyTable.rows[iRow].cells[offset].Data = { name: "comment" };
                     this.strategyTable.rows[iRow].cells[offset].Type = "button";
                     this.strategyTable.rows[iRow].cells[offset].Class = "primary";
                 }
@@ -2092,7 +2093,7 @@ export class AppComponent implements OnInit {
 
     strategyOnCellClick(cell: any, cellIdx: number, rowIdx: number) {
         console.info(cell);
-        if (cell.Text === "submit") {  // submit
+        if (cell.Data && cell.Data.name === "submit") {  // submit
             let strategyKeyMap = this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text];
             let paramIdx = this.kInitColumns + strategyKeyMap.comments1.length + strategyKeyMap.commands.length;
             let dvalue = 0;
@@ -2111,7 +2112,7 @@ export class AppComponent implements OnInit {
             return;
         }
 
-        if (cell.Text === "comment") {
+        if (cell.Data && cell.Data.name === "comment") {
             this.commentTable.rows.length = 0;
 
             this.strategyMap[this.strategyTable.rows[rowIdx].cells[0].Text].comments2.forEach(item => {
@@ -2331,6 +2332,7 @@ export class AppComponent implements OnInit {
         dd_symbol.AcceptInput = true;
         dd_symbol.Title = this.langServ.get("Code") + ": ";
         let code = null;
+
         if (this.appStorage && this.appStorage.bookView && this.appStorage.bookView.hasOwnProperty(bookviewID)) {
             code = this.appStorage.bookView[bookviewID].code;
             if (code !== null) {
@@ -2339,6 +2341,7 @@ export class AppComponent implements OnInit {
                 dd_symbol.SelectedItem = { Text: codeInfo[code].symbolCode, Value: codeInfo[code].InnerCode + "," + codeInfo[code].SecuCode + "," + codeInfo[code].ukey };
             }
         }
+
         row1.addChild(dd_symbol);
 
         let row2 = new HBox();
@@ -2347,15 +2350,19 @@ export class AppComponent implements OnInit {
         row2.addChild(lbl_timestamp);
 
         let bookViewTable = new DataTable("table2");
+        bookViewTable.RowIndex = false;
         bookViewTable.align = "right";
         ["BidVol", "Price", "AskVol", "TransVol"].forEach(item => { bookViewTable.addColumn(this.langServ.get(item)); });
+        bookViewTable.columns[3].hidden = true;
 
         for (let i = 0; i < 20; ++i) {
             let row = bookViewTable.newRow();
-            row.cells[0].bgColor = "#FE6635";
+            row.cells[0].bgColor = "rgb(32, 158, 218)";
             row.cells[0].Text = "";
-            row.cells[1].bgColor = "#5895ca";
-            row.cells[2].bgColor = "#D31d45";
+            row.cells[1].Text = "0.0000";
+            row.cells[1].bgColor = "rgb(216, 212, 214)";
+            row.cells[1].Color = "#333";
+            row.cells[2].bgColor = "rgb(214, 35, 33)";
             row.cells[3].bgColor = "transparent";
         }
 
@@ -2406,7 +2413,17 @@ export class AppComponent implements OnInit {
                 [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
                 this.txt_Price.Text = rowItem.cells[1].Text;
                 // this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
-                this.dd_Action.SelectedItem = cellIdx > 1 ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+                switch (cellIdx) {
+                    case 0:
+                        this.dd_Action.SelectedItem = this.dd_Action.Items[0];
+                        break;
+                    case 1:
+                        this.dd_Action.SelectedItem = rowIndex < 10 ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
+                        break;
+                    case 2:
+                        this.dd_Action.SelectedItem = this.dd_Action.Items[1];
+                        break;
+                }
             }
 
             Dialog.popup(this, this.tradeContent, { title: this.langServ.get("Trade"), height: 300 });
