@@ -229,7 +229,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     let yBarData = [];
                     if (historyStockLineData.length > 0) {
                         historyStockLineData.forEach((item, index, arr) => {
-                            item.u = item.u * 100 / 10000;
+                            item.u = item.u * 100;
                             item.c = item.c / 10000;
                             yData.push(item.c);
                             yBarData.push(item.u);
