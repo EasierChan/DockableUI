@@ -5,8 +5,10 @@ import { CommonModule, PercentPipe } from "@angular/common";
 
 import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
-import { UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent,
-  TileAreaComponent, CodeComponent, ButtonGroupComponent } from "../../base/controls/user.component";
+import {
+  UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent,
+  TileAreaComponent, CodeComponent, ButtonGroupComponent
+} from "../../base/controls/user.component";
 import { HomeComponent } from "./home/home.component";
 import { AdminComponent } from "./home/admin.component";
 import { DashboardComponent } from "./home/dash.component";
@@ -18,7 +20,10 @@ import { BacktestComponent } from "./home/backtest.component";
 import { SettingComponent } from "./system/setting";
 import { UserComponent } from "./system/user";
 import { SupportComponent } from "./system/support";
-import { RiskFactorComponent } from "./home/riskfactor.component";
+import {
+  FactorProfitComponent, FactorAnalysisComponent,
+  FactorAlphaComponent, AIBrandComponent
+} from "./home/riskfactor.component";
 import { ReportComponent } from "./home/report.component";
 import { AnalysisComponent } from "./home/analysis";
 import { ProductsComponent } from "./home/product.component";
@@ -49,7 +54,10 @@ import { EchartsDirective } from "./app.controls";
     TileAreaComponent,
     SettingComponent,
     UserComponent,
-    RiskFactorComponent,
+    FactorProfitComponent,
+    FactorAnalysisComponent,
+    FactorAlphaComponent,
+    AIBrandComponent,
     SupportComponent,
     EchartsDirective,
     ReportComponent,
