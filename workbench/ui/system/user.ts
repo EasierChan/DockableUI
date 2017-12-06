@@ -23,7 +23,6 @@ export class UserComponent implements OnInit {
     operNum: string;
     password: string;
     productAppID: number;
-    isTcpConnect: boolean;
 
     private userid: string;
 
@@ -41,7 +40,6 @@ export class UserComponent implements OnInit {
     ngOnInit() {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
         this.userid = this.appSrv.getUserProfile().username;
-        this.isTcpConnect = false;
         this.registerListeners();
     }
 
@@ -96,6 +94,36 @@ export class UserComponent implements OnInit {
                 console.info(msg);
             }
         });
+
+
+        let curEndpoint = this.setting.endpoints[0];
+        let [host, port] = curEndpoint.trade_addr.split(":");
+
+        let timestamp: Date = new Date();
+        let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
+            ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
+            ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
+
+        if (!this.configBll.get("tcp-connect")) {
+            this.tradeSrv.onConnect = () => {
+                this.configBll.set("tcp-connect", true)
+
+                this.tradeSrv.onClose = () => {
+                    this.configBll.set("tcp-connect", false);
+                    if (this.appSrv.isLoginTrade()) {
+                        MessageBox.show("warning", "Server Error", "TGW Connection Close!");
+                        this.appSrv.setLoginTrade(false);
+                    }
+                };
+            };
+
+            this.tradeSrv.connect(parseInt(port), host);
+        }
+
+        let quoteObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
+        let [qhost, qport] = curEndpoint.quote_addr.split(":");
+        this.quoteSrv.connect(parseInt(qport), qhost);
+        this.quoteSrv.send(17, 41, quoteObj);
     }
 
     login() {
@@ -109,34 +137,14 @@ export class UserComponent implements OnInit {
             return;
         }
 
-        let curEndpoint = this.setting.endpoints[0];
-        let [host, port] = curEndpoint.trade_addr.split(":");
-        let timestamp: Date = new Date();
-        let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
-            ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
-            ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        let loginObj: any;
+        let loginObj: any = { user_id: this.userid, password: this.cryptoSrv.getTGWPass(this.password) };
+        this.tradeSrv.send(FGS_MSG.kLogin, JSON.stringify({ data: loginObj }), ServiceType.kLogin);
+        this.appSrv.setUserProfile({ username: parseInt(this.userid), password: loginObj.password, roles: [], apps: [] });
+        AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
+    }
 
-        this.tradeSrv.onConnect = () => {
-            this.isTcpConnect = true;
-            loginObj = { user_id: this.userid, password: this.cryptoSrv.getTGWPass(this.password) };
-            this.tradeSrv.send(FGS_MSG.kLogin, JSON.stringify({ data: loginObj }), ServiceType.kLogin);
-            this.appSrv.setUserProfile({ username: parseInt(this.userid), password: loginObj.password, roles: [], apps: [] });
-            AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));
-
-            this.tradeSrv.onClose = () => {
-                this.isTcpConnect = false;
-                if (this.appSrv.isLoginTrade()) {
-                    MessageBox.show("warning", "Server Error", "TGW Connection Close!");
-                    this.appSrv.setLoginTrade(false);
-                }
-            };
-        };
-        this.tradeSrv.connect(parseInt(port), host);
-
-        let quoteObj = { "cellid": "1", "userid": "8.999", "password": "*", "termid": "12.345", "conlvl": 1, "clientesn": "", "clienttm": stimestamp };
-        let [qhost, qport] = curEndpoint.quote_addr.split(":");
-        this.quoteSrv.connect(parseInt(qport), qhost);
-        this.quoteSrv.send(17, 41, quoteObj);
+    logout() {
+        this.tradeSrv.send(FGS_MSG.kLogout, JSON.stringify({ data: { user_id: this.userid } }), ServiceType.kLogin);
+        this.appSrv.setLoginTrade(false);
     }
 }

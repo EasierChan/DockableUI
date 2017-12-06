@@ -127,6 +127,8 @@ export enum FGS_MSG {
     kFGSAns = 100,
     kLogin = 101,
     kLoginAns = 102,
+    kLogout = 103,
+    kLogoutAns = 104,
     kSubscribe = 105,
     kUnSubscribe = 106,
     kPublish = 107,
