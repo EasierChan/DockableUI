@@ -2384,7 +2384,7 @@ export class AppComponent implements OnInit {
         let len = bookViewTable.rows.length;
         for (let i = 0; i < len; ++i) {
             bookViewTable.rows[i].cells[0].Text = "";
-            bookViewTable.rows[i].cells[1].Text = "";
+            bookViewTable.rows[i].cells[1].Text = "0.0000";
             bookViewTable.rows[i].cells[2].Text = "";
         }
     }
