@@ -2,7 +2,8 @@
 
 import { Component, HostListener, OnDestroy } from "@angular/core";
 import { File, path } from "../../../base/api/services/backend.service"; // File operator
-import { TradeService } from "../../bll/services";
+import { QtpService } from "../../bll/services";
+import { ServiceType } from "../../../base/api/model";
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DatePipe } from "@angular/common";
 import { AppStoreService } from "../../../base/api/services/backend.service";
@@ -25,16 +26,16 @@ export class FactorProfitComponent implements OnDestroy {
     dataSource: any;
     riskFactorReturnEchart: any; // echart
     everyDayReturnEchart: any;
-    everyDayYearReturnEchart: any;    
-    lastDayYearReturnEchart: any;  
+    everyDayYearReturnEchart: any;
+    lastDayYearReturnEchart: any;
     defaultMedia: any;
     dataDir: string;
     getFactorInfoString: string = "";
-    getRiskFactorReturnString: string = ""; 
+    getRiskFactorReturnString: string = "";
     riskFactorInfoArray: any[] = [];
     alphaFactorInfoArray: any[] = [];
 
-    constructor(private tradePoint: TradeService, private datePipe: DatePipe) {
+    constructor(private tradePoint: QtpService, private datePipe: DatePipe) {
         FactorProfitComponent.self = this;
     }
 
@@ -58,8 +59,17 @@ export class FactorProfitComponent implements OnDestroy {
             }
         }];
 
+
+        this.tradePoint.addSlotOfCMS("getFactorInfo", (body) => {
+            console.info(body.toString());
+        }, this);
+
+        this.tradePoint.addSlotOfCMS("getRiskFactorReturn", (body) => {
+            console.info(body.toString());
+        }, this);
+
         this.tradePoint.addSlot({
-            appid: 260,
+            service: 260,
             packid: 251,
             callback: (msg) => {
                 // console.log(msg);
@@ -69,7 +79,7 @@ export class FactorProfitComponent implements OnDestroy {
                         if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
                             let data1 = JSON.parse(this.getFactorInfoString);
                             if (data1.msret.msgcode === "00") {
-                                data1.body.forEach( function(factorInfo) {
+                                data1.body.forEach(function (factorInfo) {
                                     factorInfo.factorid = parseInt(factorInfo.factorid);
                                     factorInfo.factortype = parseInt(factorInfo.factortype);
                                     factorInfo.returns = [];
@@ -90,12 +100,12 @@ export class FactorProfitComponent implements OnDestroy {
                         if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
                             let data2 = JSON.parse(this.getRiskFactorReturnString);
                             if (data2.msret.msgcode === "00") {
-                                let i = 0 , j = 0;
+                                let i = 0, j = 0;
                                 for (; i < FactorProfitComponent.self.riskFactorInfoArray.length; i++) {
                                     for (; j < data2.body.length; j++) {
-                                        if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid == data2.body[j].factorid ) {
+                                        if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid == data2.body[j].factorid) {
                                             data2.body[j].factor_returns = parseFloat(data2.body[j].factor_returns);
-                                            FactorProfitComponent.self.riskFactorInfoArray[i].returns.push(data2.body[j]) ;
+                                            FactorProfitComponent.self.riskFactorInfoArray[i].returns.push(data2.body[j]);
                                         } else if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid > data2.body[j].factorid) {
                                             continue;
                                         } else {
@@ -114,9 +124,10 @@ export class FactorProfitComponent implements OnDestroy {
                 }
             }
         });
-        this.tradePoint.send(260, 251, {head:{realActor:"getFactorInfo"}, body: {} });
-        this.tradePoint.send(260, 251, {head:{realActor:"getRiskFactorReturn"}, body: {} });
 
+
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {} } }));
+        this.tradePoint.sendToCMS("getRiskFactorReturn", JSON.stringify({ data: { body: {} } }));
 
         this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLDivElement);
         this.everyDayReturnEchart = echarts.init(document.getElementById("everyDayReturnEchart") as HTMLDivElement);
@@ -182,7 +193,7 @@ export class FactorProfitComponent implements OnDestroy {
 
         }
 
-        if (rfrIndex > endDateIndex ) {
+        if (rfrIndex > endDateIndex) {
             alert("没有找到当年的收益数据");
             return;
         }
@@ -449,7 +460,7 @@ export class FactorAnalysisComponent implements OnDestroy {
     factorAnalysisData: any[] = [];
     getfactorAnalysisString: string = "";
 
-    constructor(private tradePoint: TradeService, private appsrv: AppStoreService, private datePipe: DatePipe) {
+    constructor(private tradePoint: QtpService, private appsrv: AppStoreService, private datePipe: DatePipe) {
         FactorAnalysisComponent.self = this;
         // this.loadData();
         this.iproducts = [];
@@ -491,7 +502,7 @@ export class FactorAnalysisComponent implements OnDestroy {
             callback: (msg) => {
                 switch (msg.content.head.actor) {
                     case "getProductAns":
-                        console.log("product",msg);
+                        console.log("product", msg);
                         let data1 = JSON.parse(msg.content.body);
                         if (data1.msret.msgcode === "00") {
                             FactorAnalysisComponent.self.productData = data1.body;
@@ -514,10 +525,10 @@ export class FactorAnalysisComponent implements OnDestroy {
                         console.log(tblockId);
                         console.log(FactorAnalysisComponent.self.istrategys);
                         FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-                        this.tradePoint.send(260, 251, {head:{realActor:"getCombStrategy"}, body: {caid: tblockId} });
+                        this.tradePoint.send(260, 251, { head: { realActor: "getCombStrategy" }, body: { caid: tblockId } });
                         break;
                     case "getCombStrategyAns":
-                        console.log("strategy",msg);
+                        console.log("strategy", msg);
                         let data2 = JSON.parse(msg.content.body);
                         if (data2.msret.msgcode === "00") {
                             FactorAnalysisComponent.self.strategyData = data2.body;
@@ -566,12 +577,12 @@ export class FactorAnalysisComponent implements OnDestroy {
                     case "getFactorInfoAns":
                         let data3 = JSON.parse(msg.content.body);
                         if (data3.msret.msgcode === "00") {
-                            data3.body.forEach( function(factorInfo) {
+                            data3.body.forEach(function (factorInfo) {
                                 factorInfo.factorid = parseInt(factorInfo.factorid);
                                 factorInfo.factortype = parseInt(factorInfo.factortype);
                                 factorInfo.returns = [];
                                 if (factorInfo.factortype === 1) {
-                                    
+
                                 } else if (factorInfo.factortype === 2) {
                                     FactorAnalysisComponent.self.riskFactorInfoArray.push(factorInfo);
                                 }
@@ -586,8 +597,8 @@ export class FactorAnalysisComponent implements OnDestroy {
             }
         });
 
-        this.tradePoint.send(260, 251, {head:{realActor:"getFactorInfo"}, body: {} });
-        this.tradePoint.send(260, 251, {head:{realActor:"getProduct"}, body: {} });
+        this.tradePoint.send(260, 251, { head: { realActor: "getFactorInfo" }, body: {} });
+        this.tradePoint.send(260, 251, { head: { realActor: "getProduct" }, body: {} });
 
         this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLDivElement);
         this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLDivElement);
@@ -605,9 +616,9 @@ export class FactorAnalysisComponent implements OnDestroy {
             packid: 251,
             callback: (msg) => {
                 switch (msg.content.head.actor) {
-                     
 
-                    default: 
+
+                    default:
 
                 }
             }
@@ -637,7 +648,7 @@ export class FactorAnalysisComponent implements OnDestroy {
             packid: 251,
             callback: (msg) => {
                 if (msg.content.head.actor === "getCombStrategyAns") {
-                    console.log("strategy",msg);
+                    console.log("strategy", msg);
                     let data = JSON.parse(msg.content.body);
                     if (data.msret.msgcode === "00") {
                         FactorAnalysisComponent.self.strategyData = data.body;
@@ -652,7 +663,7 @@ export class FactorAnalysisComponent implements OnDestroy {
         });
         console.log(FactorAnalysisComponent.self.istrategys);
         FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-        this.tradePoint.send(260, 251, {head:{realActor:"getCombStrategy"}, body: {caid: tblockId} });
+        this.tradePoint.send(260, 251, { head: { realActor: "getCombStrategy" }, body: { caid: tblockId } });
         FactorAnalysisComponent.strategyIndex = 0;
     }
 
@@ -691,7 +702,7 @@ export class FactorAnalysisComponent implements OnDestroy {
         }
         let tblockId = 0;
         if (FactorAnalysisComponent.self.productData) {
-        tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
+            tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
         }
 
         if (!isNaN(this.hedgeRadio)) {
@@ -709,14 +720,14 @@ export class FactorAnalysisComponent implements OnDestroy {
                 this.registerListener();
                 this.factorAnalysisData = [];
                 this.getfactorAnalysisString = "";
-                this.tradePoint.send(260, 251, { head:{realActor:"getUnitFactorAnalysis"}, body: { begin_date: this.startDate, end_date: this.endDate, cellid: strategyId, celltype: 3, hedgingIndex: ratioId }});
+                this.tradePoint.send(260, 251, { head: { realActor: "getUnitFactorAnalysis" }, body: { begin_date: this.startDate, end_date: this.endDate, cellid: strategyId, celltype: 3, hedgingIndex: ratioId } });
                 console.log("send strategy", strategyId, this.startDate, this.endDate, ratioId);
             } else {
                 console.log(tblockId);
                 this.registerListener();
                 this.factorAnalysisData = [];
-                this.getfactorAnalysisString = "";                
-                this.tradePoint.send(260, 251, { head:{realActor:"getUnitFactorAnalysis"}, body: { begin_date: this.startDate, end_date: this.endDate, cellid: tblockId, celltype: 2, hedgingIndex: ratioId }});
+                this.getfactorAnalysisString = "";
+                this.tradePoint.send(260, 251, { head: { realActor: "getUnitFactorAnalysis" }, body: { begin_date: this.startDate, end_date: this.endDate, cellid: tblockId, celltype: 2, hedgingIndex: ratioId } });
                 console.log("send product", tblockId, this.startDate, this.endDate, ratioId);
             }
         } else {
@@ -806,7 +817,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                             type: 'dashed',
                             color: 'rgb(56, 63, 84)'
                         }
-                    }                    
+                    }
                 },
                 dataZoom: [{
                     type: "inside",
@@ -890,7 +901,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                             type: 'dashed',
                             color: 'rgb(56, 63, 84)'
                         }
-                    }                   
+                    }
                 },
                 // dataZoom: [{
                 // 	type: 'inside',
@@ -1022,7 +1033,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                             type: 'dashed',
                             color: 'rgb(56, 63, 84)'
                         }
-                    }                    
+                    }
                 },
                 dataZoom: [{
                     type: "inside",
@@ -1106,7 +1117,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                             type: 'dashed',
                             color: 'rgb(56, 63, 84)'
                         }
-                    }                    
+                    }
                 },
                 // dataZoom: [{
                 //   type: 'inside',
@@ -1215,10 +1226,10 @@ export class FactorAlphaComponent {
     alphaRelevance: any[] = []; // alpha相关性
     alphaRelevanceResult: any[] = []; // alpha相关性结果
     hotChartData: any[] = []; // 存放图标的data
-    dataDir: string; 
+    dataDir: string;
     getFactorInfoString: string = "";
 
-    constructor(private tradePoint: TradeService, private datePipe: DatePipe) {
+    constructor(private tradePoint: QtpService, private datePipe: DatePipe) {
         FactorAlphaComponent.self = this;
     }
 
@@ -1241,8 +1252,8 @@ export class FactorAlphaComponent {
                 }
             }
         }];
- 
-         // alpha
+
+        // alpha
         this.alphaHotChart = echarts.init(document.getElementById("alphahotchart") as HTMLDivElement);
         this.alphaChart = echarts.init(document.getElementById("alphachart") as HTMLDivElement);
 
@@ -1268,7 +1279,7 @@ export class FactorAlphaComponent {
                         if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
                             let data1 = JSON.parse(this.getFactorInfoString);
                             if (data1.msret.msgcode === "00") {
-                                data1.body.forEach( function(factorInfo) {
+                                data1.body.forEach(function (factorInfo) {
                                     factorInfo.factorid = parseInt(factorInfo.factorid);
                                     factorInfo.factortype = parseInt(factorInfo.factortype);
                                     factorInfo.returns = [];
@@ -1286,12 +1297,12 @@ export class FactorAlphaComponent {
                         }
                         break;
                     default:
- 
+
                 }
             }
         });
 
-        this.tradePoint.send(260, 251, {head:{realActor:"getFactorInfo"}, body: {} });
+        this.tradePoint.send(260, 251, { head: { realActor: "getFactorInfo" }, body: {} });
 
         window.onresize = () => {
             this.resizeFunction();
@@ -1318,12 +1329,12 @@ export class FactorAlphaComponent {
                         if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
                             let data2 = JSON.parse(this.getAlphaFactorReturnString);
                             if (data2.msret.msgcode === "00") {
-                                let i = 0 , j = 0;
+                                let i = 0, j = 0;
                                 for (; i < FactorAlphaComponent.self.alphaFactorInfoArray.length; i++) {
                                     for (; j < data2.body.length; j++) {
-                                        if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid == data2.body[j].factorid ) {
+                                        if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid == data2.body[j].factorid) {
                                             data2.body[j].factor_returns = parseFloat(data2.body[j].factor_returns);
-                                            FactorAlphaComponent.self.alphaFactorInfoArray[i].returns.push(data2.body[j]) ;
+                                            FactorAlphaComponent.self.alphaFactorInfoArray[i].returns.push(data2.body[j]);
                                         } else if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid > data2.body[j].factorid) {
                                             continue;
                                         } else {
@@ -1364,12 +1375,12 @@ export class FactorAlphaComponent {
         FactorAlphaComponent.self.alphaFactorInfoArray.forEach((item) => {
             item.returns = [];
         });
-        this.tradePoint.send(260, 251, {head:{realActor:"getAlphaFactorReturn"}, body: { begin_date: this.openDate, end_date: this.closeDate } });
+        this.tradePoint.send(260, 251, { head: { realActor: "getAlphaFactorReturn" }, body: { begin_date: this.openDate, end_date: this.closeDate } });
 
         this.getFactorCorrelationString = "";
         this.alphaRelevance = [];
         this.hotChartData = [];
-        this.tradePoint.send(260, 251, {head:{realActor:"getFactorCorrelation"}, body: { begin_date: this.openDate, end_date: this.closeDate } });
+        this.tradePoint.send(260, 251, { head: { realActor: "getFactorCorrelation" }, body: { begin_date: this.openDate, end_date: this.closeDate } });
 
     }
 
@@ -1377,7 +1388,7 @@ export class FactorAlphaComponent {
     averageValue(arr) {
         let id1 = 1, id2 = 0, flag = 0;
         for (let i = 0; i < arr.length; ++i) {
-            if (arr[i][0] === id1 && arr[i][1] === id2){
+            if (arr[i][0] === id1 && arr[i][1] === id2) {
                 flag++;
                 id1 = arr[i][0];
                 id2 = arr[i][1];
@@ -1424,7 +1435,7 @@ export class FactorAlphaComponent {
         this.setAlphaEchart(alphaFactorInfoArray, startDateIndex, endDateIndex, this.alphaChart);
     }
 
-        
+
     setAlphaEchart(alphaFactorInfoArray, startIndex, endIndex, lineChart) {
         let chartLegendData = [], xAxisDatas = [], series = [];    // 分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
         let allRiskReturnXAxis = [], allRiskReturnSeries = [];   // 统计总共的x坐标数组,和具体每一条曲线的数据
@@ -1495,7 +1506,7 @@ export class FactorAlphaComponent {
                             type: 'dashed',
                             color: 'rgb(56, 63, 84)'
                         }
-                    }                   
+                    }
                 }],
                 dataZoom: [{
                     type: "inside",
