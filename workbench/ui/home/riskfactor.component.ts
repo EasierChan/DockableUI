@@ -511,7 +511,7 @@ export class FactorAnalysisComponent implements OnDestroy {
             console.log(tblockId);
             console.log(FactorAnalysisComponent.self.istrategys);
             FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-            this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { caid: tblockId } } }));
+            this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { userid: 19999, caid: tblockId } } }));
         }, this);
 
         this.tradePoint.addSlotOfCMS("getCombStrategy", (body) => {
@@ -562,7 +562,7 @@ export class FactorAnalysisComponent implements OnDestroy {
         }, this);
 
         this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {} } }));
-        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { body: {} } }));
+        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { body: {userid: 19999} } }));
 
         this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLDivElement);
         this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLDivElement);
@@ -606,7 +606,7 @@ export class FactorAnalysisComponent implements OnDestroy {
 
         console.log(FactorAnalysisComponent.self.istrategys);
         FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { caid: tblockId } } }));
+        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { userid: 19999, caid: tblockId } } }));
         FactorAnalysisComponent.strategyIndex = 0;
     }
 
