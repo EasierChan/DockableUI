@@ -61,70 +61,44 @@ export class FactorProfitComponent implements OnDestroy {
 
 
         this.tradePoint.addSlotOfCMS("getFactorInfo", (body) => {
-            console.info(body.toString());
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                data.body.forEach(function (factorInfo) {
+                    factorInfo.factorid = parseInt(factorInfo.factorid);
+                    factorInfo.factortype = parseInt(factorInfo.factortype);
+                    factorInfo.returns = [];
+                    if (factorInfo.factortype === 1) {
+                        FactorProfitComponent.self.alphaFactorInfoArray.push(factorInfo);
+                    } else if (factorInfo.factortype === 2) {
+                        FactorProfitComponent.self.riskFactorInfoArray.push(factorInfo);
+                    }
+                });
+            } else {
+                alert("Get getFactorInfo Failed! " + data.msret.msg);
+            }
         }, this);
 
         this.tradePoint.addSlotOfCMS("getRiskFactorReturn", (body) => {
-            console.info(body.toString());
-        }, this);
-
-        this.tradePoint.addSlot({
-            service: 260,
-            packid: 251,
-            callback: (msg) => {
-                // console.log(msg);
-                switch (msg.content.head.actor) {
-                    case "getFactorInfoAns":
-                        this.getFactorInfoString += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            let data1 = JSON.parse(this.getFactorInfoString);
-                            if (data1.msret.msgcode === "00") {
-                                data1.body.forEach(function (factorInfo) {
-                                    factorInfo.factorid = parseInt(factorInfo.factorid);
-                                    factorInfo.factortype = parseInt(factorInfo.factortype);
-                                    factorInfo.returns = [];
-                                    if (factorInfo.factortype === 1) {
-                                        FactorProfitComponent.self.alphaFactorInfoArray.push(factorInfo);
-                                    } else if (factorInfo.factortype === 2) {
-                                        FactorProfitComponent.self.riskFactorInfoArray.push(factorInfo);
-                                    }
-                                });
-                                // console.log("riskFactorInfoArray, alphaFactorInfoArray",data1.body, FactorProfitComponent.self.riskFactorInfoArray, FactorProfitComponent.self.alphaFactorInfoArray);
-                            } else {
-                                alert("Get getFactorInfo Failed! " + data1.msret.msg);
-                            }
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                let i = 0, j = 0;
+                for (; i < FactorProfitComponent.self.riskFactorInfoArray.length; i++) {
+                    for (; j < data.body.length; j++) {
+                        if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid == data.body[j].factorid) {
+                            data.body[j].factor_returns = parseFloat(data.body[j].factor_returns);
+                            FactorProfitComponent.self.riskFactorInfoArray[i].returns.push(data.body[j]);
+                        } else if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid > data.body[j].factorid) {
+                            continue;
+                        } else {
+                            break;
                         }
-                        break;
-                    case "getRiskFactorReturnAns":
-                        this.getRiskFactorReturnString += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            let data2 = JSON.parse(this.getRiskFactorReturnString);
-                            if (data2.msret.msgcode === "00") {
-                                let i = 0, j = 0;
-                                for (; i < FactorProfitComponent.self.riskFactorInfoArray.length; i++) {
-                                    for (; j < data2.body.length; j++) {
-                                        if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid == data2.body[j].factorid) {
-                                            data2.body[j].factor_returns = parseFloat(data2.body[j].factor_returns);
-                                            FactorProfitComponent.self.riskFactorInfoArray[i].returns.push(data2.body[j]);
-                                        } else if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid > data2.body[j].factorid) {
-                                            continue;
-                                        } else {
-                                            break;
-                                        }
-                                    }
-                                }
-                                this.setRiskFactorReturnEchart(this.riskFactorInfoArray);
-                            } else {
-                                alert("Get getRiskFactorReturn Failed! " + data2.msret.msg);
-                            }
-                        }
-                        break;
-                    default:
-
+                    }
                 }
+                this.setRiskFactorReturnEchart(this.riskFactorInfoArray);
+            } else {
+                alert("Get getRiskFactorReturn Failed! " + data.msret.msg);
             }
-        });
-
+        }, this);
 
         this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {} } }));
         this.tradePoint.sendToCMS("getRiskFactorReturn", JSON.stringify({ data: { body: {} } }));
@@ -496,109 +470,99 @@ export class FactorAnalysisComponent implements OnDestroy {
 
         // receive holdlist
         // index strategies
-        this.tradePoint.addSlot({
-            appid: 260,
-            packid: 251,
-            callback: (msg) => {
-                switch (msg.content.head.actor) {
-                    case "getProductAns":
-                        console.log("product", msg);
-                        let data1 = JSON.parse(msg.content.body);
-                        if (data1.msret.msgcode === "00") {
-                            FactorAnalysisComponent.self.productData = data1.body;
-                            console.log(FactorAnalysisComponent.self.productData);
-                            console.log(FactorAnalysisComponent.self.productData[0].caname);
-                            FactorAnalysisComponent.self.iproducts = [];
-                            for (let i = 0; i < FactorAnalysisComponent.self.productData.length; i++) {
-                                FactorAnalysisComponent.self.iproducts.push(FactorAnalysisComponent.self.productData[i].caname);
-                            }
-                        } else {
-                            alert("Get product info Failed! " + data1.msret.msg);
-                        }
-                        FactorAnalysisComponent.self.iproduct = FactorAnalysisComponent.self.iproducts[0];
-                        let tblockId = 0;
-                        if (FactorAnalysisComponent.productIndex === undefined) {
-                            tblockId = FactorAnalysisComponent.self.productData[0].caid;
-                        } else {
-                            tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
-                        }
-                        console.log(tblockId);
-                        console.log(FactorAnalysisComponent.self.istrategys);
-                        FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-                        this.tradePoint.send(260, 251, { head: { realActor: "getCombStrategy" }, body: { caid: tblockId } });
-                        break;
-                    case "getCombStrategyAns":
-                        console.log("strategy", msg);
-                        let data2 = JSON.parse(msg.content.body);
-                        if (data2.msret.msgcode === "00") {
-                            FactorAnalysisComponent.self.strategyData = data2.body;
-                            for (let i = 0; i < FactorAnalysisComponent.self.strategyData.length; i++) {
-                                FactorAnalysisComponent.self.istrategys.push(FactorAnalysisComponent.self.strategyData[i].trname);
-                            }
-                        } else {
-                            alert("Get product info Failed! " + data2.msret.msg);
-                        }
+        this.tradePoint.addSlotOfCMS("getFactorInfo", (body) => {
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                data.body.forEach(function (factorInfo) {
+                    factorInfo.factorid = parseInt(factorInfo.factorid);
+                    factorInfo.factortype = parseInt(factorInfo.factortype);
+                    factorInfo.returns = [];
+                    if (factorInfo.factortype === 1) {
 
-                        if (FactorAnalysisComponent.startdateStat !== undefined) {
-                            console.log(FactorAnalysisComponent.startdateStat);
-                            this.startdate = FactorAnalysisComponent.startdateStat;
-                        }
-                        if (FactorAnalysisComponent.enddateStat !== undefined) {
-                            console.log(FactorAnalysisComponent.enddateStat);
-                            this.enddate = FactorAnalysisComponent.enddateStat;
-                        }
-                        if (FactorAnalysisComponent.hedgeStat !== undefined) {
-                            console.log(FactorAnalysisComponent.hedgeStat);
-                            this.hedge = FactorAnalysisComponent.hedgeStat;
-                        }
-                        if (FactorAnalysisComponent.hedgeratioStat !== undefined) {
-                            console.log(FactorAnalysisComponent.hedgeratioStat);
-                            this.hedgeRadio = FactorAnalysisComponent.hedgeratioStat;
-                        }
-                        if (FactorAnalysisComponent.productsStat !== undefined) {
-                            console.log(FactorAnalysisComponent.productsStat);
-                            this.iproducts = FactorAnalysisComponent.productsStat;
-                        }
-                        if (FactorAnalysisComponent.strategiesStat !== undefined) {
-                            console.log(FactorAnalysisComponent.strategiesStat);
-                            this.istrategys = FactorAnalysisComponent.strategiesStat;
-                        }
-                        if (FactorAnalysisComponent.productStat !== undefined) {
-                            console.log(FactorAnalysisComponent.productStat);
-                            this.iproduct = FactorAnalysisComponent.productStat;
-                        }
-                        if (FactorAnalysisComponent.strategyStat !== undefined) {
-                            console.log(FactorAnalysisComponent.strategyStat);
-                            this.istrategy = FactorAnalysisComponent.strategyStat;
-                        }
-
-                        this.lookReturn();
-                        break;
-                    case "getFactorInfoAns":
-                        let data3 = JSON.parse(msg.content.body);
-                        if (data3.msret.msgcode === "00") {
-                            data3.body.forEach(function (factorInfo) {
-                                factorInfo.factorid = parseInt(factorInfo.factorid);
-                                factorInfo.factortype = parseInt(factorInfo.factortype);
-                                factorInfo.returns = [];
-                                if (factorInfo.factortype === 1) {
-
-                                } else if (factorInfo.factortype === 2) {
-                                    FactorAnalysisComponent.self.riskFactorInfoArray.push(factorInfo);
-                                }
-                            });
-                        } else {
-                            alert("Get getFactorInfo Failed! " + data3.msret.msg);
-                        }
-                        break;
-                    default:
-
-                }
+                    } else if (factorInfo.factortype === 2) {
+                        FactorAnalysisComponent.self.riskFactorInfoArray.push(factorInfo);
+                    }
+                });
+            } else {
+                alert("Get getFactorInfo Failed! " + data.msret.msg);
             }
-        });
+        }, this);
+        
+        this.tradePoint.addSlotOfCMS("getProduct", (body) => {
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                FactorAnalysisComponent.self.productData = data.body;
+                console.log(FactorAnalysisComponent.self.productData);
+                console.log(FactorAnalysisComponent.self.productData[0].caname);
+                FactorAnalysisComponent.self.iproducts = [];
+                for (let i = 0; i < FactorAnalysisComponent.self.productData.length; i++) {
+                    FactorAnalysisComponent.self.iproducts.push(FactorAnalysisComponent.self.productData[i].caname);
+                }
+            } else {
+                alert("Get product info Failed! " + data.msret.msg);
+            }
+            FactorAnalysisComponent.self.iproduct = FactorAnalysisComponent.self.iproducts[0];
+            let tblockId = 0;
+            if (FactorAnalysisComponent.productIndex === undefined) {
+                tblockId = FactorAnalysisComponent.self.productData[0].caid;
+            } else {
+                tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
+            }
+            console.log(tblockId);
+            console.log(FactorAnalysisComponent.self.istrategys);
+            FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
+            this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { caid: tblockId } } }));
+        }, this);
 
-        this.tradePoint.send(260, 251, { head: { realActor: "getFactorInfo" }, body: {} });
-        this.tradePoint.send(260, 251, { head: { realActor: "getProduct" }, body: {} });
+        this.tradePoint.addSlotOfCMS("getCombStrategy", (body) => {
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                FactorAnalysisComponent.self.strategyData = data.body;
+                for (let i = 0; i < FactorAnalysisComponent.self.strategyData.length; i++) {
+                    FactorAnalysisComponent.self.istrategys.push(FactorAnalysisComponent.self.strategyData[i].trname);
+                }
+            } else {
+                alert("Get product info Failed! " + data.msret.msg);
+            }
+
+            if (FactorAnalysisComponent.startdateStat !== undefined) {
+                console.log(FactorAnalysisComponent.startdateStat);
+                this.startdate = FactorAnalysisComponent.startdateStat;
+            }
+            if (FactorAnalysisComponent.enddateStat !== undefined) {
+                console.log(FactorAnalysisComponent.enddateStat);
+                this.enddate = FactorAnalysisComponent.enddateStat;
+            }
+            if (FactorAnalysisComponent.hedgeStat !== undefined) {
+                console.log(FactorAnalysisComponent.hedgeStat);
+                this.hedge = FactorAnalysisComponent.hedgeStat;
+            }
+            if (FactorAnalysisComponent.hedgeratioStat !== undefined) {
+                console.log(FactorAnalysisComponent.hedgeratioStat);
+                this.hedgeRadio = FactorAnalysisComponent.hedgeratioStat;
+            }
+            if (FactorAnalysisComponent.productsStat !== undefined) {
+                console.log(FactorAnalysisComponent.productsStat);
+                this.iproducts = FactorAnalysisComponent.productsStat;
+            }
+            if (FactorAnalysisComponent.strategiesStat !== undefined) {
+                console.log(FactorAnalysisComponent.strategiesStat);
+                this.istrategys = FactorAnalysisComponent.strategiesStat;
+            }
+            if (FactorAnalysisComponent.productStat !== undefined) {
+                console.log(FactorAnalysisComponent.productStat);
+                this.iproduct = FactorAnalysisComponent.productStat;
+            }
+            if (FactorAnalysisComponent.strategyStat !== undefined) {
+                console.log(FactorAnalysisComponent.strategyStat);
+                this.istrategy = FactorAnalysisComponent.strategyStat;
+            }
+
+            this.lookReturn();
+        }, this);
+
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {} } }));
+        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { body: {} } }));
 
         this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLDivElement);
         this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLDivElement);
@@ -608,21 +572,6 @@ export class FactorAnalysisComponent implements OnDestroy {
         window.onresize = () => {
             this.resizeFunction();
         };
-    }
-
-    registerListener() {
-        this.tradePoint.addSlot({
-            appid: 260,
-            packid: 251,
-            callback: (msg) => {
-                switch (msg.content.head.actor) {
-
-
-                    default:
-
-                }
-            }
-        });
     }
 
     // 界面变化时,重置而echart的大小
@@ -643,27 +592,21 @@ export class FactorAnalysisComponent implements OnDestroy {
         let tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
         console.log(FactorAnalysisComponent.productIndex);
         // strategies
-        this.tradePoint.addSlot({
-            appid: 260,
-            packid: 251,
-            callback: (msg) => {
-                if (msg.content.head.actor === "getCombStrategyAns") {
-                    console.log("strategy", msg);
-                    let data = JSON.parse(msg.content.body);
-                    if (data.msret.msgcode === "00") {
-                        FactorAnalysisComponent.self.strategyData = data.body;
-                        for (let i = 0; i < FactorAnalysisComponent.self.strategyData.length; i++) {
-                            FactorAnalysisComponent.self.istrategys.push(FactorAnalysisComponent.self.strategyData[i].trname);
-                        }
-                    } else {
-                        alert("Get product info Failed! " + data.msret.msg);
-                    }
+        this.tradePoint.addSlotOfCMS("getCombStrategy", (body) => {
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                FactorAnalysisComponent.self.strategyData = data.body;
+                for (let i = 0; i < FactorAnalysisComponent.self.strategyData.length; i++) {
+                    FactorAnalysisComponent.self.istrategys.push(FactorAnalysisComponent.self.strategyData[i].trname);
                 }
+            } else {
+                alert("Get product info Failed! " + data.msret.msg);
             }
-        });
+        }, this);
+
         console.log(FactorAnalysisComponent.self.istrategys);
         FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-        this.tradePoint.send(260, 251, { head: { realActor: "getCombStrategy" }, body: { caid: tblockId } });
+        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { caid: tblockId } } }));
         FactorAnalysisComponent.strategyIndex = 0;
     }
 
@@ -717,17 +660,23 @@ export class FactorAnalysisComponent implements OnDestroy {
                 console.log(FactorAnalysisComponent.strategyIndex - 1);
                 let strategyId = FactorAnalysisComponent.self.strategyData[FactorAnalysisComponent.strategyIndex - 1].trid;
                 console.log(strategyId);
-                this.registerListener();
+                this.tradePoint.addSlotOfCMS("getUnitFactorAnalysis", (body) => {
+                    let data = JSON.parse(body.toString());
+                    console.log(data)
+                }, this);
                 this.factorAnalysisData = [];
                 this.getfactorAnalysisString = "";
-                this.tradePoint.send(260, 251, { head: { realActor: "getUnitFactorAnalysis" }, body: { begin_date: this.startDate, end_date: this.endDate, cellid: strategyId, celltype: 3, hedgingIndex: ratioId } });
+                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { body: { begin_date: this.startDate, end_date: this.endDate, cellid: strategyId, celltype: 3, hedgingIndex: ratioId } } }));
                 console.log("send strategy", strategyId, this.startDate, this.endDate, ratioId);
             } else {
                 console.log(tblockId);
-                this.registerListener();
+                this.tradePoint.addSlotOfCMS("getUnitFactorAnalysis", (body) => {
+                    let data = JSON.parse(body.toString());
+                    console.log(data)
+                }, this);
                 this.factorAnalysisData = [];
                 this.getfactorAnalysisString = "";
-                this.tradePoint.send(260, 251, { head: { realActor: "getUnitFactorAnalysis" }, body: { begin_date: this.startDate, end_date: this.endDate, cellid: tblockId, celltype: 2, hedgingIndex: ratioId } });
+                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { body: { begin_date: this.startDate, end_date: this.endDate, cellid: tblockId, celltype: 2, hedgingIndex: ratioId } } }));
                 console.log("send product", tblockId, this.startDate, this.endDate, ratioId);
             }
         } else {
@@ -1268,41 +1217,27 @@ export class FactorAlphaComponent {
             this.closedate = FactorAlphaComponent.closedateStat;
         }
 
-        this.tradePoint.addSlot({
-            appid: 260,
-            packid: 251,
-            callback: (msg) => {
-                console.log(msg);
-                switch (msg.content.head.actor) {
-                    case "getFactorInfoAns":
-                        this.getFactorInfoString += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            let data1 = JSON.parse(this.getFactorInfoString);
-                            if (data1.msret.msgcode === "00") {
-                                data1.body.forEach(function (factorInfo) {
-                                    factorInfo.factorid = parseInt(factorInfo.factorid);
-                                    factorInfo.factortype = parseInt(factorInfo.factortype);
-                                    factorInfo.returns = [];
-                                    if (factorInfo.factortype === 1) {
-                                        FactorAlphaComponent.self.alphaFactorInfoArray.push(factorInfo);
-                                    } else if (factorInfo.factortype === 2) {
-                                        FactorAlphaComponent.self.riskFactorInfoArray.push(factorInfo);
-                                    }
-                                });
-                                console.log(FactorAlphaComponent.self.alphaFactorInfoArray);
-                                this.searchresult();
-                            } else {
-                                alert("Get getFactorInfo Failed! " + data1.msret.msg);
-                            }
-                        }
-                        break;
-                    default:
-
-                }
+        this.tradePoint.addSlotOfCMS("getFactorInfo", (body) => {
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                data.body.forEach(function (factorInfo) {
+                    factorInfo.factorid = parseInt(factorInfo.factorid);
+                    factorInfo.factortype = parseInt(factorInfo.factortype);
+                    factorInfo.returns = [];
+                    if (factorInfo.factortype === 1) {
+                        FactorAlphaComponent.self.alphaFactorInfoArray.push(factorInfo);
+                    } else if (factorInfo.factortype === 2) {
+                        FactorAlphaComponent.self.riskFactorInfoArray.push(factorInfo);
+                    }
+                });
+                console.log(FactorAlphaComponent.self.alphaFactorInfoArray);
+                this.searchresult();
+            } else {
+                alert("Get getFactorInfo Failed! " + data.msret.msg);
             }
-        });
+        }, this);
 
-        this.tradePoint.send(260, 251, { head: { realActor: "getFactorInfo" }, body: {} });
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {} } }));
 
         window.onresize = () => {
             this.resizeFunction();
@@ -1319,69 +1254,53 @@ export class FactorAlphaComponent {
         this.openDate = this.opendate.replace(/-/g, "");
         this.closeDate = this.closedate.replace(/-/g, "");
 
-        this.tradePoint.addSlot({
-            appid: 260,
-            packid: 251,
-            callback: (msg) => {
-                switch (msg.content.head.actor) {
-                    case "getAlphaFactorReturnAns":
-                        this.getAlphaFactorReturnString += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            let data2 = JSON.parse(this.getAlphaFactorReturnString);
-                            if (data2.msret.msgcode === "00") {
-                                let i = 0, j = 0;
-                                for (; i < FactorAlphaComponent.self.alphaFactorInfoArray.length; i++) {
-                                    for (; j < data2.body.length; j++) {
-                                        if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid == data2.body[j].factorid) {
-                                            data2.body[j].factor_returns = parseFloat(data2.body[j].factor_returns);
-                                            FactorAlphaComponent.self.alphaFactorInfoArray[i].returns.push(data2.body[j]);
-                                        } else if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid > data2.body[j].factorid) {
-                                            continue;
-                                        } else {
-                                            break;
-                                        }
-                                    }
-                                }
-                                this.setRiskFactorReturnEchart(this.alphaFactorInfoArray);
-                            } else {
-                                alert("Get getAlphaFactorReturn Failed! " + data2.msret.msg);
-                            }
+        this.tradePoint.addSlotOfCMS("getAlphaFactorReturn", (body) => {
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                let i = 0, j = 0;
+                for (; i < FactorAlphaComponent.self.alphaFactorInfoArray.length; i++) {
+                    for (; j < data.body.length; j++) {
+                        if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid == data.body[j].factorid) {
+                            data.body[j].factor_returns = parseFloat(data.body[j].factor_returns);
+                            FactorAlphaComponent.self.alphaFactorInfoArray[i].returns.push(data.body[j]);
+                        } else if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid > data.body[j].factorid) {
+                            continue;
+                        } else {
+                            break;
                         }
-                        break;
-                    case "getFactorCorrelationAns":
-                        this.getFactorCorrelationString += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            let data1 = JSON.parse(this.getFactorCorrelationString);
-                            if (data1.msret.msgcode === "00") {
-                                console.log(data1.body);
-                                data1.body.forEach((item) => {
-                                    let relevanceArr = [parseInt(item.factorid1) - 1, parseInt(item.factorid2) - 1, parseFloat(item.value)];
-                                    this.alphaRelevance.push(relevanceArr);
-                                });
-                                console.log(this.alphaRelevance);
-                                this.averageValue(this.alphaRelevance);
-                            } else {
-                                alert("Get getFactorCorrelation Failed! " + data1.msret.msg);
-                            }
-                        }
-                        break;
-                    default:
-
+                    }
                 }
+                this.setRiskFactorReturnEchart(this.alphaFactorInfoArray);
+            } else {
+                alert("Get getAlphaFactorReturn Failed! " + data.msret.msg);
             }
-        });
+        }, this);
+
+        this.tradePoint.addSlotOfCMS("getFactorCorrelation", (body) => {
+            let data = JSON.parse(body.toString());
+            if (data.msret.msgcode === "00") {
+                console.log(data.body);
+                data.body.forEach((item) => {
+                    let relevanceArr = [parseInt(item.factorid1) - 1, parseInt(item.factorid2) - 1, parseFloat(item.value)];
+                    this.alphaRelevance.push(relevanceArr);
+                });
+                console.log(this.alphaRelevance);
+                this.averageValue(this.alphaRelevance);
+            } else {
+                alert("Get getFactorCorrelation Failed! " + data.msret.msg);
+            }
+        }, this);
 
         this.getAlphaFactorReturnString = "";
         FactorAlphaComponent.self.alphaFactorInfoArray.forEach((item) => {
             item.returns = [];
         });
-        this.tradePoint.send(260, 251, { head: { realActor: "getAlphaFactorReturn" }, body: { begin_date: this.openDate, end_date: this.closeDate } });
+        this.tradePoint.sendToCMS("getAlphaFactorReturn", JSON.stringify({ data: { body: { begin_date: this.openDate, end_date: this.closeDate } } }));
 
         this.getFactorCorrelationString = "";
         this.alphaRelevance = [];
         this.hotChartData = [];
-        this.tradePoint.send(260, 251, { head: { realActor: "getFactorCorrelation" }, body: { begin_date: this.openDate, end_date: this.closeDate } });
-
+        this.tradePoint.sendToCMS("getFactorCorrelation", JSON.stringify({ data: { body: { begin_date: this.openDate, end_date: this.closeDate } } }));
     }
 
     // 计算平均值
