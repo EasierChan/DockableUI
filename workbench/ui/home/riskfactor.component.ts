@@ -11,18 +11,398 @@ const fs = require("@node/fs");
 
 @Component({
     moduleId: module.id,
-    selector: "riskfactor",
-    templateUrl: "riskfactor.component.html",
+    selector: "rf-profit",
+    templateUrl: "rf-profit.html",
     styleUrls: ["home.component.css", "riskfactor.component.css"],
     providers: [DatePipe],
     inputs: ["activeTab"]
 })
-
-export class RiskFactorComponent implements OnDestroy {
+export class FactorProfitComponent implements OnDestroy {
     activeTab: string;
-
     static self: any;
+    rfrDateIndex: number = 0; // 保存风险因子收益日期的索引
+    styleObj: any;
+    dataSource: any;
+    riskFactorReturnEchart: any; // echart
+    everyDayReturnEchart: any;
+    everyDayYearReturnEchart: any;    
+    lastDayYearReturnEchart: any;  
+    defaultMedia: any;
+    dataDir: string;
+    getFactorInfoString: string = "";
+    getRiskFactorReturnString: string = ""; 
+    riskFactorInfoArray: any[] = [];
+    alphaFactorInfoArray: any[] = [];
 
+    constructor(private tradePoint: TradeService, private datePipe: DatePipe) {
+        FactorProfitComponent.self = this;
+    }
+
+    ngOnInit() {
+        this.defaultMedia = [{
+            option: {
+                grid: {
+                    left: "10%",
+                    right: "10%"
+                }
+            }
+        }, {
+            query: {
+                maxWidth: 650
+            },
+            option: {
+                grid: {
+                    left: 65,
+                    right: 65
+                }
+            }
+        }];
+
+        this.tradePoint.addSlot({
+            appid: 260,
+            packid: 251,
+            callback: (msg) => {
+                // console.log(msg);
+                switch (msg.content.head.actor) {
+                    case "getFactorInfoAns":
+                        this.getFactorInfoString += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            let data1 = JSON.parse(this.getFactorInfoString);
+                            if (data1.msret.msgcode === "00") {
+                                data1.body.forEach( function(factorInfo) {
+                                    factorInfo.factorid = parseInt(factorInfo.factorid);
+                                    factorInfo.factortype = parseInt(factorInfo.factortype);
+                                    factorInfo.returns = [];
+                                    if (factorInfo.factortype === 1) {
+                                        FactorProfitComponent.self.alphaFactorInfoArray.push(factorInfo);
+                                    } else if (factorInfo.factortype === 2) {
+                                        FactorProfitComponent.self.riskFactorInfoArray.push(factorInfo);
+                                    }
+                                });
+                                // console.log("riskFactorInfoArray, alphaFactorInfoArray",data1.body, FactorProfitComponent.self.riskFactorInfoArray, FactorProfitComponent.self.alphaFactorInfoArray);
+                            } else {
+                                alert("Get getFactorInfo Failed! " + data1.msret.msg);
+                            }
+                        }
+                        break;
+                    case "getRiskFactorReturnAns":
+                        this.getRiskFactorReturnString += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            let data2 = JSON.parse(this.getRiskFactorReturnString);
+                            if (data2.msret.msgcode === "00") {
+                                let i = 0 , j = 0;
+                                for (; i < FactorProfitComponent.self.riskFactorInfoArray.length; i++) {
+                                    for (; j < data2.body.length; j++) {
+                                        if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid == data2.body[j].factorid ) {
+                                            data2.body[j].factor_returns = parseFloat(data2.body[j].factor_returns);
+                                            FactorProfitComponent.self.riskFactorInfoArray[i].returns.push(data2.body[j]) ;
+                                        } else if (FactorProfitComponent.self.riskFactorInfoArray[i].factorid > data2.body[j].factorid) {
+                                            continue;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                }
+                                this.setRiskFactorReturnEchart(this.riskFactorInfoArray);
+                            } else {
+                                alert("Get getRiskFactorReturn Failed! " + data2.msret.msg);
+                            }
+                        }
+                        break;
+                    default:
+
+                }
+            }
+        });
+        this.tradePoint.send(260, 251, {head:{realActor:"getFactorInfo"}, body: {} });
+        this.tradePoint.send(260, 251, {head:{realActor:"getRiskFactorReturn"}, body: {} });
+
+
+        this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLDivElement);
+        this.everyDayReturnEchart = echarts.init(document.getElementById("everyDayReturnEchart") as HTMLDivElement);
+        this.everyDayYearReturnEchart = echarts.init(document.getElementById("everyDayYearReturnEchart") as HTMLDivElement);
+        this.lastDayYearReturnEchart = echarts.init(document.getElementById("lastDayYearReturnEchart") as HTMLDivElement);
+
+        window.onresize = () => {
+            this.resizeFunction();
+        };
+    }
+
+    // 界面变化时,重置而echart的大小
+    resizeFunction() {
+        this.riskFactorReturnEchart.resize();
+        this.everyDayReturnEchart.resize();
+        this.everyDayYearReturnEchart.resize();
+        this.lastDayYearReturnEchart.resize();
+    }
+
+    /* 二分查看法
+    * arr表示要查找的数组,source表示要查找的目标,member表示要在数组中对比的具体的属性,start,end表示查找范围[start,end],包括end
+    */
+    binarySearchStock(arr, source, member, start = 0, end = arr.length - 1) {
+
+        let mid = -1;
+
+        while (start <= end) {
+            mid = Math.floor((start + end) / 2);
+
+            if (arr[mid][member] < source) {
+                start = mid + 1;
+            } else if (arr[mid][member] > source) {
+                end = mid - 1;
+            } else {
+                return mid;
+            }
+        }
+        return -1;
+    }
+
+    // 设置收益的两个图表
+    setRiskFactorReturnEchart(riskFactorInfoArray) {
+        console.log(this.riskFactorInfoArray);
+
+        if (riskFactorInfoArray.length === 0 || riskFactorInfoArray[0].returns.length === 0) {
+            console.log("风险因子收益没有数据,请检查重试!");
+            return;
+        }
+        let startDateIndex = 0, endDateIndex = riskFactorInfoArray[0].returns.length - 1;
+
+        this.setReturnEchart(riskFactorInfoArray, startDateIndex, endDateIndex, this.everyDayReturnEchart, this.riskFactorReturnEchart);
+
+        // 初始化最近一年的数据
+        let today = new Date(), rfrIndex = 0;
+        let thisYearFirstDay = today.getFullYear() + "0101";
+
+        for (let dateIndex = endDateIndex; dateIndex >= 0; --dateIndex) {
+
+            if (riskFactorInfoArray[0].returns[dateIndex].trday < thisYearFirstDay) {
+                rfrIndex = dateIndex + 1;
+                break;
+            }
+
+        }
+
+        if (rfrIndex > endDateIndex ) {
+            alert("没有找到当年的收益数据");
+            return;
+        }
+
+        this.setReturnEchart(riskFactorInfoArray, rfrIndex, endDateIndex, this.everyDayYearReturnEchart, this.lastDayYearReturnEchart);
+
+
+    }
+
+    // 设置收益的两个图表
+    setReturnEchart(riskFactorInfoArray, startIndex, endIndex, lineChart, barChart) {
+        let chartLegendData = [], xAxisDatas = [], series = [];    // 分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
+        let allRiskReturnXAxis = [], allRiskReturnSeries = [];   // 统计总共的x坐标数组,和具体每一条曲线的数据
+
+        for (let riskIndex = 0; riskIndex < riskFactorInfoArray.length; ++riskIndex) {    // 遍历每一个风险因子
+            let lengendData = { name: riskFactorInfoArray[riskIndex].factorname }; // ,textStyle: { color: "#F3F3F5" }
+            chartLegendData.push(lengendData);
+            allRiskReturnXAxis.push(riskFactorInfoArray[riskIndex].factorname);  // 柱状图的x轴分类
+
+            // 具体每一条曲线的数据
+            let seriesData = { name: riskFactorInfoArray[riskIndex].factorname, type: "line", data: [] };
+            let riskFactorAllDateReturn = 0;
+
+            for (let i = startIndex; i <= endIndex; ++i) {
+                riskFactorAllDateReturn += riskFactorInfoArray[riskIndex].returns[i].factor_returns;
+                seriesData.data.push(riskFactorAllDateReturn);
+            }
+
+            series.push(seriesData);
+            allRiskReturnSeries.push(riskFactorAllDateReturn);
+        }
+
+        // 设置x坐标日期数组
+        for (let i = startIndex; i <= endIndex; ++i) {
+            xAxisDatas.push(riskFactorInfoArray[0].returns[i].trday);
+        }
+        console.log(chartLegendData, allRiskReturnXAxis, series, allRiskReturnSeries, xAxisDatas);
+
+        let option = {
+            baseOption: {
+                title: {
+                    show: false,
+                },
+                tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
+                    },
+                    textStyle: {
+                        align: "left"
+                    }
+                },
+                legend: {
+                    data: chartLegendData,
+                    textStyle: { color: "#F3F3F5" }
+                },
+                xAxis: [{
+                    data: xAxisDatas,
+                    axisLabel: {
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    }
+                }],
+                yAxis: [{
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                }],
+                dataZoom: [{
+                    type: "inside",
+                    xAxisIndex: 0,
+                    start: 0,
+                    end: 100
+                }, {
+                    start: 0,
+                    end: 10,
+                    handleIcon: "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+                    handleSize: "60%",
+                    textStyle: {
+                        color: "#FFF"
+                    },
+                    handleStyle: {
+                        color: "#fff",
+                        shadowBlur: 3,
+                        shadowColor: "rgba(0, 0, 0, 0.6)",
+                        shadowOffsetX: 2,
+                        shadowOffsetY: 2
+                    },
+                    type: "inside"
+                }],
+                series: series,
+                animationThreshold: 10000
+                // color: [
+                //     "#00b", "#0b0"
+                // ]
+            },
+            media: this.defaultMedia
+
+        };
+
+        lineChart.setOption(option);
+
+
+        let allDayOption = {
+            baseOption: {
+                title: {
+                    show: false,
+                },
+                tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
+                    }
+                },
+                legend: {
+                    data: ["风险因子收益"],
+                    textStyle: { color: "#F3F3F5" }
+                },
+                xAxis: {
+                    data: allRiskReturnXAxis,
+                    type: "category",
+                    axisLabel: {
+                        rotate: -30,
+                        interval: 0,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    boundaryGap: true
+                },
+                yAxis: {
+
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                },
+                // dataZoom: [{
+                //   type: 'inside',
+                //   xAxisIndex: 0 ,
+                //   start: 0,
+                //   end: 100
+                // }, {
+                //     start: 0,
+                //     end: 10,
+                //     show: false,
+                //     handleIcon: 'M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z',
+                //     handleSize: '60%',
+                //     textStyle: {
+                //       color: "#FFF"
+                //     }
+                //     handleStyle: {
+                //         color: '#fff',
+                //         shadowBlur: 3,
+                //         shadowColor: 'rgba(0, 0, 0, 0.6)',
+                //         shadowOffsetX: 2,
+                //         shadowOffsetY: 2
+                //     }
+                // }],
+                series: [{
+                    name: "风险因子收益",
+                    type: "bar",
+                    data: allRiskReturnSeries
+                }
+                ],
+                // color: [
+                //     "#00b", "#0b0"
+                // ],
+                backgroundColor: {
+                    color: "blue"
+                }
+            },
+            media: this.defaultMedia
+
+        };
+
+        barChart.setOption(allDayOption);
+    }
+
+    /**
+     * disp
+     */
+    ngOnDestroy() {
+        // TODO dispose resource.
+        console.log("destroy");
+    }
+}
+
+
+
+@Component({
+    moduleId: module.id,
+    selector: "rf-analysis",
+    templateUrl: "rf-analysis.html",
+    styleUrls: ["home.component.css", "riskfactor.component.css"],
+    providers: [DatePipe],
+    inputs: ["activeTab"]
+})
+export class FactorAnalysisComponent implements OnDestroy {
+    activeTab: string;
+    static self: any;
     static productStat: string;
     static strategyStat: string;
     static startdateStat: string;
@@ -31,40 +411,23 @@ export class RiskFactorComponent implements OnDestroy {
     static hedgeratioStat: number;
     static productsStat: string[];
     static strategiesStat: string[];
-    static opendateStat: string;
-    static closedateStat: string;
     static productIndex: number;
     static strategyIndex: number;
-
     rfrDateIndex: number = 0; // 保存风险因子收益日期的索引
-
     styleObj: any;
     dataSource: any;
-
     startdate: string;
     enddate: string;
     startDate: string;
     endDate: string;
-    opendate: string;
-    closedate: string;
-    openDate: string;
-    closeDate: string;
     hedges: string[] = ["沪深300", "中证500", "上证50"];
     hedge: string = "沪深300";
     hedgeRadio: number;
-
-    riskFactorReturnEchart: any; // echart
-    everyDayReturnEchart: any;
-    everyDayYearReturnEchart: any;    // 一年中每一天的风险因子收益折线图
-    lastDayYearReturnEchart: any;  // 一年中最后一天的风险因子收益柱状图图
     riskFactorExposureEchart: any;  // 最后选中天风险因子暴露柱状图
     everyDayRFEEchart: any;         // 每一天的风险因子的暴露折线图
     riskFactorReturnAttrEchart: any;  // 风险因子收益归因柱状图
     everyDayRFRAttrEchart: any;   // 每一天风险因子归因折线图
     stockAttrEchart: any;   // 股票归因柱状图
-    alphaHotChart: any;
-    alphaChart: any;
-
     defaultMedia: any;
 
     /* 当选择了期货对冲时,hadStockHold,hadFutureHold,hadNetData,必须全为true才能计算.
@@ -74,8 +437,6 @@ export class RiskFactorComponent implements OnDestroy {
     hadFutureHold: boolean = false;
     hadNetData: boolean = false;
     needFutures: boolean = false;
-
-
     productData: any[];
     strategyData: any[];
     iproducts: string[];
@@ -87,15 +448,11 @@ export class RiskFactorComponent implements OnDestroy {
     strategyfuturehold: string;
     strategystockhold: string;
     netValueString: string;
-
     riskFactorReturnAttr: any[] = []; // 风险因子收益归因
     riskFactorReturn: any[] = [];
     riskFactorExposure: any[] = [];
     HedgeRatioData: any[] = [];
-    alphaRelevance: any[] = []; // alpha相关性
-    alphaRelevanceResult: any[] = []; // alpha相关性结果
-    hotChartData: any[] = []; // 存放图标的data
-    alphaData: any[] = []; // alpha
+    getRiskFactorReturnString: string = "";
 
     /* 保存所有的股票持仓数组
     * 每一个数组元素为对象,对象包含一下元素
@@ -105,12 +462,15 @@ export class RiskFactorComponent implements OnDestroy {
     groupPosition: any[] = [];
     futurePosition: any[] = [];
     netTableValue: any[] = [];
-
     dataDir: string; // added by cl
-    productAppID: number; // added by cl
+    // this.groupPosition = [ {stockCode:'000001.SZ',stockWeight:0.1}, {stockCode:'000002.SZ', stockWeight:0.6 } ];  // 重新获取组合持仓
+    // groupPosition: any[] = [{stockDate:"20170704",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]},
+    //                        {stockDate:"20170705",stockHold: [{ stockCode: "000001.SZ", stockWeight: 0.1 }, { stockCode: "000002.SZ", stockWeight: 0.6 }]} ];
+
+    riskFactorInfoArray: any[] = [];
 
     constructor(private tradePoint: TradeService, private appsrv: AppStoreService, private datePipe: DatePipe) {
-        RiskFactorComponent.self = this;
+        FactorAnalysisComponent.self = this;
         // this.loadData();
         this.iproducts = [];
         this.productfuturehold = "";
@@ -121,11 +481,8 @@ export class RiskFactorComponent implements OnDestroy {
     }
 
     ngOnInit() {
-        this.productAppID = this.appsrv.getSetting().endpoints[0].tgw_apps.ids;
         this.dataDir = this.appsrv.getSetting().riskDataDir ? this.appsrv.getSetting().riskDataDir : "/mnt/dropbox/risk";
         console.info(this.activeTab, this.dataDir);
-
-        this.readAndHandleRiskReturn();
 
         this.defaultMedia = [{
             option: {
@@ -146,208 +503,370 @@ export class RiskFactorComponent implements OnDestroy {
             }
         }];
 
-        let date1 = new Date().setMonth((new Date().getMonth() - 1));
+        let date1 = new Date().setMonth((new Date().getMonth() - 3));
         let date2 = new Date();
-        // this.startdate = this.datePipe.transform(date1, "yyyy-MM-dd");
-        // this.enddate = this.datePipe.transform(date2, "yyyy-MM-dd");
-        this.startdate = "2017-06-26";
-        this.enddate = "2017-07-26";
+        this.startdate = this.datePipe.transform(date1, "yyyy-MM-dd");
+        this.enddate = this.datePipe.transform(date2, "yyyy-MM-dd");
+        this.startDate = this.startdate.replace(/-/g, "");
+        this.endDate = this.enddate.replace(/-/g, "");
         this.hedgeRadio = 1;
 
-        if (this.activeTab === "风险因子分析") {
-            // receive holdlist
-            this.tradePoint.addSlot({
-                appid: this.productAppID,
-                packid: 224,
-                callback: (msg) => {
-                    let data = JSON.parse(msg.content.body);
-                    if (data.msret.msgcode === "00") {
-                        RiskFactorComponent.self.productData = data.body;
-                        console.log(RiskFactorComponent.self.productData);
-                        console.log(RiskFactorComponent.self.productData[0].tblock_full_name);
-                        RiskFactorComponent.self.iproducts = [];
-
-                        for (let i = 0; i < RiskFactorComponent.self.productData.length; i++) {
-                            RiskFactorComponent.self.iproducts.push(RiskFactorComponent.self.productData[i].tblock_full_name);
+        // receive holdlist
+        // index strategies
+        this.tradePoint.addSlot({
+            appid: 260,
+            packid: 251,
+            callback: (msg) => {
+                switch (msg.content.head.actor) {
+                    case "getProductAns":
+                        console.log("product",msg);
+                        let data1 = JSON.parse(msg.content.body);
+                        if (data1.msret.msgcode === "00") {
+                            FactorAnalysisComponent.self.productData = data1.body;
+                            console.log(FactorAnalysisComponent.self.productData);
+                            console.log(FactorAnalysisComponent.self.productData[0].caname);
+                            FactorAnalysisComponent.self.iproducts = [];
+                            for (let i = 0; i < FactorAnalysisComponent.self.productData.length; i++) {
+                                FactorAnalysisComponent.self.iproducts.push(FactorAnalysisComponent.self.productData[i].caname);
+                            }
+                        } else {
+                            alert("Get product info Failed! " + data1.msret.msg);
                         }
-                    } else {
-                        alert("Get product info Failed! " + data.msret.msg);
-                    }
-                    RiskFactorComponent.self.iproduct = RiskFactorComponent.self.iproducts[0];
-                    let tblockId = 0;
-                    if (RiskFactorComponent.productIndex === undefined) {
-                        tblockId = RiskFactorComponent.self.productData[0].tblock_id;
-                    } else {
-                        tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
-                    }
-                    console.log(tblockId);
-                    console.log(RiskFactorComponent.self.istrategys);
-                    RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
-                    this.tradePoint.send(this.productAppID, 218, { body: { tblock_id: tblockId } });
-                }
-            });
-
-            // index strategies
-            this.tradePoint.addSlot({
-                appid: this.productAppID,
-                packid: 218,
-                callback: (msg) => {
-                    console.log(msg);
-                    let data = JSON.parse(msg.content.body);
-                    if (data.msret.msgcode === "00") {
-                        RiskFactorComponent.self.strategyData = data.body;
-                        for (let i = 0; i < RiskFactorComponent.self.strategyData.length; i++) {
-                            RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
+                        FactorAnalysisComponent.self.iproduct = FactorAnalysisComponent.self.iproducts[0];
+                        let tblockId = 0;
+                        if (FactorAnalysisComponent.productIndex === undefined) {
+                            tblockId = FactorAnalysisComponent.self.productData[0].caid;
+                        } else {
+                            tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
                         }
-                    } else {
-                        alert("Get product info Failed! " + data.msret.msg);
-                    }
+                        console.log(tblockId);
+                        console.log(FactorAnalysisComponent.self.istrategys);
+                        FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
+                        this.tradePoint.send(260, 251, {head:{realActor:"getCombStrategy"}, body: {caid: tblockId} });
+                        break;
+                    case "getCombStrategyAns":
+                        console.log("strategy",msg);
+                        let data2 = JSON.parse(msg.content.body);
+                        if (data2.msret.msgcode === "00") {
+                            FactorAnalysisComponent.self.strategyData = data2.body;
+                            for (let i = 0; i < FactorAnalysisComponent.self.strategyData.length; i++) {
+                                FactorAnalysisComponent.self.istrategys.push(FactorAnalysisComponent.self.strategyData[i].trname);
+                            }
+                        } else {
+                            alert("Get product info Failed! " + data2.msret.msg);
+                        }
 
-                    if (RiskFactorComponent.startdateStat !== undefined) {
-                        console.log(RiskFactorComponent.startdateStat);
-                        this.startdate = RiskFactorComponent.startdateStat;
-                    }
-                    if (RiskFactorComponent.enddateStat !== undefined) {
-                        console.log(RiskFactorComponent.enddateStat);
-                        this.enddate = RiskFactorComponent.enddateStat;
-                    }
-                    if (RiskFactorComponent.hedgeStat !== undefined) {
-                        console.log(RiskFactorComponent.hedgeStat);
-                        this.hedge = RiskFactorComponent.hedgeStat;
-                    }
-                    if (RiskFactorComponent.hedgeratioStat !== undefined) {
-                        console.log(RiskFactorComponent.hedgeratioStat);
-                        this.hedgeRadio = RiskFactorComponent.hedgeratioStat;
-                    }
-                    if (RiskFactorComponent.productsStat !== undefined) {
-                        console.log(RiskFactorComponent.productsStat);
-                        this.iproducts = RiskFactorComponent.productsStat;
-                    }
-                    if (RiskFactorComponent.strategiesStat !== undefined) {
-                        console.log(RiskFactorComponent.strategiesStat);
-                        this.istrategys = RiskFactorComponent.strategiesStat;
-                    }
-                    if (RiskFactorComponent.productStat !== undefined) {
-                        console.log(RiskFactorComponent.productStat);
-                        this.iproduct = RiskFactorComponent.productStat;
-                    }
-                    if (RiskFactorComponent.strategyStat !== undefined) {
-                        console.log(RiskFactorComponent.strategyStat);
-                        this.istrategy = RiskFactorComponent.strategyStat;
-                    }
+                        if (FactorAnalysisComponent.startdateStat !== undefined) {
+                            console.log(FactorAnalysisComponent.startdateStat);
+                            this.startdate = FactorAnalysisComponent.startdateStat;
+                        }
+                        if (FactorAnalysisComponent.enddateStat !== undefined) {
+                            console.log(FactorAnalysisComponent.enddateStat);
+                            this.enddate = FactorAnalysisComponent.enddateStat;
+                        }
+                        if (FactorAnalysisComponent.hedgeStat !== undefined) {
+                            console.log(FactorAnalysisComponent.hedgeStat);
+                            this.hedge = FactorAnalysisComponent.hedgeStat;
+                        }
+                        if (FactorAnalysisComponent.hedgeratioStat !== undefined) {
+                            console.log(FactorAnalysisComponent.hedgeratioStat);
+                            this.hedgeRadio = FactorAnalysisComponent.hedgeratioStat;
+                        }
+                        if (FactorAnalysisComponent.productsStat !== undefined) {
+                            console.log(FactorAnalysisComponent.productsStat);
+                            this.iproducts = FactorAnalysisComponent.productsStat;
+                        }
+                        if (FactorAnalysisComponent.strategiesStat !== undefined) {
+                            console.log(FactorAnalysisComponent.strategiesStat);
+                            this.istrategys = FactorAnalysisComponent.strategiesStat;
+                        }
+                        if (FactorAnalysisComponent.productStat !== undefined) {
+                            console.log(FactorAnalysisComponent.productStat);
+                            this.iproduct = FactorAnalysisComponent.productStat;
+                        }
+                        if (FactorAnalysisComponent.strategyStat !== undefined) {
+                            console.log(FactorAnalysisComponent.strategyStat);
+                            this.istrategy = FactorAnalysisComponent.strategyStat;
+                        }
 
-                    this.lookReturn();
+                        this.lookReturn();
+                        break;
+                    case "getFactorInfoAns":
+                        let data3 = JSON.parse(msg.content.body);
+                        if (data3.msret.msgcode === "00") {
+                            data3.body.forEach( function(factorInfo) {
+                                factorInfo.factorid = parseInt(factorInfo.factorid);
+                                factorInfo.factortype = parseInt(factorInfo.factortype);
+                                factorInfo.returns = [];
+                                if (factorInfo.factortype === 1) {
+                                    
+                                } else if (factorInfo.factortype === 2) {
+                                    FactorAnalysisComponent.self.riskFactorInfoArray.push(factorInfo);
+                                }
+                            });
+                        } else {
+                            alert("Get getFactorInfo Failed! " + data3.msret.msg);
+                        }
+                        break;
+                    case "getRiskFactorReturnAns":
+                        console.log(msg);
+                        this.getRiskFactorReturnString += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            let data4 = JSON.parse(this.getRiskFactorReturnString);
+                            if (data4.msret.msgcode === "00") {
+                                let i = 0 , j = 0;
+                                for (; i < FactorAnalysisComponent.self.riskFactorInfoArray.length; i++) {
+                                    for (; j < data4.body.length; j++) {
+                                        if (FactorAnalysisComponent.self.riskFactorInfoArray[i].factorid == data4.body[j].factorid ) {
+                                            data4.body[j].factor_returns = parseFloat(data4.body[j].factor_returns);
+                                            FactorAnalysisComponent.self.riskFactorInfoArray[i].returns.push(data4.body[j]);
+                                        } else if (FactorAnalysisComponent.self.riskFactorInfoArray[i].factorid > data4.body[j].factorid) {
+                                            continue;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                }
+                                this.readAndHandleRiskReturn();
+                            } else {
+                                alert("Get getRiskFactorReturn Failed! " + data4.msret.msg);
+                            }
+                        }
+                        break;                          
+                    default:
+
                 }
-            });
-            this.tradePoint.send(this.productAppID, 224, { body: { tblock_type: 2 } });
-        }
+            }
+        });
 
-        this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLDivElement);
-        this.everyDayReturnEchart = echarts.init(document.getElementById("everyDayReturnEchart") as HTMLDivElement);
-        this.everyDayYearReturnEchart = echarts.init(document.getElementById("everyDayYearReturnEchart") as HTMLDivElement);
-        this.lastDayYearReturnEchart = echarts.init(document.getElementById("lastDayYearReturnEchart") as HTMLDivElement);
+        this.tradePoint.send(260, 251, {head:{realActor:"getFactorInfo"}, body: {} });
+        this.getRiskFactorReturnString = "";
+        this.tradePoint.send(260, 251, {head:{realActor:"getRiskFactorReturn"}, body: {begin_date: this.startDate, end_date: this.endDate} });
+        this.tradePoint.send(260, 251, {head:{realActor:"getProduct"}, body: {} });
 
         this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLDivElement);
         this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLDivElement);
         this.riskFactorReturnAttrEchart = echarts.init(document.getElementById("riskFactorReturnAttrEchart") as HTMLDivElement);
         this.everyDayRFRAttrEchart = echarts.init(document.getElementById("everyDayRFRAttrEchart") as HTMLDivElement);
-
         this.stockAttrEchart = echarts.init(document.getElementById("stockAttrEchart") as HTMLDivElement);
-        // alpha
-        this.alphaHotChart = echarts.init(document.getElementById("alphahotchart") as HTMLDivElement);
-        this.alphaChart = echarts.init(document.getElementById("alphachart") as HTMLDivElement);
-
-
-        if (this.activeTab === "Profit" || this.activeTab === "风险因子收益") {
-            this.setriskFactorReturnEchart(this.riskFactorReturn);
-        }
-        else if (this.activeTab === "RiskFactors" || this.activeTab === "风险因子分析") {
-
-        }
-        if (this.activeTab === "Alpha因子") {
-            console.log(this.activeTab);
-            this.opendate = "2017-06-26";
-            this.closedate = "2017-07-26";
-            if (RiskFactorComponent.opendateStat !== undefined) {
-                console.log(RiskFactorComponent.opendateStat);
-                this.opendate = RiskFactorComponent.opendateStat;
-            }
-            if (RiskFactorComponent.closedateStat !== undefined) {
-                console.log(RiskFactorComponent.closedateStat);
-                this.closedate = RiskFactorComponent.closedateStat;
-            }
-            this.searchresult();
-        }
 
         window.onresize = () => {
             this.resizeFunction();
         };
     }
 
-    loadData() {
-        // to read a file line by line.
-        let arr = [];
-        File.readLineByLine(path.join(this.dataDir, "riskreturn.csv"), (linestr) => {
-            console.log("readLineByLine", linestr);
-            arr.push(linestr);
+    registerListener() {
+        this.tradePoint.addSlot({
+            appid: 260,
+            packid: 251,
+            callback: (msg) => {
+                switch (msg.content.head.actor) {
+                    case "getProductNetAns":
+                        console.log("NetTableValue", msg);
+                        this.netValueString += msg.content.body;
 
-        }, () => { console.info("finished"); });
-        console.log("console.log(arr);", arr);
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.netValueString;
+                            this.hadNetData = true;
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取净值数据失败：" + msg.content.msret.msg);
+                                return;
+                            }
+
+                            let netTableValue = JSON.parse(msg.content.body);
+                            if (netTableValue.msret.msgcode === "00") {
+                                this.netTableValue = netTableValue.body;
+
+                                this.netTableValue.forEach((currentValue, index, array) => {
+                                    let netvalue = parseFloat(currentValue.netvalue);
+                                    if (isNaN(netvalue)) {
+                                        currentValue.netvalue = 0;
+                                    } else {
+                                        currentValue.netvalue = netvalue;
+                                    }
+                                });
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+                                    this.beginCalculateRiskFactor();
+                                }
+
+                            } else {
+                                alert("获取净值数据失败：" + netTableValue.msret.msg);
+                            }
+                        }
+                        break;
+
+                    case "getStrategyFuturesHoldWeightAns": 
+                        console.log("strategyfuturehold", msg);
+                        this.strategyfuturehold += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.strategyfuturehold;
+                            // console.log(this.strategyfuturehold);
+                            // console.log("strategyfuturehold", msg);
+                            this.hadFutureHold = true;
+
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取策略期货持仓失败：" + msg.content.msret.msg);
+                                return;
+                            }
+
+                            let strategyFutureHold = JSON.parse(msg.content.body);
+
+                            if (strategyFutureHold.msret.msgcode === "00") {
+                                this.futurePosition = strategyFutureHold.body;
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+                                    this.beginCalculateRiskFactor();
+                                }
+                            } else {
+                                alert("获取策略期货持仓失败：" + msg.content.msret.msg);
+                            }
+                        }
+                        break;
+
+                    case "getStrategyStockHoldWeightAns":
+                        console.log("strategystockhold", msg);
+                        this.strategystockhold += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.strategystockhold;
+
+                            // console.log("strategystockhold", msg);
+                            this.hadStockHold = true;
+
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取策略股票持仓失败：" + msg.content.msret.msg);
+                                return;
+                            }
+
+                            let strategystockhold = JSON.parse(msg.content.body);
+
+                            if (strategystockhold.msret.msgcode === "00") {
+                                this.getGroupPosition(strategystockhold.body);
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+
+                                    this.beginCalculateRiskFactor();
+                                }
+                            } else {
+                                alert("获取策略股票持仓失败：" + strategystockhold.msret.msg);
+                            }
+                            // console.log("strategystockhold", strategystockhold, this.groupPosition);
+                        }
+                        break;
+
+                    case "getProductFuturesHoldWeightAns":
+                        console.log("productfuture",msg);
+                        this.productfuturehold += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.productfuturehold;
+
+                            this.hadFutureHold = true;
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取产品期货持仓失败：" + msg.content.msret.msg);
+                                return;
+                            }
+                            let productFutureHold = JSON.parse(msg.content.body);
+                            if (productFutureHold.msret.msgcode === "00") {
+                                this.futurePosition = productFutureHold.body;
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+                                    this.beginCalculateRiskFactor();
+                                }
+                            } else {
+                                alert("获取产品期货持仓失败：" + productFutureHold.msret.msg);
+                            }
+                            // console.log("productFutureHold", productFutureHold, this.groupPosition);
+                        }
+                        break;
+
+                    case "getProductStockHoldWeightAns":
+                        console.log("productstockhold",msg);
+                        this.productstockhold += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            msg.content.body = this.productstockhold;
+
+                            // console.log("productstockhold", msg);
+                            this.hadStockHold = true;
+                            if (msg.content.msret.msgcode !== "00") {
+                                alert("获取产品股票持仓失败：" + msg.content.msret.msg);
+                                return;
+                            }
+                            let productStockHold = JSON.parse(msg.content.body);
+                            if (productStockHold.msret.msgcode === "00") {
+                                this.getGroupPosition(productStockHold.body);
+                                // console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
+                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
+                                    this.beginCalculateRiskFactor();
+                                }
+
+                            } else {
+                                alert("获取产品股票持仓失败：" + productStockHold.msret.msg);
+                            }
+                            // console.log("productStockHold", productStockHold, this.groupPosition);
+                        }
+                        break;
+
+                    case "getFactorStockExposureAns":
+                        console.log("expo", msg);
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            console.log("the last msg");
+                        }
+                        break;    
+
+                    default: 
+
+                }
+            }
+        });
     }
 
     // 界面变化时,重置而echart的大小
     resizeFunction() {
-        this.riskFactorReturnEchart.resize();
-        this.everyDayReturnEchart.resize();
-        this.everyDayYearReturnEchart.resize();
-        this.lastDayYearReturnEchart.resize();
-
         this.riskFactorExposureEchart.resize();
         this.everyDayRFEEchart.resize();
         this.riskFactorReturnAttrEchart.resize();
         this.everyDayRFRAttrEchart.resize();
-
         this.stockAttrEchart.resize();
-        this.alphaHotChart.resize();
-        this.alphaChart.resize();
-
     }
 
 
     nextDropdown() {
         // get strategies of this product
-        RiskFactorComponent.self.istrategys = ["选择所有策略"];
-        console.log(RiskFactorComponent.self.productData);
+        FactorAnalysisComponent.self.istrategys = ["选择所有策略"];
+        console.log(FactorAnalysisComponent.self.productData);
         let productlist = document.getElementById("product") as HTMLSelectElement;
-        RiskFactorComponent.productIndex = productlist.selectedIndex;
-        let tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
-        console.log(RiskFactorComponent.productIndex);
+        FactorAnalysisComponent.productIndex = productlist.selectedIndex;
+        let tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
+        console.log(FactorAnalysisComponent.productIndex);
         // strategies
         this.tradePoint.addSlot({
-            appid: this.productAppID,
-            packid: 218,
+            appid: 260,
+            packid: 251,
             callback: (msg) => {
-                console.log(msg);
-                let data = JSON.parse(msg.content.body);
-                if (data.msret.msgcode === "00") {
-                    RiskFactorComponent.self.strategyData = data.body;
-                    for (let i = 0; i < RiskFactorComponent.self.strategyData.length; i++) {
-                        RiskFactorComponent.self.istrategys.push(RiskFactorComponent.self.strategyData[i].strategy_name);
+                if (msg.content.head.actor === "getCombStrategyAns") {
+                    console.log("strategy",msg);
+                    let data = JSON.parse(msg.content.body);
+                    if (data.msret.msgcode === "00") {
+                        FactorAnalysisComponent.self.strategyData = data.body;
+                        for (let i = 0; i < FactorAnalysisComponent.self.strategyData.length; i++) {
+                            FactorAnalysisComponent.self.istrategys.push(FactorAnalysisComponent.self.strategyData[i].trname);
+                        }
+                    } else {
+                        alert("Get product info Failed! " + data.msret.msg);
                     }
-                } else {
-                    alert("Get product info Failed! " + data.msret.msg);
                 }
             }
         });
-        console.log(RiskFactorComponent.self.istrategys);
-        RiskFactorComponent.self.istrategy = RiskFactorComponent.self.istrategys[0];
-        this.tradePoint.send(this.productAppID, 218, { body: { tblock_id: tblockId } });
-        RiskFactorComponent.strategyIndex = 0;
+        console.log(FactorAnalysisComponent.self.istrategys);
+        FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
+        this.tradePoint.send(260, 251, {head:{realActor:"getCombStrategy"}, body: {caid: tblockId} });
+        FactorAnalysisComponent.strategyIndex = 0;
     }
 
     nextStrategyDropdown() {
         let strategylist = document.getElementById("strategy") as HTMLSelectElement;
-        RiskFactorComponent.strategyIndex = strategylist.selectedIndex;
+        FactorAnalysisComponent.strategyIndex = strategylist.selectedIndex;
     }
 
     // 读取风险因子收益并格式化数据
@@ -401,7 +920,7 @@ export class RiskFactorComponent implements OnDestroy {
 
         }
         console.log("this.endDate", this.endDate);
-        console.log("handled riskFactorReturn", this.riskFactorReturn);
+        console.log("handled riskFactorReturn", this.riskFactorReturn, this.riskFactorInfoArray);
     }
 
     // 读取股票暴露并格式化数据         ---注意 这里删除了第一列,也就是风险因子名称列,所有的风险因子名称和顺序都依赖与风险因子收益表
@@ -454,42 +973,6 @@ export class RiskFactorComponent implements OnDestroy {
         });
     }
 
-    // 读取alpha相关性数据
-    readAndHandleAlphaRelevance(exposureFilePath) {
-        this.alphaRelevance = this.readDataFromCsvFile(exposureFilePath);
-
-
-    }
-
-    // 读取alpha因子数据
-    readAndHandleAlpha() {
-        this.alphaData = this.readDataFromCsvFile(path.join(this.dataDir, "alpha", "alpha_ret.csv"));
-        // 处理获取的风险因子收益数据
-        if (this.riskFactorReturn.length < 2) {
-            alert("风险因子收益没有数据,请导入数据后重试");
-            return;
-        }
-
-        for (let i = 1; i < this.alphaData.length; ++i) {
-
-            for (let j = 1; j < this.alphaData[0].length; ++j) {
-                let value = parseFloat(this.alphaData[i][j]);
-
-                if (isNaN(value)) {
-                    this.alphaData[i][j] = 0;
-                } else {
-                    this.alphaData[i][j] = value;
-                }
-
-                // if (i > 1) {
-                //     this.riskFactorReturn[i][j] += this.riskFactorReturn[i-1][j];
-                // }
-
-            }
-        }
-        console.log(this.alphaData);
-    }
-
     /*计算各种结果并绘图
     *成功返回true,否则返回false
     */
@@ -509,10 +992,12 @@ export class RiskFactorComponent implements OnDestroy {
                 // alert("没有找到" + singleStock.stockCode + "的暴露,请补全信息!");
 
                 // return false;
-                for (let i = 2; i < riskFactorExposure[rfeIndex].length; ++i) {   // 遍历指定暴露的风险因子
-                    singleStock["stockExposure"][i - 2] = 0; // 这里有一个假设，假定所有数据都不会重复哦  /
+                for (let i = 2; i < riskFactorExposure[0].length; ++i) {   // 遍历指定暴露的风险因子的暴露
+                    singleStock["stockExposure"][i - 2] = 0; // 这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
+
                 }
-            } else {
+            }
+            else {
                 for (let i = 2; i < riskFactorExposure[rfeIndex].length; ++i) {   // 遍历指定暴露的风险因子的暴露
                     singleStock["stockExposure"][i - 2] = riskFactorExposure[rfeIndex][i] * singleStock.stockWeight; // 这里有一个假设，假定所有数据都不会重复哦  //股票在每个风险因子下的暴露
 
@@ -535,26 +1020,32 @@ export class RiskFactorComponent implements OnDestroy {
 
         let returnDateIndex = this.binarySearchStock(riskFactorReturn, currDate, this.rfrDateIndex, 1); // 查找指定日期的风险因子收益
 
-        if (returnDateIndex === -1) {
-            alert("没有找到" + currDate + "的风险因子收益!");
-            return false;
-        }
+        // if (returnDateIndex === -1) {
+        //     alert("没有找到" + currDate + "的风险因子收益!");
+        //     return false;
+        // }
 
         // 计算单个股票在所有风险因子下暴露和风险因子的乘积--也就是收益归因
         this.sumOfStockFactorReturnAttr(groupPosition, riskFactorReturn, returnDateIndex);
 
         let dayOfAllAttr = 0;
-        // 计算单个风险因子在所有股票下暴露和风险因子的乘积--也就是收益归因
-        for (let i = 1; i < riskFactorReturn[returnDateIndex].length; ++i) {    // 循环风险因子收益
 
-            let returnAttr = 0;
-            // 计算对于组合的收益归因
-            for (let stockIndex = 0; stockIndex < groupPosition.length; ++stockIndex) {   // 循环持仓股票的暴露
-                returnAttr += groupPosition[stockIndex]["returnAttr"][i - 1];
-                dayOfAllAttr += groupPosition[stockIndex]["returnAttr"][i - 1];
+        if (returnDateIndex === -1) {
+            oneDayReturnAttr.push(0);
+        } else {
+            // 计算单个风险因子在所有股票下暴露和风险因子的乘积--也就是收益归因
+            for (let i = 1; i < riskFactorReturn[returnDateIndex].length; ++i) {    // 循环风险因子收益
+
+                let returnAttr = 0;
+                // 计算对于组合的收益归因
+                for (let stockIndex = 0; stockIndex < groupPosition.length; ++stockIndex) {   // 循环持仓股票的暴露
+                    returnAttr += groupPosition[stockIndex]["returnAttr"][i - 1];
+                    dayOfAllAttr += groupPosition[stockIndex]["returnAttr"][i - 1];
+                }
+                oneDayReturnAttr.push(returnAttr);
             }
-            oneDayReturnAttr.push(returnAttr);
         }
+
 
         let netIndex = this.binarySearchStock(this.netTableValue, currDate, "trday");
         // 计算残差
@@ -627,227 +1118,74 @@ export class RiskFactorComponent implements OnDestroy {
         this.endDate = this.enddate.replace(/-/g, "");
 
         let productlist = document.getElementById("product") as HTMLSelectElement;
-        if (RiskFactorComponent.productIndex === undefined) {
-            RiskFactorComponent.productIndex = productlist.selectedIndex;
+        if (FactorAnalysisComponent.productIndex === undefined) {
+            FactorAnalysisComponent.productIndex = productlist.selectedIndex;
         }
         console.log(this.iproduct);
-        console.log(RiskFactorComponent.productIndex);
-        if (RiskFactorComponent.productIndex === -1) {
+        console.log(FactorAnalysisComponent.productIndex);
+        if (FactorAnalysisComponent.productIndex === -1) {
             return;
         }
-        let tblockId = RiskFactorComponent.self.productData[RiskFactorComponent.productIndex].tblock_id;
+        let tblockId = 0;
+        if (FactorAnalysisComponent.self.productData) {
+        tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
+        }
 
         if (!isNaN(this.hedgeRadio)) {
+            this.getExposure();
             let strategylist = document.getElementById("strategy") as HTMLSelectElement;
-            if (RiskFactorComponent.strategyIndex === undefined) {
-                RiskFactorComponent.strategyIndex = strategylist.selectedIndex;
+            if (FactorAnalysisComponent.strategyIndex === undefined) {
+                FactorAnalysisComponent.strategyIndex = strategylist.selectedIndex;
             }
             console.log(this.istrategy);
-            console.log(RiskFactorComponent.strategyIndex);
+            console.log(FactorAnalysisComponent.strategyIndex);
             // setNetTableValue
-            this.tradePoint.addSlot({
-                appid: this.productAppID,
-                packid: 226,
-                callback: (msg) => {
-                    console.log("receive setNetTableValue", msg);
-                    this.netValueString += msg.content.body;
+            this.registerListener();
 
-                    if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                        msg.content.body = this.netValueString;
-                        this.hadNetData = true;
-                        if (msg.content.msret.msgcode !== "00") {
-                            alert("获取净值数据失败：" + msg.content.msret.msg);
-                            return;
-                        }
-
-                        let netTableValue = JSON.parse(msg.content.body);
-                        if (netTableValue.msret.msgcode === "00") {
-                            this.netTableValue = netTableValue.body;
-
-                            this.netTableValue.forEach((currentValue, index, array) => {
-                                let netvalue = parseFloat(currentValue.netvalue);
-                                if (isNaN(netvalue)) {
-                                    currentValue.netvalue = 0;
-                                } else {
-                                    currentValue.netvalue = netvalue;
-                                }
-                            });
-                            console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-                            if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-                                this.beginCalculateRiskFactor();
-                            }
-
-                        } else {
-                            alert("获取净值数据失败：" + netTableValue.msret.msg);
-                        }
-                    }
-
-                }
-            });
-
-            if (RiskFactorComponent.strategyIndex > 0) {
-                console.log(RiskFactorComponent.strategyIndex - 1);
-                let strategyId = RiskFactorComponent.self.strategyData[RiskFactorComponent.strategyIndex - 1].strategy_id;
+            if (FactorAnalysisComponent.strategyIndex > 0) {
+                console.log(FactorAnalysisComponent.strategyIndex - 1);
+                let strategyId = FactorAnalysisComponent.self.strategyData[FactorAnalysisComponent.strategyIndex - 1].trid;
                 console.log(this.startDate, strategyId);
                 console.log(this.startDate, tblockId);
                 // strategyfuturehold
-                this.tradePoint.addSlot({
-                    appid: this.productAppID,
-                    packid: 220,
-                    callback: (msg) => {
-                        console.log("strategyfuturehold", msg, msg.content.head.pkgCnt, msg.content.head.pkgIdx);
-                        this.strategyfuturehold += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            msg.content.body = this.strategyfuturehold;
-                            // console.log(this.strategyfuturehold);
-                            console.log("strategyfuturehold", msg);
-                            this.hadFutureHold = true;
+                // strategystockhold
+                this.registerListener();
 
-                            if (msg.content.msret.msgcode !== "00") {
-                                alert("获取策略期货持仓失败：" + msg.content.msret.msg);
-                                return;
-                            }
-
-                            let strategyFutureHold = JSON.parse(msg.content.body);
-
-                            if (strategyFutureHold.msret.msgcode === "00") {
-                                this.futurePosition = strategyFutureHold.body;
-                                console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-
-                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-                                    this.beginCalculateRiskFactor();
-                                }
-                            } else {
-                                alert("获取策略期货持仓失败：" + msg.content.msret.msg);
-                            }
-                        }
-                    }
-                });
                 this.strategyfuturehold = "";
                 this.hadFutureHold = false;
                 this.futurePosition = [];
-                this.tradePoint.send(this.productAppID, 220, { body: { strategy_id: strategyId, begin_date: this.startDate, end_date: this.startDate, product_id: tblockId } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getStrategyFuturesHoldWeight"}, body: { begin_date: this.startDate, end_date: this.endDate, trid: strategyId } });
 
-                // strategystockhold
-                this.tradePoint.addSlot({
-                    appid: this.productAppID,
-                    packid: 222,
-                    callback: (msg) => {
-                        console.log("strategystockhold", msg, msg.content.head.pkgCnt, msg.content.head.pkgIdx);
-                        this.strategystockhold += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            msg.content.body = this.strategystockhold;
-
-                            console.log("strategystockhold", msg);
-                            this.hadStockHold = true;
-
-                            if (msg.content.msret.msgcode !== "00") {
-                                alert("获取策略股票持仓失败：" + msg.content.msret.msg);
-                                return;
-                            }
-
-                            let strategystockhold = JSON.parse(msg.content.body);
-
-                            if (strategystockhold.msret.msgcode === "00") {
-                                this.getGroupPosition(strategystockhold.body);
-                                console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-
-                                    this.beginCalculateRiskFactor();
-                                }
-                            } else {
-                                alert("获取策略股票持仓失败：" + strategystockhold.msret.msg);
-                            }
-                            console.log("strategystockhold", strategystockhold, this.groupPosition);
-                        }
-                    }
-                });
                 this.strategystockhold = "";
                 this.hadStockHold = false;
                 this.groupPosition = [];
-                this.tradePoint.send(this.productAppID, 222, { body: { strategy_id: strategyId, product_id: tblockId, begin_date: this.startDate, end_date: this.startDate } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getStrategyStockHoldWeight"}, body: {begin_date: this.startDate, end_date: this.endDate, trid: strategyId } });
 
                 this.hadNetData = false;
                 this.netTableValue = [];
                 this.netValueString = "";
-                this.tradePoint.send(this.productAppID, 226, { body: { type: 1, id: strategyId, begin_date: this.startDate, end_date: this.endDate } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getProductNet"}, body: { begin_date: this.startDate, end_date: this.endDate, caid: tblockId } });
                 console.log("send setNetTableValue strategy", tblockId, this.startDate, this.endDate);
             } else {
                 console.log(this.startDate, tblockId);
                 // productfuturehold
-                this.tradePoint.addSlot({
-                    appid: this.productAppID,
-                    packid: 228,
-                    callback: (msg) => {
+                // productstockhold
+                this.registerListener();
 
-                        this.productfuturehold += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            msg.content.body = this.productfuturehold;
-
-                            this.hadFutureHold = true;
-                            if (msg.content.msret.msgcode !== "00") {
-                                alert("获取产品期货持仓失败：" + msg.content.msret.msg);
-                                return;
-                            }
-                            let productFutureHold = JSON.parse(msg.content.body);
-                            if (productFutureHold.msret.msgcode === "00") {
-                                this.futurePosition = productFutureHold.body;
-                                console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-                                    this.beginCalculateRiskFactor();
-                                }
-                            } else {
-                                alert("获取产品期货持仓失败：" + productFutureHold.msret.msg);
-                            }
-                            console.log("productFutureHold", productFutureHold, this.groupPosition);
-                        }
-                    }
-                });
                 this.productfuturehold = "";
                 this.hadFutureHold = false;
                 this.futurePosition = [];
-                this.tradePoint.send(this.productAppID, 228, { body: { begin_date: this.startDate, end_date: this.startDate, tblock_id: tblockId } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getProductFuturesHoldWeight"}, body: { begin_date: this.startDate, end_date: this.endDate, caid: tblockId } });
 
-                // productstockhold
-                this.tradePoint.addSlot({
-                    appid: this.productAppID,
-                    packid: 230,
-                    callback: (msg) => {
-
-                        this.productstockhold += msg.content.body;
-                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
-                            msg.content.body = this.productstockhold;
-
-                            console.log("productstockhold", msg);
-                            this.hadStockHold = true;
-                            if (msg.content.msret.msgcode !== "00") {
-                                alert("获取产品股票持仓失败：" + msg.content.msret.msg);
-                                return;
-                            }
-                            let productStockHold = JSON.parse(msg.content.body);
-                            if (productStockHold.msret.msgcode === "00") {
-                                this.getGroupPosition(productStockHold.body);
-                                console.log(this.hadNetData, this.hadStockHold, (!this.needFutures || this.needFutures && this.hadFutureHold), this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold));
-                                if (this.hadNetData && this.hadStockHold && (!this.needFutures || this.needFutures && this.hadFutureHold)) {
-                                    this.beginCalculateRiskFactor();
-                                }
-
-                            } else {
-                                alert("获取产品股票持仓失败：" + productStockHold.msret.msg);
-                            }
-                            console.log("productStockHold", productStockHold, this.groupPosition);
-                        }
-                    }
-                });
                 this.productstockhold = "";
                 this.hadStockHold = false;
                 this.groupPosition = [];
-                this.tradePoint.send(this.productAppID, 230, { body: { begin_date: this.startDate, end_date: this.startDate, tblock_id: tblockId } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getProductStockHoldWeight"}, body: { begin_date: this.startDate, end_date: this.endDate, caid: tblockId } });
 
                 this.hadNetData = false;
                 this.netTableValue = [];
                 this.netValueString = "";
-                this.tradePoint.send(this.productAppID, 226, { body: { type: 0, id: tblockId, begin_date: this.startDate, end_date: this.endDate } });
+                this.tradePoint.send(260, 251, { head:{realActor:"getProductNet"}, body: { begin_date: this.startDate, end_date: this.endDate, caid: tblockId } });
                 console.log("send setNetTableValue", tblockId, this.startDate, this.endDate);
             }
         } else {
@@ -855,85 +1193,8 @@ export class RiskFactorComponent implements OnDestroy {
         }
     }
 
-    searchresult() {
-        console.log(this.activeTab);
-        this.openDate = this.opendate.replace(/-/g, "");
-        this.closeDate = this.closedate.replace(/-/g, "");
-        console.log(this.openDate, this.closeDate);
-
-        this.readAndHandleAlpha();
-        let startDateIndex = 1, endDateIndex = this.alphaData.length - 2;
-        for (let i = 0; i < this.alphaData.length; i++) {
-            if (this.alphaData[i][0] === this.openDate) {
-                startDateIndex = i;
-            }
-            if (this.alphaData[i][0] === this.closeDate) {
-                endDateIndex = i;
-            }
-        }
-        console.log(startDateIndex, endDateIndex);
-        this.setAlphaEchart(this.alphaData, startDateIndex, endDateIndex, this.alphaChart);
-
-        let alphaRelevanceFile = [], dirAlphaFiles = [];
-
-        try {
-            dirAlphaFiles = fs.readdirSync(path.join(this.dataDir, "correlation_matrix"));
-        } catch (err) {
-            console.log("err", err);
-            return;
-        }
-
-        if (dirAlphaFiles.length === 0) {
-            alert("您选择的路径内没有文件,无法计算");
-            return;
-        }
-        for (let fileIndex = 0; fileIndex < dirAlphaFiles.length; ++fileIndex) {   // csv文件在打开时可能还有其他的文件存在
-            if ((this.openDate === "" || this.closeDate === "")) {
-                alert("请选择时间范围");
-                return;
-            }
-            if (this.openDate !== "" && dirAlphaFiles[fileIndex] < (this.openDate + ".csv")) {
-                continue;
-            }
-            if (this.closeDate !== "" && dirAlphaFiles[fileIndex] > (this.closeDate + ".csv")) {
-                continue;
-            }
-            alphaRelevanceFile.push(dirAlphaFiles[fileIndex]);
-        }
-        console.log("alphaRelevanceFile", alphaRelevanceFile);
-        for (let fileIndex = 0; fileIndex < alphaRelevanceFile.length; ++fileIndex) {
-            this.readAndHandleAlphaRelevance(path.join(this.dataDir, "correlation_matrix", alphaRelevanceFile[fileIndex]));
-            if (fileIndex === 0) {
-                this.alphaRelevanceResult = this.alphaRelevance;
-            }
-            this.alphaRelevanceResult = this.averageValue(this.alphaRelevanceResult, this.alphaRelevance);
-        }
-        for (let i = 1; i < this.alphaRelevanceResult.length; i++) {
-            for (let j = 1; j < this.alphaRelevanceResult[1].length; j++) {
-                this.alphaRelevanceResult[i][j] = this.alphaRelevanceResult[i][j].toFixed(4);
-            }
-        }
-        this.setAlphaHotEchart(this.alphaRelevanceResult, this.alphaHotChart);
-
-    }
-
-    // 计算平均值
-    averageValue(arrA, arrB) {
-        for (let i = 1; i < arrB.length; i++) {
-            for (let j = 1; j < arrB[i].length; j++) {
-                arrA[i][j] = parseFloat(arrA[i][j]);
-                arrB[i][j] = parseFloat(arrB[i][j]);
-                if (isNaN(arrA[i][j])) {
-                    arrA[i][j] = 0;
-                }
-                if (isNaN(arrB[i][j])) {
-                    arrB[i][j] = 0;
-                }
-                arrA[i][j] = (arrA[i][j] + arrB[i][j]) / 2;
-                // arrA[i][j] = arrA[i][j].toFixed(2);
-            }
-        }
-        return arrA;
+    getExposure() {
+        this.tradePoint.send(260, 251, { head:{realActor:"getFactorStockExposure"}, body: { begin_date: this.startDate, end_date: this.endDate } });
     }
 
     // 开始读取并计算数据
@@ -1098,260 +1359,58 @@ export class RiskFactorComponent implements OnDestroy {
     sumOfStockFactorReturnAttr(holdStockExposure, riskFactorReturn, returnDateIndex) {
         for (let stockIndex = 0; stockIndex < holdStockExposure.length; ++stockIndex) {   // 循环持仓股票
 
-            for (let i = 1; i < riskFactorReturn[returnDateIndex].length; ++i) {    // 循环风险因子收益
+
+            for (let i = 1; i < riskFactorReturn[0].length; ++i) {    // 循环风险因子收益
 
                 if (typeof holdStockExposure[stockIndex]["returnAttr"][i - 1] === "undefined") {
                     holdStockExposure[stockIndex]["returnAttr"][i - 1] = 0;
                 }
 
-                holdStockExposure[stockIndex]["allRiskFactorReturnAttr"] += riskFactorReturn[returnDateIndex][i] * holdStockExposure[stockIndex]["stockExposure"][i - 1];   // 累加单个股票在所有收益因子下的收益归因
-                holdStockExposure[stockIndex]["returnAttr"][i - 1] += riskFactorReturn[returnDateIndex][i] * holdStockExposure[stockIndex]["stockExposure"][i - 1];   // 保存单个股票在各个收益因子下的收益归因
-            }
-
-        }
-
-
-    }
-
-    // 设置收益的两个图表
-    setriskFactorReturnEchart(riskFactorReturn) {
-
-        if (riskFactorReturn.length === 0) {
-            console.log("风险因子收益没有数据,请检查重试!");
-            return;
-        }
-        let startDateIndex = 1, endDateIndex = riskFactorReturn.length - 2;
-
-        this.setReturnEchart(riskFactorReturn, startDateIndex, endDateIndex, this.everyDayReturnEchart, this.riskFactorReturnEchart);
-
-        // 初始化最近一年的数据
-        let today = new Date(), rfrIndex = 0;
-        let thisYearFirstDay = today.getFullYear() + "0101";
-
-        for (let dateIndex = riskFactorReturn.length - 1; dateIndex > 0; --dateIndex) {
-
-            if (riskFactorReturn[dateIndex][this.rfrDateIndex] < thisYearFirstDay) {
-                rfrIndex = dateIndex + 1;
-                break;
-            }
-
-        }
-
-        if (rfrIndex === 0 || rfrIndex === riskFactorReturn.length) {
-            alert("没有找到当年的收益数据");
-            return;
-        }
-
-        this.setReturnEchart(riskFactorReturn, rfrIndex, riskFactorReturn.length - 1, this.everyDayYearReturnEchart, this.lastDayYearReturnEchart);
-
-
-    }
-
-    // 设置alpha因子展示
-    setAlphaEchart(alphaData, startIndex, endIndex, lineChart) {
-        let chartLegendData = [], xAxisDatas = [], series = [];    // 分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
-        let allRiskReturnXAxis = [], allRiskReturnSeries = [];   // 统计总共的x坐标数组,和具体每一条曲线的数据
-
-        for (let riskIndex = 1; riskIndex < alphaData[0].length; ++riskIndex) {    // 遍历每一个风险因子
-            let lengendData = { name: alphaData[0][riskIndex] }; // ,textStyle: { color: "#F3F3F5" }
-            chartLegendData.push(lengendData);
-            allRiskReturnXAxis.push(alphaData[0][riskIndex]);  // 柱状图的x轴分类
-
-            // 具体每一条曲线的数据
-            let seriesData = { name: alphaData[0][riskIndex], type: "line", data: [] };
-            let riskFactorAllDateReturn = 0;
-
-            for (let i = startIndex; i <= endIndex; ++i) {
-                riskFactorAllDateReturn += alphaData[i][riskIndex];
-                seriesData.data.push(riskFactorAllDateReturn);
-            }
-
-            series.push(seriesData);
-            allRiskReturnSeries.push(riskFactorAllDateReturn);
-        }
-
-        // 设置x坐标日期数组
-        for (let i = startIndex; i <= endIndex; ++i) {
-            xAxisDatas.push(alphaData[i][this.rfrDateIndex]);
-        }
-        console.log(chartLegendData, xAxisDatas, series);
-        let option = {
-            baseOption: {
-                title: {
-                    show: false,
-                },
-                tooltip: {
-                    trigger: "axis",
-                    axisPointer: {
-                        type: "cross",
-                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
-                    },
-                    textStyle: {
-                        align: "left"
-                    }
-                },
-                legend: {
-                    data: chartLegendData,
-                    textStyle: { color: "#F3F3F5" }
-                },
-                xAxis: [{
-                    data: xAxisDatas,
-                    axisLabel: {
-                        textStyle: { color: "#F3F3F5" }
-                    },
-                    axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
-                    }
-                }],
-                yAxis: [{
-                    axisLabel: {
-                        show: true,
-                        textStyle: { color: "#F3F3F5" }
-                    },
-                    axisLine: {
-                        lineStyle: { color: "#F3F3F5" }
-                    },
-                    scale: true,
-                    boundaryGap: [0.2, 0.2]
-                }],
-                dataZoom: [{
-                    type: "inside",
-                    xAxisIndex: 0,
-                    start: 0,
-                    end: 100
-                }, {
-                    start: 0,
-                    end: 10,
-                    handleIcon: "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
-                    handleSize: "60%",
-                    textStyle: {
-                        color: "#FFF"
-                    },
-                    handleStyle: {
-                        color: "#fff",
-                        shadowBlur: 3,
-                        shadowColor: "rgba(0, 0, 0, 0.6)",
-                        shadowOffsetX: 2,
-                        shadowOffsetY: 2
-                    }
-                }],
-                series: series,
-                animationThreshold: 10000
-                // color: [
-                //     "#00b", "#0b0"
-                // ]
-            },
-            media: this.defaultMedia
-
-        };
-
-        lineChart.setOption(option);
-    }
-
-    // 设置热力图
-    setAlphaHotEchart(alphaArr, hotchart) {
-        console.log(alphaArr);
-        let xdata = [];
-        let ydata = [];
-        xdata.push(alphaArr[0][1], alphaArr[0][2], alphaArr[0][3], alphaArr[0][4], alphaArr[0][5], alphaArr[0][6], alphaArr[0][7], alphaArr[0][8], alphaArr[0][9]);
-        ydata = xdata;
-
-        for (let i = 0; i < alphaArr.length - 1; i++) {
-            for (let j = 0; j < alphaArr[0].length - 1; j++) {
-                this.hotChartData.push([i, j, alphaArr[i + 1][j + 1]]);
-            }
-        }
-        console.log(xdata, ydata, this.hotChartData);
-        this.hotChartData = this.hotChartData.map(function (item) {
-            return [item[1], item[0], item[2] || "-"];
-        });
-
-
-        let option = {
-            tooltip: {
-                trigger: "item",
-                position: "top",
-                confine: true
-            },
-            animation: false,
-            grid: {
-                height: "80%",
-                y: "11%"
-            },
-            xAxis: {
-                type: "category",
-                data: xdata,
-                splitArea: {
-                    show: true
-                },
-                axisLabel: {
-                    textStyle: { color: "#F3F3F5" }
-                },
-                axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
+                if(returnDateIndex !== -1) {
+                    holdStockExposure[stockIndex]["allRiskFactorReturnAttr"] += riskFactorReturn[returnDateIndex][i] * holdStockExposure[stockIndex]["stockExposure"][i - 1];   // 累加单个股票在所有收益因子下的收益归因
+                    holdStockExposure[stockIndex]["returnAttr"][i - 1] += riskFactorReturn[returnDateIndex][i] * holdStockExposure[stockIndex]["stockExposure"][i - 1];   // 保存单个股票在各个收益因子下的收益归因
                 }
-            },
-            yAxis: {
-                type: "category",
-                data: ydata,
-                splitArea: {
-                    show: true
-                },
-                axisLabel: {
-                    textStyle: { color: "#F3F3F5" }
-                },
-                axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
-                }
-            },
-            visualMap: {
-                min: -1,
-                max: 1,
-                calculable: true,
-                orient: "horizontal",
-                left: "center",
-                top: "1%",
-                textStyle: { color: "#F3F3F5" }
-            },
-            series: [{
-                name: "alpha因子相关性",
-                type: "heatmap",
-                data: this.hotChartData,
-                label: {
-                    normal: {
-                        show: true,
-                        textStyle: {
-                            color: "black"
-                        }
-                    }
-                },
-                itemStyle: {
-                    emphasis: {
-                        shadowBlur: 10,
-                        shadowColor: "rgba(0,0,0,0.5)"
-                    }
-                }
-            }]
-        };
-        hotchart.setOption(option);
+            }
+
+        }
+
+
     }
 
     // 设置收益的两个图表,有被复用
-    setReturnEchart(riskFactorReturn, startIndex, endIndex, lineChart, barChart) {
+    setReturnEchart(riskFactorInfoArray, startIndex, endIndex, lineChart, barChart) {
         let chartLegendData = [], xAxisDatas = [], series = [];    // 分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
         let allRiskReturnXAxis = [], allRiskReturnSeries = [];   // 统计总共的x坐标数组,和具体每一条曲线的数据
 
-        for (let riskIndex = 1; riskIndex < riskFactorReturn[0].length; ++riskIndex) {    // 遍历每一个风险因子
-            let lengendData = { name: riskFactorReturn[0][riskIndex] }; // ,textStyle: { color: "#F3F3F5" }
+        // for (let riskIndex = 1; riskIndex < riskFactorReturn[0].length; ++riskIndex) {    // 遍历每一个风险因子
+        //     let lengendData = { name: riskFactorReturn[0][riskIndex] }; // ,textStyle: { color: "#F3F3F5" }
+        //     chartLegendData.push(lengendData);
+        //     allRiskReturnXAxis.push(riskFactorReturn[0][riskIndex]);  // 柱状图的x轴分类
+        //
+        //     // 具体每一条曲线的数据
+        //     let seriesData = { name: riskFactorReturn[0][riskIndex], type: "line", data: [] };
+        //     let riskFactorAllDateReturn = 0;
+        //
+        //     for (let i = startIndex; i <= endIndex; ++i) {
+        //         riskFactorAllDateReturn += riskFactorReturn[i][riskIndex];
+        //         seriesData.data.push(riskFactorAllDateReturn);
+        //     }
+        //
+        //     series.push(seriesData);
+        //     allRiskReturnSeries.push(riskFactorAllDateReturn);
+        // }
+
+        for (let riskIndex = 0; riskIndex < riskFactorInfoArray.length; ++riskIndex) {    // 遍历每一个风险因子
+            let lengendData = { name: riskFactorInfoArray[riskIndex].factorname }; // ,textStyle: { color: "#F3F3F5" }
             chartLegendData.push(lengendData);
-            allRiskReturnXAxis.push(riskFactorReturn[0][riskIndex]);  // 柱状图的x轴分类
+            allRiskReturnXAxis.push(riskFactorInfoArray[riskIndex].factorname);  // 柱状图的x轴分类
 
             // 具体每一条曲线的数据
-            let seriesData = { name: riskFactorReturn[0][riskIndex], type: "line", data: [] };
+            let seriesData = { name: riskFactorInfoArray[riskIndex].factorname, type: "line", data: [] };
             let riskFactorAllDateReturn = 0;
 
             for (let i = startIndex; i <= endIndex; ++i) {
-                riskFactorAllDateReturn += riskFactorReturn[i][riskIndex];
+                riskFactorAllDateReturn += riskFactorInfoArray[riskIndex].returns[i].factor_returns;
                 seriesData.data.push(riskFactorAllDateReturn);
             }
 
@@ -1361,8 +1420,9 @@ export class RiskFactorComponent implements OnDestroy {
 
         // 设置x坐标日期数组
         for (let i = startIndex; i <= endIndex; ++i) {
-            xAxisDatas.push(riskFactorReturn[i][this.rfrDateIndex]);
+            xAxisDatas.push(riskFactorInfoArray[0].returns[i].trday);
         }
+        console.log(chartLegendData, allRiskReturnXAxis, series, allRiskReturnSeries, xAxisDatas);
 
         let option = {
             baseOption: {
@@ -1422,7 +1482,8 @@ export class RiskFactorComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: series,
                 animationThreshold: 10000
@@ -1525,6 +1586,7 @@ export class RiskFactorComponent implements OnDestroy {
 
     // 设置风险因子暴露的两个图表
     setriskFactorExposureEchart(everyDayExposure, groupPosition, riskFactorReturn) {
+        console.log(riskFactorReturn);
 
         let riskFactorExposureXAxis = [], riskFactorExposureSeries = [],
             chartLegendData = [], everydayExposureXAxis = [], everydayExposureSeries = [];
@@ -1621,7 +1683,8 @@ export class RiskFactorComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: everydayExposureSeries
                 // color: [
@@ -1826,7 +1889,8 @@ export class RiskFactorComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: everyDayReturnAttrSeries
                 // color: [
@@ -1995,7 +2059,8 @@ export class RiskFactorComponent implements OnDestroy {
                         shadowColor: "rgba(0, 0, 0, 0.6)",
                         shadowOffsetX: 2,
                         shadowOffsetY: 2
-                    }
+                    },
+                    type: "inside"
                 }],
                 series: [{
                     name: "股票归因",
@@ -2023,113 +2088,492 @@ export class RiskFactorComponent implements OnDestroy {
         // 保存用户设置
         if (this.activeTab === "风险因子分析") {
             if (this.iproduct) {
-                RiskFactorComponent.productStat = this.iproduct;
+                FactorAnalysisComponent.productStat = this.iproduct;
             }
             if (this.istrategy) {
-                RiskFactorComponent.strategyStat = this.istrategy;
+                FactorAnalysisComponent.strategyStat = this.istrategy;
             }
-            if (this.iproducts) {
-                RiskFactorComponent.productsStat = this.iproducts;
+            if (this.iproducts && this.iproducts !== []) {
+                FactorAnalysisComponent.productsStat = this.iproducts;
             }
-            if (this.istrategys) {
-                RiskFactorComponent.strategiesStat = this.istrategys;
+            if (this.istrategys && this.istrategys !== ["选择所有策略"]) {
+                FactorAnalysisComponent.strategiesStat = this.istrategys;
             }
             if (this.startdate) {
-                RiskFactorComponent.startdateStat = this.startdate;
+                FactorAnalysisComponent.startdateStat = this.startdate;
             }
             if (this.enddate) {
-                RiskFactorComponent.enddateStat = this.enddate;
+                FactorAnalysisComponent.enddateStat = this.enddate;
             }
             if (this.hedge) {
-                RiskFactorComponent.hedgeStat = this.hedge;
+                FactorAnalysisComponent.hedgeStat = this.hedge;
             }
             if (this.hedgeRadio) {
-                RiskFactorComponent.hedgeratioStat = this.hedgeRadio;
+                FactorAnalysisComponent.hedgeratioStat = this.hedgeRadio;
             } else {
-                RiskFactorComponent.hedgeratioStat = 0;
+                FactorAnalysisComponent.hedgeratioStat = 0;
             }
         }
+    }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "rf-alpha",
+    templateUrl: "rf-alpha.html",
+    styleUrls: ["home.component.css", "riskfactor.component.css"],
+    providers: [DatePipe],
+    inputs: ["activeTab"]
+})
+export class FactorAlphaComponent {
+    activeTab: string;
+    static self: any;
+    static opendateStat: string;
+    static closedateStat: string;
+    rfrDateIndex: number = 0; // 保存风险因子收益日期的索引
+    styleObj: any;
+    dataSource: any;
+    opendate: string;
+    closedate: string;
+    openDate: string;
+    closeDate: string;
+    alphaHotChart: any;
+    alphaChart: any;
+    defaultMedia: any;
+    getAlphaFactorReturnString: string = "";
+    getFactorCorrelationString: string = "";
+    riskFactorInfoArray: any[] = [];
+    alphaFactorInfoArray: any[] = [];
+    alphaRelevance: any[] = []; // alpha相关性
+    alphaRelevanceResult: any[] = []; // alpha相关性结果
+    hotChartData: any[] = []; // 存放图标的data
+    dataDir: string; 
+    getFactorInfoString: string = "";
+
+    constructor(private tradePoint: TradeService, private datePipe: DatePipe) {
+        FactorAlphaComponent.self = this;
+    }
+
+    ngOnInit() {
+        this.defaultMedia = [{
+            option: {
+                grid: {
+                    left: "10%",
+                    right: "10%"
+                }
+            }
+        }, {
+            query: {
+                maxWidth: 650
+            },
+            option: {
+                grid: {
+                    left: 65,
+                    right: 65
+                }
+            }
+        }];
+ 
+         // alpha
+        this.alphaHotChart = echarts.init(document.getElementById("alphahotchart") as HTMLDivElement);
+        this.alphaChart = echarts.init(document.getElementById("alphachart") as HTMLDivElement);
+
+        let date1 = new Date().setMonth((new Date().getMonth() - 3));
+        let date2 = new Date();
+        this.opendate = this.datePipe.transform(date1, "yyyy-MM-dd");
+        this.closedate = this.datePipe.transform(date2, "yyyy-MM-dd");
+        if (FactorAlphaComponent.opendateStat !== undefined) {
+            this.opendate = FactorAlphaComponent.opendateStat;
+        }
+        if (FactorAlphaComponent.closedateStat !== undefined) {
+            this.closedate = FactorAlphaComponent.closedateStat;
+        }
+
+        this.tradePoint.addSlot({
+            appid: 260,
+            packid: 251,
+            callback: (msg) => {
+                console.log(msg);
+                switch (msg.content.head.actor) {
+                    case "getFactorInfoAns":
+                        this.getFactorInfoString += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            let data1 = JSON.parse(this.getFactorInfoString);
+                            if (data1.msret.msgcode === "00") {
+                                data1.body.forEach( function(factorInfo) {
+                                    factorInfo.factorid = parseInt(factorInfo.factorid);
+                                    factorInfo.factortype = parseInt(factorInfo.factortype);
+                                    factorInfo.returns = [];
+                                    if (factorInfo.factortype === 1) {
+                                        FactorAlphaComponent.self.alphaFactorInfoArray.push(factorInfo);
+                                    } else if (factorInfo.factortype === 2) {
+                                        FactorAlphaComponent.self.riskFactorInfoArray.push(factorInfo);
+                                    }
+                                });
+                                console.log(FactorAlphaComponent.self.alphaFactorInfoArray);
+                                this.searchresult();
+                            } else {
+                                alert("Get getFactorInfo Failed! " + data1.msret.msg);
+                            }
+                        }
+                        break;
+                    default:
+ 
+                }
+            }
+        });
+
+        this.tradePoint.send(260, 251, {head:{realActor:"getFactorInfo"}, body: {} });
+
+        window.onresize = () => {
+            this.resizeFunction();
+        };
+    }
+
+    // 界面变化时,重置而echart的大小
+    resizeFunction() {
+        this.alphaHotChart.resize();
+        this.alphaChart.resize();
+    }
+
+    searchresult() {
+        this.openDate = this.opendate.replace(/-/g, "");
+        this.closeDate = this.closedate.replace(/-/g, "");
+
+        this.tradePoint.addSlot({
+            appid: 260,
+            packid: 251,
+            callback: (msg) => {
+                switch (msg.content.head.actor) {
+                    case "getAlphaFactorReturnAns":
+                        this.getAlphaFactorReturnString += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            let data2 = JSON.parse(this.getAlphaFactorReturnString);
+                            if (data2.msret.msgcode === "00") {
+                                let i = 0 , j = 0;
+                                for (; i < FactorAlphaComponent.self.alphaFactorInfoArray.length; i++) {
+                                    for (; j < data2.body.length; j++) {
+                                        if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid == data2.body[j].factorid ) {
+                                            data2.body[j].factor_returns = parseFloat(data2.body[j].factor_returns);
+                                            FactorAlphaComponent.self.alphaFactorInfoArray[i].returns.push(data2.body[j]) ;
+                                        } else if (FactorAlphaComponent.self.alphaFactorInfoArray[i].factorid > data2.body[j].factorid) {
+                                            continue;
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                }
+                                this.setRiskFactorReturnEchart(this.alphaFactorInfoArray);
+                            } else {
+                                alert("Get getAlphaFactorReturn Failed! " + data2.msret.msg);
+                            }
+                        }
+                        break;
+                    case "getFactorCorrelationAns":
+                        this.getFactorCorrelationString += msg.content.body;
+                        if (msg.content.head.pkgIdx === (msg.content.head.pkgCnt - 1)) {
+                            let data1 = JSON.parse(this.getFactorCorrelationString);
+                            if (data1.msret.msgcode === "00") {
+                                console.log(data1.body);
+                                data1.body.forEach((item) => {
+                                    let relevanceArr = [parseInt(item.factorid1) - 1, parseInt(item.factorid2) - 1, parseFloat(item.value)];
+                                    this.alphaRelevance.push(relevanceArr);
+                                });
+                                console.log(this.alphaRelevance);
+                                this.averageValue(this.alphaRelevance);
+                            } else {
+                                alert("Get getFactorCorrelation Failed! " + data1.msret.msg);
+                            }
+                        }
+                        break;
+                    default:
+
+                }
+            }
+        });
+
+        this.getAlphaFactorReturnString = "";
+        FactorAlphaComponent.self.alphaFactorInfoArray.forEach((item) => {
+            item.returns = [];
+        });
+        this.tradePoint.send(260, 251, {head:{realActor:"getAlphaFactorReturn"}, body: { begin_date: this.openDate, end_date: this.closeDate } });
+
+        this.getFactorCorrelationString = "";
+        this.alphaRelevance = [];
+        this.hotChartData = [];
+        this.tradePoint.send(260, 251, {head:{realActor:"getFactorCorrelation"}, body: { begin_date: this.openDate, end_date: this.closeDate } });
+
+    }
+
+    // 计算平均值
+    averageValue(arr) {
+        let id1 = 1, id2 = 0, flag = 0;
+        for (let i = 0; i < arr.length; ++i) {
+            if (arr[i][0] === id1 && arr[i][1] === id2){
+                flag++;
+                id1 = arr[i][0];
+                id2 = arr[i][1];
+            } else {
+                break;
+            }
+        }
+        console.log(flag);
+        let result = [];
+        for (let i = 0; i < arr.length; i += flag) {
+            result.push(arr.slice(i, i + flag));
+        }
+        for (let j = 0; j < result.length; ++j) {
+            let sum = 0, average = 0;
+            for (let k = 0; k < result[j].length; ++k) {
+                sum += parseFloat(result[j][k][2]);
+            }
+            console.log(sum);
+            average = parseFloat((sum / result[j].length).toFixed(4));
+            result[j][0][2] = average;
+            result[j][1][0] = result[j][0][1];
+            result[j][1][1] = result[j][0][0];
+            result[j][1][2] = result[j][0][2];
+            this.hotChartData.push(result[j][0], result[j][1]);
+        }
+        for (let index = 0; index < this.alphaFactorInfoArray.length; ++index) {
+            let arr = [index, index, 1];
+            this.hotChartData.push(arr);
+        }
+        console.log(this.hotChartData);
+        this.setAlphaHotEchart();
+    }
+
+    // 设置alpha因子展示
+    setRiskFactorReturnEchart(alphaFactorInfoArray) {
+        console.log(this.alphaFactorInfoArray);
+
+        if (alphaFactorInfoArray.length === 0 || alphaFactorInfoArray[0].returns.length === 0) {
+            console.log("alpha因子收益没有数据,请检查重试!");
+            return;
+        }
+        let startDateIndex = 0, endDateIndex = alphaFactorInfoArray[0].returns.length - 1;
+
+        this.setAlphaEchart(alphaFactorInfoArray, startDateIndex, endDateIndex, this.alphaChart);
+    }
+
+        
+    setAlphaEchart(alphaFactorInfoArray, startIndex, endIndex, lineChart) {
+        let chartLegendData = [], xAxisDatas = [], series = [];    // 分别连续多天对应图例组件数组,x坐标数组,和具体每一条曲线的数据
+        let allRiskReturnXAxis = [], allRiskReturnSeries = [];   // 统计总共的x坐标数组,和具体每一条曲线的数据
+
+        for (let riskIndex = 0; riskIndex < alphaFactorInfoArray.length; ++riskIndex) {    // 遍历每一个风险因子
+            let lengendData = { name: alphaFactorInfoArray[riskIndex].factorname }; // ,textStyle: { color: "#F3F3F5" }
+            chartLegendData.push(lengendData);
+            allRiskReturnXAxis.push(alphaFactorInfoArray[riskIndex].factorname);  // 柱状图的x轴分类
+
+            // 具体每一条曲线的数据
+            let seriesData = { name: alphaFactorInfoArray[riskIndex].factorname, type: "line", data: [] };
+            let riskFactorAllDateReturn = 0;
+
+            for (let i = startIndex; i <= endIndex; ++i) {
+                riskFactorAllDateReturn += alphaFactorInfoArray[riskIndex].returns[i].factor_returns;
+                seriesData.data.push(riskFactorAllDateReturn);
+            }
+
+            series.push(seriesData);
+            allRiskReturnSeries.push(riskFactorAllDateReturn);
+        }
+
+        // 设置x坐标日期数组
+        for (let i = startIndex; i <= endIndex; ++i) {
+            xAxisDatas.push(alphaFactorInfoArray[0].returns[i].trday);
+        }
+        console.log(chartLegendData, allRiskReturnXAxis, series, allRiskReturnSeries, xAxisDatas);
+
+        let option = {
+            baseOption: {
+                title: {
+                    show: false,
+                },
+                tooltip: {
+                    trigger: "axis",
+                    axisPointer: {
+                        type: "cross",
+                        label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
+                    },
+                    textStyle: {
+                        align: "left"
+                    }
+                },
+                legend: {
+                    data: chartLegendData,
+                    textStyle: { color: "#F3F3F5" }
+                },
+                xAxis: [{
+                    data: xAxisDatas,
+                    axisLabel: {
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    }
+                }],
+                yAxis: [{
+                    axisLabel: {
+                        show: true,
+                        textStyle: { color: "#F3F3F5" }
+                    },
+                    axisLine: {
+                        lineStyle: { color: "#F3F3F5" }
+                    },
+                    scale: true,
+                    boundaryGap: [0.2, 0.2]
+                }],
+                dataZoom: [{
+                    type: "inside",
+                    xAxisIndex: 0,
+                    start: 0,
+                    end: 100
+                }, {
+                    start: 0,
+                    end: 10,
+                    handleIcon: "M10.7,11.9v-1.3H9.3v1.3c-4.9,0.3-8.8,4.4-8.8,9.4c0,5,3.9,9.1,8.8,9.4v1.3h1.3v-1.3c4.9-0.3,8.8-4.4,8.8-9.4C19.5,16.3,15.6,12.2,10.7,11.9z M13.3,24.4H6.7V23h6.6V24.4z M13.3,19.6H6.7v-1.4h6.6V19.6z",
+                    handleSize: "60%",
+                    textStyle: {
+                        color: "#FFF"
+                    },
+                    handleStyle: {
+                        color: "#fff",
+                        shadowBlur: 3,
+                        shadowColor: "rgba(0, 0, 0, 0.6)",
+                        shadowOffsetX: 2,
+                        shadowOffsetY: 2
+                    },
+                    type: "inside"
+                }],
+                series: series,
+                animationThreshold: 10000
+                // color: [
+                //     "#00b", "#0b0"
+                // ]
+            },
+            media: this.defaultMedia
+
+        };
+
+        lineChart.setOption(option);
+    }
+
+    // 设置热力图
+    setAlphaHotEchart() {
+        let xdata = [];
+        let ydata = [];
+        for (let i = 0; i < this.alphaFactorInfoArray.length; ++i) {
+            xdata.push(this.alphaFactorInfoArray[i].factorname);
+        }
+        ydata = xdata;
+        console.log(xdata, ydata, this.hotChartData);
+        this.hotChartData = this.hotChartData.map(function (item) {
+            return [item[1], item[0], item[2] || "-"];
+        });
+
+
+        let option = {
+            tooltip: {
+                trigger: "item",
+                position: "top",
+                confine: true
+            },
+            animation: false,
+            grid: {
+                height: "80%",
+                y: "11%"
+            },
+            xAxis: {
+                type: "category",
+                data: xdata,
+                splitArea: {
+                    show: true
+                },
+                axisLabel: {
+                    textStyle: { color: "#F3F3F5" }
+                },
+                axisLine: {
+                    lineStyle: { color: "#F3F3F5" }
+                }
+            },
+            yAxis: {
+                type: "category",
+                data: ydata,
+                splitArea: {
+                    show: true
+                },
+                axisLabel: {
+                    textStyle: { color: "#F3F3F5" }
+                },
+                axisLine: {
+                    lineStyle: { color: "#F3F3F5" }
+                }
+            },
+            visualMap: {
+                min: -1,
+                max: 1,
+                calculable: true,
+                orient: "horizontal",
+                left: "center",
+                top: "1%",
+                textStyle: { color: "#F3F3F5" }
+            },
+            series: [{
+                name: "alpha因子相关性",
+                type: "heatmap",
+                data: this.hotChartData,
+                label: {
+                    normal: {
+                        show: true,
+                        textStyle: {
+                            color: "black"
+                        }
+                    }
+                },
+                itemStyle: {
+                    emphasis: {
+                        shadowBlur: 10,
+                        shadowColor: "rgba(0,0,0,0.5)"
+                    }
+                }
+            }]
+        };
+        this.alphaHotChart.setOption(option);
+    }
+
+    /**
+     * disp
+     */
+    ngOnDestroy() {
+        // TODO dispose resource.
+        console.log("destroy");
         // 保存用户设置
         if (this.activeTab === "Alpha因子") {
             if (this.opendate) {
-                RiskFactorComponent.opendateStat = this.opendate;
+                FactorAlphaComponent.opendateStat = this.opendate;
             }
             if (this.closedate) {
-                RiskFactorComponent.closedateStat = this.closedate;
+                FactorAlphaComponent.closedateStat = this.closedate;
             }
         }
-        // 垃圾回收
-        if (this.productData) {
-            this.productData = null;
-        }
-        if (this.strategyData) {
-            this.strategyData = null;
-        }
-        if (this.riskFactorReturnAttr) {
-            this.riskFactorReturnAttr = null;
-        }
-        if (this.riskFactorReturn) {
-            this.riskFactorReturn = null;
-        }
-        if (this.riskFactorExposure) {
-            this.riskFactorExposure = null;
-        }
-        if (this.HedgeRatioData) {
-            this.HedgeRatioData = null;
-        }
-        if (this.alphaRelevance) {
-            this.alphaRelevance = null;
-        }
-        if (this.alphaRelevanceResult) {
-            this.alphaRelevanceResult = null;
-        }
-        if (this.hotChartData) {
-            this.hotChartData = null;
-        }
-        if (this.alphaData) {
-            this.alphaData = null;
-        }
-        if (this.groupPosition) {
-            this.groupPosition = null;
-        }
-        if (this.futurePosition) {
-            this.futurePosition = null;
-        }
-        if (this.netTableValue) {
-            this.netTableValue = null;
-        }
-        if (this.riskFactorReturnEchart) {
-            this.riskFactorReturnEchart = null;
-        }
-        if (this.everyDayReturnEchart) {
-            this.everyDayReturnEchart = null;
-        }
-        if (this.everyDayYearReturnEchart) {
-            this.everyDayYearReturnEchart = null;
-        }
-        if (this.lastDayYearReturnEchart) {
-            this.lastDayYearReturnEchart = null;
-        }
-        if (this.riskFactorExposureEchart) {
-            this.riskFactorExposureEchart = null;
-        }
-        if (this.everyDayRFEEchart) {
-            this.everyDayRFEEchart = null;
-        }
-        if (this.riskFactorReturnAttrEchart) {
-            this.riskFactorReturnAttrEchart = null;
-        }
-        if (this.everyDayRFRAttrEchart) {
-            this.everyDayRFRAttrEchart = null;
-        }
-        if (this.stockAttrEchart) {
-            this.stockAttrEchart = null;
-        }
-        if (this.alphaHotChart) {
-            this.alphaHotChart = null;
-        }
-        if (this.alphaChart) {
-            this.alphaChart = null;
-        }
+    }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "rf-aibrand",
+    templateUrl: "rf-aibrand.html",
+    styleUrls: ["home.component.css", "riskfactor.component.css"],
+    providers: [DatePipe],
+    inputs: ["activeTab"]
+})
+export class AIBrandComponent {
+    constructor() {
+
+    }
+
+    ngOnInit() {
+
     }
 }
