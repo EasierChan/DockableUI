@@ -134,7 +134,7 @@ export enum FGS_MSG {
     kPublish = 107,
     kComboSubscribe = 108,
     kComboUnsubscribe = 109,
-    kComboPublish = 100
+    kComboPublish = 110
 }
 
 export enum ServiceType {

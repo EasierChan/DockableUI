@@ -31,8 +31,6 @@
                 </tr>
             </table>
         </div>
-    </div>
-    <div class="u-row fill">
         <div echarts [options]="chartOption" [loading]="bLoading" (chartInit)="chartInit($event)" class="fill"></div>
         <dock-table2 [dataSource]="orderdetailsTable.dataSource" [styleObj]="orderdetailsTable.styleObj" class="fill"></dock-table2>
     </div>
