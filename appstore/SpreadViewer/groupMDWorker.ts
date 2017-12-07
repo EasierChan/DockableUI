@@ -51,17 +51,28 @@ class DatabaseManager {
     }
 
 
-    insert(row: Object, tableName: string) {
+    insert(rows: any[], tableName: string) {
         let trans = this.db.transaction(tableName, "readwrite");
         let store = trans.objectStore(tableName);
-        let request = store.add(row);
+        let request;
 
-        request.onerror = (event) => {
-            console.info(event);
-        };
+        rows.forEach(item => {
+            request = store.put(item);
+            request.onerror = (event) => {
+                console.error(item);
+            };
+            request.onsuccess = (event) => {
+                // console.info(event);
+            };
+        });
+
 
         trans.oncomplete = (ev) => {
-            ;
+            console.info("finish=>" + Date.now());
+        };
+
+        trans.onabort = (ev) => {
+            console.error(ev);
         };
     }
 
@@ -152,20 +163,22 @@ class Indexer {
 (function () {
     "use strict";
     const DB_NAME = "chronos-tickData";
-    const DB_VERSION = 1;
+    const DB_VERSION = 2;
     let localDB = new DatabaseManager();
     let table = new Table();
     table.name = "tick";
     table.indexers = [{
         name: "ukeytime",
-        keyPath: ["ukey", "time"],
-        unique: true
+        keyPath: ["k", "t"],
+        unique: false
     }, {
         name: "ukey",
-        keyPath: "ukey"
+        keyPath: "k",
+        unique: false
     }, {
         name: "time",
-        keyPath: "time"
+        keyPath: "t",
+        unique: false
     }];
 
     // 
@@ -183,6 +196,10 @@ class Indexer {
     let groups: any[];
     onmessage = (ev: MessageEvent) => {
         switch (ev.data.type) {
+            case "init-db":
+                localDB.removeDB(DB_NAME);
+                localDB.openDB(DB_NAME, DB_VERSION, [table]);
+                break;
             case "init":
                 groups = [];
                 ev.data.groups.forEach(group => {
@@ -210,13 +227,17 @@ class Indexer {
 
                     groups.push(newItem);
                 });
-
-                // localDB.openDB(DB_NAME, DB_VERSION, [table]);
                 // console.info(groups);
                 break;
             case "add-md":
                 let ukey = ev.data.value.ukey;
-                // localDB.insert(ev.data.value, table.name);
+                // localDB.insert([{
+                //     ap: ev.data.value.ask_price,
+                //     bp: ev.data.value.bid_price,
+                //     t: ev.data.value.time,
+                //     p: ev.data.value.last,
+                //     k: ukey
+                // }], table.name);
 
                 for (let i = 0; i < groups.length; ++i) {
                     if (groups[i].ukeys.includes(ukey)) {
@@ -262,6 +283,12 @@ class Indexer {
                         break;
                     }
                 }
+                break;
+            case "add-md-list":
+                console.info("item begin=>", Date.now());
+                // ev.data.value.forEach(item => {
+                localDB.insert(ev.data.value, table.name);
+                // });
                 break;
             case "get-md":
                 localDB.selectByIndexer(table.name, table.indexers[2], IDBKeyRange.upperBound(""));
