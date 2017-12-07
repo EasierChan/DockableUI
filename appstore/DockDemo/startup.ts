@@ -151,7 +151,10 @@ export class StartUp implements IApplication {
     }
 
     loadConfig() {
-        this._appdir = path.join(Path.baseDir, this._name);
+        if (!fs.existsSync(path.join(Path.baseDir, "StrategyTrader")))
+            fs.mkdirSync(path.join(Path.baseDir, "StrategyTrader"));
+
+        this._appdir = path.join(Path.baseDir, "StrategyTrader", this._name);
         if (!fs.existsSync(this._appdir))
             fs.mkdirSync(this._appdir);
 

@@ -335,8 +335,8 @@ export class File {
 export class Environment {
     public static appDataDir: string = electron.remote.app.getPath("appData");
 
-    public static getDataPath(appname: string): string {
-        return path.join(Environment.appDataDir, `ChronosApps-TGW/${appname}`);
+    public static getDataPath(appname: string, internalDir: string = ""): string {
+        return path.join(Environment.appDataDir, "ChronosApps-TGW", internalDir, appname);
     }
 }
 
