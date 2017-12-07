@@ -122,11 +122,13 @@ export class StrategyDealer {
     tradePoint: QtpService;
     appid: number;
     loginInfo: any;
+    connectState: number;
 
     constructor(appid: number, loginInfo) {
         this.tradePoint = new QtpService();
         this.appid = appid;
         this.loginInfo = loginInfo;
+        this.connectState = 0;
     }
 
     connect(port, host) {
@@ -151,33 +153,47 @@ export class StrategyDealer {
             msgtype: FGS_MSG.kLoginAns,
             callback: (msg) => {
                 logger.info(`tgw ans=>${msg}`);
-                process.send({ event: "ss-connect" });
 
-                lasttry = Date.now();
-                this.registerMessages();
+                this.tradePoint.onTopic(2001, (key) => {
+                    if (this.connectState === 0) {
+                        this.connectState = 1;
+                        process.send({ event: "ss-connect" });
+                        this.registerMessages();
+                    }
+                });
+
                 this.tradePoint.subscribe(1, [ServiceType.kStrategy]);
+                this.tradePoint.subscribe(2001, [this.appid]);
                 this.tradePoint.onTopic(1, (key, body) => {
                     let data = (body as Buffer);
                     if (data.readIntLE(0, 8) === this.appid) {
+                        this.connectState = 0;
                         process.send({ event: "ss-close" });
                         data = null;
                     }
                 });
 
-                if (tradeHeart !== null) {
-                    clearInterval(tradeHeart);
-                    tradeHeart = null;
-                }
+                // if (tradeHeart !== null) {
+                //     clearInterval(tradeHeart);
+                //     tradeHeart = null;
+                // }
 
-                tradeHeart = setInterval(() => {
-                    this.tradePoint.send(0, "", ServiceType.kFGS);
-                }, 60000);
+                // tradeHeart = setInterval(() => {
+                //     this.tradePoint.send(0, "", ServiceType.kFGS);
+                // }, 60000);
             }
         }, {
                 service: ServiceType.kStrategy,
                 msgtype: 1001,
                 callback: (body) => {
                     this.decode(body);
+                }
+            },
+            {
+                service: ServiceType.kFGS,
+                msgtype: FGS_MSG.kFGSAns,
+                callback: (msg) => {
+                    console.info(msg.toString());
                 }
             }
         );
@@ -657,9 +673,9 @@ export class StrategyDealer {
         this.sendQtp({ type: 3503, subtype: 0, body: null });
         this.sendQtp({ type: 3509, subtype: 0, body: null });
         this.sendQtp({ type: 3010, subtype: 0, body: null });
-        setInterval(() => {
-            this.sendQtp({ type: 255, subtype: 0, body: null });
-        }, 30000);
+        // setInterval(() => {
+        //     this.sendQtp({ type: 255, subtype: 0, body: null });
+        // }, 30000);
         header = null;
         registerMsg = null;
     }
