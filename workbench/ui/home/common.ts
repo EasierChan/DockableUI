@@ -31,7 +31,7 @@ export class DataSet {
             name: "行情分析",
             icon: "stats",
             // tabs: ["Profit", "RiskFactors"]
-            tabs: ["价差分析"]
+            tabs: ["价差分析", "篮子分析管理"]
         }
     ];
 
