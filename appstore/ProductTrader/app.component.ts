@@ -10,7 +10,6 @@ import {
 } from "../../base/controls/control";
 import { WorkerFactory } from "../../base/api/services/uworker.server";
 import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
-declare let window: any;
 
 @Component({
     moduleId: module.id,
@@ -51,9 +50,8 @@ export class AppComponent implements OnInit {
     }
 
     onDestroy() {
-    }
-
-    createWorker() {
+        File.writeSync(`${Environment.getDataPath(this.option.name, "StrategyTrader")}/layout.json`, this.main.getLayout());
+        File.writeSync(`${Environment.getDataPath(this.option.name, "StrategyTrader")}/config.json`, this.option.config);
     }
 
     ngOnInit() {
@@ -64,9 +62,6 @@ export class AppComponent implements OnInit {
         this.dd_tests.Left = 50;
         this.dd_tests.addItem({ Text: "--all--", Value: undefined });
 
-        this.option.tests.forEach(item => {
-            this.dd_tests.addItem({ Text: item.date + " " + item.id, Value: item });
-        });
         svHeaderRow1.addChild(this.dd_tests);
         let lbl_mode = new Label();
         lbl_mode.Title = "Mode:";
@@ -148,86 +143,6 @@ export class AppComponent implements OnInit {
         panel.addTab(detailsPage, false);
         let profitPage = new TabPage("ProfitViewer", "ProfitViewer");
         let profitContent = new VBox();
-        this.chart = new ChartViewer();
-        this.chart.setOption({
-            title: {
-                show: false,
-            },
-            animation: false,
-            tooltip: {
-                trigger: "axis",
-                axisPointer: {
-                    type: "cross"
-                },
-                backgroundColor: "rgba(245, 245, 245, 0.8)",
-                borderWidth: 1,
-                borderColor: "#ccc",
-                padding: 10,
-                textStyle: {
-                    color: "#000"
-                }
-            },
-            axisPointer: {
-                link: { xAxisIndex: "all" },
-                label: {
-                    backgroundColor: "#777"
-                }
-            },
-            legend: {
-                data: ["净值"]
-            },
-            dataZoom: [
-                {
-                    type: "inside",
-                    xAxisIndex: 0
-                }
-            ],
-            xAxis: [
-                {
-                    type: "category",
-                    boundaryGap: false,
-                    axisPointer: {
-                        z: 100
-                    },
-                    axisLabel: {
-                        textStyle: { color: "#fff" }
-                    },
-                    axisLine: { onZero: false },
-                    data: []
-                }
-            ],
-            yAxis: [
-                {
-                    scale: true,
-                    boundaryGap: [0.2, 0.2],
-                    axisLabel: {
-                        formatter: (value, index) => {
-                            return value;
-                        },
-                        textStyle: {
-                            color: "#fff"
-                        }
-                    }
-                }
-            ],
-            series: [
-                {
-                    name: "净值",
-                    type: "line",
-                    data: [],
-                    label: {
-                        normal: { show: false }
-                    },
-                    tooltip: {
-                        formatter: params => {
-                            return params.name + "<br />" +
-                                params.seriesName + ":" + params.value.toFixed(3);
-                        }
-                    }
-                }
-            ]
-        });
-        profitContent.addChild(this.chart.containerRef);
         profitPage.setContent(profitContent);
         panel.addTab(profitPage, false);
         panel.setActive("ProfitViewer");

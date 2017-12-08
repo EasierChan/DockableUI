@@ -31,8 +31,7 @@ export class ProductsComponent implements OnInit {
         this.productArea.title = "产品";
         this.productArea.onClick = (event: MouseEvent, item: Tile) => {
             if (event.button === 0) {  // left click
-                this.appsrv.startApp("产品信息", "Dialog", {
-                    dlg_name: "product",
+                this.appsrv.startApp(item.title, "ProductTrader", {
                     productID: item.id
                 });
             }

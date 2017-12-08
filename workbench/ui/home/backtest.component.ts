@@ -239,9 +239,9 @@ export class BacktestComponent implements OnInit {
     }
 
     onStartApp() {
-        if (!this.appsrv.startApp(this.selectedStrategyConfig.name, AppType.kStrategyApp, {
+        if (!this.appsrv.startApp(this.selectedStrategyConfig.appid.toString(), AppType.kStrategyApp, {
             appid: this.selectedStrategyConfig.appid,
-            name: this.selectedStrategyConfig.name,
+            name: this.selectedStrategyConfig.appid.toString(),
             title: this.selectedStrategyConfig.chname
         })) {
             alert(`start ${this.selectedStrategyConfig.name} app error!`);

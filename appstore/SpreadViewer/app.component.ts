@@ -190,11 +190,22 @@ export class AppComponent implements OnInit, OnDestroy {
                     if (this.groupUKeys.includes(msg.content.ukey)) {
                         this.groupMDWorker.postMessage({ type: "add-md", value: msg.content });
                     } else {
-                        self.spreadviewer.addMDData(msg.content);
+                        this.spreadviewer.addMDData(msg.content);
                     }
                 }
             }
         });
+
+        this.quote.addSlot({
+            appid: 181,
+            packid: 10002,
+            callback: (msg) => {
+                console.info(msg);
+                this.groupMDWorker.postMessage({ type: "add-md-list", value: msg.content.data });
+            }
+        });
+
+        // this.groupMDWorker.postMessage({ type: "init-db" });
     }
 
     firstLegClick(item) {
@@ -818,7 +829,7 @@ export class USpreadViewer {
             (this.spreadChart.instance as echarts.ECharts).setOption(this.spreadChart.chartOption, true);
     }
 
-    padData(begPoint: AxisPoint, endPoint) {
+    loadHistory(data: any[]) {
         // put data in left padding
         this.dataOption.series[0].data.unshift(
             (this.lines[0].coeffs[0] * this.msgs[this.ukeys[0]][this.minPoint.time][this.lines[0].levels[0] === 1 ? "askPrice1" : "bidPrice1"] + this.lines[0].offsets[0] - this.lines[0].offsets[1] -

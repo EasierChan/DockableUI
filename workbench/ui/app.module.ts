@@ -27,6 +27,7 @@ import {
 import { ReportComponent } from "./home/report.component";
 import { AnalysisComponent } from "./home/analysis";
 import { ProductsComponent } from "./home/product.component";
+import { BasketComponent } from "./home/basket.component";
 import { EchartsDirective } from "./app.controls";
 
 @NgModule({
@@ -64,7 +65,8 @@ import { EchartsDirective } from "./app.controls";
     CodeComponent,
     ButtonGroupComponent,
     AnalysisComponent,
-    ProductsComponent
+    ProductsComponent,
+    BasketComponent
   ],
   bootstrap: [AppComponent]
 })

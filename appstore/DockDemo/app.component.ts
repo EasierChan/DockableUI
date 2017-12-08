@@ -141,7 +141,7 @@ export class AppComponent implements OnInit {
         this.statechecker.onResize(this, this.onResize);
         this.statechecker.onDestory(this, this.onDestroy);
         this.statechecker.onMenuItemClick = this.onMenuItemClick;
-        AppComponent.bgWorker = WorkerFactory.createWorker(`${__dirname}/bll/tradeWorker`, Environment.getDataPath(this.option.name));
+        AppComponent.bgWorker = WorkerFactory.createWorker(`${__dirname}/bll/tradeWorker`, Environment.getDataPath(this.option.name, "StrategyTrader"));
         TabPanel.afterAnyPageClosed = this.onTabPageClosed;
     }
 
@@ -2404,8 +2404,8 @@ export class AppComponent implements OnInit {
         });
 
         AppStoreService.setLocalStorageItem(this.option.name, JSON.stringify(this.appStorage));
-        File.writeSync(`${Environment.getDataPath(this.option.name)}/layout.json`, this.main.getLayout());
-        File.writeSync(`${Environment.getDataPath(this.option.name)}/config.json`, this.option.config);
+        File.writeSync(`${Environment.getDataPath(this.option.name, "StrategyTrader")}/layout.json`, this.main.getLayout());
+        File.writeSync(`${Environment.getDataPath(this.option.name, "StrategyTrader")}/config.json`, this.option.config);
     }
 
     onResize(event: any) {
