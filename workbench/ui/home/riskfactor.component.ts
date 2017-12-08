@@ -7,6 +7,7 @@ import { ServiceType } from "../../../base/api/model";
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DatePipe } from "@angular/common";
 import { AppStoreService } from "../../../base/api/services/backend.service";
+import { ConfigurationBLL } from '../../bll/strategy.server';
 import * as echarts from "echarts";
 const fs = require("@node/fs");
 
@@ -34,12 +35,15 @@ export class FactorProfitComponent implements OnDestroy {
     getRiskFactorReturnString: string = "";
     riskFactorInfoArray: any[] = [];
     alphaFactorInfoArray: any[] = [];
+    userId: number = 0;
 
-    constructor(private tradePoint: QtpService, private datePipe: DatePipe) {
+    constructor(private tradePoint: QtpService, private datePipe: DatePipe, private config: ConfigurationBLL) {
         FactorProfitComponent.self = this;
     }
 
     ngOnInit() {
+        this.userId = Number(this.config.get('user').userid);
+        console.log(this.userId);
         this.defaultMedia = [{
             option: {
                 grid: {
@@ -100,8 +104,8 @@ export class FactorProfitComponent implements OnDestroy {
             }
         }, this);
 
-        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {} } }));
-        this.tradePoint.sendToCMS("getRiskFactorReturn", JSON.stringify({ data: { body: {} } }));
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {userid: this.userId} } }));
+        this.tradePoint.sendToCMS("getRiskFactorReturn", JSON.stringify({ data: { body: {userid: this.userId} } }));
 
         this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLDivElement);
         this.everyDayReturnEchart = echarts.init(document.getElementById("everyDayReturnEchart") as HTMLDivElement);
@@ -428,19 +432,19 @@ export class FactorAnalysisComponent implements OnDestroy {
     iproduct: string;
     istrategys: string[] = ["选择所有策略"];
     istrategy: string;
-    riskFactorReturnAttr: any[] = []; // 风险因子收益归因
-    riskFactorExposure: any[] = [];
     riskFactorInfoArray: any[] = [];
     factorAnalysisData: any[] = [];
-    getfactorAnalysisString: string = "";
+    userId: number = 0;
 
-    constructor(private tradePoint: QtpService, private appsrv: AppStoreService, private datePipe: DatePipe) {
+    constructor(private tradePoint: QtpService, private appsrv: AppStoreService, private datePipe: DatePipe, private config: ConfigurationBLL) {
         FactorAnalysisComponent.self = this;
         // this.loadData();
         this.iproducts = [];
     }
 
     ngOnInit() {
+        this.userId = Number(this.config.get('user').userid);
+        FactorAnalysisComponent.self.productData = this.config.getProducts();
         this.defaultMedia = [{
             option: {
                 grid: {
@@ -476,7 +480,6 @@ export class FactorAnalysisComponent implements OnDestroy {
                 data.body.forEach(function (factorInfo) {
                     factorInfo.factorid = parseInt(factorInfo.factorid);
                     factorInfo.factortype = parseInt(factorInfo.factortype);
-                    factorInfo.returns = [];
                     if (factorInfo.factortype === 1) {
 
                     } else if (factorInfo.factortype === 2) {
@@ -488,31 +491,25 @@ export class FactorAnalysisComponent implements OnDestroy {
             }
         }, this);
         
-        this.tradePoint.addSlotOfCMS("getProduct", (body) => {
-            let data = JSON.parse(body.toString());
-            if (data.msret.msgcode === "00") {
-                FactorAnalysisComponent.self.productData = data.body;
-                console.log(FactorAnalysisComponent.self.productData);
-                console.log(FactorAnalysisComponent.self.productData[0].caname);
-                FactorAnalysisComponent.self.iproducts = [];
-                for (let i = 0; i < FactorAnalysisComponent.self.productData.length; i++) {
-                    FactorAnalysisComponent.self.iproducts.push(FactorAnalysisComponent.self.productData[i].caname);
-                }
-            } else {
-                alert("Get product info Failed! " + data.msret.msg);
-            }
-            FactorAnalysisComponent.self.iproduct = FactorAnalysisComponent.self.iproducts[0];
-            let tblockId = 0;
-            if (FactorAnalysisComponent.productIndex === undefined) {
-                tblockId = FactorAnalysisComponent.self.productData[0].caid;
-            } else {
-                tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
-            }
-            console.log(tblockId);
-            console.log(FactorAnalysisComponent.self.istrategys);
-            FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-            this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { userid: 19999, caid: tblockId } } }));
-        }, this);
+        console.log(FactorAnalysisComponent.self.productData);
+        console.log(FactorAnalysisComponent.self.productData[0].caname);
+        FactorAnalysisComponent.self.iproducts = [];
+        for (let i = 0; i < FactorAnalysisComponent.self.productData.length; i++) {
+            FactorAnalysisComponent.self.iproducts.push(FactorAnalysisComponent.self.productData[i].caname);
+        }
+         
+        FactorAnalysisComponent.self.iproduct = FactorAnalysisComponent.self.iproducts[0];
+        let tblockId = 0;
+        if (FactorAnalysisComponent.productIndex === undefined) {
+            tblockId = FactorAnalysisComponent.self.productData[0].caid;
+        } else {
+            tblockId = FactorAnalysisComponent.self.productData[FactorAnalysisComponent.productIndex].caid;
+        }
+        console.log(tblockId);
+        console.log(FactorAnalysisComponent.self.istrategys);
+        FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
+        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { userid: this.userId, caid: tblockId } } }));
+       
 
         this.tradePoint.addSlotOfCMS("getCombStrategy", (body) => {
             let data = JSON.parse(body.toString());
@@ -561,8 +558,7 @@ export class FactorAnalysisComponent implements OnDestroy {
             this.lookReturn();
         }, this);
 
-        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {} } }));
-        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { body: {userid: 19999} } }));
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {userid: this.userId} } }));
 
         this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLDivElement);
         this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLDivElement);
@@ -606,7 +602,7 @@ export class FactorAnalysisComponent implements OnDestroy {
 
         console.log(FactorAnalysisComponent.self.istrategys);
         FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { userid: 19999, caid: tblockId } } }));
+        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { userid: this.userId, caid: tblockId } } }));
         FactorAnalysisComponent.strategyIndex = 0;
     }
 
@@ -662,21 +658,27 @@ export class FactorAnalysisComponent implements OnDestroy {
                 console.log(strategyId);
                 this.tradePoint.addSlotOfCMS("getUnitFactorAnalysis", (body) => {
                     let data = JSON.parse(body.toString());
-                    console.log(data)
+                    this.factorAnalysisData = data.body;
+                    console.log(this.factorAnalysisData, this.riskFactorInfoArray);
+                    this.setriskFactorExposureEchart();
+                    this.setRiskFactorAttrEchart();                    
                 }, this);
+
                 this.factorAnalysisData = [];
-                this.getfactorAnalysisString = "";
-                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { body: { begin_date: this.startDate, end_date: this.endDate, cellid: strategyId, celltype: 3, hedgingIndex: ratioId } } }));
+                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { body: { userid: this.userId, begin_date: this.startDate, end_date: this.endDate, cellid: strategyId, celltype: 3, hedgingIndex: ratioId } } }));
                 console.log("send strategy", strategyId, this.startDate, this.endDate, ratioId);
             } else {
                 console.log(tblockId);
                 this.tradePoint.addSlotOfCMS("getUnitFactorAnalysis", (body) => {
                     let data = JSON.parse(body.toString());
-                    console.log(data)
+                    this.factorAnalysisData = data.body;
+                    console.log(this.factorAnalysisData, this.riskFactorInfoArray);
+                    this.setriskFactorExposureEchart();
+                    this.setRiskFactorAttrEchart();
                 }, this);
+
                 this.factorAnalysisData = [];
-                this.getfactorAnalysisString = "";
-                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { body: { begin_date: this.startDate, end_date: this.endDate, cellid: tblockId, celltype: 2, hedgingIndex: ratioId } } }));
+                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { body: { userid: this.userId, begin_date: this.startDate, end_date: this.endDate, cellid: tblockId, celltype: 2, hedgingIndex: ratioId } } }));
                 console.log("send product", tblockId, this.startDate, this.endDate, ratioId);
             }
         } else {
@@ -685,39 +687,29 @@ export class FactorAnalysisComponent implements OnDestroy {
     }
 
     // 设置风险因子暴露的两个图表
-    setriskFactorExposureEchart(everyDayExposure, groupPosition, riskFactorReturn) {
-        console.log(riskFactorReturn);
-
-        let riskFactorExposureXAxis = [], riskFactorExposureSeries = [],
-            chartLegendData = [], everydayExposureXAxis = [], everydayExposureSeries = [];
-
-        // 初始化线图坐标系
-        for (let i = 0; i < everyDayExposure.length; i++) {
-            everydayExposureXAxis.push(everyDayExposure[i].date);
+    setriskFactorExposureEchart() {
+        let xAxisData = [], series = [], lengendData = [], barSeries= [];
+        for (let i = 0; i < this.riskFactorInfoArray.length; ++i) {
+            let seriesData = {name: "", type: "line", data: []};
+            seriesData.name = this.riskFactorInfoArray[i].factorname;
+            lengendData.push(this.riskFactorInfoArray[i].factorname);
+            for (let j = 0; j < this.factorAnalysisData.length; ++j) {
+                if (parseInt(String(j / this.riskFactorInfoArray.length)) == i) {
+                    console.log(j ,i);
+                    if (i === 0) {
+                        xAxisData.push(this.factorAnalysisData[j].trday); 
+                    }
+                    let exposure = parseFloat(this.factorAnalysisData[j].exposure) - parseFloat(this.factorAnalysisData[j].hedgingExposure) * this.hedgeRadio;
+                    seriesData.data.push(exposure);
+                    if (j % this.riskFactorInfoArray.length === this.riskFactorInfoArray.length - 1) {
+                        let exposure = parseFloat(this.factorAnalysisData[j].exposure) - parseFloat(this.factorAnalysisData[j].hedgingExposure) * this.hedgeRadio;
+                        barSeries.push(exposure);
+                    }
+                }
+            } 
+            series.push(seriesData);
         }
-
-        for (let riskIndex = 1; riskIndex < riskFactorReturn[0].length; ++riskIndex) {    // 遍历每一个风险因子
-
-            let lengendData = { name: riskFactorReturn[0][riskIndex] }; // ,textStyle: { color: "#F3F3F5" }
-            chartLegendData.push(lengendData);
-
-            riskFactorExposureXAxis.push(riskFactorReturn[0][riskIndex]);  // 柱状图的x轴分类
-
-            // 具体每一条曲线的数据
-            let seriesData = { name: riskFactorReturn[0][riskIndex], type: "line", data: [] };
-
-            for (let i = 0; i < everyDayExposure.length; i++) {
-                seriesData.data.push(everyDayExposure[i][riskIndex - 1].exposure);
-            }
-            everydayExposureSeries.push(seriesData);
-        }
-
-        // 设置最后一天的数据为柱状图
-        if (everyDayExposure.length > 1) {
-            for (let i = 0; i < everyDayExposure[everyDayExposure.length - 1].length; i++) {
-                riskFactorExposureSeries.push(everyDayExposure[everyDayExposure.length - 1][i].exposure);
-            }
-        }
+        console.log(xAxisData, lengendData, series, barSeries);
 
         let everyDayRFEOption = {
             baseOption: {
@@ -735,11 +727,11 @@ export class FactorAnalysisComponent implements OnDestroy {
                     }
                 },
                 legend: {
-                    data: chartLegendData,
+                    data: lengendData,
                     textStyle: { color: "#717171" }
                 },
                 xAxis: {
-                    data: everydayExposureXAxis,
+                    data: xAxisData,
                     type: "category",
                     axisLabel: {
                         textStyle: { color: "#717171" }
@@ -791,7 +783,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                     },
                     type: "inside"
                 }],
-                series: everydayExposureSeries
+                series: series
                 // color: [
                 //     "#00b", "#0b0"
                 // ]
@@ -820,7 +812,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                     textStyle: { color: "#717171" }
                 },
                 xAxis: {
-                    data: riskFactorExposureXAxis,
+                    data: lengendData,
                     type: "category",
                     axisLabel: {
                         rotate: -30,
@@ -877,7 +869,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                 series: [{
                     name: "风险因子暴露",
                     type: "bar",
-                    data: riskFactorExposureSeries
+                    data: barSeries
                 }
                 ],
                 // color: [
@@ -892,48 +884,28 @@ export class FactorAnalysisComponent implements OnDestroy {
 
     }
 
-    setRiskFactorAttrEchart(everyDayRiskFactorAttr, riskFactorReturn) {
-        let everyDayReturnAttrXAxis = [], everyDayReturnAttrSeries = [], chartLegendData = [];
-        let riskFactorAttrXAxis = [], riskFactorAttrSeries = [];
-
-        for (let i = 0; i < everyDayRiskFactorAttr.length; i++) {
-            everyDayReturnAttrXAxis.push(everyDayRiskFactorAttr[i].date);
+    setRiskFactorAttrEchart() {
+        let xAxisData = [], series = [], lengendData = [], barSeries= [], attributeSum = 0;
+        for (let i = 0; i < this.riskFactorInfoArray.length; ++i) {
+            let seriesData = {name: "", type: "line", data: []};
+            seriesData.name = this.riskFactorInfoArray[i].factorname;
+            lengendData.push(this.riskFactorInfoArray[i].factorname);
+            for (let j = 0; j < this.factorAnalysisData.length; ++j) {
+                if (parseInt(String(j / this.riskFactorInfoArray.length)) == i) {
+                    console.log(j ,i);
+                    if (i === 0) {
+                        xAxisData.push(this.factorAnalysisData[j].trday); 
+                    }
+                    let attribute = parseFloat(this.factorAnalysisData[j].attribute) - parseFloat(this.factorAnalysisData[j].hedgingAttribute) * this.hedgeRadio;
+                    seriesData.data.push(attribute);
+                    attributeSum += attribute;
+                }
+            } 
+            series.push(seriesData);
+            barSeries.push(attributeSum);
+            attributeSum = 0;
         }
-
-        // 计算各种值
-        for (let riskIndex = 1; riskIndex < riskFactorReturn[0].length; ++riskIndex) {    // 遍历每一个风险因子
-
-            let lengendData = { name: riskFactorReturn[0][riskIndex] }; // ,textStyle: { color: "#F3F3F5" }
-            chartLegendData.push(lengendData);
-
-            riskFactorAttrXAxis.push(riskFactorReturn[0][riskIndex]);  // 柱状图的x轴分类
-
-            // 具体每一条曲线的数据
-            let seriesData = { name: riskFactorReturn[0][riskIndex], type: "line", data: [] };
-            let allReturnAttr = 0;
-
-            for (let i = 0; i < everyDayRiskFactorAttr.length; i++) {
-                seriesData.data.push(everyDayRiskFactorAttr[i][riskIndex - 1]);
-                allReturnAttr += everyDayRiskFactorAttr[i][riskIndex - 1];
-            }
-
-            riskFactorAttrSeries.push(allReturnAttr);
-            everyDayReturnAttrSeries.push(seriesData);
-        }
-
-        let seriesData = { name: "残差", type: "line", data: [] };
-        // chartLegendData.push(name: "残差"); // 加入残差
-        // riskFactorAttrXAxis.push( "残差" );
-        let allReturnAttr = 0;
-
-        for (let i = 0; i < everyDayRiskFactorAttr.length; i++) {
-
-            seriesData.data.push(everyDayRiskFactorAttr[i][everyDayRiskFactorAttr[0].length - 1]);
-            allReturnAttr += everyDayRiskFactorAttr[i][everyDayRiskFactorAttr[0].length - 1];
-        }
-
-        // riskFactorAttrSeries.push(allReturnAttr);
-        // everyDayReturnAttrSeries.push(seriesData);
+        console.log(xAxisData, lengendData, series, barSeries);
 
         let everyDayRFROption = {
             baseOption: {
@@ -951,11 +923,11 @@ export class FactorAnalysisComponent implements OnDestroy {
                     }
                 },
                 legend: {
-                    data: chartLegendData,
+                    data: lengendData,
                     textStyle: { color: "#717171" }
                 },
                 xAxis: {
-                    data: everyDayReturnAttrXAxis,
+                    data: xAxisData,
                     type: "category",
                     axisLabel: {
                         textStyle: { color: "#717171" }
@@ -1007,7 +979,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                     },
                     type: "inside"
                 }],
-                series: everyDayReturnAttrSeries
+                series: series
                 // color: [
                 //     "#00b", "#0b0"
                 // ]
@@ -1037,7 +1009,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                     textStyle: { color: "#717171" }
                 },
                 xAxis: {
-                    data: riskFactorAttrXAxis,
+                    data: lengendData,
                     type: "category",
                     axisLabel: {
                         rotate: -30,
@@ -1093,7 +1065,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                 series: [{
                     name: "风险因子归因",
                     type: "bar",
-                    data: riskFactorAttrSeries
+                    data: barSeries
                 }
                 ],
                 // color: [
@@ -1177,12 +1149,15 @@ export class FactorAlphaComponent {
     hotChartData: any[] = []; // 存放图标的data
     dataDir: string;
     getFactorInfoString: string = "";
+    userId: number = 0;    
 
-    constructor(private tradePoint: QtpService, private datePipe: DatePipe) {
+    constructor(private tradePoint: QtpService, private datePipe: DatePipe, private config: ConfigurationBLL) {
         FactorAlphaComponent.self = this;
     }
 
     ngOnInit() {
+        this.userId = Number(this.config.get('user').userid);
+        console.log(this.userId);
         this.defaultMedia = [{
             option: {
                 grid: {
@@ -1237,7 +1212,7 @@ export class FactorAlphaComponent {
             }
         }, this);
 
-        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {} } }));
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {userid: this.userId} } }));
 
         window.onresize = () => {
             this.resizeFunction();
@@ -1295,12 +1270,12 @@ export class FactorAlphaComponent {
         FactorAlphaComponent.self.alphaFactorInfoArray.forEach((item) => {
             item.returns = [];
         });
-        this.tradePoint.sendToCMS("getAlphaFactorReturn", JSON.stringify({ data: { body: { begin_date: this.openDate, end_date: this.closeDate } } }));
+        this.tradePoint.sendToCMS("getAlphaFactorReturn", JSON.stringify({ data: { body: { userid: this.userId, begin_date: this.openDate, end_date: this.closeDate } } }));
 
         this.getFactorCorrelationString = "";
         this.alphaRelevance = [];
         this.hotChartData = [];
-        this.tradePoint.sendToCMS("getFactorCorrelation", JSON.stringify({ data: { body: { begin_date: this.openDate, end_date: this.closeDate } } }));
+        this.tradePoint.sendToCMS("getFactorCorrelation", JSON.stringify({ data: { body: { userid: this.userId, begin_date: this.openDate, end_date: this.closeDate } } }));
     }
 
     // 计算平均值
