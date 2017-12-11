@@ -73,6 +73,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     mainStock: any = {};
     todoCellIndex: number;
     referStockUk: number = 2490646;
+    hasHistoryMarket: boolean = false;
 
     constructor(private tradePoint: QtpService, private quote: QuoteService, private config: ConfigurationBLL,
         private secuinfo: SecuMasterService, private appsvr: AppStoreService) {
@@ -80,18 +81,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-
-
-        // this.todatCloseMarket([2490646, 2490369, 1441794, 1441876, 1441949, 2490383, 2490381, 1441854]);
-
-
-        this.mainStock.todayClose = '--';
-        this.mainStock.name = '--';
-        this.mainStock.open = '--';
-        this.mainStock.maxPrice = '--';
-        this.mainStock.minPrice = '--';
-        this.config.set('test', 'gxd');
-
         this.userId = Number(this.config.get('user').userid);
         this.config.on('toggle-view', () => {
             this.timeoutId = setTimeout(() => {
@@ -123,19 +112,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.selfStockData.push(newItem)
         })
         this.refStock.name = selfStockSecuInfo[this.referStockUk].SecuCode + ' [ ' + selfStockSecuInfo[this.referStockUk].SecuAbbr + ' ]';
-        this.refStock.price = '--';
-        this.refStock.increase = '--';
-        this.mainStock.name = this.selfStockData[0].stockCode + '[' + this.selfStockData[0].name + ']';
         this.mainStock.preClose = this.selfStockData[0].pre_close;
-        if (this.selfStockXdata.indexOf(this.nowTime) != -1) {
-            this.mainStock.maxPrice = this.mainStock.preClose;
-            this.mainStock.minPrice = this.mainStock.preClose;
-        }
-
+        this.initSelfStockMarket(this.mainStock.preClose);
+        this.mainStock.name = this.selfStockData[0].stockCode + '[' + this.selfStockData[0].name + ']';
         this.mainStockUk = this.selfStockData[0].ukey;
         this.selfStockXdata = this.getXDate(this.selfStockData[0].tradeTime);
         this.selfStockMarketChange.xAxis[0].data = this.selfStockXdata;
         this.selfStockMarketChange.xAxis[1].data = this.selfStockXdata;
+
         if (this.selfStockXdata.indexOf(this.nowTime) == -1) {//今天非交易时间段请求历史数据
             this.historyMarket('all');
         }
@@ -184,6 +168,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         })
         this.mainStockUk = this.selfStockData[0].ukey;
         this.selfStockTable.onRowDBClick = (rowItem, rowIndex) => {//点击切换指数行情
+            this.mainStock.preClose = rowItem.cells[2].Data;
             this.initSelfStockMarket(this.mainStock.preClose);
             this.selfStockTable.rows.forEach((item, index) => {
                 item.backgroundColor = 'rgba(0,0,0,0)';
@@ -191,7 +176,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             rowItem.backgroundColor = '#333';
             this.mainStock.name = rowItem.cells[0].Text + '[' + rowItem.cells[1].Text + ']';
             this.mainStockUk = rowItem.cells[1].Data;
-            this.mainStock.preClose = rowItem.cells[2].Data;
+
             this.selfStockXdata = this.getXDate(rowItem.cells[3].Data);
             this.selfStockMarketChange.xAxis[0].data = this.selfStockXdata;
             this.selfStockMarketChange.xAxis[1].data = this.selfStockXdata;
@@ -239,34 +224,28 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.nowTimeStamp = d.getTime();
                 let stockIncrease = msg.content.last > msg.content.pre_close ? '+' + Math.round(1000 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close) / 100 : Math.round(1000 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close) / 100;
                 // this.currentMarketData[msg.content.ukey] = { 'stockPrice': msg.content.last, 'stockIncrease': stockIncrease };
-                let test = Math.abs(this.nowTimeStamp - msg.content.time * 1000 + 1000);
+                let test = Math.abs(this.nowTimeStamp - msg.content.time * 1000);
                 console.log('系统时间和实时行情时间差：' + test);
                 if (Math.abs(this.nowTimeStamp - msg.content.time * 1000) <= 30000) {
                     // if (1) {
-                    let marketTime = this.myGetTime(msg.content.time * 1000);//当前行情的时间
+                    let marketTime = this.dashGetTime(msg.content.time + 60);//当前行情的时间
                     let marketIndex = this.selfStockXdata.indexOf(marketTime);//当前行情在echarts中的位置
                     let lastPrice = Number((msg.content.last / 10000).toFixed(2));//现价
                     if (marketIndex != -1) {//找到相应的时间轴索引
                         if (this.selfStockUkList.indexOf(msg.content.ukey) != -1) {//主要指数
                             //主要指数列表
+                            let increase = ((msg.content.last - msg.content.pre_close) / 10000).toFixed(2);
+                            let increasePer = ((msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2);
                             this.selfStockData.forEach((item, index) => {
                                 if (item.ukey == msg.content.ukey) {
                                     this.selfStockTable.rows[index].cells[2].Text = (msg.content.last / 10000).toFixed(2);
-                                    this.selfStockTable.rows[index].cells[3].Text = ((msg.content.last - msg.content.pre_close) / 10000).toFixed(2);
-                                    this.selfStockTable.rows[index].cells[4].Text = (100 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2) + '%';
+                                    this.selfStockTable.rows[index].cells[2].Color = this.dashGetColor(increase, 'color');
+                                    this.selfStockTable.rows[index].cells[3].Text = this.dashGetColor(increase, 'value');
+                                    this.selfStockTable.rows[index].cells[3].Color = this.dashGetColor(increase, 'color');
+                                    this.selfStockTable.rows[index].cells[4].Text = this.dashGetColor(increasePer, 'value');
+                                    this.selfStockTable.rows[index].cells[4].Color = this.dashGetColor(increasePer, 'color');
                                     this.selfStockTable.rows[index].cells[5].Text = this.barginPriceUnit(msg.content.volume);
                                     this.selfStockTable.rows[index].cells[6].Text = this.barginPriceUnit(msg.content.turnover * 100);
-                                    if (msg.content.last > msg.content.pre_close) {
-                                        this.selfStockTable.rows[index].cells[2].Color = 'rgb(234, 47, 47)';
-                                        this.selfStockTable.rows[index].cells[3].Color = 'rgb(234, 47, 47)';
-                                        this.selfStockTable.rows[index].cells[4].Color = 'rgb(234, 47, 47)';
-                                        this.selfStockTable.rows[index].cells[3].Text = '+' + ((msg.content.last - msg.content.pre_close) / 10000).toFixed(2);
-                                        this.selfStockTable.rows[index].cells[4].Text = '+' + (100 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2) + '%';
-                                    } else if (msg.content.last < msg.content.pre_close) {
-                                        this.selfStockTable.rows[index].cells[2].Color = 'rgb(55, 177, 78)';
-                                        this.selfStockTable.rows[index].cells[3].Color = 'rgb(55, 177, 78)';
-                                        this.selfStockTable.rows[index].cells[4].Color = 'rgb(55, 177, 78)';
-                                    }
                                 }
                             })
                             if (msg.content.ukey == this.mainStockUk) {//主要指数的实时行情
@@ -299,12 +278,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 if (marketIndex == this.selfStockXdata.length - 1) {
                                     this.mainStock.todayClose = lastPrice;
                                 }
-                                if (marketIndex == 0) {
+                                if (marketIndex == 0 && this.nowTurnover == 0) {
                                     this.mainStock.open = lastPrice;
                                 }
                                 //切换页面或刚进入页面的时候，或者请求到第二条数据的时候请求历史数据（精确第一条数据）
-                                if (this.preTurnOver == 0 && marketIndex != 0 || marketIndex == 1) {
+                                if (this.preTurnOver == 0 && marketIndex != 0 || marketIndex == 1 && this.nowTurnover == 0) {
                                     this.historyMarket('all');
+                                    if (this.hasHistoryMarket == false) {
+                                        this.mainStock.minPrice = lastPrice;
+                                        this.mainStock.maxPrice = lastPrice;
+                                    }
                                     this.preTurnOver = turnover;//上一时刻的成交金额
                                     return;
                                 }
@@ -315,6 +298,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 if (this.mainStock.maxPrice < lastPrice) {
                                     this.mainStock.maxPrice = lastPrice;
                                 }
+
                                 let abs = Math.abs(middle - this.mainStock.minPrice) >= Math.abs(middle - this.mainStock.maxPrice) ? Math.ceil(Math.abs(middle - this.mainStock.minPrice)) : Math.ceil(Math.abs(middle - this.mainStock.maxPrice));
                                 //纵轴最大最小值
                                 abs = Math.ceil(abs / 4) * 4;
@@ -333,7 +317,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     } else if (this.selfStockMarketChange.yAxis[1].max > 20000) {
                                         barUnit = 10000;
                                     }
-                                    this.selfStockMarketChange.yAxis[1].axisLabel.formatter = function (value) {
+                                    this.selfStockMarketChange.yAxis[1].axisLabel.formatter = function(value) {
                                         return (value / barUnit).toFixed(0) + unitObj[barUnit];
                                     }
                                     // this.selfStockMarketChange.tooltip.formatter = function (series) {
@@ -362,47 +346,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         this.refStock.increase = this.refStockIncrease;
                     }
                     if (this.ukCodeList.indexOf(msg.content.ukey) != -1) {//AI看盘的实时行情
-                        let ukInBestIndex = this.bestStockUkMap[msg.content.ukey].order;
-                        let ukInWorstIndex = this.worstStockUkMap[msg.content.ukey].order;
+                        let ukInBestIndex, ukInWorstIndex;
+                        if (this.bestStockUkMap[msg.content.ukey]) {
+                            ukInBestIndex = this.bestStockUkMap[msg.content.ukey].order;
+                        }
+                        if (this.worstStockUkMap[msg.content.ukey]) {
+                            ukInWorstIndex = this.worstStockUkMap[msg.content.ukey].order;
+                        }
+
                         if (this.refStockIncrease != 0) {//参考股的数值回来才有超额涨幅
                             //超额涨幅
                             let overStockIncrease = Number((Number(stockIncrease) - this.refStockIncrease).toFixed(2));
                             if (ukInBestIndex != undefined) {
-                                if (overStockIncrease > 0) {
-                                    this.bestStockList.rows[ukInBestIndex].cells[3].Text = '+' + overStockIncrease + '%';
-                                    this.bestStockList.rows[ukInBestIndex].cells[3].Color = 'rgb(234, 47, 47)';
-                                } else if (overStockIncrease < 0) {
-                                    this.bestStockList.rows[ukInBestIndex].cells[3].Text = overStockIncrease + '%';
-                                    this.bestStockList.rows[ukInBestIndex].cells[3].Color = 'rgb(55, 177, 78)';
-                                }
+                                this.bestStockList.rows[ukInBestIndex].cells[3].Text = this.dashGetColor(overStockIncrease, 'value') + '%';
+                                this.bestStockList.rows[ukInBestIndex].cells[3].Color = this.dashGetColor(overStockIncrease, 'color');
                             }
                             if (ukInWorstIndex != undefined) {
-                                if (overStockIncrease > 0) {
-                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Text = '+' + overStockIncrease + '%';
-                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Color = 'rgb(234, 47, 47)';
-                                } else if (overStockIncrease < 0) {
-                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Text = overStockIncrease + '%';
-                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Color = 'rgb(55, 177, 78)';
-                                }
+                                this.worstStockList.rows[ukInWorstIndex].cells[3].Text = this.dashGetColor(overStockIncrease, 'value') + '%';
+                                this.worstStockList.rows[ukInWorstIndex].cells[3].Color = this.dashGetColor(overStockIncrease, 'color');
                             }
                         }
                         if (ukInBestIndex != undefined) {
                             this.bestStockList.rows[ukInBestIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
                             this.bestStockList.rows[ukInBestIndex].cells[2].Text = stockIncrease + '%';
-                            if (Number(stockIncrease) > 0) {
-                                this.bestStockList.rows[ukInBestIndex].cells[2].Color = 'rgb(234, 47, 47)';
-                            } else if (Number(stockIncrease) < 0) {
-                                this.bestStockList.rows[ukInBestIndex].cells[2].Color = 'rgb(55, 177, 78)';
-                            }
+                            this.bestStockList.rows[ukInBestIndex].cells[2].Color = this.dashGetColor(stockIncrease, 'color');
                         }
                         if (ukInWorstIndex != undefined) {
                             this.worstStockList.rows[ukInWorstIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
                             this.worstStockList.rows[ukInWorstIndex].cells[2].Text = stockIncrease + '%';
-                            if (Number(stockIncrease) > 0) {
-                                this.worstStockList.rows[ukInWorstIndex].cells[2].Color = 'rgb(234, 47, 47)';
-                            } else if (Number(stockIncrease) < 0) {
-                                this.worstStockList.rows[ukInWorstIndex].cells[2].Color = 'rgb(55, 177, 78)';
-                            }
+                            this.worstStockList.rows[ukInWorstIndex].cells[2].Color = this.dashGetColor(stockIncrease, 'color');
                         }
                     }
                 }
@@ -567,9 +539,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     row.cells[3].Text = '--';
                 })
             }
-            if (this.selfStockXdata.indexOf(this.nowTime) == -1 && this.dashAllUkcodeList.length == 68) {//今天非交易时间段请求当日最后一条数据
+            if (this.dashAllUkcodeList.length == 68) {
                 this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-                console.log(this.dashAllUkcodeList)
+            }
+            if (this.selfStockXdata.indexOf(this.nowTime) == -1 && this.dashAllUkcodeList.length == 68) {//今天非交易时间段请求当日最后一条数据
                 this.historyMarket('lastDate');
             }
         }, this)
@@ -598,10 +571,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     row.cells[3].Text = '--';
                 })
             }
-
-            if (this.selfStockXdata.indexOf(this.nowTime) == -1 && this.dashAllUkcodeList.length == 68) {//今天非交易时间段请求当日最后一条数据
+            if (this.dashAllUkcodeList.length == 68) {
                 this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-                console.log(this.dashAllUkcodeList)
+            }
+            if (this.selfStockXdata.indexOf(this.nowTime) == -1 && this.dashAllUkcodeList.length == 68) {//今天非交易时间段请求当日最后一条数据
                 this.historyMarket('lastDate');
             }
         }, this)
@@ -776,7 +749,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     toThousands(num) {
         var number = typeof (num) != 'String' ? num.toString() : num;
         var numArr = number.split('.');
-        var newstr = numArr[0].replace(/\d{1,3}(?=(\d{3})+$)/g, function (s) {
+        var newstr = numArr[0].replace(/\d{1,3}(?=(\d{3})+$)/g, function(s) {
             return s + ','
         })
         if (numArr.length == 2) {
@@ -815,13 +788,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     compare(property) {
-        return function (a, b) {
+        return function(a, b) {
             return b[property] - a[property];
         }
     }
 
-
-    myGetTime(tm) {
+    dashGetColor(num, flag) {
+        if (flag == 'color') {
+            if (Number(num) > 0) {
+                return 'rgb(234, 47, 47)';
+            }
+            return 'rgb(55, 177, 78)';
+        }
+        if (Number(num) > 0) {
+            return '+' + num;
+        }
+        return num;
+    }
+    dashGetTime(tm) {
         let myDate = new Date(tm * 1000);
         let h = (myDate.getHours() < 10) ? ('0' + myDate.getHours()) : myDate.getHours();
         let m = (myDate.getMinutes() < 10) ? ('0' + myDate.getMinutes()) : myDate.getMinutes();
@@ -843,7 +827,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.mainStock.todayClose = '--';
         this.mainStock.name = '--';
         this.mainStock.open = '--';
-        this.mainStock.preClose = pre_close;
         this.mainStock.maxPrice = '--';
         this.mainStock.minPrice = '--';
         this.mainStockUk = this.selfStockData[0].ukey;
@@ -865,7 +848,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     getXDate(tradeTime) {
         var timeArr = tradeTime.match(/\d{4}/ig);
-        timeArr.filter(function (item, index) {
+        timeArr.filter(function(item, index) {
             var item = item.split('');
             item.splice(2, 0, ':');
             item = item.join('');
@@ -888,7 +871,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
         resultArr.push(timeArr[0]);
         for (var i = 0; i < timeArr.length - 1; i += 2) {
-            allTimeArr.forEach(function (item, index) {
+            allTimeArr.forEach(function(item, index) {
                 if (item > timeArr[i] && item <= timeArr[i + 1]) {
                     resultArr.push(item);
                 }
@@ -918,7 +901,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 min: 0,
                 max: 2,
                 axisLabel: {
-                    formatter: function (price, index) {
+                    formatter: function(price, index) {
                         return price.toFixed(0);
                     }
                 }
@@ -933,33 +916,24 @@ export class DashboardComponent implements OnInit, OnDestroy {
         ]
     }
 
-    // todatCloseMarket(todayUkeyList) {
-    //     historyMarket todayUkeyList = todayUkeyList.join(';');
-    //     this.quote.send(181, 10001, { requestId: 1, dataType: 101003, ukeyList: todayUkeyList });
-    //     // this.quote.addSlot({
-    //     //     appid: 181,
-    //     //     packid: 10002,
-    //     //     callback: (msg) => {
-    //     //         console.log(msg);
-    //     //     }
-    //     // })
-    // }
 
     historyMarket(historyType) {
         let d = new Date();
         let time = (d.getHours() < 10 ? ('0' + d.getHours()) : d.getHours()) + '' + (d.getMinutes() < 10 ? ('0' + d.getMinutes()) : d.getMinutes()) + '' + (d.getSeconds() < 10 ? ('0' + d.getSeconds()) : d.getSeconds()) + '000';
         let partIndex = 1;
+        this.selfStockMarketChange.series[0].data = [];
+        this.hasHistoryMarket = false;
         //接历史行情 
         if (historyType == 'all') {
             this.quote.send(181, 10001, { requestId: 1, dataType: 101002, ukeyCode: this.mainStockUk, timeFrom: 93000000 });
         } else {
-            this.quote.send(181, 10001, { requestId: 1, dataType: 101003, ukeyList: this.dashAllUkcodeList.join(';') });
+            this.quote.send(181, 10001, { requestId: 1, dataType: 102001, ukeyList: this.dashAllUkcodeList.join(';'), partOrder: -1 });
         }
         this.quote.addSlot({
             appid: 181,
             packid: 10002,
             callback: (msg) => {
-                if (msg.content.head.dataType == 101003) {
+                if (msg.content.head.dataType == 102001) {
                     console.log(msg);
                     let lastDate = msg.content.data;
                     let referStock = {};
@@ -968,33 +942,52 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     referStock[this.referStockUk].type = 'refer';
                     let allStockUkMap = Object.assign(this.bestStockUkMap, this.worstStockUkMap, this.selfStockUkMap, referStock);
                     lastDate.forEach(item => {
+                        let nowPrice = (item.p / 10000).toFixed(2);
+                        let increase = ((item.p - item.pc) / 10000).toFixed(2);
+                        let increasePer = ((item.p - item.pc) / item.pc).toFixed(2);
+                        let referIncrease;
+                        if (this.refStock.increase) {
+                            referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
+                        }
                         if (allStockUkMap[item.k].type == 'worst') {
-                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[1].Text = item.c / 10000;
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[1].Text = nowPrice;
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Text = this.dashGetColor(increasePer, 'value') + '%';
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Color = this.dashGetColor(increasePer, 'color');
+                            if (referIncrease) {
+                                this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(referIncrease, 'color');
+                                this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(referIncrease, 'value') + '%';
+                            }
                         } else if (allStockUkMap[item.k].type == 'best') {
-                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[1].Text = item.c / 10000;
+                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[1].Text = nowPrice;
+                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Text = this.dashGetColor(increasePer, 'value') + '%';
+                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Color = this.dashGetColor(increasePer, 'color');
+                            if (referIncrease) {
+                                this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(referIncrease, 'color');
+                                this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(referIncrease, 'value') + '%';
+                            }
                         } else if (allStockUkMap[item.k].type == 'self') {
-                            this.selfStockTable.rows[allStockUkMap[item.k].order].cells[2].Text = item.c / 10000;
+                            this.selfStockTable.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                             this.selfStockTable.rows[allStockUkMap[item.k].order].cells[5].Text = this.barginPriceUnit(item.v);
                             this.selfStockTable.rows[allStockUkMap[item.k].order].cells[6].Text = this.barginPriceUnit(item.u * 100);
+                            this.selfStockTable.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increase, 'value');
+                            this.selfStockTable.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(increasePer, 'value') + '%';
+                            this.selfStockTable.rows[allStockUkMap[item.k].order].cells[2].Color = this.dashGetColor(increase, 'color');
+                            this.selfStockTable.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increase, 'color');
+                            this.selfStockTable.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(increasePer, 'color');
                         } else if (allStockUkMap[item.k].type == 'refer') {
-                            this.refStock.price = item.c / 10000;
+                            this.refStock.price = nowPrice;
+                            this.refStock.increase = increasePer;
                         }
                     })
-                    // msg.content.data.forEach((item, index) => {
-                    //     let row = this.bestStockList.newRow();
-                    //     this.bestStockUkMap[item.ukcode].order = index;
-                    //     row.cells[0].Text = item.windcode;
-                    //     row.cells[0].Color = 'rgb(234, 47, 47)';
-                    //     row.cells[1].Text = '--';
-                    //     row.cells[2].Text = '--';
-                    //     row.cells[3].Text = '--';
-                    // })
                     console.log(allStockUkMap)
                 } else if (msg.content.head.dataType == 101002) {
                     let historyStockLineData = [];
                     if (partIndex == msg.content.head.partOrder) {
                         historyStockLineData = historyStockLineData.concat(msg.content.data);
                         partIndex++;
+                    }
+                    if (historyStockLineData.length != 0) {
+                        this.hasHistoryMarket = true;
                     }
                     if (msg.content.head.totalParts + 1 == partIndex) {
                         let yData = [];
@@ -1008,17 +1001,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             })
                             let min = Math.min.apply(null, yData);
                             let max = Math.max.apply(null, yData);
-
                             let middle = Number(this.mainStock.preClose);
                             this.mainStock.open = yData[0];
                             this.mainStock.minPrice = min;
                             this.mainStock.maxPrice = max;
-                            if (yData[this.selfStockMarketChange.xAxis[0].data.length - 1]) {
-                                this.mainStock.todayClose = yData[this.selfStockMarketChange.xAxis[0].data.length - 1];
-                            }
-
                             let barMax = Math.max.apply(null, yBarData);
-
                             this.selfStockMarketChange.yAxis[1].max = barMax;
                             this.selfStockMarketChange.yAxis[1].interval = this.selfStockMarketChange.yAxis[1].max / 2;
                             let barUnit;
@@ -1028,12 +1015,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             } else if (barMax >= 20000) {
                                 barUnit = 10000;
                             }
-                            this.selfStockMarketChange.yAxis[1].axisLabel.formatter = function (value) {
+                            this.selfStockMarketChange.yAxis[1].axisLabel.formatter = function(value) {
                                 return (value / barUnit).toFixed(0) + unitObj[barUnit];
                             }
-
                             historyStockLineData.forEach((item, index) => {
-                                let time = this.myGetTime(item.t / 1000);
+                                let time = this.dashGetTime(item.t / 1000);
                                 let marketIndex = this.selfStockXdata.indexOf(time);//当前行情在echarts中的位置
                                 this.selfStockMarketChange.series[0].data[marketIndex] = item.c;
                                 let barColor = '#e3b93b';
@@ -1053,6 +1039,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     }
                                 };
                             })
+                            if (this.selfStockMarketChange.series[0].data[this.selfStockMarketChange.xAxis[0].data.length - 1]) {
+                                this.mainStock.todayClose = this.selfStockMarketChange.series[0].data[this.selfStockMarketChange.xAxis[0].data.length - 1];
+                            }
                             let abs = Math.abs(middle - min) >= Math.abs(middle - max) ? Math.ceil(Math.abs(middle - min)) : Math.ceil(Math.abs(middle - max));
                             this.selfStockMarketChange.yAxis[0].min = middle - abs;
                             this.selfStockMarketChange.yAxis[0].max = middle + abs;
@@ -1064,7 +1053,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         }
                     }
                 }
-
             }
         })
     }
@@ -1148,7 +1136,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         },
                         axisLabel: {
                             textStyle: { color: '#717171' },
-                            formatter: function (value, index) {
+                            formatter: function(value, index) {
                                 return value.toFixed(0);
                             }
                         },
@@ -1178,7 +1166,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         axisLabel: {
                             textStyle: { color: '#717171' },
                             showMinLabel: false,
-                            formatter: function (price, index) {
+                            formatter: function(price, index) {
                                 return price.toFixed(0);
                             },
                             showMaxLabel: false
@@ -1252,12 +1240,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 tooltip: {
                     trigger: 'axis',
                     axisPointer: { type: 'shadow' },
-                    formatter: function (series) {
+                    formatter: function(series) {
                         let num = Math.pow(2, series[0].data).toFixed(3);;
 
                         var number = typeof (num) != 'String' ? num.toString() : num;
                         var numArr = number.split('.');
-                        var newstr = numArr[0].replace(/\d{1,3}(?=(\d{3})+$)/g, function (s) {
+                        var newstr = numArr[0].replace(/\d{1,3}(?=(\d{3})+$)/g, function(s) {
                             return s + ','
                         })
                         if (numArr.length == 2) {
@@ -1300,12 +1288,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 show: true,
                                 position: 'right',
                                 color: '#fff',
-                                formatter: function (series) {
+                                formatter: function(series) {
                                     let num = Math.pow(2, series.value).toFixed(3);
 
                                     var number = typeof (num) != 'String' ? num.toString() : num;
                                     var numArr = number.split('.');
-                                    var newstr = numArr[0].replace(/\d{1,3}(?=(\d{3})+$)/g, function (s) {
+                                    var newstr = numArr[0].replace(/\d{1,3}(?=(\d{3})+$)/g, function(s) {
                                         return s + ','
                                     })
                                     if (numArr.length == 2) {
