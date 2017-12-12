@@ -86,7 +86,7 @@
         <div class="todoCon chartCon">
             <p class="chartTit">TODO</p>
             <div class="todoInput">
-                <input type="text" placeholder="今天要做什么？" (keydown) = "addTodoEvent($event)" [(ngModel)]="addTodoContent" class=""/>
+                <input type="text" placeholder="今天要做什么？"  (keydown) = "addTodoEvent($event)" [(ngModel)]="addTodoContent" class=""/>
                 <a href="javascript:;" (click)="addTodoEvent()" class="addTodoList">添加</a>
             </div>
             <div class="todoList chartBody">

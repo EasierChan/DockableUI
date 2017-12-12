@@ -9,12 +9,13 @@
 
     <div class="u-row main">
         <div class="aside-tab u-col" style="width: auto;">
-            <div class="title u-row">
-                <div *ngFor="let item of tab.tabList" class="tab" [class.active]="tab.selectedTab && tab.selectedTab.tabId === item.tabId" (click)="checkoutTab(item.tabId)">{{item.name}}</div>
-            </div>
+            <div class="title"><b>{{tab.selectedTab?.name}}</b></div>
             <ul>
                 <li *ngFor="let item of tab.selectedTab.contentList" (click)="checkoutGroup(tab.selectedTab.tabId, item.id)" class="list-item" [class.active]="tab.selectedChild?.id === item.id">{{item.name}}</li>
             </ul>
+            <div class="tab-list u-row">
+                <div *ngFor="let item of tab.tabList" class="tab" [class.active]="tab.selectedTab && tab.selectedTab.tabId === item.tabId" (click)="checkoutTab(item.tabId)">{{item.name}}</div>
+            </div>
         </div>
 
         <div class="u-col article">
