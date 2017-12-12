@@ -4,8 +4,11 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
 import { AppComponent } from "./app.component";
-import { DataTableComponent, ScrollerBarTable, EchartsDirective } from "../../base/controls/data.component";
-import { UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent } from "../../base/controls/user.component";
+import { DataTableComponent, ScrollerBarTable, EchartsDirective, EChartComponent } from "../../base/controls/data.component";
+import {
+  UserControlComponent, DockContainerComponent, CodeComponent,
+  StatusBarComponent, DialogComponent, ActionBarComponent, ButtonGroupComponent
+} from "../../base/controls/user.component";
 
 @NgModule({
   imports: [
@@ -18,9 +21,13 @@ import { UserControlComponent, DockContainerComponent, StatusBarComponent, Dialo
     DockContainerComponent,
     DataTableComponent,
     ScrollerBarTable,
-    EchartsDirective,
     UserControlComponent,
-    ActionBarComponent
+    StatusBarComponent,
+    DialogComponent,
+    ActionBarComponent,
+    CodeComponent,
+    EChartComponent,
+    ButtonGroupComponent
   ],
   bootstrap: [AppComponent]
 })

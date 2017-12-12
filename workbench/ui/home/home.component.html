@@ -14,8 +14,10 @@
   <admin *ngIf="activeTab=='Admin'||activeTab=='管理'"></admin>
   <backtest *ngIf="activeTab=='BackTest'||activeTab=='回测'" class="fill"></backtest>
   <analysis *ngIf="activeTab=='Analysis'||activeTab=='价差分析'" class="fill"></analysis>
-  <riskfactor *ngIf="activeTab=='Profit'||activeTab=='风险因子收益'" [activeTab]="activeTab" class="fill"></riskfactor>
-  <riskfactor *ngIf="activeTab=='RiskFactors'||activeTab=='风险因子分析'" [activeTab]="activeTab" class="fill"></riskfactor>
+  <basket-admin *ngIf="activeTab=='Basket'||activeTab=='篮子分析管理'" class="fill"></basket-admin>
   <report *ngIf="activeTab=='Report'||activeTab=='回测报表'" class="fill"></report>
-  <riskfactor *ngIf="activeTab=='alpha'||activeTab=='Alpha因子'" [activeTab]="activeTab" class="fill"></riskfactor>
+  <rf-profit *ngIf="activeTab=='FactorProfit'||activeTab=='风险因子收益'" [activeTab]="activeTab" class="fill"></rf-profit>
+  <rf-analysis *ngIf="activeTab=='FactorAnalysis'||activeTab=='风险因子分析'" [activeTab]="activeTab" class="fill"></rf-analysis>
+  <rf-alpha *ngIf="activeTab=='FactorAlpha'||activeTab=='Alpha因子'" [activeTab]="activeTab" class="fill"></rf-alpha>
+  <rf-aibrand *ngIf="activeTab=='AIBrand'||activeTab=='AI看盘'" [activeTab]="activeTab" class="fill"></rf-aibrand>
 </div>

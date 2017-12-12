@@ -141,7 +141,7 @@ export class AppComponent implements OnInit {
         this.statechecker.onResize(this, this.onResize);
         this.statechecker.onDestory(this, this.onDestroy);
         this.statechecker.onMenuItemClick = this.onMenuItemClick;
-        AppComponent.bgWorker = WorkerFactory.createWorker(`${__dirname}/bll/tradeWorker`, Environment.getDataPath(this.option.name));
+        AppComponent.bgWorker = WorkerFactory.createWorker(`${__dirname}/bll/tradeWorker`, Environment.getDataPath(this.option.name, "StrategyTrader"));
         TabPanel.afterAnyPageClosed = this.onTabPageClosed;
     }
 
@@ -1201,7 +1201,7 @@ export class AppComponent implements OnInit {
         let markLen = this.statusbar.items.length;
         let i;
 
-        for (let i = 0; i < markLen; ++i) {
+        for (i = 0; i < markLen; ++i) {
             if (this.statusbar.items[i].text === mark) {
                 this.statusbar.items[i].color = data ? "#26d288" : "#ff5564";
                 break;
@@ -1666,19 +1666,22 @@ export class AppComponent implements OnInit {
         tempmark.click = () => {
             if (tempmark.text === "SS") {
                 this.gatewayTable.rows.length = 0;
-                for (let o in AppComponent.self.gatewayObj) {
-                    let row = AppComponent.self.gatewayTable.newRow();
+                for (let o in this.gatewayObj) {
+                    let row = this.gatewayTable.newRow();
                     row.cells[0].Text = o;
-                    row.cells[1].Text = AppComponent.self.gatewayObj[o];
+                    row.cells[1].Text = this.gatewayObj[o];
                 }
+
                 Dialog.popup(this, this.gatewayContent, { title: this.langServ.get("Gateway"), height: 300 });
             }
         };
+
         tempmark.section = "right";
         tempmark.color = data.connected ? "#26d288" : "#ff5564";
         if (!data.connected)
             AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
-        AppComponent.self.statusbar.items.push(tempmark);
+
+        this.statusbar.items.push(tempmark);
     }
 
     showComTotalProfitInfo(data: any) {
@@ -2384,7 +2387,7 @@ export class AppComponent implements OnInit {
         let len = bookViewTable.rows.length;
         for (let i = 0; i < len; ++i) {
             bookViewTable.rows[i].cells[0].Text = "";
-            bookViewTable.rows[i].cells[1].Text = "";
+            bookViewTable.rows[i].cells[1].Text = "0.0000";
             bookViewTable.rows[i].cells[2].Text = "";
         }
     }
@@ -2401,8 +2404,8 @@ export class AppComponent implements OnInit {
         });
 
         AppStoreService.setLocalStorageItem(this.option.name, JSON.stringify(this.appStorage));
-        File.writeSync(`${Environment.getDataPath(this.option.name)}/layout.json`, this.main.getLayout());
-        File.writeSync(`${Environment.getDataPath(this.option.name)}/config.json`, this.option.config);
+        File.writeSync(`${Environment.getDataPath(this.option.name, "StrategyTrader")}/layout.json`, this.main.getLayout());
+        File.writeSync(`${Environment.getDataPath(this.option.name, "StrategyTrader")}/config.json`, this.option.config);
     }
 
     onResize(event: any) {

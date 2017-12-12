@@ -774,7 +774,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                 let option = this.mdSection.content.option;
                 msg.content.data.forEach(item => {
                 option.xAxis.data.push(item.d);
-                let kData = [String(item.o), String(item.c), String(item.l), String(item.h)];
+                let kData = [String(item.o / 10000), String(item.c / 10000), String(item.l / 10000), String(item.h / 10000)];
                 option.series[0].data.push(kData);
                 });
 

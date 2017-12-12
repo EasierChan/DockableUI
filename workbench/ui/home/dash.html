@@ -11,15 +11,13 @@
                 </div>
                 <div class="selfSelectStockChart">
                     <p>
-                        <span class="name">{{mianStock.name}}</span>
-                        <span class="preClose">开盘：<i class="value">{{mianStock.preClose}}</i></span>
-                        <span class="maxPrice">最高：<i class="value">{{mianStock.maxPrice}}</i></span>
-                        <span class="minPrice">最低：<i class="value">{{mianStock.minPrice}}</i></span>
-                        <span class="todayClose">收盘：{{mianStock.todayClose}}</span>
+                        <span class="name">{{mainStock.name}}</span>
+                        <span class="preClose">开盘：<i class="value">{{mainStock.open}}</i></span>
+                        <span class="maxPrice">最高：<i class="value">{{mainStock.maxPrice}}</i></span>
+                        <span class="minPrice">最低：<i class="value">{{mainStock.minPrice}}</i></span>
+                        <span class="todayClose">收盘：{{mainStock.todayClose}}</span>
                     </p>
-                    <!--<div echarts [options]="selfStockPrice.content.option" (chartInit)="selfStockPrice.content.onInit($event)" style="height: 200px"></div>-->
                     <div echarts [options]="selfStockMarket.content.option" (chartInit)="selfStockMarket.content.onInit($event)" style="width:100%;height: 370px"></div>
-                    <!--<div echarts [options]="selfStockMoney.content.option" (chartInit)="selfStockMoney.content.onInit($event)" style="width:100%;height: 130px"></div>-->
                 </div>
             </div>
         </div>
@@ -88,7 +86,7 @@
         <div class="todoCon chartCon">
             <p class="chartTit">TODO</p>
             <div class="todoInput">
-                <input type="text" placeholder="今天要做什么？" (keydown) = "addTodoEvent($event)" [(ngModel)]="addTodoContent" class=""/>
+                <input type="text" placeholder="今天要做什么？"  (keydown) = "addTodoEvent($event)" [(ngModel)]="addTodoContent" class=""/>
                 <a href="javascript:;" (click)="addTodoEvent()" class="addTodoList">添加</a>
             </div>
             <div class="todoList chartBody">
@@ -96,8 +94,6 @@
 
             </div>
         </div>
-
-
     </section>
 
 </div>

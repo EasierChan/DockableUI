@@ -1,0 +1,51 @@
+<div style="overflow:auto">
+<div class="menu">
+<div class="menuItem">
+<font color='#A5ACBE'>产品:</font>
+<select id="product" class="item1" [(ngModel)]='iproduct' (ngModelChange)="iproduct=$event;nextDropdown()">
+  <option *ngFor="let item of iproducts" [value]='item'>{{item}}</option>
+</select>
+</div>
+<div class="menuItem">
+<font color='#A5ACBE'>策略:</font>
+<select  id="strategy" class="item1" [(ngModel)]='istrategy' (ngModelChange)="istrategy=$event;nextStrategyDropdown()">
+  <option *ngFor="let item of istrategys" [value]='item'>{{item}}</option>
+</select>
+</div>
+<div class="menuItem">
+<font color='#A5ACBE'>日期:</font>
+<input  class="item3" [(ngModel)]='startdate' type="date"  required>
+-
+<input  class="item4" [(ngModel)]='enddate' type="date"  required>
+</div>
+<div class="menuItem">
+<font color='#A5ACBE'>对冲比率:</font>
+<select class="item5" [(ngModel)]='hedge'>
+  <option *ngFor="let item of hedges" [value]='item'>{{item}}</option>
+</select>
+<input class="item2"  [(ngModel)]='hedgeRadio' type="text" size="8">
+</div>
+<input class="search" type="submit" value="搜索" (click)="lookReturn()">
+</div>
+<div>
+  <div class="big_chart">
+    <p class="chartTit">风险因子每天暴露</p>
+    <div class="chart " id="everyDayRFEEchart" >chart</div>
+  </div>
+
+  <div class="small_chart">
+    <p class="chartTit">风险因子最后一天暴露</p>
+    <div class="chart " id="riskFactorExposureEchart" >chart</div>
+  </div>
+
+  <div class="big_chart">
+    <p class="chartTit">风险因子每天收益归因</p>
+    <div class="chart " id="everyDayRFRAttrEchart" >chart</div>
+  </div>
+
+  <div class="small_chart">
+    <p class="chartTit">风险因子累计收益归因</p>
+    <div class="chart " id="riskFactorReturnAttrEchart" >chart</div>
+  </div>
+</div>
+</div>
