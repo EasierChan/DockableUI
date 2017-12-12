@@ -2,13 +2,14 @@
     <div class="u-col fill u-block">
         <div class="title">
             <span>篮子模板列表</span>
-            <span class="glyphicon glyphicon-plus menu" (click)="onBasketCreate()"></span>
+            <span title="Add" class="glyphicon glyphicon-plus menu" (click)="onBasketCreate()"></span>
+            <span title="Submit" class="glyphicon glyphicon-ok menu" [class.disable]="!changing" (click)="onSubmit()"></span>
         </div>
         <dock-table2 [dataSource]="basketsTable.dataSource" [styleObj]="basketsTable.styleObj"></dock-table2>
     </div>
     <div class="u-col fill u-block">
         <div class="title">
-            篮子信息/交易日
+            <span>篮子信息/交易日</span>
         </div>
         <div *ngFor="let item of items" class="panel panel-default">
             <div class="panel-heading">
