@@ -245,6 +245,10 @@ export class MessageBox {
             properties: ["openFile"]
         }, cb);
     }
+
+    static openInnerDialog() {
+        
+    }
 }
 
 export class File {

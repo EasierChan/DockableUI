@@ -15,7 +15,7 @@ import { SSGW_MSG, ServiceType, BasketPCF } from "../../../base/api/model";
     moduleId: module.id,
     selector: "basket-admin",
     templateUrl: "basket.html",
-    styleUrls: ["basket.css"]
+    styleUrls: ["home.component.css", "basket.css"]
 })
 export class BasketComponent implements OnInit {
     basketsTable: DataTable;
@@ -59,5 +59,9 @@ export class BasketComponent implements OnInit {
         this.basketsTable.onRowDBClick = (row) => {
             this.tradeEndPoint.sendToCMS("getBasketTradingDay", JSON.stringify({ data: { body: { basketid: row.cells[0].Data } } }));
         };
+    }
+
+    onBasketCreate() {
+        alert("创建篮子!");
     }
 }

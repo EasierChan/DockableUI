@@ -7,8 +7,7 @@
 
 import { Component, OnInit, ChangeDetectorRef, OnDestroy } from "@angular/core";
 import {
-    Control, ComboControl, MetaControl, SpreadViewer, SpreadViewerConfig,
-    VBox, HBox, TextBox, Button, DockContainer
+    Dialog
 } from "../../base/controls/control";
 
 import {
@@ -39,6 +38,7 @@ import { FGS_MSG, SSGW_MSG, ServiceType } from "../../base/api/model";
     ]
 })
 export class AppComponent implements OnInit, OnDestroy {
+    private dialog: Dialog;
     actionBar: ActionBar;
     curPage: string;
     homeMod: string;

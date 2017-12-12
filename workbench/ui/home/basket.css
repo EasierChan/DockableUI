@@ -4,10 +4,27 @@
 
 .u-block .title {
     height: 30px;
-    background: rgb(56, 63, 84);
     line-height: 30px;
+    background: rgb(56, 63, 84);
     padding-left: 10px;
     color: #fff;
     font-weight: bold;
     font-size: 14px;
+    display: flex;
+    flex-flow: row;
+}
+
+.u-block .title > * {
+    flex: auto;
+}
+
+.u-block .title .menu{
+    flex: none;
+    align-self: flex-end;
+    line-height: 30px;
+    margin-right: 10px;
+}
+
+.u-block .title .menu:hover{
+    cursor: pointer;
 }
