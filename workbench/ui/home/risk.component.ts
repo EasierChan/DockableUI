@@ -2,7 +2,7 @@
 
 import { Component, OnInit } from "@angular/core";
 import { QtpService } from "../../bll/services";
-import { AppStoreService } from "../../../base/api/services/backend.service";
+import { AppStoreService, SecuMasterService } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL } from "../../bll/strategy.server";
 import { DataTable } from "../../../base/controls/control";
 import { ServiceType } from "../../../base/api/model";
@@ -26,28 +26,15 @@ export class RiskComponent implements OnInit {
     account_info: any[];
     tblock_info: any[];
     productAppID: number;
-    tab: {
-        tabList: {
-            tabId: number;
-            name: string;
-            contentList: any[];
-        }[];
-        selectedTab: {
-            name: string;
-            contentList: any[];
-        };
-        selectedChild?: any;
+    tab: Tab;
+    riskData = {
+        account: [],
+        block: [],
+        trace: []
     };
-    riskData: {
-        trade_account: any[];
-        trade_block: any[];
-    } = {
-        trade_account: [],
-        trade_block: []
-    }
 
     constructor(private trade: QtpService, private config: ConfigurationBLL,
-        private appSrv: AppStoreService) {
+        private appSrv: AppStoreService,  private secuinfo: SecuMasterService) {
 
     }
 
@@ -58,54 +45,139 @@ export class RiskComponent implements OnInit {
         this.reLoadAllTable();
         this.reLoadTable("warn");
         this.registerListeners();
+        this.sendCmsRequest("getRiskCfg", { out_type: 5 }); // 获取账户风控配置
+        this.sendCmsRequest("getRiskCfg", { out_type: 2 }); // 获取产品风控配置
+        this.sendCmsRequest("getRiskCfg", { out_type: 3 }); // 获取策略风控配置
     }
 
     registerListeners() {
+        this.trade.addSlotOfCMS("getRiskCfg", (msg) => {
+            let data = JSON.parse(msg.toString());
+            if (data.msret.msgcode !== "00") {
+                alert(data.msret.msg);
+                return
+            }
+            if(!data.body.length) return
+            this.initTableModel(data.body, data.body[0].celltype);
+            this.trade.send(4009, "", ServiceType.kCOMS);
+        }, this)
+
         this.trade.addSlot({
             service: ServiceType.kCOMS,
             msgtype: 4010,
             callback: (msg) => {
-                let obj = JSON.parse(msg.toString());
-                this.riskData = obj.data;
-                this.riskData.trade_account = this.riskData.trade_account.concat(msg.content.data.trade_account);
-                this.riskData.trade_block = this.riskData.trade_block.concat(msg.content.data.trade_block);
-                this.updateWarnTable(this.riskData);
+                let { trade_account, trade_block } = JSON.parse(msg.toString()).data;
+                this.updateData(trade_account, "5");
+                this.updateData(trade_block, "2");
+                this.updateData([], "3");
             }
         });
-
-        this.trade.send(4009, "", ServiceType.kCOMS);
     }
 
-    updateWarnTable(msg) {
-        msg.trade_account.filter(this.isRiskWarn)
-            .forEach(item => {
-                let row = this.warnTable.newRow();
-                let { categroy, categroyTop } = this.getRiskCatg(item);
-                row.cells[0].Text = "账户";
-                row.cells[1].Text = this.account_info.find(value => Number(value.acid) === item.group_id).acname,
-                row.cells[2].Text = categroyTop;
-                row.cells[3].Text = categroy;
-                row.cells[4].Text = this.getRiskById(item.risk_id).riskname;
-                row.cells[5].Text = item.limit_v1;
-                row.cells[6].Text = item.used_v1;
-                row.cells[7].Text = this.getWarnLevel(item);
-            })
-
-        msg.trade_block.filter(this.isRiskWarn)
-            .forEach(item => {
-                let row = this.warnTable.newRow();
-                let { categroy, categroyTop } = this.getRiskCatg(item);
-                row.cells[0].Text = "产品";
-                row.cells[1].Text = this.tblock_info.find(value => Number(value.caid) === item.group_id).caname,
-                row.cells[2].Text = categroyTop;
-                row.cells[3].Text = categroy;
-                row.cells[4].Text = this.getRiskById(item.risk_id).riskname;
-                row.cells[5].Text = item.limit_v1;
-                row.cells[6].Text = item.used_v1;
-                row.cells[7].Text = this.getWarnLevel(item);
-            })
+    sendCmsRequest(cmd: string, options) {
+        this.trade.sendToCMS(cmd, JSON.stringify({data: {body: Object.assign({ userid: this.config.get("user").userid}, options)}}));
     }
-    
+
+    updateData(values, celltype) {
+        let cellList = [];
+        let flagId = ""
+        switch(celltype) {
+            case "5":
+                cellList = this.riskData.account;
+                flagId = "acid";
+                break;
+            case "2":
+                cellList = this.riskData.block;
+                flagId = "caid";
+                break;
+            case "3":
+                cellList = this.riskData.trace;
+                flagId = "trid";
+                break;
+        }
+        values.forEach(value => {
+            let targetCell = cellList.find(item => Number(item.info[flagId]) === value.group_id);
+            let targetRecord;
+            if (targetCell) targetRecord = targetCell.tableData.find(item => Number(item.riskid) === value.risk_id);
+            if(targetRecord) targetRecord.used_v1 = value.used_v1.toString();
+        });
+        if(this.tab.selectedTab && this.tab.selectedChild) this.checkoutGroup(this.tab.selectedTab.tabId, this.tab.selectedChild.id)
+    }
+
+    syncTable(model, isForce = false) {
+        console.log(model)
+        const tableFieldsOrder = {
+            singleTable: ["riskname", "used_v1", "limit_v1", "operate", "stat"],
+            marketPlateTable: ["categroy", "riskname", "used_v1", "limit_v1", "operate", "stat"],
+            varietiTable: ["categroy", "riskname", "used_v1", "limit_v1", "operate", "stat"],
+            ukeyTable: ["categroy", "riskname", "used_v1", "limit_v1", "operate", "stat"]
+        };
+        if(isForce) this.reLoadAllTable();
+        model.forEach(record => {
+            let table = this[record.tableName] as DataTable;
+            let targetRow = table.rows.find(row =>  row.cell("风控名称").Text === record.riskname);
+            if(targetRow) {
+                targetRow.cell("used_v1").Text = record.used_v1;
+            } else {
+                let row = table.newRow();
+                row.cells.forEach((cell, index) => {
+                    cell.Text = record[tableFieldsOrder[record.tableName][index]];
+                })
+            }
+        })
+    }
+
+    initTableModel(data: any[], type: string) {
+        let cellInfo: any[];
+        let cfgData: any[];
+        let flagid: string;
+        let flagname: string;
+        let flagMount: string;
+        switch(type) {
+            case "5":
+                cellInfo = this.account_info;
+                flagid = "acid";
+                flagname = "acname";
+                flagMount = "account";
+                break;
+            case "2":
+                cellInfo = this.tblock_info;
+                flagid = "caid";
+                flagname = "caname";
+                flagMount = "block";
+                break;
+            case "3":
+                cellInfo = [];
+                flagid = "";
+                flagname = "";
+                flagMount = "trace";
+                break;
+        }
+        this.riskData[flagMount] = cellInfo.map(value => {
+            let risks = data.filter(item => item.cellid === value[flagid]);
+            return {
+                info: value,
+                tableData: risks.map(item => {
+                    let { categroy, categroyTop, tableName } = this.getRiskCatg(item.catg_lv1, item.catg_lv2, item.ukcode);
+                    return {
+                        cellid: item.cellid,
+                        celltype: item.celltype,
+                        cellname: value[flagname],
+                        categroyTop,
+                        categroy,
+                        riskid: item.riskid,
+                        riskname: item.riskname,
+                        limit_v1: item.value1,
+                        used_v1: null,
+                        stat: this.getRiskStatType(item.risk_stat),
+                        operate: item.operate,
+                        tableName
+                    }
+                })
+            }
+        })
+    }
+
     initTab() {
         this.tab = {
             tabList: [],
@@ -149,52 +221,6 @@ export class RiskComponent implements OnInit {
         this.tblock_info = this.config.getProducts();
     }
 
-    updateTable(risks, name) {
-        risks.filter(value => value.ukey === 0 && value.catg_lv1 === 0)
-            .forEach(item => {
-                let row = this.singleTable.newRow();
-                row.cells[0].Text = name;
-                row.cells[1].Text = this.getRiskById(item.risk_id).riskname;
-                row.cells[2].Text = item.used_v1;
-                row.cells[3].Text = item.limit_v1;
-                row.cells[4].Text = this.mapOperate(item.operate);
-                row.cells[5].Text = this.getRiskStatType(item.risk_stat);
-            })
-
-        risks.filter(value => { value.ukey === 0 && (value.catg_lv1 === 1 || value.catg_lv1 === 2) })
-            .forEach(item => {
-                let row = this.marketPlateTable.newRow();
-                row.cells[0].Text = this.getRiskCatg(item).categroy;
-                row.cells[1].Text = this.getRiskById(item.risk_id).riskname;
-                row.cells[2].Text = item.used_v1;
-                row.cells[3].Text = item.limit_v1;
-                row.cells[4].Text = this.mapOperate(item.operate);
-                row.cells[5].Text = this.getRiskStatType(item.risk_stat);
-            })
-
-        risks.filter(value => value.ukey === 0 && value.catg_lv1 === 3)
-            .forEach(item => {
-                let row = this.varietiTable.newRow();
-                row.cells[0].Text = this.getRiskCatg(item).categroy;
-                row.cells[1].Text = this.getRiskById(item.risk_id).riskname;
-                row.cells[2].Text = item.used_v1;
-                row.cells[3].Text = item.limit_v1;
-                row.cells[4].Text = this.mapOperate(item.operate);
-                row.cells[5].Text = this.getRiskStatType(item.risk_stat);
-            })
-
-        risks.filter(value => value.ukey !== 0 && value.catg_lv1 === 0)
-            .forEach(item => {
-                let row = this.ukeyTable.newRow();
-                row.cells[0].Text = item.ukey;
-                row.cells[1].Text = this.getRiskById(item.risk_id).riskname;
-                row.cells[2].Text = item.used_v1;
-                row.cells[3].Text = item.limit_v1;
-                row.cells[4].Text = this.mapOperate(item.operate);
-                row.cells[5].Text = this.getRiskStatType(item.risk_stat);
-            })
-    }
-
     checkoutTab(tabId) {
         this.tab.selectedTab = this.tab.tabList.find(value => value.tabId === tabId);
     }
@@ -203,12 +229,15 @@ export class RiskComponent implements OnInit {
         this.tab.selectedChild = this.tab.tabList.find(value => value.tabId === tabId).contentList.find(item => item.id === id);
         this.singleTableName = `${this.tab.selectedTab.name}风控`;
         this.reLoadAllTable();
-        switch(tabId) {
+        switch (tabId) {
             case this.tab.tabList[0].tabId:
-                this.updateTable(this.riskData.trade_account.filter(item => item.group_id === Number(this.tab.selectedChild.id)), this.tab.selectedChild.name);
+                this.syncTable(this.riskData.account.find(item => item.info.acid === id.toString()).tableData, true);
                 break;
             case this.tab.tabList[1].tabId:
-                this.updateTable(this.riskData.trade_block.filter(item => item.group_id === Number(this.tab.selectedChild.id)), this.tab.selectedChild.name);
+                this.syncTable(this.riskData.block.find(item => item.info.caid === id.toString()).tableData, true);
+                break;
+            case this.tab.tabList[2].tabId:
+                this.syncTable(this.riskData.trace.find(item => item.info.trid === id.toString()).tableData, true);
                 break;
         }
     }
@@ -217,15 +246,15 @@ export class RiskComponent implements OnInit {
         this.isCollapsed = !this.isCollapsed;
     }
 
-    reLoadTable(name:string) {
+    reLoadTable(name: string) {
         let table: DataTable = new DataTable("table2");
-        switch(name) {
+        switch (name) {
             case "warn":
                 table.addColumn("类型", "账户/产品ID", "分类", "类目", "风控名称", "阈值", "当前", "状态");
                 this.warnTable = table;
                 break;
             case "single":
-                table.addColumn("账户/产品ID", "风控名称", "当前值", "阈值", "触发方式", "状态");
+                table.addColumn("风控名称", "当前值", "阈值", "触发方式", "状态");
                 this.singleTable = table;
                 break;
             case "marketPlate":
@@ -249,10 +278,10 @@ export class RiskComponent implements OnInit {
 
     getWarnLevel(riskRecord) {
         let type = "normal";
-        if(this.isRiskWarn(riskRecord)) {
+        if (this.isRiskWarn(riskRecord)) {
             type = "warn";
         }
-        if(riskRecord.used_v1 >= riskRecord.limit_v1) {
+        if (riskRecord.used_v1 >= riskRecord.limit_v1) {
             type = "danger";
         }
         return type
@@ -270,36 +299,42 @@ export class RiskComponent implements OnInit {
         return riskRecord.used_v1 >= riskRecord.limit_v2
     }
 
-    getRiskCatg(riskRecord) {
+    getRiskCatg(catg_lv1: string, catg_lv2: string, ukey: string) {
         let categroy: string;
         let categroyTop: string;
-        switch(riskRecord.catg_lv1) {
-            case 0:
+        let tableName: string;
+        switch (catg_lv1) {
+            case "0":
                 categroy = null;
                 categroyTop = null;
+                tableName = "singleTable";
+                if (Number(ukey)) {
+                    categroy = Number(ukey) === 1 ? "全部" : this.secuinfo.getSecuinfoByUKey(Number(ukey))[ukey].SecuAbbr;
+                    categroyTop = '标的';
+                    tableName = "ukeyTable";
+                }
                 break;
-            case 1:
-                categroy = this.mapMarket(riskRecord.catg_lv2);
+            case "1":
+                categroy = this.mapMarket(catg_lv2);
                 categroyTop = "市场";
+                tableName = "marketPlateTable";
                 break;
-            case 2:
-                categroy = this.mapPlate(riskRecord.catg_lv2);
+            case "2":
+                categroy = this.mapPlate(catg_lv2);
                 categroyTop = "板块";
+                tableName = "marketPlateTable";
                 break;
-            case 3:
-                categroy = this.mapVarieti(riskRecord.catg_lv2);
+            case "3":
+                categroy = this.mapVarieti(catg_lv2);
                 categroyTop = "品种";
+                tableName = "varietiTable"
                 break;
         }
-        if (riskRecord.ukey) {
-            categroy = riskRecord.ukey;
-            categroyTop = '标的';
-        }
-        return { categroy, categroyTop }
+        return { categroy, categroyTop, tableName }
     }
 
-    mapOperate(operate:number) {
-        let value:string;
+    mapOperate(operate: number) {
+        let value: string;
         switch (operate) {
             case 1:
                 value = "大于";
@@ -320,47 +355,47 @@ export class RiskComponent implements OnInit {
         return value
     }
 
-    mapCategroy_lv1(catg_lv1: number) {
+    mapCategroy_lv1(catg_lv1: string) {
         let value: string;
         switch (catg_lv1) {
-            case 0:
+            case "0":
                 value = "无";
                 break;
-            case 1:
+            case "1":
                 value = "市场";
                 break;
-            case 2:
+            case "2":
                 value = "板块";
                 break;
-            case 3:
+            case "3":
                 value = "品种";
                 break;
         }
-        return value        
+        return value
     }
 
-    mapMarket(catg_lv2: number) {
+    mapMarket(catg_lv2: string) {
         let value: string;
         switch (catg_lv2) {
-            case 0:
+            case "0":
                 value = "无";
                 break;
-            case 1:
+            case "1":
                 value = "深圳";
                 break;
-            case 2:
+            case "2":
                 value = "上海";
                 break;
-            case 3:
+            case "3":
                 value = "all";
                 break;
         }
         return value
     }
 
-    mapPlate(catg_lv2: number) {
+    mapPlate(catg_lv2: string) {
         let value: string;
-        switch (catg_lv2) {
+        switch (Number(catg_lv2)) {
             case 0:
                 value = "无";
                 break;
@@ -383,9 +418,9 @@ export class RiskComponent implements OnInit {
         return value
     }
 
-    mapVarieti(catg_lv2: number) {
+    mapVarieti(catg_lv2: string) {
         let value: string;
-        switch (catg_lv2) {
+        switch (Number(catg_lv2)) {
             case 0:
                 value = "无";
                 break;
@@ -420,6 +455,24 @@ export class RiskComponent implements OnInit {
                 value = "all";
                 break;
         }
-        return value        
+        return value
     }
+}
+
+
+interface Tab {
+    tabList: tabItem[];
+    selectedTab: tabItem;
+    selectedChild?: contentItem;
+}
+
+interface tabItem {
+    tabId: number;
+    name: string;
+    contentList: contentItem[];
+}
+
+interface contentItem {
+    id: string | number;
+    name: string;
 }
