@@ -7,7 +7,7 @@ import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
 import {
   UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent,
-  TileAreaComponent, CodeComponent, ButtonGroupComponent
+  TileAreaComponent, CodeComponent, ButtonGroupComponent, VBoxDirective
 } from "../../base/controls/user.component";
 import { HomeComponent } from "./home/home.component";
 import { AdminComponent } from "./home/admin.component";
@@ -38,6 +38,7 @@ import { EchartsDirective } from "./app.controls";
   ],
   declarations: [
     AppComponent,
+    VBoxDirective,
     ActionBarComponent,
     ScrollerBarTable,
     UserControlComponent,
