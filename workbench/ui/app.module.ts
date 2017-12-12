@@ -29,6 +29,7 @@ import { AnalysisComponent } from "./home/analysis";
 import { ProductsComponent } from "./home/product.component";
 import { BasketComponent } from "./home/basket.component";
 import { EchartsDirective } from "./app.controls";
+import { SimQueryComponent } from "./home/simquery.component";
 
 @NgModule({
   imports: [
@@ -38,6 +39,7 @@ import { EchartsDirective } from "./app.controls";
   ],
   declarations: [
     AppComponent,
+    DialogComponent,
     VBoxDirective,
     ActionBarComponent,
     ScrollerBarTable,
@@ -67,7 +69,8 @@ import { EchartsDirective } from "./app.controls";
     ButtonGroupComponent,
     AnalysisComponent,
     ProductsComponent,
-    BasketComponent
+    BasketComponent,
+    SimQueryComponent
   ],
   bootstrap: [AppComponent]
 })
