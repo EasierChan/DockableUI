@@ -1,1 +1,22 @@
-Basket Page.
+<div class="u-row fill">
+    <div class="u-col fill u-block">
+        <div class="title">
+            <span>篮子模板列表</span>
+            <span class="glyphicon glyphicon-plus menu" (click)="onBasketCreate()"></span>
+        </div>
+        <dock-table2 [dataSource]="basketsTable.dataSource" [styleObj]="basketsTable.styleObj"></dock-table2>
+    </div>
+    <div class="u-col fill u-block">
+        <div class="title">
+            篮子信息/交易日
+        </div>
+        <div *ngFor="let item of items" class="panel panel-default">
+            <div class="panel-heading">
+                交易日期: {{ item.title }}
+            </div>
+            <div class="panel-body">
+                <dock-table2 [dataSource]="item.table.dataSource" [styleObj]="item.table.styleObj"></dock-table2>
+            </div>
+        </div>
+    </div>
+</div>

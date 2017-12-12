@@ -2,7 +2,7 @@
 
 declare var electron: Electron.ElectronMainAndRenderer;
 import { Injectable } from "@angular/core";
-import { UserProfile } from "../model/app.model";
+import { UserProfile, BasketPCF } from "../model/app.model";
 
 export const os = require("@node/os");
 export const path = require("@node/path");
@@ -245,6 +245,10 @@ export class MessageBox {
             properties: ["openFile"]
         }, cb);
     }
+
+    static openInnerDialog() {
+        
+    }
 }
 
 export class File {
@@ -329,6 +333,69 @@ export class File {
     public static unlinkSync(fpath: string) {
         if (fs.existsSync(fpath))
             fs.unlinkSync(fpath);
+    }
+
+    public static readPCF(fpath: string): Promise<BasketPCF> {
+        return new Promise<BasketPCF>((resolve, reject) => {
+            let basket = new BasketPCF();
+            let bParamStart = false;
+            let bComStart = false;
+
+            const rl = readline.createInterface({
+                input: fs.createReadStream(fpath)
+            });
+
+            rl.on("line", (linestr: string) => {
+                let line: string = linestr.trim();
+
+                if (line.length < 1 || line.startsWith("#")) {
+                    return;
+                }
+
+                if (line.startsWith("[Parameters]")) {
+                    bParamStart = true;
+                    bComStart = false;
+                    return;
+                }
+
+                if (line.startsWith("[Components]")) {
+                    bParamStart = false;
+                    bComStart = true;
+                    return;
+                }
+
+                if (bParamStart) {
+                    let arr = line.split("=");
+                    if (arr.length > 1) {
+                        basket.params[arr[0]] = arr[1];
+                    }
+
+                    arr = null;
+                    return;
+                }
+
+                { // if (bComStart) 
+                    let arr = line.split(",");
+                    if (arr.length > 1) {
+                        let obj = { code: arr[0], amount: parseInt(arr[1]), cash_rep: parseInt(arr[2]), rep_codes: [] };
+                        let rep_idx = 3;
+                        while (arr.length > rep_idx) {
+                            obj.rep_codes.push({ code: arr[rep_idx], amount: parseInt(arr[rep_idx + 1]) });
+                            rep_idx += 2;
+                        }
+
+                        basket.components.push(obj);
+                    }
+
+                    arr = null;
+                    return;
+                }
+            });
+
+            rl.on("close", () => {
+                resolve(basket);
+            });
+        });
     }
 }
 

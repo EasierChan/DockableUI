@@ -16,6 +16,33 @@ export class UserProfile {
     apps: string[];
 }
 
+export class BasketPCF {
+    params: any = {};
+    components: { code: string, amount: number, cash_rep: number, rep_codes: { code: string, amount: number }[] }[] = [];
+
+    toText(): string {
+        let text: string = "[Parameters]\n";
+        for (let prop in this.params) {
+            text += `${prop}=${this.params[prop]}\n`;
+        }
+
+        text += "[Components]\n";
+        this.components.forEach(item => {
+            text += [item.code, item.amount, item.cash_rep].join(",");
+
+            if (item.rep_codes) {
+                item.rep_codes.forEach(rep => {
+                    text += "," + [rep.code, rep.amount].join(",");
+                });
+            }
+
+            text += "\n";
+        });
+
+        return text;
+    }
+}
+
 export abstract class Message {
     toString(): string {
         let props = Object.getOwnPropertyNames(this);

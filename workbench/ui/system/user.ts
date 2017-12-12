@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, HostListener } from "@angular/core";
 import { AppStoreService, CryptoService, MessageBox } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL, DataKey } from "../../bll/strategy.server";
 import { QtpService, QuoteService } from "../../bll/services";
@@ -41,6 +41,13 @@ export class UserComponent implements OnInit {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
         this.userid = this.appSrv.getUserProfile().username;
         this.registerListeners();
+    }
+
+    @HostListener("keyup", ["$event"])
+    onKeyUp(event: KeyboardEvent) {
+        if (!this.appSrv.isLoginTrade() && event.keyCode === 13) {
+            this.login();
+        }
     }
 
     get setting() {

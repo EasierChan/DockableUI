@@ -7,7 +7,7 @@ import { AppComponent } from "./app.component";
 import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
 import {
   UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent,
-  TileAreaComponent, CodeComponent, ButtonGroupComponent
+  TileAreaComponent, CodeComponent, ButtonGroupComponent, VBoxDirective
 } from "../../base/controls/user.component";
 import { HomeComponent } from "./home/home.component";
 import { AdminComponent } from "./home/admin.component";
@@ -29,6 +29,7 @@ import { AnalysisComponent } from "./home/analysis";
 import { ProductsComponent } from "./home/product.component";
 import { BasketComponent } from "./home/basket.component";
 import { EchartsDirective } from "./app.controls";
+import { SimQueryComponent } from "./home/simquery.component";
 
 @NgModule({
   imports: [
@@ -38,6 +39,8 @@ import { EchartsDirective } from "./app.controls";
   ],
   declarations: [
     AppComponent,
+    DialogComponent,
+    VBoxDirective,
     ActionBarComponent,
     ScrollerBarTable,
     UserControlComponent,
@@ -66,7 +69,8 @@ import { EchartsDirective } from "./app.controls";
     ButtonGroupComponent,
     AnalysisComponent,
     ProductsComponent,
-    BasketComponent
+    BasketComponent,
+    SimQueryComponent
   ],
   bootstrap: [AppComponent]
 })

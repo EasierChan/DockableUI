@@ -19,7 +19,7 @@ export class DataSet {
             name: "模拟交易",
             icon: "retweet",
             // tabs: ["BackTest", "Report"]
-            tabs: ["仿真交易", "回测", "回测报表"]
+            tabs: ["仿真交易", "仿真记录查询", "回测", "回测报表"]
         },
         {
             name: "智能预测",

@@ -3,7 +3,7 @@
  * used to created custom user control based on className and dataSource.
  */
 import {
-    Component, Input, ElementRef, AfterViewInit, OnInit, HostBinding,
+    Component, Input, ElementRef, AfterViewInit, OnInit, HostBinding, Directive,
     ViewChild, Renderer, HostListener, ChangeDetectorRef, Output, EventEmitter
 } from "@angular/core";
 import { NgForm } from "@angular/forms";
@@ -543,4 +543,14 @@ export class ButtonGroupComponent implements OnInit {
         event.preventDefault();
         this.onClick.emit(index);
     }
+}
+
+@Directive({
+    selector: "[hbox]",
+    host: {
+        "[style.display]": "flex",
+        "[style.flex-flow]": "row"
+    }
+})
+export class VBoxDirective {
 }
