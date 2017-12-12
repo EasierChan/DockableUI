@@ -145,12 +145,12 @@ section {
     padding-right: 10px;
 }
 
-.alarmCon .alarmTab{
-     width:100%;
-     /*overflow-x: auto;*/
+
+
+.todoCon .chartBody, .alarmCon .chartBody{
+    max-height: 500px;
+    display: flex;
 }
-
-
 .todoCon,.alarmCon{
     min-height: 300px;
 }
@@ -172,10 +172,7 @@ section {
     background: rgb(131, 191, 246);
 }
 
-.todoCon .todoList{
-    width: 100%;
-    /*overflow-x: scroll;*/
-}
+
 .todoCon .todoInput{
     padding: 10px 10px 20px 10px;
 }
