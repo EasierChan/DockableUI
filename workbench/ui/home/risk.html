@@ -2,6 +2,7 @@
     <div class="table-section u-col header" [ngClass]="{'header-collapsed': isCollapsed, 'header-open': !isCollapsed}">
         <div class="title u-row">
             <b>风控预警</b>
+            <div class="toggle-btn" (click)="sendKcomsRequest()" >刷新</div>
             <div class="toggle-btn" (click)="toggleWarn()" >></div>
         </div>
         <dock-table2 class="table-container" [dataSource]="warnTable.dataSource" [styleObj]="warnTable.styleObj"></dock-table2>

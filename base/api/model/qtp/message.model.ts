@@ -7,7 +7,7 @@ import { Message } from "../app.model";
 
 export class Header extends Message {
     static len = 12;
-    version: number = 0x1;
+    version: number = 0;
     service: number = 0;
     msgtype: number = 0;
     topic: number = 0;

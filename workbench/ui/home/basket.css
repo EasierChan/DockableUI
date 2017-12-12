@@ -25,6 +25,10 @@
     margin-right: 10px;
 }
 
+.disable {
+    color: #333;
+}
+
 .u-block .title .menu:hover{
     cursor: pointer;
 }

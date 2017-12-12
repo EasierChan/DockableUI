@@ -18,6 +18,7 @@ export class AppStoreService {
     private userinfo: UserProfile;
     loginSuccess: Function;
     loginFailed: Function;
+    dialog: any;
 
     constructor() {
         this.bLoginTrade = false;
@@ -76,6 +77,14 @@ export class AppStoreService {
 
     setLoginQuote(value: boolean) {
         this.bLoginQuote = value;
+    }
+
+    setDialog(dialog: any) {
+        this.dialog = dialog;
+    }
+
+    getDialog() {
+        return this.dialog || null;
     }
 
     static getLocalStorageItem(key: string) {
@@ -247,7 +256,7 @@ export class MessageBox {
     }
 
     static openInnerDialog() {
-        
+
     }
 }
 

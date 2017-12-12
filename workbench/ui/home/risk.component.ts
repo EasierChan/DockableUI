@@ -53,13 +53,14 @@ export class RiskComponent implements OnInit {
     registerListeners() {
         this.trade.addSlotOfCMS("getRiskCfg", (msg) => {
             let data = JSON.parse(msg.toString());
+            console.log(data)
             if (data.msret.msgcode !== "00") {
                 alert(data.msret.msg);
                 return
             }
             if(!data.body.length) return
             this.initTableModel(data.body, data.body[0].celltype);
-            this.trade.send(4009, "", ServiceType.kCOMS);
+            this.sendKcomsRequest();
         }, this)
 
         this.trade.addSlot({
@@ -75,7 +76,13 @@ export class RiskComponent implements OnInit {
     }
 
     sendCmsRequest(cmd: string, options) {
-        this.trade.sendToCMS(cmd, JSON.stringify({data: {body: Object.assign({ userid: this.config.get("user").userid}, options)}}));
+        this.trade.sendToCMS(cmd, JSON.stringify({data: {
+            body: Object.assign({ userid: this.config.get("user").userid}, options)
+        }}));
+    }
+
+    sendKcomsRequest() {
+        this.trade.send(4009, "", ServiceType.kCOMS);
     }
 
     updateData(values, celltype) {

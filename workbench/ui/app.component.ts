@@ -59,6 +59,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.appSrv.setDialog(this.dialog);
         this.productAppID = this.setting.endpoints[0].tgw_apps.ids;
         this.scmsAppID = this.setting.endpoints[0].tgw_apps.scms;
         this.ssgwAppID = this.setting.endpoints[0].tgw_apps.ssgw;

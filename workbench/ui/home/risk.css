@@ -36,8 +36,8 @@
     cursor: ns-resize;
 }
 
-.header .title {
-    justify-content: space-between;
+.header .title b {
+    flex: 1;
 }
 .header .toggle-btn {
     width: 30px;
