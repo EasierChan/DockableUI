@@ -55,15 +55,15 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit() {
-        let viewContent = new VBox();
-        let svHeaderRow1 = new HBox();
-        this.dd_tests = new DropDown();
+        let viewContent = new VBox();//列
+        let svHeaderRow1 = new HBox();//行
+        this.dd_tests = new DropDown();//下拉框
         this.dd_tests.Title = "Tests:";
         this.dd_tests.Left = 50;
         this.dd_tests.addItem({ Text: "--all--", Value: undefined });
 
         svHeaderRow1.addChild(this.dd_tests);
-        let lbl_mode = new Label();
+        let lbl_mode = new Label();//文字快
         lbl_mode.Title = "Mode:";
         lbl_mode.Left = 10;
         lbl_mode.Width = 80;
@@ -82,7 +82,7 @@ export class AppComponent implements OnInit {
         lbl_tick.Left = 10;
         lbl_tick.Width = 80;
         svHeaderRow1.addChild(lbl_tick);
-        let btn_query = new Button();
+        let btn_query = new Button();//按钮
         btn_query.Left = 10;
         btn_query.Text = "Query";
         svHeaderRow1.addChild(btn_query);
@@ -107,7 +107,7 @@ export class AppComponent implements OnInit {
         indicatorRow.addChild(this.lbl_maxRetracementRatio).addChild(this.lbl_sharpeRatio).addChild(this.lbl_percentProfitable);
         viewContent.addChild(indicatorRow);
 
-        let panel = new TabPanel();
+        let panel = new TabPanel();//分页
         let detailsPage = new TabPage("OrderDetail", "OrderDetail");
         let detailContent = new VBox();
         let pagination = new HBox();
