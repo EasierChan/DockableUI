@@ -1,0 +1,28 @@
+<div style="overflow:auto;">
+    <div class="menu">
+        <div class="menuItem">
+            <font color='#A5ACBE'>对标指数:</font>
+            <select class="item1" [(ngModel)]='index'>
+                <option *ngFor="let item of allIndex" [value]='item'>{{item}}</option>
+            </select>
+        </div>
+        <div class="menuItem">
+            <font color='#A5ACBE'>参考股数:</font>
+            <input class="item1"  [(ngModel)]='stockCount' type="text" size="8"> 
+        </div>
+        <input class="search" type="submit" value="搜索" (click)="search()">
+    </div>
+    <div class="aicontent aiArea chartCon">
+        <p class="chartTit">AI看盘</p>
+        <div class="chartBody">
+            <p style = "margin-right:30px;">对标指数：{{refStock.name}}<span style = "margin-left:30px; margin-right:30px;">价格：{{refStock.price}}</span>涨幅：{{refStock.increase}}%</p>
+            <div class="theBestList">
+                <dock-table2 [dataSource]="bestStockList.dataSource" [styleObj]="bestStockList.styleObj"></dock-table2>
+            </div>
+            <div class="theWorstList">
+                <dock-table2 [dataSource]="worstStockList.dataSource" [styleObj]="worstStockList.styleObj"></dock-table2>
+
+            </div>
+        </div>
+    </div>
+</div>
