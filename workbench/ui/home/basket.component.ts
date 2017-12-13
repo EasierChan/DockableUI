@@ -24,6 +24,7 @@ export class BasketComponent implements OnInit {
     basketCount: number;
     changing: boolean;
     reqMap: any = {};
+    userid: any;
     static reqsn: number = 0;
 
     constructor(private appsrv: AppStoreService, private tradeEndPoint: QtpService, private configBll: ConfigurationBLL) {
@@ -32,9 +33,10 @@ export class BasketComponent implements OnInit {
     ngOnInit() {
         this.dialog = this.appsrv.getDialog();
         this.basketsTable = new DataTable("table2");
-        this.basketsTable.addColumn("名称", "价格");
+        this.basketsTable.addColumn("名称", "数据目录", "价格");
         this.items = [];
         this.changing = false;
+        this.userid = this.configBll.get("user").userid;
 
         this.registerListeners();
         // File.readPCF("/mnt/dropbox/basket/basket_example.bkt").then((value: BasketPCF) => {
@@ -45,13 +47,19 @@ export class BasketComponent implements OnInit {
     registerListeners() {
         this.tradeEndPoint.addSlotOfCMS("getBasketInfo", (data) => {
             let obj = JSON.parse(data.toString());
+
+            if (obj.msret.msgcode !== "00") {
+                alert(`getBasketInfo: code=${obj.msret.msgcode}, msg=${obj.msret.msg}`);
+                return;
+            }
+
             this.basketsTable.rows.length = 0;
 
             obj.body.forEach(item => {
                 let row = this.basketsTable.newRow();
                 row.cells[0].Data = item.basketid;
                 row.cells[0].Text = item.basket_name;
-                row.cells[0].Text = "0.0000";
+                row.cells[2].Text = "0.0000";
             });
 
             this.basketCount = this.basketsTable.rows.length;
@@ -77,7 +85,7 @@ export class BasketComponent implements OnInit {
             }
         }, this);
 
-        this.tradeEndPoint.sendToCMS("getBasketInfo", JSON.stringify({ data: { body: {} } }));
+        this.tradeEndPoint.sendToCMS("getBasketInfo", JSON.stringify({ data: { head: { reqsn: 1 }, body: { userid: this.userid } } }));
 
         this.basketsTable.onRowDBClick = (row) => {
             this.tradeEndPoint.sendToCMS("getBasketTradingDay", JSON.stringify({ data: { body: { basketid: row.cells[0].Data } } }));
@@ -87,6 +95,7 @@ export class BasketComponent implements OnInit {
     onBasketCreate() {
         let row = this.basketsTable.newRow();
         row.cells[0].Type = "textbox";
+        row.cells[1].Type = "textbox";
 
         this.changing = true;
     }
@@ -103,6 +112,8 @@ export class BasketComponent implements OnInit {
             }
 
             row.cells[0].Type = "plaintext";
+            row.cells[0].Type = "plaintext";
+
             this.tradeEndPoint.sendToCMS("createBasketInfo", JSON.stringify({
                 data: {
                     head: { reqsn: BasketComponent.reqsn, userid: this.configBll.get("user").userid },
