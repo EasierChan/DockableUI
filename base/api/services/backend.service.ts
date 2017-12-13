@@ -35,7 +35,7 @@ export class AppStoreService {
     }
 
     getUserProfile(): UserProfile {
-        return this.userinfo = AppStoreService.getLocalStorageItem(;
+        return this.userinfo;
     }
 
     setUserProfile(loginInfo: UserProfile) {
