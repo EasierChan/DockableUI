@@ -356,16 +356,9 @@ export class AppComponent implements OnInit {
         this.pageMap["Position"] = this.positionPage;
         let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
-        let positionTableArr: string[] = ["PortfolioID", "secucategory", "UKEY", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
-            "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"];
-        let positionTableRtnArr: string[] = [];
-        let positionTableTittleLen = positionTableArr.length;
-        for (let i = 0; i < positionTableTittleLen; ++i) {
-            let positionRtn = this.langServ.get(positionTableArr[i]);
-            positionTableRtnArr.push(positionRtn);
-        }
-        positionTableRtnArr.forEach(item => {
-            this.positionTable.addColumn(item);
+        ["PortfolioID", "secucategory", "UKEY", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
+            "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"].forEach(item => {
+            this.positionTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
         });
         this.positionTable.columnConfigurable = true;
         positionContent.addChild(this.positionTable);
@@ -1503,17 +1496,7 @@ export class AppComponent implements OnInit {
     }
 
     formatTime(time: any): String {
-        let rtnStr: String = "";
-        let newDate = new Date(time * 1000);
-        let hour = newDate.getHours() + "";
-        let min = newDate.getMinutes() + "";
-        if (min.length === 1)
-            min = "0" + min;
-        let sec = newDate.getSeconds() + "";
-        if (sec.length === 1)
-            sec = "0" + sec;
-        rtnStr = hour + ":" + min + ":" + sec;
-        return rtnStr;
+        return  new Date(time * 1000).format("HH:mm:ss");
     }
 
     getCurrentTime(): String {
