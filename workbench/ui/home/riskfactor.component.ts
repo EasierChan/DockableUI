@@ -2,12 +2,13 @@
 
 import { Component, HostListener, OnDestroy } from "@angular/core";
 import { File, path } from "../../../base/api/services/backend.service"; // File operator
-import { QtpService } from "../../bll/services";
+import { QtpService, QuoteService } from "../../bll/services";
 import { ServiceType } from "../../../base/api/model";
 import { FormsModule } from "@angular/forms";
 import { CommonModule, DatePipe } from "@angular/common";
-import { AppStoreService } from "../../../base/api/services/backend.service";
+import { SecuMasterService, AppStoreService } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL } from '../../bll/strategy.server';
+import { DataTable, DataTableColumn, DataTableRow } from '../../../base/controls/control';
 import * as echarts from "echarts";
 const fs = require("@node/fs");
 
@@ -1547,11 +1548,246 @@ export class FactorAlphaComponent {
     inputs: ["activeTab"]
 })
 export class AIBrandComponent {
-    constructor() {
+    index: string;
+    allIndex: string[];
+    stockCount: number;
+    worstStockList: DataTable;
+    bestStockList: DataTable;
+    userId: number;
+    aiStockDate: any = {};
+    ukCodeList: any[] = [];
+    aiCodeList: any[] = [];
+    bestStockUkMap: any = {};
+    worstStockUkMap: any = {};
+    selfStockXdata: any[] = [];
+    nowTime: any;
+    refStock: any = {};
+    referStockUk: number;
+    refStockIncrease: number;
+    preMarketTimestamp: number;
+    nowTimeStamp: any;//当前时间戳
+
+    constructor(private tradePoint: QtpService, private quote: QuoteService, private config: ConfigurationBLL,
+        private secuinfo: SecuMasterService, private appsvr: AppStoreService) {
 
     }
 
     ngOnInit() {
+        this.stockCount = 30;
+        this.allIndex = ["中证1000", "中证800", "中证500"];
+        this.index = "中证1000";
+        this.userId = Number(this.config.get('user').userid); 
+        this.bestStockList = new DataTable('table2');
+        this.worstStockList = new DataTable('table2');
+        this.worstStockList.addColumn('股票代码', '价格', '涨幅', '超额收益');
+        this.worstStockList.columns[1].align = 'right';
+        this.worstStockList.columns[2].align = 'right';
+        this.worstStockList.columns[3].align = 'right';
+        this.worstStockList.columns[0].maxWidth = 80;
+        this.bestStockList.addColumn('股票代码', '价格', '涨幅', '超额收益');
+        this.bestStockList.columns[1].align = 'right';
+        this.bestStockList.columns[2].align = 'right';
+        this.bestStockList.columns[3].align = 'right';
+        this.bestStockList.columns[0].maxWidth = 80;
+        this.search();
+    }
 
+    search() {
+        switch (this.index) {
+            case "中证1000":
+                this.referStockUk = 2490646;
+                break;
+            case "中证800":
+                this.referStockUk = 2490391;
+                break;
+            case "中证500":
+                this.referStockUk = 2490389;
+                break;
+            default:
+                                        
+        }
+        let selfStockSecuInfo = this.secuinfo.getSecuinfoByUKey(this.referStockUk);
+        this.refStock.name = selfStockSecuInfo[this.referStockUk].SecuCode + ' [ ' + selfStockSecuInfo[this.referStockUk].SecuAbbr + ' ]';
+        this.refStock.price = '--';
+        this.refStock.increase = '--';
+        
+        //接实时行情
+        this.quote.addSlot({
+            appid: 17,
+            packid: 110,
+            callback: (msg) => {
+                let d = new Date();
+                this.nowTimeStamp = d.getTime();
+                let stockIncrease = msg.content.last > msg.content.pre_close ? '+' + Math.round(1000 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close) / 100 : Math.round(1000 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close) / 100;
+                // this.currentMarketData[msg.content.ukey] = { 'stockPrice': msg.content.last, 'stockIncrease': stockIncrease };
+                let test = Math.abs(this.nowTimeStamp - msg.content.time * 1000);
+                // console.log('系统时间和实时行情时间差：' + test);
+                if (Math.abs(this.nowTimeStamp - msg.content.time * 1000) <= 30000) {
+                    let lastPrice = Number((msg.content.last / 10000).toFixed(2));//现价
+                    if (msg.content.ukey == this.referStockUk) {
+                        this.refStockIncrease = Number(stockIncrease);
+                        this.refStock.price = lastPrice;
+                        this.refStock.increase = this.refStockIncrease;
+                        console.log(stockIncrease);
+                    }
+                    if (this.ukCodeList.indexOf(msg.content.ukey) != -1) {//AI看盘的实时行情
+                        let ukInBestIndex, ukInWorstIndex;
+                        if (this.bestStockUkMap[msg.content.ukey]) {
+                            ukInBestIndex = this.bestStockUkMap[msg.content.ukey].order;
+                        }
+                        if (this.worstStockUkMap[msg.content.ukey]) {
+                            ukInWorstIndex = this.worstStockUkMap[msg.content.ukey].order;
+                        }
+
+                        if (this.refStockIncrease) {//参考股的数值回来才有超额涨幅
+                            //超额涨幅
+                            let overStockIncrease = Number((Number(stockIncrease) - this.refStockIncrease).toFixed(2));
+                            if (ukInBestIndex != undefined) {
+                                this.bestStockList.rows[ukInBestIndex].cells[3].Text = this.dashGetColor(overStockIncrease, 'value') + '%';
+                                this.bestStockList.rows[ukInBestIndex].cells[3].Color = this.dashGetColor(overStockIncrease, 'color');
+                            }
+                            if (ukInWorstIndex != undefined) {
+                                this.worstStockList.rows[ukInWorstIndex].cells[3].Text = this.dashGetColor(overStockIncrease, 'value') + '%';
+                                this.worstStockList.rows[ukInWorstIndex].cells[3].Color = this.dashGetColor(overStockIncrease, 'color');
+                            }
+                        }
+                        if (ukInBestIndex != undefined) {
+                            this.bestStockList.rows[ukInBestIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
+                            this.bestStockList.rows[ukInBestIndex].cells[2].Text = stockIncrease + '%';
+                            this.bestStockList.rows[ukInBestIndex].cells[2].Color = this.dashGetColor(stockIncrease, 'color');
+                        }
+                        if (ukInWorstIndex != undefined) {
+                            this.worstStockList.rows[ukInWorstIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
+                            this.worstStockList.rows[ukInWorstIndex].cells[2].Text = stockIncrease + '%';
+                            this.worstStockList.rows[ukInWorstIndex].cells[2].Color = this.dashGetColor(stockIncrease, 'color');
+                        }
+                    }
+                }
+            }
+        });
+
+        //最好的30股票
+        this.tradePoint.addSlotOfCMS('getBestStocks', msg => {
+            let data = JSON.parse(msg.toString());
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            this.aiStockDate.bestStockListData = data.body;
+            this.bestStockList.RowIndex = false; // 去除序列
+            if (this.aiStockDate.bestStockListData.length > 0) {
+                this.aiStockDate.bestStockListData.forEach((item, index) => {
+                    this.ukCodeList.push(Number(item.ukcode));
+                    this.aiCodeList.push(Number(item.ukcode));
+                    let row = this.bestStockList.newRow();
+                    this.bestStockUkMap[item.ukcode] = {};
+                    this.bestStockUkMap[item.ukcode].order = index;
+                    this.bestStockUkMap[item.ukcode].type = 'best';
+                    row.cells[0].Text = item.windcode;
+                    row.cells[0].Color = 'rgb(234, 47, 47)';
+                    row.cells[1].Text = '--';
+                    row.cells[2].Text = '--';
+                    row.cells[3].Text = '--';
+                })
+            }
+
+            this.quote.send(17, 101, { topic: 3112, kwlist: this.aiCodeList });
+
+            if (this.selfStockXdata.indexOf(this.nowTime) == -1) {//今天非交易时间段请求当日最后一条数据
+                // this.historyMarket('lastDate');
+            }
+        }, this)
+
+        //最差的30股
+        this.tradePoint.addSlotOfCMS('getWorstStocks', msg => {
+            let data = JSON.parse(msg.toString());
+            if (data.msret.msgcode != '00') {
+                alert(data.msret.msg)
+                return;
+            }
+            this.aiStockDate.worstStockListData = data.body;
+            this.worstStockList.RowIndex = false; // 去除序列
+            if (this.aiStockDate.worstStockListData.length > 0) {
+                this.aiStockDate.worstStockListData.forEach((item, index) => {
+                    this.ukCodeList.push(Number(item.ukcode));
+                    this.aiCodeList.push(Number(item.ukcode));
+                    let row = this.worstStockList.newRow();
+                    this.worstStockUkMap[item.ukcode] = {};
+                    this.worstStockUkMap[item.ukcode].order = index;
+                    this.worstStockUkMap[item.ukcode].type = 'worst';
+                    row.cells[0].Text = item.windcode;
+                    row.cells[0].Color = 'rgb(55, 177, 78)';
+                    row.cells[1].Text = '--';
+                    row.cells[2].Text = '--';
+                    row.cells[3].Text = '--';
+                })
+            }
+
+            this.quote.send(17, 101, { topic: 3112, kwlist: this.aiCodeList });
+            
+            if (this.selfStockXdata.indexOf(this.nowTime) == -1) {//今天非交易时间段请求当日最后一条数据
+                // this.historyMarket('lastDate');
+            }
+        }, this)
+
+        //AI看盘数据
+        this.ukCodeList = [];
+        this.aiCodeList = [];
+        this.aiCodeList.push(this.referStockUk);
+        this.bestStockList.rows = [];
+        this.worstStockList.rows = [];
+        this.bestStockUkMap = {};
+        this.worstStockUkMap = {};
+        this.aiStockDate = {};
+        this.selfStockXdata = [];
+        this.tradePoint.sendToCMS('getBestStocks', JSON.stringify({ data: { body: { userid: this.userId, amount: this.stockCount } } }));
+        this.tradePoint.sendToCMS('getWorstStocks', JSON.stringify({ data: { body: { userid: this.userId, amount: this.stockCount } } }));
+    }
+
+    dashGetColor(num, flag) {
+        if (flag == 'color') {
+            if (Number(num) > 0) {
+                return 'rgb(234, 47, 47)';
+            }
+            return 'rgb(55, 177, 78)';
+        }
+        if (Number(num) > 0) {
+            return '+' + num;
+        }
+        return num;
+    }
+
+    historyMarket(historyType) {
+        let d = new Date();
+        let time = (d.getHours() < 10 ? ('0' + d.getHours()) : d.getHours()) + '' + (d.getMinutes() < 10 ? ('0' + d.getMinutes()) : d.getMinutes()) + '' + (d.getSeconds() < 10 ? ('0' + d.getSeconds()) : d.getSeconds()) + '000';
+        let partIndex = 1;
+        //接历史行情 
+        this.quote.send(181, 10001, { requestId: 1, dataType: 101003, ukeyList: this.ukCodeList.join(';') });
+        
+        this.quote.addSlot({
+            appid: 181,
+            packid: 10002,
+            callback: (msg) => {
+                if (msg.content.head.dataType == 101003) {
+                    console.log(msg);
+                    let lastDate = msg.content.data;
+                    let referStock = {};
+                    referStock[this.referStockUk] = {};
+                    referStock[this.referStockUk].order = 0;
+                    referStock[this.referStockUk].type = 'refer';
+                    let allStockUkMap = Object.assign(this.bestStockUkMap, this.worstStockUkMap, referStock);
+                    lastDate.forEach(item => {
+                        if (allStockUkMap[item.k].type == 'worst') {
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[1].Text = item.c / 10000;
+                        } else if (allStockUkMap[item.k].type == 'best') {
+                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[1].Text = item.c / 10000;
+                        } else if (allStockUkMap[item.k].type == 'refer') {
+                            this.refStock.price = item.c / 10000;
+                        }
+                    })
+                    console.log(allStockUkMap)
+                }
+            }
+        })
     }
 }
