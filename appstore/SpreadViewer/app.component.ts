@@ -71,7 +71,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     onReady(option: any) {
         this.option = option;
-        this.quote.connect(this.option.port, this.option.host);
+
         let language = this.option.lang;
         switch (language) {
             case "zh-cn":
@@ -98,6 +98,11 @@ export class AppComponent implements OnInit, OnDestroy {
                 packid: 43,
                 callback: msg => {
                     console.info(`quote ans=>${msg}`);
+
+                    if (this.kwlist.length > 0) {
+                        this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
+                    }
+
                     if (afterLogin)
                         afterLogin.call(this);
 
@@ -153,8 +158,19 @@ export class AppComponent implements OnInit, OnDestroy {
             this.bTip = false;
         };
         this.statusbar.items.push(info);
-        this.loginTGW(null);
         this.registerListeners();
+        this.quote.connect(this.option.port, this.option.host);
+        this.quote.onConnect = () => {
+            this.loginTGW(null);
+        };
+
+        this.quote.onClose = () => {
+            if (this.quoteHeart !== null) {
+                clearInterval(this.quoteHeart);
+                this.quoteHeart = null;
+            }
+        };
+
         ULogger.init(`${this.option.name}.log`, Environment.getDataPath(this.apptype));
     }
 

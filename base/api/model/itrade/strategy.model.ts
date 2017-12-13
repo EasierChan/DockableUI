@@ -325,8 +325,8 @@ export class ComOrderRecord extends Message {
     }
 
     fromBuffer(buf: Buffer, offset: number): number {
-        this.poolindex = buf.readInt32LE(offset); offset += 4;
-        this.poolpri = buf.readInt32LE(offset); offset += 4;
+        this.poolindex = buf.readUInt32LE(offset); offset += 4;
+        this.poolpri = buf.readUInt32LE(offset); offset += 4;
         this.datatype = buf.readUInt8(offset); offset += 4;
         this.secucategory = buf.readUInt32LE(offset); offset += 4;
         this.donetype = buf.readUInt8(offset); offset += 1;
@@ -356,12 +356,12 @@ class FundPos extends Message {
     }
 
     fromBuffer(buf: Buffer, offset: number): number {
-        this.date = buf.readUInt32LE(offset); offset += 8;
-        this.account = buf.readUIntLE(offset, 8); offset += 8;
+        this.date = buf.readInt32LE(offset); offset += 8;
+        this.account = buf.readIntLE(offset, 8); offset += 8;
         this.c = buf.readInt8(offset); offset += 8;
-        this.TotalAmount = buf.readUIntLE(offset, 8); offset += 8;
-        this.AvlAmount = buf.readUIntLE(offset, 8); offset += 8;
-        this.FrzAmount = buf.readUIntLE(offset, 8); offset += 8;
+        this.TotalAmount = buf.readIntLE(offset, 8); offset += 8;
+        this.AvlAmount = buf.readIntLE(offset, 8); offset += 8;
+        this.FrzAmount = buf.readIntLE(offset, 8); offset += 8;
         return offset;
     }
 };
@@ -407,7 +407,6 @@ class MarginPos extends Message {
         this.ClosePL = buf.readIntLE(offset, 8); offset += 8;
         this.PreFee = buf.readIntLE(offset, 8); offset += 8;
         this.PreFundVal = buf.readIntLE(offset, 8); offset += 8;
-        console.info(this.toString());
         return offset;
     }
 };
@@ -489,17 +488,17 @@ class FuturePos extends Message {
     }
 
     fromBuffer(buf: Buffer, offset: number): number {
-        this.date = buf.readUInt32LE(offset); offset += 8;
-        this.account = buf.readUIntLE(offset, 8); offset += 8;
-        this.code = buf.readUInt32LE(offset); offset += 8;
-        this.TotalVol = buf.readUIntLE(offset, 8); offset += 8;
-        this.AvlVol = buf.readUIntLE(offset, 8); offset += 8;
-        this.WorkingVol = buf.readUIntLE(offset, 8); offset += 8;
-        this.TotalCost = buf.readUIntLE(offset, 8); offset += 8;
-        this.MarginAveragePrice = buf.readUIntLE(offset, 8); offset += 8;
-        this.AveragePrice = buf.readUIntLE(offset, 8); offset += 8;
-        this.type = buf.readUInt32LE(offset); offset += 8;
-        this.TodayOpen = buf.readUIntLE(offset, 8); offset += 8;
+        this.date = buf.readInt32LE(offset); offset += 8;
+        this.account = buf.readIntLE(offset, 8); offset += 8;
+        this.code = buf.readInt32LE(offset); offset += 8;
+        this.TotalVol = buf.readIntLE(offset, 8); offset += 8;
+        this.AvlVol = buf.readIntLE(offset, 8); offset += 8;
+        this.WorkingVol = buf.readIntLE(offset, 8); offset += 8;
+        this.TotalCost = buf.readIntLE(offset, 8); offset += 8;
+        this.MarginAveragePrice = buf.readIntLE(offset, 8); offset += 8;
+        this.AveragePrice = buf.readIntLE(offset, 8); offset += 8;
+        this.type = buf.readInt32LE(offset); offset += 8;
+        this.TodayOpen = buf.readIntLE(offset, 8); offset += 8;
         return offset;
     }
 };
@@ -522,7 +521,7 @@ export class ComRecordPos extends Message {
         this.poolpri = buf.readUInt32LE(offset); offset += 4;
         this.secucategory = buf.readUInt8(offset); offset += 4;
         this.strategyid = buf.readUInt32LE(offset); offset += 4;
-        this.initpos = buf.readUIntLE(offset, 8); offset += 8;
+        this.initpos = buf.readIntLE(offset, 8); offset += 8;
         if (ESSSecuCategory.SS_SECU_CATEGORY_EQUIT === this.secucategory) {
             this.record = new ComEquitPos();
         } else {
@@ -762,10 +761,10 @@ export class ComConOrder extends Message {
     data: ComOrder | ComOrderCancel;
 
     fromBuffer(buf: Buffer, offset: number): number {
-        buf.readUInt32LE(offset); offset += 8;
+        this.ordertype = buf.readUInt8(offset); offset += 8;
         offset = this.con.fromBuffer(buf, offset);
         offset = this.datetime.fromBuffer(buf, offset);
-        this.data.fromBuffer(buf, offset);
+        offset = this.data.fromBuffer(buf, offset);
         return ComOrder.len;
     }
 
@@ -829,7 +828,7 @@ export class FpQtyOrder extends Message {
     qty: number = 0; // uint32
 
     fromBuffer(buf, offset): number {
-        return BufferUtil.format(buf, offset, "1i4b1i", this);
+        return BufferUtil.format(buf, offset, "1i2b2B1i", this);
     }
 
     toBuffer(): Buffer {
@@ -839,8 +838,8 @@ export class FpQtyOrder extends Message {
         buf.writeUInt32LE(this.ukey, offset); offset += 4;
         buf.writeUInt8(this.askPriceLevel, offset); offset += 1;
         buf.writeUInt8(this.bidPriceLevel, offset); offset += 1;
-        buf.writeUInt8(this.askOffset, offset); offset += 1;
-        buf.writeUInt8(this.bidOffset, offset); offset += 1;
+        buf.writeInt8(this.askOffset, offset); offset += 1;
+        buf.writeInt8(this.bidOffset, offset); offset += 1;
         buf.writeUInt32LE(this.qty, offset); offset += 4;
         return buf;
     }
