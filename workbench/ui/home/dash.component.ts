@@ -259,27 +259,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 let middle = Math.round(msg.content.pre_close / 10000);//昨收值
                                 let turnover = msg.content.turnover * 100;//当前时刻行情的成交金额
                                 if (this.preMarketTime != marketTime && this.selfStockXdata.indexOf(this.preMarketTime)) {
-                                    let barColor = "#e3b93b";
-                                    if (this.selfStockMarketChange.series[1].data[this.marketIndex - 2]) {
-                                        if (this.nowTurnover > this.selfStockMarketChange.series[1].data[this.marketIndex - 2].value) {
-                                            barColor = "rgb(234, 47, 47)";
-                                        } else if (this.nowTurnover < this.selfStockMarketChange.series[1].data[this.marketIndex - 2].value) {
-                                            barColor = "rgb(55, 177, 78)";
-                                        }
-                                    }
-                                    this.selfStockMarketChange.series[1].data[this.marketIndex - 1] = {
-                                        value: this.nowTurnover,
-                                        itemStyle: {
-                                            normal: {
-                                                color: barColor
-                                            }
-                                        }
-                                    };
-                                    if (this.selfStockMarketChart) {
-                                        this.selfStockMarketChart.setOption(this.selfStockMarketChange);
-                                    }
                                     this.nowTurnover = 0;//一分钟内的累计成交量
-
                                     this.preMarketTime = marketTime;//上一时刻的时间
                                     this.preMarketTimestamp = msg.content.time;
                                 }
@@ -292,8 +272,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 //切换页面或刚进入页面的时候，或者请求到第二条数据的时候请求历史数据（精确第一条数据）
                                 if (this.preTurnOver == 0 && this.marketIndex != 0 || this.marketIndex == 1 && this.nowTurnover == 0) {
                                     this.historyMarket("all");
-                                    // console.log(this.hasHistoryMarket)
-
                                     if (this.hasHistoryMarket == false) {
                                         this.mainStock.minPrice = lastPrice;
                                         this.mainStock.maxPrice = lastPrice;
@@ -302,6 +280,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     return;
                                 }
                                 this.selfStockMarketChange.series[0].data[this.marketIndex] = lastPrice;
+                                let barColor = "#e3b93b";
+                                if (lastPrice > this.selfStockMarketChange.series[0].data[this.marketIndex - 1]){
+                                    barColor = "rgb(234, 47, 47)";
+                                }else  if (lastPrice > this.selfStockMarketChange.series[0].data[this.marketIndex - 1]){
+                                    barColor = "rgb(55, 177, 78)";
+                                }
+                                this.selfStockMarketChange.series[1].data[this.marketIndex] = {
+                                    itemStyle: {
+                                        normal: {
+                                            color: barColor
+                                        }
+                                    }
+                                };
                                 if (this.mainStock.minPrice > lastPrice) {
                                     this.mainStock.minPrice = lastPrice;
                                 }
@@ -315,10 +306,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 this.selfStockMarketChange.yAxis[0].interval = abs / 2;
                                 this.selfStockMarketChange.yAxis[0].min = middle - abs;
                                 this.selfStockMarketChange.yAxis[0].max = middle + abs;
-                                // this.selfStockMarketChange.series[0].markLine.data[0].yAxis = this.mainStock.preClose;
-                                if (this.hasHistoryMarket && this.historyMarketIndex == this.marketIndex) {
-                                    this.nowTurnover = this.selfStockMarketChange.series[1].data[this.marketIndex].value;
-                                }
                                 this.nowTurnover = Number((turnover - this.preTurnOver + this.nowTurnover).toFixed(2));//当前时间的成金额
                                 this.preTurnOver = turnover;//上一时刻的成交量
                                 let barUnit;
@@ -1075,15 +1062,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             historyStockLineData.forEach((item, index) => {
                                 let time = this.dashGetTime(item.t / 1000);
                                 this.preMarketTime = time;
+                                this.nowTurnover = item.u;
                                 this.historyMarketIndex = this.selfStockXdata.indexOf(time);//当前行情在echarts中的位置
                                 this.selfStockMarketChange.series[0].data[this.historyMarketIndex] = item.c;
                                 let barColor = "#e3b93b";
-                                if (index > 0) {
-                                    if (historyStockLineData[index].u > historyStockLineData[index - 1].u) {
-                                        barColor = "rgb(234, 47, 47)";
-                                    } else if (historyStockLineData[index].u < historyStockLineData[index - 1].u) {
-                                        barColor = "rgb(55, 177, 78)";
-                                    }
+                                if (index > 0 && item.c > historyStockLineData[index - 1].c) {
+                                    barColor = "rgb(234, 47, 47)";
+                                } else if (index > 0 && item.c < historyStockLineData[index - 1].c) {
+                                    barColor = "rgb(55, 177, 78)";
                                 }
                                 this.selfStockMarketChange.series[1].data[this.historyMarketIndex] = {
                                     value: item.u,
