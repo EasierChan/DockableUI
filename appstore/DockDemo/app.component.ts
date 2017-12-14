@@ -933,21 +933,20 @@ export class AppComponent implements OnInit {
                 if (filenames === undefined || filenames.length < 1)
                     return;
 
-                File.readLineByLine(filenames[0], (linestr, basketList) => {
-                    let fields = linestr.split(",");
-
-                    if (fields.length === 2 && fields[0].length > 5) {
-                        let codeinfo = AppComponent.self.secuinfo.getSecuinfoByWindCodes([fields[0]]);
-                        basketList.push({ currPos: 0, ukey: parseInt(codeinfo[0].InnerCode), targetPos: parseInt(fields[1]) });
-                    }
-                }, (basketList) => {
-                    AppComponent.bgWorker.send({
-                        command: "ss-send", params: { type: "basket-fp", data: { account: account, list: basketList } }
+                File.readPCF(filenames[0]).then((basketList) => {
+                    let templist = [];
+                    basketList.components.forEach(item => {
+                        templist.push({ currPos: 0, ukey: parseInt(item.code), targetPos: item.amount });
                     });
 
+                    AppComponent.bgWorker.send({
+                        command: "ss-send", params: { type: "basket-fp", data: { account: account, list: templist } }
+                    });
+
+                    templist = null;
                     this.portfolioCount.Text = 0;
-                }, []);
-            }, [{ name: "CSV", extensions: ["csv"] }]);
+                });
+            }, [{ name: "bkt", extensions: ["bkt"] }]);
         };
 
         // this.allChk.OnClick = () => {
@@ -1940,7 +1939,7 @@ export class AppComponent implements OnInit {
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
-                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function (cell) {
+                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function(cell) {
                         cell.Class = "warning";
                     };
                     this.strategyTable.columns[offset + idx].key = item.key;

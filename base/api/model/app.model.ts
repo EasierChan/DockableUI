@@ -18,7 +18,7 @@ export class UserProfile {
 
 export class BasketPCF {
     params: any = {};
-    components: { code: string, amount: number, cash_rep: number, rep_codes: { code: string, amount: number }[] }[] = [];
+    components: { code: string, amount: number, cash_rep: number, rep_codes: { code: string, amount: number, cash_rep: number }[] }[] = [];
 
     toText(): string {
         let text: string = "[Parameters]\n";
