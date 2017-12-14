@@ -17,7 +17,7 @@
       <tr *ngIf="!row.bHidden" [style.background-color]="row?.bgcolor">
         <td *ngIf="styleObj.bRowIndex" [style.padding.px]="styleObj.cellpadding">{{i + 1}}</td>
         <template ngFor let-cell [ngForOf]="row.cells" let-cellIndex="index">
-          <td *ngIf="!dataSource.columns[cellIndex].bHidden" [style.background-color]="cell?.bgColor" (click)="cell.dataSource.click(cellIndex, i)"
+          <td *ngIf="!dataSource.columns[cellIndex].bHidden" [style.background-color]="cell?.bgColor" (click)="cell.dataSource.click($event,cellIndex, i)"
             [style.padding.px]="styleObj.cellpadding" [style.color]="cell?.color" [style.max-width.px]="dataSource.columns[cellIndex]?.maxWidth"
             [style.text-align]="dataSource.columns[cellIndex]?.alignment">
             <button *ngIf="cell.styleObj.type=='button'" class="btn btn-default btn-{{cell.className}} btn-xs" [disabled]="cell.styleObj.disable"
@@ -35,7 +35,7 @@
             <span *ngIf="cell.styleObj.type=='plaintext'" [style.max-width.px]="dataSource.columns[cellIndex]?.maxWidth" [title]="cell.dataSource.text">{{cell.dataSource.text}}</span>
             <label *ngIf="cell.styleObj.type=='checkbox'" class="u-checkbox" [style.margin-left.px]="cell.styleObj.left" [style.margin-top.px]="cell.styleObj.top">
                 <input [name]="cell.dataSource.name" type="checkbox" [(ngModel)]="cell.dataSource.text"
-                [disabled]="cell.styleObj?.disable" style="width: 12px;" (click)="cell.dataSource.click(cellIndex, i)">
+                [disabled]="cell.styleObj?.disable" style="width: 12px;" (click)="cell.dataSource.click($event, cellIndex, i)">
                 <span class="u-ok-round"></span>
                 <span style="white-space: nowrap">{{cell.dataSource.title}}</span>
             </label>

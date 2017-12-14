@@ -111,9 +111,9 @@ export class StrategyComponent implements OnInit, OnDestroy {
                     let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(value);
                     row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(value) ? codeinfo[value].SecuCode : value };
                     row.cells[1].Data = value;
-                    row.cells[1].OnClick = (event) => {
-                        if (event.row !== undefined)
-                            row.cells[1].Data = parseInt(event.item.code);
+                    row.cells[1].OnClick = (data) => {
+                        if (data.row !== undefined)
+                            row.cells[1].Data = parseInt(data.item.code);
                     };
                 }
             }
@@ -180,9 +180,9 @@ export class StrategyComponent implements OnInit, OnDestroy {
                 let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(row.cells[0].Data.obj.value);
                 row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(row.cells[0].Data.obj.value) ? codeinfo[row.cells[0].Data.obj.value].SecuCode : row.cells[0].Data.obj.value };
                 row.cells[1].Data = row.cells[0].Data.obj.value;
-                row.cells[1].OnClick = (event) => {
-                    if (event.row !== undefined)
-                        row.cells[1].Data = parseInt(event.item.code);
+                row.cells[1].OnClick = (data) => {
+                    if (data.row !== undefined)
+                        row.cells[1].Data = parseInt(data.item.code);
                 };
             }
         }

@@ -118,7 +118,6 @@ export class BasketComponent implements OnInit {
             if (ret.body && ret.body.length > 0 && ret.body[0].basketid === this.curBasketID && ret.body[0].trday === this.curTrday) {
                 if (ret.body[0].content) {
                     let basket = File.parsePCF(ret.body[0].content);
-                    this.stockTable.rows.length = 0;
 
                     basket.components.forEach(item => {
                         let row = this.stockTable.newRow();
@@ -161,6 +160,7 @@ export class BasketComponent implements OnInit {
         this.tradeEndPoint.sendToCMS("getBasketInfo", JSON.stringify({ data: { head: { reqsn: 1 }, body: { userid: this.userid } } }));
 
         this.basketsTable.onRowDBClick = (row) => {
+            this.stockTable.rows.length = 0;
             this.curBasketID = row.cells[1].Data;
             this.curBasketName = row.cells[1].Text;
             this.tradeEndPoint.sendToCMS("getBasketTradingDay", JSON.stringify({ data: { head: { reqsn: 1, userid: this.userid }, body: { basketid: this.curBasketID } } }));

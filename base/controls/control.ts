@@ -1982,7 +1982,7 @@ export class DataTableRow extends Control {
     cells: DataTableRowCell[] = [];
     private bHidden: boolean;
     private bgcolor: string;
-    private static _timeout: any;
+    private _timeout: any;
     constructor(private columns: number, private parent: DataTable) {
         super();
         this.bHidden = false;
@@ -1993,10 +1993,13 @@ export class DataTableRow extends Control {
 
         for (let i = 0; i < columns; ++i) {
             this.cells.push(new DataTableRowCell());
-            this.cells[i].OnClick = (cellIndex, rowIndex) => {
-                if (DataTableRow._timeout) {
-                    clearTimeout(DataTableRow._timeout);
-                    DataTableRow._timeout = null;
+            this.cells[i].OnClick = (event: MouseEvent, cellIndex, rowIndex) => {
+                // event.preventDefault();
+                event.stopPropagation();
+
+                if (this._timeout) {
+                    clearTimeout(this._timeout);
+                    this._timeout = null;
 
                     if (this.dataSource.cellDBClick) {
                         this.dataSource.cellDBClick(this.cells[cellIndex], cellIndex, rowIndex);
@@ -2008,8 +2011,8 @@ export class DataTableRow extends Control {
                     return;
                 }
 
-                DataTableRow._timeout = setTimeout(() => {
-                    DataTableRow._timeout = null;
+                this._timeout = setTimeout(() => {
+                    this._timeout = null;
 
                     if (this.dataSource.cellclick) {
                         this.dataSource.cellclick(this.cells[cellIndex], cellIndex, rowIndex);
