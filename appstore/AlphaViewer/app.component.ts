@@ -235,27 +235,24 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if (this.codes[0].symbolCode.endsWith(".csv")) {
+        if (this.codes[0].symbolCode.endsWith(".bkt")) {
             let nickCodes = [this.codes[0].symbolCode, this.codes[1].symbolCode, this.codes[2].symbolCode];
             let ukeys = [0, this.codes[1].ukey, this.codes[2].ukey];
             let group1 = {};
             let ok1 = false;
-            File.readLineByLine(this.codes[0].symbolCode, (linestr: string) => {
-                linestr.trim();
-                let fields = linestr.split(",");
-                if (fields.length < 3) {
-                    console.error(`${linestr} must have 3 columns!`);
-                    return;
-                }
 
-                group1[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
-            }, () => {
+            File.readPCF(this.codes[0].symbolCode).then((basket) => {
                 nickCodes[0] = "组合1";
                 ukeys[0] = 1;
-                this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group1)).forEach(item => {
-                    group1[item.windCode].ukey = item.ukey;
-                    this.groupUKeys.push(item.ukey);
+                this.lines[0].coeffs[0] = basket.params["BasketMultiplier"] || "1";
+
+                basket.components.forEach(item => {
+                    group1[item.code].ukey = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+                    group1[item.code].count = item.amount;
+                    group1[item.code].replace_amount = item.cash_rep;
+                    this.groupUKeys.push(group1[item.code].ukey);
                 });
+
                 ok1 = true;
             });
 

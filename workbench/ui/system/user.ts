@@ -39,7 +39,7 @@ export class UserComponent implements OnInit {
 
     ngOnInit() {
         this.productAppID = this.appSrv.getSetting().endpoints[0].tgw_apps.ids;
-        this.userid = this.appSrv.getUserProfile().username;
+        this.userid = this.appSrv.getUserProfile() ? this.appSrv.getUserProfile().username : null;
         this.registerListeners();
     }
 
@@ -88,6 +88,7 @@ export class UserComponent implements OnInit {
                 this.tradeSrv.sendToCMS("getProduct", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getAssetAccount", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getRiskIndex", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
+                this.tradeSrv.sendToCMS("getBasketInfo", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
 
                 this.tradeSrv.subscribe(2001, this.configBll.servers);
                 this.tradeSrv.subscribe(1, [ServiceType.kStrategy]);
@@ -113,7 +114,7 @@ export class UserComponent implements OnInit {
 
         if (!this.configBll.get("tcp-connect")) {
             this.tradeSrv.onConnect = () => {
-                this.configBll.set("tcp-connect", true)
+                this.configBll.set("tcp-connect", true);
 
                 this.tradeSrv.onClose = () => {
                     this.configBll.set("tcp-connect", false);

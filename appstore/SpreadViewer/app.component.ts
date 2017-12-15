@@ -71,7 +71,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     onReady(option: any) {
         this.option = option;
-        this.quote.connect(this.option.port, this.option.host);
+
         let language = this.option.lang;
         switch (language) {
             case "zh-cn":
@@ -98,6 +98,11 @@ export class AppComponent implements OnInit, OnDestroy {
                 packid: 43,
                 callback: msg => {
                     console.info(`quote ans=>${msg}`);
+
+                    if (this.kwlist.length > 0) {
+                        this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
+                    }
+
                     if (afterLogin)
                         afterLogin.call(this);
 
@@ -153,8 +158,19 @@ export class AppComponent implements OnInit, OnDestroy {
             this.bTip = false;
         };
         this.statusbar.items.push(info);
-        this.loginTGW(null);
         this.registerListeners();
+        this.quote.connect(this.option.port, this.option.host);
+        this.quote.onConnect = () => {
+            this.loginTGW(null);
+        };
+
+        this.quote.onClose = () => {
+            if (this.quoteHeart !== null) {
+                clearInterval(this.quoteHeart);
+                this.quoteHeart = null;
+            }
+        };
+
         ULogger.init(`${this.option.name}.log`, Environment.getDataPath(this.apptype));
     }
 
@@ -254,24 +270,20 @@ export class AppComponent implements OnInit, OnDestroy {
 
             let group1 = {};
             let ok1 = true;
-            if (this.codes[0].symbolCode.endsWith(".csv")) {
+            if (this.codes[0].symbolCode.endsWith(".bkt")) {
                 ok1 = false;
-                File.readLineByLine(this.codes[0].symbolCode, (linestr: string) => {
-                    linestr.trim();
-                    let fields = linestr.split(",");
-                    if (fields.length < 3) {
-                        console.error(`${linestr} must have 3 columns!`);
-                        return;
-                    }
 
-                    group1[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
-                }, () => {
+                File.readPCF(this.codes[0].symbolCode).then((basket) => {
                     nickCodes[0] = "组合1";
                     ukeys[0] = 1;
-                    this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group1)).forEach(item => {
-                        group1[item.windCode].ukey = item.ukey;
-                        this.groupUKeys.push(item.ukey);
+
+                    basket.components.forEach(item => {
+                        group1[item.code].ukey = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+                        group1[item.code].count = item.amount;
+                        group1[item.code].replace_amount = item.cash_rep;
+                        this.groupUKeys.push(group1[item.code].ukey);
                     });
+
                     ok1 = true;
                 });
             } else {
@@ -282,18 +294,18 @@ export class AppComponent implements OnInit, OnDestroy {
             let ok2 = true;
             if (this.codes[1].symbolCode.endsWith(".csv")) {
                 ok2 = false;
-                File.readLineByLine(this.codes[1].symbolCode, (linestr: string) => {
-                    linestr.trim();
-                    let fields = linestr.split(",");
 
-                    group2[fields[0]] = { count: fields[1], replace_amount: fields.length < 3 ? 0 : fields[2] };
-                }, () => {
-                    nickCodes[1] = "组合2";
-                    ukeys[1] = 2;
-                    this.secuinfo.getSecuinfoByWindCodes(Object.getOwnPropertyNames(group2)).forEach(item => {
-                        group2[item.windCode].ukey = item.ukey;
-                        this.groupUKeys.push(item.ukey);
+                File.readPCF(this.codes[1].symbolCode).then((basket) => {
+                    nickCodes[1] = "组合1";
+                    ukeys[1] = 1;
+
+                    basket.components.forEach(item => {
+                        group2[item.code].ukey = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+                        group2[item.code].count = item.amount;
+                        group2[item.code].replace_amount = item.cash_rep;
+                        this.groupUKeys.push(group2[item.code].ukey);
                     });
+
                     ok2 = true;
                 });
             } else {

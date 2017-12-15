@@ -255,6 +255,14 @@ export class MessageBox {
         }, cb);
     }
 
+    static openDirectoryDialog(title: string, cb: (filenames: string[]) => void, filters?: { name: string, extensions: string[] }[]) {
+        electron.remote.dialog.showOpenDialog(electron.remote.BrowserWindow.getFocusedWindow(), {
+            title: title,
+            filters: filters,
+            properties: ["openDirectory"]
+        }, cb);
+    }
+
     static openInnerDialog() {
 
     }
@@ -293,7 +301,7 @@ export class File {
 
     public static readFileSync(fpath: string) {
         if (fs.existsSync(fpath)) {
-            return fs.readFileSync(fpath);
+            return fs.readFileSync(fpath, { encoding: "utf8" });
         }
 
         return null;
@@ -327,7 +335,7 @@ export class File {
         });
     }
 
-    public static readdir(fpath: string, callback: (filenames) => void) {
+    public static readdir(fpath: string, callback: (err, filenames) => void) {
         fs.readdir(fpath, "utf-8", callback);
     }
 
@@ -389,8 +397,8 @@ export class File {
                         let obj = { code: arr[0], amount: parseInt(arr[1]), cash_rep: parseInt(arr[2]), rep_codes: [] };
                         let rep_idx = 3;
                         while (arr.length > rep_idx) {
-                            obj.rep_codes.push({ code: arr[rep_idx], amount: parseInt(arr[rep_idx + 1]) });
-                            rep_idx += 2;
+                            obj.rep_codes.push({ code: arr[rep_idx], amount: parseInt(arr[rep_idx + 1]), cash_rep: parseInt(arr[rep_idx + 2]) });
+                            rep_idx += 3;
                         }
 
                         basket.components.push(obj);
@@ -405,6 +413,69 @@ export class File {
                 resolve(basket);
             });
         });
+    }
+
+    public static parsePCF(content: string): BasketPCF {
+        let basket = new BasketPCF();
+        let bParamStart = false;
+        let bComStart = false;
+
+        content.split("\n").forEach(linestr => {
+            let line: string = linestr.trim();
+
+            if (line.length < 1 || line.startsWith("#")) {
+                return;
+            }
+
+            if (line.startsWith("[Parameters]")) {
+                bParamStart = true;
+                bComStart = false;
+                return;
+            }
+
+            if (line.startsWith("[Components]")) {
+                bParamStart = false;
+                bComStart = true;
+                return;
+            }
+
+            if (bParamStart) {
+                let arr = line.split("=");
+                if (arr.length > 1) {
+                    basket.params[arr[0]] = arr[1];
+                }
+
+                arr = null;
+                return;
+            }
+
+            { // if (bComStart) 
+                let arr = line.split(",");
+                if (arr.length > 1) {
+                    let obj = { code: arr[0], amount: parseInt(arr[1]), cash_rep: parseInt(arr[2]), rep_codes: [] };
+                    let rep_idx = 3;
+                    while (arr.length > rep_idx) {
+                        obj.rep_codes.push({ code: arr[rep_idx], amount: parseInt(arr[rep_idx + 1]) });
+                        rep_idx += 2;
+                    }
+
+                    basket.components.push(obj);
+                }
+
+                arr = null;
+                return;
+            }
+        });
+
+        return basket;
+    }
+
+    public static basename(fpath: string, ext?: string) {
+        if (os.platform() === "win32") {
+            return path.win32.basename(fpath, ext);
+        } else {
+            return path.posix.basename(fpath, ext);
+        }
     }
 }
 

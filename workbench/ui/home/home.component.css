@@ -93,6 +93,11 @@ li > a.active {
     flex-flow: row;
 }
 
+.u-col {
+  display: flex;
+  flex-flow: column;
+}
+
 .u-row > *:not(*:first-child) {
     margin-left: 10px;
 }

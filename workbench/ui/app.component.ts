@@ -344,6 +344,18 @@ export class AppComponent implements OnInit, OnDestroy {
             this.configBll.set("risk_index", JSON.parse(msg.toString()).body);
         }, this);
 
+        this.tradeEndPoint.addSlotOfCMS("getBasketInfo", (data) => {
+            let obj = JSON.parse(data.toString());
+
+            if (obj.msret.msgcode !== "00") {
+                alert(`getBasketInfo: code=${obj.msret.msgcode}, msg=${obj.msret.msg}`);
+                return;
+            }
+
+            AppStoreService.setLocalStorageItem(`${obj.head.oid}-basket`, JSON.stringify(obj.body));
+            this.configBll.emit("getBasketInfo", obj);
+        }, this);
+
         this.tradeEndPoint.onTopic(2001, (key, body) => {
             let target = this.configBll.getAllConfigs().find(citem => { return citem.appid === key; });
 

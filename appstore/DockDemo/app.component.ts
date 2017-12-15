@@ -240,18 +240,15 @@ export class AppComponent implements OnInit {
         orderstatusHeader.addChild(cb_handle);
         let dd_status = new DropDown();
         dd_status.Left = 10;
-        dd_status.addItem({ Text: "-全部-", Value: -1 });
-        dd_status.addItem({ Text: "0.无效", Value: EOrderStatus.ORDER_STATUS_INVALID });
-        dd_status.addItem({ Text: "1.未报", Value: EOrderStatus.ORDER_STATUS_INIT });
-        dd_status.addItem({ Text: "2.待报", Value: EOrderStatus.ORDER_STATUS_WAIT_SEND });
-        dd_status.addItem({ Text: "3.已报", Value: EOrderStatus.ORDER_STATUS_SEND });
-        dd_status.addItem({ Text: "4.已报待撤", Value: EOrderStatus.ORDER_STATUS_SEND_WAIT_CANCEL });
-        dd_status.addItem({ Text: "5.部成待撤", Value: EOrderStatus.ORDER_STATUS_PART_WAIT_CANCEL });
-        dd_status.addItem({ Text: "6.部撤", Value: EOrderStatus.ORDER_STATUS_PART_CANCELED });
-        dd_status.addItem({ Text: "7.已撤", Value: EOrderStatus.ORDER_STATUS_CANCELED });
-        dd_status.addItem({ Text: "8.部成", Value: EOrderStatus.ORDER_STATUS_PART_DEALED });
-        dd_status.addItem({ Text: "9.已成", Value: EOrderStatus.ORDER_STATUS_DEALED });
-        dd_status.addItem({ Text: "10.废单", Value: EOrderStatus.ORDER_STATUS_DISCARDED });
+        dd_status.addItem({ Text: "-全部-", Value: "-1" });
+        dd_status.addItem({ Text: "0.无效", Value: "0" });
+        dd_status.addItem({ Text: "1.未报", Value: "1" });
+        dd_status.addItem({ Text: "2.待报", Value: "2" });
+        dd_status.addItem({ Text: "3.已报", Value: "3" });
+        dd_status.addItem({ Text: "4.已报待撤", Value: "4" });
+        dd_status.addItem({ Text: "5.部成待撤", Value: "5" });
+        dd_status.addItem({ Text: "8.部成", Value: "8" });
+        dd_status.addItem({ Text: "10.废单", Value: "10" });
         orderstatusHeader.addChild(dd_status);
 
         let cb_SelAll = new CheckBox();
@@ -260,13 +257,16 @@ export class AppComponent implements OnInit {
         cb_SelAll.Title = this.langServ.get("All");
         orderstatusHeader.addChild(cb_SelAll);
         cb_SelAll.OnClick = () => {
+            let row: DataTableRow;
+
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
-                if (!this.orderstatusTable.rows[i].cells[0].Disable)
-                    if (!cb_SelAll.Text)
-                        this.orderstatusTable.rows[i].cells[0].Text = true;
-                    else
-                        this.orderstatusTable.rows[i].cells[0].Text = false;
+                row = this.orderstatusTable.rows[i];
+
+                if (!row.cells[0].Disable && !row.hidden)
+                    this.orderstatusTable.rows[i].cells[0].Text = !cb_SelAll.Text;
             }
+
+            row = null;
         };
 
         let btn_cancel = new Button();
@@ -275,9 +275,7 @@ export class AppComponent implements OnInit {
         orderstatusHeader.addChild(btn_cancel);
         orderstatusContent.addChild(orderstatusHeader);
         cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = false;
-        // cb_handle.OnClick = () => {
-        //     cb_SelAll.Disable = dd_status.Disable = btn_cancel.Disable = cb_handle.Text;
-        // };
+
         dd_status.SelectChange = (item) => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
                 if (dd_status.SelectedItem.Value === "-1") {   // all
@@ -329,6 +327,23 @@ export class AppComponent implements OnInit {
         this.doneOrdersPage = new TabPage("DoneOrders", this.langServ.get("DoneOrders"));
         this.pageMap["DoneOrders"] = this.doneOrdersPage;
         let doneOrdersContent = new VBox();
+        let doneOrdersHeader = new HBox();
+        doneOrdersHeader.addChild(cb_handle);
+        let dd_done_status = new DropDown();
+        dd_done_status.Left = 10;
+        dd_done_status.addItem({ Text: "-全部-", Value: "-1" });
+        dd_done_status.addItem({ Text: "6.部撤", Value: "6" });
+        dd_done_status.addItem({ Text: "7.已撤", Value: "7" });
+        dd_done_status.addItem({ Text: "9.已成", Value: "9" });
+        dd_done_status.SelectChange = (item) => {
+            for (let i = 0; i < this.doneOrdersTable.rows.length; ++i) {
+                dd_done_status.SelectedItem.Value === "-1"
+                    ? this.doneOrdersTable.rows[i].hidden = false
+                    : this.doneOrdersTable.rows[i].hidden = this.doneOrdersTable.rows[i].cells[10].Text !== dd_done_status.SelectedItem.Text;
+            }
+        };
+        doneOrdersHeader.addChild(dd_done_status);
+        doneOrdersContent.addChild(doneOrdersHeader);
         this.doneOrdersTable = new DataTable("table2");
         ["OrderId", "UKEY", "SymbolCode", "Symbol", "Strategy", "PortfolioID", "OrderPrice", "OrderVol", "OrderTime",
             "Ask/Bid", "OrderStatus", "DonePrice", "DoneVol", "DoneTime", "OrderType"].forEach(item => {
@@ -356,17 +371,10 @@ export class AppComponent implements OnInit {
         this.pageMap["Position"] = this.positionPage;
         let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
-        let positionTableArr: string[] = ["PortfolioID", "secucategory", "UKEY", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
-            "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"];
-        let positionTableRtnArr: string[] = [];
-        let positionTableTittleLen = positionTableArr.length;
-        for (let i = 0; i < positionTableTittleLen; ++i) {
-            let positionRtn = this.langServ.get(positionTableArr[i]);
-            positionTableRtnArr.push(positionRtn);
-        }
-        positionTableRtnArr.forEach(item => {
-            this.positionTable.addColumn(item);
-        });
+        ["PortfolioID", "secucategory", "UKEY", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
+            "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"].forEach(item => {
+                this.positionTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
+            });
         this.positionTable.columnConfigurable = true;
         positionContent.addChild(this.positionTable);
         this.positionPage.setContent(positionContent);
@@ -925,21 +933,20 @@ export class AppComponent implements OnInit {
                 if (filenames === undefined || filenames.length < 1)
                     return;
 
-                File.readLineByLine(filenames[0], (linestr, basketList) => {
-                    let fields = linestr.split(",");
-
-                    if (fields.length === 2 && fields[0].length > 5) {
-                        let codeinfo = AppComponent.self.secuinfo.getSecuinfoByWindCodes([fields[0]]);
-                        basketList.push({ currPos: 0, ukey: parseInt(codeinfo[0].InnerCode), targetPos: parseInt(fields[1]) });
-                    }
-                }, (basketList) => {
-                    AppComponent.bgWorker.send({
-                        command: "ss-send", params: { type: "basket-fp", data: { account: account, list: basketList } }
+                File.readPCF(filenames[0]).then((basketList) => {
+                    let templist = [];
+                    basketList.components.forEach(item => {
+                        templist.push({ currPos: 0, ukey: parseInt(item.code), targetPos: item.amount });
                     });
 
+                    AppComponent.bgWorker.send({
+                        command: "ss-send", params: { type: "basket-fp", data: { account: account, list: templist } }
+                    });
+
+                    templist = null;
                     this.portfolioCount.Text = 0;
-                }, []);
-            }, [{ name: "CSV", extensions: ["csv"] }]);
+                });
+            }, [{ name: "bkt", extensions: ["bkt"] }]);
         };
 
         // this.allChk.OnClick = () => {
@@ -1280,17 +1287,16 @@ export class AppComponent implements OnInit {
     }
 
     showComorderstatusAndErrorInfo(data: any) {
-        let time = AppComponent.self.getCurrentTime();
-        let row = AppComponent.self.logTable.newRow();
+        let time = this.getCurrentTime();
+        let row = this.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = `errorid=${data[0].os.errorid}, errmsg=${data[0].os.errormsg}`;
         if (data[0].os.errorid !== 0) {
             row.cells[1].Color = "red";
         }
 
-        if (AppComponent.self.logTable.rows.length > 500)
-            AppComponent.self.logTable.rows.shift();
-        AppComponent.self.logTable.detectChanges();
+        if (this.logTable.rows.length > 300)
+            this.logTable.rows.shift();
     }
 
     showGuiCmdAck(data: any) {
@@ -1503,17 +1509,7 @@ export class AppComponent implements OnInit {
     }
 
     formatTime(time: any): String {
-        let rtnStr: String = "";
-        let newDate = new Date(time * 1000);
-        let hour = newDate.getHours() + "";
-        let min = newDate.getMinutes() + "";
-        if (min.length === 1)
-            min = "0" + min;
-        let sec = newDate.getSeconds() + "";
-        if (sec.length === 1)
-            sec = "0" + sec;
-        rtnStr = hour + ":" + min + ":" + sec;
-        return rtnStr;
+        return new Date(time * 1000).format("HH:mm:ss");
     }
 
     getCurrentTime(): String {
@@ -1942,7 +1938,7 @@ export class AppComponent implements OnInit {
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
-                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function (cell) {
+                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function(cell) {
                         cell.Class = "warning";
                     };
                     this.strategyTable.columns[offset + idx].key = item.key;
@@ -2304,12 +2300,12 @@ export class AppComponent implements OnInit {
 
         for (let i = 0; i < 20; ++i) {
             let row = bookViewTable.newRow();
-            row.cells[0].bgColor = "rgb(32, 158, 218)";
+            row.cells[0].bgColor = "#247094";
             row.cells[0].Text = "";
             row.cells[1].Text = "0.0000";
             row.cells[1].bgColor = "rgb(216, 212, 214)";
             row.cells[1].Color = "#333";
-            row.cells[2].bgColor = "rgb(214, 35, 33)";
+            row.cells[2].bgColor = "#ac2220";
             row.cells[3].bgColor = "transparent";
         }
 

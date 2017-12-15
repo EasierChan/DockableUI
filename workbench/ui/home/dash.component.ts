@@ -54,11 +54,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     preTurnOver: number = 0;//上一时刻的成交金额
     preMarketTime: string = ""//上一时刻的时间
     preMarketTimestamp: number;
-    nowTurnover: number = 0;//上一时刻的成交金额
+    nowTurnover: number = 0;//时刻的成交金额
     bestStockUkMap: any = {};
     worstStockUkMap: any = {};
     selfStockUkMap: any = {};
-    refStockIncrease: number = 0;
+    refStockIncrease: number;
     selfStockXdata: any[] = [];
     selfStockUkList: number[] = [];
     dashAllUkcodeList: number[] = [];
@@ -101,6 +101,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.selfStockUkList = [2490369, 1441794, 1441876, 1441949, 2490383, 2490381, 1441854];
         this.dashAllUkcodeList.push(this.referStockUk);
         this.dashAllUkcodeList = this.dashAllUkcodeList.concat(this.selfStockUkList);
+        this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
         let d = new Date();
         this.nowDate = d.getFullYear() + "-" + (Number(d.getMonth()) + 1) + "-" + d.getDate();
         this.nowTime = d.getHours() + ":" + d.getMinutes();
@@ -193,7 +194,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             }
         }
         this.todoList = new DataTable("table2");
-       
+
         this.todoList.RowIndex = false; // 去除序列
         this.todoList.addColumn("是否完成", "消息", "创建时间", "操作");
         this.todoList.ColumnHeader = false;
@@ -203,7 +204,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.todoList.columns[2].align = "right";
         this.todoList.columns[3].align = "right";
         this.alarmTable = new DataTable("table2");
-        
+
         this.alarmTable.RowIndex = false; // 去除序列
         this.alarmTable.addColumn("来源", "内容", "严重程度", "状态", "时间");
         this.alarmTable.height = 300;
@@ -223,10 +224,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
             callback: (msg) => {
                 let d = new Date();
                 this.nowTimeStamp = d.getTime();
-                let stockIncrease = msg.content.last > msg.content.pre_close ? "+" + Math.round(1000 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close) / 100 : Math.round(1000 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close) / 100;
+                let stockIncrease = (100 * (msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2);
                 // this.currentMarketData[msg.content.ukey] = { "stockPrice": msg.content.last, "stockIncrease": stockIncrease };
                 let test = Math.abs(this.nowTimeStamp - msg.content.time * 1000);
-                console.log("系统时间和实时行情时间差：" + test);
+                // console.log("系统时间和实时行情时间差：" + test);
                 if (Math.abs(this.nowTimeStamp - msg.content.time * 1000) <= 30000) {
                     // if (1) {
                     let marketTime = this.dashGetTime(msg.content.time + 60);//当前行情的时间
@@ -236,15 +237,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         if (this.selfStockUkList.indexOf(msg.content.ukey) != -1) {//主要指数
                             //主要指数列表
                             let increase = ((msg.content.last - msg.content.pre_close) / 10000).toFixed(2);
-                            let increasePer = ((msg.content.last - msg.content.pre_close) / msg.content.pre_close).toFixed(2);
                             this.selfStockData.forEach((item, index) => {
                                 if (item.ukey == msg.content.ukey) {
                                     this.selfStockTable.rows[index].cells[2].Text = (msg.content.last / 10000).toFixed(2);
                                     this.selfStockTable.rows[index].cells[2].Color = this.dashGetColor(increase, "color");
                                     this.selfStockTable.rows[index].cells[3].Text = this.dashGetColor(increase, "value");
                                     this.selfStockTable.rows[index].cells[3].Color = this.dashGetColor(increase, "color");
-                                    this.selfStockTable.rows[index].cells[4].Text = this.dashGetColor(increasePer, "value");
-                                    this.selfStockTable.rows[index].cells[4].Color = this.dashGetColor(increasePer, "color");
+                                    this.selfStockTable.rows[index].cells[4].Text = this.dashGetColor(stockIncrease, "value") + '%';
+                                    this.selfStockTable.rows[index].cells[4].Color = this.dashGetColor(stockIncrease, "color");
                                     this.selfStockTable.rows[index].cells[5].Text = this.barginPriceUnit(msg.content.volume);
                                     this.selfStockTable.rows[index].cells[6].Text = this.barginPriceUnit(msg.content.turnover * 100);
                                 }
@@ -254,11 +254,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     this.initSelfStockMarket(this.mainStock.preClose);//当回放行情的时候初始化图形
                                     return;
                                 }
-                                console.log("now=====" + msg.content.time);
-                                console.log("pre=====" + this.preMarketTimestamp)
+                                // console.log("now=====" + marketTime);
+                                // console.log("pre=====" + this.preMarketTime)
                                 let middle = Math.round(msg.content.pre_close / 10000);//昨收值
                                 let turnover = msg.content.turnover * 100;//当前时刻行情的成交金额
-                                if (this.preMarketTime != marketTime) {
+                                if (this.preMarketTime != marketTime && this.selfStockXdata.indexOf(this.preMarketTime)) {
                                     let barColor = "#e3b93b";
                                     if (this.selfStockMarketChange.series[1].data[this.marketIndex - 2]) {
                                         if (this.nowTurnover > this.selfStockMarketChange.series[1].data[this.marketIndex - 2].value) {
@@ -279,6 +279,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                         this.selfStockMarketChart.setOption(this.selfStockMarketChange);
                                     }
                                     this.nowTurnover = 0;//一分钟内的累计成交量
+
                                     this.preMarketTime = marketTime;//上一时刻的时间
                                     this.preMarketTimestamp = msg.content.time;
                                 }
@@ -291,9 +292,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 //切换页面或刚进入页面的时候，或者请求到第二条数据的时候请求历史数据（精确第一条数据）
                                 if (this.preTurnOver == 0 && this.marketIndex != 0 || this.marketIndex == 1 && this.nowTurnover == 0) {
                                     this.historyMarket("all");
-                                    if(this.historyMarketIndex == this.marketIndex){
-                                        this.nowTurnover = this.selfStockMarketChange.series[1].data[this.marketIndex];
-                                    }
+                                    // console.log(this.hasHistoryMarket)
+
                                     if (this.hasHistoryMarket == false) {
                                         this.mainStock.minPrice = lastPrice;
                                         this.mainStock.maxPrice = lastPrice;
@@ -316,6 +316,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 this.selfStockMarketChange.yAxis[0].min = middle - abs;
                                 this.selfStockMarketChange.yAxis[0].max = middle + abs;
                                 // this.selfStockMarketChange.series[0].markLine.data[0].yAxis = this.mainStock.preClose;
+                                if (this.hasHistoryMarket && this.historyMarketIndex == this.marketIndex) {
+                                    this.nowTurnover = this.selfStockMarketChange.series[1].data[this.marketIndex].value;
+                                }
                                 this.nowTurnover = Number((turnover - this.preTurnOver + this.nowTurnover).toFixed(2));//当前时间的成金额
                                 this.preTurnOver = turnover;//上一时刻的成交量
                                 let barUnit;
@@ -346,7 +349,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 if (this.selfStockMarketChart) {
                                     this.selfStockMarketChart.setOption(this.selfStockMarketChange);
                                 }
-                                console.log("成交金额" + this.nowTurnover);
+                                // console.log("成交金额" + this.nowTurnover);
                             }
                         }
                     }
@@ -364,9 +367,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             ukInWorstIndex = this.worstStockUkMap[msg.content.ukey].order;
                         }
 
-                        if (this.refStockIncrease != 0) {//参考股的数值回来才有超额涨幅
+                        if (this.refStockIncrease) {//参考股的数值回来才有超额涨幅
                             //超额涨幅
-                            let overStockIncrease = Number((Number(stockIncrease) - this.refStockIncrease).toFixed(2));
+                            let overStockIncrease = Number(Number(stockIncrease) - this.refStockIncrease).toFixed(2);
                             if (ukInBestIndex != undefined) {
                                 this.bestStockList.rows[ukInBestIndex].cells[3].Text = this.dashGetColor(overStockIncrease, "value") + "%";
                                 this.bestStockList.rows[ukInBestIndex].cells[3].Color = this.dashGetColor(overStockIncrease, "color");
@@ -378,12 +381,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         }
                         if (ukInBestIndex != undefined) {
                             this.bestStockList.rows[ukInBestIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
-                            this.bestStockList.rows[ukInBestIndex].cells[2].Text = stockIncrease + "%";
+                            this.bestStockList.rows[ukInBestIndex].cells[2].Text = this.dashGetColor(stockIncrease, "value") + "%";
                             this.bestStockList.rows[ukInBestIndex].cells[2].Color = this.dashGetColor(stockIncrease, "color");
                         }
                         if (ukInWorstIndex != undefined) {
                             this.worstStockList.rows[ukInWorstIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
-                            this.worstStockList.rows[ukInWorstIndex].cells[2].Text = stockIncrease + "%";
+                            this.worstStockList.rows[ukInWorstIndex].cells[2].Text = this.dashGetColor(stockIncrease, "value") + "%";
                             this.worstStockList.rows[ukInWorstIndex].cells[2].Color = this.dashGetColor(stockIncrease, "color");
                         }
                     }
@@ -427,7 +430,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.alarmTableData.push(dataObj);
                 this.createAlarmRow(dataObj);
             } else {
-                console.log(changeIndex)
+                // console.log(changeIndex)
                 let changeRow = this.alarmTable.rows[changeIndex];
                 if (this.statObj[dataObj.stat]) {
                     let alarmDate = dataObj.alarmtime.substring(0, 10);
@@ -515,7 +518,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         newItem.totalAssets = Number(item.totalint) + Number(item.subject_amount);
                         newItem.caid = item.caid;
                         newItem.caname = item.caname;
-                        console.log(newItem);
+                        // console.log(newItem);
                         this.productData.push(newItem);
                     })
                     this.productDataSort = this.productData.sort(this.compare("totalAssets"));
@@ -579,10 +582,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     row.cells[3].Text = "--";
                 })
             }
-            if (this.dashAllUkcodeList.length == 68) {
-                this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-            }
-            if (this.selfStockXdata.indexOf(this.nowTime) == -1 && this.dashAllUkcodeList.length == 68) {//今天非交易时间段请求当日最后一条数据
+            this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
+            if (this.selfStockXdata.indexOf(this.nowTime) == -1) {//今天非交易时间段请求当日最后一条数据
                 this.historyMarket("lastDate");
             }
         }, this)
@@ -611,10 +612,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     row.cells[3].Text = "--";
                 })
             }
-            if (this.dashAllUkcodeList.length == 68) {
-                this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-            }
-            if (this.selfStockXdata.indexOf(this.nowTime) == -1 && this.dashAllUkcodeList.length == 68) {//今天非交易时间段请求当日最后一条数据
+            this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
+            if (this.selfStockXdata.indexOf(this.nowTime) == -1) {//今天非交易时间段请求当日最后一条数据
                 this.historyMarket("lastDate");
             }
         }, this)
@@ -989,7 +988,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             packid: 10002,
             callback: (msg) => {
                 if (msg.content.head.dataType == 102001) {
-                    console.log(msg);
+                    // console.log(msg);
                     let lastDate = msg.content.data;
                     let referStock = {};
                     referStock[this.referStockUk] = {};
@@ -1034,7 +1033,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             this.refStock.increase = increasePer;
                         }
                     })
-                    console.log(allStockUkMap)
+                    // console.log(allStockUkMap)
                 } else if (msg.content.head.dataType == 101002) {
                     let historyStockLineData = [];
                     if (partIndex == msg.content.head.partOrder) {
@@ -1075,7 +1074,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             }
                             historyStockLineData.forEach((item, index) => {
                                 let time = this.dashGetTime(item.t / 1000);
-
+                                this.preMarketTime = time;
                                 this.historyMarketIndex = this.selfStockXdata.indexOf(time);//当前行情在echarts中的位置
                                 this.selfStockMarketChange.series[0].data[this.historyMarketIndex] = item.c;
                                 let barColor = "#e3b93b";

@@ -18,6 +18,8 @@ class SecuMaster {
     private static secumasterData: string;
     private static line_sep: string = "\n";
     private static field_sep: string = "#&#";
+    private static SerialIDArray: any[] = [];
+    private static needSerialIDArray: any[] = [];
 
     /**
      * updated by cl, 2017/08/19
@@ -46,6 +48,7 @@ class SecuMaster {
             appid: 142,
             packid: 27,
             callback: (msg) => {
+                SecuMaster.SerialIDArray.push(msg.content.SerialID);
                 for (let i = 0; i < msg.content.Count; ++i) {
                     let secuData = "";
                     let inputcodeArr = msg.content.Structs[i].input_code.split(",");
@@ -60,7 +63,21 @@ class SecuMaster {
                     //     fpath = path.join(__dirname, "../../../../secumaster.csv");
                     // }
                     // fs.writeFileSync(fpath, SecuMaster.secumasterData);
-                    SecuMaster.processingData();
+                    SecuMaster.needSerialIDArray = [];
+                    if (SecuMaster.SerialIDArray.length < msg.content.Sum) {
+                        for (let i = 1; i <= msg.content.Sum; ++i) {
+                            if (SecuMaster.SerialIDArray.indexOf(i) === -1) {
+                                SecuMaster.needSerialIDArray.push(i);
+                            }
+                        }
+                    }
+                    if (SecuMaster.needSerialIDArray.length === 0) {
+                        SecuMaster.processingData();
+                    } else {
+                        console.log("needSerialID", SecuMaster.secumasterData.length, msg.content.Sum, SecuMaster.SerialIDArray.length, SecuMaster.needSerialIDArray, SecuMaster.needSerialIDArray.length);
+                        SecuMaster.SerialIDArray = [];
+                        IP20Factory.instance.send(142, 26, { Seqno: 3, SecurityID: 0, TableType: 5, MarketID: 0, Date: 0, SerialID: SecuMaster.needSerialIDArray, PackSize: 10, Field: "ukey,market_abbr,jy_code,wind_code,pre_settlement,trading_time,input_code" });                        
+                    }
                 }
             }
         });
@@ -69,7 +86,7 @@ class SecuMaster {
             appid: 17,
             packid: 43,
             callback: (msg) => {
-                IP20Factory.instance.send(142, 26, { Seqno: 3, SecurityID: 0, TableType: 5, MarketID: 0, Date: 0, SerialID: 0, PackSize: 10, Field: "ukey,market_abbr,jy_code,wind_code,pre_settlement,trading_time,input_code" });
+                IP20Factory.instance.send(142, 26, { Seqno: 3, SecurityID: 0, TableType: 5, MarketID: 0, Date: 0, SerialID: [], PackSize: 10, Field: "ukey,market_abbr,jy_code,wind_code,pre_settlement,trading_time,input_code" });
             }
         });
 
@@ -81,7 +98,7 @@ class SecuMaster {
     }
 
     static processingData() {
-        console.log("processingData", SecuMaster.secumasterData.length);
+        console.log("processingData", SecuMaster.secumasterData.length, SecuMaster.SerialIDArray.length, SecuMaster.needSerialIDArray, SecuMaster.needSerialIDArray.length);
         SecuMaster.secumasterData.split(SecuMaster.line_sep).forEach((linestr) => {
             let fields = linestr.split(SecuMaster.field_sep);
             let lineObj = { InnerCode: fields[1], SecuCode: fields[4], SecuAbbr: fields[3], ukey: parseInt(fields[0]), TradeTime: fields[5], PreClose: fields[6], pinyin: fields[2] };

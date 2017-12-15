@@ -16,6 +16,7 @@
 
 .u-block .title > * {
     flex: auto;
+    display: flex;
 }
 
 .u-block .title .menu{
