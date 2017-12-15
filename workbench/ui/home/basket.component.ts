@@ -7,7 +7,7 @@ import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import { VBoxDirective } from "../../../base/controls/user.component";
 import { DataTable, Dialog } from "../../../base/controls/control";
 import { ConfigurationBLL } from "../../bll/strategy.server";
-import { File, AppStoreService, MessageBox, path } from "../../../base/api/services/backend.service";
+import { File, AppStoreService, MessageBox, path, fs, ULogger } from "../../../base/api/services/backend.service";
 import { QtpService } from "../../bll/services";
 import { SSGW_MSG, ServiceType, BasketPCF } from "../../../base/api/model";
 
@@ -242,21 +242,37 @@ export class BasketComponent implements OnInit {
     }
 
     onImport() {
-        MessageBox.openFileDialog("导入篮子", (filenames: string[]) => {
-            if (!filenames)
+        MessageBox.openDirectoryDialog("导入篮子", (dirnames: string[]) => {
+            if (!dirnames)
                 return;
 
-            filenames.forEach(name => {
-                let [trday, version] = File.basename(name, ".bkt").split("-");
-                this.tradeEndPoint.sendToCMS("createBasketInstance", JSON.stringify({
-                    data: {
-                        head: { reqsn: BasketComponent.reqsn, userid: this.userid },
-                        body: { trday: trday, basketid: this.curBasketID, content: File.readFileSync(name) }
+            dirnames.forEach(dir => {
+                File.readdir(dir, (err, filenames: string[]) => {
+                    if (err) {
+                        ULogger.error(err);
+                        return;
                     }
-                }));
 
-                this.reqMap[BasketComponent.reqsn] = [this.curBasketID, trday];
-                ++BasketComponent.reqsn;
+                    filenames.forEach((name) => {
+                        if (fs.statSync(path.join(dir, name)).isFile()) {
+                            let [trday, version] = File.basename(name, ".bkt").split("-");
+                            if (version === undefined) {
+                                ULogger.error(`Unvalid file format: ${name}`);
+                                return;
+                            }
+
+                            this.tradeEndPoint.sendToCMS("createBasketInstance", JSON.stringify({
+                                data: {
+                                    head: { reqsn: BasketComponent.reqsn, userid: this.userid },
+                                    body: { trday: trday, basketid: this.curBasketID, content: File.readFileSync(name), version: version }
+                                }
+                            }));
+
+                            this.reqMap[BasketComponent.reqsn] = [this.curBasketID, trday];
+                            ++BasketComponent.reqsn;
+                        }
+                    });
+                });
             });
         });
     }

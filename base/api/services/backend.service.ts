@@ -259,7 +259,7 @@ export class MessageBox {
         electron.remote.dialog.showOpenDialog(electron.remote.BrowserWindow.getFocusedWindow(), {
             title: title,
             filters: filters,
-            properties: ["openFile", "openDirectory", "multiSelections"]
+            properties: ["openDirectory"]
         }, cb);
     }
 
@@ -335,7 +335,7 @@ export class File {
         });
     }
 
-    public static readdir(fpath: string, callback: (filenames) => void) {
+    public static readdir(fpath: string, callback: (err, filenames) => void) {
         fs.readdir(fpath, "utf-8", callback);
     }
 
