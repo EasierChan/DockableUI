@@ -29,6 +29,9 @@ export class StrategyComponent implements OnInit, OnDestroy {
     strategyType: string;
     productLabel: string;
     productID: string;
+    basketLabel: string;
+    basketID: string;
+    baskets: any[];
     strategyTemplates: Object;
     paramsTable: DataTable;
     instrumentTable: DataTable;
@@ -39,9 +42,10 @@ export class StrategyComponent implements OnInit, OnDestroy {
         private secuinfo: SecuMasterService,
         private langSrv: TranslateService) {
         this.enNameLabel = "策略服务名：";
-        this.chNameLabel = "中文别名：";
+        this.chNameLabel = "名称：";
         this.productLabel = "产品：";
         this.strategyLabel = "策略：";
+        this.basketLabel = "篮子：";
     }
 
     ngOnInit() {
@@ -61,6 +65,10 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.chName = this.config.chname;
         this.strategyType = this.config.strategyType;
         this.productID = this.config.productID;
+        this.basketID = this.config.items.length > 0 ? this.config.items[0].basketID.toString() : undefined;
+        let userid = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)).user_id;
+        this.baskets = JSON.parse(AppStoreService.getLocalStorageItem(`${userid}-basket`));
+
         this.strategyConfigPanel = new TabPanel();
         let paramsPage = new TabPage("parameters", "参数");
         this.strategyConfigPanel.addTab(paramsPage, false);
@@ -111,9 +119,9 @@ export class StrategyComponent implements OnInit, OnDestroy {
                     let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(value);
                     row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(value) ? codeinfo[value].SecuCode : value };
                     row.cells[1].Data = value;
-                    row.cells[1].OnClick = (event) => {
-                        if (event.row !== undefined)
-                            row.cells[1].Data = parseInt(event.item.code);
+                    row.cells[1].OnClick = (data) => {
+                        if (data.row !== undefined)
+                            row.cells[1].Data = parseInt(data.item.code);
                     };
                 }
             }
@@ -122,12 +130,17 @@ export class StrategyComponent implements OnInit, OnDestroy {
 
     save() {
         if (this.strategyType === undefined) {
-            alert("未选择策略");
+            alert("未选择策略！");
+            return;
+        }
+
+        if (this.chName === undefined || this.chName.trim().length < 1) {
+            alert("名称不能为空！");
             return;
         }
 
         if (this.isCreate && this.forbidNames && this.forbidNames.indexOf(this.chName) >= 0) {
-            alert("策略名称已存在！");
+            alert("名称已存在！");
             return;
         }
 
@@ -139,6 +152,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
         if (this.isCreate)
             this.config.items = [new StrategyInstance()];
 
+        this.config.items[0].basketID = parseInt(this.basketID);
         this.config.items[0].parameters = [];
         this.config.items[0].instruments = [];
         if (this.paramsTable.rows.length > 0) {
@@ -180,9 +194,9 @@ export class StrategyComponent implements OnInit, OnDestroy {
                 let codeinfo: any = this.secuinfo.getSecuinfoByInnerCode(row.cells[0].Data.obj.value);
                 row.cells[1].Text = { symbolCode: codeinfo.hasOwnProperty(row.cells[0].Data.obj.value) ? codeinfo[row.cells[0].Data.obj.value].SecuCode : row.cells[0].Data.obj.value };
                 row.cells[1].Data = row.cells[0].Data.obj.value;
-                row.cells[1].OnClick = (event) => {
-                    if (event.row !== undefined)
-                        row.cells[1].Data = parseInt(event.item.code);
+                row.cells[1].OnClick = (data) => {
+                    if (data.row !== undefined)
+                        row.cells[1].Data = parseInt(data.item.code);
                 };
             }
         }

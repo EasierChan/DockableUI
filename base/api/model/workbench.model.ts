@@ -52,6 +52,7 @@ export class WorkspaceConfig {
 export class StrategyInstance {
     key: number;
     name: string;
+    basketID: number;
     accounts: number[];
     algoes: number[];
     checks: number[];

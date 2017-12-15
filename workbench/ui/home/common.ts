@@ -25,7 +25,7 @@ export class DataSet {
             name: "智能预测",
             icon: "road",
             // tabs: ["Profit", "RiskFactors"]
-            tabs: ["风险因子收益", "风险因子分析", "Alpha因子", "AI看盘"]
+            tabs: ["AI看盘", "Alpha因子", "风险因子收益", "风险因子分析"]
         },
         {
             name: "行情分析",
