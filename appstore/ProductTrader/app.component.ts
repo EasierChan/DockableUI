@@ -8,8 +8,10 @@ import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
     VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel, TabPage, ChartViewer, TextBox
 } from "../../base/controls/control";
-import { WorkerFactory } from "../../base/api/services/uworker.server";
-import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/services/backend.service";
+import { QtpService } from "../../base/api/services/qtp.service";
+import { AppStateCheckerRef, Environment, AppStoreService } from "../../base/api/services/backend.service";
+import { ServiceType } from "../../base/api/model/qtp/message.model";
+import { DataKey } from "../../base/api/model/workbench.model";
 
 @Component({
     moduleId: module.id,
@@ -19,7 +21,9 @@ import { AppStateCheckerRef, File, Environment, Sound } from "../../base/api/ser
         </dock-control>
     `,
     providers: [
-        AppStateCheckerRef
+        QtpService,
+        AppStateCheckerRef,
+        AppStoreService
     ]
 })
 export class AppComponent implements OnInit {
@@ -35,10 +39,12 @@ export class AppComponent implements OnInit {
     txt_pageidx: TextBox;
     lbl_pagecount: Label;
     table: DataTable;
+    table2: DataTable;
     chart: ChartViewer;
     worker: any;
+    userId: any;
 
-    constructor(private state: AppStateCheckerRef) {
+    constructor(private tradePoint: QtpService, private state: AppStateCheckerRef, private appSrv: AppStoreService) {
         this.state.onInit(this, this.onReady);
         this.state.onDestory(this, this.onDestroy);
     }
@@ -50,17 +56,39 @@ export class AppComponent implements OnInit {
     }
 
     onDestroy() {
-        File.writeSync(`${Environment.getDataPath(this.option.name, "StrategyTrader")}/layout.json`, this.main.getLayout());
-        File.writeSync(`${Environment.getDataPath(this.option.name, "StrategyTrader")}/config.json`, this.option.config);
     }
 
     ngOnInit() {
+        this.userId = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)).user_id;
+        // console.log(this.option.productID)
+        // this.userId = Number(this.appSrv.getUserProfile().username);
+        this.tradePoint.sendToCMS("getProduct", JSON.stringify({
+            data: {
+                head: { userid: this.userId },
+                body: {  }
+            }
+        }));
+        this.tradePoint.addSlotOfCMS("getProduct", (data) => {
+            // console.log(data)
+        }, this);
+
+        // this.tradePoint.addSlot({
+        //     service: ServiceType.kCOMS,
+        //     msgtype: 4003,
+        //     callback: (msg) => {
+
+        //     }
+        // });
+        // this.tradePoint.send(4003, JSON.stringify({}), ServiceType.kCOMS);
+
         let viewContent = new VBox();//列
         let svHeaderRow1 = new HBox();//行
         this.dd_tests = new DropDown();//下拉框
         this.dd_tests.Title = "Tests:";
         this.dd_tests.Left = 50;
         this.dd_tests.addItem({ Text: "--all--", Value: undefined });
+        this.dd_tests.addItem({ Text: ServiceType.kCMS, Value: undefined });
+        this.dd_tests.addItem({ Text: ServiceType.kCOMS, Value: undefined });
 
         svHeaderRow1.addChild(this.dd_tests);
         let lbl_mode = new Label();//文字快
@@ -107,7 +135,7 @@ export class AppComponent implements OnInit {
         indicatorRow.addChild(this.lbl_maxRetracementRatio).addChild(this.lbl_sharpeRatio).addChild(this.lbl_percentProfitable);
         viewContent.addChild(indicatorRow);
 
-        let panel = new TabPanel();//分页
+        let panel = new TabPanel();
         let detailsPage = new TabPage("OrderDetail", "OrderDetail");
         let detailContent = new VBox();
         let pagination = new HBox();
@@ -119,7 +147,7 @@ export class AppComponent implements OnInit {
         this.txt_pagesize.onChange = () => {
             this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: 0, end: parseInt(this.txt_pagesize.Text) } });
         };
-        this.txt_pageidx = new TextBox();
+        this.txt_pageidx = new TextBox();//分页
         this.txt_pageidx = new TextBox();
         this.txt_pageidx.Title = ",第";
         this.txt_pageidx.Text = 1;
@@ -138,17 +166,47 @@ export class AppComponent implements OnInit {
         this.table = new DataTable("table2");
         this.table.RowIndex = false;
         this.table.addColumn("Index", "Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
+        for (let i = 0; i <= 10; i++) {
+            let row = this.table.newRow();
+            row.cells[0].Text = i;
+            row.cells[1].Text = i;
+        }
+
+
         detailContent.addChild(this.table);
         detailsPage.setContent(detailContent);
         panel.addTab(detailsPage, false);
+        // panel.setActive("OrderDetail");
         let profitPage = new TabPage("ProfitViewer", "ProfitViewer");
         let profitContent = new VBox();
         profitPage.setContent(profitContent);
         panel.addTab(profitPage, false);
-        panel.setActive("ProfitViewer");
+
+        // panel.setActive("ProfitViewer");
+        let panel2 = new TabPanel();//分页
+        let myTest = new TabPage("myTestId", "myTestTit");
+        let myTestCon = new VBox();
+        this.table2 = new DataTable("table2");
+        this.table2.RowIndex = false;
+        this.table2.addColumn("1", "2", "3");
+        this.table2.width = 100;
+        this.table2.align = 'center'
+        for (let i = 0; i <= 10; i++) {
+            let row = this.table.newRow();
+            row.cells[0].Text = '2' + i;
+            row.cells[1].Text = i;
+        }
+
+        myTestCon.addChild(this.table2);
+        myTest.setContent(myTestCon);
+        panel2.addTab(myTest, false);
+
+
         viewContent.addChild(panel);
+        viewContent.addChild(panel2);
 
         viewContent.addChild(new HBox());
+
         this.main = viewContent;
 
         this.dd_tests.SelectChange = () => {
