@@ -53,14 +53,7 @@ export class BasketComponent implements OnInit {
     }
 
     registerListeners() {
-        this.tradeEndPoint.addSlotOfCMS("getBasketInfo", (data) => {
-            let obj = JSON.parse(data.toString());
-
-            if (obj.msret.msgcode !== "00") {
-                alert(`getBasketInfo: code=${obj.msret.msgcode}, msg=${obj.msret.msg}`);
-                return;
-            }
-
+        this.configBll.on("getBasketInfo", (obj) => {
             this.basketsTable.rows.length = 0;
 
             obj.body.forEach(item => {
@@ -73,7 +66,7 @@ export class BasketComponent implements OnInit {
             });
 
             this.basketCount = this.basketsTable.rows.length;
-        }, this);
+        });
 
         this.tradeEndPoint.addSlotOfCMS("getBasketTradingDay", (data) => {
             this.items.length = 0;
