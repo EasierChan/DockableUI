@@ -1287,17 +1287,16 @@ export class AppComponent implements OnInit {
     }
 
     showComorderstatusAndErrorInfo(data: any) {
-        let time = AppComponent.self.getCurrentTime();
-        let row = AppComponent.self.logTable.newRow();
+        let time = this.getCurrentTime();
+        let row = this.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = `errorid=${data[0].os.errorid}, errmsg=${data[0].os.errormsg}`;
         if (data[0].os.errorid !== 0) {
             row.cells[1].Color = "red";
         }
 
-        if (AppComponent.self.logTable.rows.length > 500)
-            AppComponent.self.logTable.rows.shift();
-        AppComponent.self.logTable.detectChanges();
+        if (this.logTable.rows.length > 300)
+            this.logTable.rows.shift();
     }
 
     showGuiCmdAck(data: any) {
