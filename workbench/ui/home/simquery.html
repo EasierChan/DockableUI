@@ -1,0 +1,38 @@
+<div class="sim-content u-col">
+    <div class="head u-row">
+        <div class="select-item">
+            <span>产品：</span>
+            <select #product name="product" id="" [ngModel]="selectedCaid" (change)="caChangeListener(product.value)" (ngChange)="test(product.value)" >
+                <option *ngFor="let pd of products" [value]="pd.caid">{{pd.caname}}</option>
+            </select>
+        </div>
+        <div class="select-item">
+            <span>策略组合：</span>
+            <select name="strategys" id="" #strategy [ngModel]="selectedTrid" (change)="trChangeListener(strategy.value)">
+                <option *ngFor="let stg of strategys" [value]="stg.trid">{{stg.trname}}</option>
+            </select>
+        </div>
+        <div class="select-item">
+            <span>起始时间：</span>
+            <input type="date" #startdate [ngModel]="startDate" (change)="startChangeListener(startdate.value)" required>
+        </div>
+        <div class="select-item">
+            <span>截止时间：</span>
+            <input type="date" #enddate [ngModel]="endDate" (change)="endChangeListener(enddate.value)" required>
+        </div>
+        <div class="pagination u-row">
+            <li (click)="previousPage()">
+                <span aria-hidden="true" class="previous-btn">上一页</span>
+            </li>
+            <span class="page-num">第{{pagination.currentPage}}/{{pagination.maxPage}}页</span>
+            <li (click)="nextPage()">
+                <span aria-hidden="true" class="next-btn">下一页</span>
+            </li>
+        </div>
+    </div>
+
+    <div class="main u-col">
+        <div class="title">订单列表</div>
+        <dock-table2 class="table-container" [dataSource]="orderTable.dataSource" [styleObj]="orderTable.styleObj"></dock-table2>
+    </div>
+</div>
