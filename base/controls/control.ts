@@ -2037,10 +2037,12 @@ export class DataTableRow extends Control {
     insertCell(cell: DataTableRowCell, index: number): void {
         this.cells.splice(index, 0, cell);
         this.columns += 1;
-        this.cells[index].OnClick = (cellIndex, rowIndex) => {
-            if (DataTableRow._timeout) {
-                clearTimeout(DataTableRow._timeout);
-                DataTableRow._timeout = null;
+        this.cells[index].OnClick = (event: MouseEvent, cellIndex, rowIndex) => {
+            event.stopPropagation();
+
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+                this._timeout = null;
 
                 if (this.dataSource.cellDBClick) {
                     this.dataSource.cellDBClick(this.cells[cellIndex], cellIndex, rowIndex);
@@ -2052,8 +2054,8 @@ export class DataTableRow extends Control {
                 return;
             }
 
-            DataTableRow._timeout = setTimeout(() => {
-                DataTableRow._timeout = null;
+            this._timeout = setTimeout(() => {
+                this._timeout = null;
 
                 if (this.dataSource.cellclick) {
                     this.dataSource.cellclick(this.cells[cellIndex], cellIndex, rowIndex);
