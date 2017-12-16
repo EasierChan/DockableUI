@@ -12,6 +12,7 @@ import {
 import { QtpService } from "../../base/api/services/qtp.service";
 import { AppStateCheckerRef, Environment, AppStoreService } from "../../base/api/services/backend.service";
 import { ServiceType, FGS_MSG } from "../../base/api/model/qtp/message.model";
+import { QueryFundAndPosition, COMS_MSG, QueryFundAns, QueryPositionAns } from "../../base/api/model/qtp/coms.model";
 import { DataKey } from "../../base/api/model/workbench.model";
 
 @Component({
@@ -36,6 +37,7 @@ export class AppComponent implements OnInit {
     option: any;
     dd_tests: DropDown;
     txt_freeriskrate: TextBox;
+    txt_security: TextBox;
     lbl_maxRetracementRatio: Label;
     lbl_sharpeRatio: Label;
     lbl_percentProfitable: Label;
@@ -43,7 +45,7 @@ export class AppComponent implements OnInit {
     txt_pageidx: TextBox;
     lbl_pagecount: Label;
     table: DataTable;
-    table2: DataTable;
+    MarketTable: DataTable;
     chart: ChartViewer;
     worker: any;
     userId: any;
@@ -70,8 +72,8 @@ export class AppComponent implements OnInit {
         console.log('userid' + this.userId)
 
 
-        let viewContent = new VBox();//列
-        let svHeaderRow1 = new HBox();//行
+        let viewContentPop = new VBox();//弹框内容
+
         this.dd_tests = new DropDown();//下拉框
         this.dd_tests.Title = "Tests:";
         this.dd_tests.Left = 50;
@@ -79,31 +81,28 @@ export class AppComponent implements OnInit {
         this.dd_tests.addItem({ Text: ServiceType.kCMS, Value: undefined });
         this.dd_tests.addItem({ Text: ServiceType.kCOMS, Value: undefined });
 
-        svHeaderRow1.addChild(this.dd_tests);
+        let popRow1 = new HBox();//行
+        popRow1.addChild(this.dd_tests);
         let lbl_mode = new Label();//文字快
         lbl_mode.Title = "Mode:";
         lbl_mode.Left = 10;
         lbl_mode.Width = 80;
-        svHeaderRow1.addChild(lbl_mode);
+        popRow1.addChild(lbl_mode);
         let lbl_speed = new Label();
         lbl_speed.Title = "Speed:";
         lbl_speed.Left = 10;
         lbl_speed.Width = 80;
-        svHeaderRow1.addChild(lbl_speed);
+        popRow1.addChild(lbl_speed);
         let lbl_duration = new Label();
         lbl_duration.Title = "Duration:";
         lbl_duration.Left = 10;
-        svHeaderRow1.addChild(lbl_duration);
+        popRow1.addChild(lbl_duration);
         let lbl_tick = new Label();
         lbl_tick.Title = "Tick:";
         lbl_tick.Left = 10;
         lbl_tick.Width = 80;
-        svHeaderRow1.addChild(lbl_tick);
-        let btn_query = new Button();//按钮
-        btn_query.Left = 10;
-        btn_query.Text = "Query";
-        svHeaderRow1.addChild(btn_query);
-        viewContent.addChild(svHeaderRow1);
+        popRow1.addChild(lbl_tick);
+        viewContentPop.addChild(popRow1);
 
         let indicatorRow = new HBox();
         this.txt_freeriskrate = new TextBox();
@@ -122,10 +121,13 @@ export class AppComponent implements OnInit {
         this.lbl_percentProfitable.Title = "Winning:";
         this.lbl_percentProfitable.Left = 10;
         indicatorRow.addChild(this.lbl_maxRetracementRatio).addChild(this.lbl_sharpeRatio).addChild(this.lbl_percentProfitable);
-        viewContent.addChild(indicatorRow);
+        viewContentPop.addChild(indicatorRow);
 
+
+        let viewContent = new VBox();//非弹框内容
         let panel = new TabPanel();
-        let detailsPage = new TabPage("OrderDetail", "OrderDetail");
+        let profitAndLossPage = new TabPage("profitAndLossPage", "盈亏");
+
         let detailContent = new HBox();
         detailContent.height = 500;
         let pagination = new HBox();
@@ -168,47 +170,74 @@ export class AppComponent implements OnInit {
 
 
         detailContent.addChild(this.table);
-        detailsPage.setContent(detailContent);
-        panel.addTab(detailsPage, true);
+        profitAndLossPage.setContent(detailContent);
+        panel.addTab(profitAndLossPage, false);
+        panel.setActive("profitAndLossPage");
+        let positionPage = new TabPage("productPosition", "仓位");
+        let positionContent = new HBox();
+        positionContent.height = 500;
+        positionContent.addChild(this.table);
+        positionPage.setContent(positionContent);
+        panel.addTab(positionPage, false);
         // panel.setActive("OrderDetail");
-        let profitPage = new TabPage("ProfitViewer", "ProfitViewer");
+        let profitPage = new TabPage("ProfitViewer", "收益");
         let profitContent = new VBox();
         profitPage.setContent(profitContent);
-        panel.addTab(profitPage, true);
+        panel.addTab(profitPage, false);
+        let availableFundPage = new TabPage("availableFundViewer", "可用资金");
+        let availableFundContent = new VBox();
+        availableFundPage.setContent(availableFundContent);
+        panel.addTab(availableFundPage, false);
+        viewContent.addChild(panel);
+
+        let svHeaderRow1 = new HBox();//行
+
+
+        let btn_query = new Button();//按钮
+        btn_query.Left = 100;
+        btn_query.Text = "Query";
+        svHeaderRow1.addChild(btn_query);
+        viewContent.addChild(svHeaderRow1);
 
 
 
+        let Market = new TabPage("MarketId", "行情");
+        let MarketCon = new VBox();
+        MarketCon.MinHeight = 200;
+        let panel2 = new TabPanel();
+        let inputRow = new HBox();
+        this.txt_security = new TextBox();
+        this.txt_security.Title = "股票代码:";
+        this.txt_security.Text = '';
+        this.txt_security.Left = 50;
+        this.txt_security.Width = 50;
+        inputRow.addChild(this.txt_security);
+        MarketCon.addChild(inputRow);
 
-
-        // panel.setActive("ProfitViewer");
-        let panel2 = new TabPanel();//分页
-        let myTest = new TabPage("myTestId", "myTestTit");
-        let myTestCon = new VBox();
-        myTestCon.MinHeight = 200;
-        this.table2 = new DataTable("table2");
-        this.table2.RowIndex = false;
-        this.table2.addColumn("1", "2", "3");
-        // this.table2.height = 200;
-        this.table2.align = 'center'
+        this.MarketTable = new DataTable("table2");
+        this.MarketTable.RowIndex = false;
+        this.MarketTable.addColumn("1", "2", "3");
+        // this.MarketTable.height = 200;
+        this.MarketTable.align = 'center'
         for (let i = 0; i <= 10; i++) {
-            let row = this.table2.newRow();
+            let row = this.MarketTable.newRow();
             row.cells[0].Text = '2' + i;
             row.cells[1].Text = i;
         }
-
-        myTestCon.addChild(this.table2);
-        myTest.setContent(myTestCon);
-        panel2.addTab(myTest, false);
-        // viewContent.addChild(panel2)
-        // viewContent.addChild(panel);
-
-        // viewContent.addChild(new HBox());
+        this.MarketTable.onRowDBClick = (rowItem, rowIndex) => {
+            alert(rowIndex);
+            Dialog.popup(this, viewContentPop, { title: "ceshi", width: 500, height: 500 });
+        }
+        MarketCon.addChild(this.MarketTable);
+        Market.setContent(MarketCon);
+        panel2.addTab(Market, false);
+        panel2.setActive("MarketId");
 
         this.main = new DockContainer(null, "v", window.innerWidth, window.innerHeight);
-        this.main.addChild(new DockContainer(this.main, "h", null, window.innerHeight / 2).addChild(panel));
+        this.main.addChild(new DockContainer(this.main, "h", null, window.innerHeight / 2).addChild(viewContent));
         this.main.addChild(new Splitter("h", this.main));
         this.main.addChild(new DockContainer(this.main, "h", null, window.innerHeight - window.innerHeight / 2).addChild(panel2));
-        Dialog.popup(this, viewContent, { title: "ceshi", width: 500, height: 500 });
+
 
         this.dd_tests.SelectChange = () => {
             // table.rows.length = 0;
@@ -223,6 +252,7 @@ export class AppComponent implements OnInit {
         };
 
         btn_query.OnClick = () => {
+            // Dialog.popup(this, viewContentPop, { title: "ceshi", width: 500, height: 500 });
             if (this.dd_tests.SelectedItem && this.dd_tests.SelectedItem.Value && this.dd_tests.SelectedItem.Value.id !== undefined) {
                 this.chart.init();
                 this.table.rows.length = 0;
@@ -234,6 +264,7 @@ export class AppComponent implements OnInit {
             }
         };
 
+        //建立TCP链接
         this.registryListeners();
         this.tradePoint.connect(parseInt(port), addr);
 
@@ -246,11 +277,34 @@ export class AppComponent implements OnInit {
         };
         // this.userId = Number(this.appSrv.getUserProfile().username);
 
+        //数据请求
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
-            msgtype: 4006,
+            msgtype: COMS_MSG.kMtFQueryFundAns,
             callback: (msg) => {
                 console.log(msg)
+                if (msg != undefined) {
+                    let ans = new QueryFundAns();
+                    ans.fromBuffer(msg);
+                    ans.avl_amt = 0;
+                }
+
+
+            }
+        });
+
+        this.tradePoint.addSlot({
+            service: ServiceType.kCOMS,
+            msgtype: COMS_MSG.kMtFQueryPositionAns,
+            callback: (msg) => {
+                console.log(msg)
+                if (msg != undefined) {
+                    let ans = new QueryPositionAns();
+                    ans.fromBuffer(msg);
+                    ans.avl_cre_redemp_qty = 0;
+                }
+
+
             }
         });
 
@@ -258,15 +312,16 @@ export class AppComponent implements OnInit {
             let data = JSON.parse(res.toString());
             console.log(data.body[0].acid);
 
-            // let buf = Buffer.alloc(16, 0);
-            // buf.writeUIntLE(0, 0, 8);
-            // buf.writeUIntLE(parseInt(data.body[1].acid), 8, 8);
+            let fund = new QueryFundAndPosition();
+            fund.portfolio_id = 0;
+            fund.fund_account_id = parseInt(data.body[0].acid);
 
-            // this.tradePoint.send(4005, buf, ServiceType.kCOMS);
+            let position = new QueryFundAndPosition();
+            position.portfolio_id = 0;
+            position.fund_account_id = parseInt(data.body[0].acid);
 
- 
-
-
+            this.tradePoint.send(COMS_MSG.kMtFQueryFund, fund.toBuffer(), ServiceType.kCOMS);
+            this.tradePoint.send(COMS_MSG.kMtFQueryPosition, position.toBuffer(), ServiceType.kCOMS);
         }, this);
 
     }
