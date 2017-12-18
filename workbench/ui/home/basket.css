@@ -33,3 +33,16 @@
 .u-block .title .menu:hover{
     cursor: pointer;
 }
+
+.params {
+    flex: none;
+    display: block;
+    max-width: 800px;
+}
+
+.params > * {
+    display: inline-block;
+    width: 200px;
+    height: 30px;
+    padding-left: 10px;
+}

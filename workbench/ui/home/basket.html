@@ -18,6 +18,9 @@
             </span>
             <span title="Import" class="glyphicon glyphicon-import menu" (click)="onImport()"></span>
         </div>
+        <div class="params">
+            <pre *ngFor="let name of paramNames">{{name}}:{{params[name]}}</pre>
+        </div>
         <dock-table2 [dataSource]="stockTable.dataSource" [styleObj]="stockTable.styleObj"></dock-table2>
     </div>
 </div>
