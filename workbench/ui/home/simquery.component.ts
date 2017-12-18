@@ -119,12 +119,6 @@ export class SimQueryComponent implements OnInit {
         }
     }
 
-    getOrder(options: any) {
-        this.request("getTaorder", Object.assign({ pageCount: this.pagination.pageSize }, options)).then(data => {
-            this.loadTable(data.data);
-        })
-    }
-
     loadTable(orderList: any[]) {
         console.log(orderList)
         orderList.forEach(order => {
