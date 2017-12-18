@@ -263,7 +263,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 // console.log("pre=====" + this.preMarketTime)
                                 let middle = Math.round(msg.content.pre_close / 10000);//昨收值
                                 let turnover = msg.content.turnover * 100;//当前时刻行情的成交金额
-                                if (this.preMarketTime != marketTime && this.selfStockXdata.indexOf(this.preMarketTime) ) {
+                                if (this.preMarketTime != marketTime && this.selfStockXdata.indexOf(this.preMarketTime)) {
                                     this.nowTurnover = 0;//一分钟内的累计成交量
                                     this.preMarketTime = marketTime;//上一时刻的时间
                                     this.preMarketTimestamp = msg.content.time;
@@ -458,7 +458,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getProductNet", (msg) => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                alert("getProductNet:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             let productNetChangeOpt = {
@@ -481,7 +481,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getMonitorProducts", (msg) => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                alert("getMonitorProducts:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.monitorProductsData = data.body;
@@ -555,7 +555,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getBestStocks", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                alert("getBestStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.aiStockDate.bestStockListData = data.body;
@@ -570,7 +570,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     this.bestStockUkMap[item.ukcode].type = "best";
                     row.cells[0].Text = item.windcode;
                     row.cells[0].Color = "rgb(234, 47, 47)";
-                    row.cells[1].Text = "--";
+                    row.cells[1].Text = item.chabbr;
                     row.cells[2].Text = "--";
                     row.cells[3].Text = "--";
                     row.cells[4].Text = "--";
@@ -586,7 +586,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getWorstStocks", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                alert("getWorstStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.aiStockDate.worstStockListData = data.body;
@@ -601,7 +601,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     this.worstStockUkMap[item.ukcode].type = "worst";
                     row.cells[0].Text = item.windcode;
                     row.cells[0].Color = "rgb(55, 177, 78)";
-                    row.cells[1].Text = "--";
+                    row.cells[1].Text = item.chabbr;
                     row.cells[2].Text = "--";
                     row.cells[3].Text = "--";
                 })
@@ -616,19 +616,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getTodoList", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                alert("getTodoList:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.todoListData = data.body;
             this.todoList.rows.length = 0;
             if (this.todoListData.length > 0) {
                 this.todoListData.forEach((item, itemIndex) => {
-                    item.updateTime = "2017-12-13";
-                    if (item.updateTime < this.nowDate && item.stat == "1") {
+                    if (item.updatetime < this.nowDate && item.stat == "1") {
                         return;
                     }
                     let row = this.todoList.newRow();
-                    let todoTime = new Date(item.createtime.substring(0, 10));
+                    let todoTime = new Date(item.todotime.substring(0, 10));
                     if (item.stat == "1") {
                         row.cells[1].Color = "rgb(93, 83, 84)";
                         row.cells[2].Color = "rgb(93, 83, 84)";
@@ -655,7 +654,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         }
                     }
                     //复选框单击事件，颜色变化和请求的发送
-                    row.cells[0].OnClick = (cellIndex, rowIndex) => {
+                    row.cells[0].OnClick = (event, cellIndex, rowIndex) => {
                         this.todoCellIndex = cellIndex;
                         this.todoRowIndex = rowIndex;
                         this.nowOperateId = this.todoList.rows[rowIndex].cells[0].Data.id;
@@ -667,14 +666,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     id: this.nowOperateId,
                                     stat: this.nowOperateStat,
                                     content: this.todoList.rows[rowIndex].cells[1].Text,
-                                    createtime: this.todoList.rows[rowIndex].cells[2].Text
+                                    todotime: this.todoList.rows[rowIndex].cells[2].Text
                                 }
                             }
                         }));
                     }
                     row.cells[1].Text = item.content;
                     row.cells[1].Type == "plaintext"
-                    row.cells[2].Text = item.createtime.substring(0, 10);
+                    row.cells[2].Text = item.todotime.substring(0, 10);
                     row.cells[3].Type = "button-group";
                     row.cells[3].Class = "default";
                     row.cells[3].Text = ["pencil", "trash"];
@@ -696,16 +695,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                             id: this.nowOperateId,
                                             stat: this.nowOperateStat,
                                             content: row.cells[1].Text,
-                                            createtime: row.cells[2].Text
+                                            todotime: row.cells[2].Text
                                         }
                                     }
                                 }));
                             } else if (index == 1) {//取消编辑
                                 row.cells[1].Text = item.content;
-                                row.cells[2].Text = item.createtime.substring(0, 10);
+                                row.cells[2].Text = item.todotime.substring(0, 10);
                                 row.cells[3].Text = ["pencil", "trash"];
                                 row.cells[1].Type = "plaintext";
                                 row.cells[2].Type = "plaintext";
+                                return ;
                             }
                         } else if (row.cells[1].Type == "plaintext") {
                             if (index == 1) {//删除操作
@@ -725,7 +725,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("createTodo", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                alert("createTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
 
@@ -735,12 +735,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("editTodo", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                alert("editTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
-            if (this.todoCellIndex == 0) {
+            if (this.todoCellIndex == 0)
                 this.todoList.rows[this.todoRowIndex].cells[0].Data.stat = this.todoList.rows[this.todoRowIndex].cells[0].Data.stat == "0" ? "1" : "0";
-            }
+
             let isPast = new Date(this.nowDate) > new Date(this.todoList.rows[this.todoRowIndex].cells[2].Text);
             this.todoList.rows[this.todoRowIndex].cells[3].Text = ["pencil", "trash"];;
             this.todoList.rows[this.todoRowIndex].cells[1].Type = "plaintext";
@@ -768,7 +768,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("deleteTodo", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                alert("deleteTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.todoList.rows.splice(this.todoRowIndex, 1);
@@ -817,7 +817,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
             alert("Todo内容不能为空！")
             return;
         }
-        this.tradePoint.sendToCMS("createTodo", JSON.stringify({ data: { head: { userid: this.userId }, body: { content: this.addTodoContent, stat: "0", oid: this.userId } } }));
+        console.log((this.nowDate))
+        this.tradePoint.sendToCMS("createTodo", JSON.stringify({
+            data: {
+                head: { userid: this.userId },
+                body: { content: this.addTodoContent, stat: "0", oid: this.userId, todotime: this.nowDate }
+            }
+        }));
 
         // event.blur();
         this.addTodoContent = "";
