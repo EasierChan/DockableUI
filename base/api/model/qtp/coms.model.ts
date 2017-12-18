@@ -11,6 +11,7 @@ export enum COMS_MSG {
     kMtFCancelOrder = 5003,//撤单
     kMtFCancelOrderAns = 5004,
     kMtFQueryOrder = 5005,//查单
+    kMtBQueryOrderAns = 5006
 }
 
 
@@ -202,7 +203,10 @@ export class SendOrder extends Message {
         return BufferUtil.format(buf, offset, "2l4i4l3i2L2I1L1I", this);//大写为int 小写为uint
     }
 };
+
+
 export class OrderStatus extends Message {
+    //QueryOrder; QueryOrderAns; SendOrderAns;
     static readonly len = 172;
 
     order_ref: number = 0;   //u8  客户端订单ID+term_id = 唯一
@@ -235,12 +239,12 @@ export class OrderStatus extends Message {
     approver_id: number = 0;     //4 审批人ID
     status: number = 0;          //4 订单状态
     ret_code: number = 0;        //4
-    // char broker_sn[kBrokerSnSize];    //4 券商单号
-    // char message[kMessageSize];      // 附带消息，如错误消息等
+    broker_sn: string = "";    //32 券商单号
+    message: string = "";      //128 附带消息，如错误消息等
 
     toBuffer(): Buffer {
         let offset = 0;
-        let buf = Buffer.alloc(QueryOrder.len, 0);
+        let buf = Buffer.alloc(OrderStatus.len, 0);
         buf.writeUIntLE(this.order_ref, offset, 8); offset += 8;
         buf.writeUIntLE(this.ukey, offset, 8); offset += 8;
         buf.writeUInt32LE(this.directive, offset); offset += 4;
@@ -271,13 +275,13 @@ export class OrderStatus extends Message {
         buf.writeInt32LE(this.approver_id, offset); offset += 4;
         buf.writeInt32LE(this.status, offset); offset += 4;
         buf.writeInt32LE(this.ret_code, offset); offset += 4;
-        // buf.writeIntLE(this.ret_code, offset, 8); offset += 8;
-        // buf.writeIntLE(this.avl_qty, offset, 8); offset += 8;
+        buf.write(this.broker_sn, offset, 32); offset += 32;
+        buf.write(this.message, offset, 128); offset += 128;
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "2l4i4l3i2L2I1L1I6L3I", this);//大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "2l4i4l3i2L2I1L1I6L3I160s", this);//大写为int 小写为uint
     }
 };
 
@@ -315,7 +319,7 @@ export class CancelOrderAns extends Message {
     term_id: number = 0;    //u4 终端ID
     order_time: number = 0; //u8 撤单时间
     ret_code: number = 0; // 4
-    //   ret_msg[128]; // 16*8
+    ret_msg: string = "";; // 128
 
     toBuffer(): Buffer {
         let offset = 0;
@@ -325,13 +329,12 @@ export class CancelOrderAns extends Message {
         buf.writeUIntLE(this.trader_id, offset, 8); offset += 8;
         buf.writeUInt32LE(this.term_id, offset); offset += 4;
         buf.writeUIntLE(this.order_time, offset, 8); offset += 8;
-        buf.writeInt32LE(this.order_time, offset); offset += 4;
-
-        //   char ret_msg[128];
+        buf.writeInt32LE(this.ret_code, offset); offset += 4;
+        buf.write(this.ret_msg, offset, 128); offset += 128;
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "3l1i1l1I", this);//大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "3l1i1l1I128s", this);//大写为int 小写为uint
     }
 };
