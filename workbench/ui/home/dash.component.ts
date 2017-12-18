@@ -263,7 +263,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 // console.log("pre=====" + this.preMarketTime)
                                 let middle = Math.round(msg.content.pre_close / 10000);//昨收值
                                 let turnover = msg.content.turnover * 100;//当前时刻行情的成交金额
-                                if (this.preMarketTime != marketTime && this.selfStockXdata.indexOf(this.preMarketTime)) {
+                                if (this.preMarketTime != marketTime && this.selfStockXdata.indexOf(this.preMarketTime) ) {
                                     this.nowTurnover = 0;//一分钟内的累计成交量
                                     this.preMarketTime = marketTime;//上一时刻的时间
                                     this.preMarketTimestamp = msg.content.time;
@@ -389,7 +389,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getAlarmMessage", (msg) => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
 
@@ -458,7 +458,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getProductNet", (msg) => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             let productNetChangeOpt = {
@@ -481,7 +481,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getMonitorProducts", (msg) => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.monitorProductsData = data.body;
@@ -555,7 +555,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getBestStocks", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.aiStockDate.bestStockListData = data.body;
@@ -586,7 +586,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getWorstStocks", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.aiStockDate.worstStockListData = data.body;
@@ -616,7 +616,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getTodoList", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.todoListData = data.body;
@@ -725,7 +725,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("createTodo", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
 
@@ -735,7 +735,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("editTodo", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             if (this.todoCellIndex == 0) {
@@ -768,7 +768,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("deleteTodo", msg => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
-                alert(data.msret.msg)
+                alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
             this.todoList.rows.splice(this.todoRowIndex, 1);
