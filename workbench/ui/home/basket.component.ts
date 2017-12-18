@@ -29,6 +29,8 @@ export class BasketComponent implements OnInit {
     curBasketID: any;
     curBasketName: any;
     curTrday: any;
+    params: Object;
+    paramNames: string[];
     static reqsn: number = 0;
 
     constructor(private appsrv: AppStoreService, private tradeEndPoint: QtpService, private configBll: ConfigurationBLL,
@@ -118,6 +120,9 @@ export class BasketComponent implements OnInit {
                         row.cells[1].Text = item.amount;
                         row.cells[2].Text = item.cash_rep;
                     });
+
+                    this.params = basket.params;
+                    this.paramNames = Object.keys(basket.params);
                 } else {
                     console.error("UNVALID BASKET CONTENT!");
                 }

@@ -35,6 +35,7 @@ export class TradeComponent implements OnInit {
         this.setting = this.appsrv.getSetting();
         this.ssgwAppID = this.setting.endpoints[0].tgw_apps.ssgw;
         this.areas = [];
+        this.products = this.configBll.getProducts();
         this.registerListeners();
         this.initializeStrategies();
     }
