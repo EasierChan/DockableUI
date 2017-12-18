@@ -8,7 +8,7 @@
     </label>
     <label *ngIf="products" for="">{{productLabel}}
         <select class="btn-default" [(ngModel)]="productID">
-            <option *ngFor="let opt of products" [value]="opt.tblock_id">{{opt.tblock_full_name}}</option>
+            <option *ngFor="let opt of products" [value]="opt.caid">{{opt.caname}}</option>
         </select>
     </label>
     <label for="">{{basketLabel}}
