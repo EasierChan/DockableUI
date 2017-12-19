@@ -140,6 +140,8 @@ export class BasketComponent implements OnInit {
             if (this.reqMap[ret.head.reqsn] && this.reqMap[ret.head.reqsn].length > 1) {
                 if (this.reqMap[ret.head.reqsn][0] === this.curBasketID) {
                     this.items.push({ trday: this.reqMap[ret.head.reqsn][1] });
+                    this.curTrday = this.reqMap[ret.head.reqsn][1];
+                    this.viewBasketInfo();
                 }
             }
         }, this);
@@ -161,6 +163,7 @@ export class BasketComponent implements OnInit {
             this.stockTable.rows.length = 0;
             this.curBasketID = row.cells[1].Data;
             this.curBasketName = row.cells[1].Text;
+            this.items = [];
             this.tradeEndPoint.sendToCMS("getBasketTradingDay", JSON.stringify({ data: { head: { reqsn: 1, userid: this.userid }, body: { basketid: this.curBasketID } } }));
         };
     }
@@ -204,7 +207,7 @@ export class BasketComponent implements OnInit {
             }
         } else {
             for (let i = 0; i < this.basketsTable.rows.length;) {
-                if (this.basketsTable.rows[0].cells[0].Text) {
+                if (this.basketsTable.rows[i].cells[0].Text) {
                     this.tradeEndPoint.sendToCMS("deleteBasketInfo", JSON.stringify({
                         data: {
                             head: { reqsn: BasketComponent.reqsn, userid: this.userid },
@@ -260,18 +263,35 @@ export class BasketComponent implements OnInit {
 
                     filenames.forEach((name) => {
                         if (fs.statSync(path.join(dir, name)).isFile()) {
-                            let [trday, version] = File.basename(name, ".bkt").split("-");
-                            if (version === undefined) {
-                                ULogger.error(`Unvalid file format: ${name}`);
+                            if (!name.endsWith(".bkt")) {
                                 return;
                             }
 
-                            this.tradeEndPoint.sendToCMS("createBasketInstance", JSON.stringify({
-                                data: {
-                                    head: { reqsn: BasketComponent.reqsn, userid: this.userid },
-                                    body: { trday: trday, basketid: this.curBasketID, content: File.readFileSync(name), version: version }
-                                }
-                            }));
+                            let [trday, version] = File.basename(name, ".bkt").split("-");
+                            if (version === undefined) {
+                                ULogger.error(`Unvalid file format: ${name}`);
+                                alert(`Unvalid file format(sample: [date-version.bkt]): ${name}`);
+                                return;
+                            }
+
+                            let dayItem = this.items.find(item => { return item.trday === trday; });
+                            let fpath = path.join(dir, name);
+
+                            if (dayItem === undefined) {
+                                this.tradeEndPoint.sendToCMS("createBasketInstance", JSON.stringify({
+                                    data: {
+                                        head: { reqsn: BasketComponent.reqsn, userid: this.userid },
+                                        body: { trday: trday, basketid: this.curBasketID, content: File.readFileSync(fpath), version: version }
+                                    }
+                                }));
+                            } else {
+                                this.tradeEndPoint.sendToCMS("updateBasketInstance", JSON.stringify({
+                                    data: {
+                                        head: { reqsn: BasketComponent.reqsn, userid: this.userid },
+                                        body: { trday: trday, basketid: this.curBasketID, content: File.readFileSync(fpath), version: version }
+                                    }
+                                }));
+                            }
 
                             this.reqMap[BasketComponent.reqsn] = [this.curBasketID, trday];
                             ++BasketComponent.reqsn;

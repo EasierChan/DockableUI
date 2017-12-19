@@ -65,7 +65,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.chName = this.config.chname;
         this.strategyType = this.config.strategyType;
         this.productID = this.config.productID;
-        this.basketID = this.config.items.length > 0 ? this.config.items[0].basketID.toString() : undefined;
+        this.basketID = this.config.items.length > 0 && Number.isSafeInteger(this.config.items[0].basketID) ? this.config.items[0].basketID.toString() : undefined;
         let userid = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)).user_id;
         this.baskets = JSON.parse(AppStoreService.getLocalStorageItem(`${userid}-basket`));
 
@@ -152,7 +152,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
         if (this.isCreate)
             this.config.items = [new StrategyInstance()];
 
-        this.config.items[0].basketID = parseInt(this.basketID);
+        this.config.items[0].basketID = this.basketID ? parseInt(this.basketID) : undefined;
         this.config.items[0].parameters = [];
         this.config.items[0].instruments = [];
         if (this.paramsTable.rows.length > 0) {
