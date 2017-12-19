@@ -58,7 +58,7 @@ export class TcpClient {
                 });
             }
 
-            this._clientSock.emit("buffer");
+            this.emit("buffer");
         });
         this._clientSock.on("connect", () => {
             this.emit("connect");
