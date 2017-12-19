@@ -12,7 +12,7 @@ import {
 import { QtpService } from "../../base/api/services/qtp.service";
 import { AppStateCheckerRef, Environment, AppStoreService } from "../../base/api/services/backend.service";
 import { ServiceType, FGS_MSG } from "../../base/api/model/qtp/message.model";
-import { QueryFundAndPosition, COMS_MSG, QueryFundAns, QueryPositionAns } from "../../base/api/model/qtp/coms.model";
+import { QueryFundAndPosition, COMS_MSG, QueryFundAns, QueryPositionAns, SendOrder, OrderStatus, CancelOrder, CancelOrderAns } from "../../base/api/model/qtp/coms.model";
 import { DataKey } from "../../base/api/model/workbench.model";
 
 @Component({
@@ -180,14 +180,27 @@ export class AppComponent implements OnInit {
         positionPage.setContent(positionContent);
         panel.addTab(positionPage, false);
         // panel.setActive("OrderDetail");
-        let profitPage = new TabPage("ProfitViewer", "收益");
-        let profitContent = new VBox();
-        profitPage.setContent(profitContent);
-        panel.addTab(profitPage, false);
-        let availableFundPage = new TabPage("availableFundViewer", "可用资金");
-        let availableFundContent = new VBox();
-        availableFundPage.setContent(availableFundContent);
-        panel.addTab(availableFundPage, false);
+       
+        let productNetPage = new TabPage("productNetViewer", "净值");
+        let productNetContent = new VBox();
+        productNetPage.setContent(productNetContent);
+        panel.addTab(productNetPage, false);
+        let orderStatPage = new TabPage("orderStatViewer", "订单状态");
+        let orderStatContent = new VBox();
+        orderStatPage.setContent(orderStatContent);
+        panel.addTab(orderStatPage, false);
+        let finishOrderPage = new TabPage("finishOrderViewer", "完结状态");
+        let finishOrderContent = new VBox();
+        finishOrderPage.setContent(finishOrderContent);
+        panel.addTab(finishOrderPage, false);
+        let fundAccountPage = new TabPage("fundAccountViewer", "资金账户");
+        let fundAccountContent = new VBox();
+        fundAccountPage.setContent(fundAccountContent);
+        panel.addTab(fundAccountPage, false);
+        let tradeAccountPage = new TabPage("tradeAccountViewer", "交易账户");
+        let tradeAccountContent = new VBox();
+        tradeAccountPage.setContent(tradeAccountContent);
+        panel.addTab(tradeAccountPage, false);
         viewContent.addChild(panel);
 
         let svHeaderRow1 = new HBox();//行
@@ -278,6 +291,7 @@ export class AppComponent implements OnInit {
         // this.userId = Number(this.appSrv.getUserProfile().username);
 
         //数据请求
+        //查询资金
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryFundAns,
@@ -292,7 +306,7 @@ export class AppComponent implements OnInit {
 
             }
         });
-
+        //查询仓位
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryPositionAns,
@@ -302,6 +316,21 @@ export class AppComponent implements OnInit {
                     let ans = new QueryPositionAns();
                     ans.fromBuffer(msg);
                     ans.avl_cre_redemp_qty = 0;
+                }
+
+
+            }
+        });
+
+        //查询订单
+        this.tradePoint.addSlot({
+            service: ServiceType.kCOMS,
+            msgtype: COMS_MSG.kMtBQueryOrderAns,
+            callback: (msg) => {
+                console.log(msg)
+                if (msg != undefined) {
+                    let ans = new OrderStatus();
+                    ans.fromBuffer(msg);
                 }
 
 
@@ -320,8 +349,12 @@ export class AppComponent implements OnInit {
             position.portfolio_id = 0;
             position.fund_account_id = parseInt(data.body[0].acid);
 
+            let QueryOrder = new OrderStatus();
+
+
             this.tradePoint.send(COMS_MSG.kMtFQueryFund, fund.toBuffer(), ServiceType.kCOMS);
             this.tradePoint.send(COMS_MSG.kMtFQueryPosition, position.toBuffer(), ServiceType.kCOMS);
+            this.tradePoint.send(COMS_MSG.kMtFQueryOrder, QueryOrder.toBuffer(), ServiceType.kCOMS);
         }, this);
 
     }

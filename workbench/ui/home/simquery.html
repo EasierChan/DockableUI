@@ -1,24 +1,27 @@
 <div class="sim-content u-col">
     <div class="head u-row">
-        <div class="select-item">
+        <div class="select-item u-row">
             <span>产品：</span>
             <select #product name="product" id="" [ngModel]="selectedCaid" (change)="caChangeListener(product.value)" (ngChange)="test(product.value)" >
                 <option *ngFor="let pd of products" [value]="pd.caid">{{pd.caname}}</option>
             </select>
         </div>
-        <div class="select-item">
+        <div class="select-item u-row">
             <span>策略组合：</span>
             <select name="strategys" id="" #strategy [ngModel]="selectedTrid" (change)="trChangeListener(strategy.value)">
                 <option *ngFor="let stg of strategys" [value]="stg.trid">{{stg.trname}}</option>
             </select>
         </div>
-        <div class="select-item">
+        <div class="select-item u-row">
             <span>起始时间：</span>
             <input type="date" #startdate [ngModel]="startDate" (change)="startChangeListener(startdate.value)" required>
         </div>
-        <div class="select-item">
+        <div class="select-item u-row">
             <span>截止时间：</span>
             <input type="date" #enddate [ngModel]="endDate" (change)="endChangeListener(enddate.value)" required>
+        </div>
+        <div class="select-item u-row">
+            <button class="search-btn" (click)="checkoutForm(1)">搜索</button>
         </div>
         <div class="pagination u-row">
             <li (click)="previousPage()">
