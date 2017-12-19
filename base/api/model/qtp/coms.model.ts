@@ -35,7 +35,7 @@ export class QueryFundAndPosition extends Message {
 };
 
 export class QueryFundAns extends Message {
-    static readonly len = 132;
+    static readonly len = 136;
     portfolio_id: number = 0;  //u8 allow nulls
     fund_account_id: number = 0; //u8 fund account id
     currency: number = 0;        //u4 RMB USD HKD GBP ...
@@ -59,7 +59,7 @@ export class QueryFundAns extends Message {
         let buf = Buffer.alloc(QueryFundAns.len, 0);
         buf.writeUIntLE(this.portfolio_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.fund_account_id, offset, 8); offset += 8;
-        buf.writeUInt32LE(this.currency, offset); offset += 4;
+        buf.writeUInt32LE(this.currency, offset); offset += 8;
         buf.writeIntLE(this.total_amt, offset, 8); offset += 8;
         buf.writeIntLE(this.avl_amt, offset, 8); offset += 8;
         buf.writeIntLE(this.frozen_amt, offset, 8); offset += 8;
@@ -79,12 +79,12 @@ export class QueryFundAns extends Message {
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "2l1i14L", this);
+        return BufferUtil.format(buf, offset, "2l1i4P14L", this);
     }
 }
 
 export class QueryPositionAns extends Message {
-    static readonly len = 180;
+    static readonly len = 184;
     portfolio_id: number = 0; // u8 allow nulls
     fund_account_id: number = 0; //u8
     trade_account_id: number = 0; //u8 trade account id
@@ -119,7 +119,7 @@ export class QueryPositionAns extends Message {
         buf.writeUIntLE(this.ukey, offset, 8); offset += 8;
         buf.writeUInt32LE(this.sa_type, offset); offset += 4;
         buf.writeUInt32LE(this.direction, offset); offset += 4;
-        buf.writeUInt32LE(this.hedge_flag, offset); offset += 4;
+        buf.writeUInt32LE(this.hedge_flag, offset); offset += 8;
         buf.writeIntLE(this.overnight_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.total_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.avl_qty, offset, 8); offset += 8;
@@ -142,13 +142,13 @@ export class QueryPositionAns extends Message {
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "4l3i17L", this);
+        return BufferUtil.format(buf, offset, "4l3i4P17L", this);
     }
 }
 
 
 export class SendOrder extends Message {
-    static readonly len = 112;
+    static readonly len = 120;
 
     order_ref: number = 0;   //u8  客户端订单ID+term_id = 唯一
     ukey: number = 0;        //u8  Universal Key
@@ -188,26 +188,26 @@ export class SendOrder extends Message {
 
         buf.writeUInt32LE(this.strategy_id, offset); offset += 4;
         buf.writeUInt32LE(this.trader_id, offset); offset += 4;
-        buf.writeUInt32LE(this.term_id, offset); offset += 4;
+        buf.writeUInt32LE(this.term_id, offset); offset += 8;
         buf.writeIntLE(this.qty, offset, 8); offset += 8;
         buf.writeIntLE(this.price, offset, 8); offset += 8;
         buf.writeInt32LE(this.property, offset); offset += 4;
         buf.writeInt32LE(this.currency, offset); offset += 4;
         buf.writeIntLE(this.algor_id, offset, 8); offset += 8;
-        buf.writeInt32LE(this.reserve, offset); offset += 4;
+        buf.writeInt32LE(this.reserve, offset); offset += 8;
 
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "2l4i4l3i2L2I1L1I", this);//大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "2l4i4l3i4P2L2I1L1I4P", this);//大写为int 小写为uint
     }
 };
 
 
 export class OrderStatus extends Message {
     //QueryOrder; QueryOrderAns; SendOrderAns;
-    static readonly len = 172;
+    static readonly len = 344;
 
     order_ref: number = 0;   //u8  客户端订单ID+term_id = 唯一
     ukey: number = 0;        //u8  Universal Key
@@ -258,13 +258,13 @@ export class OrderStatus extends Message {
 
         buf.writeUInt32LE(this.strategy_id, offset); offset += 4;
         buf.writeUInt32LE(this.trader_id, offset); offset += 4;
-        buf.writeUInt32LE(this.term_id, offset); offset += 4;
+        buf.writeUInt32LE(this.term_id, offset); offset += 8;
         buf.writeIntLE(this.qty, offset, 8); offset += 8;
         buf.writeIntLE(this.price, offset, 8); offset += 8;
         buf.writeInt32LE(this.property, offset); offset += 4;
         buf.writeInt32LE(this.currency, offset); offset += 4;
         buf.writeIntLE(this.algor_id, offset, 8); offset += 8;
-        buf.writeInt32LE(this.reserve, offset); offset += 4;
+        buf.writeInt32LE(this.reserve, offset); offset += 8;
         buf.writeIntLE(this.order_id, offset, 8); offset += 8;
 
         buf.writeIntLE(this.cancelled_qty, offset, 8); offset += 8;
@@ -274,15 +274,15 @@ export class OrderStatus extends Message {
         buf.writeIntLE(this.trade_time, offset, 8); offset += 8;
         buf.writeInt32LE(this.approver_id, offset); offset += 4;
         buf.writeInt32LE(this.status, offset); offset += 4;
-        buf.writeInt32LE(this.ret_code, offset); offset += 4;
+        buf.writeInt32LE(this.ret_code, offset); offset += 8;
         buf.write(this.broker_sn, offset, 32); offset += 32;
         buf.write(this.message, offset, 128); offset += 128;
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "2l4i4l3i2L2I1L1I6L3I160s", this);//大写为int 小写为uint
-    }
+        return BufferUtil.format(buf, offset, "2l4i4l3i4P2L2I1L1I4P6L3I4P160s", this);//大写为int 小写为uint
+    }4
 };
 
 export class CancelOrder extends Message {
