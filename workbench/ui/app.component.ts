@@ -336,6 +336,24 @@ export class AppComponent implements OnInit, OnDestroy {
             this.configBll.emit("getProduct", this.configBll.getProducts());
         }, this);
 
+        this.tradeEndPoint.addSlotOfCMS("getStrategyConfig", (msg) => {
+            let ret = JSON.parse(msg.toString());
+
+            if (ret.msret.msgcode !== "00") {
+                console.error(ret.msret.msg);
+                alert(ret.msret.msg);
+                return;
+            }
+
+            let configs = [];
+
+            ret.body.strategies.forEach(item => {
+                configs.push(JSON.parse(item.ui_parms));
+            });
+
+            this.configBll.initSSConfigs(configs);
+        }, this);
+
         this.tradeEndPoint.addSlotOfCMS("getAssetAccount", (msg) => {
             this.configBll.set("asset_account", JSON.parse(msg.toString()).body);
         }, this);
