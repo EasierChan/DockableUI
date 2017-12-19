@@ -86,6 +86,7 @@ export class UserComponent implements OnInit {
                 this.appSrv.setLoginTrade(true);
                 this.tradeSrv.sendToCMS("getStrategyServerTemplate", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getProduct", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
+                this.tradeSrv.sendToCMS("getStrategyConfig", JSON.stringify({ data: { body: { userid: parseInt(this.userid), ui_parms: 1 } } }));
                 this.tradeSrv.sendToCMS("getAssetAccount", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getRiskIndex", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getBasketInfo", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));

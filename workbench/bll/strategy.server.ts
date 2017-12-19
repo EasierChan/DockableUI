@@ -30,23 +30,7 @@ export class ConfigurationBLL {
         this._ss_backtest_configs = [];
         this._ss_realtrade_configs = [];
         this.servers = [];
-        this._ssconfigs = WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []);
-        this._ssconfigs.forEach(item => {
-            switch (item.activeChannel) {
-                case Channel.ONLINE:
-                    this._ss_realtrade_configs.push(item);
-                    break;
-                case Channel.SIMULATION:
-                    this._ss_simulation_configs.push(item);
-                    break;
-                case Channel.BACKTEST:
-                    this._ss_backtest_configs.push(item);
-                    break;
-            }
-
-            item.state = 0;
-            this.servers.push(item.appid);
-        });
+        // this.initSSConfigs(WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []));
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");
         this._loopbackItems = File.parseJSON(this._loopbackPath) || [];
@@ -102,6 +86,27 @@ export class ConfigurationBLL {
     onStateChanged: Function;
     tempConfig: WorkspaceConfig;
     timeout: any;
+
+
+    initSSConfigs(configs: WorkspaceConfig[]) {
+        this._ssconfigs = configs;
+        this._ssconfigs.forEach(item => {
+            switch (item.activeChannel) {
+                case Channel.ONLINE:
+                    this._ss_realtrade_configs.push(item);
+                    break;
+                case Channel.SIMULATION:
+                    this._ss_simulation_configs.push(item);
+                    break;
+                case Channel.BACKTEST:
+                    this._ss_backtest_configs.push(item);
+                    break;
+            }
+
+            item.state = 0;
+            this.servers.push(item.appid);
+        });
+    }
     /**
      * @return a list of available strategy templates.
      */

@@ -87,6 +87,10 @@ export class SimQueryComponent implements OnInit {
         this.checkoutForm(1);
     }
 
+    dataPickListner() {
+        console.log("data pick input")
+    }
+
     previousPage() {
         if(this.pagination.currentPage !== 1) {
             this.pagination.currentPage --;
@@ -117,12 +121,6 @@ export class SimQueryComponent implements OnInit {
                 this.loadTable(data.data);
             })
         }
-    }
-
-    getOrder(options: any) {
-        this.request("getTaorder", Object.assign({ pageCount: this.pagination.pageSize }, options)).then(data => {
-            this.loadTable(data.data);
-        })
     }
 
     loadTable(orderList: any[]) {
