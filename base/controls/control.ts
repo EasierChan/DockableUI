@@ -2406,7 +2406,7 @@ export class TileArea extends Control {
         return this.dataSource.items[idx];
     }
 
-    getTile(name: string): Tile {
+    getTile(name: any): Tile {
         let tileCount = this.dataSource.items.length;
 
         for (let i = 0; i < tileCount; ++i) {

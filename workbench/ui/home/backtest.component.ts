@@ -40,17 +40,17 @@ export class BacktestComponent implements OnInit {
             callback: msg => {
                 console.info(msg);
                 let config: WorkspaceConfig;
-                if (this.configBll.tempConfig && this.configBll.tempConfig.name === this.requestMap[msg.content.reqsn]) {
+                if (this.configBll.tempConfig && this.configBll.tempConfig.chname === this.requestMap[msg.content.reqsn]) {
                     config = this.configBll.tempConfig;
                 } else {
-                    config = this.strategyConfigs.find(item => { return item.name === this.requestMap[msg.content.reqsn]; });
+                    config = this.strategyConfigs.find(item => { return item.chname === this.requestMap[msg.content.reqsn]; });
                 }
 
                 if (config) {
                     config.backtestConfig.tradePoint = { host: msg.content.url, port: msg.content.port };
                     config.backtestConfig.quotePoint = { host: msg.content.hqurl, port: msg.content.hqport };
                     config.backtestConfig.id = msg.content.nId;
-                    config.backtestConfig.name = config.name;
+                    config.backtestConfig.name = config.chname;
 
                     this.tradeEndPoint.send(config.appid === undefined ? SSGW_MSG.kCreate : SSGW_MSG.kModify, JSON.stringify({
                         data: {
@@ -180,7 +180,7 @@ export class BacktestComponent implements OnInit {
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
-            tile.id = config.name;
+            tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
         });
@@ -189,18 +189,18 @@ export class BacktestComponent implements OnInit {
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
-            tile.id = config.name;
+            tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
         };
 
         this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
-            this.strategyArea.getTile(config.name).title = config.chname;
+            this.strategyArea.getTile(config.appid).title = config.chname;
             this.ref.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
-            let tile = this.strategyArea.getTile(config.name);
+            let tile = this.strategyArea.getTile(config.appid);
             if (tile !== null) {
                 tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             }
@@ -233,7 +233,7 @@ export class BacktestComponent implements OnInit {
             unit: parseInt(config.backtestConfig.unit)
         };
 
-        this.requestMap[tmpobj.reqsn] = config.name;
+        this.requestMap[tmpobj.reqsn] = config.chname;
         this.tradeEndPoint.send(8010, JSON.stringify(tmpobj), ServiceType.kBackServer);
         this.configBll.wait("策略操作失败");
     }
@@ -244,7 +244,7 @@ export class BacktestComponent implements OnInit {
             name: this.selectedStrategyConfig.appid.toString(),
             title: this.selectedStrategyConfig.chname
         })) {
-            alert(`start ${this.selectedStrategyConfig.name} app error!`);
+            alert(`start ${this.selectedStrategyConfig.chname} app error!`);
         }
     }
 

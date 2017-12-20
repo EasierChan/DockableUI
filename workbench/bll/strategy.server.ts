@@ -198,7 +198,7 @@ export class ConfigurationBLL {
 
     removeConfig(config: WorkspaceConfig) {
         for (let i = 0; i < this._ssconfigs.length; ++i) {
-            if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
+            if (config.appid === this._ssconfigs[i].appid && config.activeChannel === this._ssconfigs[i].activeChannel) {
                 this._ssconfigs.splice(i, 1);
 
                 switch (config.activeChannel) {

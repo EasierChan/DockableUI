@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, OnInit, Input, OnDestroy, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, Input, OnDestroy, ChangeDetectorRef, HostListener } from "@angular/core";
 import { AppStoreService, SecuMasterService, TranslateService } from "../../../base/api/services/backend.service";
 import { DataTable, TabPanel, TabPage, VBox, DataTableRow } from "../../../base/controls/control";
 import { WorkspaceConfig, StrategyInstance, DataKey, Channel } from "../../../base/api/model/workbench.model";
@@ -37,6 +37,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
     instrumentTable: DataTable;
 
     strategyConfigPanel: TabPanel;
+    bShowID: boolean;
 
     constructor(
         private secuinfo: SecuMasterService,
@@ -60,6 +61,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
             };
         }
 
+        this.bShowID = false;
         this.enName = this.config.name;
         this.isCreate = true;
         this.chName = this.config.chname;

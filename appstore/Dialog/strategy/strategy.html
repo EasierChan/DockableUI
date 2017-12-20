@@ -17,6 +17,7 @@
         </select>
     </label>
     <button class="btn btn-primary" (click)="save()">保存并关闭</button>
+    <span *ngIf="bShowID">{{config.appid}}</span>
 </div>
 <div *ngIf="config.activeChannel == 2" class="groupbox backtest">
     <div class="section">
