@@ -193,7 +193,7 @@ export class ConfigurationBLL {
             alert(info);
         }
 
-        File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
+        // File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
     }
 
     removeConfig(config: WorkspaceConfig) {
@@ -218,7 +218,7 @@ export class ConfigurationBLL {
                     this.servers.splice(idx, 1);
                 }
 
-                File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
+                // File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
                 break;
             }
         }
