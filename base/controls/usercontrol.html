@@ -64,7 +64,7 @@
     [style.margin-top.px]="child.styleObj?.top"></dock-table>
   <dock-table2 *ngIf="child.styleObj.type=='table2'" [className]="child.className" [dataSource]="child.dataSource" [styleObj]="child.styleObj"
     [style.max-height]="child.styleObj?.height" [style.max-width]="child.styleObj?.width"></dock-table2>
-  <div echarts [options]="child.dataSource.option" (chartInit)="child.dataSource.onInit($event)"></div>
+  <div echarts *ngIf="child.styleObj.type=='echart'" [options]="child.dataSource.option" (chartInit)="child.dataSource.onInit($event)"></div>
   <dock-control *ngIf="child.styleObj.type=='tabpanel'" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj"
     [dataSource]="child.dataSource" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"></dock-control>
   <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource" [class]="child.styleObj.type"

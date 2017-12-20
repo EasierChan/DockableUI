@@ -1755,6 +1755,10 @@ export class ChartViewer extends Control {
             option: null,
             onInit: () => { }
         };
+
+        this.styleObj = {
+            type: "echart"
+        };
     }
 
     setOption(option) {
