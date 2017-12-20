@@ -10,7 +10,7 @@ import { QtpService } from "../../bll/services";
 @Component({
     moduleId: module.id,
     selector: "simulation",
-    template: `<tilearea [dataSource]="strategyArea.dataSource" [styleObj]="strategyArea.styleObj"></tilearea>`,
+    templateUrl: "backtest.component.html",
     styleUrls: ["simulation.component.css"]
 })
 export class SimulationComponent implements OnInit {
