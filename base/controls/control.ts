@@ -1746,27 +1746,23 @@ export class SpreadViewer {
     }
 }
 
-export class ChartViewer {
-    private _chart: EChart;
+export class ChartViewer extends Control {
 
     constructor() {
-        this._chart = new EChart();
+        super();
+
+        this.dataSource = {
+            option: null,
+            onInit: () => { }
+        };
     }
 
     setOption(option) {
-        this._chart.setOption(option);
+        this.dataSource.option = option;
     }
 
-    changeOption(option) {
-        this._chart.resetOption(option);
-    }
-
-    init() {
-        this._chart.init();
-    }
-
-    get containerRef() {
-        return this._chart;
+    set onInit(value: (chart: ECharts.ECharts) => void) {
+        this.dataSource.onInit = value;
     }
 }
 
