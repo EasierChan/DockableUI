@@ -22,15 +22,13 @@
     flex: 1;
 }
 
-.head .select-item {
+.head > div {
     align-items: center;
 }
 
-.head .select-item:not(:first-child) {
+.head > div:not(:first-child) {
     margin-left: 25px;
 }
-
-
 
 .select-item select, .select-item input {
     min-width: 120px;
@@ -49,6 +47,13 @@
     background-color: #2E344C;
 }
 
+.export-item input[type=checkbox] {
+    background: #000;
+}
+
+.head .export-item > * {
+    margin-left: 1px;
+}
 
 .main .title {
     line-height: 30px;
