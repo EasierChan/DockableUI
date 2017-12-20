@@ -346,7 +346,6 @@ export class AppComponent implements OnInit, OnDestroy {
             }
 
             let configs = [];
-            alert(ret.body.strategies.length);
             ret.body.strategies.forEach(item => {
                 if (item.ui_parms && item.ui_parms.length > 0) {
                     configs.push(JSON.parse(item.ui_parms));
