@@ -34,7 +34,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     riskExposure: number;//敞口率
     riskDegree: number;//风险率
     futuresProfit: number;//期货权益
-    productNetW: Section;
     aiStockDate: any = {};
     productData: any = [];
     monitorProductsData: any[];
