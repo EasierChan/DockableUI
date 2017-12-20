@@ -380,6 +380,8 @@ export class QtpService {
                     if (options[i].id === 12) {
                         if (this._cmsMap.hasOwnProperty(options[i].value.toString()))
                             this._cmsMap[options[i].value.toString()].callback.call(context, body);
+
+                        console.info(`receive ${options[i].value.toString()}`);
                         break;
                     }
                 }
