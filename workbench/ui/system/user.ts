@@ -121,11 +121,15 @@ export class UserComponent implements OnInit {
             this.tradeSrv.onConnect = () => {
                 this.configBll.set("tcp-connect", true);
 
+                if (!this.appSrv.isLoginTrade()) {
+                    this.appSrv.setLoginTrade(true);
+                }
+
                 this.tradeSrv.onClose = () => {
                     this.configBll.set("tcp-connect", false);
 
                     if (this.appSrv.isLoginTrade()) {
-                        MessageBox.show("warning", "Server Error", "TGW Connection Close!");
+                        MessageBox.show("warning", "Server Error", "Trade Connection Close!");
                         this.appSrv.setLoginTrade(false);
                     }
                 };
