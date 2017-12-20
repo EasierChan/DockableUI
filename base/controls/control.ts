@@ -2374,6 +2374,14 @@ export class TileArea extends Control {
             click: () => { }
         };
 
+        this.dataSource.pickID = (event: KeyboardEvent, item) => {
+            event.preventDefault();
+
+            if (event.altKey && event.ctrlKey) {
+                alert(item.id);
+            }
+        };
+
         this.creater = new Tile();
     }
 
