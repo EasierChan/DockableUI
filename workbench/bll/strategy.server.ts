@@ -90,6 +90,10 @@ export class ConfigurationBLL {
 
     initSSConfigs(configs: WorkspaceConfig[]) {
         this._ssconfigs = configs;
+        this._ss_realtrade_configs.length = 0;
+        this._ss_backtest_configs.length = 0;
+        this._ss_simulation_configs.length = 0;
+
         this._ssconfigs.forEach(item => {
             switch (item.activeChannel) {
                 case Channel.ONLINE:
