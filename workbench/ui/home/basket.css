@@ -40,11 +40,13 @@
     flex-flow: row wrap;
     border: 1px solid #333;
     border-radius: 5px;
+    height: 300px;
 }
 
 .params > * {
     display: inline-block;
     width: 200px;
     height: 30px;
+    line-height: 30px;
     padding-left: 10px;
 }
