@@ -23,6 +23,12 @@
         <div class="select-item u-row">
             <button class="search-btn" (click)="checkoutForm(1)">搜索</button>
         </div>
+        <div class="u-row export-item">
+            <button class="search-btn" (click)="downLoad()">导出</button>
+            <span>(导出所有页</span>
+            <input type="checkbox"[(ngModel)]="isDownedAll">
+            <span>)</span>
+        </div>
         <div class="pagination u-row">
             <li (click)="previousPage()">
                 <span aria-hidden="true" class="previous-btn">上一页</span>
