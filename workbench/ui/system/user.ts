@@ -23,6 +23,7 @@ export class UserComponent implements OnInit {
     operNum: string;
     password: string;
     productAppID: number;
+    loginState: number;
 
     private userid: string;
 
@@ -35,6 +36,7 @@ export class UserComponent implements OnInit {
         this.password = "";
         this.quoteHeart = null;
         this.tradeHeart = null;
+        this.loginState = 0;
     }
 
     ngOnInit() {
@@ -45,7 +47,9 @@ export class UserComponent implements OnInit {
 
     @HostListener("keyup", ["$event"])
     onKeyUp(event: KeyboardEvent) {
-        if (!this.appSrv.isLoginTrade() && event.keyCode === 13) {
+        event.preventDefault();
+
+        if (event.keyCode === 13 && this.loginState === 0) {
             this.login();
         }
     }
@@ -82,15 +86,16 @@ export class UserComponent implements OnInit {
                     return;
                 }
 
+                this.loginState = 2;
                 this.configBll.set("user", { userid: this.userid });
                 this.appSrv.setLoginTrade(true);
                 this.tradeSrv.sendToCMS("getStrategyServerTemplate", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getProduct", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
+                this.tradeSrv.sendToCMS("getStrategyConfig", JSON.stringify({ data: { head: { userid: parseInt(this.userid) }, body: { traderid: parseInt(this.userid), ui_parms: 1 } } }));
                 this.tradeSrv.sendToCMS("getAssetAccount", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getRiskIndex", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getBasketInfo", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
 
-                this.tradeSrv.subscribe(2001, this.configBll.servers);
                 this.tradeSrv.subscribe(1, [ServiceType.kStrategy]);
             }
         });
@@ -118,8 +123,9 @@ export class UserComponent implements OnInit {
 
                 this.tradeSrv.onClose = () => {
                     this.configBll.set("tcp-connect", false);
+
                     if (this.appSrv.isLoginTrade()) {
-                        MessageBox.show("warning", "Server Error", "TGW Connection Close!");
+                        MessageBox.show("warning", "Server Error", "Trade Connection Close!");
                         this.appSrv.setLoginTrade(false);
                     }
                 };
@@ -135,6 +141,12 @@ export class UserComponent implements OnInit {
     }
 
     login() {
+        if (this.loginState > 0) {
+            return;
+        }
+
+        this.loginState = 1;
+
         if (this.appSrv.isLoginTrade()) {
             this.appSrv.setLoginTrade(true);
             return;
@@ -154,5 +166,6 @@ export class UserComponent implements OnInit {
     logout() {
         this.tradeSrv.send(FGS_MSG.kLogout, JSON.stringify({ data: { user_id: this.userid } }), ServiceType.kLogin);
         this.appSrv.setLoginTrade(false);
+        this.loginState = 0;
     }
 }

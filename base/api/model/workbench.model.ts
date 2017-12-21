@@ -15,6 +15,7 @@ export class AppType {
     static readonly kStrategyApp = "DockDemo";
     static readonly kSpreadViewer = "SpreadViewer";
     static readonly kAlphaViewer = "AlphaViewer";
+    static readonly kBookViewer = "BookViewer";
 }
 
 export class WorkspaceConfig {

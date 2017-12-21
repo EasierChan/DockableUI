@@ -6,6 +6,7 @@ tilearea {
     flex: auto;
     display: flex;
     flex-flow: row;
+    overflow-y: auto;
 }
 
 .monitor {

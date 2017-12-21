@@ -278,10 +278,10 @@ export class DockContainerComponent implements AfterViewInit {
                 }
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "width",
-                    `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth + gap}`);
+                    `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth + gap}px`);
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild, "width",
-                    `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth - gap}`);
+                    `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth - gap}px`);
 
                 let leftTb = DockContainerComponent.splitter.ele.nativeElement.previousSibling.querySelectorAll("dock-table2");
                 let rightTb = DockContainerComponent.splitter.ele.nativeElement.nextSibling.querySelectorAll("dock-table2");
@@ -297,7 +297,6 @@ export class DockContainerComponent implements AfterViewInit {
                         element.dispatchEvent(ev_resize);
                     });
                 }
-
             } else {
                 let gap = event.pageY - DockContainerComponent.startPoint[1];
 
@@ -307,12 +306,12 @@ export class DockContainerComponent implements AfterViewInit {
                 }
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "height",
-                    `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}`);
+                    `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}px`);
                 DockContainerComponent.splitter.dataSource.prev().reallocSize(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth,
                     DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap);
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild, "height",
-                    `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap}`);
+                    `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap}px`);
                 DockContainerComponent.splitter.dataSource.next().reallocSize(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth,
                     DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap);
             }
@@ -350,10 +349,10 @@ export class DialogComponent implements AfterViewInit {
     }
 
     ngAfterViewInit() {
-        this.render.setElementStyle(this.holder.nativeElement, "width", this.dialog.width.toString());
-        this.render.setElementStyle(this.holder.nativeElement, "height", this.dialog.height.toString());
-        this.render.setElementStyle(this.holder.nativeElement, "left", ((this.ele.nativeElement.clientWidth - this.holder.nativeElement.clientWidth) / 2).toString());
-        this.render.setElementStyle(this.holder.nativeElement, "top", ((this.ele.nativeElement.clientHeight - this.holder.nativeElement.clientHeight) / 2).toString());
+        this.render.setElementStyle(this.holder.nativeElement, "width", `${this.dialog.width}px`);
+        this.render.setElementStyle(this.holder.nativeElement, "height", `${this.dialog.height}px`);
+        this.render.setElementStyle(this.holder.nativeElement, "left", `${((this.ele.nativeElement.clientWidth - this.holder.nativeElement.clientWidth) / 2)}px`);
+        this.render.setElementStyle(this.holder.nativeElement, "top", `${((this.ele.nativeElement.clientHeight - this.holder.nativeElement.clientHeight) / 2)}px`);
         this.render.listen(this.head.nativeElement, "mousedown", (event: MouseEvent) => {
             this.bMouseDown = true;
             this.startPoint = [event.pageX, event.pageY];
@@ -366,8 +365,8 @@ export class DialogComponent implements AfterViewInit {
             return false;
 
         let [offsetX, offsetY] = [event.pageX - this.startPoint[0], event.pageY - this.startPoint[1]];
-        this.render.setElementStyle(this.holder.nativeElement, "left", (this.holder.nativeElement.offsetLeft + offsetX).toString());
-        this.render.setElementStyle(this.holder.nativeElement, "top", (this.holder.nativeElement.offsetTop + offsetY).toString());
+        this.render.setElementStyle(this.holder.nativeElement, "left", `${(this.holder.nativeElement.offsetLeft + offsetX)}px`);
+        this.render.setElementStyle(this.holder.nativeElement, "top", `${(this.holder.nativeElement.offsetTop + offsetY)}px`);
         this.startPoint = [event.pageX, event.pageY];
     }
 

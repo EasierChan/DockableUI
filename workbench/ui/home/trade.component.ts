@@ -35,6 +35,7 @@ export class TradeComponent implements OnInit {
         this.setting = this.appsrv.getSetting();
         this.ssgwAppID = this.setting.endpoints[0].tgw_apps.ssgw;
         this.areas = [];
+        this.products = this.configBll.getProducts();
         this.registerListeners();
         this.initializeStrategies();
     }
@@ -123,7 +124,7 @@ export class TradeComponent implements OnInit {
             let len = this.strategyConfigs.length;
 
             for (let i = 0; i < len; ++i) {
-                if (this.strategyConfigs[i].chname === item.title) {
+                if (this.strategyConfigs[i].appid === item.id) {
                     this.selectedStrategyConfig = this.strategyConfigs[i];
                     break;
                 }
@@ -145,7 +146,7 @@ export class TradeComponent implements OnInit {
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
-            tile.id = config.name;
+            tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
         });
@@ -156,18 +157,18 @@ export class TradeComponent implements OnInit {
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
-            tile.id = config.name;
+            tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
         };
 
         this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
-            this.strategyArea.getTile(config.name).title = config.chname;
+            this.strategyArea.getTile(config.appid).title = config.chname;
             this.ref.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
-            let tile = this.strategyArea.getTile(config.name);
+            let tile = this.strategyArea.getTile(config.appid);
             if (tile !== null)
                 tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
         };
@@ -208,7 +209,7 @@ export class TradeComponent implements OnInit {
             name: this.selectedStrategyConfig.appid.toString(),
             title: this.selectedStrategyConfig.chname
         })) {
-            alert(`start ${this.selectedStrategyConfig.name} app error!`);
+            alert(`start ${this.selectedStrategyConfig.chname} app error!`);
         }
     }
 

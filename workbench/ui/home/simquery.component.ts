@@ -7,7 +7,9 @@ import { SSGW_MSG, ServiceType } from "../../../base/api/model";
 import { QtpService } from "../../bll/services";
 import { DataTable } from "../../../base/controls/control";
 import { DatePipe } from "@angular/common";
-
+import * as Fs from "fs"
+const fs = require("@node/fs");
+declare const electron: Electron.ElectronMainAndRenderer;
 
 
 @Component({
@@ -27,6 +29,7 @@ export class SimQueryComponent implements OnInit {
     selectedTrid: string | number;
     startDate: string;
     endDate: string;
+    isDownedAll = false;
     orderTable: DataTable;
     pagination = {
         maxPage: 1,
@@ -41,15 +44,19 @@ export class SimQueryComponent implements OnInit {
 
     ngOnInit() {
         this.products = this.config.getProducts();
+        this.strategys = [{
+            trid: "",
+            trname: "全部"
+        }];
         this.selectedCaid = this.products.length ? this.products[0].caid : null;
-        this.dev();
+        this.startDate = this.datePipe.transform(new Date().setDate(1), "yyyy-MM-dd");
+        this.endDate = this.datePipe.transform(Date.now(), "yyyy-MM-dd");
+        // this.dev();
         this.caChangeListener(this.selectedCaid);
         this.initTable();
     }
 
     dev() {
-        this.startDate = "2017-12-01";
-        this.endDate = "2017-12-14";
         this.selectedCaid = "30301";
     }
 
@@ -63,11 +70,15 @@ export class SimQueryComponent implements OnInit {
         if(value) {
             this.selectedCaid = value;
             this.request("getCombStrategy", {caid: value}).then(data => {
-                this.strategys = (data as any[]);
-                if(this.strategys && this.strategys.length) {
-                    this.selectedTrid = this.strategys[0].trid;
-                    this.checkoutForm(1);
+                this.strategys = [{
+                    trid: "",
+                    trname: "全部"
+                }]
+                if(data && data.length) {
+                    this.strategys = this.strategys.concat(data as any[]);
                 }
+                this.selectedTrid = this.strategys[0].trid;
+                this.checkoutForm(1);
             })
         }
     }
@@ -87,6 +98,48 @@ export class SimQueryComponent implements OnInit {
         this.checkoutForm(1);
     }
 
+    downLoad() {
+        let path: string;
+        this.chosedPath()
+            .then((chosedPath) => {
+                path = chosedPath;
+                let header = this.orderTable.columns.map(item => item.Name);
+                if(this.isDownedAll) {
+                    return this.getOrders()
+                        .then(data => {
+                            let csvData = (data.data as any[]).map(row => this.getOrderRow(row).join(",")).join("\n\r");
+                            csvData = header.join(",") + "\n\r" + csvData;
+                            return csvData
+                        })
+                } else {
+                    let data = this.orderTable.rows.map(item => item.cells.map(cell => cell.Text) )
+                    data.unshift(header);
+                    let csvData = data.map(row => row.join(",")).join("\n\r");
+                    return Promise.resolve(csvData);
+                }
+                
+            })
+            .then((csvData) => {
+                fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
+            })
+            .catch(err => console.info(err))
+
+    }
+
+    chosedPath(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            electron.remote.dialog.showSaveDialog({
+                title: "另存为",
+                defaultPath: "@/order.csv",
+                buttonLabel: "",
+                filters: []
+            }, (path)=> {
+                if(path) resolve(path)
+                else reject("取消保存")
+            })
+        })
+    }
+
     previousPage() {
         if(this.pagination.currentPage !== 1) {
             this.pagination.currentPage --;
@@ -101,32 +154,38 @@ export class SimQueryComponent implements OnInit {
         }
     }
 
-    checkoutForm(page:number = this.pagination.currentPage) {
-        this.initTable();
+    checkoutForm(page: number) {
         this.pagination.currentPage = page;
-        let {selectedCaid: caid, selectedTrid: trid, startDate, endDate} = this;
-        if(caid && trid && startDate && endDate) {
-            startDate = startDate.replace(/-/g, "");
-            endDate = endDate.replace(/-/g, "");
-            this.request("getTaorder", {
-                pageCount: this.pagination.pageSize,
-                caid, trid, startDate, endDate,
-                page
-            }).then(data => {
-                this.pagination.maxPage = Math.floor(data.totalCount / this.pagination.pageSize) + 1;
-                this.loadTable(data.data);
-            })
-        }
+        this.initTable();
+        this.getOrders(page || 1).then(data => {
+            this.pagination.maxPage = Math.floor(data.totalCount / this.pagination.pageSize) + 1;
+            this.loadTable(data.data);
+        }).catch(err => console.info(err))
     }
 
-    getOrder(options: any) {
-        this.request("getTaorder", Object.assign({ pageCount: this.pagination.pageSize }, options)).then(data => {
-            this.loadTable(data.data);
-        })
+    getOrders(page: number = 0) {
+        let {selectedCaid: caid, selectedTrid: trid, startDate, endDate} = this;
+        if(caid && startDate && endDate) {
+            startDate = startDate.replace(/-/g, "");
+            endDate = endDate.replace(/-/g, "");
+            let options = {
+                pageCount: this.pagination.pageSize,
+                caid,
+                trid,
+                startDate,
+                endDate,
+                page
+            };
+            if(!trid) delete options.trid;
+            if(!page) { // 默认为0，获取所有
+                delete options.page;
+                delete options.pageCount;
+            }
+            return this.request("getTaorder", options);
+        } else return Promise.reject("查询条件缺失")
     }
 
     loadTable(orderList: any[]) {
-        console.log(orderList)
         orderList.forEach(order => {
             let row = this.orderTable.newRow();
             this.getOrderRow(order).forEach((value, index) => {

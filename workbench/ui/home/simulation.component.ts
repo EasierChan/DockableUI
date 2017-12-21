@@ -10,7 +10,7 @@ import { QtpService } from "../../bll/services";
 @Component({
     moduleId: module.id,
     selector: "simulation",
-    template: `<tilearea [dataSource]="strategyArea.dataSource" [styleObj]="strategyArea.styleObj"></tilearea>`,
+    templateUrl: "backtest.component.html",
     styleUrls: ["simulation.component.css"]
 })
 export class SimulationComponent implements OnInit {
@@ -77,7 +77,8 @@ export class SimulationComponent implements OnInit {
         let subMenu = new Menu();
         this.configBll.getProducts().forEach(product => {
             subMenu.addItem(product.caname, () => {
-                this.selectedStrategyConfig.productID = product.caid; this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
+                this.selectedStrategyConfig.productID = product.caid;
+                this.tradeEndPoint.send(SSGW_MSG.kStop, JSON.stringify({
                     data: { strategy: { strategy_server_id: this.selectedStrategyConfig.appid } },
                     userid: this.appsrv.getUserProfile().username
                 }), ServiceType.kSSGW);
@@ -129,7 +130,7 @@ export class SimulationComponent implements OnInit {
             let len = this.strategyConfigs.length;
 
             for (let i = 0; i < len; ++i) {
-                if (this.strategyConfigs[i].chname === item.title) {
+                if (this.strategyConfigs[i].appid === item.id) {
                     this.selectedStrategyConfig = this.strategyConfigs[i];
                     break;
                 }
@@ -151,7 +152,7 @@ export class SimulationComponent implements OnInit {
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
-            tile.id = config.name;
+            tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
         });
@@ -160,18 +161,18 @@ export class SimulationComponent implements OnInit {
             let tile = new Tile();
             tile.title = config.chname;
             tile.iconName = "tasks";
-            tile.id = config.name;
+            tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
         };
 
         this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
-            this.strategyArea.getTile(config.name).title = config.chname;
+            this.strategyArea.getTile(config.appid).title = config.chname;
             this.ref.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
-            let tile = this.strategyArea.getTile(config.name);
+            let tile = this.strategyArea.getTile(config.appid);
             if (tile !== null)
                 tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
         };
@@ -212,7 +213,7 @@ export class SimulationComponent implements OnInit {
             name: this.selectedStrategyConfig.appid.toString(),
             title: this.selectedStrategyConfig.chname
         })) {
-            alert(`start ${this.selectedStrategyConfig.name} app error!`);
+            alert(`start ${this.selectedStrategyConfig.chname} app error!`);
         }
     }
 

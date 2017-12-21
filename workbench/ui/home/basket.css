@@ -1,4 +1,5 @@
 .u-block {
+    width: 300px;
     background: rgba(1, 3, 12, 0.37);
 }
 
@@ -32,4 +33,20 @@
 
 .u-block .title .menu:hover{
     cursor: pointer;
+}
+
+.params {
+    display: flex;
+    flex-flow: row wrap;
+    border: 1px solid #333;
+    border-radius: 5px;
+    height: 300px;
+}
+
+.params > * {
+    display: inline-block;
+    width: 200px;
+    height: 30px;
+    line-height: 30px;
+    padding-left: 10px;
 }

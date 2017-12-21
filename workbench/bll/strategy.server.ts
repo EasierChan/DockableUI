@@ -30,23 +30,7 @@ export class ConfigurationBLL {
         this._ss_backtest_configs = [];
         this._ss_realtrade_configs = [];
         this.servers = [];
-        this._ssconfigs = WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []);
-        this._ssconfigs.forEach(item => {
-            switch (item.activeChannel) {
-                case Channel.ONLINE:
-                    this._ss_realtrade_configs.push(item);
-                    break;
-                case Channel.SIMULATION:
-                    this._ss_simulation_configs.push(item);
-                    break;
-                case Channel.BACKTEST:
-                    this._ss_backtest_configs.push(item);
-                    break;
-            }
-
-            item.state = 0;
-            this.servers.push(item.appid);
-        });
+        // this.initSSConfigs(WorkspaceConfig.setObject(File.parseJSON(this._ssconfigpath) || []));
 
         this._loopbackPath = path.join(this._basedir, "loopback.json");
         this._loopbackItems = File.parseJSON(this._loopbackPath) || [];
@@ -66,6 +50,15 @@ export class ConfigurationBLL {
             if (item.length > 0 && !item.startsWith("Untitled")) {
                 let idx = item.indexOf(".");
                 this._abconfigs.push(item.substr(0, idx));
+            }
+        });
+
+        this._bvpath = path.join(this._basedir, "..", "bookviewer");
+        this._bvconfigs = [];
+        File.readdirSync(this._bvpath).forEach(item => {
+            if (item.length > 0 && !item.startsWith("Untitled")) {
+                let idx = item.indexOf(".");
+                this._bvconfigs.push(item.substr(0, idx));
             }
         });
     }
@@ -92,6 +85,9 @@ export class ConfigurationBLL {
     private _abconfigs: string[];
     private _abpath: string;
 
+    private _bvconfigs: string[];
+    private _bvpath: string;
+
 
     private _names: any[];
     private _products: any[];
@@ -102,6 +98,31 @@ export class ConfigurationBLL {
     onStateChanged: Function;
     tempConfig: WorkspaceConfig;
     timeout: any;
+
+
+    initSSConfigs(configs: WorkspaceConfig[]) {
+        this._ssconfigs = configs;
+        this._ss_realtrade_configs.length = 0;
+        this._ss_backtest_configs.length = 0;
+        this._ss_simulation_configs.length = 0;
+
+        this._ssconfigs.forEach(item => {
+            switch (item.activeChannel) {
+                case Channel.ONLINE:
+                    this._ss_realtrade_configs.push(item);
+                    break;
+                case Channel.SIMULATION:
+                    this._ss_simulation_configs.push(item);
+                    break;
+                case Channel.BACKTEST:
+                    this._ss_backtest_configs.push(item);
+                    break;
+            }
+
+            item.state = 0;
+            this.servers.push(item.appid);
+        });
+    }
     /**
      * @return a list of available strategy templates.
      */
@@ -188,12 +209,12 @@ export class ConfigurationBLL {
             alert(info);
         }
 
-        File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
+        // File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
     }
 
     removeConfig(config: WorkspaceConfig) {
         for (let i = 0; i < this._ssconfigs.length; ++i) {
-            if (config.name === this._ssconfigs[i].name && config.activeChannel === this._ssconfigs[i].activeChannel) {
+            if (config.appid === this._ssconfigs[i].appid && config.activeChannel === this._ssconfigs[i].activeChannel) {
                 this._ssconfigs.splice(i, 1);
 
                 switch (config.activeChannel) {
@@ -213,7 +234,7 @@ export class ConfigurationBLL {
                     this.servers.splice(idx, 1);
                 }
 
-                File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
+                // File.writeSync(this._ssconfigpath, JSON.stringify(this._ssconfigs));
                 break;
             }
         }
@@ -355,6 +376,10 @@ export class ConfigurationBLL {
         return this._abconfigs;
     }
 
+    getBVConfigs() {
+        return this._bvconfigs;
+    }
+
     addSVConfigItem(item) {
         if (!this._svconfigs.includes(item))
             this._svconfigs.push(item);
@@ -365,6 +390,26 @@ export class ConfigurationBLL {
             if (this._svconfigs[i] === config) {
                 this._svconfigs.splice(i, 1);
                 File.unlinkSync(path.join(this._svpath, config + this.kTemplateExt));
+                break;
+            }
+        }
+    }
+
+    removeABConfigItem(config: string) {
+        for (let i = 0; i < this._abconfigs.length; ++i) {
+            if (this._abconfigs[i] === config) {
+                this._abconfigs.splice(i, 1);
+                File.unlinkSync(path.join(this._abpath, config + this.kTemplateExt));
+                break;
+            }
+        }
+    }
+
+    removeBVConfigItem(config: string) {
+        for (let i = 0; i < this._bvconfigs.length; ++i) {
+            if (this._bvconfigs[i] === config) {
+                this._bvconfigs.splice(i, 1);
+                File.unlinkSync(path.join(this._bvpath, config + this.kTemplateExt));
                 break;
             }
         }

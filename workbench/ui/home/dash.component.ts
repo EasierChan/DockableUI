@@ -34,7 +34,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     riskExposure: number;//敞口率
     riskDegree: number;//风险率
     futuresProfit: number;//期货权益
-    productNetW: Section;
     aiStockDate: any = {};
     productData: any = [];
     monitorProductsData: any[];
@@ -604,6 +603,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     row.cells[1].Text = item.chabbr;
                     row.cells[2].Text = "--";
                     row.cells[3].Text = "--";
+                    row.cells[4].Text = "--";
                 })
             }
             this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
@@ -1008,12 +1008,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
                         }
                         if (allStockUkMap[item.k].type == "worst") {
-                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[1].Text = nowPrice;
-                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Text = this.dashGetColor(increasePer, "value") + "%";
-                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Color = this.dashGetColor(increasePer, "color");
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increasePer, "color");
                             if (referIncrease) {
-                                this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(referIncrease, "color");
-                                this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(referIncrease, "value") + "%";
+                                this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
+                                this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                             }
                         } else if (allStockUkMap[item.k].type == "best") {
                             this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;

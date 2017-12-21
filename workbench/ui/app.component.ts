@@ -18,7 +18,7 @@ import { QtpService, QuoteService, TradeService } from "../bll/services";
 import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
-import { ActionBar, Label } from "../../base/controls/control";
+import { ActionBar, Label, ChartViewer } from "../../base/controls/control";
 import { FGS_MSG, SSGW_MSG, ServiceType } from "../../base/api/model";
 /**
  * for actionBar test
@@ -334,6 +334,26 @@ export class AppComponent implements OnInit, OnDestroy {
 
             this.configBll.setProducts(products);
             this.configBll.emit("getProduct", this.configBll.getProducts());
+        }, this);
+
+        this.tradeEndPoint.addSlotOfCMS("getStrategyConfig", (msg) => {
+            let ret = JSON.parse(msg.toString());
+
+            if (ret.msret.msgcode !== "00") {
+                console.error(ret.msret.msg);
+                alert(ret.msret.msg);
+                return;
+            }
+
+            let configs = [];
+            ret.body.strategies.forEach(item => {
+                if (item.ui_parms && item.ui_parms.length > 0) {
+                    configs.push(JSON.parse(item.ui_parms));
+                }
+            });
+
+            this.configBll.initSSConfigs(configs);
+            this.tradeEndPoint.subscribe(2001, this.configBll.servers);
         }, this);
 
         this.tradeEndPoint.addSlotOfCMS("getAssetAccount", (msg) => {

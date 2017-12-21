@@ -4,7 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule } from "@angular/common";
 
 import { AppComponent } from "./app.component";
-import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
+import { DataTableComponent, ScrollerBarTable, EChartComponent, EchartsDirective } from "../../base/controls/data.component";
 import {
   UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent,
   CodeComponent, ButtonGroupComponent
@@ -27,6 +27,7 @@ import {
     ActionBarComponent,
     CodeComponent,
     EChartComponent,
+    EchartsDirective,
     ButtonGroupComponent
   ],
   bootstrap: [AppComponent]

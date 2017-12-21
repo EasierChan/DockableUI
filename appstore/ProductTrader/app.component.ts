@@ -7,13 +7,14 @@
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
     VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel, TabPage, ChartViewer, TextBox, DockContainer, Splitter,
-    Dialog
+    Dialog, Section
 } from "../../base/controls/control";
 import { QtpService } from "../../base/api/services/qtp.service";
 import { AppStateCheckerRef, Environment, AppStoreService } from "../../base/api/services/backend.service";
 import { ServiceType, FGS_MSG } from "../../base/api/model/qtp/message.model";
-import { QueryFundAndPosition, COMS_MSG, QueryFundAns, QueryPositionAns } from "../../base/api/model/qtp/coms.model";
+import { QueryFundAndPosition, COMS_MSG, QueryFundAns, QueryPositionAns, SendOrder, OrderStatus, CancelOrder, CancelOrderAns } from "../../base/api/model/qtp/coms.model";
 import { DataKey } from "../../base/api/model/workbench.model";
+import { ECharts } from "echarts";
 
 @Component({
     moduleId: module.id,
@@ -45,11 +46,17 @@ export class AppComponent implements OnInit {
     txt_pageidx: TextBox;
     lbl_pagecount: Label;
     table: DataTable;
+    fundAccountTable: DataTable;
+    tradeAccountTable: DataTable;
     MarketTable: DataTable;
     chart: ChartViewer;
     worker: any;
     userId: any;
     productId: any;
+    acidObj: any = {};
+    productNetData: any;
+    productNetChart: ECharts;
+    productNet: Section;//产品净值
 
     constructor(private tradePoint: QtpService, private state: AppStateCheckerRef, private appSrv: AppStoreService) {
         this.state.onInit(this, this.onReady);
@@ -69,7 +76,8 @@ export class AppComponent implements OnInit {
         this.userId = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)).user_id;
         let [addr, port] = this.appSrv.getSetting().endpoints[0].trade_addr.split(":");
 
-        console.log('userid' + this.userId)
+        console.log('userid' + this.userId);
+        console.log('this.productId:' + this.productId)
 
 
         let viewContentPop = new VBox();//弹框内容
@@ -180,14 +188,39 @@ export class AppComponent implements OnInit {
         positionPage.setContent(positionContent);
         panel.addTab(positionPage, false);
         // panel.setActive("OrderDetail");
-        let profitPage = new TabPage("ProfitViewer", "收益");
-        let profitContent = new VBox();
-        profitPage.setContent(profitContent);
-        panel.addTab(profitPage, false);
-        let availableFundPage = new TabPage("availableFundViewer", "可用资金");
-        let availableFundContent = new VBox();
-        availableFundPage.setContent(availableFundContent);
-        panel.addTab(availableFundPage, false);
+
+        let productNetPage = new TabPage("productNetViewer", "净值");
+        let productNetContent = new VBox();
+        productNetPage.setContent(productNetContent);
+        panel.addTab(productNetPage, false);
+        let orderStatPage = new TabPage("orderStatViewer", "订单状态");
+        let orderStatContent = new VBox();
+        orderStatPage.setContent(orderStatContent);
+        panel.addTab(orderStatPage, false);
+        let finishOrderPage = new TabPage("finishOrderViewer", "完结状态");
+        let finishOrderContent = new VBox();
+        finishOrderPage.setContent(finishOrderContent);
+        panel.addTab(finishOrderPage, false);
+        let fundAccountPage = new TabPage("fundAccountViewer", "资金账户");
+        let fundAccountContent = new VBox();
+        this.fundAccountTable = new DataTable("table2");
+        this.fundAccountTable.height = 200;
+        this.fundAccountTable.RowIndex = false;
+        this.fundAccountTable.addColumn("Index", "币种", "出金", "入金", "资金余额", "交易可用金额", "交易可用金额", "可用融资余额", "融资金额", "融券金额", "总保证金", "买保证金", "卖保证金", "手续费", "持仓平仓盈亏");
+
+        fundAccountContent.addChild(this.fundAccountTable);
+        fundAccountPage.setContent(fundAccountContent);
+        panel.addTab(fundAccountPage, false);
+        let tradeAccountPage = new TabPage("tradeAccountViewer", "交易账户");
+        let tradeAccountContent = new VBox();
+        this.tradeAccountTable = new DataTable("table2");
+        this.tradeAccountTable.height = 200;
+        this.tradeAccountTable.RowIndex = false;
+        this.tradeAccountTable.addColumn("资金账户名称", "市场ID", "对冲标志", "交易编码", "交易账户名称", "币种", "通道id", "创建者", "创建时间", "状态");
+
+        tradeAccountContent.addChild(this.tradeAccountTable);
+        tradeAccountPage.setContent(tradeAccountContent);
+        panel.addTab(tradeAccountPage, false);
         viewContent.addChild(panel);
 
         let svHeaderRow1 = new HBox();//行
@@ -278,6 +311,7 @@ export class AppComponent implements OnInit {
         // this.userId = Number(this.appSrv.getUserProfile().username);
 
         //数据请求
+        //查询资金
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryFundAns,
@@ -292,7 +326,7 @@ export class AppComponent implements OnInit {
 
             }
         });
-
+        //查询仓位
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryPositionAns,
@@ -308,10 +342,48 @@ export class AppComponent implements OnInit {
             }
         });
 
+        //查询订单
+        this.tradePoint.addSlot({
+            service: ServiceType.kCOMS,
+            msgtype: COMS_MSG.kMtBQueryOrderAns,
+            callback: (msg) => {
+                console.log(msg)
+                if (msg != undefined) {
+                    let ans = new OrderStatus();
+                    ans.fromBuffer(msg);
+                }
+
+
+            }
+        });
+        //下单
+        this.tradePoint.addSlot({
+            service: ServiceType.kCOMS,
+            msgtype: COMS_MSG.kMtFSendOrderAns,
+            callback: (msg) => {
+                console.log(msg)
+                if (msg != undefined) {
+                    let ans = new OrderStatus();
+                    ans.fromBuffer(msg);
+                }
+
+
+            }
+        });
+
         this.tradePoint.addSlotOfCMS("getAssetAccount", (res) => {
+            //查询资产账户
             let data = JSON.parse(res.toString());
+            if (data.msret.msgcode != "00") {
+                alert("getAssetAccount:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                return;
+            }
             console.log(data.body[0].acid);
 
+            data.body.forEach((item, index) => {
+                this.acidObj[item.acid] = item.acname;
+            })
+            console.log(this.acidObj)
             let fund = new QueryFundAndPosition();
             fund.portfolio_id = 0;
             fund.fund_account_id = parseInt(data.body[0].acid);
@@ -320,9 +392,143 @@ export class AppComponent implements OnInit {
             position.portfolio_id = 0;
             position.fund_account_id = parseInt(data.body[0].acid);
 
+            let QueryOrder = new OrderStatus();
+            QueryOrder.order_ref = 0;   //u8  客户端订单ID+term_id = 唯一
+            QueryOrder.ukey = 0;        //u8  Universal Key
+            QueryOrder.directive = 0;   //u4 委托指令：普通买入，普通卖出
+            QueryOrder.offset_flag = 0; //u4 开平方向：开仓、平仓、平昨、平今
+            QueryOrder.hedge_flag = 0;  //u4 投机套保标志：投机、套利、套保
+            QueryOrder.execution = 0;   //u4 执行类型： 限价0，市价
+            QueryOrder.order_time = 0;  //u8 委托时间
+            QueryOrder.portfolio_id = 0;     //u8 组合ID
+            QueryOrder.fund_account_id = data.body[0].acid;  //========u8 资金账户ID
+            QueryOrder.trade_account_id = 0; //u8 交易账户ID
+
+            QueryOrder.strategy_id = 0;     //u4 策略ID
+            QueryOrder.trader_id = 0;        //u4 交易员ID
+            QueryOrder.term_id = 0;          //u4 终端ID
+            QueryOrder.qty = 0;    //8 委托数量
+            QueryOrder.price = 0;  //8 委托价格
+            QueryOrder.property = 0;        //4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
+            QueryOrder.currency = 0;        //4 报价货币币种
+            QueryOrder.algor_id = 0;		//8 策略算法ID
+            QueryOrder.reserve = 0;			//4 预留(组合offset_flag)
+            QueryOrder.order_id = 0;   //8 订单ID
+
+            QueryOrder.cancelled_qty = 0;    //8 已撤数量
+            QueryOrder.queued_qty = 0;       //8 已确认？
+            QueryOrder.trade_qty = 0;        //8 已成交数量
+            QueryOrder.trade_amt = 0;        //8 已成交金额*10000（缺省值）
+            QueryOrder.trade_time = 0;      //8 最后成交时间
+            QueryOrder.approver_id = 0;     //4 审批人ID
+            QueryOrder.status = 0;          //4 订单状态
+            QueryOrder.ret_code = 0;        //4
+            QueryOrder.broker_sn = "";    //32 券商单号
+            QueryOrder.message = "";      //128 附带消息，如错误消息等
+
+            let Send = new SendOrder();
+            Send.order_ref = 0;   //u8  客户端订单ID+term_id = 唯一
+            Send.ukey = 0;        //u8  Universal Key
+            Send.directive = 0;   //u4 委托指令：普通买入，普通卖出
+            Send.offset_flag = 0; //u4 开平方向：开仓、平仓、平昨、平今
+            Send.hedge_flag = 0;  //u4 投机套保标志：投机、套利、套保
+            Send.execution = 0;   //u4 执行类型： 限价0，市价
+            Send.order_time = 0;  //u8 委托时间
+            Send.portfolio_id = 0;     //u8 组合ID
+            Send.fund_account_id = data.body[0].acid;  //u8 资金账户ID
+            Send.trade_account_id = 0; //u8 交易账户ID
+
+            Send.strategy_id = 0;     //u4 策略ID
+            Send.trader_id = 0;        //u4 交易员ID
+            Send.term_id = 0;          //u4 终端ID
+            Send.qty = 0;    //8 委托数量
+            Send.price = 0;  //8 委托价格
+            Send.property = 0;        //4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
+            Send.currency = 0;        //4 报价货币币种
+            Send.algor_id = 0;		//8 策略算法ID
+            Send.reserve = 0;			//4 预留(组合offset_flag)
+
             this.tradePoint.send(COMS_MSG.kMtFQueryFund, fund.toBuffer(), ServiceType.kCOMS);
             this.tradePoint.send(COMS_MSG.kMtFQueryPosition, position.toBuffer(), ServiceType.kCOMS);
+            this.tradePoint.send(COMS_MSG.kMtFQueryOrder, QueryOrder.toBuffer(), ServiceType.kCOMS);
+            this.tradePoint.send(COMS_MSG.kMtFSendOrder, QueryOrder.toBuffer(), ServiceType.kCOMS);
         }, this);
+
+        this.tradePoint.addSlotOfCMS("getTaacctFund", (res) => {
+            //查询资产账户资金
+            let data = JSON.parse(res.toString());
+            if (data.msret.msgcode != "00") {
+                alert("getTaacctFund:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                return;
+            }
+            data.body.forEach((item, index) => {
+                let row = this.fundAccountTable.newRow();
+                row.cells[0].Text = item.currencyid;
+                row.cells[1].Text = item.out_fund;
+                row.cells[2].Text = item.in_fund;
+                row.cells[3].Text = item.totalamt;
+                row.cells[4].Text = item.frozenamt;
+                row.cells[5].Text = item.validloan;
+                row.cells[6].Text = item.loan;
+                row.cells[7].Text = item.stockloan;
+                row.cells[8].Text = item.totalmargin;
+                row.cells[9].Text = item.buymargin;
+                row.cells[10].Text = item.sellmargin;
+                row.cells[11].Text = item.fee;
+                row.cells[12].Text = item.hold_closepl;
+
+            })
+
+            console.log(data);
+        }, this)
+        this.tradePoint.addSlotOfCMS("getTradeAccount", (res) => {
+            //查询交易账户
+            let data = JSON.parse(res.toString());
+            if (data.msret.msgcode != "00") {
+                alert("getTradeAccount:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                return;
+            }
+            data.body.forEach(item => {
+                item.caname = this.acidObj[item.acid];
+                let row = this.tradeAccountTable.newRow();
+                row.cells[0].Text = item.caname;
+                row.cells[1].Text = item.marketid;
+                row.cells[2].Text = item.hedgeflag;
+                row.cells[3].Text = item.trcode;
+                row.cells[4].Text = item.tracname;
+                row.cells[5].Text = item.currencyid;
+                row.cells[6].Text = item.chid;
+                row.cells[7].Text = item.creator;
+                row.cells[8].Text = item.createtime;
+                row.cells[9].Text = item.stat;
+            })
+            console.log(data);
+        }, this)
+        //产品净值
+        this.productNet = new Section();
+        this.productNet.content = this.createProductNetChart();
+        // this.productNetChart.addC
+        this.tradePoint.addSlotOfCMS("getProductNet", (msg) => {
+            let data = JSON.parse(msg.toString());
+            if (data.msret.msgcode != "00") {
+                alert("getProductNet:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                return;
+            }
+            let productNetChangeOpt = {
+                title: { text: "" },
+                xAxis: [{ data: [] }],
+                series: [{ data: [] }]
+            }
+            this.productNetData = data.body;
+            if (this.productNetData.length > 0) {
+                this.productNetData.forEach(item => {
+                    productNetChangeOpt.xAxis[0].data.push(item.trday);
+                    productNetChangeOpt.title.text = item.caname;
+                    productNetChangeOpt.series[0].data.push(item.netvalue);
+                })
+                // this.productNetChart.setOption(productNetChangeOpt);
+            }
+        }, this)
 
     }
 
@@ -332,15 +538,102 @@ export class AppComponent implements OnInit {
             msgtype: FGS_MSG.kLoginAns,
             callback: (msg) => {
                 console.info(msg.toString());
+                this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.productId } } }));
                 this.tradePoint.sendToCMS("getAssetAccount", JSON.stringify({
+                    //查询资产账户
                     data: {
                         head: { userid: this.userId },
-                        body: {}
+                        body: { caid: this.productId }
+                    }
+                }));
+
+                this.tradePoint.sendToCMS("getTaacctFund", JSON.stringify({
+                    //查询资产账户资金
+                    data: {
+                        head: { userid: this.userId },
+                        body: { caid: this.productId }
+                    }
+                }));
+                this.tradePoint.sendToCMS("getTradeAccount", JSON.stringify({
+                    //查询交易账户
+                    data: {
+                        head: { userid: this.userId },
+                        body: { caid: this.productId }
                     }
                 }));
 
 
             }
         })
+    }
+
+    createProductNetChart() {
+        return {
+            option: {
+                title: {
+                    text: "",
+                    x: "center",
+                    align: "right",
+                    textStyle: {
+                        color: "#717171"
+                    }
+                },
+                grid: {
+                    bottom: 20
+                },
+                tooltip: {
+                    trigger: "axis"
+                },
+                dataZoom: {
+                    type: "inside"
+                },
+                xAxis: [
+                    {
+                        axisLabel: {
+                            show: true,
+                            textStyle: { color: "#717171" }
+                        },
+                        axisLine: {
+                            lineStyle: { color: "#717171" }
+                        },
+                        data: [0]
+                    }
+                ],
+                yAxis: [
+                    {
+                        axisLabel: {
+                            show: true,
+                            textStyle: { color: "#717171" }
+                        },
+                        axisLine: {
+                            lineStyle: { color: "#717171" }
+                        },
+                        splitLine: {
+                            show: false
+                        },
+                        name: "净值",
+                        type: "value",
+                        nameLocation: "end"
+                    }
+                ],
+                series: [
+                    {
+                        name: "净值",
+                        type: "line",
+                        data: [0],
+                        itemStyle: {
+                            normal: {
+                                color: "#2378f7"
+                            }
+                        },
+                        areaStyle: {
+                            normal: {
+                                color: "#83bff6"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
     }
 }
