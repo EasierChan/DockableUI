@@ -8,8 +8,9 @@ import { Parser } from "../browser/parser";
 import { Pool } from "../browser/pool";
 import { Header, QTPMessage, QtpMessageOption, FGS_MSG, OptionType, ServiceType } from "../model/qtp/message.model";
 import { Injectable } from "@angular/core";
+import { ULogger } from "./backend.service";
 
-const logger = console;
+const logger = ULogger;
 
 class QTPParser extends Parser {
     private _curHeader: Header = null;
@@ -77,11 +78,11 @@ class QTPParser extends Parser {
 
             if (buflen >= this._curHeader.datalen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                console.info(`processMsg: service=${this._curHeader.service}, msgtype=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
+                logger.info(`processMsg: service=${this._curHeader.service}, msgtype=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
                 try {
                     this.emit(this._curHeader.service.toString(), this._curHeader, tempBuffer);
                 } catch (err) {
-                    console.error(err);
+                    logger.error(err);
                 } finally {
                     restLen = buflen - Header.len - this._curHeader.datalen - this._curHeader.optslen;
                     if (restLen > 0) {
@@ -200,7 +201,7 @@ export class QtpService {
 
             if (msg.header.service === ServiceType.kFGS
                 && (msg.header.msgtype === FGS_MSG.kPublish || msg.header.msgtype === FGS_MSG.kComboPublish)) {
-                console.info(`topic: ${msg.header.topic}`);
+                logger.info(`topic: ${msg.header.topic}`);
 
                 for (let i = 0; i < msg.options.length; ++i) {
                     if (msg.options[i].id === OptionType.kSubscribeKey) {
@@ -229,10 +230,10 @@ export class QtpService {
                     self._messageMap[msg.header.service][msg.header.msgtype].callback(msg.body, msg.options);
             }
             else
-                console.warn(`unknown message appid = ${msg.header.service}`);
+                logger.warn(`unknown message appid = ${msg.header.service}`);
         });
         this._client.on("close", () => {
-            console.info("remote closed");
+            logger.info("remote closed");
 
             if (this._timer) {
                 clearTimeout(this._timer);
@@ -381,7 +382,7 @@ export class QtpService {
                         if (this._cmsMap.hasOwnProperty(options[i].value.toString()))
                             this._cmsMap[options[i].value.toString()].callback.call(context, body);
 
-                        console.info(`receive ${options[i].value.toString()}`);
+                        logger.info(`receive ${options[i].value.toString()}`);
                         break;
                     }
                 }

@@ -83,6 +83,7 @@ export class UserComponent implements OnInit {
                 let obj = JSON.parse(msg.toString());
                 if (obj.data.ret_code !== 0) {
                     alert(obj.data.ret_msg);
+                    this.loginState = 0;
                     return;
                 }
 
