@@ -26,6 +26,7 @@
 section {
     display: flex;
     flex-flow: column;
+    background: rgba(1, 3, 12, 0.37);
 }
 
 section > p,
@@ -33,10 +34,11 @@ section > table,
 section > .holder {
     flex: auto;
     width: 100%;
-    margin: 5px 0;
+    height: auto;
+    margin: 0;
     padding: 5px;
     border-radius: 5px;
-    background-color: #222A41;
+    background-color: rgba(1, 3, 12, 0.37);
 }
 
 section > .holder > table,
@@ -78,4 +80,15 @@ section > p > canvas {
 
 .income > .item2:before {
     background-color: #0f0;
+}
+
+section > .chartTit{
+    height: 28px !important;
+    background: rgb(56, 63, 84) !important;
+    line-height: 28px;
+    padding-left: 10px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 0 !important;
 }
