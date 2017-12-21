@@ -346,7 +346,6 @@ export class AppComponent implements OnInit, OnDestroy {
             }
 
             let configs = [];
-
             ret.body.strategies.forEach(item => {
                 if (item.ui_parms && item.ui_parms.length > 0) {
                     configs.push(JSON.parse(item.ui_parms));
@@ -354,6 +353,7 @@ export class AppComponent implements OnInit, OnDestroy {
             });
 
             this.configBll.initSSConfigs(configs);
+            this.tradeEndPoint.subscribe(2001, this.configBll.servers);
         }, this);
 
         this.tradeEndPoint.addSlotOfCMS("getAssetAccount", (msg) => {

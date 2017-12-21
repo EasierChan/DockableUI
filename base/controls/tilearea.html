@@ -5,7 +5,7 @@
 </div>
 <div class="area-tiles">
     <div *ngFor="let item of dataSource.items" class="tile" (mouseup)="dataSource.click($event, item)" [style.background-color]="item?.backgroundColor"
-        [style.color]="item?.color">
+        [style.color]="item?.color" (mousedown)="dataSource.pickID($event, item)">
         <div class="icon">
             <span class="glyphicon glyphicon-{{item.iconName}}"></span>
         </div>

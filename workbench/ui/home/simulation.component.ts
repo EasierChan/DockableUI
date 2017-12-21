@@ -10,7 +10,7 @@ import { QtpService } from "../../bll/services";
 @Component({
     moduleId: module.id,
     selector: "simulation",
-    template: `<tilearea [dataSource]="strategyArea.dataSource" [styleObj]="strategyArea.styleObj"></tilearea>`,
+    templateUrl: "backtest.component.html",
     styleUrls: ["simulation.component.css"]
 })
 export class SimulationComponent implements OnInit {
@@ -130,7 +130,7 @@ export class SimulationComponent implements OnInit {
             let len = this.strategyConfigs.length;
 
             for (let i = 0; i < len; ++i) {
-                if (this.strategyConfigs[i].chname === item.title) {
+                if (this.strategyConfigs[i].appid === item.id) {
                     this.selectedStrategyConfig = this.strategyConfigs[i];
                     break;
                 }

@@ -23,6 +23,11 @@ export class AnalysisComponent implements OnInit {
     alphaConfigs: string[];
     selectedAlphaItem: any;
 
+    bookMenu: Menu;
+    bookArea: TileArea;
+    bookConfigs: string[];
+    selectedBookItem: any;
+
     setting: any;
     quoteEndpoint: any;
 
@@ -34,6 +39,7 @@ export class AnalysisComponent implements OnInit {
         this.areas = [];
         this.initializeAnalytics();
         this.initializeAlpha();
+        this.initializeBook();
 
         this.quoteEndpoint = this.setting.endpoints[0].quote_addr.split(":");
         this.appsrv.onUpdateApp(this.updateApp, this);
@@ -99,7 +105,7 @@ export class AnalysisComponent implements OnInit {
             if (!confirm("确定删除？"))
                 return;
 
-            this.configBll.removeSVConfigItem(this.selectedAlphaItem.title);
+            this.configBll.removeABConfigItem(this.selectedAlphaItem.title);
             this.alphaArea.removeTile(this.selectedAlphaItem.title);
         });
         // endMenu
@@ -147,6 +153,61 @@ export class AnalysisComponent implements OnInit {
         this.areas.push(this.alphaArea);
     }
 
+    initializeBook() {
+        // bookMenu
+        // this.bookMenu = new Menu();
+        // this.bookMenu.addItem("删除", () => {
+        //     if (!confirm("确定删除？"))
+        //         return;
+
+        //     this.configBll.removeBVConfigItem(this.selectedBookItem.title);
+        //     this.bookArea.removeTile(this.selectedBookItem.title);
+        // });
+        // endMenu
+
+        this.bookArea = new TileArea();
+        this.bookArea.title = "集中行情";
+        // this.bookConfigs = this.configBll.getBVConfigs();
+
+        // this.bookConfigs.forEach(item => {
+            let tile = new Tile();
+            tile.title = "BookViewer";
+            tile.iconName = "object-align-bottom";
+            this.bookArea.addTile(tile);
+        // });
+
+        // this.bookArea.onCreate = () => {
+        //     // alert("当前未开放权限！");
+        //     // return;
+        //     this.appsrv.startApp("Untitled", AppType.kBookViewer, {
+        //         port: parseInt(this.quoteEndpoint[1]),
+        //         host: this.quoteEndpoint[0],
+        //         lang: this.setting.language
+        //     });
+        // };
+
+        this.bookArea.onClick = (event: MouseEvent, item: Tile) => {
+            this.selectedBookItem = item;
+
+            if (event.button === 0) {
+                if (!this.appsrv.startApp(item.title, AppType.kBookViewer, {
+                    port: parseInt(this.quoteEndpoint[1]),
+                    host: this.quoteEndpoint[0],
+                    lang: this.setting.language
+                })) {
+                    alert("Error `Start ${name} app error!`");
+                }
+
+                return;
+            }
+
+            if (event.button === 2)
+                this.bookMenu.popup();
+        };
+
+        this.areas.push(this.bookArea);
+    }
+
     // update app info
     updateApp(params) {
         switch (params.type) {
@@ -178,6 +239,22 @@ export class AnalysisComponent implements OnInit {
                 } else {
                     this.alphaConfigs[idx] = params.newName;
                     this.alphaArea.getTileAt(idx).title = params.newName;
+                }
+
+                this.ref.detectChanges();
+                break;
+            case "bookviewer":
+                idx = this.bookConfigs.indexOf(params.oldName);
+
+                if (idx < 0) {
+                    this.bookConfigs.push(params.newName);
+                    let tile = new Tile();
+                    tile.title = params.newName;
+                    tile.iconName = "object-align-bottom";
+                    this.bookArea.addTile(tile);
+                } else {
+                    this.bookConfigs[idx] = params.newName;
+                    this.bookArea.getTileAt(idx).title = params.newName;
                 }
 
                 this.ref.detectChanges();
