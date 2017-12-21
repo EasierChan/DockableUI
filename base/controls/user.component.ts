@@ -278,10 +278,10 @@ export class DockContainerComponent implements AfterViewInit {
                 }
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "width",
-                    `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth + gap}`);
+                    `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth + gap}px`);
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild, "width",
-                    `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth - gap}`);
+                    `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth - gap}px`);
 
                 let leftTb = DockContainerComponent.splitter.ele.nativeElement.previousSibling.querySelectorAll("dock-table2");
                 let rightTb = DockContainerComponent.splitter.ele.nativeElement.nextSibling.querySelectorAll("dock-table2");
@@ -297,7 +297,6 @@ export class DockContainerComponent implements AfterViewInit {
                         element.dispatchEvent(ev_resize);
                     });
                 }
-
             } else {
                 let gap = event.pageY - DockContainerComponent.startPoint[1];
 
@@ -307,12 +306,12 @@ export class DockContainerComponent implements AfterViewInit {
                 }
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild, "height",
-                    `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}`);
+                    `${DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap}px`);
                 DockContainerComponent.splitter.dataSource.prev().reallocSize(DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientWidth,
                     DockContainerComponent.splitter.ele.nativeElement.previousSibling.firstChild.clientHeight + gap);
 
                 DockContainerComponent.splitter.renderer.setElementStyle(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild, "height",
-                    `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap}`);
+                    `${DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap}px`);
                 DockContainerComponent.splitter.dataSource.next().reallocSize(DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientWidth,
                     DockContainerComponent.splitter.ele.nativeElement.nextSibling.firstChild.clientHeight - gap);
             }
