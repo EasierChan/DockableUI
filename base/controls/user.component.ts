@@ -349,10 +349,10 @@ export class DialogComponent implements AfterViewInit {
     }
 
     ngAfterViewInit() {
-        this.render.setElementStyle(this.holder.nativeElement, "width", this.dialog.width.toString());
-        this.render.setElementStyle(this.holder.nativeElement, "height", this.dialog.height.toString());
-        this.render.setElementStyle(this.holder.nativeElement, "left", ((this.ele.nativeElement.clientWidth - this.holder.nativeElement.clientWidth) / 2).toString());
-        this.render.setElementStyle(this.holder.nativeElement, "top", ((this.ele.nativeElement.clientHeight - this.holder.nativeElement.clientHeight) / 2).toString());
+        this.render.setElementStyle(this.holder.nativeElement, "width", `${this.dialog.width}px`);
+        this.render.setElementStyle(this.holder.nativeElement, "height", `${this.dialog.height}px`);
+        this.render.setElementStyle(this.holder.nativeElement, "left", `${((this.ele.nativeElement.clientWidth - this.holder.nativeElement.clientWidth) / 2)}px`);
+        this.render.setElementStyle(this.holder.nativeElement, "top", `${((this.ele.nativeElement.clientHeight - this.holder.nativeElement.clientHeight) / 2)}px`);
         this.render.listen(this.head.nativeElement, "mousedown", (event: MouseEvent) => {
             this.bMouseDown = true;
             this.startPoint = [event.pageX, event.pageY];
@@ -365,8 +365,8 @@ export class DialogComponent implements AfterViewInit {
             return false;
 
         let [offsetX, offsetY] = [event.pageX - this.startPoint[0], event.pageY - this.startPoint[1]];
-        this.render.setElementStyle(this.holder.nativeElement, "left", (this.holder.nativeElement.offsetLeft + offsetX).toString());
-        this.render.setElementStyle(this.holder.nativeElement, "top", (this.holder.nativeElement.offsetTop + offsetY).toString());
+        this.render.setElementStyle(this.holder.nativeElement, "left", `${(this.holder.nativeElement.offsetLeft + offsetX)}px`);
+        this.render.setElementStyle(this.holder.nativeElement, "top", `${(this.holder.nativeElement.offsetTop + offsetY)}px`);
         this.startPoint = [event.pageX, event.pageY];
     }
 
