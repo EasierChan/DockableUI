@@ -8,9 +8,11 @@
         </div>
         <div class="menuItem">
             <font color='#A5ACBE'>参考股数:</font>
-            <input class="item1"  [(ngModel)]='stockCount' type="text" size="8"> 
+            <select class="item1" [(ngModel)]='count'>
+                <option *ngFor="let item of allCount" [value]='item'>{{item}}</option>
+            </select>
         </div>
-        <input class="search" type="submit" value="搜索" (click)="search()">
+        <input class="search" type="submit" value="更新" (click)="search()">
     </div>
     <div style="margin-left:7px">
         <div class="aicontent aiArea chartCon">

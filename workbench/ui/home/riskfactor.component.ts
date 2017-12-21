@@ -492,8 +492,6 @@ export class FactorAnalysisComponent implements OnDestroy {
             }
         }, this);
         
-        console.log(FactorAnalysisComponent.self.productData);
-        console.log(FactorAnalysisComponent.self.productData[0].caname);
         FactorAnalysisComponent.self.iproducts = [];
         for (let i = 0; i < FactorAnalysisComponent.self.productData.length; i++) {
             FactorAnalysisComponent.self.iproducts.push(FactorAnalysisComponent.self.productData[i].caname);
@@ -1182,9 +1180,10 @@ export class FactorAlphaComponent {
         this.alphaHotChart = echarts.init(document.getElementById("alphahotchart") as HTMLDivElement);
         this.alphaChart = echarts.init(document.getElementById("alphachart") as HTMLDivElement);
 
-        let date1 = new Date().setMonth((new Date().getMonth() - 3));
+        // let date1 = new Date().setMonth((new Date().getMonth() - 3));
         let date2 = new Date();
-        this.opendate = this.datePipe.transform(date1, "yyyy-MM-dd");
+        // this.opendate = this.datePipe.transform(date1, "yyyy-MM-dd");
+        this.opendate = "2009-01-05";
         this.closedate = this.datePipe.transform(date2, "yyyy-MM-dd");
         if (FactorAlphaComponent.opendateStat !== undefined) {
             this.opendate = FactorAlphaComponent.opendateStat;
@@ -1550,7 +1549,8 @@ export class FactorAlphaComponent {
 export class AIBrandComponent {
     index: string;
     allIndex: string[];
-    stockCount: number;
+    count: number;
+    allCount: number[];
     worstStockList: DataTable;
     bestStockList: DataTable;
     userId: number;
@@ -1573,28 +1573,29 @@ export class AIBrandComponent {
     }
 
     ngOnInit() {
-        this.stockCount = 30;
         this.allIndex = ["中证1000", "中证800", "中证500"];
-        this.index = "中证1000";
+        this.index = this.allIndex[0];
+        this.allCount = [10, 30, 50, 100];
+        this.count = this.allCount[1];
         this.userId = Number(this.config.get("user").userid); 
         this.bestStockList = new DataTable("table2");
         this.worstStockList = new DataTable("table2");
-        this.worstStockList.addColumn("股票代码", "价格", "涨幅", "超额收益");
-        this.worstStockList.columns[1].align = "right";
+        this.worstStockList.addColumn("证券代码", "证券名称", "价格", "涨幅", "超额收益");
         this.worstStockList.columns[2].align = "right";
         this.worstStockList.columns[3].align = "right";
+        this.worstStockList.columns[4].align = "right";
         this.worstStockList.columns[0].maxWidth = 80;
-        this.bestStockList.addColumn("股票代码", "价格", "涨幅", "超额收益");
-        this.bestStockList.columns[1].align = "right";
+        this.bestStockList.addColumn("证券代码", "证券名称", "价格", "涨幅", "超额收益");
         this.bestStockList.columns[2].align = "right";
         this.bestStockList.columns[3].align = "right";
+        this.bestStockList.columns[4].align = "right";
         this.bestStockList.columns[0].maxWidth = 80;
         this.search();
     }
 
     search() {
-        if (!isNaN(this.stockCount) && this.stockCount > 0) {
-            this.stockCount = Math.floor(this.stockCount);
+        if (!isNaN(this.count) && this.count > 0) {
+            this.count = Math.floor(this.count);
             switch (this.index) {
                 case "中证1000":
                     this.referStockUk = 2490646;
@@ -1640,7 +1641,7 @@ export class AIBrandComponent {
                         if (this.ukCodeList.indexOf(msg.content.ukey) != -1) {//AI看盘的实时行情
                             let ukInBestIndex, ukInWorstIndex;
                             if (this.bestStockUkMap[msg.content.ukey]) {
-                                ukInBestIndex = this.bestStockUkMap[msg.content.ukey].order;
+                                ukInBestIndex = this.bestStockUkMap[msg.content.ukey].order;                              
                             }
                             if (this.worstStockUkMap[msg.content.ukey]) {
                                 ukInWorstIndex = this.worstStockUkMap[msg.content.ukey].order;
@@ -1650,23 +1651,23 @@ export class AIBrandComponent {
                                 //超额涨幅
                                 let overStockIncrease = Number((Number(stockIncrease) - this.refStockIncrease).toFixed(2));
                                 if (ukInBestIndex != undefined) {
-                                    this.bestStockList.rows[ukInBestIndex].cells[3].Text = this.dashGetColor(overStockIncrease, "value") + "%";
-                                    this.bestStockList.rows[ukInBestIndex].cells[3].Color = this.dashGetColor(overStockIncrease, "color");
+                                    this.bestStockList.rows[ukInBestIndex].cells[4].Text = this.dashGetColor(overStockIncrease, "value") + "%";
+                                    this.bestStockList.rows[ukInBestIndex].cells[4].Color = this.dashGetColor(overStockIncrease, "color");
                                 }
                                 if (ukInWorstIndex != undefined) {
-                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Text = this.dashGetColor(overStockIncrease, "value") + "%";
-                                    this.worstStockList.rows[ukInWorstIndex].cells[3].Color = this.dashGetColor(overStockIncrease, "color");
+                                    this.worstStockList.rows[ukInWorstIndex].cells[4].Text = this.dashGetColor(overStockIncrease, "value") + "%";
+                                    this.worstStockList.rows[ukInWorstIndex].cells[4].Color = this.dashGetColor(overStockIncrease, "color");
                                 }
                             }
                             if (ukInBestIndex != undefined) {
-                                this.bestStockList.rows[ukInBestIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
-                                this.bestStockList.rows[ukInBestIndex].cells[2].Text = stockIncrease + "%";
-                                this.bestStockList.rows[ukInBestIndex].cells[2].Color = this.dashGetColor(stockIncrease, "color");
+                                this.bestStockList.rows[ukInBestIndex].cells[2].Text = (msg.content.last / 10000).toFixed(2);
+                                this.bestStockList.rows[ukInBestIndex].cells[3].Text = stockIncrease + "%";
+                                this.bestStockList.rows[ukInBestIndex].cells[3].Color = this.dashGetColor(stockIncrease, "color");
                             }
                             if (ukInWorstIndex != undefined) {
-                                this.worstStockList.rows[ukInWorstIndex].cells[1].Text = (msg.content.last / 10000).toFixed(2);
-                                this.worstStockList.rows[ukInWorstIndex].cells[2].Text = stockIncrease + "%";
-                                this.worstStockList.rows[ukInWorstIndex].cells[2].Color = this.dashGetColor(stockIncrease, "color");
+                                this.worstStockList.rows[ukInWorstIndex].cells[2].Text = (msg.content.last / 10000).toFixed(2);
+                                this.worstStockList.rows[ukInWorstIndex].cells[3].Text = stockIncrease + "%";
+                                this.worstStockList.rows[ukInWorstIndex].cells[3].Color = this.dashGetColor(stockIncrease, "color");
                             }
                         }
                     }
@@ -1692,9 +1693,11 @@ export class AIBrandComponent {
                         this.bestStockUkMap[item.ukcode].type = "best";
                         row.cells[0].Text = item.windcode;
                         row.cells[0].Color = "rgb(234, 47, 47)";
-                        row.cells[1].Text = "--";
+                        row.cells[1].Text = item.chabbr;
+                        row.cells[1].Color = "rgb(234, 47, 47)";
                         row.cells[2].Text = "--";
                         row.cells[3].Text = "--";
+                        row.cells[4].Text = "--";
                     })
                 }
 
@@ -1723,12 +1726,14 @@ export class AIBrandComponent {
                         this.worstStockUkMap[item.ukcode].type = "worst";
                         row.cells[0].Text = item.windcode;
                         row.cells[0].Color = "rgb(55, 177, 78)";
-                        row.cells[1].Text = "--";
+                        row.cells[1].Text = item.chabbr;
+                        row.cells[1].Color = "rgb(55, 177, 78)";
                         row.cells[2].Text = "--";
                         row.cells[3].Text = "--";
+                        row.cells[4].Text = "--";
                     })
                 }
-
+                
                 this.quote.send(17, 101, { topic: 3112, kwlist: this.aiCodeList });
                 if (this.selfStockXdata.indexOf(this.nowTime) === -1) {//今天非交易时间段请求当日最后一条数据
                     this.historyMarket();
@@ -1744,8 +1749,8 @@ export class AIBrandComponent {
             this.bestStockUkMap = {};
             this.worstStockUkMap = {};
             this.aiStockDate = {};
-            this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { body: { userid: this.userId, amount: this.stockCount } } }));
-            this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { body: { userid: this.userId, amount: this.stockCount } } }));
+            this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { body: { userid: this.userId, amount: this.count } } }));
+            this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { body: { userid: this.userId, amount: this.count } } }));
         } else {
             alert("参考股数必须为数字！");
         }
@@ -1823,21 +1828,21 @@ export class AIBrandComponent {
                     let referIncrease;
                     if (allStockUkMap[item.k].type == "worst") {
                         referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
-                        this.worstStockList.rows[allStockUkMap[item.k].order].cells[1].Text = nowPrice;
-                        this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Text = this.dashGetColor(increasePer, "value") + "%";
-                        this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Color = this.dashGetColor(increasePer, "color");
+                        this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
+                        this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
+                        this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increasePer, "color");
                         if (referIncrease) {
-                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(referIncrease, "color");
-                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(referIncrease, "value") + "%";
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
+                            this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                         }
                     } else if (allStockUkMap[item.k].type == "best") {
                         referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
-                        this.bestStockList.rows[allStockUkMap[item.k].order].cells[1].Text = nowPrice;
-                        this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Text = this.dashGetColor(increasePer, "value") + "%";
-                        this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Color = this.dashGetColor(increasePer, "color");
+                        this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
+                        this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
+                        this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increasePer, "color");
                         if (referIncrease) {
-                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(referIncrease, "color");
-                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(referIncrease, "value") + "%";
+                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
+                            this.bestStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                         }
                     } else if (allStockUkMap[item.k].type == "refer") {
                         this.refStock.price = nowPrice;

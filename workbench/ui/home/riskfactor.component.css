@@ -40,7 +40,7 @@
 }
 .menu{
   width: calc(100% - 14px);
-  height:45px;
+  height:40px;
   font-size:16px;
   overflow:auto;
   margin: 7px
