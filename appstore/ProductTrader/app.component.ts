@@ -7,10 +7,10 @@
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
     VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel, TabPage, ChartViewer, TextBox, DockContainer, Splitter,
-    Dialog, Section
+    Dialog, Section, EChart, MetaControl
 } from "../../base/controls/control";
 import { QtpService } from "../../base/api/services/qtp.service";
-import { AppStateCheckerRef, Environment, AppStoreService } from "../../base/api/services/backend.service";
+import { AppStateCheckerRef, Environment, AppStoreService, TranslateService } from "../../base/api/services/backend.service";
 import { ServiceType, FGS_MSG } from "../../base/api/model/qtp/message.model";
 import { QueryFundAndPosition, COMS_MSG, QueryFundAns, QueryPositionAns, SendOrder, OrderStatus, CancelOrder, CancelOrderAns } from "../../base/api/model/qtp/coms.model";
 import { DataKey } from "../../base/api/model/workbench.model";
@@ -28,7 +28,8 @@ import { ECharts } from "echarts";
     providers: [
         QtpService,
         AppStateCheckerRef,
-        AppStoreService
+        AppStoreService,
+        TranslateService
     ]
 })
 export class AppComponent implements OnInit {
@@ -49,16 +50,28 @@ export class AppComponent implements OnInit {
     fundAccountTable: DataTable;
     tradeAccountTable: DataTable;
     MarketTable: DataTable;
+    orderStatTable: DataTable;
+    finishOrderTable: DataTable;
     chart: ChartViewer;
     worker: any;
     userId: any;
     productId: any;
     acidObj: any = {};
     productNetData: any;
-    productNetChart: ECharts;
+    productNetChart: ChartViewer;
     productNet: Section;//产品净值
+    private viewContentPop: any;
+    private dd_Account: DropDown;
+    private dd_portfolioAccount: DropDown;
+    private dd_Strategy: DropDown;
+    private dd_symbol: DropDown;
+    private languageType: number = 1;　 // * 0,English 1,chinese
+    private dd_Action: any;
+    private txt_UKey: any;
+    private txt_Symbol: any;
+    private txt_Price: any;
 
-    constructor(private tradePoint: QtpService, private state: AppStateCheckerRef, private appSrv: AppStoreService) {
+    constructor(private tradePoint: QtpService, private state: AppStateCheckerRef, private appSrv: AppStoreService, private langServ: TranslateService,) {
         this.state.onInit(this, this.onReady);
         this.state.onDestory(this, this.onDestroy);
     }
@@ -130,7 +143,156 @@ export class AppComponent implements OnInit {
         this.lbl_percentProfitable.Left = 10;
         indicatorRow.addChild(this.lbl_maxRetracementRatio).addChild(this.lbl_sharpeRatio).addChild(this.lbl_percentProfitable);
         viewContentPop.addChild(indicatorRow);
+                let leftAlign = 20;
+        let rowSep = 5;
+        // this.tradePage = new TabPage("ManulTrader", this.langServ.get("ManulTrader"));
+        this.viewContentPop = new VBox();
+        this.viewContentPop.MinHeight = 500;
+        this.viewContentPop.MinWidth = 500;
 
+        let account_firrow = new HBox();
+        this.dd_Account = new DropDown();
+        this.dd_Account.Width = 120;
+        let dd_accountRtn = this.langServ.get("PortfolioID");
+        let account_Label = new Label();
+        if (this.languageType === 0)
+            account_Label.Text = "  " + dd_accountRtn + ": ";
+        else
+            account_Label.Text = "　　　" + dd_accountRtn + ": ";
+        account_Label.Left = leftAlign;
+        account_Label.Top = rowSep;
+        this.dd_Account.Title = "";
+        this.dd_Account.Top = rowSep;
+        this.dd_Account.Width = 150;
+        account_firrow.top = 10;
+        account_firrow.addChild(account_Label).addChild(this.dd_Account);
+        this.viewContentPop.addChild(account_firrow);
+
+        let strategy_secrow = new HBox();
+        let dd_strategyRtn = this.langServ.get("Strategy");
+        let strategy_label = new Label();
+        if (0 === this.languageType)
+            strategy_label.Text = " " + dd_strategyRtn + ": ";
+        else
+            strategy_label.Text = "　　　" + dd_strategyRtn + ": ";
+        strategy_label.Left = leftAlign;
+        strategy_label.Top = rowSep;
+        this.dd_Strategy = new DropDown();
+        this.dd_Strategy.Title = "";
+        this.dd_Strategy.Width = 120;
+        this.dd_Strategy.Top = rowSep;
+        this.dd_Strategy.Width = 150;
+        strategy_secrow.top = 5;
+        strategy_secrow.addChild(strategy_label).addChild(this.dd_Strategy);
+        this.viewContentPop.addChild(strategy_secrow);
+
+        let action_sevenrow = new HBox();
+        let dd_ActionRtn = this.langServ.get("Action");
+        let action_label = new Label();
+        if (0 === this.languageType)
+            action_label.Text = "   " + dd_ActionRtn + ": ";
+        else
+            action_label.Text = "　　　" + dd_ActionRtn + ": ";
+        action_label.Left = leftAlign;
+        action_label.Top = rowSep;
+        this.dd_Action = new DropDown();
+        this.dd_Action.Top = rowSep;
+        this.dd_Action.Title = "";
+        this.dd_Action.Width = 150;
+        let buyRtn = this.langServ.get("Buy");
+        let sellRtn = this.langServ.get("Sell");
+        this.dd_Action.addItem({ Text: buyRtn, Value: 0 });
+        this.dd_Action.addItem({ Text: sellRtn, Value: 1 });
+        action_sevenrow.top = 5;
+        action_sevenrow.addChild(action_label).addChild(this.dd_Action);
+        this.viewContentPop.addChild(action_sevenrow);
+
+        let symbol_thirdrow = new HBox();
+        let txt_symbolRtn = this.langServ.get("Symbol");
+        let symbol_label = new Label();
+        symbol_label.Left = leftAlign;
+        if (0 === this.languageType)
+            symbol_label.Text = "   " + txt_symbolRtn + ": ";
+        else {
+            symbol_label.Left = 10;
+            symbol_label.Text = "　　" + txt_symbolRtn + ": ";
+        }
+        symbol_label.Top = rowSep;
+        this.txt_Symbol = new MetaControl("textbox");
+        this.txt_Symbol.Top = rowSep;
+        this.txt_Symbol.Title = "";
+        this.txt_Symbol.Width = 150;
+        symbol_thirdrow.top = 5;
+        symbol_thirdrow.addChild(symbol_label).addChild(this.txt_Symbol);
+        this.viewContentPop.addChild(symbol_thirdrow);
+
+        let ukey_fourthrow = new HBox();
+        let txt_UKeyRtn = this.langServ.get("UKEY");
+        let ukey_label = new Label();
+        ukey_label.Left = leftAlign;
+        if (0 === this.languageType)
+            ukey_label.Text = "    " + txt_UKeyRtn + ": ";
+        else {
+            ukey_label.Left = 22;
+            ukey_label.Text = "　　" + txt_UKeyRtn + ": ";
+        }
+        ukey_label.Top = rowSep;
+        this.txt_UKey = new MetaControl("textbox");
+        this.txt_UKey.Top = rowSep;
+        this.txt_UKey.Title = "";
+        ukey_fourthrow.top = 5;
+        this.txt_UKey.Width = 150;
+        ukey_fourthrow.addChild(ukey_label).addChild(this.txt_UKey);
+        this.viewContentPop.addChild(ukey_fourthrow);
+
+        let price_fifthrow = new HBox();
+        let txt_PriceRtn = this.langServ.get("Price");
+        let price_label = new Label();
+        if (0 === this.languageType)
+            price_label.Text = "    " + txt_PriceRtn + ": ";
+        else
+            price_label.Text = "　　　" + txt_PriceRtn + ": ";
+        price_label.Left = leftAlign;
+        price_label.Top = rowSep;
+        this.txt_Price = new MetaControl("textbox");
+        this.txt_Price.Top = rowSep;
+        this.txt_Price.Title = "";
+        price_fifthrow.top = 5;
+        this.txt_Price.Width = 150;
+        price_fifthrow.addChild(price_label).addChild(this.txt_Price);
+        this.viewContentPop.addChild(price_fifthrow);
+
+        let volume_sixrow = new HBox();
+        let txt_VolumeRtn = this.langServ.get("Volume");
+        let volume_label = new Label();
+        if (0 === this.languageType)
+            volume_label.Text = "   " + txt_VolumeRtn + ": ";
+        else
+            volume_label.Text = "　　　" + txt_VolumeRtn + ": ";
+        volume_label.Left = leftAlign;
+        volume_label.Top = rowSep;
+        let txt_Volume = new MetaControl("textbox");
+        txt_Volume.Top = rowSep;
+        txt_Volume.Title = "";
+        txt_Volume.Width = 150;
+        volume_sixrow.top = 5;
+        volume_sixrow.addChild(volume_label).addChild(txt_Volume);
+        this.viewContentPop.addChild(volume_sixrow);
+
+        let btn_row = new HBox();
+        let btn_clear = new Button();
+        btn_clear.Left = leftAlign;
+        btn_clear.Text = this.langServ.get("Close");
+        btn_row.addChild(btn_clear);
+        let btn_submit = new Button();
+        btn_submit.Left = 50;
+        btn_submit.Text = this.langServ.get("Submit");
+        btn_clear.Class = btn_submit.Class = "primary";
+        btn_row.top = 10;
+        btn_row.left = 50;
+        btn_row.addChild(btn_submit);
+        this.viewContentPop.addChild(btn_row);
+        // this.tradePage.setContent(this.viewContentPop);
 
         let viewContent = new VBox();//非弹框内容
         let panel = new TabPanel();
@@ -169,7 +331,12 @@ export class AppComponent implements OnInit {
         this.table = new DataTable("table2");
         this.table.height = 200;
         this.table.RowIndex = false;
-        this.table.addColumn("Index", "Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
+        ["PortfolioID", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
+            "ShangHai", "ShenZhen", "BuyFrzAmt", "SellFrzAmt", "Buymargin", "SellMargin", "TotalMargin", "Fee",
+            "PositionPL", "ClosePL"].forEach(item => {
+                this.table.addColumn(this.langServ.get(item));
+            });
+        // this.table.addColumn("Index", "Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
         for (let i = 0; i <= 10; i++) {
             let row = this.table.newRow();
             row.cells[0].Text = i;
@@ -191,14 +358,43 @@ export class AppComponent implements OnInit {
 
         let productNetPage = new TabPage("productNetViewer", "净值");
         let productNetContent = new VBox();
+        this.productNet = new Section();
+        // this.productNet.content = this.createProductNetChart();
+        this.productNetChart = new ChartViewer();
+
+        this.productNetChart.setOption(this.createProductNetChart());
+        this.productNetChart.onInit = (chart: ECharts) => {
+            setTimeout(() => {
+                chart.setOption(this.createProductNetChart())
+            }, 1000);
+        };
+
+
+        productNetContent.addChild(this.productNetChart);
         productNetPage.setContent(productNetContent);
         panel.addTab(productNetPage, false);
         let orderStatPage = new TabPage("orderStatViewer", "订单状态");
         let orderStatContent = new VBox();
+        this.orderStatTable = new DataTable("table2");
+        this.orderStatTable.height = 200;
+        this.orderStatTable.RowIndex = false;
+        this.orderStatTable.addColumn("选中", "订单ID", "UKEY", "证券代码", "证券名称", "策略", "组合ID", "委托价格", "委托量", "委托时间", "买／卖", "订单状态");
+
+        // ["Check", "OrderId", "UKEY", "SymbolCode", "Symbol", "Strategy", "PortfolioID", "OrderPrice", "OrderVol", "OrderTime",
+        //     "Ask/Bid", "OrderStatus"].forEach(item => {
+        //         this.orderStatTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
+        //     });
+
+        orderStatContent.addChild(this.orderStatTable);
         orderStatPage.setContent(orderStatContent);
         panel.addTab(orderStatPage, false);
-        let finishOrderPage = new TabPage("finishOrderViewer", "完结状态");
+        let finishOrderPage = new TabPage("finishOrderViewer", "完结订单");
         let finishOrderContent = new VBox();
+        this.finishOrderTable = new DataTable("table2");
+        this.finishOrderTable.height = 200;
+        this.finishOrderTable.RowIndex = false;
+        this.finishOrderTable.addColumn( "订单ID", "UKEY", "证券代码", "证券名称", "策略", "组合ID", "委托价格", "委托量", "委托时间", "买／卖", "订单状态","成交价格", "成交量", "成交时间", "订单类型");
+        finishOrderContent.addChild(this.finishOrderTable);
         finishOrderPage.setContent(finishOrderContent);
         panel.addTab(finishOrderPage, false);
         let fundAccountPage = new TabPage("fundAccountViewer", "资金账户");
@@ -223,14 +419,7 @@ export class AppComponent implements OnInit {
         panel.addTab(tradeAccountPage, false);
         viewContent.addChild(panel);
 
-        let svHeaderRow1 = new HBox();//行
-
-
-        let btn_query = new Button();//按钮
-        btn_query.Left = 100;
-        btn_query.Text = "Query";
-        svHeaderRow1.addChild(btn_query);
-        viewContent.addChild(svHeaderRow1);
+      
 
 
 
@@ -244,12 +433,18 @@ export class AppComponent implements OnInit {
         this.txt_security.Text = '';
         this.txt_security.Left = 50;
         this.txt_security.Width = 50;
+        
         inputRow.addChild(this.txt_security);
+        let btn_query = new Button();//按钮
+        btn_query.Left = 100;
+        btn_query.Text = "Query";
+        inputRow.addChild(btn_query);
         MarketCon.addChild(inputRow);
 
         this.MarketTable = new DataTable("table2");
         this.MarketTable.RowIndex = false;
-        this.MarketTable.addColumn("1", "2", "3");
+        this.MarketTable.addColumn("挂买量", "价格","挂卖量" );
+        this.MarketTable
         // this.MarketTable.height = 200;
         this.MarketTable.align = 'center'
         for (let i = 0; i <= 10; i++) {
@@ -258,8 +453,7 @@ export class AppComponent implements OnInit {
             row.cells[1].Text = i;
         }
         this.MarketTable.onRowDBClick = (rowItem, rowIndex) => {
-            alert(rowIndex);
-            Dialog.popup(this, viewContentPop, { title: "ceshi", width: 500, height: 500 });
+            Dialog.popup(this, this.viewContentPop, { title: "下单", width: 500, height: 500 });
         }
         MarketCon.addChild(this.MarketTable);
         Market.setContent(MarketCon);
@@ -285,9 +479,9 @@ export class AppComponent implements OnInit {
         };
 
         btn_query.OnClick = () => {
-            // Dialog.popup(this, viewContentPop, { title: "ceshi", width: 500, height: 500 });
+            Dialog.popup(this, this.viewContentPop, { title: "下单",  height: 300 });
             if (this.dd_tests.SelectedItem && this.dd_tests.SelectedItem.Value && this.dd_tests.SelectedItem.Value.id !== undefined) {
-                this.chart.init();
+                // this.chart.init();
                 this.table.rows.length = 0;
                 this.worker.send({ command: "send", params: { type: 8014, data: { nId: this.dd_tests.SelectedItem.Value.id } } });
                 this.worker.send({ command: "send", params: { type: 8016, data: { nId: this.dd_tests.SelectedItem.Value.id } } });
@@ -316,10 +510,11 @@ export class AppComponent implements OnInit {
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryFundAns,
             callback: (msg) => {
-                console.log(msg)
+
                 if (msg != undefined) {
                     let ans = new QueryFundAns();
                     ans.fromBuffer(msg);
+                    console.log(ans)
                     ans.avl_amt = 0;
                 }
 
@@ -331,10 +526,10 @@ export class AppComponent implements OnInit {
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryPositionAns,
             callback: (msg) => {
-                console.log(msg)
                 if (msg != undefined) {
                     let ans = new QueryPositionAns();
                     ans.fromBuffer(msg);
+                    console.log(ans)
                     ans.avl_cre_redemp_qty = 0;
                 }
 
@@ -346,11 +541,51 @@ export class AppComponent implements OnInit {
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtBQueryOrderAns,
-            callback: (msg) => {
-                console.log(msg)
+            callback: (msg, option) => {
                 if (msg != undefined) {
-                    let ans = new OrderStatus();
-                    ans.fromBuffer(msg);
+                    let offset = 0;
+
+                    while (offset < msg.length) {
+                        let ans = new OrderStatus();
+                        offset += ans.fromBuffer(msg, offset);
+
+                        let row = this.orderStatTable.newRow();
+                        row.cells[0].Text = ans.order_ref;
+                        row.cells[1].Text = ans.ukey;
+                        row.cells[2].Text = ans.directive;
+                        row.cells[3].Text = ans.offset_flag;
+                        row.cells[4].Text = ans.hedge_flag;
+                        row.cells[5].Text = ans.execution;
+                        row.cells[6].Text = ans.order_date;
+                        row.cells[7].Text = ans.order_time;
+                        row.cells[8].Text = ans.portfolio_id;
+                        row.cells[9].Text = ans.fund_account_id;
+                        row.cells[10].Text = ans.fund_account_id;
+                        row.cells[11].Text = ans.trade_account_id;
+
+                        let rowFinish = this.finishOrderTable.newRow();
+                        rowFinish.cells[0].Text = ans.order_id;
+                        rowFinish.cells[1].Text = ans.ukey;
+                        rowFinish.cells[2].Text = "证券代码";
+                        rowFinish.cells[3].Text = "证券名称";
+                        rowFinish.cells[4].Text = ans.strategy_id;
+                        rowFinish.cells[5].Text = ans.portfolio_id;
+                        rowFinish.cells[6].Text = ans.price / 10000;
+                        rowFinish.cells[7].Text = ans.qty;
+                        rowFinish.cells[8].Text = ans.order_time;
+                        rowFinish.cells[9].Text = ans.directive;
+                        rowFinish.cells[10].Text = ans.status;
+                        rowFinish.cells[11].Text = "成交价格";
+                        rowFinish.cells[12].Text = ans.trade_qty;
+                        rowFinish.cells[13].Text = ans.trade_date + "" + ans.trade_time;
+                        rowFinish.cells[14].Text = ans.property;
+
+
+
+                        console.log(ans);
+                    }
+
+
                 }
 
 
@@ -361,10 +596,24 @@ export class AppComponent implements OnInit {
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFSendOrderAns,
             callback: (msg) => {
-                console.log(msg)
                 if (msg != undefined) {
                     let ans = new OrderStatus();
                     ans.fromBuffer(msg);
+                    
+                }
+
+
+            }
+        });
+        //撤单
+        this.tradePoint.addSlot({
+            service: ServiceType.kCOMS,
+            msgtype: COMS_MSG.kMtFCancelOrderAns,
+            callback: (msg) => {
+                if (msg != undefined) {
+                    let ans = new CancelOrderAns();
+                    ans.fromBuffer(msg);
+                    console.log(ans)
                 }
 
 
@@ -392,66 +641,78 @@ export class AppComponent implements OnInit {
             position.portfolio_id = 0;
             position.fund_account_id = parseInt(data.body[0].acid);
 
-            let QueryOrder = new OrderStatus();
-            QueryOrder.order_ref = 0;   //u8  客户端订单ID+term_id = 唯一
-            QueryOrder.ukey = 0;        //u8  Universal Key
-            QueryOrder.directive = 0;   //u4 委托指令：普通买入，普通卖出
-            QueryOrder.offset_flag = 0; //u4 开平方向：开仓、平仓、平昨、平今
-            QueryOrder.hedge_flag = 0;  //u4 投机套保标志：投机、套利、套保
-            QueryOrder.execution = 0;   //u4 执行类型： 限价0，市价
-            QueryOrder.order_time = 0;  //u8 委托时间
-            QueryOrder.portfolio_id = 0;     //u8 组合ID
-            QueryOrder.fund_account_id = data.body[0].acid;  //========u8 资金账户ID
-            QueryOrder.trade_account_id = 0; //u8 交易账户ID
+            let queryOrder = new OrderStatus();
+            queryOrder.order_ref = 0;   //u8  客户端订单ID+term_id = 唯一
+            queryOrder.ukey = 0;        //u8  Universal Key
+            queryOrder.directive = 0;   //u4 委托指令：普通买入，普通卖出
+            queryOrder.offset_flag = 0; //u4 开平方向：开仓、平仓、平昨、平今
+            queryOrder.hedge_flag = 0;  //u4 投机套保标志：投机、套利、套保
+            queryOrder.execution = 0;   //u4 执行类型： 限价0，市价
+            queryOrder.order_date = 0;  //u4 委托时间yymmdd
+            queryOrder.order_time = 0;  //u4 委托时间hhmmss
+            queryOrder.portfolio_id = 0;     //u8 组合ID
+            queryOrder.fund_account_id = data.body[0].acid;  //========u8 资金账户ID
+            queryOrder.trade_account_id = 0; //u8 交易账户ID
 
-            QueryOrder.strategy_id = 0;     //u4 策略ID
-            QueryOrder.trader_id = 0;        //u4 交易员ID
-            QueryOrder.term_id = 0;          //u4 终端ID
-            QueryOrder.qty = 0;    //8 委托数量
-            QueryOrder.price = 0;  //8 委托价格
-            QueryOrder.property = 0;        //4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
-            QueryOrder.currency = 0;        //4 报价货币币种
-            QueryOrder.algor_id = 0;		//8 策略算法ID
-            QueryOrder.reserve = 0;			//4 预留(组合offset_flag)
-            QueryOrder.order_id = 0;   //8 订单ID
+            queryOrder.strategy_id = 0;     //u4 策略ID
+            queryOrder.trader_id = 0;        //u4 交易员ID
+            queryOrder.term_id = 0;          //u4 终端ID
+            queryOrder.qty = 0;    //8 委托数量
+            queryOrder.price = 0;  //8 委托价格
+            queryOrder.property = 0;        //4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
+            queryOrder.currency = 0;        //4 报价货币币种
+            queryOrder.algor_id = 0;		//8 策略算法ID
+            queryOrder.reserve = 0;			//4 预留(组合offset_flag)
+            queryOrder.order_id = 0;   //8 订单ID
 
-            QueryOrder.cancelled_qty = 0;    //8 已撤数量
-            QueryOrder.queued_qty = 0;       //8 已确认？
-            QueryOrder.trade_qty = 0;        //8 已成交数量
-            QueryOrder.trade_amt = 0;        //8 已成交金额*10000（缺省值）
-            QueryOrder.trade_time = 0;      //8 最后成交时间
-            QueryOrder.approver_id = 0;     //4 审批人ID
-            QueryOrder.status = 0;          //4 订单状态
-            QueryOrder.ret_code = 0;        //4
-            QueryOrder.broker_sn = "";    //32 券商单号
-            QueryOrder.message = "";      //128 附带消息，如错误消息等
+            queryOrder.cancelled_qty = 0;    //8 已撤数量
+            queryOrder.queued_qty = 0;       //8 已确认？
+            queryOrder.trade_qty = 0;        //8 已成交数量
+            queryOrder.trade_amt = 0;        //8 已成交金额*10000（缺省值）
+            queryOrder.trade_time = 0;      //8 最后成交时间
+            queryOrder.approver_id = 0;     //4 审批人ID
+            queryOrder.status = 0;          //4 订单状态
+            queryOrder.ret_code = 0;        //4
+            queryOrder.broker_sn = "";    //32 券商单号
+            queryOrder.message = "";      //128 附带消息，如错误消息等
 
-            let Send = new SendOrder();
-            Send.order_ref = 0;   //u8  客户端订单ID+term_id = 唯一
-            Send.ukey = 0;        //u8  Universal Key
-            Send.directive = 0;   //u4 委托指令：普通买入，普通卖出
-            Send.offset_flag = 0; //u4 开平方向：开仓、平仓、平昨、平今
-            Send.hedge_flag = 0;  //u4 投机套保标志：投机、套利、套保
-            Send.execution = 0;   //u4 执行类型： 限价0，市价
-            Send.order_time = 0;  //u8 委托时间
-            Send.portfolio_id = 0;     //u8 组合ID
-            Send.fund_account_id = data.body[0].acid;  //u8 资金账户ID
-            Send.trade_account_id = 0; //u8 交易账户ID
+            let sendOrder = new SendOrder();
+            sendOrder.order_ref = 0;   //u8  客户端订单ID+term_id = 唯一
+            sendOrder.ukey = 0;        //u8  Universal Key
+            sendOrder.directive = 1;   //u4 委托指令：普通买入，普通卖出
+            sendOrder.offset_flag = 0; //u4 开平方向：开仓、平仓、平昨、平今
+            sendOrder.hedge_flag = 0;  //u4 投机套保标志：投机、套利、套保
+            sendOrder.execution = 0;   //u4 执行类型： 限价0，市价
+            sendOrder.order_date = 0;  //u4 委托时间yymmdd
+            sendOrder.order_time = 0;  //u4 委托时间hhmmss
+            sendOrder.portfolio_id = 0;     //u8 组合ID
+            sendOrder.fund_account_id = data.body[0].acid;  //u8 资金账户ID
+            sendOrder.trade_account_id = 0; //u8 交易账户ID
 
-            Send.strategy_id = 0;     //u4 策略ID
-            Send.trader_id = 0;        //u4 交易员ID
-            Send.term_id = 0;          //u4 终端ID
-            Send.qty = 0;    //8 委托数量
-            Send.price = 0;  //8 委托价格
-            Send.property = 0;        //4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
-            Send.currency = 0;        //4 报价货币币种
-            Send.algor_id = 0;		//8 策略算法ID
-            Send.reserve = 0;			//4 预留(组合offset_flag)
+            sendOrder.strategy_id = 0;     //u4 策略ID
+            sendOrder.trader_id = 0;        //u4 交易员ID
+            sendOrder.term_id = 0;          //u4 终端ID
+            sendOrder.qty = 0;    //8 委托数量
+            sendOrder.price = 0;  //8 委托价格
+            sendOrder.property = 0;        //4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
+            sendOrder.currency = 0;        //4 报价货币币种
+            sendOrder.algor_id = 0;		//8 策略算法ID
+            sendOrder.reserve = 0;			//4 预留(组合offset_flag)
+
+            let cancelOrder = new CancelOrder();
+            cancelOrder.order_ref = 0;
+            cancelOrder.order_ref = 0;  //u8 撤单的客户端订单编号
+            cancelOrder.order_id = 0;   //u8 撤单订单编号
+            cancelOrder.trader_id = 0;  //u8 撤单交易员ID/交易账户id
+            cancelOrder.term_id = 0;    //u4 终端ID
+            cancelOrder.order_date = 0;  //u4 撤单时间yymmdd
+            cancelOrder.order_time = 0; //u4 撤单时间hhmmss
 
             this.tradePoint.send(COMS_MSG.kMtFQueryFund, fund.toBuffer(), ServiceType.kCOMS);
             this.tradePoint.send(COMS_MSG.kMtFQueryPosition, position.toBuffer(), ServiceType.kCOMS);
-            this.tradePoint.send(COMS_MSG.kMtFQueryOrder, QueryOrder.toBuffer(), ServiceType.kCOMS);
-            this.tradePoint.send(COMS_MSG.kMtFSendOrder, QueryOrder.toBuffer(), ServiceType.kCOMS);
+            this.tradePoint.send(COMS_MSG.kMtFQueryOrder, queryOrder.toBuffer(), ServiceType.kCOMS);
+            this.tradePoint.send(COMS_MSG.kMtFSendOrder, sendOrder.toBuffer(), ServiceType.kCOMS);
+            this.tradePoint.send(COMS_MSG.kMtFCancelOrder, cancelOrder.toBuffer(), ServiceType.kCOMS);
         }, this);
 
         this.tradePoint.addSlotOfCMS("getTaacctFund", (res) => {
@@ -505,9 +766,9 @@ export class AppComponent implements OnInit {
             console.log(data);
         }, this)
         //产品净值
-        this.productNet = new Section();
-        this.productNet.content = this.createProductNetChart();
+
         // this.productNetChart.addC
+
         this.tradePoint.addSlotOfCMS("getProductNet", (msg) => {
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode != "00") {
@@ -596,7 +857,7 @@ export class AppComponent implements OnInit {
                         axisLine: {
                             lineStyle: { color: "#717171" }
                         },
-                        data: [0]
+                        data: [0, 1, 2, 3]
                     }
                 ],
                 yAxis: [
@@ -620,7 +881,7 @@ export class AppComponent implements OnInit {
                     {
                         name: "净值",
                         type: "line",
-                        data: [0],
+                        data: [0, 1, 2, 3],
                         itemStyle: {
                             normal: {
                                 color: "#2378f7"

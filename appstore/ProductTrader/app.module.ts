@@ -27,6 +27,7 @@ import {
     ActionBarComponent,
     CodeComponent,
     EChartComponent,
+    EchartsDirective,
     ButtonGroupComponent
   ],
   bootstrap: [AppComponent]

@@ -79,7 +79,7 @@ export class QueryFundAns extends Message {
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "2l1i4P14L", this);
+        return BufferUtil.format(buf, offset, "2l1i4p14L", this);
     }
 }
 
@@ -142,7 +142,7 @@ export class QueryPositionAns extends Message {
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "4l3i4P17L", this);
+        return BufferUtil.format(buf, offset, "4l3i4p17L", this);
     }
 }
 
@@ -156,7 +156,8 @@ export class SendOrder extends Message {
     offset_flag: number = 0; //u4 开平方向：开仓、平仓、平昨、平今
     hedge_flag: number = 0;  //u4 投机套保标志：投机、套利、套保
     execution: number = 0;   //u4 执行类型： 限价0，市价
-    order_time: number = 0;  //u8 委托时间
+    order_date: number = 0;  //u4 委托时间
+    order_time: number = 0;  //u4 委托时间
     portfolio_id: number = 0;     //u8 组合ID
     fund_account_id: number = 0;  //u8 资金账户ID
     trade_account_id: number = 0; //u8 交易账户ID
@@ -181,7 +182,8 @@ export class SendOrder extends Message {
         buf.writeUInt32LE(this.offset_flag, offset); offset += 4;
         buf.writeUInt32LE(this.hedge_flag, offset); offset += 4;
         buf.writeUInt32LE(this.execution, offset); offset += 4;
-        buf.writeUIntLE(this.order_time, offset, 8); offset += 8;
+        buf.writeUInt32LE(this.order_date, offset); offset += 4;
+        buf.writeUInt32LE(this.order_time, offset); offset += 4;
         buf.writeUIntLE(this.portfolio_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.fund_account_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.trade_account_id, offset, 8); offset += 8;
@@ -200,7 +202,7 @@ export class SendOrder extends Message {
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "2l4i4l3i4P2L2I1L1I4P", this);//大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "2l6i3l3i4p2L2I1L1I4p", this);//大写为int 小写为uint
     }
 };
 
@@ -215,7 +217,8 @@ export class OrderStatus extends Message {
     offset_flag: number = 0; //u4 开平方向：开仓、平仓、平昨、平今
     hedge_flag: number = 0;  //u4 投机套保标志：投机、套利、套保
     execution: number = 0;   //u4 执行类型： 限价0，市价
-    order_time: number = 0;  //u8 委托时间
+    order_date: number = 0;  //u4 委托时间
+    order_time: number = 0;  //u4 委托时间
     portfolio_id: number = 0;     //u8 组合ID
     fund_account_id: number = 0;  //u8 资金账户ID
     trade_account_id: number = 0; //u8 交易账户ID
@@ -235,7 +238,8 @@ export class OrderStatus extends Message {
     queued_qty: number = 0;       //8 已确认？
     trade_qty: number = 0;        //8 已成交数量
     trade_amt: number = 0;        //8 已成交金额*10000（缺省值）
-    trade_time: number = 0;      //8 最后成交时间
+    trade_date: number = 0;      //4 最后成交时间
+    trade_time: number = 0;      //4 最后成交时间
     approver_id: number = 0;     //4 审批人ID
     status: number = 0;          //4 订单状态
     ret_code: number = 0;        //4
@@ -251,7 +255,9 @@ export class OrderStatus extends Message {
         buf.writeUInt32LE(this.offset_flag, offset); offset += 4;
         buf.writeUInt32LE(this.hedge_flag, offset); offset += 4;
         buf.writeUInt32LE(this.execution, offset); offset += 4;
-        buf.writeUIntLE(this.order_time, offset, 8); offset += 8;
+        buf.writeUInt32LE(this.order_date, offset); offset += 4;
+        buf.writeUInt32LE(this.order_time, offset); offset += 4;
+
         buf.writeUIntLE(this.portfolio_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.fund_account_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.trade_account_id, offset, 8); offset += 8;
@@ -271,7 +277,8 @@ export class OrderStatus extends Message {
         buf.writeIntLE(this.queued_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.trade_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.trade_amt, offset, 8); offset += 8;
-        buf.writeIntLE(this.trade_time, offset, 8); offset += 8;
+        buf.writeInt32LE(this.trade_date, offset); offset += 4;
+        buf.writeInt32LE(this.trade_time, offset); offset += 4;
         buf.writeInt32LE(this.approver_id, offset); offset += 4;
         buf.writeInt32LE(this.status, offset); offset += 4;
         buf.writeInt32LE(this.ret_code, offset); offset += 8;
@@ -281,8 +288,8 @@ export class OrderStatus extends Message {
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "2l4i4l3i4P2L2I1L1I4P6L3I4P160s", this);//大写为int 小写为uint
-    }4
+        return BufferUtil.format(buf, offset, "2l6i3l3i4p2L2I1L1I4p5L5I4p160s", this);//大写为int 小写为uint
+    } 
 };
 
 export class CancelOrder extends Message {
@@ -292,7 +299,9 @@ export class CancelOrder extends Message {
     order_id: number = 0;   //u8 撤单订单编号
     trader_id: number = 0;  //u8 撤单交易员ID/交易账户id
     term_id: number = 0;    //u4 终端ID
-    order_time: number = 0; //u8 撤单时间
+    // order_time: number = 0; //u8 撤单时间
+    order_date: number = 0;  //u4 委托时间yymmdd
+    order_time: number = 0; //u4 委托时间hhmmss
 
     toBuffer(): Buffer {
         let offset = 0;
@@ -301,12 +310,14 @@ export class CancelOrder extends Message {
         buf.writeUIntLE(this.order_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.trader_id, offset, 8); offset += 8;
         buf.writeUInt32LE(this.term_id, offset); offset += 4;
-        buf.writeUIntLE(this.order_time, offset, 8); offset += 8;
+        buf.writeUInt32LE(this.order_date, offset); offset += 4;
+        buf.writeUInt32LE(this.order_time, offset); offset += 4;
+        // buf.writeUIntLE(this.order_time, offset, 8); offset += 8;
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "3l1i1l", this);//大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "3l3i4p", this);//大写为int 小写为uint
     }
 };
 
@@ -317,7 +328,9 @@ export class CancelOrderAns extends Message {
     order_id: number = 0;   //u8 撤单订单编号
     trader_id: number = 0;  //u8 撤单交易员ID/交易账户id
     term_id: number = 0;    //u4 终端ID
-    order_time: number = 0; //u8 撤单时间
+    // order_time: number = 0; //u8 撤单时间
+    order_date: number = 0;  //u4 委托时间yymmdd
+    order_time: number = 0; //u4 委托时间hhmmss
     ret_code: number = 0; // 4
     ret_msg: string = "";; // 128
 
@@ -328,13 +341,14 @@ export class CancelOrderAns extends Message {
         buf.writeUIntLE(this.order_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.trader_id, offset, 8); offset += 8;
         buf.writeUInt32LE(this.term_id, offset); offset += 4;
-        buf.writeUIntLE(this.order_time, offset, 8); offset += 8;
+        buf.writeUInt32LE(this.order_date, offset); offset += 4;
+        buf.writeUInt32LE(this.order_time, offset); offset += 4;
         buf.writeInt32LE(this.ret_code, offset); offset += 4;
         buf.write(this.ret_msg, offset, 128); offset += 128;
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "3l1i1l1I128s", this);//大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "3l3i1I128s", this);//大写为int 小写为uint
     }
 };
