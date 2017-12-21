@@ -2453,6 +2453,77 @@ export class Tile {
     data: any;
 }
 
+export class BookViewer extends VBox {
+    private lbl_code: Label;
+    private code: UCodes;
+    private timestamp: Label;
+    private table: DataTable;
+    ukey: number;
+
+    constructor(private langSrv: any) {
+        super();
+
+        this.initializeComponents();
+    }
+
+    initializeComponents() {
+        let row1 = new HBox();
+        this.lbl_code = new Label();
+        this.lbl_code.Title = this.langSrv.get("Code") + ": ";
+        this.code = new UCodes();
+        this.table = new DataTable("table2");
+        row1.addChild(this.lbl_code).addChild(this.code);
+
+        let row2 = new HBox();
+        this.timestamp = new Label();
+        this.timestamp.Title = this.langSrv.get("Timestamp") + ": ";
+        row2.addChild(this.timestamp);
+
+        this.table = new DataTable("table2");
+        this.table.RowIndex = false;
+        this.table.align = "right";
+        ["BidVol", "Price", "AskVol", "TransVol"].forEach(item => { this.table.addColumn(this.langSrv.get(item)); });
+        this.table.columns[3].hidden = true;
+
+        for (let i = 0; i < 20; ++i) {
+            let row = this.table.newRow();
+            row.cells[0].bgColor = "#247094";
+            row.cells[0].Text = "";
+            row.cells[1].Text = "0.0000";
+            row.cells[1].bgColor = "rgb(216, 212, 214)";
+            row.cells[1].Color = "#333";
+            row.cells[2].bgColor = "#ac2220";
+            row.cells[3].bgColor = "transparent";
+        }
+
+        // events
+        this.code.onChange = (item) => {
+            let len = this.table.rows.length;
+            for (let i = 0; i < len; ++i) {
+                this.table.rows[i].cells[0].Text = "";
+                this.table.rows[i].cells[1].Text = "0.0000";
+                this.table.rows[i].cells[2].Text = "";
+            }
+
+            this.ukey = item.ukey;
+        };
+
+        this.addChild(row1).addChild(row2).addChild(this.table);
+    }
+
+    set timeValue(value: string) {
+        this.timestamp.Text = value;
+    }
+
+    set codeValue(value: any) {
+        this.code.Text = value;
+    }
+
+    set onCellDBClick(value: (cell, cellIdx, rowIdx) => void) {
+        this.table.onCellDBClick = value;
+    }
+}
+
 class Slider {
     private pictures: string[];
     private curIdx: number;
@@ -2491,4 +2562,10 @@ export class Section {
 export class ListItem {
     name: string;
     value: string;
+}
+
+interface BookViewerOption {
+    codeValue: any;
+    timeValue: string;
+    ukey: number;
 }

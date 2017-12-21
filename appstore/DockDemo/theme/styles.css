@@ -73,8 +73,8 @@ usercontrol.col{
 }
 /* scroller */
 ::-webkit-scrollbar{
-    width: 5px;
-    height: 5px;
+    width: 7px;
+    height: 7px;
     /*background-color: #111a30;*/
 }
 ::-webkit-scrollbar-button {

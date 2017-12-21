@@ -52,6 +52,15 @@ export class ConfigurationBLL {
                 this._abconfigs.push(item.substr(0, idx));
             }
         });
+
+        this._bvpath = path.join(this._basedir, "..", "bookviewer");
+        this._bvconfigs = [];
+        File.readdirSync(this._bvpath).forEach(item => {
+            if (item.length > 0 && !item.startsWith("Untitled")) {
+                let idx = item.indexOf(".");
+                this._bvconfigs.push(item.substr(0, idx));
+            }
+        });
     }
 
     private _basedir: string;
@@ -75,6 +84,9 @@ export class ConfigurationBLL {
 
     private _abconfigs: string[];
     private _abpath: string;
+
+    private _bvconfigs: string[];
+    private _bvpath: string;
 
 
     private _names: any[];
@@ -364,6 +376,10 @@ export class ConfigurationBLL {
         return this._abconfigs;
     }
 
+    getBVConfigs() {
+        return this._bvconfigs;
+    }
+
     addSVConfigItem(item) {
         if (!this._svconfigs.includes(item))
             this._svconfigs.push(item);
@@ -374,6 +390,26 @@ export class ConfigurationBLL {
             if (this._svconfigs[i] === config) {
                 this._svconfigs.splice(i, 1);
                 File.unlinkSync(path.join(this._svpath, config + this.kTemplateExt));
+                break;
+            }
+        }
+    }
+
+    removeABConfigItem(config: string) {
+        for (let i = 0; i < this._abconfigs.length; ++i) {
+            if (this._abconfigs[i] === config) {
+                this._abconfigs.splice(i, 1);
+                File.unlinkSync(path.join(this._abpath, config + this.kTemplateExt));
+                break;
+            }
+        }
+    }
+
+    removeBVConfigItem(config: string) {
+        for (let i = 0; i < this._bvconfigs.length; ++i) {
+            if (this._bvconfigs[i] === config) {
+                this._bvconfigs.splice(i, 1);
+                File.unlinkSync(path.join(this._bvpath, config + this.kTemplateExt));
                 break;
             }
         }

@@ -452,10 +452,10 @@ export class File {
             { // if (bComStart) 
                 let arr = line.split(",");
                 if (arr.length > 1) {
-                    let obj = { code: arr[0], amount: parseInt(arr[1]), cash_rep: parseInt(arr[2]), rep_codes: [] };
+                    let obj = { code: arr[0], amount: parseFloat(arr[1]), cash_rep: parseInt(arr[2]), rep_codes: [] };
                     let rep_idx = 3;
                     while (arr.length > rep_idx) {
-                        obj.rep_codes.push({ code: arr[rep_idx], amount: parseInt(arr[rep_idx + 1]) });
+                        obj.rep_codes.push({ code: arr[rep_idx], amount: parseFloat(arr[rep_idx + 1]), cash_rep: parseInt(arr[rep_idx + 2]) });
                         rep_idx += 2;
                     }
 
@@ -623,3 +623,11 @@ String.prototype.lpad = function (this: String, length: number, value: string): 
 
     return primitive;
 };
+
+export function applyMixins(derivedCtor: any, baseCtors: any[]) {
+    baseCtors.forEach(baseCtor => {
+        Object.getOwnPropertyNames(baseCtor.__proto__).forEach(name => {
+            derivedCtor.__proto__[name] = baseCtor.__proto__[name];
+        });
+    });
+}
