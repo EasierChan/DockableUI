@@ -99,31 +99,43 @@ export class SimQueryComponent implements OnInit {
     }
 
     downLoad() {
-        let header = this.orderTable.columns.map(item => item.Name);
-        if(this.isDownedAll) {
-            this.getOrders().then(data => {
-                let csvData = data.data.map(row => this.getOrderRow(row).join(",")).join("\n\r");
-                this.saveCsv(csvData);
-            }).catch(err => {
-                console.info(err);
+        let path: string;
+        this.chosedPath()
+            .then((chosedPath) => {
+                path = chosedPath;
+                let header = this.orderTable.columns.map(item => item.Name);
+                if(this.isDownedAll) {
+                    return this.getOrders()
+                        .then(data => {
+                            let csvData = (data.data as any[]).map(row => this.getOrderRow(row).join(",")).join("\n\r");
+                            csvData = header.join(",") + "\n\r" + csvData;
+                            return csvData
+                        })
+                } else {
+                    let data = this.orderTable.rows.map(item => item.cells.map(cell => cell.Text) )
+                    data.unshift(header);
+                    let csvData = data.map(row => row.join(",")).join("\n\r");
+                    return Promise.resolve(csvData);
+                }
+                
             })
-        } else {
-            let rows = this.orderTable.rows.map(item => item.cells.map(cell => cell.Text) );
-            rows.unshift(header);
-            let csvData = rows.map(row => row.join(",")).join("\n\r");
-            this.saveCsv(csvData);
-        }
+            .then((csvData) => {
+                fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
+            })
+            .catch(err => console.info(err))
+
     }
 
-    saveCsv(csvData: string) {
-        electron.remote.dialog.showSaveDialog({
-            title: "另存为",
-            defaultPath: "@/order.csv",
-            buttonLabel: "",
-            filters: []
-        }, (path)=> {
-            if(path) fs.writeFile(path, csvData, () => {
-                console.info(`success write orderlist in ${path}`)
+    chosedPath(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            electron.remote.dialog.showSaveDialog({
+                title: "另存为",
+                defaultPath: "@/order.csv",
+                buttonLabel: "",
+                filters: []
+            }, (path)=> {
+                if(path) resolve(path)
+                else reject("取消保存")
             })
         })
     }
@@ -174,7 +186,6 @@ export class SimQueryComponent implements OnInit {
     }
 
     loadTable(orderList: any[]) {
-        console.log(orderList)
         orderList.forEach(order => {
             let row = this.orderTable.newRow();
             this.getOrderRow(order).forEach((value, index) => {
