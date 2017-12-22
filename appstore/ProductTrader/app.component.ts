@@ -63,7 +63,7 @@ export class AppComponent implements OnInit {
     acidObj: any = {};
     productNetData: any;
     productNetChart: ChartViewer;
-    productNet: Section;//产品净值
+    productNet: Section; // 产品净值
     private viewContentPop: any;
     private dd_Account: DropDown;
     private dd_portfolioAccount: DropDown;
@@ -100,8 +100,8 @@ export class AppComponent implements OnInit {
         this.userId = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)).user_id;
         let [addr, port] = this.appSrv.getSetting().endpoints[0].trade_addr.split(":");
 
-        console.log('userid' + this.userId);
-        console.log('this.productId:' + this.productId)
+        console.log("userid" + this.userId);
+        console.log("this.productId:" + this.productId);
 
         let leftAlign = 20;
         let rowSep = 5;
@@ -238,27 +238,44 @@ export class AppComponent implements OnInit {
         this.viewContentPop.addChild(btn_row);
         // this.tradePage.setContent(this.viewContentPop);
 
-        //非弹框内容
+        // 非弹框内容
         let viewContent = new VBox();
         let panel = new TabPanel();
-        let profitAndLossPage = new TabPage("profitAndLossPage", "盈亏");
-        let profitAndLossContent = new VBox();
-        this.profitAndLossTable = new DataTable("table2");
-        this.profitAndLossTable.height = 200;
-        this.profitAndLossTable.RowIndex = false;
-        ["UKEY", "Code", "AvgPrice(B)", "AvgPrice(S)",
-            "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
-            "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"].forEach(item => {
-                this.profitAndLossTable.addColumn(this.langServ.get(item));
-            });
-        profitAndLossContent.addChild(this.profitAndLossTable);
-        profitAndLossPage.setContent(profitAndLossContent);
-
-        panel.addTab(profitAndLossPage, false);
-        panel.setActive("profitAndLossPage");
+        // let profitAndLossPage = new TabPage("profitAndLossPage", "盈亏");
+        // let profitAndLossContent = new VBox();
+        // this.profitAndLossTable = new DataTable("table2");
+        // this.profitAndLossTable.height = 200;
+        // this.profitAndLossTable.RowIndex = false;
+        // ["UKEY", "Code", "AvgPrice(B)", "AvgPrice(S)",
+        //     "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
+        //     "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"].forEach(item => {
+        //         this.profitAndLossTable.addColumn(this.langServ.get(item));
+        //     });
+        // profitAndLossContent.addChild(this.profitAndLossTable);
+        // profitAndLossPage.setContent(profitAndLossContent);
+        // panel.addTab(profitAndLossPage, false);
+        // panel.setActive("profitAndLossPage");
 
         let positionPage = new TabPage("productPosition", "仓位");
         let positionContent = new VBox();
+        let indicatorRow = new HBox();
+        this.txt_freeriskrate = new TextBox();
+        this.txt_freeriskrate.Title = "FreeRiskRate:";
+        this.txt_freeriskrate.Text = 0.04;
+        this.txt_freeriskrate.Left = 50;
+        this.txt_freeriskrate.Width = 50;
+        indicatorRow.addChild(this.txt_freeriskrate);
+        this.lbl_maxRetracementRatio = new Label();
+        this.lbl_maxRetracementRatio.Title = "MaxDrawdown:";
+        this.lbl_maxRetracementRatio.Left = 10;
+        this.lbl_sharpeRatio = new Label();
+        this.lbl_sharpeRatio.Title = "Sharpe:";
+        this.lbl_sharpeRatio.Left = 10;
+        this.lbl_percentProfitable = new Label();
+        this.lbl_percentProfitable.Title = "Winning:";
+        this.lbl_percentProfitable.Left = 10;
+        indicatorRow.addChild(this.lbl_maxRetracementRatio).addChild(this.lbl_sharpeRatio).addChild(this.lbl_percentProfitable);
+        positionContent.addChild(indicatorRow);
         this.positionTable = new DataTable("table2");
         this.positionTable.height = 200;
         this.positionTable.RowIndex = false;
@@ -271,6 +288,7 @@ export class AppComponent implements OnInit {
 
         positionPage.setContent(positionContent);
         panel.addTab(positionPage, false);
+        panel.setActive("productPosition");
 
         let productNetPage = new TabPage("productNetViewer", "净值");
         let productNetContent = new VBox();
@@ -279,7 +297,7 @@ export class AppComponent implements OnInit {
         this.productNetChart.setOption(this.createProductNetChart());
         this.productNetChart.onInit = (chart: ECharts) => {
             setTimeout(() => {
-                chart.setOption(this.createProductNetChart())
+                chart.setOption(this.createProductNetChart());
             }, 1000);
         };
         productNetContent.addChild(this.productNetChart);
@@ -343,7 +361,7 @@ export class AppComponent implements OnInit {
         let bookviewer = new BookViewer(this.langServ);
         bookviewer.onCellDBClick = (item, cellIndex, rowIndex) => {
             Dialog.popup(this, this.viewContentPop, { title: "下单",  height: 300 });
-        }
+        };
         // bookviewer.
         bookviewer.ukey;
         this.quote.send(17, 101, { topic: 3112, kwlist: bookviewer.ukey });
@@ -357,9 +375,7 @@ export class AppComponent implements OnInit {
         this.main.addChild(new Splitter("h", this.main));
         this.main.addChild(new DockContainer(this.main, "h", null, window.innerHeight - window.innerHeight / 2).addChild(panel2));
 
-
-        
-        //建立TCP链接
+        // 建立TCP链接
         this.registryListeners();
         this.tradePoint.connect(parseInt(port), addr);
 
@@ -371,29 +387,29 @@ export class AppComponent implements OnInit {
 
         };
 
-        //数据请求
-        //查询资金
+        // 数据请求
+        // 查询资金
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryFundAns,
             callback: (msg) => {
-                if (msg != undefined) {
+                if (msg !== undefined) {
                     let ans = new QueryFundAns();
                     ans.fromBuffer(msg);
-                    console.log(ans)
+                    console.log(ans);
                     ans.avl_amt = 0;
                 }
             }
         });
-        //查询仓位
+        // 查询仓位
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryPositionAns,
             callback: (msg) => {
-                if (msg != undefined) {
+                if (msg !== undefined) {
                     let ans = new QueryPositionAns();
                     ans.fromBuffer(msg);
-                    console.log(ans)
+                    console.log(ans);
                     ans.avl_cre_redemp_qty = 0;
                 }
 
@@ -401,12 +417,12 @@ export class AppComponent implements OnInit {
             }
         });
 
-        //查询订单
+        // 查询订单
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtBQueryOrderAns,
             callback: (msg, option) => {
-                if (msg != undefined) {
+                if (msg !== undefined) {
                     let offset = 0;
 
                     while (offset < msg.length) {
@@ -454,12 +470,12 @@ export class AppComponent implements OnInit {
 
             }
         });
-        //下单
+        // 下单
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFSendOrderAns,
             callback: (msg) => {
-                if (msg != undefined) {
+                if (msg !== undefined) {
                     let ans = new OrderStatus();
                     ans.fromBuffer(msg);
 
@@ -468,15 +484,15 @@ export class AppComponent implements OnInit {
 
             }
         });
-        //撤单
+        // 撤单
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFCancelOrderAns,
             callback: (msg) => {
-                if (msg != undefined) {
+                if (msg !== undefined) {
                     let ans = new CancelOrderAns();
                     ans.fromBuffer(msg);
-                    console.log(ans)
+                    console.log(ans);
                 }
 
 
@@ -484,9 +500,9 @@ export class AppComponent implements OnInit {
         });
 
         this.tradePoint.addSlotOfCMS("getAssetAccount", (res) => {
-            //查询资产账户
+            // 查询资产账户
             let data = JSON.parse(res.toString());
-            if (data.msret.msgcode != "00") {
+            if (data.msret.msgcode !== "00") {
                 alert("getAssetAccount:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
@@ -494,8 +510,8 @@ export class AppComponent implements OnInit {
 
             data.body.forEach((item, index) => {
                 this.acidObj[item.acid] = item.acname;
-            })
-            console.log(this.acidObj)
+            });
+            console.log(this.acidObj);
             let fund = new QueryFundAndPosition();
             fund.portfolio_id = 0;
             fund.fund_account_id = parseInt(data.body[0].acid);
@@ -505,71 +521,71 @@ export class AppComponent implements OnInit {
             position.fund_account_id = parseInt(data.body[0].acid);
 
             let queryOrder = new OrderStatus();
-            queryOrder.order_ref = 0;   //u8  客户端订单ID+term_id = 唯一
-            queryOrder.ukey = 0;        //u8  Universal Key
-            queryOrder.directive = 0;   //u4 委托指令：普通买入，普通卖出
-            queryOrder.offset_flag = 0; //u4 开平方向：开仓、平仓、平昨、平今
-            queryOrder.hedge_flag = 0;  //u4 投机套保标志：投机、套利、套保
-            queryOrder.execution = 0;   //u4 执行类型： 限价0，市价
-            queryOrder.order_date = 0;  //u4 委托时间yymmdd
-            queryOrder.order_time = 0;  //u4 委托时间hhmmss
-            queryOrder.portfolio_id = 0;     //u8 组合ID
-            queryOrder.fund_account_id = data.body[0].acid;  //========u8 资金账户ID
-            queryOrder.trade_account_id = 0; //u8 交易账户ID
+            queryOrder.order_ref = 0;   // u8  客户端订单ID+term_id = 唯一
+            queryOrder.ukey = 0;        // u8  Universal Key
+            queryOrder.directive = 0;   // u4 委托指令：普通买入，普通卖出
+            queryOrder.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
+            queryOrder.hedge_flag = 0;  // u4 投机套保标志：投机、套利、套保
+            queryOrder.execution = 0;   // u4 执行类型： 限价0，市价
+            queryOrder.order_date = 0;  // u4 委托时间yymmdd
+            queryOrder.order_time = 0;  // u4 委托时间hhmmss
+            queryOrder.portfolio_id = 0;     // u8 组合ID
+            queryOrder.fund_account_id = data.body[0].acid;  // ========u8 资金账户ID
+            queryOrder.trade_account_id = 0; // u8 交易账户ID
 
-            queryOrder.strategy_id = 0;     //u4 策略ID
-            queryOrder.trader_id = 0;        //u4 交易员ID
-            queryOrder.term_id = 0;          //u4 终端ID
-            queryOrder.qty = 0;    //8 委托数量
-            queryOrder.price = 0;  //8 委托价格
-            queryOrder.property = 0;        //4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
-            queryOrder.currency = 0;        //4 报价货币币种
-            queryOrder.algor_id = 0;		//8 策略算法ID
-            queryOrder.reserve = 0;			//4 预留(组合offset_flag)
-            queryOrder.order_id = 0;   //8 订单ID
+            queryOrder.strategy_id = 0;     // u4 策略ID
+            queryOrder.trader_id = 0;        // u4 交易员ID
+            queryOrder.term_id = 0;          // u4 终端ID
+            queryOrder.qty = 0;    // 8 委托数量
+            queryOrder.price = 0;  // 8 委托价格
+            queryOrder.property = 0;        // 4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
+            queryOrder.currency = 0;        // 4 报价货币币种
+            queryOrder.algor_id = 0;		// 8 策略算法ID
+            queryOrder.reserve = 0;			// 4 预留(组合offset_flag)
+            queryOrder.order_id = 0;   // 8 订单ID
 
-            queryOrder.cancelled_qty = 0;    //8 已撤数量
-            queryOrder.queued_qty = 0;       //8 已确认？
-            queryOrder.trade_qty = 0;        //8 已成交数量
-            queryOrder.trade_amt = 0;        //8 已成交金额*10000（缺省值）
-            queryOrder.trade_time = 0;      //8 最后成交时间
-            queryOrder.approver_id = 0;     //4 审批人ID
-            queryOrder.status = 0;          //4 订单状态
-            queryOrder.ret_code = 0;        //4
-            queryOrder.broker_sn = "";    //32 券商单号
-            queryOrder.message = "";      //128 附带消息，如错误消息等
+            queryOrder.cancelled_qty = 0;    // 8 已撤数量
+            queryOrder.queued_qty = 0;       // 8 已确认？
+            queryOrder.trade_qty = 0;        // 8 已成交数量
+            queryOrder.trade_amt = 0;        // 8 已成交金额*10000（缺省值）
+            queryOrder.trade_time = 0;      // 8 最后成交时间
+            queryOrder.approver_id = 0;     // 4 审批人ID
+            queryOrder.status = 0;          // 4 订单状态
+            queryOrder.ret_code = 0;        // 4
+            queryOrder.broker_sn = "";    // 32 券商单号
+            queryOrder.message = "";      // 128 附带消息，如错误消息等
 
             let sendOrder = new SendOrder();
-            sendOrder.order_ref = 0;   //u8  客户端订单ID+term_id = 唯一
-            sendOrder.ukey = 0;        //u8  Universal Key
-            sendOrder.directive = 1;   //u4 委托指令：普通买入，普通卖出
-            sendOrder.offset_flag = 0; //u4 开平方向：开仓、平仓、平昨、平今
-            sendOrder.hedge_flag = 0;  //u4 投机套保标志：投机、套利、套保
-            sendOrder.execution = 0;   //u4 执行类型： 限价0，市价
-            sendOrder.order_date = 0;  //u4 委托时间yymmdd
-            sendOrder.order_time = 0;  //u4 委托时间hhmmss
-            sendOrder.portfolio_id = 0;     //u8 组合ID
-            sendOrder.fund_account_id = data.body[0].acid;  //u8 资金账户ID
-            sendOrder.trade_account_id = 0; //u8 交易账户ID
+            sendOrder.order_ref = 0;   // u8  客户端订单ID+term_id = 唯一
+            sendOrder.ukey = 0;        // u8  Universal Key
+            sendOrder.directive = 1;   // u4 委托指令：普通买入，普通卖出
+            sendOrder.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
+            sendOrder.hedge_flag = 0;  // u4 投机套保标志：投机、套利、套保
+            sendOrder.execution = 0;   // u4 执行类型： 限价0，市价
+            sendOrder.order_date = 0;  // u4 委托时间yymmdd
+            sendOrder.order_time = 0;  // u4 委托时间hhmmss
+            sendOrder.portfolio_id = 0;     // u8 组合ID
+            sendOrder.fund_account_id = data.body[0].acid;  // u8 资金账户ID
+            sendOrder.trade_account_id = 0; // u8 交易账户ID
 
-            sendOrder.strategy_id = 0;     //u4 策略ID
-            sendOrder.trader_id = 0;        //u4 交易员ID
-            sendOrder.term_id = 0;          //u4 终端ID
-            sendOrder.qty = 0;    //8 委托数量
-            sendOrder.price = 0;  //8 委托价格
-            sendOrder.property = 0;        //4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
-            sendOrder.currency = 0;        //4 报价货币币种
-            sendOrder.algor_id = 0;		//8 策略算法ID
-            sendOrder.reserve = 0;			//4 预留(组合offset_flag)
+            sendOrder.strategy_id = 0;     // u4 策略ID
+            sendOrder.trader_id = 0;        // u4 交易员ID
+            sendOrder.term_id = 0;          // u4 终端ID
+            sendOrder.qty = 0;    // 8 委托数量
+            sendOrder.price = 0;  // 8 委托价格
+            sendOrder.property = 0;        // 4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
+            sendOrder.currency = 0;        // 4 报价货币币种
+            sendOrder.algor_id = 0;		// 8 策略算法ID
+            sendOrder.reserve = 0;			// 4 预留(组合offset_flag)
 
             let cancelOrder = new CancelOrder();
             cancelOrder.order_ref = 0;
-            cancelOrder.order_ref = 0;  //u8 撤单的客户端订单编号
-            cancelOrder.order_id = 0;   //u8 撤单订单编号
-            cancelOrder.trader_id = 0;  //u8 撤单交易员ID/交易账户id
-            cancelOrder.term_id = 0;    //u4 终端ID
-            cancelOrder.order_date = 0;  //u4 撤单时间yymmdd
-            cancelOrder.order_time = 0; //u4 撤单时间hhmmss
+            cancelOrder.order_ref = 0;  // u8 撤单的客户端订单编号
+            cancelOrder.order_id = 0;   // u8 撤单订单编号
+            cancelOrder.trader_id = 0;  // u8 撤单交易员ID/交易账户id
+            cancelOrder.term_id = 0;    // u4 终端ID
+            cancelOrder.order_date = 0;  // u4 撤单时间yymmdd
+            cancelOrder.order_time = 0; // u4 撤单时间hhmmss
 
             this.tradePoint.send(COMS_MSG.kMtFQueryFund, fund.toBuffer(), ServiceType.kCOMS);
             this.tradePoint.send(COMS_MSG.kMtFQueryPosition, position.toBuffer(), ServiceType.kCOMS);
@@ -579,9 +595,9 @@ export class AppComponent implements OnInit {
         }, this);
 
         this.tradePoint.addSlotOfCMS("getTaacctFund", (res) => {
-            //查询资产账户资金
+            // 查询资产账户资金
             let data = JSON.parse(res.toString());
-            if (data.msret.msgcode != "00") {
+            if (data.msret.msgcode !== "00") {
                 alert("getTaacctFund:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
@@ -601,14 +617,14 @@ export class AppComponent implements OnInit {
                 row.cells[11].Text = item.fee;
                 row.cells[12].Text = item.hold_closepl;
 
-            })
+            });
 
             console.log(data);
-        }, this)
+        }, this);
         this.tradePoint.addSlotOfCMS("getTradeAccount", (res) => {
-            //查询交易账户
+            // 查询交易账户
             let data = JSON.parse(res.toString());
-            if (data.msret.msgcode != "00") {
+            if (data.msret.msgcode !== "00") {
                 alert("getTradeAccount:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
@@ -625,16 +641,16 @@ export class AppComponent implements OnInit {
                 row.cells[7].Text = item.creator;
                 row.cells[8].Text = item.createtime;
                 row.cells[9].Text = item.stat;
-            })
+            });
             console.log(data);
-        }, this)
-        //产品净值
+        }, this);
+        // 产品净值
 
         // this.productNetChart.addC
 
         this.tradePoint.addSlotOfCMS("getProductNet", (msg) => {
             let data = JSON.parse(msg.toString());
-            if (data.msret.msgcode != "00") {
+            if (data.msret.msgcode !== "00") {
                 alert("getProductNet:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
@@ -642,28 +658,28 @@ export class AppComponent implements OnInit {
                 title: { text: "" },
                 xAxis: [{ data: [] }],
                 series: [{ data: [] }]
-            }
+            };
             this.productNetData = data.body;
             if (this.productNetData.length > 0) {
                 this.productNetData.forEach(item => {
                     productNetChangeOpt.xAxis[0].data.push(item.trday);
                     productNetChangeOpt.title.text = item.caname;
                     productNetChangeOpt.series[0].data.push(item.netvalue);
-                })
+                });
                 // this.productNetChart.setOption(productNetChangeOpt);
             }
-        }, this)
+        }, this);
 
-         //接实时行情
+         // 接实时行情
         this.quote.addSlot({
             appid: 17,
             packid: 110,
             callback: (msg) => {
-                console.log(msg)
+                console.log(msg);
                 let buyArr = msg.bid_price;
                 let sellArr = msg.ask_price;
             }
-        })
+        });
 
     }
 
@@ -675,7 +691,7 @@ export class AppComponent implements OnInit {
                 console.info(msg.toString());
                 this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.productId } } }));
                 this.tradePoint.sendToCMS("getAssetAccount", JSON.stringify({
-                    //查询资产账户
+                    // 查询资产账户
                     data: {
                         head: { userid: this.userId },
                         body: { caid: this.productId }
@@ -683,14 +699,14 @@ export class AppComponent implements OnInit {
                 }));
 
                 this.tradePoint.sendToCMS("getTaacctFund", JSON.stringify({
-                    //查询资产账户资金
+                    // 查询资产账户资金
                     data: {
                         head: { userid: this.userId },
                         body: { caid: this.productId }
                     }
                 }));
                 this.tradePoint.sendToCMS("getTradeAccount", JSON.stringify({
-                    //查询交易账户
+                    // 查询交易账户
                     data: {
                         head: { userid: this.userId },
                         body: { caid: this.productId }
@@ -699,7 +715,7 @@ export class AppComponent implements OnInit {
 
 
             }
-        })
+        });
     }
 
     createProductNetChart() {
@@ -769,6 +785,6 @@ export class AppComponent implements OnInit {
                     }
                 ]
             }
-        }
+        };
     }
 }
