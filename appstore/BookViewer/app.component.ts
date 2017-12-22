@@ -12,7 +12,6 @@ import {
 import {
     DockContainer, BookViewer, Splitter
 } from "../../base/controls/control";
-import { IP20Service } from "../../base/api/services/ip20.service";
 import {
     AppStateCheckerRef, SecuMasterService, TranslateService,
     AppStoreService
@@ -28,7 +27,6 @@ import {
     selector: "body",
     templateUrl: "../DockDemo/app.component.html",
     providers: [
-        IP20Service,
         AppStateCheckerRef,
         TranslateService,
         SecuMasterService
@@ -46,7 +44,7 @@ export class AppComponent implements OnInit, OnDestroy {
     layout: any;
     main: DockContainer;
 
-    constructor(private quote: IP20Service, private state: AppStateCheckerRef,
+    constructor(private state: AppStateCheckerRef,
         private secuinfo: SecuMasterService, private langSrv: TranslateService) {
         this.state.onInit(this, this.onReady);
         this.state.onResize(this, this.onResize);
@@ -85,41 +83,6 @@ export class AppComponent implements OnInit, OnDestroy {
         });
     }
 
-    loginTGW(afterLogin?: Function) {
-        let timestamp: Date = new Date();
-        let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
-            ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
-            ("0" + timestamp.getSeconds()).slice(-2) + ("0" + timestamp.getMilliseconds()).slice(-2);
-        let loginObj = { "cellid": "1", "userid": "8.999", "password": "88888", "termid": "12.345", "conlvl": 2, "clienttm": stimestamp };
-        this.quote.addSlot(
-            {
-                appid: 17,
-                packid: 43,
-                callback: msg => {
-                    console.info(`quote ans=>${msg}`);
-                    if (afterLogin)
-                        afterLogin.call(this);
-
-                    if (this.quoteHeart !== null) {
-                        clearInterval(this.quoteHeart);
-                        this.quoteHeart = null;
-                    }
-
-                    this.quoteHeart = setInterval(() => {
-                        this.quote.send(17, 0, {});
-                    }, 60000);
-                }
-            }, {
-                appid: 17,
-                packid: 120,
-                callback: msg => {
-                    console.info(msg);
-                }
-            });
-
-        this.quote.send(17, 41, loginObj);
-    }
-
     ngOnInit() {
         this.name = this.option.name || "";
         this.ukeys = this.option.ukeys || [];
@@ -146,24 +109,7 @@ export class AppComponent implements OnInit, OnDestroy {
             ]
         };
 
-        this.kwlist = [];
-        this.loginTGW(null);
-        this.registerListeners();
         this.initializeComponents();
-        this.quote.connect(this.option.port, this.option.host);
-    }
-
-    registerListeners() {
-        this.quote.addSlot({
-            appid: 17,
-            packid: 110,
-            callback: (msg) => {
-                if (!this.kwlist.includes(msg.content.ukey)) {
-                    console.error(`unexpected marketdata ukey=${msg.content.ukey}, support ${this.kwlist}`);
-                    return;
-                }
-            }
-        });
     }
 
     save() {

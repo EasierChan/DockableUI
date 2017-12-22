@@ -2459,10 +2459,12 @@ export class BookViewer extends VBox {
     private timestamp: Label;
     private table: DataTable;
     ukey: number;
+    private wsQuote: WebSocket;
 
     constructor(private langSrv: any) {
         super();
 
+        this.wsQuote = new WebSocket("ws://127.0.0.1:10068");
         this.initializeComponents();
     }
 
@@ -2506,6 +2508,7 @@ export class BookViewer extends VBox {
             }
 
             this.ukey = item.ukey;
+            this.wsQuote.send([this.ukey]);
         };
 
         this.addChild(row1).addChild(row2).addChild(this.table);
