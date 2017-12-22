@@ -7,10 +7,11 @@
 import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
 import {
     VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel, TabPage, ChartViewer, TextBox, DockContainer, Splitter,
-    Dialog, Section, EChart, MetaControl
+    Dialog, Section, EChart, MetaControl, BookViewer
 } from "../../base/controls/control";
 import { QtpService } from "../../base/api/services/qtp.service";
-import { AppStateCheckerRef, Environment, AppStoreService, TranslateService } from "../../base/api/services/backend.service";
+import { IP20Service } from "../../base/api/services/ip20.service";
+import { AppStateCheckerRef, Environment, AppStoreService, TranslateService, SecuMasterService } from "../../base/api/services/backend.service";
 import { ServiceType, FGS_MSG } from "../../base/api/model/qtp/message.model";
 import { QueryFundAndPosition, COMS_MSG, QueryFundAns, QueryPositionAns, SendOrder, OrderStatus, CancelOrder, CancelOrderAns } from "../../base/api/model/qtp/coms.model";
 import { DataKey } from "../../base/api/model/workbench.model";
@@ -29,7 +30,9 @@ import { ECharts } from "echarts";
         QtpService,
         AppStateCheckerRef,
         AppStoreService,
-        TranslateService
+        TranslateService,
+        SecuMasterService,
+        IP20Service
     ]
 })
 export class AppComponent implements OnInit {
@@ -46,12 +49,13 @@ export class AppComponent implements OnInit {
     txt_pagesize: TextBox;
     txt_pageidx: TextBox;
     lbl_pagecount: Label;
-    table: DataTable;
+    positionTable: DataTable;
     fundAccountTable: DataTable;
     tradeAccountTable: DataTable;
     MarketTable: DataTable;
     orderStatTable: DataTable;
     finishOrderTable: DataTable;
+    profitAndLossTable: DataTable;
     chart: ChartViewer;
     worker: any;
     userId: any;
@@ -71,7 +75,8 @@ export class AppComponent implements OnInit {
     private txt_Symbol: any;
     private txt_Price: any;
 
-    constructor(private tradePoint: QtpService, private state: AppStateCheckerRef, private appSrv: AppStoreService, private langServ: TranslateService,) {
+    constructor(private tradePoint: QtpService, private state: AppStateCheckerRef, private secuinfo: SecuMasterService,
+        private appSrv: AppStoreService, private langServ: TranslateService, private quote: IP20Service ) {
         this.state.onInit(this, this.onReady);
         this.state.onDestory(this, this.onDestroy);
     }
@@ -84,6 +89,12 @@ export class AppComponent implements OnInit {
 
     onDestroy() {
     }
+    onResize(event: any) {
+        // minus 10 to remove the window's border.
+        this.main.reallocSize(event.currentTarget.document.body.clientWidth - 10, event.currentTarget.document.body.clientHeight - 27);
+        // this.ref.detectChanges();
+    }
+
 
     ngOnInit() {
         this.userId = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)).user_id;
@@ -92,58 +103,7 @@ export class AppComponent implements OnInit {
         console.log('userid' + this.userId);
         console.log('this.productId:' + this.productId)
 
-
-        let viewContentPop = new VBox();//弹框内容
-
-        this.dd_tests = new DropDown();//下拉框
-        this.dd_tests.Title = "Tests:";
-        this.dd_tests.Left = 50;
-        this.dd_tests.addItem({ Text: "--all--", Value: undefined });
-        this.dd_tests.addItem({ Text: ServiceType.kCMS, Value: undefined });
-        this.dd_tests.addItem({ Text: ServiceType.kCOMS, Value: undefined });
-
-        let popRow1 = new HBox();//行
-        popRow1.addChild(this.dd_tests);
-        let lbl_mode = new Label();//文字快
-        lbl_mode.Title = "Mode:";
-        lbl_mode.Left = 10;
-        lbl_mode.Width = 80;
-        popRow1.addChild(lbl_mode);
-        let lbl_speed = new Label();
-        lbl_speed.Title = "Speed:";
-        lbl_speed.Left = 10;
-        lbl_speed.Width = 80;
-        popRow1.addChild(lbl_speed);
-        let lbl_duration = new Label();
-        lbl_duration.Title = "Duration:";
-        lbl_duration.Left = 10;
-        popRow1.addChild(lbl_duration);
-        let lbl_tick = new Label();
-        lbl_tick.Title = "Tick:";
-        lbl_tick.Left = 10;
-        lbl_tick.Width = 80;
-        popRow1.addChild(lbl_tick);
-        viewContentPop.addChild(popRow1);
-
-        let indicatorRow = new HBox();
-        this.txt_freeriskrate = new TextBox();
-        this.txt_freeriskrate.Title = "FreeRiskRate:";
-        this.txt_freeriskrate.Text = 0.04;
-        this.txt_freeriskrate.Left = 50;
-        this.txt_freeriskrate.Width = 50;
-        indicatorRow.addChild(this.txt_freeriskrate);
-        this.lbl_maxRetracementRatio = new Label();
-        this.lbl_maxRetracementRatio.Title = "MaxDrawdown:";
-        this.lbl_maxRetracementRatio.Left = 10;
-        this.lbl_sharpeRatio = new Label();
-        this.lbl_sharpeRatio.Title = "Sharpe:";
-        this.lbl_sharpeRatio.Left = 10;
-        this.lbl_percentProfitable = new Label();
-        this.lbl_percentProfitable.Title = "Winning:";
-        this.lbl_percentProfitable.Left = 10;
-        indicatorRow.addChild(this.lbl_maxRetracementRatio).addChild(this.lbl_sharpeRatio).addChild(this.lbl_percentProfitable);
-        viewContentPop.addChild(indicatorRow);
-                let leftAlign = 20;
+        let leftAlign = 20;
         let rowSep = 5;
         // this.tradePage = new TabPage("ManulTrader", this.langServ.get("ManulTrader"));
         this.viewContentPop = new VBox();
@@ -153,7 +113,7 @@ export class AppComponent implements OnInit {
         let account_firrow = new HBox();
         this.dd_Account = new DropDown();
         this.dd_Account.Width = 120;
-        let dd_accountRtn = this.langServ.get("PortfolioID");
+        let dd_accountRtn = this.langServ.get("Account");
         let account_Label = new Label();
         if (this.languageType === 0)
             account_Label.Text = "  " + dd_accountRtn + ": ";
@@ -168,23 +128,7 @@ export class AppComponent implements OnInit {
         account_firrow.addChild(account_Label).addChild(this.dd_Account);
         this.viewContentPop.addChild(account_firrow);
 
-        let strategy_secrow = new HBox();
-        let dd_strategyRtn = this.langServ.get("Strategy");
-        let strategy_label = new Label();
-        if (0 === this.languageType)
-            strategy_label.Text = " " + dd_strategyRtn + ": ";
-        else
-            strategy_label.Text = "　　　" + dd_strategyRtn + ": ";
-        strategy_label.Left = leftAlign;
-        strategy_label.Top = rowSep;
-        this.dd_Strategy = new DropDown();
-        this.dd_Strategy.Title = "";
-        this.dd_Strategy.Width = 120;
-        this.dd_Strategy.Top = rowSep;
-        this.dd_Strategy.Width = 150;
-        strategy_secrow.top = 5;
-        strategy_secrow.addChild(strategy_label).addChild(this.dd_Strategy);
-        this.viewContentPop.addChild(strategy_secrow);
+
 
         let action_sevenrow = new HBox();
         let dd_ActionRtn = this.langServ.get("Action");
@@ -294,132 +238,101 @@ export class AppComponent implements OnInit {
         this.viewContentPop.addChild(btn_row);
         // this.tradePage.setContent(this.viewContentPop);
 
-        let viewContent = new VBox();//非弹框内容
+        //非弹框内容
+        let viewContent = new VBox();
         let panel = new TabPanel();
         let profitAndLossPage = new TabPage("profitAndLossPage", "盈亏");
-
-        let detailContent = new HBox();
-        detailContent.height = 500;
-        let pagination = new HBox();
-        pagination.align = "center";
-        this.txt_pagesize = new TextBox();
-        this.txt_pagesize.Left = 100;
-        this.txt_pagesize.Title = "页面大小:";
-        this.txt_pagesize.Text = 20;
-        this.txt_pagesize.Width = 30;
-        this.txt_pagesize.onChange = () => {
-            this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: 0, end: parseInt(this.txt_pagesize.Text) } });
-        };
-        this.txt_pageidx = new TextBox();//分页
-        this.txt_pageidx = new TextBox();
-        this.txt_pageidx.Title = ",第";
-        this.txt_pageidx.Text = 1;
-        this.txt_pageidx.Width = 30;
-        this.txt_pageidx.onChange = () => {
-            let idx = parseInt(this.txt_pageidx.Text);
-            let size = parseInt(this.txt_pagesize.Text);
-
-            if (idx > 0) {
-                this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: size * (idx - 1), end: size * idx } });
-            }
-        };
-
-        this.lbl_pagecount = new Label();
-        this.lbl_pagecount.Text = "页";
-        pagination.addChild(this.txt_pagesize).addChild(this.txt_pageidx).addChild(this.lbl_pagecount);
-        detailContent.addChild(pagination);
-        this.table = new DataTable("table2");
-        this.table.height = 200;
-        this.table.RowIndex = false;
-        ["PortfolioID", "Secucategory", "TotalAmount", "AvlAmount", "FrzAmount", "Date", "Currency",
-            "ShangHai", "ShenZhen", "BuyFrzAmt", "SellFrzAmt", "Buymargin", "SellMargin", "TotalMargin", "Fee",
-            "PositionPL", "ClosePL"].forEach(item => {
-                this.table.addColumn(this.langServ.get(item));
+        let profitAndLossContent = new VBox();
+        this.profitAndLossTable = new DataTable("table2");
+        this.profitAndLossTable.height = 200;
+        this.profitAndLossTable.RowIndex = false;
+        ["UKEY", "Code", "AvgPrice(B)", "AvgPrice(S)",
+            "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
+            "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"].forEach(item => {
+                this.profitAndLossTable.addColumn(this.langServ.get(item));
             });
-        // this.table.addColumn("Index", "Orderid", "Date", "Account", "Innercode", "Status", "Time", "OrderPrice", "OrderVol", "DealPrice", "DealVol", "DealAmt", "B/S");
-        for (let i = 0; i <= 10; i++) {
-            let row = this.table.newRow();
-            row.cells[0].Text = i;
-            row.cells[1].Text = i;
-        }
+        profitAndLossContent.addChild(this.profitAndLossTable);
+        profitAndLossPage.setContent(profitAndLossContent);
 
-
-        detailContent.addChild(this.table);
-        profitAndLossPage.setContent(detailContent);
         panel.addTab(profitAndLossPage, false);
         panel.setActive("profitAndLossPage");
+
         let positionPage = new TabPage("productPosition", "仓位");
-        let positionContent = new HBox();
-        positionContent.height = 500;
-        positionContent.addChild(this.table);
+        let positionContent = new VBox();
+        this.positionTable = new DataTable("table2");
+        this.positionTable.height = 200;
+        this.positionTable.RowIndex = false;
+        ["secucategory", "UKEY", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
+            "TotalCost", "TodayOpen", "AvgPrice", "Type"].forEach(item => {
+                this.positionTable.addColumn(this.langServ.get(item));
+            });
+
+        positionContent.addChild(this.positionTable);
+
         positionPage.setContent(positionContent);
         panel.addTab(positionPage, false);
-        // panel.setActive("OrderDetail");
 
         let productNetPage = new TabPage("productNetViewer", "净值");
         let productNetContent = new VBox();
         this.productNet = new Section();
-        // this.productNet.content = this.createProductNetChart();
         this.productNetChart = new ChartViewer();
-
         this.productNetChart.setOption(this.createProductNetChart());
         this.productNetChart.onInit = (chart: ECharts) => {
             setTimeout(() => {
                 chart.setOption(this.createProductNetChart())
             }, 1000);
         };
-
-
         productNetContent.addChild(this.productNetChart);
         productNetPage.setContent(productNetContent);
         panel.addTab(productNetPage, false);
+
         let orderStatPage = new TabPage("orderStatViewer", "订单状态");
         let orderStatContent = new VBox();
         this.orderStatTable = new DataTable("table2");
         this.orderStatTable.height = 200;
         this.orderStatTable.RowIndex = false;
-        this.orderStatTable.addColumn("选中", "订单ID", "UKEY", "证券代码", "证券名称", "策略", "组合ID", "委托价格", "委托量", "委托时间", "买／卖", "订单状态");
-
-        // ["Check", "OrderId", "UKEY", "SymbolCode", "Symbol", "Strategy", "PortfolioID", "OrderPrice", "OrderVol", "OrderTime",
-        //     "Ask/Bid", "OrderStatus"].forEach(item => {
-        //         this.orderStatTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
-        //     });
-
+        ["Check", "OrderId", "UKEY", "SymbolCode", "Symbol", "OrderPrice", "OrderVol", "OrderTime",
+            "Ask/Bid", "OrderStatus"].forEach(item => {
+                this.orderStatTable.addColumn(this.langServ.get(item));
+            });
         orderStatContent.addChild(this.orderStatTable);
         orderStatPage.setContent(orderStatContent);
         panel.addTab(orderStatPage, false);
+
         let finishOrderPage = new TabPage("finishOrderViewer", "完结订单");
         let finishOrderContent = new VBox();
         this.finishOrderTable = new DataTable("table2");
         this.finishOrderTable.height = 200;
         this.finishOrderTable.RowIndex = false;
-        this.finishOrderTable.addColumn( "订单ID", "UKEY", "证券代码", "证券名称", "策略", "组合ID", "委托价格", "委托量", "委托时间", "买／卖", "订单状态","成交价格", "成交量", "成交时间", "订单类型");
+        ["OrderId", "UKEY", "SymbolCode", "Symbol", "OrderPrice", "OrderVol", "OrderTime",
+            "Ask/Bid", "OrderStatus", "DonePrice", "DoneVol", "DoneTime", "OrderType"].forEach(item => {
+                this.finishOrderTable.addColumn(this.langServ.get(item));
+            });
         finishOrderContent.addChild(this.finishOrderTable);
         finishOrderPage.setContent(finishOrderContent);
         panel.addTab(finishOrderPage, false);
+
         let fundAccountPage = new TabPage("fundAccountViewer", "资金账户");
         let fundAccountContent = new VBox();
         this.fundAccountTable = new DataTable("table2");
         this.fundAccountTable.height = 200;
         this.fundAccountTable.RowIndex = false;
         this.fundAccountTable.addColumn("Index", "币种", "出金", "入金", "资金余额", "交易可用金额", "交易可用金额", "可用融资余额", "融资金额", "融券金额", "总保证金", "买保证金", "卖保证金", "手续费", "持仓平仓盈亏");
-
         fundAccountContent.addChild(this.fundAccountTable);
         fundAccountPage.setContent(fundAccountContent);
         panel.addTab(fundAccountPage, false);
+
         let tradeAccountPage = new TabPage("tradeAccountViewer", "交易账户");
         let tradeAccountContent = new VBox();
         this.tradeAccountTable = new DataTable("table2");
         this.tradeAccountTable.height = 200;
         this.tradeAccountTable.RowIndex = false;
         this.tradeAccountTable.addColumn("资金账户名称", "市场ID", "对冲标志", "交易编码", "交易账户名称", "币种", "通道id", "创建者", "创建时间", "状态");
-
         tradeAccountContent.addChild(this.tradeAccountTable);
         tradeAccountPage.setContent(tradeAccountContent);
         panel.addTab(tradeAccountPage, false);
-        viewContent.addChild(panel);
 
-      
+        viewContent.addChild(panel);
 
 
 
@@ -427,35 +340,14 @@ export class AppComponent implements OnInit {
         let MarketCon = new VBox();
         MarketCon.MinHeight = 200;
         let panel2 = new TabPanel();
-        let inputRow = new HBox();
-        this.txt_security = new TextBox();
-        this.txt_security.Title = "股票代码:";
-        this.txt_security.Text = '';
-        this.txt_security.Left = 50;
-        this.txt_security.Width = 50;
-        
-        inputRow.addChild(this.txt_security);
-        let btn_query = new Button();//按钮
-        btn_query.Left = 100;
-        btn_query.Text = "Query";
-        inputRow.addChild(btn_query);
-        MarketCon.addChild(inputRow);
-
-        this.MarketTable = new DataTable("table2");
-        this.MarketTable.RowIndex = false;
-        this.MarketTable.addColumn("挂买量", "价格","挂卖量" );
-        this.MarketTable
-        // this.MarketTable.height = 200;
-        this.MarketTable.align = 'center'
-        for (let i = 0; i <= 10; i++) {
-            let row = this.MarketTable.newRow();
-            row.cells[0].Text = '2' + i;
-            row.cells[1].Text = i;
+        let bookviewer = new BookViewer(this.langServ);
+        bookviewer.onCellDBClick = (item, cellIndex, rowIndex) => {
+            Dialog.popup(this, this.viewContentPop, { title: "下单",  height: 300 });
         }
-        this.MarketTable.onRowDBClick = (rowItem, rowIndex) => {
-            Dialog.popup(this, this.viewContentPop, { title: "下单", width: 500, height: 500 });
-        }
-        MarketCon.addChild(this.MarketTable);
+        // bookviewer.
+        bookviewer.ukey;
+        this.quote.send(17, 101, { topic: 3112, kwlist: bookviewer.ukey });
+        MarketCon.addChild(bookviewer);
         Market.setContent(MarketCon);
         panel2.addTab(Market, false);
         panel2.setActive("MarketId");
@@ -466,31 +358,7 @@ export class AppComponent implements OnInit {
         this.main.addChild(new DockContainer(this.main, "h", null, window.innerHeight - window.innerHeight / 2).addChild(panel2));
 
 
-        this.dd_tests.SelectChange = () => {
-            // table.rows.length = 0;
-            if (this.dd_tests.SelectedItem && this.dd_tests.SelectedItem.Value) {
-                lbl_mode.Text = this.dd_tests.SelectedItem.Value.simlevel;
-                lbl_speed.Text = this.dd_tests.SelectedItem.Value.speed;
-                lbl_duration.Text = this.dd_tests.SelectedItem.Value.timebegin + "-" + this.dd_tests.SelectedItem.Value.timeend;
-                lbl_tick.Text = this.dd_tests.SelectedItem.Value.period.toString() + (this.dd_tests.SelectedItem.Value.unit === 0 ? " min" : " day");
-                this.table.rows.length = 0;
-                this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: 0, end: parseInt(this.txt_pagesize.Text) } });
-            }
-        };
-
-        btn_query.OnClick = () => {
-            Dialog.popup(this, this.viewContentPop, { title: "下单",  height: 300 });
-            if (this.dd_tests.SelectedItem && this.dd_tests.SelectedItem.Value && this.dd_tests.SelectedItem.Value.id !== undefined) {
-                // this.chart.init();
-                this.table.rows.length = 0;
-                this.worker.send({ command: "send", params: { type: 8014, data: { nId: this.dd_tests.SelectedItem.Value.id } } });
-                this.worker.send({ command: "send", params: { type: 8016, data: { nId: this.dd_tests.SelectedItem.Value.id } } });
-                setTimeout(() => {
-                    this.worker.send({ command: "query", params: { id: this.dd_tests.SelectedItem.Value.id, begin: 0, end: parseInt(this.txt_pagesize.Text) } });
-                }, 1000);
-            }
-        };
-
+        
         //建立TCP链接
         this.registryListeners();
         this.tradePoint.connect(parseInt(port), addr);
@@ -502,7 +370,6 @@ export class AppComponent implements OnInit {
         this.tradePoint.onClose = () => {
 
         };
-        // this.userId = Number(this.appSrv.getUserProfile().username);
 
         //数据请求
         //查询资金
@@ -510,15 +377,12 @@ export class AppComponent implements OnInit {
             service: ServiceType.kCOMS,
             msgtype: COMS_MSG.kMtFQueryFundAns,
             callback: (msg) => {
-
                 if (msg != undefined) {
                     let ans = new QueryFundAns();
                     ans.fromBuffer(msg);
                     console.log(ans)
                     ans.avl_amt = 0;
                 }
-
-
             }
         });
         //查询仓位
@@ -568,7 +432,6 @@ export class AppComponent implements OnInit {
                         rowFinish.cells[1].Text = ans.ukey;
                         rowFinish.cells[2].Text = "证券代码";
                         rowFinish.cells[3].Text = "证券名称";
-                        rowFinish.cells[4].Text = ans.strategy_id;
                         rowFinish.cells[5].Text = ans.portfolio_id;
                         rowFinish.cells[6].Text = ans.price / 10000;
                         rowFinish.cells[7].Text = ans.qty;
@@ -599,7 +462,7 @@ export class AppComponent implements OnInit {
                 if (msg != undefined) {
                     let ans = new OrderStatus();
                     ans.fromBuffer(msg);
-                    
+
                 }
 
 
@@ -790,6 +653,17 @@ export class AppComponent implements OnInit {
                 // this.productNetChart.setOption(productNetChangeOpt);
             }
         }, this)
+
+         //接实时行情
+        this.quote.addSlot({
+            appid: 17,
+            packid: 110,
+            callback: (msg) => {
+                console.log(msg)
+                let buyArr = msg.bid_price;
+                let sellArr = msg.ask_price;
+            }
+        })
 
     }
 

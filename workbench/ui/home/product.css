@@ -1,0 +1,52 @@
+.productModule{
+    position: relative;
+    flex: 1;
+}
+.pageTit{
+    font-size: 1.5em;
+    line-height: 1.5;
+    color: #f3f3f3;
+    margin-left: 5px;
+}
+.pageTit .font{
+    margin-left: 5px;
+}
+.btn{
+    padding: 3px 7px;
+    margin-left: 30px;
+}
+.listCon{
+    position: absolute;
+    top: 30px;
+    bottom: 20px;
+    left: 0;
+    right: 10px;
+    overflow-y: auto;
+}
+.listCon .productCon{
+    background: #101727;
+    padding: 10px;
+    margin: 10px 0;
+}
+.producAnalysis .fontCon{
+    text-align: left;
+    /*background: rgba(132, 138, 152, 0.14);*/
+    padding: 8px;
+    font-size: 10px;
+    display: inline-block;
+}
+
+
+.producAnalysis .fontCon .value .num{
+    font-size: 24px;
+    color: #f3c239;
+}
+.producAnalysis .fontCon:nth-of-type(2) .value .num{
+    color: #f77749;
+}
+.producAnalysis .fontCon:nth-of-type(3) .value .num{
+    color: #25bf7c;
+}
+.producAnalysis .fontCon:nth-of-type(4) .value .num{
+    color: #ff5564;
+}
