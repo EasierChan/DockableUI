@@ -14,7 +14,7 @@ import {
     AppStoreService, ChildProcess, Http, ULogger,
     Environment, SecuMasterService, TranslateService
 } from "../../base/api/services/backend.service";
-import { QtpService, QuoteService, TradeService } from "../bll/services";
+import { QtpService, QuoteService } from "../bll/services";
 import { ConfigurationBLL } from "../bll/strategy.server";
 import { DataSet } from "./home/common";
 
@@ -30,7 +30,6 @@ import { FGS_MSG, SSGW_MSG, ServiceType } from "../../base/api/model";
     styleUrls: ["app.component.css"],
     providers: [
         QtpService,
-        TradeService,
         QuoteService,
         AppStoreService,
         SecuMasterService,

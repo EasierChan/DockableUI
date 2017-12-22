@@ -21,12 +21,19 @@ export class QuoteDal {
     start(port, host) {
         this.wsServer = new WebSocket.Server({ port: 10068 });
         this.wsServer.on("connection", (client: any, req) => {
+            console.info(`new client`);
             this.clients.push(client);
 
             client.on("message", (ukeyList) => {
-                client.ukeys = _.union(client.ukes || [], ukeyList);
-                this.kwlist = _.union(this.kwlist, ukeyList);
+                let ukeys = JSON.parse(ukeyList);
+                client.ukeys = _.union(client.ukeys || [], ukeys);
+                this.kwlist = _.union(this.kwlist, ukeys);
                 this.quotePoint.send(17, 101, { topic: 3112, kwlist: this.kwlist });
+            });
+
+            client.on("close", () => {
+                console.info(`client close`);
+                this.clients.splice(this.clients.indexOf(client), 1);
             });
         });
 
@@ -79,7 +86,9 @@ export class QuoteDal {
 
     publish(ukey: number, content: any) {
         this.clients.forEach(client => {
-            if (client.ukeys && client.ukeys.includes(ukey)) client.send(content);
+            if ((client as WebSocket).readyState === WebSocket.OPEN) {
+                if (client.ukeys && client.ukeys.includes(ukey)) client.send(JSON.stringify(content));
+            }
         });
     }
 }

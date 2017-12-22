@@ -269,7 +269,10 @@ export class AppStore {
     }
 
     public static createQuoteDal() {
-        fork(`${__dirname}/../../dal/quote/ip20.dal.js`, [UConfig.default.endpoints[0].quote_addr]);
+        let child = fork(`${__dirname}/../../dal/quote/ip20.dal.js`, [UConfig.default.endpoints[0].quote_addr]);
+        process.on("exit", () => {
+            child.kill();
+        });
     }
 
     public static quit(): void {

@@ -2464,7 +2464,6 @@ export class BookViewer extends VBox {
     constructor(private langSrv: any) {
         super();
 
-        this.wsQuote = new WebSocket("ws://127.0.0.1:10068");
         this.initializeComponents();
     }
 
@@ -2499,7 +2498,7 @@ export class BookViewer extends VBox {
         }
 
         // events
-        this.code.onChange = (item) => {
+        this.code.OnClick = (item) => {
             let len = this.table.rows.length;
             for (let i = 0; i < len; ++i) {
                 this.table.rows[i].cells[0].Text = "";
@@ -2508,10 +2507,33 @@ export class BookViewer extends VBox {
             }
 
             this.ukey = item.ukey;
-            this.wsQuote.send([this.ukey]);
+            this.wsQuote.send(JSON.stringify([this.ukey]));
+
+            this.wsQuote.onmessage = (ev) => {
+                let mdItem = JSON.parse(ev.data);
+
+                if (this.ukey !== mdItem.ukey) return;
+
+                this.timestamp.Text = new Date(mdItem.time * 1000).format("yyyy/MM/dd HH:mm:ss");
+
+                for (let i = 0; i < 10; ++i) {
+                    this.table.rows[i + 10].cells[0].Text = mdItem.bid_volume[i] + "";
+                    this.table.rows[i + 10].cells[1].Text = (mdItem.bid_price[i] / 10000).toFixed(4);
+                    this.table.rows[9 - i].cells[2].Text = mdItem.ask_volume[i] + "";
+                    this.table.rows[9 - i].cells[1].Text = (mdItem.ask_price[i] / 10000).toFixed(4);
+                }
+            };
         };
 
         this.addChild(row1).addChild(row2).addChild(this.table);
+
+        if (this.ukey) {
+            this.wsQuote.onopen = () => {
+                this.wsQuote.send(JSON.stringify([this.ukey]));
+            };
+        }
+
+        this.wsQuote = new WebSocket("ws://127.0.0.1:10068");
     }
 
     set timeValue(value: string) {
