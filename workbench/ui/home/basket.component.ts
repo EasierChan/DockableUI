@@ -236,7 +236,9 @@ export class BasketComponent implements OnInit {
         this.changing = false;
     }
 
-    viewBasketInfo() {
+    viewBasketInfo(day?: string) {
+        if (day) this.curTrday = day;
+
         if (this.curBasketID && this.curTrday) {
             this.tradeEndPoint.sendToCMS("getBasketInstance", JSON.stringify({
                 data: {
