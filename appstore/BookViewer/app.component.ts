@@ -10,7 +10,7 @@ import {
     EventEmitter
 } from "@angular/core";
 import {
-    DockContainer, BookViewer, HBox, Splitter
+    DockContainer, BookViewer, Splitter
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
 import {
@@ -71,7 +71,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     onResize() {
-
+        // this.main.reallocSize()
     }
 
     onDestroy() {

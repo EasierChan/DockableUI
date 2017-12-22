@@ -12,7 +12,7 @@
     <div class="u-col fill u-block">
         <div class="title">
             <span>篮子信息/交易日 || {{ curBasketName }}: 
-                <select [(ngModel)]="curTrday" (change)="viewBasketInfo()">
+                <select [(ngModel)]="curTrday" (change)="viewBasketInfo(trday.value)" #trday>
                     <option *ngFor="let item of items" value="{{item.trday}}">{{ item.trday }}</option>
                 </select>
             </span>

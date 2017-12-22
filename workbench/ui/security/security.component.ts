@@ -31,6 +31,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     isStock: boolean;
     marketID: number;
     marketInfo: Section;
+    defaultItem: any;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService, private datePipe: DatePipe) {
 
@@ -221,6 +222,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.standardInfo.content.push(["交易货币", "--", "", " "]);
         this.isStock = true;
 
+        this.defaultItem = this.secuinfo.getCodeList("000001.SH");
+        this.listClick(this.defaultItem[0]);
         // 历史行情
         this.registerListener();
     }
@@ -843,7 +846,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
                     inactiveColor: "#777",
                     textStyle: {
                         color: "#fff"
-                    }
+                    },
+                    show: false
                 },
                 xAxis: {
                     data: [],
