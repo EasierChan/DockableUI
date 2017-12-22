@@ -230,6 +230,20 @@ export class StartUp implements IApplication {
                 }]
             }]
         };
+
+        switch (this._option.sstype) {
+            case "portfoliotrader":
+                // portfolio
+                (res as any).children[2].children[1].modules = ["Log", "Portfolio"];
+                break;
+            case "pairtrader":
+                // pairtrade
+                (res as any).children[2].children[1].modules = ["Log", "StatArb"];
+                break;
+            default:
+                break;
+        }
+
         return res;
     }
 
