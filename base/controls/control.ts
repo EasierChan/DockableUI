@@ -635,6 +635,14 @@ export class TabPanel extends Control {
                 page.setActive();
                 this.activeIdx = index;
                 this.activePageID = pageId;
+
+                if (page.content instanceof ComboControl) {
+                    page.content.childrens.forEach(item => {
+                        if (item instanceof DataTable) item.detectChanges();
+                    });
+                } else if (page.content instanceof DataTable) {
+                    page.content.detectChanges();
+                }
             } else {
                 page.unActive();
             }
@@ -849,6 +857,10 @@ export class ComboControl extends Control {
 
     get childrenLen() {
         return this.children.length;
+    }
+
+    get childrens() {
+        return this.children;
     }
 
     set MinHeight(value: number) {
