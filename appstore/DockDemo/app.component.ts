@@ -927,7 +927,8 @@ export class AppComponent implements OnInit {
                 File.readPCF(filenames[0]).then((basketList) => {
                     let templist = [];
                     basketList.components.forEach(item => {
-                        templist.push({ currPos: 0, ukey: parseInt(item.code), targetPos: item.amount });
+                        let codeinfo = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+                        templist.push({ currPos: 0, ukey: parseInt(codeinfo[0].InnerCode), targetPos: item.amount });
                     });
 
                     AppComponent.bgWorker.send({
@@ -1074,20 +1075,28 @@ export class AppComponent implements OnInit {
             let basketHeader = new HBox();
             let bidLevel = new Label();
             bidLevel.Title = `${this.langServ.get("BidLevel")}:`;
+            basketHeader.addChild(bidLevel);
             let askLevel = new Label();
             askLevel.Title = `${this.langServ.get("AskLevel")}:`;
+            basketHeader.addChild(askLevel);
             let orderValidTime = new Label();
             orderValidTime.Title = `${this.langServ.get("OrderValidTime")}:`;
+            basketHeader.addChild(orderValidTime);
             let maxChaseTimes = new Label();
             maxChaseTimes.Title = `${this.langServ.get("MaxChaseTimes")}:`;
+            basketHeader.addChild(maxChaseTimes);
             let beginTime = new Label();
             beginTime.Title = `${this.langServ.get("BeginTime")}:`;
+            basketHeader.addChild(beginTime);
             let endTime = new Label();
             endTime.Title = `${this.langServ.get("EndTime")}:`;
+            basketHeader.addChild(endTime);
             let interval = new Label();
             interval.Title = `${this.langServ.get("Interval")}:`;
+            basketHeader.addChild(interval);
             let mbasket_load = new Button();
             mbasket_load.Text = "导入篮子文件";
+            basketHeader.addChild(mbasket_load);
             bidLevel.Left = askLevel.Left = orderValidTime.Left = maxChaseTimes.Left = beginTime.Left = endTime.Left = interval.Left
                 = mbasket_load.Left = 20;
 
@@ -1102,27 +1111,35 @@ export class AppComponent implements OnInit {
                     File.readPCF(filenames[0]).then((basketList) => {
                         let templist = [];
                         basketList.components.forEach(item => {
-                            templist.push({ currPos: 0, ukey: parseInt(item.code), targetPos: item.amount });
+                            let codeinfo = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+                            templist.push({ currPos: 0, ukey: parseInt(codeinfo[0].InnerCode), targetPos: item.amount });
                         });
+
+                        bidLevel.Text = basketList.params["BidLevel"];
+                        askLevel.Text = basketList.params["AskLevel"];
+                        orderValidTime.Text = basketList.params["OrderValidTime"];
+                        maxChaseTimes.Text = basketList.params["MaxChaseTimes"];
+                        beginTime.Text = basketList.params["BeginTime"];
+                        endTime.Text = basketList.params["EndTime"];
+                        interval.Text = basketList.params["Interval"];
 
                         AppComponent.bgWorker.send({
                             command: "ss-send", params: { type: "multibasket-fp", data: { account: account, params: basketList.params, list: templist } }
                         });
 
                         templist = null;
-                        this.portfolioCount.Text = 0;
                     });
                 }, [{ name: "bkt", extensions: ["bkt"] }]);
             };
-            // this.basketTable = new DataTable("table2");
-            // ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
-            //     "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
-            //     "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].
-            //     forEach(col => {
-            //         this.basketTable.addColumn(this.langServ.get(col));
-            //     });
+            this.basketTable = new DataTable("table2");
+            ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+                "WorkingQty", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
+                "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].
+                forEach(col => {
+                    this.basketTable.addColumn(this.langServ.get(col));
+                });
             let basketContent = new VBox();
-            basketContent.addChild(basketHeader).addChild(this.portfolioTable);
+            basketContent.addChild(basketHeader).addChild(this.basketTable);
             basketPage.setContent(basketContent);
         }
 
@@ -2192,6 +2209,61 @@ export class AppComponent implements OnInit {
         }
     }
 
+    updateBasketExt(data: any) {
+        if (data[0].count === 0) {
+            this.basketTable.rows.length = 0;
+            return;
+        }
+
+        let count = data[0].count;
+        let row: DataTableRow;
+
+        for (let iData = 0; iData < count; ++iData) {
+            row = this.basketTable.rows.find(item => {
+                return item.cells[0].Data === data[0].data[iData].UKey;
+            });
+
+            if (row === undefined) {
+                row = this.basketTable.newRow();
+                let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[0].data[iData].UKey);
+                row.cells[0].Type = "plaintext";
+                row.cells[0].Data = data[0].data[iData].UKey;
+                row.cells[0].Text = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuCode : "unknown";
+                row.cells[1].Text = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuAbbr : "unknown";
+                row.cells[9].Text = "Normal";
+                row.cells[9].Data = data[0].data[iData].Flag;
+                // this.setTradingFlag(row, row.cells[9].Data);
+            }
+
+            row.cells[2].Text = data[0].data[iData].InitPos;
+            row.cells[3].Text = data[0].data[iData].TgtPos;
+            row.cells[4].Text = data[0].data[iData].CurrPos;
+            row.cells[5].Text = data[0].data[iData].Diff;
+            row.cells[6].Text = data[0].data[iData].Traded;
+            row.cells[7].Text = data[0].data[iData].Percentage / 100 + "%";
+            row.cells[8].Text = data[0].data[iData].WorkingVol;
+
+            row.cells[10].Text = data[0].data[iData].PreClose / 10000;
+            row.cells[11].Text = data[0].data[iData].LastPrice / 10000;
+            row.cells[12].Text = data[0].data[iData].BidSize;
+            row.cells[13].Text = data[0].data[iData].BidPrice / 10000;
+            row.cells[14].Text = data[0].data[iData].AskSize;
+            row.cells[15].Text = data[0].data[iData].AskPrice / 10000;
+            row.cells[16].Text = data[0].data[iData].AvgBuyPrice / 10000;
+            row.cells[17].Text = data[0].data[iData].AvgSellPrice / 10000;
+            row.cells[18].Text = data[0].data[iData].PreValue / 10000;
+            row.cells[19].Text = data[0].data[iData].ValueCon / 10000;
+            row.cells[20].Text = data[0].data[iData].DayPnLCon / 10000;
+            row.cells[21].Text = data[0].data[iData].ONPnLCon / 10000;
+
+            if (row.cells[9].Data === data[0].data[iData].Flag)
+                continue;
+
+            row.cells[9].Data = data[0].data[iData].Flag;
+            // this.setTradingFlag(row, row.cells[9].Data);
+        }
+    }
+
     setTradingFlag(row: DataTableRow, flag: number) {
         // 0 check value ,10,11 disable,12 value, row backcolor
         switch (flag) {
@@ -2535,6 +2607,9 @@ export class AppComponent implements OnInit {
                             break;
                         case 5021:
                             this.updateBasketPosition(data.content.data);
+                            break;
+                        case 5031:
+                            this.updateBasketExt(data.content.data);
                             break;
                         case 5024:
                             this.showPortfolioSummary(data.content.data);

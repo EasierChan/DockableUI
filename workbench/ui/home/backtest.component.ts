@@ -193,11 +193,12 @@ export class BacktestComponent implements OnInit {
             tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
+            this.ref.detectChanges();
         };
 
         this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
             this.strategyArea.getTile(config.appid).title = config.chname;
-            this.ref.detectChanges();
+            this.strategyArea.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
@@ -205,6 +206,8 @@ export class BacktestComponent implements OnInit {
             if (tile !== null) {
                 tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             }
+
+            this.ref.detectChanges();
         };
         // strategy status
         this.appsrv.onUpdateApp(this.updateApp, this);

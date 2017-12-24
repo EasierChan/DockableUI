@@ -2453,6 +2453,10 @@ export class TileArea extends Control {
     get items(): Tile[] {
         return this.dataSource.items;
     }
+
+    detectChanges() {
+        this.dataSource.detectChanges();
+    }
 }
 
 export class Tile {

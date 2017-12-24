@@ -239,7 +239,7 @@ export class StartUp implements IApplication {
                 (res as any).children[2].children[1].modules.push("StatArb");
                 break;
             case "baskettrader":
-                (res as any).chidlren[2].children[1].modules.push("MultiBasket");
+                (res as any).children[2].children[1].modules.push("MultiBasket");
             default:
                 break;
         }

@@ -359,6 +359,7 @@ export class StrategyDealer {
                 console.info(msg);
                 msgArr.push(msg);
                 break;
+            case 5031:
             case 5021:
                 count = content.readUInt32LE(offset); offset += 4;
                 let account = content.readUIntLE(offset, 8); offset += 8;
@@ -459,10 +460,10 @@ export class StrategyDealer {
                 offset += FpHead.len;
 
                 let twapParam = new TWAPParameter();
-                twapParam.bid_level = params.data.params["BidLevel"] ? parseInt(params.data.params["BidLevel"]) : -1;
-                twapParam.ask_level = params.data.params["AskLevel"] ? parseInt(params.data.params["AskLevel"]) : 1;
+                twapParam.bid_level = params.data.params["BidLevel"] ? parseInt(params.data.params["BidLevel"]) : 0;
+                twapParam.ask_level = params.data.params["AskLevel"] ? parseInt(params.data.params["AskLevel"]) : 0;
                 twapParam.order_valid_time = params.data.params["OrderValidTime"] ? parseInt(params.data.params["OrderValidTime"]) : 0;
-                twapParam.max_chase_time = params.data.params["MaxChaseTime"] ? parseInt(params.data.params["MaxChaseTime"]) : 0;
+                twapParam.max_chase_time = params.data.params["MaxChaseTimes"] ? parseInt(params.data.params["MaxChaseTimes"]) : 0;
                 twapParam.begin_time = params.data.params["BeginTime"] ? parseInt(params.data.params["BeginTime"]) : 0;
                 twapParam.end_time = params.data.params["EndTime"] ? parseInt(params.data.params["EndTime"]) : 0;
                 twapParam.interval = params.data.params["Interval"] ? parseInt(params.data.params["Interval"]) : 0;
@@ -681,6 +682,10 @@ export class StrategyDealer {
 
         header = new Header();
         header.type = 5021;
+        registerMsg.headers.push(header);
+
+        header = new Header();
+        header.type = 5031;
         registerMsg.headers.push(header);
 
         this.sendQtp({ type: 2998, subtype: 0, body: registerMsg.toBuffer() });
