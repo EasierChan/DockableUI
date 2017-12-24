@@ -68,6 +68,7 @@ export class BasketComponent implements OnInit {
             });
 
             this.basketCount = this.basketsTable.rows.length;
+            this.basketsTable.detectChanges();
         });
 
         this.tradeEndPoint.addSlotOfCMS("getBasketTradingDay", (data) => {
@@ -206,7 +207,7 @@ export class BasketComponent implements OnInit {
                 ++BasketComponent.reqsn;
             }
         } else {
-            for (let i = 0; i < this.basketsTable.rows.length;) {
+            for (let i = 0; i < this.basketsTable.rows.length; ) {
                 if (this.basketsTable.rows[i].cells[0].Text) {
                     this.tradeEndPoint.sendToCMS("deleteBasketInfo", JSON.stringify({
                         data: {

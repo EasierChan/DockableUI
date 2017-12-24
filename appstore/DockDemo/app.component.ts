@@ -66,6 +66,7 @@ export class AppComponent implements OnInit {
     private commentTable: DataTable;
     private configTable: DataTable;
     private gatewayTable: DataTable;
+    private basketTable: DataTable;
 
     // profittable textbox
     private totalpnLabel: MetaControl;
@@ -665,17 +666,10 @@ export class AppComponent implements OnInit {
         this.sellamountLabel.Text = "0";
         statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
         this.statarbTable = new DataTable("table2");
-        let statarbTablearr: string[] = ["Symbol", "InnerCode", "Change(%)", "Position",
-            "Trade", "Amount", "StrategyID", "DiffQty", "SymbolCode"];
-        let statarbTableRtnarr: string[] = [];
-        let statarbTableTitleLen = statarbTablearr.length;
-        for (let i = 0; i < statarbTableTitleLen; ++i) {
-            let statarbRtn = this.langServ.get(statarbTablearr[i]);
-            statarbTableRtnarr.push(statarbRtn);
-        }
-        statarbTableRtnarr.forEach(item => {
-            this.statarbTable.addColumn2(new DataTableColumn(item, false, true));
-        });
+        ["Symbol", "InnerCode", "Change(%)", "Position",
+            "Trade", "Amount", "StrategyID", "DiffQty", "SymbolCode"].forEach(item => {
+                this.statarbTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
+            });
 
         this.statarbTable.columnConfigurable = true;
         let statarbContent = new VBox();
@@ -831,9 +825,6 @@ export class AppComponent implements OnInit {
         this.portfolioSellOffset.addItem({ Text: "-10", Value: "-10" });
         this.portfolioSellOffset.SelectedItem = this.portfolioSellOffset.Items[10];
 
-        // this.allChk = new CheckBox(); this.allChk.Width = 30;
-        // this.allChk.Title = " " + this.langServ.getTranslateInfo("All");
-        // this.allChk.Text = false; this.allChk.Left = 22;
         let allbuyChk = new CheckBox(); allbuyChk.Width = 30;
         allbuyChk.Title = " " + this.langServ.get("All-Buy");
         allbuyChk.Text = false; allbuyChk.Left = 20;
@@ -925,7 +916,7 @@ export class AppComponent implements OnInit {
 
         btn_load.OnClick = () => {
             let readself = this;
-            let account: number = parseInt(AppComponent.self.dd_portfolioAccount.SelectedItem.Text);
+            let account: number = parseInt(this.dd_portfolioAccount.SelectedItem.Text);
             AppComponent.bgWorker.send({ command: "ss-send", params: { type: "account-position-load", account: account } });
 
             MessageBox.openFileDialog("Select CSV", (filenames) => {
@@ -949,28 +940,25 @@ export class AppComponent implements OnInit {
             }, [{ name: "bkt", extensions: ["bkt"] }]);
         };
 
-        // this.allChk.OnClick = () => {
-        //     this.changeItems(0, !this.allChk.Text);
-        // };
-        allbuyChk.OnClick = () => {
-            this.changeItems(1, !allbuyChk.Text);
-        };
-        allsellChk.OnClick = () => {
-            this.changeItems(2, !allsellChk.Text);
-        };
+        allbuyChk.OnClick = () => { this.changeItems(1, !allbuyChk.Text); };
+        allsellChk.OnClick = () => { this.changeItems(2, !allsellChk.Text); };
+
         this.range.OnClick = () => {
             let rateVal = this.range.Text;
             this.rateText.Text = rateVal;
             this.changeSingleQty(rateVal);
         };
+
         this.rateText.OnInput = () => {
             let getrateText = this.range.Text = this.rateText.Text;
             let rtn = this.TestingInput(getrateText + "");
+
             if (!rtn) {
                 this.range.Text = this.rateText.Text = 0;
                 this.changeSingleQty(0);
                 return;
             }
+
             if (parseInt(getrateText) > 100) {
                 MessageBox.show("warning", "Input Error!", "input value shold be less than 100");
                 this.range.Text = this.rateText.Text = 100;
@@ -982,7 +970,6 @@ export class AppComponent implements OnInit {
         };
 
         btn_sendSel.OnClick = () => {
-
             let askPriceLevel = this.portfolioBuyCom.SelectedItem.Value;
             let bidPriceLevel = this.portfolioSellCom.SelectedItem.Value;
             let askOffset = this.portfolioBUyOffset.SelectedItem.Value;
@@ -1004,7 +991,7 @@ export class AppComponent implements OnInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: {
                     type: "order-fp", data: {
-                        account: AppComponent.self.dd_portfolioAccount.SelectedItem.Text,
+                        account: this.dd_portfolioAccount.SelectedItem.Text,
                         askPriceLevel: askPriceLevel,
                         bidPriceLevel: bidPriceLevel,
                         askOffset: askOffset,
@@ -1014,15 +1001,16 @@ export class AppComponent implements OnInit {
                 }
             });
         };
+
         btn_cancelSel.OnClick = () => { // 5005
-            let selectArr = AppComponent.self.getSelectedPortfolioItem();
+            let selectArr = this.getSelectedPortfolioItem();
             if (selectArr.length < 1)
                 return;
 
             AppComponent.bgWorker.send({
                 command: "ss-send", params: {
                     type: "cancel-fp", data: {
-                        account: AppComponent.self.dd_portfolioAccount.SelectedItem.Text,
+                        account: this.dd_portfolioAccount.SelectedItem.Text,
                         ukeys: selectArr
                     }
                 }
@@ -1031,8 +1019,6 @@ export class AppComponent implements OnInit {
         let portfolioContent = new VBox();
         portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
         this.portfolioPage.setContent(portfolioContent);
-
-
 
         this.profitPage = new TabPage("Profit", this.langServ.get("Profit"));
         this.pageMap["Profit"] = this.profitPage;
@@ -1069,23 +1055,74 @@ export class AppComponent implements OnInit {
         reqbtn.Text = this.langServ.get("Req");
         profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
         this.profitTable = new DataTable("table2");
-        let profittableArr: string[] = ["UKEY", "Code", "PortfolioID", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
+        ["UKEY", "Code", "PortfolioID", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
             "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
-            "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"];
-        let profitTableTittleLen = profittableArr.length;
-        let profitTableRtnArr: string[] = [];
-        for (let i = 0; i < profitTableTittleLen; ++i) {
-            profitTableRtnArr.push(this.langServ.get(profittableArr[i]));
-        }
-        profitTableRtnArr.forEach(item => {
-            this.profitTable.addColumn(item);
-        });
+            "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"]
+            .forEach(item => {
+                this.profitTable.addColumn(this.langServ.get(item));
+            });
         this.profitTable.columnConfigurable = true;
         let profitContent = new VBox();
         profitContent.addChild(profitHeader);
         profitContent.addChild(this.profitTable);
         this.profitPage.setContent(profitContent);
         reqbtn.OnClick = () => { AppComponent.bgWorker.send({ command: "ss-send", params: { type: "getProfitInfo", data: "" } }); };
+
+        { // basket page
+            let basketPage = new TabPage("MultiBasket", this.langServ.get("MultiBasket"));
+            this.pageMap["MultiBasket"] = basketPage;
+            let basketHeader = new HBox();
+            let bidLevel = new Label();
+            bidLevel.Title = `${this.langServ.get("BidLevel")}:`;
+            let askLevel = new Label();
+            askLevel.Title = `${this.langServ.get("AskLevel")}:`;
+            let orderValidTime = new Label();
+            orderValidTime.Title = `${this.langServ.get("OrderValidTime")}:`;
+            let maxChaseTimes = new Label();
+            maxChaseTimes.Title = `${this.langServ.get("MaxChaseTimes")}:`;
+            let beginTime = new Label();
+            beginTime.Title = `${this.langServ.get("BeginTime")}:`;
+            let endTime = new Label();
+            endTime.Title = `${this.langServ.get("EndTime")}:`;
+            let interval = new Label();
+            interval.Title = `${this.langServ.get("Interval")}:`;
+            let btn_load = new Button();
+            btn_load.Text = "导入篮子文件";
+            btn_load.OnClick = () => {
+                MessageBox.openFileDialog("导入篮子文件", (filenames) => {
+                    let account: number = parseInt(this.dd_portfolioAccount.SelectedItem.Text);
+                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "account-position-load", account: account } });
+                    // console.log(filenames);
+                    if (filenames === undefined || filenames.length < 1)
+                        return;
+
+                    File.readPCF(filenames[0]).then((basketList) => {
+                        let templist = [];
+                        basketList.components.forEach(item => {
+                            templist.push({ currPos: 0, ukey: parseInt(item.code), targetPos: item.amount });
+                        });
+
+                        AppComponent.bgWorker.send({
+                            command: "ss-send", params: { type: "multibasket-fp", data: { account: account, params: basketList.params, list: templist } }
+                        });
+
+                        templist = null;
+                        this.portfolioCount.Text = 0;
+                    });
+                }, [{ name: "bkt", extensions: ["bkt"] }]);
+            };
+            this.basketTable = new DataTable("table2");
+            ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+                "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
+                "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].
+                forEach(col => {
+                    this.basketTable.addColumn(this.langServ.get(col));
+                });
+            let basketContent = new VBox();
+            basketContent.addChild(basketHeader).addChild(this.basketTable);
+            basketPage.setContent(basketContent);
+        }
+
 
         this.onStrategyTableInit();
         this.loadLayout();
@@ -1939,7 +1976,7 @@ export class AppComponent implements OnInit {
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
-                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function(cell) {
+                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function (cell) {
                         cell.Class = "warning";
                     };
                     this.strategyTable.columns[offset + idx].key = item.key;

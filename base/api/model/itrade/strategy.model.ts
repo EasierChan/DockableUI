@@ -863,6 +863,36 @@ export class FpHead extends Message {
     }
 }
 
+export class TWAPParameter {
+    static len = 20;
+
+    bid_level: number = 0;  // int16_t
+    ask_level: number = 0; // int16_t
+    order_valid_time: number = 0; // int16_t
+    max_chase_time: number = 0; // int16_t
+    begin_time: number = 0; // int32_t
+    end_time: number = 0; // int32_t
+    interval: number = 0; // int32_t
+
+    fromBuffer(buf, offset): number {
+        return BufferUtil.format(buf, offset, "4W3I", this);
+    }
+
+    toBuffer(): Buffer {
+        let buf = Buffer.alloc(TWAPParameter.len, 0);
+        let offset = 0;
+
+        buf.writeInt16LE(this.bid_level, offset); offset += 2;
+        buf.writeInt16LE(this.ask_level, offset); offset += 2;
+        buf.writeInt16LE(this.order_valid_time, offset); offset += 2;
+        buf.writeInt16LE(this.max_chase_time, offset); offset += 2;
+        buf.writeInt32LE(this.begin_time, offset); offset += 4;
+        buf.writeInt32LE(this.end_time, offset); offset += 4;
+        buf.writeInt32LE(this.interval, offset); offset += 4;
+        return buf;
+    }
+}
+
 export enum SECU_MARKET {
     SM_EMPTY = 0,
     SM_SHFE = 10,
