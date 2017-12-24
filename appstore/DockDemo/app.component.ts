@@ -1111,15 +1111,15 @@ export class AppComponent implements OnInit {
                     });
                 }, [{ name: "bkt", extensions: ["bkt"] }]);
             };
-            this.basketTable = new DataTable("table2");
-            ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
-                "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
-                "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].
-                forEach(col => {
-                    this.basketTable.addColumn(this.langServ.get(col));
-                });
+            // this.basketTable = new DataTable("table2");
+            // ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+            //     "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
+            //     "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].
+            //     forEach(col => {
+            //         this.basketTable.addColumn(this.langServ.get(col));
+            //     });
             let basketContent = new VBox();
-            basketContent.addChild(basketHeader).addChild(this.basketTable);
+            basketContent.addChild(basketHeader).addChild(this.portfolioTable);
             basketPage.setContent(basketContent);
         }
 
