@@ -89,7 +89,10 @@ export class TcpClient {
     }
 
     dispose(): void {
-        this._buffer_Queue.remove(this._buffer_Queue.length);
+        if (this._clientSock) {
+            this._clientSock.close();
+            this._buffer_Queue.clear();
+        }
     }
 
     // static dispose(): void {

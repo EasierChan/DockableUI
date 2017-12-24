@@ -161,6 +161,7 @@ class ISONPackParser extends IP20Parser {
         if (this._intervalRead || this._intervalRead !== null) {
             clearInterval(this._intervalRead);
         }
+
         super.dispose();
     }
 }
@@ -305,6 +306,15 @@ export class IP20Service {
 
             this._messageMap[slot.appid][slot.packid] = slot.callback;
         });
+    }
+
+    dispose() {
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
+
+        this._client.dispose();
     }
 
     onConnect: Function;

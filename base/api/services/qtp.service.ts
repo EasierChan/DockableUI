@@ -391,6 +391,15 @@ export class QtpService {
         });
     }
 
+    dispose() {
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
+
+        this._client.dispose();
+    }
+
     onConnect: Function;
     onClose: Function;
 }
