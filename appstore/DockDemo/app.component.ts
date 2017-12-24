@@ -1086,9 +1086,12 @@ export class AppComponent implements OnInit {
             endTime.Title = `${this.langServ.get("EndTime")}:`;
             let interval = new Label();
             interval.Title = `${this.langServ.get("Interval")}:`;
-            let btn_load = new Button();
-            btn_load.Text = "导入篮子文件";
-            btn_load.OnClick = () => {
+            let mbasket_load = new Button();
+            mbasket_load.Text = "导入篮子文件";
+            bidLevel.Left = askLevel.Left = orderValidTime.Left = maxChaseTimes.Left = beginTime.Left = endTime.Left = interval.Left
+                = mbasket_load.Left = 20;
+
+            mbasket_load.OnClick = () => {
                 MessageBox.openFileDialog("导入篮子文件", (filenames) => {
                     let account: number = parseInt(this.dd_portfolioAccount.SelectedItem.Text);
                     AppComponent.bgWorker.send({ command: "ss-send", params: { type: "account-position-load", account: account } });
