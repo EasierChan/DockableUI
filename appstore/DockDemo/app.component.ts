@@ -1461,7 +1461,6 @@ export class AppComponent implements OnInit {
         let row = this.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = logStr;
-        // this.logTable.detectChanges();
     }
 
     addLog(data: any) {
@@ -1472,7 +1471,6 @@ export class AppComponent implements OnInit {
         let row = this.logTable.newRow();
         row.cells[0].Text = this.getCurrentTime();
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
-        this.logTable.detectChanges();
     }
 
     showComOrderRecord(data: any) {
@@ -1541,7 +1539,6 @@ export class AppComponent implements OnInit {
 
         if (hasDone) {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
-            // this.doneOrdersTable.detectChanges();
         }
     }
 
@@ -1687,7 +1684,6 @@ export class AppComponent implements OnInit {
 
         iRow = null;
         secuCategory = null;
-        // this.positionTable.detectChanges();
     }
 
     showComGWNetGuiInfo(data: any) {
@@ -1810,7 +1806,6 @@ export class AppComponent implements OnInit {
         row.cells[16].Text = obj.lastclose / 10000;
         row.cells[17].Text = obj.marketprice / 10000;
         row.cells[18].Text = obj.iopv;
-        // this.profitTable.detectChanges();
     }
 
     refreshProfitInfo(obj: any, idx: number) {
@@ -1829,8 +1824,6 @@ export class AppComponent implements OnInit {
         this.profitTable.rows[idx].cells[16].Text = obj.lastclose / 10000;
         this.profitTable.rows[idx].cells[17].Text = obj.marketprice / 10000;
         this.profitTable.rows[idx].cells[18].Text = obj.iopv;
-
-        // this.profitTable.detectChanges();
     }
 
     showComAccountPos(data: any) {
@@ -1874,8 +1867,6 @@ export class AppComponent implements OnInit {
                 row.cells[16].Text = data[i].record.ClosePL / 10000;
             }
         }
-
-        // this.accountTable.detectChanges();
     }
 
     showStrategyCfg(data: any) {
