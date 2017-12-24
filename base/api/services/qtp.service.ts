@@ -113,7 +113,7 @@ class QTPMessageParser extends QTPParser {
     private _intervalRead: NodeJS.Timer;
     constructor(private _client: TcpClient) {
         super(_client.bufferQueue);
-        this.init();
+        // this.init();
     }
 
     init(): void {
@@ -195,6 +195,8 @@ export class QtpService {
         this._parser = new QTPMessageParser(this._client);
         this._client.addParser(this._parser);
         let self = this;
+
+        this._client.on("buffer", () => { this._parser.processRead(); });
 
         this._client.on("data", msgarr => {
             let msg = msgarr[0] as QTPMessage;
