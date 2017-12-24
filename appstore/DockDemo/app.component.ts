@@ -1461,7 +1461,7 @@ export class AppComponent implements OnInit {
         let row = this.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = logStr;
-        this.logTable.detectChanges();
+        // this.logTable.detectChanges();
     }
 
     addLog(data: any) {
@@ -2593,7 +2593,6 @@ export class AppComponent implements OnInit {
                         case 2025:
                             this.showStatArbOrder(data.content);
                             break;
-                        case 5022:
                         case 2021:
                             this.showComorderstatusAndErrorInfo(data.content.data);
                             break;
@@ -2603,6 +2602,7 @@ export class AppComponent implements OnInit {
                             this.showComOrderRecord(data.content.data);
                             break;
                         case 2040:
+                        case 5022:
                             this.showLog(data.content.data);
                             break;
                         case 5021:
