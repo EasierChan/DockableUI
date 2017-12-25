@@ -50,7 +50,8 @@ export class AppComponent implements OnInit, OnDestroy {
     constructor(private tradeEndPoint: QtpService,
         private quote: QuoteService,
         private appSrv: AppStoreService,
-        private configBll: ConfigurationBLL) {
+        private configBll: ConfigurationBLL,
+        private ref: ChangeDetectorRef) {
     }
 
     get setting() {
@@ -253,6 +254,8 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     registerListeners() {
+        this.configBll.on("login", () => { this.ref.detectChanges(); });
+
         this.tradeEndPoint.addSlot(
             {
                 service: ServiceType.kFGS,

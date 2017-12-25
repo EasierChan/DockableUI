@@ -98,6 +98,7 @@ export class UserComponent implements OnInit {
                 this.tradeSrv.sendToCMS("getBasketInfo", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
 
                 this.tradeSrv.subscribe(1, [ServiceType.kStrategy]);
+                this.configBll.emit("login", null);
             }
         });
 

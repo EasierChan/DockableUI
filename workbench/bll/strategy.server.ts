@@ -335,6 +335,7 @@ export class ConfigurationBLL {
             "simplespreadtrader": "跨期套利",
             "manualtrader": "手工交易",
             "portfoliotrader": "篮子交易",
+            "baskettrader": "TWAP篮子",
             "indexspreadtrader": "做市交易",
             "basketspreadtrader": "期现套利",
         };
