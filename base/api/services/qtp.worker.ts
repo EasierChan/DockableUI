@@ -154,9 +154,12 @@ class QTPClient extends TcpClient {
 
     sendHeartBeat(appid: number, interval = 10): void {
         let header: Header = new Header();
-        header.msgtype = 255;
-        header.optslen = 0;
-        header.datalen = 0;
+
+        if (this._intervalHeart) {
+            clearInterval(this._intervalHeart);
+            this._intervalHeart = null;
+        }
+
         this._intervalHeart = setInterval(() => {
             this.send(header.toBuffer());
         }, interval * 1000);
@@ -233,6 +236,7 @@ export class QtpService {
                 logger.warn(`unknown message appid = ${msg.header.service}`);
         });
         this._client.on("close", () => {
+            this._client.sendHeartBeat(0);
             logger.info("remote closed");
 
             if (this._timer) {
@@ -249,6 +253,8 @@ export class QtpService {
         });
 
         this._client.on("connect", () => {
+            this._client.sendHeartBeat(30);
+
             if (this._timer) {
                 clearTimeout(this._timer);
                 this._timer = null;
@@ -267,6 +273,8 @@ export class QtpService {
             clearTimeout(this._timer);
             this._timer = null;
         }
+
+        this._client.dispose();
         this._client.connect(port, host);
     }
 

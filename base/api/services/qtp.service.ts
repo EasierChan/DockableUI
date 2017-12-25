@@ -155,12 +155,17 @@ class QTPClient extends TcpClient {
 
     sendHeartBeat(appid: number, interval = 10): void {
         let header: Header = new Header();
-        header.msgtype = 255;
-        header.optslen = 0;
-        header.datalen = 0;
-        this._intervalHeart = setInterval(() => {
-            this.send(header.toBuffer());
-        }, interval * 1000);
+
+        if (this._intervalHeart) {
+            clearInterval(this._intervalHeart);
+            this._intervalHeart = null;
+        }
+
+        if (interval > 0) {
+            this._intervalHeart = setInterval(() => {
+                this.send(header.toBuffer());
+            }, interval * 1000);
+        }
     }
 
     dispose(): void {
@@ -236,6 +241,7 @@ export class QtpService {
         });
         this._client.on("close", () => {
             logger.info("remote closed");
+            this._client.sendHeartBeat(0);
 
             if (this._timer) {
                 clearTimeout(this._timer);
@@ -251,6 +257,8 @@ export class QtpService {
         });
 
         this._client.on("connect", () => {
+            this._client.sendHeartBeat(30);
+
             if (this._timer) {
                 clearTimeout(this._timer);
                 this._timer = null;
@@ -269,6 +277,8 @@ export class QtpService {
             clearTimeout(this._timer);
             this._timer = null;
         }
+
+        this._client.dispose();
         this._client.connect(port, host);
     }
 
