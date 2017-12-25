@@ -1491,14 +1491,14 @@ export class AppComponent implements OnInit {
                 for (j = 0; j < this.doneOrdersTable.rows.length; ++j) {
                     if (data[iData].od.orderid === this.doneOrdersTable.cell(j, this.langServ.get("OrderId")).Text) { // refresh
                         this.doneOrdersTable.cell(j, this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
-                        this.doneOrdersTable.cell(j, this.langServ.get("DonePrice")).Text = data[iData].od.oprice / 10000;
-                        this.doneOrdersTable.cell(j, this.langServ.get("DoneVol")).Text = data[iData].od.ovolume;
+                        this.doneOrdersTable.cell(j, this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
+                        this.doneOrdersTable.cell(j, this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderVol")).Text = data[iData].od.ivolume;
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderPrice")).Text = data[iData].od.iprice / 10000;
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
                         break;
                     }
                 }
@@ -1512,15 +1512,15 @@ export class AppComponent implements OnInit {
                     row.cell(this.langServ.get("OrderId")).Text = data[iData].od.orderid;
                     row.cell(this.langServ.get("Strategy")).Text = data[iData].od.strategyid;
                     row.cell(this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
-                    row.cell(this.langServ.get("DonePrice")).Text = data[iData].od.oprice / 10000;
-                    row.cell(this.langServ.get("DoneVol")).Text = data[iData].od.ovolume;
+                    row.cell(this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
+                    row.cell(this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
                     row.cell(this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
-                    row.cell(this.langServ.get("DoneTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
-                    row.cell(this.langServ.get("OrderVol")).Text = data[iData].od.ivolume;
+                    row.cell(this.langServ.get("DoneTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
+                    row.cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
                     row.cell(this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
                     row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
-                    row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
-                    row.cell(this.langServ.get("OrderPrice")).Text = data[iData].od.iprice / 10000;
+                    row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
+                    row.cell(this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
                 }
 
             } else {
@@ -1555,8 +1555,8 @@ export class AppComponent implements OnInit {
         row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(obj.od.odatetime.tv_sec);
         row.cell(this.langServ.get("Strategy")).Text = obj.od.strategyid;
         row.cell(this.langServ.get("Ask/Bid")).Text = obj.od.action === 0 ? "Buy" : "Sell";
-        row.cell(this.langServ.get("OrderPrice")).Text = obj.od.iprice / 10000;
-        row.cell(this.langServ.get("OrderVol")).Text = obj.od.ivolume;
+        row.cell(this.langServ.get("OrderPrice")).Text = obj.od.oprice / 10000;
+        row.cell(this.langServ.get("OrderVol")).Text = obj.od.ovolume;
         let statusCell = row.cell(this.langServ.get("OrderStatus"));
         statusCell.Text = this.parseOrderStatus(obj.od.status);
         statusCell.Data = obj.od.status;
@@ -1602,16 +1602,10 @@ export class AppComponent implements OnInit {
     refreshUndoneOrderInfo(obj: any, idx: number) {
         this.orderstatusTable.cell(idx, this.langServ.get("OrderTime")).Text = this.formatTime(obj.od.odatetime.tv_sec);
         this.orderstatusTable.cell(idx, this.langServ.get("Ask/Bid")).Text = obj.od.action === 0 ? "Buy" : "Sell";
-        this.orderstatusTable.cell(idx, this.langServ.get("OrderPrice")).Text = obj.od.iprice / 10000;
-        this.orderstatusTable.cell(idx, this.langServ.get("OrderVol")).Text = obj.od.ivolume;
+        this.orderstatusTable.cell(idx, this.langServ.get("OrderPrice")).Text = obj.od.oprice / 10000;
+        this.orderstatusTable.cell(idx, this.langServ.get("OrderVol")).Text = obj.od.ovolume;
         this.orderstatusTable.cell(idx, this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(obj.od.status);
         this.orderstatusTable.cell(idx, this.langServ.get("OrderStatus")).Data = obj.od.status;
-
-        // if (6 === obj.od.status || 7 === obj.od.status) {
-        //     this.orderstatusTable.rows[idx].cells[0].Disable = true;
-        //     if (this.orderstatusTable.rows[idx].cells[0].Text)
-        //         this.orderstatusTable.rows[idx].cells[0].Text = !this.orderstatusTable.rows[idx].cells[0].Text;
-        // }
     }
 
     /**
