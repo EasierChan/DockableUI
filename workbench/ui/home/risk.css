@@ -33,7 +33,7 @@
 .content .main {
     flex: 3;
     margin-top: 5px;
-    cursor: ns-resize;
+    /*cursor: ns-resize;*/
 }
 
 .header .title b {
