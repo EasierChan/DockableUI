@@ -238,13 +238,16 @@ export class RiskComponent implements OnInit {
         this.reLoadAllTable();
         switch (tabId) {
             case this.tab.tabList[0].tabId:
-                this.syncTable(this.riskData.account.find(item => item.info.acid === id.toString()).tableData, true);
+                let account = this.riskData.account.find(item => item.info.acid === id.toString());
+                account && this.syncTable(account.tableData, true);
                 break;
             case this.tab.tabList[1].tabId:
-                this.syncTable(this.riskData.block.find(item => item.info.caid === id.toString()).tableData, true);
+                let block = this.riskData.block.find(item => item.info.caid === id.toString());
+                block && this.syncTable(block.tableData, true);
                 break;
             case this.tab.tabList[2].tabId:
-                this.syncTable(this.riskData.trace.find(item => item.info.trid === id.toString()).tableData, true);
+                let trace = this.riskData.trace.find(item => item.info.trid === id.toString());
+                trace && this.syncTable(trace.tableData, true);
                 break;
         }
     }
