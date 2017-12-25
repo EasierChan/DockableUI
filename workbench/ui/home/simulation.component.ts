@@ -85,7 +85,7 @@ export class SimulationComponent implements OnInit {
 
                 this.configBll.moveConfig(this.selectedStrategyConfig, Channel.ONLINE);
                 this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
-                // this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: this.selectedStrategyConfig.name, config: JSON.stringify({ SS: this.configBll.genInstance(this.selectedStrategyConfig) }) } });
+                // this.tradeEndPoint.send(this.ssgwAppID, , { body: { name: this.selectedStrategyConfig.name, config: JSON.stringify({ SS: this.configBll.genInstance(this.selectedStrategyConfig) }) } });
                 this.selectedStrategyConfig = null;
             });
         });
@@ -207,7 +207,7 @@ export class SimulationComponent implements OnInit {
             userid: this.appsrv.getUserProfile().username
         }), ServiceType.kSSGW);
 
-        this.configBll.wait("策略操作失败", 2000);
+        this.configBll.wait("策略操作失败");
     }
 
     onStartApp() {
