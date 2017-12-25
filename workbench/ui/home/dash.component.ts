@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, OnInit, OnDestroy } from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { QtpService, QuoteService } from "../../bll/services";
 import { DataTable, DataTableColumn, DataTableRow, ChartViewer, Section, ListItem } from "../../../base/controls/control";
 import { SecuMasterService, AppStoreService } from "../../../base/api/services/backend.service";
@@ -80,7 +80,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     historyMarketIndex: number;
 
     constructor(private tradePoint: QtpService, private quote: QuoteService, private config: ConfigurationBLL,
-        private secuinfo: SecuMasterService, private appsvr: AppStoreService) {
+        private secuinfo: SecuMasterService, private appsvr: AppStoreService, private ref: ChangeDetectorRef) {
 
     }
 
@@ -251,6 +251,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     this.selfStockTable.rows[index].cells[4].Color = this.dashGetColor(stockIncrease, "color");
                                     this.selfStockTable.rows[index].cells[5].Text = this.barginPriceUnit(msg.content.volume);
                                     this.selfStockTable.rows[index].cells[6].Text = this.barginPriceUnit(msg.content.turnover * 100);
+                                    this.ref.detectChanges();
                                 }
                             });
                             if (msg.content.ukey === this.mainStockUk) { // 主要指数的实时行情
