@@ -32,6 +32,9 @@ export class SecurityComponent implements OnInit, OnDestroy {
     marketID: number;
     marketInfo: Section;
     defaultItem: any;
+    selectK: string = "";
+    selectKs: string[] = [];
+    KType: number = 0;
 
     constructor(private quote: QuoteService, private secuinfo: SecuMasterService, private datePipe: DatePipe) {
 
@@ -40,6 +43,8 @@ export class SecurityComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.tabs = ["证券信息"];
         this.activeTab = this.tabs[0];
+        this.selectKs = ["日K线", "周K线", "月K线", "季K线", "年K线"];
+        this.selectK = this.selectKs[0];
 
         this.symbol = "--";
         this.code = "--";
@@ -48,7 +53,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
         this.summary.content = "";
 
         this.mdSection = new Section();
-        this.mdSection.title = "日K线图";
+        this.mdSection.title = "K线图";
         this.mdSection.content = this.createMDChart();
         this.mdSection.content.onInit = (chart: ECharts) => {
             this.marketChart = chart;
@@ -800,12 +805,30 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     searchMD() {
-        let date = new Date().setMonth((new Date().getMonth() - 12));
+        switch (this.selectK) {
+            case "日K线":
+                this.KType = 0;
+                break;
+            case "周K线":
+                this.KType = 5;
+                break;
+            case "月K线":
+                this.KType = 20;
+                break;
+            case "季K线":
+                this.KType = 60;
+                break;                
+            case "年K线":
+                this.KType = 240;
+                break;
+            default:
+
+        }
+        let date = new Date().setMonth((new Date().getMonth() - 60));
         let date1 = this.datePipe.transform(date, "yyyyMMdd");
-        console.log(date, date1);
         this.mdSection.content.option.xAxis.data = [];
         this.mdSection.content.option.series[0].data = [];
-        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.selectedItem.ukey, dataType: 101003, dateFrom: date1 });
+        this.quote.send(181, 10001, { requestId: 1, ukeyCode: this.selectedItem.ukey, dataType: 101003, subType: this.KType, dateFrom: date1 });
     }
 
     searchInfo() {

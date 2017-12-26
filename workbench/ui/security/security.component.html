@@ -11,7 +11,7 @@
   <div class="content">
     <h6>{{codeName}}</h6>
     <div class="u-row" style="min-height: 100px;">
-      <section class="fill" style="width: 100px;height: 360px">
+      <section class="fill" style="width: 100px;height: 390px">
         <div class="chartTit">{{baseInfo.title}}</div>
         <div class="holder">
           <table>
@@ -22,15 +22,20 @@
           </table>
         </div>
       </section>
-      <section class="fill" style="width: 100px;height: 360px">
+      <section class="fill" style="width: 100px;height: 390px">
         <div class="chartTit">{{mdSection.title}}</div>
+        <div class="select">
+          <select [(ngModel)]='selectK' (ngModelChange)="selectK=$event;searchMD()">
+            <option *ngFor="let item of selectKs" [value]='item'>{{item}}</option>
+          </select>
+        </div>  
         <div class="holder">
           <div echarts [options]="mdSection.content.option" (chartInit)="mdSection.content.onInit($event)" style="height: 300px"></div>
         </div>
       </section>
     </div>
     <div class="u-row">
-      <section class="fill" style="width: 100px;height: 275px">
+      <section class="fill" style="width: 100px;height: 260px">
         <div class="chartTit">{{marketInfo.title}}</div>
         <div class="holder">
           <table>
@@ -41,7 +46,7 @@
           </table>
         </div>
       </section>
-      <section class="fill" style="width: 100px;height: 275px">
+      <section class="fill" style="width: 100px;height: 260px">
         <div class="chartTit">{{keyInfo.title}}</div>
         <div class="holder">
           <table>
@@ -54,13 +59,13 @@
       </section>
     </div>
     <div *ngIf="!isStock" class="u-row">
-      <section class="fill" style="width: 100px;height: 275px">
+      <section class="fill" style="width: 100px;height: 260px">
         <div class="chartTit">{{summary.title}}</div>
         <p>
           {{summary.content}}
         </p>
       </section>
-      <section class="fill" style="width: 100px;height: 275px">
+      <section class="fill" style="width: 100px;height: 260px">
         <div class="chartTit">{{standardInfo.title}}</div>
         <div class="holder">
           <table align="left" style="table-layout: fixed">
