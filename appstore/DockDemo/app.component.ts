@@ -1070,8 +1070,8 @@ export class AppComponent implements OnInit {
         reqbtn.OnClick = () => { AppComponent.bgWorker.send({ command: "ss-send", params: { type: "getProfitInfo", data: "" } }); };
 
         { // basket page
-            let basketPage = new TabPage("MultiBasket", this.langServ.get("MultiBasket"));
-            this.pageMap["MultiBasket"] = basketPage;
+            let basketPage = new TabPage("TWAPPortfolio", this.langServ.get("TWAPPortfolio"));
+            this.pageMap["TWAPPortfolio"] = basketPage;
             let basketHeader = new HBox();
             let bidLevel = new Label();
             bidLevel.Title = `${this.langServ.get("BidLevel")}:`;
@@ -1124,7 +1124,7 @@ export class AppComponent implements OnInit {
                         interval.Text = basketList.params["Interval"];
 
                         AppComponent.bgWorker.send({
-                            command: "ss-send", params: { type: "multibasket-fp", data: { account: account, params: basketList.params, list: templist } }
+                            command: "ss-send", params: { type: "TWAPPortfolio-fp", data: { account: account, params: basketList.params, list: templist } }
                         });
 
                         templist = null;
