@@ -77,10 +77,10 @@ export class DockContainerComponent implements AfterViewInit {
     ngAfterViewInit() {
         if (this.isDockContainer() && this.children.length === 1) {
             this.styleObj.getWidth = () => {
-                return this.ele.nativeElement.clientWidth > 0 ? this.ele.nativeElement.clientWidth : this.container.nativeElement.clientWidth;
+                return Math.round(this.ele.nativeElement.clientWidth > 0 ? this.ele.nativeElement.clientWidth : this.container.nativeElement.clientWidth);
             };
             this.styleObj.getHeight = () => {
-                return this.ele.nativeElement.clientHeight > 0 ? this.ele.nativeElement.clientHeight : this.container.nativeElement.clientHeight;
+                return Math.round(this.ele.nativeElement.clientHeight > 0 ? this.ele.nativeElement.clientHeight : this.container.nativeElement.clientHeight);
             };
             this.renderer.listen(this.container.nativeElement, "dragenter", (event: DragEvent) => {
                 event.preventDefault();

@@ -87,7 +87,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.name = this.option.name || "";
         this.ukeys = this.option.ukeys || [];
         this.tableMatrix = this.option.tableMatrix || [2, 2];
-        let [width, height, halfW, halfH] = [window.innerWidth - 10, window.innerHeight, (window.innerWidth - 10 - Splitter.size) / 2, (window.innerHeight - Splitter.size) / 2];
+        let [width, height, halfW, halfH] = [window.innerWidth - 10, window.innerHeight, Math.round((window.innerWidth - 10 - Splitter.size) / 2), Math.round((window.innerHeight - Splitter.size) / 2)];
         this.layout = this.option.layout || {
             w: width,
             h: height,

@@ -196,13 +196,13 @@ export class StartUp implements IApplication {
             width: width,
             children: [{
                 type: "h",
-                height: Math.floor(height * 0.2),
+                height: Math.round(height * 0.2),
                 modules: [
                     "Strategy"
                 ]
             }, {
                 type: "h",
-                height: Math.floor(height * 0.3),
+                height: Math.round(height * 0.3),
                 modules: [
                     "Position",
                     "Account",
@@ -212,16 +212,16 @@ export class StartUp implements IApplication {
                 ]
             }, {
                 type: "h",
-                height: height - Math.floor(height * 0.2) - Math.floor(height * 0.3) - 10,
+                height: height - Math.round(height * 0.2) - Math.round(height * 0.3) - 10,
                 children: [{
                     type: "v",
-                    width: Math.floor(width * 0.3),
+                    width: Math.round(width * 0.3),
                     modules: [
                         "BookView"
                     ]
                 }, {
                     type: "v",
-                    width: width - Math.floor(width * 0.3) - 5,
+                    width: width - Math.round(width * 0.3) - 5,
                     modules: [
                         "Log"
                     ]
