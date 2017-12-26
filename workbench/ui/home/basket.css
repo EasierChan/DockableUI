@@ -40,7 +40,7 @@
     flex-flow: row wrap;
     border: 1px solid #333;
     border-radius: 5px;
-    height: 300px;
+    min-height: 200px;
 }
 
 .params > * {

@@ -8,7 +8,7 @@ import {
     ComConOrderStatus, ComStrategyCfg, ComOrderRecord, ComAccountPos,
     ComRecordPos, ComGWNetGuiInfo, StatArbOrder, ComConOrderErrorInfo,
     ComProfitInfo, FpPosUpdate, ComConOrder, ComOrder, ComOrderCancel, EOrderType, ComContract,
-    FpHead, FpQtyOrder, ComGuiAskStrategy
+    FpHead, FpQtyOrder, ComGuiAskStrategy, TWAPParameter
 } from "../../../base/api/model/itrade/strategy.model";
 import { Sound } from "../../../base/api/services/backend.worker";
 import { ULogger } from "../../../base/api/common/base/logger";
@@ -359,6 +359,7 @@ export class StrategyDealer {
                 console.info(msg);
                 msgArr.push(msg);
                 break;
+            case 5031:
             case 5021:
                 count = content.readUInt32LE(offset); offset += 4;
                 let account = content.readUIntLE(offset, 8); offset += 8;
@@ -450,7 +451,26 @@ export class StrategyDealer {
                 });
                 this.sendQtp({ type: 5005, subtype: 0, body: body });
                 break;
+            case "multibasket-fp":
+                body = Buffer.alloc(FpHead.len + 20);
+                let mbHead = new FpHead();
+                mbHead.account = params.data.account;
+                mbHead.count = params.data.list.length;
+                mbHead.toBuffer().copy(body, 0);
+                offset += FpHead.len;
+
+                let twapParam = new TWAPParameter();
+                twapParam.bid_level = params.data.params["BidLevel"] ? parseInt(params.data.params["BidLevel"]) : 0;
+                twapParam.ask_level = params.data.params["AskLevel"] ? parseInt(params.data.params["AskLevel"]) : 0;
+                twapParam.order_valid_time = params.data.params["OrderValidTime"] ? parseInt(params.data.params["OrderValidTime"]) : 0;
+                twapParam.max_chase_time = params.data.params["MaxChaseTimes"] ? parseInt(params.data.params["MaxChaseTimes"]) : 0;
+                twapParam.begin_time = params.data.params["BeginTime"] ? parseInt(params.data.params["BeginTime"]) : 0;
+                twapParam.end_time = params.data.params["EndTime"] ? parseInt(params.data.params["EndTime"]) : 0;
+                twapParam.interval = params.data.params["Interval"] ? parseInt(params.data.params["Interval"]) : 0;
+                twapParam.toBuffer().copy(body, offset);
+                this.sendQtp({ type: 5007, subtype: 0, body: body });
             case "basket-fp":
+                offset = 0;
                 body = Buffer.alloc(FpHead.len + 8 + params.data.list.length * 12);
                 let basketHead = new FpHead();
                 basketHead.account = params.data.account;
@@ -662,6 +682,10 @@ export class StrategyDealer {
 
         header = new Header();
         header.type = 5021;
+        registerMsg.headers.push(header);
+
+        header = new Header();
+        header.type = 5031;
         registerMsg.headers.push(header);
 
         this.sendQtp({ type: 2998, subtype: 0, body: registerMsg.toBuffer() });

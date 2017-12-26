@@ -85,7 +85,7 @@ export class SimulationComponent implements OnInit {
 
                 this.configBll.moveConfig(this.selectedStrategyConfig, Channel.ONLINE);
                 this.strategyArea.removeTile(this.selectedStrategyConfig.chname);
-                // this.tradeEndPoint.send(this.ssgwAppID, 2000, { body: { name: this.selectedStrategyConfig.name, config: JSON.stringify({ SS: this.configBll.genInstance(this.selectedStrategyConfig) }) } });
+                // this.tradeEndPoint.send(this.ssgwAppID, , { body: { name: this.selectedStrategyConfig.name, config: JSON.stringify({ SS: this.configBll.genInstance(this.selectedStrategyConfig) }) } });
                 this.selectedStrategyConfig = null;
             });
         });
@@ -164,17 +164,20 @@ export class SimulationComponent implements OnInit {
             tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
+            this.strategyArea.detectChanges();
         };
 
         this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
             this.strategyArea.getTile(config.appid).title = config.chname;
-            this.ref.detectChanges();
+            this.strategyArea.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
             let tile = this.strategyArea.getTile(config.appid);
             if (tile !== null)
                 tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
+
+            this.strategyArea.detectChanges();
         };
         // strategy status
         this.appsrv.onUpdateApp(this.updateApp, this);
@@ -204,7 +207,7 @@ export class SimulationComponent implements OnInit {
             userid: this.appsrv.getUserProfile().username
         }), ServiceType.kSSGW);
 
-        this.configBll.wait("策略操作失败", 2000);
+        this.configBll.wait("策略操作失败");
     }
 
     onStartApp() {

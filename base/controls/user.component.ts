@@ -438,9 +438,18 @@ export class ActionBarComponent implements OnInit {
     templateUrl: "tilearea.html",
     inputs: ["styleObj", "dataSource"]
 })
-export class TileAreaComponent {
+export class TileAreaComponent implements OnInit {
     styleObj: any;
     dataSource: any;
+
+    constructor(private ref: ChangeDetectorRef) {
+    }
+
+    ngOnInit() {
+        this.dataSource.detectChanges = () => {
+            this.ref.detectChanges();
+        };
+    }
 
     @HostBinding("style.display") get display() {
         return "flex";

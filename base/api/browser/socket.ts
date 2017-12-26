@@ -80,16 +80,13 @@ export class TcpSocket {
         }
 
         logger.error("connection is not writable.");
-        this.connect(this._port, this._ip);
-        this._sock.on("connect", (e) => {
-            this._sock.write(data);
-        });
     }
     /**
      * 关闭连接
      */
     close(): void {
         if (this._sock && this._sock.writable) {
+            logger.warn(`[write to ${this._ip}:${this._port}]: close my connection.`);
             this._sock.end();
             return;
         }

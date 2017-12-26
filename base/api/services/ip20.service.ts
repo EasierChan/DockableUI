@@ -109,7 +109,7 @@ class ISONPackParser extends IP20Parser {
     private _intervalRead: NodeJS.Timer;
     constructor(private _client: TcpClient) {
         super(_client.bufferQueue);
-        this.init();
+        // this.init();
     }
 
     init(): void {
@@ -161,6 +161,7 @@ class ISONPackParser extends IP20Parser {
         if (this._intervalRead || this._intervalRead !== null) {
             clearInterval(this._intervalRead);
         }
+
         super.dispose();
     }
 }
@@ -221,6 +222,9 @@ export class IP20Service {
         this._parser = new ISONPackParser(this._client);
         this._client.addParser(this._parser);
         let self = this;
+
+        this._client.on("buffer", () => { this._parser.processRead(); });
+
         this._client.on("data", msg => {
             msg = msg[0];
             if (self._messageMap.hasOwnProperty(msg.head.appid) && self._messageMap[msg.head.appid].hasOwnProperty(msg.head.packid)) {
@@ -305,6 +309,15 @@ export class IP20Service {
 
             this._messageMap[slot.appid][slot.packid] = slot.callback;
         });
+    }
+
+    dispose() {
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
+
+        this._client.dispose();
     }
 
     onConnect: Function;

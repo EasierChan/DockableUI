@@ -16,9 +16,7 @@ import { SSGW_MSG, ServiceType } from "../../../base/api/model";
 export class TradeComponent implements OnInit {
     areas: TileArea[];
 
-    productArea: TileArea;
     products: any[];
-    selectedProduct: any;
 
     strategyMenu: Menu;
     strategyArea: TileArea;
@@ -160,17 +158,20 @@ export class TradeComponent implements OnInit {
             tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
+            this.strategyArea.detectChanges();
         };
 
         this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
             this.strategyArea.getTile(config.appid).title = config.chname;
-            this.ref.detectChanges();
+            this.strategyArea.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
             let tile = this.strategyArea.getTile(config.appid);
             if (tile !== null)
                 tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
+
+            this.strategyArea.detectChanges();
         };
         // strategy status
         this.appsrv.onUpdateApp(this.updateApp, this);

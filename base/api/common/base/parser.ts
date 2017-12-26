@@ -25,7 +25,7 @@ export abstract class Parser {
      * destructor
      */
     dispose(): void {
-        this._oPool = null;
+        this._oPool.remove(this._oPool.length);
     }
 
     abstract processRead(): void;

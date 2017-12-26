@@ -38,23 +38,24 @@ export class BacktestComponent implements OnInit {
             service: ServiceType.kBackServer,
             msgtype: 8012,
             callback: msg => {
-                console.info(msg);
+                let data = JSON.parse(msg.toString());
+
                 let config: WorkspaceConfig;
-                if (this.configBll.tempConfig && this.configBll.tempConfig.chname === this.requestMap[msg.content.reqsn]) {
+                if (this.configBll.tempConfig && this.configBll.tempConfig.chname === this.requestMap[data.reqsn]) {
                     config = this.configBll.tempConfig;
                 } else {
-                    config = this.strategyConfigs.find(item => { return item.chname === this.requestMap[msg.content.reqsn]; });
+                    config = this.strategyConfigs.find(item => { return item.chname === this.requestMap[data.reqsn]; });
                 }
 
                 if (config) {
-                    config.backtestConfig.tradePoint = { host: msg.content.url, port: msg.content.port };
-                    config.backtestConfig.quotePoint = { host: msg.content.hqurl, port: msg.content.hqport };
-                    config.backtestConfig.id = msg.content.nId;
+                    config.backtestConfig.tradePoint = { host: data.url, port: data.port };
+                    config.backtestConfig.quotePoint = { host: data.hqurl, port: data.hqport };
+                    config.backtestConfig.id = data.nId;
                     config.backtestConfig.name = config.chname;
 
                     this.tradeEndPoint.send(config.appid === undefined ? SSGW_MSG.kCreate : SSGW_MSG.kModify, JSON.stringify({
                         data: {
-                            strategy: { type: config.strategyType, config: config }
+                            strategy: { type: config.strategyType, ui_params: config }
                         },
                         userid: this.appsrv.getUserProfile().username
                     }), ServiceType.kSSGW);
@@ -192,11 +193,12 @@ export class BacktestComponent implements OnInit {
             tile.id = config.appid;
             tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             this.strategyArea.addTile(tile);
+            this.ref.detectChanges();
         };
 
         this.configBll.onUpdated = (oldName, config: WorkspaceConfig) => {
             this.strategyArea.getTile(config.appid).title = config.chname;
-            this.ref.detectChanges();
+            this.strategyArea.detectChanges();
         };
 
         this.configBll.onStateChanged = (config: WorkspaceConfig) => {
@@ -204,6 +206,8 @@ export class BacktestComponent implements OnInit {
             if (tile !== null) {
                 tile.backgroundColor = config.state !== 0 ? "#1d9661" : null;
             }
+
+            this.ref.detectChanges();
         };
         // strategy status
         this.appsrv.onUpdateApp(this.updateApp, this);

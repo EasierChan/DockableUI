@@ -5,6 +5,7 @@
 
 import { ipcMain, Menu, Tray, app, dialog } from "electron";
 import * as fs from "fs";
+import { fork } from "child_process";
 import path = require("path");
 import { ContentWindow, Bound } from "./windows";
 import { UWindwManager } from "./windowmgr";
@@ -76,6 +77,7 @@ export class AppStore {
     public static bootstrap(): any {
         AppStore.parseCommandArgs();
         AppStore.loadConfig();
+        AppStore.createQuoteDal();
         let contentWindow: ContentWindow = new ContentWindow({ state: AppStore._config.state });
         // contentWindow.setMenu(null);
         contentWindow.loadURL(path.join(AppStore._appstoreHome, "..", "workbench", "index.html"));
@@ -264,6 +266,13 @@ export class AppStore {
         }
 
         return contentWindow;
+    }
+
+    public static createQuoteDal() {
+        let child = fork(`${__dirname}/../../dal/quote/ip20.dal.js`, [UConfig.default.endpoints[0].quote_addr]);
+        process.on("exit", () => {
+            child.kill();
+        });
     }
 
     public static quit(): void {

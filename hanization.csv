@@ -317,3 +317,4 @@ PortfolioList,组合列表
 Timestamp,时间戳
 DoneTime,成交时间
 DonePrice,成交价格
+TWAPPortfolio,TWAP投资组合

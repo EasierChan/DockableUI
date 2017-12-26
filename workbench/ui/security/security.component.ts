@@ -4,7 +4,7 @@ import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from "@angular/co
 import { DatePipe } from "@angular/common";
 import { DataTable, DataTableColumn, ChartViewer, Section, ListItem } from "../../../base/controls/control";
 import { SecuMasterService, File } from "../../../base/api/services/backend.service";
-import { TradeService, QuoteService } from "../../bll/services";
+import { QuoteService } from "../../bll/services";
 import { ECharts } from "echarts";
 
 @Component({
@@ -12,7 +12,7 @@ import { ECharts } from "echarts";
     selector: "security-master",
     templateUrl: "security.component.html",
     styleUrls: ["../home/home.component.css", "security.component.css"],
-    providers:[DatePipe]
+    providers: [DatePipe]
 })
 export class SecurityComponent implements OnInit, OnDestroy {
     tabs: string[];
@@ -636,9 +636,9 @@ export class SecurityComponent implements OnInit, OnDestroy {
 
                         if (msg.content.Structs[0].delist_date === 99999999) {
                             this.baseInfo.content[15].value = "未退市";
-                        }  else {
+                        } else {
                             let delistDate = msg.content.Structs[0].delist_date.toString().substr(0, 4) + "," + msg.content.Structs[0].delist_date.toString().substr(4, 2) +
-                            "," + msg.content.Structs[0].delist_date.toString().substr(6, 2);
+                                "," + msg.content.Structs[0].delist_date.toString().substr(6, 2);
                             this.baseInfo.content[15].value = delistDate;
                         }
 
@@ -703,14 +703,14 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         this.standardInfo.content[7][3] = msg.content.Structs[0].delivery_methods_desc;
 
                         let listDate = msg.content.Structs[0].list_date.toString().substr(0, 4) + "," + msg.content.Structs[0].list_date.toString().substr(4, 2) +
-                        "," + msg.content.Structs[0].list_date.toString().substr(6, 2);
+                            "," + msg.content.Structs[0].list_date.toString().substr(6, 2);
                         this.standardInfo.content[8][1] = listDate;
 
                         if (msg.content.Structs[0].delist_date === 99999999) {
                             this.standardInfo.content[8][3] = "未退市";
-                        }  else {
+                        } else {
                             let delistDate = msg.content.Structs[0].delist_date.toString().substr(0, 4) + "," + msg.content.Structs[0].delist_date.toString().substr(4, 2) +
-                            "," + msg.content.Structs[0].delist_date.toString().substr(6, 2);
+                                "," + msg.content.Structs[0].delist_date.toString().substr(6, 2);
                             this.standardInfo.content[8][3] = delistDate;
                         }
 
@@ -781,9 +781,9 @@ export class SecurityComponent implements OnInit, OnDestroy {
             callback: (msg) => {
                 let option = this.mdSection.content.option;
                 msg.content.data.forEach(item => {
-                option.xAxis.data.push(item.d);
-                let kData = [String(item.o / 10000), String(item.c / 10000), String(item.l / 10000), String(item.h / 10000)];
-                option.series[0].data.push(kData);
+                    option.xAxis.data.push(item.d);
+                    let kData = [String(item.o / 10000), String(item.c / 10000), String(item.l / 10000), String(item.h / 10000)];
+                    option.series[0].data.push(kData);
                 });
 
                 this.marketChart.setOption(this.mdSection.content.option);

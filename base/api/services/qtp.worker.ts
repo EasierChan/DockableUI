@@ -77,11 +77,11 @@ class QTPParser extends Parser {
 
             if (buflen >= this._curHeader.datalen + Header.len) {
                 let tempBuffer = Buffer.concat(this._oPool.remove(bufCount + 1), buflen);
-                console.info(`processMsg: service=${this._curHeader.service}, msgtype=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
+                logger.info(`processMsg: service=${this._curHeader.service}, msgtype=${this._curHeader.msgtype}, msglen=${this._curHeader.datalen}`);
                 try {
                     this.emit(this._curHeader.service.toString(), this._curHeader, tempBuffer);
                 } catch (err) {
-                    console.error(err);
+                    logger.error(err);
                 } finally {
                     restLen = buflen - Header.len - this._curHeader.datalen - this._curHeader.optslen;
                     if (restLen > 0) {
@@ -97,6 +97,7 @@ class QTPParser extends Parser {
                     ret = true;
                     break;
                 }
+
             }
         }
 
@@ -111,7 +112,7 @@ class QTPMessageParser extends QTPParser {
     private _intervalRead: NodeJS.Timer;
     constructor(private _client: TcpClient) {
         super(_client.bufferQueue);
-        this.init();
+        // this.init();
     }
 
     init(): void {
@@ -153,9 +154,12 @@ class QTPClient extends TcpClient {
 
     sendHeartBeat(appid: number, interval = 10): void {
         let header: Header = new Header();
-        header.msgtype = 255;
-        header.optslen = 0;
-        header.datalen = 0;
+
+        if (this._intervalHeart) {
+            clearInterval(this._intervalHeart);
+            this._intervalHeart = null;
+        }
+
         this._intervalHeart = setInterval(() => {
             this.send(header.toBuffer());
         }, interval * 1000);
@@ -193,12 +197,14 @@ export class QtpService {
         this._client.addParser(this._parser);
         let self = this;
 
+        this._client.on("buffer", () => { this._parser.processRead(); });
+
         this._client.on("data", msgarr => {
             let msg = msgarr[0] as QTPMessage;
 
             if (msg.header.service === ServiceType.kFGS
                 && (msg.header.msgtype === FGS_MSG.kPublish || msg.header.msgtype === FGS_MSG.kComboPublish)) {
-                console.info(`topic: ${msg.header.topic}`);
+                logger.info(`topic: ${msg.header.topic}`);
 
                 for (let i = 0; i < msg.options.length; ++i) {
                     if (msg.options[i].id === OptionType.kSubscribeKey) {
@@ -219,16 +225,19 @@ export class QtpService {
             }
 
             if (self._messageMap.hasOwnProperty(msg.header.service) && self._messageMap[msg.header.service].hasOwnProperty(msg.header.msgtype)) {
+
+
                 if (self._messageMap[msg.header.service][msg.header.msgtype].context)
                     self._messageMap[msg.header.service][msg.header.msgtype].callback.call(self._messageMap[msg.header.service][msg.header.msgtype].context, msg.body, msg.options);
                 else
                     self._messageMap[msg.header.service][msg.header.msgtype].callback(msg.body, msg.options);
             }
             else
-                console.warn(`unknown message appid = ${msg.header.service}`);
+                logger.warn(`unknown message appid = ${msg.header.service}`);
         });
         this._client.on("close", () => {
-            console.info("remote closed");
+            this._client.sendHeartBeat(0);
+            logger.info("remote closed");
 
             if (this._timer) {
                 clearTimeout(this._timer);
@@ -244,6 +253,8 @@ export class QtpService {
         });
 
         this._client.on("connect", () => {
+            this._client.sendHeartBeat(30);
+
             if (this._timer) {
                 clearTimeout(this._timer);
                 this._timer = null;
@@ -262,6 +273,8 @@ export class QtpService {
             clearTimeout(this._timer);
             this._timer = null;
         }
+
+        this._client.dispose();
         this._client.connect(port, host);
     }
 
@@ -331,7 +344,6 @@ export class QtpService {
     onTopic(topic, callback: Function, context?: any) {
         this._topicMap[topic] = { callback: callback, context: context };
     }
-
     /**
      *
      */
@@ -377,12 +389,23 @@ export class QtpService {
                     if (options[i].id === 12) {
                         if (this._cmsMap.hasOwnProperty(options[i].value.toString()))
                             this._cmsMap[options[i].value.toString()].callback.call(context, body);
+
+                        logger.info(`receive ${options[i].value.toString()}`);
                         break;
                     }
                 }
 
             }
         });
+    }
+
+    dispose() {
+        if (this._timer) {
+            clearTimeout(this._timer);
+            this._timer = null;
+        }
+
+        this._client.dispose();
     }
 
     onConnect: Function;

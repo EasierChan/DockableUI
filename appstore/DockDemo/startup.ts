@@ -223,9 +223,7 @@ export class StartUp implements IApplication {
                     type: "v",
                     width: width - Math.floor(width * 0.3) - 5,
                     modules: [
-                        "Log",
-                        "StatArb",
-                        "Portfolio"
+                        "Log"
                     ]
                 }]
             }]
@@ -234,12 +232,14 @@ export class StartUp implements IApplication {
         switch (this._option.sstype) {
             case "portfoliotrader":
                 // portfolio
-                (res as any).children[2].children[1].modules = ["Log", "Portfolio"];
+                (res as any).children[2].children[1].modules.push("Portfolio");
                 break;
             case "pairtrader":
                 // pairtrade
-                (res as any).children[2].children[1].modules = ["Log", "StatArb"];
+                (res as any).children[2].children[1].modules.push("StatArb");
                 break;
+            case "baskettrader":
+                (res as any).children[2].children[1].modules.push("TWAPPortfolio");
             default:
                 break;
         }

@@ -66,6 +66,7 @@ export class AppComponent implements OnInit {
     private commentTable: DataTable;
     private configTable: DataTable;
     private gatewayTable: DataTable;
+    private basketTable: DataTable;
 
     // profittable textbox
     private totalpnLabel: MetaControl;
@@ -288,7 +289,7 @@ export class AppComponent implements OnInit {
 
         btn_cancel.OnClick = () => {
             for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
-                let getStatus = this.orderstatusTable.cell(i, this.langServ.get("Status")).Data;
+                let getStatus = this.orderstatusTable.cell(i, this.langServ.get("OrderStatus")).Data;
                 let strategyid = this.orderstatusTable.cell(i, this.langServ.get("Strategy")).Text;
                 let ukey = this.orderstatusTable.cell(i, this.langServ.get("UKEY")).Text;
                 let orderid = this.orderstatusTable.cell(i, this.langServ.get("OrderId")).Text;
@@ -665,17 +666,10 @@ export class AppComponent implements OnInit {
         this.sellamountLabel.Text = "0";
         statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
         this.statarbTable = new DataTable("table2");
-        let statarbTablearr: string[] = ["Symbol", "InnerCode", "Change(%)", "Position",
-            "Trade", "Amount", "StrategyID", "DiffQty", "SymbolCode"];
-        let statarbTableRtnarr: string[] = [];
-        let statarbTableTitleLen = statarbTablearr.length;
-        for (let i = 0; i < statarbTableTitleLen; ++i) {
-            let statarbRtn = this.langServ.get(statarbTablearr[i]);
-            statarbTableRtnarr.push(statarbRtn);
-        }
-        statarbTableRtnarr.forEach(item => {
-            this.statarbTable.addColumn2(new DataTableColumn(item, false, true));
-        });
+        ["Symbol", "InnerCode", "Change(%)", "Position",
+            "Trade", "Amount", "StrategyID", "DiffQty", "SymbolCode"].forEach(item => {
+                this.statarbTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
+            });
 
         this.statarbTable.columnConfigurable = true;
         let statarbContent = new VBox();
@@ -831,9 +825,6 @@ export class AppComponent implements OnInit {
         this.portfolioSellOffset.addItem({ Text: "-10", Value: "-10" });
         this.portfolioSellOffset.SelectedItem = this.portfolioSellOffset.Items[10];
 
-        // this.allChk = new CheckBox(); this.allChk.Width = 30;
-        // this.allChk.Title = " " + this.langServ.getTranslateInfo("All");
-        // this.allChk.Text = false; this.allChk.Left = 22;
         let allbuyChk = new CheckBox(); allbuyChk.Width = 30;
         allbuyChk.Title = " " + this.langServ.get("All-Buy");
         allbuyChk.Text = false; allbuyChk.Left = 20;
@@ -925,7 +916,7 @@ export class AppComponent implements OnInit {
 
         btn_load.OnClick = () => {
             let readself = this;
-            let account: number = parseInt(AppComponent.self.dd_portfolioAccount.SelectedItem.Text);
+            let account: number = parseInt(this.dd_portfolioAccount.SelectedItem.Text);
             AppComponent.bgWorker.send({ command: "ss-send", params: { type: "account-position-load", account: account } });
 
             MessageBox.openFileDialog("Select CSV", (filenames) => {
@@ -936,7 +927,8 @@ export class AppComponent implements OnInit {
                 File.readPCF(filenames[0]).then((basketList) => {
                     let templist = [];
                     basketList.components.forEach(item => {
-                        templist.push({ currPos: 0, ukey: parseInt(item.code), targetPos: item.amount });
+                        let codeinfo = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+                        templist.push({ currPos: 0, ukey: parseInt(codeinfo[0].InnerCode), targetPos: item.amount });
                     });
 
                     AppComponent.bgWorker.send({
@@ -949,28 +941,25 @@ export class AppComponent implements OnInit {
             }, [{ name: "bkt", extensions: ["bkt"] }]);
         };
 
-        // this.allChk.OnClick = () => {
-        //     this.changeItems(0, !this.allChk.Text);
-        // };
-        allbuyChk.OnClick = () => {
-            this.changeItems(1, !allbuyChk.Text);
-        };
-        allsellChk.OnClick = () => {
-            this.changeItems(2, !allsellChk.Text);
-        };
+        allbuyChk.OnClick = () => { this.changeItems(1, !allbuyChk.Text); };
+        allsellChk.OnClick = () => { this.changeItems(2, !allsellChk.Text); };
+
         this.range.OnClick = () => {
             let rateVal = this.range.Text;
             this.rateText.Text = rateVal;
             this.changeSingleQty(rateVal);
         };
+
         this.rateText.OnInput = () => {
             let getrateText = this.range.Text = this.rateText.Text;
             let rtn = this.TestingInput(getrateText + "");
+
             if (!rtn) {
                 this.range.Text = this.rateText.Text = 0;
                 this.changeSingleQty(0);
                 return;
             }
+
             if (parseInt(getrateText) > 100) {
                 MessageBox.show("warning", "Input Error!", "input value shold be less than 100");
                 this.range.Text = this.rateText.Text = 100;
@@ -982,7 +971,6 @@ export class AppComponent implements OnInit {
         };
 
         btn_sendSel.OnClick = () => {
-
             let askPriceLevel = this.portfolioBuyCom.SelectedItem.Value;
             let bidPriceLevel = this.portfolioSellCom.SelectedItem.Value;
             let askOffset = this.portfolioBUyOffset.SelectedItem.Value;
@@ -1004,7 +992,7 @@ export class AppComponent implements OnInit {
             AppComponent.bgWorker.send({
                 command: "ss-send", params: {
                     type: "order-fp", data: {
-                        account: AppComponent.self.dd_portfolioAccount.SelectedItem.Text,
+                        account: this.dd_portfolioAccount.SelectedItem.Text,
                         askPriceLevel: askPriceLevel,
                         bidPriceLevel: bidPriceLevel,
                         askOffset: askOffset,
@@ -1014,15 +1002,16 @@ export class AppComponent implements OnInit {
                 }
             });
         };
+
         btn_cancelSel.OnClick = () => { // 5005
-            let selectArr = AppComponent.self.getSelectedPortfolioItem();
+            let selectArr = this.getSelectedPortfolioItem();
             if (selectArr.length < 1)
                 return;
 
             AppComponent.bgWorker.send({
                 command: "ss-send", params: {
                     type: "cancel-fp", data: {
-                        account: AppComponent.self.dd_portfolioAccount.SelectedItem.Text,
+                        account: this.dd_portfolioAccount.SelectedItem.Text,
                         ukeys: selectArr
                     }
                 }
@@ -1031,8 +1020,6 @@ export class AppComponent implements OnInit {
         let portfolioContent = new VBox();
         portfolioContent.addChild(loadItem).addChild(tradeitem).addChild(this.portfolioTable);
         this.portfolioPage.setContent(portfolioContent);
-
-
 
         this.profitPage = new TabPage("Profit", this.langServ.get("Profit"));
         this.pageMap["Profit"] = this.profitPage;
@@ -1069,23 +1056,93 @@ export class AppComponent implements OnInit {
         reqbtn.Text = this.langServ.get("Req");
         profitHeader.addChild(this.totalpnLabel).addChild(this.pospnlLabel).addChild(this.trapnlt).addChild(this.pospnlt).addChild(this.totalpnlt).addChild(reqbtn);
         this.profitTable = new DataTable("table2");
-        let profittableArr: string[] = ["UKEY", "Code", "PortfolioID", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
+        ["UKEY", "Code", "PortfolioID", "Strategy", "AvgPrice(B)", "AvgPrice(S)",
             "PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
-            "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"];
-        let profitTableTittleLen = profittableArr.length;
-        let profitTableRtnArr: string[] = [];
-        for (let i = 0; i < profitTableTittleLen; ++i) {
-            profitTableRtnArr.push(this.langServ.get(profittableArr[i]));
-        }
-        profitTableRtnArr.forEach(item => {
-            this.profitTable.addColumn(item);
-        });
+            "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"]
+            .forEach(item => {
+                this.profitTable.addColumn(this.langServ.get(item));
+            });
         this.profitTable.columnConfigurable = true;
         let profitContent = new VBox();
         profitContent.addChild(profitHeader);
         profitContent.addChild(this.profitTable);
         this.profitPage.setContent(profitContent);
         reqbtn.OnClick = () => { AppComponent.bgWorker.send({ command: "ss-send", params: { type: "getProfitInfo", data: "" } }); };
+
+        { // basket page
+            let basketPage = new TabPage("TWAPPortfolio", this.langServ.get("TWAPPortfolio"));
+            this.pageMap["TWAPPortfolio"] = basketPage;
+            let basketHeader = new HBox();
+            let bidLevel = new Label();
+            bidLevel.Title = `${this.langServ.get("BidLevel")}:`;
+            basketHeader.addChild(bidLevel);
+            let askLevel = new Label();
+            askLevel.Title = `${this.langServ.get("AskLevel")}:`;
+            basketHeader.addChild(askLevel);
+            let orderValidTime = new Label();
+            orderValidTime.Title = `${this.langServ.get("OrderValidTime")}:`;
+            basketHeader.addChild(orderValidTime);
+            let maxChaseTimes = new Label();
+            maxChaseTimes.Title = `${this.langServ.get("MaxChaseTimes")}:`;
+            basketHeader.addChild(maxChaseTimes);
+            let beginTime = new Label();
+            beginTime.Title = `${this.langServ.get("BeginTime")}:`;
+            basketHeader.addChild(beginTime);
+            let endTime = new Label();
+            endTime.Title = `${this.langServ.get("EndTime")}:`;
+            basketHeader.addChild(endTime);
+            let interval = new Label();
+            interval.Title = `${this.langServ.get("Interval")}:`;
+            basketHeader.addChild(interval);
+            let mbasket_load = new Button();
+            mbasket_load.Text = "导入篮子文件";
+            basketHeader.addChild(mbasket_load);
+            bidLevel.Left = askLevel.Left = orderValidTime.Left = maxChaseTimes.Left = beginTime.Left = endTime.Left = interval.Left
+                = mbasket_load.Left = 20;
+
+            mbasket_load.OnClick = () => {
+                MessageBox.openFileDialog("导入篮子文件", (filenames) => {
+                    let account: number = parseInt(this.dd_portfolioAccount.SelectedItem.Text);
+                    AppComponent.bgWorker.send({ command: "ss-send", params: { type: "account-position-load", account: account } });
+                    // console.log(filenames);
+                    if (filenames === undefined || filenames.length < 1)
+                        return;
+
+                    File.readPCF(filenames[0]).then((basketList) => {
+                        let templist = [];
+                        basketList.components.forEach(item => {
+                            let codeinfo = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+                            templist.push({ currPos: 0, ukey: parseInt(codeinfo[0].InnerCode), targetPos: item.amount });
+                        });
+
+                        bidLevel.Text = basketList.params["BidLevel"];
+                        askLevel.Text = basketList.params["AskLevel"];
+                        orderValidTime.Text = basketList.params["OrderValidTime"];
+                        maxChaseTimes.Text = basketList.params["MaxChaseTimes"];
+                        beginTime.Text = basketList.params["BeginTime"];
+                        endTime.Text = basketList.params["EndTime"];
+                        interval.Text = basketList.params["Interval"];
+
+                        AppComponent.bgWorker.send({
+                            command: "ss-send", params: { type: "TWAPPortfolio-fp", data: { account: account, params: basketList.params, list: templist } }
+                        });
+
+                        templist = null;
+                    });
+                }, [{ name: "bkt", extensions: ["bkt"] }]);
+            };
+            this.basketTable = new DataTable("table2");
+            ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
+                "WorkingQty", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
+                "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].
+                forEach(col => {
+                    this.basketTable.addColumn(this.langServ.get(col));
+                });
+            let basketContent = new VBox();
+            basketContent.addChild(basketHeader).addChild(this.basketTable);
+            basketPage.setContent(basketContent);
+        }
+
 
         this.onStrategyTableInit();
         this.loadLayout();
@@ -1404,7 +1461,6 @@ export class AppComponent implements OnInit {
         let row = this.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = logStr;
-        this.logTable.detectChanges();
     }
 
     addLog(data: any) {
@@ -1415,7 +1471,6 @@ export class AppComponent implements OnInit {
         let row = this.logTable.newRow();
         row.cells[0].Text = this.getCurrentTime();
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
-        this.logTable.detectChanges();
     }
 
     showComOrderRecord(data: any) {
@@ -1436,14 +1491,14 @@ export class AppComponent implements OnInit {
                 for (j = 0; j < this.doneOrdersTable.rows.length; ++j) {
                     if (data[iData].od.orderid === this.doneOrdersTable.cell(j, this.langServ.get("OrderId")).Text) { // refresh
                         this.doneOrdersTable.cell(j, this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
+                        this.doneOrdersTable.cell(j, this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
                         this.doneOrdersTable.cell(j, this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
                         this.doneOrdersTable.cell(j, this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderPrice")).Text = data[iData].od.iprice / 10000;
+                        this.doneOrdersTable.cell(j, this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
                         break;
                     }
                 }
@@ -1460,12 +1515,12 @@ export class AppComponent implements OnInit {
                     row.cell(this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
                     row.cell(this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
                     row.cell(this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
-                    row.cell(this.langServ.get("DoneTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
+                    row.cell(this.langServ.get("DoneTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
                     row.cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
                     row.cell(this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
                     row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
-                    row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
-                    row.cell(this.langServ.get("OrderPrice")).Text = data[iData].od.iprice / 10000;
+                    row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
+                    row.cell(this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
                 }
 
             } else {
@@ -1484,7 +1539,6 @@ export class AppComponent implements OnInit {
 
         if (hasDone) {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
-            // this.doneOrdersTable.detectChanges();
         }
     }
 
@@ -1495,6 +1549,7 @@ export class AppComponent implements OnInit {
         row.cells[0].Data = obj.od.innercode;
         row.cell(this.langServ.get("UKEY")).Text = obj.od.innercode;
         let codeInfo = this.secuinfo.getSecuinfoByInnerCode(obj.od.innercode);
+        row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuAbbr : "unknown";
         row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
         row.cell(this.langServ.get("OrderId")).Text = obj.od.orderid;
         row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(obj.od.odatetime.tv_sec);
@@ -1551,12 +1606,6 @@ export class AppComponent implements OnInit {
         this.orderstatusTable.cell(idx, this.langServ.get("OrderVol")).Text = obj.od.ovolume;
         this.orderstatusTable.cell(idx, this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(obj.od.status);
         this.orderstatusTable.cell(idx, this.langServ.get("OrderStatus")).Data = obj.od.status;
-
-        // if (6 === obj.od.status || 7 === obj.od.status) {
-        //     this.orderstatusTable.rows[idx].cells[0].Disable = true;
-        //     if (this.orderstatusTable.rows[idx].cells[0].Text)
-        //         this.orderstatusTable.rows[idx].cells[0].Text = !this.orderstatusTable.rows[idx].cells[0].Text;
-        // }
     }
 
     /**
@@ -1629,7 +1678,6 @@ export class AppComponent implements OnInit {
 
         iRow = null;
         secuCategory = null;
-        // this.positionTable.detectChanges();
     }
 
     showComGWNetGuiInfo(data: any) {
@@ -1752,7 +1800,6 @@ export class AppComponent implements OnInit {
         row.cells[16].Text = obj.lastclose / 10000;
         row.cells[17].Text = obj.marketprice / 10000;
         row.cells[18].Text = obj.iopv;
-        // this.profitTable.detectChanges();
     }
 
     refreshProfitInfo(obj: any, idx: number) {
@@ -1771,8 +1818,6 @@ export class AppComponent implements OnInit {
         this.profitTable.rows[idx].cells[16].Text = obj.lastclose / 10000;
         this.profitTable.rows[idx].cells[17].Text = obj.marketprice / 10000;
         this.profitTable.rows[idx].cells[18].Text = obj.iopv;
-
-        // this.profitTable.detectChanges();
     }
 
     showComAccountPos(data: any) {
@@ -1816,8 +1861,6 @@ export class AppComponent implements OnInit {
                 row.cells[16].Text = data[i].record.ClosePL / 10000;
             }
         }
-
-        // this.accountTable.detectChanges();
     }
 
     showStrategyCfg(data: any) {
@@ -1938,7 +1981,7 @@ export class AppComponent implements OnInit {
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
-                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function(cell) {
+                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function (cell) {
                         cell.Class = "warning";
                     };
                     this.strategyTable.columns[offset + idx].key = item.key;
@@ -2148,6 +2191,61 @@ export class AppComponent implements OnInit {
 
             row.cells[12].Data = data[0].data[iData].Flag;
             this.setTradingFlag(row, row.cells[12].Data);
+        }
+    }
+
+    updateBasketExt(data: any) {
+        if (data[0].count === 0) {
+            this.basketTable.rows.length = 0;
+            return;
+        }
+
+        let count = data[0].count;
+        let row: DataTableRow;
+
+        for (let iData = 0; iData < count; ++iData) {
+            row = this.basketTable.rows.find(item => {
+                return item.cells[0].Data === data[0].data[iData].UKey;
+            });
+
+            if (row === undefined) {
+                row = this.basketTable.newRow();
+                let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[0].data[iData].UKey);
+                row.cells[0].Type = "plaintext";
+                row.cells[0].Data = data[0].data[iData].UKey;
+                row.cells[0].Text = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuCode : "unknown";
+                row.cells[1].Text = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuAbbr : "unknown";
+                row.cells[9].Text = "Normal";
+                row.cells[9].Data = data[0].data[iData].Flag;
+                // this.setTradingFlag(row, row.cells[9].Data);
+            }
+
+            row.cells[2].Text = data[0].data[iData].InitPos;
+            row.cells[3].Text = data[0].data[iData].TgtPos;
+            row.cells[4].Text = data[0].data[iData].CurrPos;
+            row.cells[5].Text = data[0].data[iData].Diff;
+            row.cells[6].Text = data[0].data[iData].Traded;
+            row.cells[7].Text = data[0].data[iData].Percentage / 100 + "%";
+            row.cells[8].Text = data[0].data[iData].WorkingVol;
+
+            row.cells[10].Text = data[0].data[iData].PreClose / 10000;
+            row.cells[11].Text = data[0].data[iData].LastPrice / 10000;
+            row.cells[12].Text = data[0].data[iData].BidSize;
+            row.cells[13].Text = data[0].data[iData].BidPrice / 10000;
+            row.cells[14].Text = data[0].data[iData].AskSize;
+            row.cells[15].Text = data[0].data[iData].AskPrice / 10000;
+            row.cells[16].Text = data[0].data[iData].AvgBuyPrice / 10000;
+            row.cells[17].Text = data[0].data[iData].AvgSellPrice / 10000;
+            row.cells[18].Text = data[0].data[iData].PreValue / 10000;
+            row.cells[19].Text = data[0].data[iData].ValueCon / 10000;
+            row.cells[20].Text = data[0].data[iData].DayPnLCon / 10000;
+            row.cells[21].Text = data[0].data[iData].ONPnLCon / 10000;
+
+            if (row.cells[9].Data === data[0].data[iData].Flag)
+                continue;
+
+            row.cells[9].Data = data[0].data[iData].Flag;
+            // this.setTradingFlag(row, row.cells[9].Data);
         }
     }
 
@@ -2480,7 +2578,6 @@ export class AppComponent implements OnInit {
                         case 2025:
                             this.showStatArbOrder(data.content);
                             break;
-                        case 5022:
                         case 2021:
                             this.showComorderstatusAndErrorInfo(data.content.data);
                             break;
@@ -2490,10 +2587,14 @@ export class AppComponent implements OnInit {
                             this.showComOrderRecord(data.content.data);
                             break;
                         case 2040:
+                        case 5022:
                             this.showLog(data.content.data);
                             break;
                         case 5021:
                             this.updateBasketPosition(data.content.data);
+                            break;
+                        case 5031:
+                            this.updateBasketExt(data.content.data);
                             break;
                         case 5024:
                             this.showPortfolioSummary(data.content.data);
