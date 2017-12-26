@@ -126,7 +126,7 @@
 }
 .aiArea{
     min-height: 350px;
-    height: auto;
+    /*height: auto;*/
 }
 .chartCon{
     /*border: 2px solid #032d60;*/
@@ -144,12 +144,16 @@
     padding-right: 10px;
     width: 50%;
     float: left;
+    max-height: 800px;
+    display: flex;
 }
 .aiArea .chartBody>.theWorstList{
     padding-left: 10px;
     padding-right: 0;
     width: 50%;
     float: left;
+    max-height: 800px;
+    display: flex;
 }
 .aicontent {
     flex: auto;

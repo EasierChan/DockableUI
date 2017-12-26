@@ -37,6 +37,7 @@ export class FactorProfitComponent implements OnDestroy {
     riskFactorInfoArray: any[] = [];
     alphaFactorInfoArray: any[] = [];
     userId: number = 0;
+    translateResult: string = "";
 
     constructor(private tradePoint: QtpService, private datePipe: DatePipe, private config: ConfigurationBLL) {
         FactorProfitComponent.self = this;
@@ -72,6 +73,8 @@ export class FactorProfitComponent implements OnDestroy {
                     factorInfo.factorid = parseInt(factorInfo.factorid);
                     factorInfo.factortype = parseInt(factorInfo.factortype);
                     factorInfo.returns = [];
+                    FactorProfitComponent.self.translate(factorInfo.factorname);
+                    factorInfo.factorname = FactorProfitComponent.self.translateResult;
                     if (factorInfo.factortype === 1) {
                         FactorProfitComponent.self.alphaFactorInfoArray.push(factorInfo);
                     } else if (factorInfo.factortype === 2) {
@@ -145,6 +148,43 @@ export class FactorProfitComponent implements OnDestroy {
             }
         }
         return -1;
+    }
+
+    translate(value) {
+        switch (value) {
+            case "BETA":
+                this.translateResult = "贝塔（市场）风险";
+                break;
+            case "BTOP":
+                this.translateResult = "账面价值比";
+                break;
+            case "EARNYILD":
+                this.translateResult = "盈利";
+                break;
+            case "GROWTH":
+                this.translateResult = "成长性";
+                break;
+            case "LEVERAGE":
+                this.translateResult = "杠杆";
+                break;
+            case "LIQUIDITY":
+                this.translateResult = "流动性";
+                break;
+            case "MOMENTUM":
+                this.translateResult = "动量";
+                break;
+            case "RESVOL":
+                this.translateResult = "残差波动率";
+                break;
+            case "SIZE":
+                this.translateResult = "市值";
+                break;
+            case "SIZENL":
+                this.translateResult = "非线性市值";
+                break;
+            default:
+
+        }
     }
 
     // 设置收益的两个图表
@@ -436,6 +476,7 @@ export class FactorAnalysisComponent implements OnDestroy {
     riskFactorInfoArray: any[] = [];
     factorAnalysisData: any[] = [];
     userId: number = 0;
+    translateResult: string = "";
 
     constructor(private tradePoint: QtpService, private appsrv: AppStoreService, private datePipe: DatePipe, private config: ConfigurationBLL) {
         FactorAnalysisComponent.self = this;
@@ -481,6 +522,8 @@ export class FactorAnalysisComponent implements OnDestroy {
                 data.body.forEach(function (factorInfo) {
                     factorInfo.factorid = parseInt(factorInfo.factorid);
                     factorInfo.factortype = parseInt(factorInfo.factortype);
+                    FactorAnalysisComponent.self.translate(factorInfo.factorname);
+                    factorInfo.factorname = FactorAnalysisComponent.self.translateResult;
                     if (factorInfo.factortype === 1) {
 
                     } else if (factorInfo.factortype === 2) {
@@ -1076,6 +1119,43 @@ export class FactorAnalysisComponent implements OnDestroy {
         };
 
         this.riskFactorReturnAttrEchart.setOption(riskFactorAttrOption);
+    }
+
+    translate(value) {
+        switch (value) {
+            case "BETA":
+                this.translateResult = "贝塔（市场）风险";
+                break;
+            case "BTOP":
+                this.translateResult = "账面价值比";
+                break;
+            case "EARNYILD":
+                this.translateResult = "盈利";
+                break;
+            case "GROWTH":
+                this.translateResult = "成长性";
+                break;
+            case "LEVERAGE":
+                this.translateResult = "杠杆";
+                break;
+            case "LIQUIDITY":
+                this.translateResult = "流动性";
+                break;
+            case "MOMENTUM":
+                this.translateResult = "动量";
+                break;
+            case "RESVOL":
+                this.translateResult = "残差波动率";
+                break;
+            case "SIZE":
+                this.translateResult = "市值";
+                break;
+            case "SIZENL":
+                this.translateResult = "非线性市值";
+                break;
+            default:
+
+        }
     }
 
     /**
