@@ -706,7 +706,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 row.cells[3].Text = ["pencil", "trash"];
                                 row.cells[1].Type = "plaintext";
                                 row.cells[2].Type = "plaintext";
-                                return ;
+                                return;
                             }
                         } else if (row.cells[1].Type === "plaintext") {
                             if (index === 1) {// 删除操作
@@ -720,7 +720,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     };
                 });
             }
-
+            this.ref.detectChanges();
         }, this);
         // addTodo
         this.tradePoint.addSlotOfCMS("createTodo", msg => {
@@ -764,6 +764,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     this.todoList.rows[this.todoRowIndex].cells[0].Color = "rgb(208, 208, 208)";
                 }
             }
+            this.ref.detectChanges();
         }, this);
         // 删除todo列表
         this.tradePoint.addSlotOfCMS("deleteTodo", msg => {
@@ -773,6 +774,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 return;
             }
             this.todoList.rows.splice(this.todoRowIndex, 1);
+            this.ref.detectChanges();
         }, this);
         this.tradePoint.sendToCMS("getAlarmMessage", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
         this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
@@ -986,7 +988,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (historyType === "all") {
             this.quote.send(181, 10001, { requestId: 1, dataType: 101002, ukeyCode: this.mainStockUk, timeFrom: 93000000 });
         } else {
-            this.quote.send(181, 10001, { requestId: 1, dataType: 102001, ukeyList: this.dashAllUkcodeList.join(";"), partOrder: -1 });
+            this.quote.send(181, 10001, { requestId: 1, dataType: 102001, ukeyList: this.dashAllUkcodeList.join(";"), subType: -1 });
         }
         this.quote.addSlot({
             appid: 181,
@@ -1111,6 +1113,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             }
                         }
                     }
+                    this.ref.detectChanges();
                 }
             }
         });

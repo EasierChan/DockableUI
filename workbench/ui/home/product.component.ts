@@ -21,7 +21,7 @@ export class ProductsComponent implements OnInit {
     userId: any;
     // monitorProductsData: any;
 
-    constructor(private tradePoint: QtpService, private appsrv: AppStoreService,  private config: ConfigurationBLL, private configBll: ConfigurationBLL) {
+    constructor(private tradePoint: QtpService, private appsrv: AppStoreService,  private config: ConfigurationBLL, private ref: ChangeDetectorRef) {
     }
 
     ngOnInit() {
@@ -52,6 +52,8 @@ export class ProductsComponent implements OnInit {
                     // 可用资金
                     item.availableFund = this.toThousands(((Number(item.stock_validamt) + Number(item.futures_validamt)) / 10000 ).toFixed(2));
                 });
+
+                this.ref.detectChanges();
             }
         }, this);
     }
