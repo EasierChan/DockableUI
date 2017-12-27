@@ -34,6 +34,8 @@ export class QuoteDal {
             client.on("close", () => {
                 console.info(`client close`);
                 this.clients.splice(this.clients.indexOf(client), 1);
+                this.kwlist = _.difference(this.kwlist, client.ukeys);
+                this.quotePoint.send(17, 101, { topic: 3112, kwlist: this.kwlist });
             });
         });
 
