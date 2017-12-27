@@ -451,7 +451,7 @@ export class StrategyDealer {
                 });
                 this.sendQtp({ type: 5005, subtype: 0, body: body });
                 break;
-            case "multibasket-fp":
+            case "TWAPPortfolio-fp":
                 body = Buffer.alloc(FpHead.len + 20);
                 let mbHead = new FpHead();
                 mbHead.account = params.data.account;
@@ -469,6 +469,7 @@ export class StrategyDealer {
                 twapParam.interval = params.data.params["Interval"] ? parseInt(params.data.params["Interval"]) : 0;
                 twapParam.toBuffer().copy(body, offset);
                 this.sendQtp({ type: 5007, subtype: 0, body: body });
+                logger.info(`send=>type=5007, subtype=0, body: ${body.byteLength}`);
             case "basket-fp":
                 offset = 0;
                 body = Buffer.alloc(FpHead.len + 8 + params.data.list.length * 12);
