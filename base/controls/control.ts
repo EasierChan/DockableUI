@@ -2014,7 +2014,7 @@ export class DataTableRow extends Control {
                     this._timeout = null;
 
                     if (this.dataSource.cellDBClick) {
-                        this.dataSource.cellDBClick(this.cells[cellIndex], cellIndex, rowIndex);
+                        this.dataSource.cellDBClick(this.cells[cellIndex], cellIndex, rowIndex, this);
                     }
 
                     if (this.dataSource.rowDBClick) {
@@ -2057,7 +2057,7 @@ export class DataTableRow extends Control {
                 this._timeout = null;
 
                 if (this.dataSource.cellDBClick) {
-                    this.dataSource.cellDBClick(this.cells[cellIndex], cellIndex, rowIndex);
+                    this.dataSource.cellDBClick(this.cells[cellIndex], cellIndex, rowIndex, this);
                 }
 
                 if (this.dataSource.rowDBClick) {
@@ -2560,7 +2560,7 @@ export class BookViewer extends VBox {
         this.code.Text = value;
     }
 
-    set onCellDBClick(value: (cell, cellIdx, rowIdx) => void) {
+    set onCellDBClick(value: (cell, cellIdx: number, rowIdx: number, row?: DataTableRow) => void) {
         this.table.onCellDBClick = value;
     }
 }
