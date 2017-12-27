@@ -71,10 +71,11 @@ export class AppComponent implements OnInit {
     private txt_Symbol: any;
     private txt_Price: any;
 
-    constructor(private tradePoint: QtpService, private state: AppStateCheckerRef, private secuinfo: SecuMasterService,
-        private appSrv: AppStoreService, private langServ: TranslateService, private quote: IP20Service ) {
+    constructor(private tradePoint: QtpService, private ref: ChangeDetectorRef, private state: AppStateCheckerRef, private secuinfo: SecuMasterService,
+        private appSrv: AppStoreService, private langServ: TranslateService, private quote: IP20Service) {
         this.state.onInit(this, this.onReady);
         this.state.onDestory(this, this.onDestroy);
+        this.state.onResize(this, this.onResize);
     }
 
     onReady(option: any) {
@@ -88,7 +89,7 @@ export class AppComponent implements OnInit {
     onResize(event: any) {
         // minus 10 to remove the window's border.
         this.main.reallocSize(event.currentTarget.document.body.clientWidth - 10, event.currentTarget.document.body.clientHeight - 27);
-        // this.ref.detectChanges();
+        this.ref.detectChanges();
     }
 
 
@@ -353,7 +354,6 @@ export class AppComponent implements OnInit {
         tradeAccountContent.addChild(this.tradeAccountTable);
         tradeAccountPage.setContent(tradeAccountContent);
         panel.addTab(tradeAccountPage, false);
-
         viewContent.addChild(panel);
 
 
@@ -363,11 +363,13 @@ export class AppComponent implements OnInit {
         MarketCon.MinHeight = 200;
         let panel2 = new TabPanel();
         let bookviewer = new BookViewer(this.langServ);
-        bookviewer.onCellDBClick = (item, cellIndex, rowIndex) => {
-            Dialog.popup(this, this.viewContentPop, { title: "下单",  height: 300 });
+        bookviewer.onCellDBClick = (item, cellIndex, rowIndex, row) => {
+            this.txt_UKey.Text = bookviewer.ukey;
+            // console.log(this.dd_Account.SelectedItem.Value);
+            this.txt_Price.Text = row.cells[1].Text;
+            Dialog.popup(this, this.viewContentPop, { title: this.langServ.get("Trade"), height: 300 });
         };
         // bookviewer.
-        bookviewer.ukey;
         this.quote.send(17, 101, { topic: 3112, kwlist: bookviewer.ukey });
         MarketCon.addChild(bookviewer);
         Market.setContent(MarketCon);
@@ -400,8 +402,21 @@ export class AppComponent implements OnInit {
                 if (msg !== undefined) {
                     let ans = new QueryFundAns();
                     ans.fromBuffer(msg);
+                    let row = this.fundAccountTable.newRow();
+                    row.cells[0].Text = ans.avl_amt;
+                    row.cells[1].Text = ans.avl_financing_amt;
+                    row.cells[2].Text = ans.buy_margin;
+                    row.cells[3].Text = ans.close_pl;
+                    row.cells[4].Text = ans.currency;
+                    row.cells[5].Text = ans.fee;
+                    row.cells[6].Text = ans.financing_amt;
+                    row.cells[7].Text = ans.fromBuffer;
+                    row.cells[8].Text = ans.frozen_amt;
+                    row.cells[9].Text = ans.fromBuffer;
+                    row.cells[10].Text = ans.frozen_amt;
+                    row.cells[11].Text = ans.fund_account_id;
+                    row.cells[12].Text = ans.loan_amt;
                     console.log(ans);
-                    ans.avl_amt = 0;
                 }
             }
         });
@@ -413,8 +428,19 @@ export class AppComponent implements OnInit {
                 if (msg !== undefined) {
                     let ans = new QueryPositionAns();
                     ans.fromBuffer(msg);
+                    let row = this.positionTable.newRow();
+                    row.cells[0].Text = ans.avl_cre_redemp_qty;
+                    row.cells[1].Text = ans.avl_qty;
+                    row.cells[2].Text = ans.close_pl;
+                    row.cells[3].Text = ans.covered_frz_qty;
+                    row.cells[4].Text = ans.direction;
+                    row.cells[5].Text = ans.fund_account_id;
+                    row.cells[6].Text = ans.hedge_flag;
+                    row.cells[7].Text = ans.locked_avl_qty;
+                    row.cells[8].Text = ans.locked_onway_qty;
+                    row.cells[9].Text = ans.mtm_close_pl;
+                    row.cells[10].Text = ans.mtm_total_cost;
                     console.log(ans);
-                    ans.avl_cre_redemp_qty = 0;
                 }
 
 
@@ -482,10 +508,8 @@ export class AppComponent implements OnInit {
                 if (msg !== undefined) {
                     let ans = new OrderStatus();
                     ans.fromBuffer(msg);
-
+                    console.log(ans);
                 }
-
-
             }
         });
         // 撤单
@@ -510,19 +534,23 @@ export class AppComponent implements OnInit {
                 alert("getAssetAccount:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
             }
-            console.log(data.body[0].acid);
-
+            if (data.body.length === 0) {
+                return;
+            }
             data.body.forEach((item, index) => {
+                this.dd_Account.addItem({ Text: item.acname, Value: item.acid });
+                // 查询资金
                 this.acidObj[item.acid] = item.acname;
+                let fund = new QueryFundAndPosition();
+                fund.portfolio_id = 0;
+                fund.fund_account_id = parseInt(item.acid);
+                this.tradePoint.send(COMS_MSG.kMtFQueryFund, fund.toBuffer(), ServiceType.kCOMS);
+                // 查询仓位
+                let position = new QueryFundAndPosition();
+                position.portfolio_id = 0;
+                position.fund_account_id = parseInt(item.acid);
+                this.tradePoint.send(COMS_MSG.kMtFQueryPosition, position.toBuffer(), ServiceType.kCOMS);
             });
-            console.log(this.acidObj);
-            let fund = new QueryFundAndPosition();
-            fund.portfolio_id = 0;
-            fund.fund_account_id = parseInt(data.body[0].acid);
-
-            let position = new QueryFundAndPosition();
-            position.portfolio_id = 0;
-            position.fund_account_id = parseInt(data.body[0].acid);
 
             let queryOrder = new OrderStatus();
             queryOrder.order_ref = 0;   // u8  客户端订单ID+term_id = 唯一
@@ -559,28 +587,6 @@ export class AppComponent implements OnInit {
             queryOrder.broker_sn = "";    // 32 券商单号
             queryOrder.message = "";      // 128 附带消息，如错误消息等
 
-            let sendOrder = new SendOrder();
-            sendOrder.order_ref = 0;   // u8  客户端订单ID+term_id = 唯一
-            sendOrder.ukey = 0;        // u8  Universal Key
-            sendOrder.directive = 1;   // u4 委托指令：普通买入，普通卖出
-            sendOrder.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
-            sendOrder.hedge_flag = 0;  // u4 投机套保标志：投机、套利、套保
-            sendOrder.execution = 0;   // u4 执行类型： 限价0，市价
-            sendOrder.order_date = 0;  // u4 委托时间yymmdd
-            sendOrder.order_time = 0;  // u4 委托时间hhmmss
-            sendOrder.portfolio_id = 0;     // u8 组合ID
-            sendOrder.fund_account_id = data.body[0].acid;  // u8 资金账户ID
-            sendOrder.trade_account_id = 0; // u8 交易账户ID
-
-            sendOrder.strategy_id = 0;     // u4 策略ID
-            sendOrder.trader_id = 0;        // u4 交易员ID
-            sendOrder.term_id = 0;          // u4 终端ID
-            sendOrder.qty = 0;    // 8 委托数量
-            sendOrder.price = 0;  // 8 委托价格
-            sendOrder.property = 0;        // 4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
-            sendOrder.currency = 0;        // 4 报价货币币种
-            sendOrder.algor_id = 0;		// 8 策略算法ID
-            sendOrder.reserve = 0;			// 4 预留(组合offset_flag)
 
             let cancelOrder = new CancelOrder();
             cancelOrder.order_ref = 0;
@@ -590,46 +596,18 @@ export class AppComponent implements OnInit {
             cancelOrder.term_id = 0;    // u4 终端ID
             cancelOrder.order_date = 0;  // u4 撤单时间yymmdd
             cancelOrder.order_time = 0; // u4 撤单时间hhmmss
-
-            this.tradePoint.send(COMS_MSG.kMtFQueryFund, fund.toBuffer(), ServiceType.kCOMS);
-            this.tradePoint.send(COMS_MSG.kMtFQueryPosition, position.toBuffer(), ServiceType.kCOMS);
             this.tradePoint.send(COMS_MSG.kMtFQueryOrder, queryOrder.toBuffer(), ServiceType.kCOMS);
-            this.tradePoint.send(COMS_MSG.kMtFSendOrder, sendOrder.toBuffer(), ServiceType.kCOMS);
             this.tradePoint.send(COMS_MSG.kMtFCancelOrder, cancelOrder.toBuffer(), ServiceType.kCOMS);
         }, this);
 
-        this.tradePoint.addSlotOfCMS("getTaacctFund", (res) => {
-            // 查询资产账户资金
-            let data = JSON.parse(res.toString());
-            if (data.msret.msgcode !== "00") {
-                alert("getTaacctFund:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                return;
-            }
-            data.body.forEach((item, index) => {
-                let row = this.fundAccountTable.newRow();
-                row.cells[0].Text = item.currencyid;
-                row.cells[1].Text = item.out_fund;
-                row.cells[2].Text = item.in_fund;
-                row.cells[3].Text = item.totalamt;
-                row.cells[4].Text = item.frozenamt;
-                row.cells[5].Text = item.validloan;
-                row.cells[6].Text = item.loan;
-                row.cells[7].Text = item.stockloan;
-                row.cells[8].Text = item.totalmargin;
-                row.cells[9].Text = item.buymargin;
-                row.cells[10].Text = item.sellmargin;
-                row.cells[11].Text = item.fee;
-                row.cells[12].Text = item.hold_closepl;
-
-            });
-
-            console.log(data);
-        }, this);
         this.tradePoint.addSlotOfCMS("getTradeAccount", (res) => {
             // 查询交易账户
             let data = JSON.parse(res.toString());
             if (data.msret.msgcode !== "00") {
                 alert("getTradeAccount:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                return;
+            }
+            if (data.body.length === 0) {
                 return;
             }
             data.body.forEach(item => {
@@ -664,6 +642,9 @@ export class AppComponent implements OnInit {
                 series: [{ data: [] }]
             };
             this.productNetData = data.body;
+            if (data.body.length === 0) {
+                return;
+            }
             if (this.productNetData.length > 0) {
                 this.productNetData.forEach(item => {
                     productNetChangeOpt.xAxis[0].data.push(item.trday);
@@ -674,7 +655,7 @@ export class AppComponent implements OnInit {
             }
         }, this);
 
-         // 接实时行情
+        // 接实时行情
         this.quote.addSlot({
             appid: 17,
             packid: 110,
@@ -684,6 +665,37 @@ export class AppComponent implements OnInit {
                 let sellArr = msg.ask_price;
             }
         });
+
+        btn_clear.OnClick = () => {
+            this.dialog = null;
+        };
+        btn_submit.OnClick = () => {
+            let sendOrder = new SendOrder();
+            sendOrder.order_ref = 0;   // u8  客户端订单ID+term_id = 唯一
+            sendOrder.ukey = 0;        // u8  Universal Key
+            sendOrder.directive = 1;   // u4 委托指令：普通买入，普通卖出
+            sendOrder.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
+            sendOrder.hedge_flag = 0;  // u4 投机套保标志：投机、套利、套保
+            sendOrder.execution = 0;   // u4 执行类型： 限价0，市价
+            sendOrder.order_date = 0;  // u4 委托时间yymmdd
+            sendOrder.order_time = 0;  // u4 委托时间hhmmss
+            sendOrder.portfolio_id = 0;     // u8 组合ID
+            sendOrder.fund_account_id = this.dd_Account.SelectedItem.Value;  // u8 资金账户ID
+            sendOrder.trade_account_id = 0; // u8 交易账户ID
+
+            sendOrder.strategy_id = 0;     // u4 策略ID
+            sendOrder.trader_id = 0;        // u4 交易员ID
+            sendOrder.term_id = 0;          // u4 终端ID
+            sendOrder.qty = 0;    // 8 委托数量
+            sendOrder.price = this.txt_Price.Text * 10000;  // 8 委托价格
+            sendOrder.property = 0;        // 4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
+            sendOrder.currency = 0;        // 4 报价货币币种
+            sendOrder.algor_id = 0;		// 8 策略算法ID
+            sendOrder.reserve = 0;			// 4 预留(组合offset_flag)
+
+            this.tradePoint.send(COMS_MSG.kMtFSendOrder, sendOrder.toBuffer(), ServiceType.kCOMS);
+
+        };
 
     }
 
@@ -696,14 +708,6 @@ export class AppComponent implements OnInit {
                 this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.productId } } }));
                 this.tradePoint.sendToCMS("getAssetAccount", JSON.stringify({
                     // 查询资产账户
-                    data: {
-                        head: { userid: this.userId },
-                        body: { caid: this.productId }
-                    }
-                }));
-
-                this.tradePoint.sendToCMS("getTaacctFund", JSON.stringify({
-                    // 查询资产账户资金
                     data: {
                         head: { userid: this.userId },
                         body: { caid: this.productId }
