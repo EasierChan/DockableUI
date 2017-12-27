@@ -63,6 +63,7 @@ export class TradeComponent implements OnInit {
                     this.configBll.removeConfig(config);
                     this.strategyArea.removeTile(config.chname);
                     this.tradeEndPoint.subscribe(2001, [config.appid], true);
+                    this.strategyArea.detectChanges();
                 }
             }
         });
