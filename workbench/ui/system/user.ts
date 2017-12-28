@@ -88,7 +88,7 @@ export class UserComponent implements OnInit {
                 }
 
                 this.loginState = 2;
-                this.configBll.set("user", { userid: this.userid });
+                this.configBll.set("user", { userid: this.userid, termid: obj.data.term_id });
                 this.appSrv.setLoginTrade(true);
                 this.tradeSrv.sendToCMS("getStrategyServerTemplate", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getProduct", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
