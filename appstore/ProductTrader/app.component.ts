@@ -13,7 +13,7 @@ import { QtpService } from "../../base/api/services/qtp.service";
 import { IP20Service } from "../../base/api/services/ip20.service";
 import { AppStateCheckerRef, Environment, AppStoreService, TranslateService, SecuMasterService } from "../../base/api/services/backend.service";
 import { ServiceType, FGS_MSG } from "../../base/api/model/qtp/message.model";
-import { QueryFundAndPosition, COMS_MSG, QueryFundAns, QueryPositionAns, SendOrder, OrderStatus, CancelOrder, CancelOrderAns } from "../../base/api/model/qtp/coms.model";
+import { QueryFund, QueryPosition, COMS_MSG, QueryFundAns, QueryPositionAns, SendOrder, QueryOrder, QueryOrderAns, SendOrderAns, CancelOrder, CancelOrderAns } from "../../base/api/model/qtp/coms.model";
 import { DataKey } from "../../base/api/model/workbench.model";
 import { ECharts } from "echarts";
 
@@ -55,6 +55,7 @@ export class AppComponent implements OnInit {
     chart: ChartViewer;
     worker: any;
     userId: any;
+    term_id: any;
     productId: any;
     acidObj: any = {};
     productNetData: any;
@@ -70,6 +71,9 @@ export class AppComponent implements OnInit {
     private txt_UKey: any;
     private txt_Symbol: any;
     private txt_Price: any;
+    private txt_Volume: any;
+    coms_directive: any = {};
+    coms_statusType: any = {};
 
     constructor(private tradePoint: QtpService, private ref: ChangeDetectorRef, private state: AppStateCheckerRef, private secuinfo: SecuMasterService,
         private appSrv: AppStoreService, private langServ: TranslateService, private quote: IP20Service) {
@@ -95,10 +99,41 @@ export class AppComponent implements OnInit {
 
     ngOnInit() {
         this.userId = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)).user_id;
+        this.term_id = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)).term_id;
         let [addr, port] = this.appSrv.getSetting().endpoints[0].trade_addr.split(":");
 
-        console.log("userid" + this.userId);
-        console.log("this.productId:" + this.productId);
+        this.coms_directive = {
+            1: "买",          // 普通买
+            2: "卖" // 普通卖
+            // kDtLoanBuy = 3,           // 融资买入
+            // kDtMarginSell = 4,        // 融券卖出(预约券)
+            // kDtMarketMarginSell = 5,  // 融券卖出(市场券)
+            // kDtBuyPayback = 6,        // 买券还券
+            // kDtResvBuyPayback = 7,    // 买券还券（预约券）
+            // kDtMarketBuyPayback = 8,  // 买券还券（市场券）
+            // kDtSecPayback = 9,        // 现券还券
+            // kDtResvSecPayback = 10,   // 现券还券(预约券)
+            // kDtMarketSecPayback = 11, // 现券还券(市场券)
+            // kDtCashRepay = 12,        // 现金还款
+            // kDtSellPayBack = 13,      // 卖券还款
+            // kDtGuaranteeTransfer = 14, // 担保品划转
+            // kDtApplyParch = 15,       // 申购
+            // kDtRedemption = 16,       // 赎回
+        };
+        this.coms_statusType = {
+            "-1": "待审批",
+            "0": "未报",
+            "1": "待报",
+            "2": "已报",
+            "3": "待撤",
+            "4": "部成待撤",
+            "5": "部分撤销",
+            "6": "已撤",
+            "7": "部分成交",
+            "8": "全部成交",
+            "9": "废单",
+            "40": "废单"
+        };
 
         let leftAlign = 20;
         let rowSep = 5;
@@ -212,12 +247,12 @@ export class AppComponent implements OnInit {
             volume_label.Text = "　　　" + txt_VolumeRtn + ": ";
         volume_label.Left = leftAlign;
         volume_label.Top = rowSep;
-        let txt_Volume = new MetaControl("textbox");
-        txt_Volume.Top = rowSep;
-        txt_Volume.Title = "";
-        txt_Volume.Width = 150;
+        this.txt_Volume = new MetaControl("textbox");
+        this.txt_Volume.Top = rowSep;
+        this.txt_Volume.Title = "";
+        this.txt_Volume.Width = 150;
         volume_sixrow.top = 5;
-        volume_sixrow.addChild(volume_label).addChild(txt_Volume);
+        volume_sixrow.addChild(volume_label).addChild(this.txt_Volume);
         this.viewContentPop.addChild(volume_sixrow);
 
         let btn_row = new HBox();
@@ -456,40 +491,35 @@ export class AppComponent implements OnInit {
                     let offset = 0;
 
                     while (offset < msg.length) {
-                        let ans = new OrderStatus();
+                        let ans = new QueryOrderAns();
                         offset += ans.fromBuffer(msg, offset);
 
                         let row = this.orderStatTable.newRow();
-                        row.cells[0].Text = ans.order_ref;
-                        row.cells[1].Text = ans.ukey;
-                        row.cells[2].Text = ans.directive;
-                        row.cells[3].Text = ans.offset_flag;
-                        row.cells[4].Text = ans.hedge_flag;
-                        row.cells[5].Text = ans.execution;
-                        row.cells[6].Text = ans.order_date;
-                        row.cells[7].Text = ans.order_time;
-                        row.cells[8].Text = ans.portfolio_id;
-                        row.cells[9].Text = ans.fund_account_id;
-                        row.cells[10].Text = ans.fund_account_id;
-                        row.cells[11].Text = ans.trade_account_id;
+                        // row.cells[0].Text = ans.query_orderAns.approver_id;
+                        row.cells[1].Text = ans.query_orderAns.order_id;
+                        row.cells[2].Text = ans.query_orderAns.chronos_order.ukey;
+                        row.cells[3].Text = "证券代码";
+                        row.cells[4].Text = "证券名称";
+                        row.cells[5].Text = ans.query_orderAns.chronos_order.price / 10000;
+                        row.cells[6].Text = ans.query_orderAns.chronos_order.qty;
+                        row.cells[7].Text = ans.query_orderAns.chronos_order.order_date + " " + ans.query_orderAns.chronos_order.order_time;
+                        row.cells[8].Text = this.coms_directive[ans.query_orderAns.chronos_order.directive];
+                        row.cells[9].Text = this.coms_statusType[ans.query_orderAns.status];
 
                         let rowFinish = this.finishOrderTable.newRow();
-                        rowFinish.cells[0].Text = ans.order_id;
-                        rowFinish.cells[1].Text = ans.ukey;
+                        rowFinish.cells[0].Text = ans.query_orderAns.order_id;
+                        rowFinish.cells[1].Text = ans.query_orderAns.chronos_order.ukey;
                         rowFinish.cells[2].Text = "证券代码";
                         rowFinish.cells[3].Text = "证券名称";
-                        rowFinish.cells[5].Text = ans.portfolio_id;
-                        rowFinish.cells[6].Text = ans.price / 10000;
-                        rowFinish.cells[7].Text = ans.qty;
-                        rowFinish.cells[8].Text = ans.order_time;
-                        rowFinish.cells[9].Text = ans.directive;
-                        rowFinish.cells[10].Text = ans.status;
-                        rowFinish.cells[11].Text = "成交价格";
-                        rowFinish.cells[12].Text = ans.trade_qty;
-                        rowFinish.cells[13].Text = ans.trade_date + "" + ans.trade_time;
-                        rowFinish.cells[14].Text = ans.property;
-
-
+                        rowFinish.cells[4].Text = ans.query_orderAns.chronos_order.price / 10000;
+                        rowFinish.cells[5].Text = ans.query_orderAns.chronos_order.qty;
+                        rowFinish.cells[6].Text = ans.query_orderAns.chronos_order.order_date + " " + ans.query_orderAns.chronos_order.order_time;
+                        rowFinish.cells[7].Text = this.coms_directive[ans.query_orderAns.chronos_order.directive];
+                        rowFinish.cells[8].Text = this.coms_statusType[ans.query_orderAns.status];
+                        rowFinish.cells[9].Text = ans.query_orderAns.trade_amt / 10000; // 成交金额
+                        rowFinish.cells[10].Text = ans.query_orderAns.trade_qty;
+                        rowFinish.cells[11].Text = ans.query_orderAns.trade_date + ":" + ans.query_orderAns.trade_time;
+                        rowFinish.cells[12].Text = "订单类型";
 
                         console.log(ans);
                     }
@@ -506,9 +536,11 @@ export class AppComponent implements OnInit {
             msgtype: COMS_MSG.kMtFSendOrderAns,
             callback: (msg) => {
                 if (msg !== undefined) {
-                    let ans = new OrderStatus();
-                    ans.fromBuffer(msg);
-                    console.log(ans);
+                    let ans = new SendOrderAns();
+                    // ans.fromBuffer(msg);
+                    if (ans.send_orderAns.ret_code === 0) {
+                        this.dialog = null;
+                    }
                 }
             }
         });
@@ -541,63 +573,62 @@ export class AppComponent implements OnInit {
                 this.dd_Account.addItem({ Text: item.acname, Value: item.acid });
                 // 查询资金
                 this.acidObj[item.acid] = item.acname;
-                let fund = new QueryFundAndPosition();
+                let fund = new QueryFund();
                 fund.portfolio_id = 0;
                 fund.fund_account_id = parseInt(item.acid);
                 this.tradePoint.send(COMS_MSG.kMtFQueryFund, fund.toBuffer(), ServiceType.kCOMS);
                 // 查询仓位
-                let position = new QueryFundAndPosition();
-                position.portfolio_id = 0;
-                position.fund_account_id = parseInt(item.acid);
+                let position = new QueryPosition();
+                position.query_position.portfolio_id = 0;
+                position.query_position.fund_account_id = parseInt(item.acid);
                 this.tradePoint.send(COMS_MSG.kMtFQueryPosition, position.toBuffer(), ServiceType.kCOMS);
+                // 查询订单
+                let queryOrder = new QueryOrder();
+                queryOrder.chronos_order.order_ref = 0;   // u8  客户端订单ID+term_id = 唯一
+                queryOrder.chronos_order.ukey = 0;        // u8  Universal Key
+                queryOrder.chronos_order.directive = 0;   // u4 委托指令：普通买入，普通卖出
+                queryOrder.chronos_order.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
+                queryOrder.chronos_order.hedge_flag = 0;  // u4 投机套保标志：投机、套利、套保
+                queryOrder.chronos_order.execution = 0;   // u4 执行类型： 限价0，市价
+                queryOrder.chronos_order.order_date = this.getNowDate();  // u4 委托时间yymmdd
+                queryOrder.chronos_order.order_time = this.getNowDate("time");  // u4 委托时间hhmmss
+                queryOrder.chronos_order.portfolio_id = 0;     // u8 组合ID
+                queryOrder.chronos_order.fund_account_id = item.acid;  // ========u8 资金账户ID
+                queryOrder.chronos_order.trade_account_id = 0; // u8 交易账户ID
+
+                queryOrder.chronos_order.strategy_id = 0;     // u4 策略ID
+                queryOrder.chronos_order.trader_id = 0;        // u4 交易员ID
+                queryOrder.chronos_order.term_id = this.term_id;          // u4 终端ID
+                queryOrder.chronos_order.qty = 0;    // 8 委托数量
+                queryOrder.chronos_order.price = 0;  // 8 委托价格
+                queryOrder.chronos_order.property = 0;        // 4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
+                queryOrder.chronos_order.currency = 0;        // 4 报价货币币种
+                queryOrder.chronos_order.algor_id = 0;		// 8 策略算法ID
+                queryOrder.chronos_order.reserve = 0;			// 4 预留(组合offset_flag)
+                queryOrder.order_id = 0;   // 8 订单ID
+
+                queryOrder.cancelled_qty = 0;    // 8 已撤数量
+                queryOrder.queued_qty = 0;       // 8 已确认？
+                queryOrder.trade_qty = 0;        // 8 已成交数量
+                queryOrder.trade_amt = 0;        // 8 已成交金额*10000（缺省值）
+                queryOrder.trade_date = 0;      // 4 最后成交时间
+                queryOrder.trade_time = 0;      // 4 最后成交时间
+                queryOrder.approver_id = 0;     // 4 审批人ID
+                queryOrder.status = 0;          // 4 订单状态
+                queryOrder.ret_code = 0;        // 4
+                queryOrder.broker_sn = "";    // 32 券商单号
+                queryOrder.message = "";      // 128 附带消息，如错误消息等
+                this.tradePoint.send(COMS_MSG.kMtFQueryOrder, queryOrder.toBuffer(), ServiceType.kCOMS);
             });
-
-            let queryOrder = new OrderStatus();
-            queryOrder.order_ref = 0;   // u8  客户端订单ID+term_id = 唯一
-            queryOrder.ukey = 0;        // u8  Universal Key
-            queryOrder.directive = 0;   // u4 委托指令：普通买入，普通卖出
-            queryOrder.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
-            queryOrder.hedge_flag = 0;  // u4 投机套保标志：投机、套利、套保
-            queryOrder.execution = 0;   // u4 执行类型： 限价0，市价
-            queryOrder.order_date = 0;  // u4 委托时间yymmdd
-            queryOrder.order_time = 0;  // u4 委托时间hhmmss
-            queryOrder.portfolio_id = 0;     // u8 组合ID
-            queryOrder.fund_account_id = data.body[0].acid;  // ========u8 资金账户ID
-            queryOrder.trade_account_id = 0; // u8 交易账户ID
-
-            queryOrder.strategy_id = 0;     // u4 策略ID
-            queryOrder.trader_id = 0;        // u4 交易员ID
-            queryOrder.term_id = 0;          // u4 终端ID
-            queryOrder.qty = 0;    // 8 委托数量
-            queryOrder.price = 0;  // 8 委托价格
-            queryOrder.property = 0;        // 4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
-            queryOrder.currency = 0;        // 4 报价货币币种
-            queryOrder.algor_id = 0;		// 8 策略算法ID
-            queryOrder.reserve = 0;			// 4 预留(组合offset_flag)
-            queryOrder.order_id = 0;   // 8 订单ID
-
-            queryOrder.cancelled_qty = 0;    // 8 已撤数量
-            queryOrder.queued_qty = 0;       // 8 已确认？
-            queryOrder.trade_qty = 0;        // 8 已成交数量
-            queryOrder.trade_amt = 0;        // 8 已成交金额*10000（缺省值）
-            queryOrder.trade_time = 0;      // 8 最后成交时间
-            queryOrder.approver_id = 0;     // 4 审批人ID
-            queryOrder.status = 0;          // 4 订单状态
-            queryOrder.ret_code = 0;        // 4
-            queryOrder.broker_sn = "";    // 32 券商单号
-            queryOrder.message = "";      // 128 附带消息，如错误消息等
-
-
             let cancelOrder = new CancelOrder();
             cancelOrder.order_ref = 0;
             cancelOrder.order_ref = 0;  // u8 撤单的客户端订单编号
             cancelOrder.order_id = 0;   // u8 撤单订单编号
             cancelOrder.trader_id = 0;  // u8 撤单交易员ID/交易账户id
-            cancelOrder.term_id = 0;    // u4 终端ID
+            cancelOrder.term_id = this.term_id;    // u4 终端ID
             cancelOrder.order_date = 0;  // u4 撤单时间yymmdd
             cancelOrder.order_time = 0; // u4 撤单时间hhmmss
-            this.tradePoint.send(COMS_MSG.kMtFQueryOrder, queryOrder.toBuffer(), ServiceType.kCOMS);
-            this.tradePoint.send(COMS_MSG.kMtFCancelOrder, cancelOrder.toBuffer(), ServiceType.kCOMS);
+            // this.tradePoint.send(COMS_MSG.kMtFCancelOrder, cancelOrder.toBuffer(), ServiceType.kCOMS);
         }, this);
 
         this.tradePoint.addSlotOfCMS("getTradeAccount", (res) => {
@@ -655,38 +686,27 @@ export class AppComponent implements OnInit {
             }
         }, this);
 
-        // 接实时行情
-        this.quote.addSlot({
-            appid: 17,
-            packid: 110,
-            callback: (msg) => {
-                console.log(msg);
-                let buyArr = msg.bid_price;
-                let sellArr = msg.ask_price;
-            }
-        });
-
         btn_clear.OnClick = () => {
             this.dialog = null;
         };
         btn_submit.OnClick = () => {
             let sendOrder = new SendOrder();
-            sendOrder.order_ref = 0;   // u8  客户端订单ID+term_id = 唯一
+            sendOrder.order_ref = new Date().getTime();   // u8  客户端订单ID+term_id = 唯一
             sendOrder.ukey = 0;        // u8  Universal Key
             sendOrder.directive = 1;   // u4 委托指令：普通买入，普通卖出
             sendOrder.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
             sendOrder.hedge_flag = 0;  // u4 投机套保标志：投机、套利、套保
             sendOrder.execution = 0;   // u4 执行类型： 限价0，市价
-            sendOrder.order_date = 0;  // u4 委托时间yymmdd
-            sendOrder.order_time = 0;  // u4 委托时间hhmmss
+            sendOrder.order_date = this.getNowDate();  // u4 委托时间yymmdd
+            sendOrder.order_time = this.getNowDate("time");  // u4 委托时间hhmmss
             sendOrder.portfolio_id = 0;     // u8 组合ID
             sendOrder.fund_account_id = this.dd_Account.SelectedItem.Value;  // u8 资金账户ID
             sendOrder.trade_account_id = 0; // u8 交易账户ID
 
             sendOrder.strategy_id = 0;     // u4 策略ID
             sendOrder.trader_id = 0;        // u4 交易员ID
-            sendOrder.term_id = 0;          // u4 终端ID
-            sendOrder.qty = 0;    // 8 委托数量
+            sendOrder.term_id = this.term_id;          // u4 终端ID
+            sendOrder.qty = this.txt_Volume.Text;    // 8 委托数量
             sendOrder.price = this.txt_Price.Text * 10000;  // 8 委托价格
             sendOrder.property = 0;        // 4 订单特殊属性，与实际业务相关(０:正常委托单，１+: 补单)
             sendOrder.currency = 0;        // 4 报价货币币种
@@ -698,7 +718,27 @@ export class AppComponent implements OnInit {
         };
 
     }
+    addZero(num) {
+        if (num < 10)
+            return "0" + num;
+        else
+            return num;
+    }
+    getNowDate(type?) {
+        let d = new Date();
+        let y = d.getFullYear();
+        let m = this.addZero(d.getMonth() + 1);
+        let day = this.addZero(d.getDate());
+        let h = this.addZero(d.getHours());
+        let minus = this.addZero(d.getMinutes());
+        let sec = this.addZero(d.getSeconds());
+        let millisec = d.getMilliseconds();
+        if (type === "time")
+            return Number(h + "" + minus + "" + sec + "" + millisec);
+        else
+            return Number(y + "" + m + "" + day);
 
+    }
     registryListeners() {
         this.tradePoint.addSlot({
             service: ServiceType.kLogin,

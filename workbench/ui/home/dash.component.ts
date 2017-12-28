@@ -438,7 +438,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
             }
 
-
+            this.ref.detectChanges();
 
         }, this);
 
@@ -988,13 +988,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
         if (historyType === "all") {
             this.quote.send(181, 10001, { requestId: 1, dataType: 101002, ukeyCode: this.mainStockUk, timeFrom: 93000000 });
         } else {
-            this.quote.send(181, 10001, { requestId: 1, dataType: 102001, ukeyList: this.dashAllUkcodeList.join(";"), subType: -1 });
+            this.quote.send(181, 10001, { requestId: 1, dataType: 102000, ukeyList: this.dashAllUkcodeList.join(";"), subType: -1 });
         }
         this.quote.addSlot({
             appid: 181,
             packid: 10002,
             callback: (msg) => {
-                if (msg.content.head.dataType === 102001) {
+                if (msg.content.head.dataType === 102000) {
                     // console.log(msg);
                     let lastDate = msg.content.data;
                     let referStock = {};
@@ -1005,7 +1005,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     lastDate.forEach(item => {
                         let nowPrice = (item.p / 10000).toFixed(2);
                         let increase = ((item.p - item.pc) / 10000).toFixed(2);
-                        let increasePer = ((item.p - item.pc) / item.pc).toFixed(2);
+                        let increasePer = ((item.p - item.pc) * 100  / item.pc).toFixed(2);
                         let referIncrease;
                         if (this.refStock.increase) {
                             referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
@@ -1113,8 +1113,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             }
                         }
                     }
-                    this.ref.detectChanges();
                 }
+                this.ref.detectChanges();
             }
         });
     }
