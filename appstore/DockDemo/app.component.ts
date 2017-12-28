@@ -2541,6 +2541,7 @@ export class AppComponent implements OnInit {
                     // console.info(`ss-data: type=${data.content.type}, len=${data.content.data.length}`);
                     // let timer = Date.now();
                     data.content.forEach(item => {
+                        console.info(`ss-data: type=${item.type}`);
                         switch (item.type) {
                             case 2011:
                             case 2033:
