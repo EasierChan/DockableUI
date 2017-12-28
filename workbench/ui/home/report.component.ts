@@ -1,13 +1,12 @@
 "use strict";
 
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, NgZone } from "@angular/core";
 import { DataTable } from "../../../base/controls/control";
 import { AppStoreService } from "../../../base/api/services/backend.service";
 import { QtpService } from "../../bll/services";
 import { ECharts } from "echarts";
 import { ConfigurationBLL } from "../../bll/strategy.server";
 import { SSGW_MSG, ServiceType } from "../../../base/api/model";
-
 
 @Component({
     moduleId: module.id,
@@ -16,7 +15,6 @@ import { SSGW_MSG, ServiceType } from "../../../base/api/model";
     styleUrls: ["report.css"]
 })
 export class ReportComponent implements OnInit {
-    page: number = 0;
     resTable: DataTable;
     bLoading: boolean;
     chart: ECharts;
@@ -25,52 +23,118 @@ export class ReportComponent implements OnInit {
     percentProfitable: any;
     sharpeRatio: any;
     freeriskrate = 0.3;
-    selectedItem: any;
+    get selectedItem () {
+        return this._selectedItem
+    };
+    set selectedItem (value) {
+        this._selectedItem = value;
+        this.resetOrderPage();
+    };
+    _selectedItem: any;
     orderdetailsTable: DataTable;
+    reportDetails = [];
+    currentReportData: {};
     nIds: number[];
-
+    orderPage: {
+        pageSize: number,
+        currentPage: number,
+        maxPage: number
+    };
+    filter = {
+        condition: "",
+        result: []
+    };
     constructor(private mock: QtpService, private configBll: ConfigurationBLL,
-        private appsrv: AppStoreService) {
+        private appsrv: AppStoreService, private zone: NgZone) {
     }
 
     ngOnInit() {
-        this.nIds = [];
-        this.resTable = new DataTable("table2");
-        this.resTable.addColumn("选中", "名称", "回测进度", "开始时间", "结束时间", "查看");
-        this.resTable.columns[0].maxWidth = 20;
-        this.resTable.columns[4].maxWidth = 50;
-        // this.resTable.ColumnHeader = false;
-        this.configBll.getLoopbackItems().forEach(item => {
-            let row = this.resTable.newRow();
-            row.cells[0].Type = "checkbox";
-            row.cells[0].Data = item;
-            row.cells[0].Text = false;
-            row.cells[1].Text = item.name + "-" + item.id;
-            row.cells[2].Text = 0;
-            row.cells[2].Title = "0%";
-            row.cells[2].Type = "progresser";
-            row.cells[2].Colors = ["#d0d0d0", "#90c007"];
-            row.cells[3].Text = item.timebegin;
-            row.cells[4].Text = item.timeend;
-            row.cells[5].Type = "icon-button";
-            row.cells[5].Title = "pencil";
-            row.cells[5].Text = "查看";
-            row.cells[5].Class = "primary";
-            row.cells[5].Color = "red";
-            row.cells[5].OnClick = () => {
-                this.selectedItem = item;
-                this.chartOption = this.generateOption();
-                this.mock.send(8014, JSON.stringify({ nId: item.id }), ServiceType.kBackServer); // 
-                this.mock.send(8016, JSON.stringify({ nId: item.id }), ServiceType.kBackServer);
-                this.page = 1;
-                // this.bLoading = true;
-            };
-            this.nIds.push(item.id);
-        });
+        this.initResTable();
+        this.initOrderTable();
+        this.registerListener();
+    }
 
+    initResTable() {
+        this.resTable = new DataTable("table2");
+        this.resTable.addColumn("名称", "回测进度", "开始时间", "结束时间", "查看", "删除", "最大回撤", "胜率", "夏普率");
+        this.resTable.align = "center";
+        this.resTable.columns[0].align = "left";
+        this.resTable.columns[1].align = "left";
+        this.resTable.cellPadding = 5;
+
+        this.configBll.getLoopbackItems().forEach(item => this.addResTableRow(item));
+    }
+
+    initOrderTable() {
         this.orderdetailsTable = new DataTable("table2");
         this.orderdetailsTable.addColumn("订单号", "委托价", "委托量", "成交价", "成交量", "成交金额", "成交状态", "成交方向", "股票代码", "成交日期", "成交时间", "组合id");
-        this.registerListener();
+    }
+
+    addResTableRow(loopbackItem) {
+        let row = this.resTable.newRow();
+        const reportData = this.reportDetails.find(item => item.id === loopbackItem.id);
+
+        row.cells[0].Data = loopbackItem;
+        row.cells[0].Text = loopbackItem.name + "-" + loopbackItem.id;
+        row.cells[1].Text = 0;
+        row.cells[1].Title = "0%";
+        row.cells[1].Type = "progresser";
+        row.cells[1].Colors = ["#d0d0d0", "#90c007"];
+        row.cells[2].Text = loopbackItem.timebegin;
+        row.cells[3].Text = loopbackItem.timeend;
+
+        row.cells[4].Type = "icon-button";
+        row.cells[4].Title = "pencil";
+        row.cells[4].Text = "查看";
+        row.cells[4].Class = "primary";
+        row.cells[4].Color = "red";
+        row.cells[4].OnClick = () => this.checkoutDetail(loopbackItem);
+
+        row.cells[5].Type = "icon-button";
+        row.cells[5].Title = "trash";
+        row.cells[5].Text = "删除";
+        row.cells[5].Class = "primary";
+        row.cells[5].Color = "red";
+        row.cells[5].OnClick = () => this.removeLoopback(loopbackItem.id);
+
+        row.cells[6].Text = reportData ? reportData.retraceRatio : "--";
+        row.cells[7].Text = reportData ? reportData.percentProfitable : "--";
+        row.cells[8].Text = reportData ? reportData.sharpeRatio : "--";
+    }
+
+    checkoutDetail(item) {
+        this.selectedItem = item;
+        this.chartOption = this.generateOption();
+        this.initOrderTable();
+        this.request(8014, {
+            nId: item.id
+        });
+        this.getOrderByPage(1);
+    }
+
+    removeLoopback(loopbackId: number | number[]) {
+        const ids = Array.isArray(loopbackId) ? loopbackId : [loopbackId];
+        ids.forEach(id => {
+            let loopbackItem = this.configBll.getLoopbackItems().find(item => item.id === id);
+            loopbackItem && this.configBll.removeLoopbackItem(loopbackItem);
+        });
+        this.request(8024, {
+            reqsn: 2,
+            nIds: ids
+        });
+        this.configBll.syncLoopbackItem();
+        this.initResTable();
+    }
+
+    request(type: number, data: Object, server = ServiceType.kBackServer) {
+        this.mock.send(type, JSON.stringify(data), server);
+        console.info("\n", `request ${type}:`, data);
+    }
+
+    closeReport () {
+        this.selectedItem = null;
+        this.chartOption = null;
+        this.initResTable();
     }
 
     registerListener() {
@@ -79,40 +143,91 @@ export class ReportComponent implements OnInit {
                 service: ServiceType.kBackServer,
                 msgtype: 8015,
                 callback: msg => {
-                    let obj = JSON.parse(msg.toString());
-                    this.setProfitOfItem(obj.nId, obj.Accpl);
+                    let res = JSON.parse(msg.toString());
+                    console.info("\n", `response 8015:`, res);
+                    this.zone.run(() => {
+                        this.setProfitOfItem(res.nId, res.Accpl);
+                    })
                 }
             },
             {
                 service: ServiceType.kBackServer,
                 msgtype: 8017,
                 callback: msg => {
-                    let obj = JSON.parse(msg.toString());
-                    this.showOrderDetail(obj.nId, obj.orderdetails);
+                    let res = JSON.parse(msg.toString());
+                    console.info("\n", `response 8017:`, res);
+                    this.zone.run(() => {
+                        this.showOrderDetail(res);
+                    })
                 }
             },
             {
                 service: ServiceType.kBackServer,
                 msgtype: 8025,
                 callback: msg => {
-                    let obj = JSON.parse(msg.toString());
-                    this.updateProgress(obj.data);
+                    let res = JSON.parse(msg.toString());
+                    console.info("\n", `response 8025:`, res);
+                    this.zone.run(() => {
+                        this.updateProgress(res.data);
+                    })
                 }
             },
             {
                 service: ServiceType.kBackServer,
                 msgtype: 8027,
                 callback: msg => {
-
+                    let res = JSON.parse(msg.toString());
+                    console.info("\n", `response 8027:`, res);
                 }
             }
         );
-        this.mock.send(8024, JSON.stringify({ reqsn: 1, nIds: this.nIds }), ServiceType.kBackServer);
+
+
+        this.request(8024, {
+            reqsn: 1,
+            nIds: this.configBll.getLoopbackItems().map(item => item.id)
+        });
     }
 
-    back() {
-        this.page = 0;
+    filterBacktest(condition) {
+        console.log(NgZone.isInAngularZone())
+        this.resTable.rows.forEach(row => {
+            if(condition) {
+                row.hidden = !row.cells[0].Data.name.includes(condition);
+            } else row.hidden = false;
+        })
     }
+
+    flipPreviousOrder() {
+        if(this.orderPage.currentPage !== 1) {
+            this.orderPage.currentPage --;
+            this.getOrderByPage(this.orderPage.currentPage);
+        }
+    }
+
+    getOrderByPage(page: number) {
+        this.request(8016, {
+            nId: this.selectedItem.id,
+            pageNum: page,
+            pageSize: this.orderPage.pageSize
+        })
+    }
+
+    flipNextOrder() {
+        if(this.orderPage.currentPage !== this.orderPage.maxPage) {
+            this.orderPage.currentPage ++;
+            this.getOrderByPage(this.orderPage.currentPage);
+        }
+    }
+
+    resetOrderPage() {
+        this.orderPage = {
+            pageSize: 40,
+            currentPage: 1,
+            maxPage: 1
+        };
+    }
+
 
     selectAll() {
         this.resTable.rows.forEach(row => {
@@ -132,23 +247,6 @@ export class ReportComponent implements OnInit {
         });
     }
 
-    remove() {
-        let IDs = [];
-        let rows = this.resTable.rows;
-        for (let i = 0; i < rows.length; ) {
-            if (rows[i].cells[0].Text) {
-                this.configBll.removeLoopbackItem(rows[i].cells[0].Data);
-                IDs.push(rows[i].cells[0].Data.id);
-                rows.splice(i, 1);
-            } else {
-                ++i;
-            }
-        }
-
-        this.mock.send(8024, JSON.stringify({ reqsn: 2, nIds: IDs }), ServiceType.kBackServer);
-        this.configBll.syncLoopbackItem();
-    }
-
     chartInit(chart) {
         // console.info(chart);
         this.chart = chart;
@@ -162,14 +260,15 @@ export class ReportComponent implements OnInit {
 
         resArr.forEach(item => {
             if (rowMap.hasOwnProperty(item.nId))
-                this.resTable.rows[rowMap[item.nId]].cells[2].Text = item.status;
-            this.resTable.rows[rowMap[item.nId]].cells[2].Title = item.status + "%";
+                this.resTable.rows[rowMap[item.nId]].cells[1].Text = item.status;
+            this.resTable.rows[rowMap[item.nId]].cells[1].Title = item.status + "%";
         });
     }
 
-    showOrderDetail(id: number, orderdetails: any) {
-        if (id === this.selectedItem.id && Array.isArray(orderdetails)) {
-            this.orderdetailsTable.rows.length = 0;
+    showOrderDetail(data) {
+        if(data && data.nId === this.selectedItem.id && Array.isArray(data.orderdetails)) {
+            let { nId, orderdetails, total } = data;
+            this.orderPage.maxPage = Math.floor( total / this.orderPage.pageSize ) + 1;
             orderdetails.forEach((item, index) => {
                 let row = this.orderdetailsTable.newRow();
                 // row.cells[0].Text = (parseInt(this.txt_pageidx.Text) - 1) * parseInt(this.txt_pagesize.Text) + index + 1;
@@ -180,11 +279,11 @@ export class ReportComponent implements OnInit {
                 row.cells[4].Text = item.dealvolume;
                 row.cells[5].Text = item.dealbalance / 10000;
                 row.cells[6].Text = item.orderstatus;
+                row.cells[7].Text = item.directive === 1 ? "B" : "S";
                 row.cells[8].Text = item.innercode;
                 row.cells[9].Text = item.tradedate;
                 row.cells[10].Text = item.ordertime;
                 row.cells[11].Text = item.accountid;
-                row.cells[7].Text = item.directive === 1 ? "B" : "S";
             });
         }
     }
@@ -254,9 +353,16 @@ export class ReportComponent implements OnInit {
             return total_ratios;
         })();
 
+        this.chart.resize();
         this.chart.setOption(this.chartOption);
         this.bLoading = false;
 
+        let reportData = {
+            id: id,
+            retraceRatio: "",
+            percentProfitable: "",
+            sharpeRatio: ""
+        };
         let maxRetraceRatio = 0;
         let drawdown = 0;
         if (tops.length > 0 && bottoms.length > 0) {
@@ -268,8 +374,8 @@ export class ReportComponent implements OnInit {
             });
         }
 
-        this.retraceRatio = (drawdown * 100).toFixed(2) + "%";
-        this.percentProfitable = (winCount * 100 / profit.length).toFixed(2) + "%";
+        reportData.retraceRatio = (drawdown * 100).toFixed(2) + "%";
+        reportData.percentProfitable = (winCount * 100 / profit.length).toFixed(2) + "%";
         let avgratio = sumratio / profit.length;
         let variance = 0;
         total_ratios.forEach(ratio => {
@@ -286,10 +392,15 @@ export class ReportComponent implements OnInit {
                 multiper = 365 / parseInt(this.selectedItem.period);
             value = ((total_ratios.pop() - 1) * multiper / profit.length - this.freeriskrate) / (Math.sqrt(variance) * multiper);
             // console.info(value, variance);
-            this.sharpeRatio = value.toFixed(4);
+            reportData.sharpeRatio = value.toFixed(4);
         } else {
-            this.sharpeRatio = 0;
+            reportData.sharpeRatio = "0";
         }
+        this.currentReportData = reportData;
+        let findedReport = this.reportDetails.find(item => item.id === reportData.id);
+        if(findedReport) {
+            Object.assign(findedReport, reportData);
+        } else this.reportDetails.push(reportData);
     }
 
     generateOption() {
@@ -314,7 +425,9 @@ export class ReportComponent implements OnInit {
                     textStyle: { color: "#F3F3F5" }
                 },
                 axisLine: {
-                    lineStyle: { color: "#F3F3F5" }
+                    lineStyle: {
+                         color: "#F3F3F5"
+                     }
                 }
             },
             yAxis: {
@@ -335,7 +448,8 @@ export class ReportComponent implements OnInit {
                 type: "line",
                 data: [],
                 showSymbol: false
-            }
+            },
+            backgroundColor: "rgba(1, 3, 12, .37)"
         };
     }
 }
