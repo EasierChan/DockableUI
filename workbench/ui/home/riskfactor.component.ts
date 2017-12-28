@@ -1933,4 +1933,10 @@ export class AIBrandComponent {
             }
         })
     }
+
+    ngOnDestroy() {
+        // 防止订阅的行情在其他页面的时候回来，离开页面的时候取消订阅
+        console.log("destroy");
+        this.quote.send(17, 101, { topic: 3112, kwlist: [] });
+    }
 }
