@@ -88,6 +88,10 @@ export class UserComponent implements OnInit {
                 }
 
                 this.loginState = 2;
+
+                let dataObj = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo));
+                dataObj.term_id = obj.data.term_id;
+                AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(dataObj));
                 this.configBll.set("user", { userid: this.userid, termid: obj.data.term_id });
                 this.appSrv.setLoginTrade(true);
                 this.tradeSrv.sendToCMS("getStrategyServerTemplate", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
