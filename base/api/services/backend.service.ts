@@ -485,6 +485,18 @@ export class Environment {
     public static getDataPath(appname: string, internalDir: string = ""): string {
         return path.join(Environment.appDataDir, "ChronosApps-TGW", internalDir, appname);
     }
+
+    static getIPandMAC(): { ip: string, mac: string } {
+        if (os.networkInterfaces().eth0 && os.networkInterfaces().eth0 instanceof Array) {
+            let item = os.networkInterfaces().eth0.find(item => { return item.family === "IPv4"; });
+
+            if (item) {
+                return { ip: item.address, mac: item.mac.split(":").join("") };
+            }
+        }
+
+        return { ip: "127.0.0.1", mac: "000000000000" };
+    }
 }
 
 export class Sound {
