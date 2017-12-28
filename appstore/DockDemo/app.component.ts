@@ -1981,7 +1981,7 @@ export class AppComponent implements OnInit {
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
-                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function (cell) {
+                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function(cell) {
                         cell.Class = "warning";
                     };
                     this.strategyTable.columns[offset + idx].key = item.key;
@@ -2540,72 +2540,74 @@ export class AppComponent implements OnInit {
                 case "ss-data":
                     // console.info(`ss-data: type=${data.content.type}, len=${data.content.data.length}`);
                     // let timer = Date.now();
-                    switch (data.content.type) {
-                        case 2011:
-                        case 2033:
-                            this.showStrategyInfo(data.content.data);
-                            break;
-                        case 2029:
-                            this.showStrategyCfg(data.content.data);
-                            break;
-                        case 2032:
-                            this.updateStrategyCfg(data.content.data);
-                            break;
-                        case 2031:
-                        case 2050:
-                        case 2001:
-                        case 2003:
-                        case 2005:
-                            this.showGuiCmdAck(data.content);
-                            break;
-                        case 2048:
-                            this.showComTotalProfitInfo(data.content.data);
-                            break;
-                        case 2013:
-                            this.showComAccountPos(data.content.data);
-                            break;
-                        case 3502:
-                        case 3504:
-                            this.showComRecordPos(data.content.data);
-                            break;
-                        case 2015:
-                        case 2017:
-                            this.showComGWNetGuiInfo(data.content.data);
-                            break;
-                        case 2023:
-                            this.showComProfitInfo(data.content.data);
-                            break;
-                        case 2025:
-                            this.showStatArbOrder(data.content);
-                            break;
-                        case 2021:
-                            this.showComorderstatusAndErrorInfo(data.content.data);
-                            break;
-                        case 2022:
-                        case 3011:
-                        case 3510:
-                            this.showComOrderRecord(data.content.data);
-                            break;
-                        case 2040:
-                        case 5022:
-                            this.showLog(data.content.data);
-                            break;
-                        case 5021:
-                            this.updateBasketPosition(data.content.data);
-                            break;
-                        case 5031:
-                            this.updateBasketExt(data.content.data);
-                            break;
-                        case 5024:
-                            this.showPortfolioSummary(data.content.data);
-                            break;
-                        case 8000:
-                            this.changeSSstatus(data.content.data);
-                            break;
-                        default:
-                            console.error(`unhandled type=${data.content.type}`);
-                            break;
-                    }
+                    data.content.forEach(item => {
+                        switch (item.type) {
+                            case 2011:
+                            case 2033:
+                                this.showStrategyInfo(item.data);
+                                break;
+                            case 2029:
+                                this.showStrategyCfg(item.data);
+                                break;
+                            case 2032:
+                                this.updateStrategyCfg(item.data);
+                                break;
+                            case 2031:
+                            case 2050:
+                            case 2001:
+                            case 2003:
+                            case 2005:
+                                this.showGuiCmdAck(item);
+                                break;
+                            case 2048:
+                                this.showComTotalProfitInfo(item.data);
+                                break;
+                            case 2013:
+                                this.showComAccountPos(item.data);
+                                break;
+                            case 3502:
+                            case 3504:
+                                this.showComRecordPos(item.data);
+                                break;
+                            case 2015:
+                            case 2017:
+                                this.showComGWNetGuiInfo(item.data);
+                                break;
+                            case 2023:
+                                this.showComProfitInfo(item.data);
+                                break;
+                            case 2025:
+                                this.showStatArbOrder(item);
+                                break;
+                            case 2021:
+                                this.showComorderstatusAndErrorInfo(item.data);
+                                break;
+                            case 2022:
+                            case 3011:
+                            case 3510:
+                                this.showComOrderRecord(item.data);
+                                break;
+                            case 2040:
+                            case 5022:
+                                this.showLog(item.data);
+                                break;
+                            case 5021:
+                                this.updateBasketPosition(item.data);
+                                break;
+                            case 5031:
+                                this.updateBasketExt(item.data);
+                                break;
+                            case 5024:
+                                this.showPortfolioSummary(item.data);
+                                break;
+                            case 8000:
+                                this.changeSSstatus(item.data);
+                                break;
+                            default:
+                                console.error(`unhandled type=${item.type}`);
+                                break;
+                        }
+                    });
 
                     // console.debug(`elapsed time: ${Date.now() - timer}`);
                     break;

@@ -123,12 +123,23 @@ export class StrategyDealer {
     appid: number;
     loginInfo: any;
     connectState: number;
+    dataList: Object[];
+    chunkLen: number;
 
     constructor(appid: number, loginInfo) {
         this.tradePoint = new QtpService();
         this.appid = appid;
         this.loginInfo = loginInfo;
         this.connectState = 0;
+        this.dataList = [];
+        this.chunkLen = 100;
+
+
+        setInterval(() => {
+            if (this.dataList.length > 0) {
+                process.send({ event: "ss-data", content: this.dataList.splice(0, this.chunkLen) });
+            }
+        }, 1000);
     }
 
     connect(port, host) {
@@ -172,15 +183,6 @@ export class StrategyDealer {
                         data = null;
                     }
                 });
-
-                // if (tradeHeart !== null) {
-                //     clearInterval(tradeHeart);
-                //     tradeHeart = null;
-                // }
-
-                // tradeHeart = setInterval(() => {
-                //     this.tradePoint.send(0, "", ServiceType.kFGS);
-                // }, 60000);
             }
         }, {
                 service: ServiceType.kStrategy,
@@ -399,7 +401,9 @@ export class StrategyDealer {
 
         msg = null;
         count = null;
-        process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: msgArr } });
+        let type = header.type;
+        let subtype = header.subtype;
+        this.dataList.push({ type: type, subtype: subtype, data: msgArr });
     }
 
     send(params) {
