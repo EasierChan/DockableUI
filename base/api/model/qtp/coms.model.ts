@@ -34,20 +34,7 @@ export class QueryFund extends Message {
     }
 }
 
-export class QueryPosition extends Message {
-    static len = 16;
-    query_position: QueryFund = new QueryFund();
 
-    fromBuffer(buf: Buffer, offset = 0) {
-        offset = this.query_position.fromBuffer(buf, offset);
-        return offset;
-    }
-
-    toBuffer(): Buffer {
-        return this.query_position.toBuffer();
-    }
-
-}
 
 export class QueryFundAns extends Message {
     static readonly len = 136;
@@ -74,7 +61,8 @@ export class QueryFundAns extends Message {
         let buf = Buffer.alloc(QueryFundAns.len, 0);
         buf.writeUIntLE(this.portfolio_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.fund_account_id, offset, 8); offset += 8;
-        buf.writeUInt32LE(this.currency, offset); offset += 8;
+        buf.writeUInt32LE(this.currency, offset); offset += 4;
+        offset += 4;
         buf.writeIntLE(this.total_amt, offset, 8); offset += 8;
         buf.writeIntLE(this.avl_amt, offset, 8); offset += 8;
         buf.writeIntLE(this.frozen_amt, offset, 8); offset += 8;
@@ -96,6 +84,21 @@ export class QueryFundAns extends Message {
     fromBuffer(buf: Buffer, offset = 0): number {
         return BufferUtil.format(buf, offset, "2l1i4p14L", this);
     }
+}
+
+export class QueryPosition extends Message {
+    static len = 16;
+    query_position: QueryFund = new QueryFund();
+
+    fromBuffer(buf: Buffer, offset = 0) {
+        offset = this.query_position.fromBuffer(buf, offset);
+        return offset;
+    }
+
+    toBuffer(): Buffer {
+        return this.query_position.toBuffer();
+    }
+
 }
 
 export class QueryPositionAns extends Message {
@@ -134,7 +137,8 @@ export class QueryPositionAns extends Message {
         buf.writeUIntLE(this.ukey, offset, 8); offset += 8;
         buf.writeUInt32LE(this.sa_type, offset); offset += 4;
         buf.writeUInt32LE(this.direction, offset); offset += 4;
-        buf.writeUInt32LE(this.hedge_flag, offset); offset += 8;
+        buf.writeUInt32LE(this.hedge_flag, offset); offset += 4;
+        offset += 4;
         buf.writeIntLE(this.overnight_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.total_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.avl_qty, offset, 8); offset += 8;
@@ -196,6 +200,7 @@ export class QueryOrder extends Message {
         buf.writeInt32LE(this.approver_id, offset); offset += 4;
         buf.writeInt32LE(this.status, offset); offset += 4;
         buf.writeInt32LE(this.ret_code, offset); offset += 4;
+        offset += 4;
         buf.write(this.broker_sn, offset, 32); offset += 32;
         buf.write(this.message, offset, 128); offset += 128;
         return buf;
@@ -224,7 +229,6 @@ export class QueryOrderAns extends Message {
 
 export class SendOrder extends Message {
     static readonly len = 120;
-
     order_ref: number = 0;   // u8  客户端订单ID+term_id = 唯一
     ukey: number = 0;        // u8  Universal Key
     directive: number = 0;   // u4 委托指令：普通买入，普通卖出
@@ -266,13 +270,14 @@ export class SendOrder extends Message {
         buf.writeUInt32LE(this.strategy_id, offset); offset += 4;
         buf.writeUInt32LE(this.trader_id, offset); offset += 4;
         buf.writeUInt32LE(this.term_id, offset); offset += 4;
+        offset += 4;
         buf.writeIntLE(this.qty, offset, 8); offset += 8;
         buf.writeIntLE(this.price, offset, 8); offset += 8;
         buf.writeInt32LE(this.property, offset); offset += 4;
         buf.writeInt32LE(this.currency, offset); offset += 4;
         buf.writeIntLE(this.algor_id, offset, 8); offset += 8;
         buf.writeInt32LE(this.reserve, offset); offset += 4;
-
+        offset += 4;
         return buf;
     }
 
@@ -281,17 +286,16 @@ export class SendOrder extends Message {
     }
 }
 
-export class SendOrderAns extends Message {
+export class SendOrderAns extends QueryOrder {
     static len = 344;
-    send_orderAns: QueryOrder = new QueryOrder();
 
     fromBuffer(buf: Buffer, offset = 0) {
-        offset = this.send_orderAns.fromBuffer(buf, offset);
+        offset = super.fromBuffer(buf, offset);
         return offset;
     }
 
     toBuffer(): Buffer {
-        return this.send_orderAns.toBuffer();
+        return super.toBuffer();
     }
 
 }
@@ -315,6 +319,7 @@ export class CancelOrder extends Message {
         buf.writeUInt32LE(this.term_id, offset); offset += 4;
         buf.writeUInt32LE(this.order_date, offset); offset += 4;
         buf.writeUInt32LE(this.order_time, offset); offset += 4;
+        offset += 4;
         return buf;
     }
 
