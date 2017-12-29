@@ -69,7 +69,8 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     onResize() {
-        // this.main.reallocSize()
+        let [width, height] = [window.innerWidth - 10, window.innerHeight];
+        this.main.reallocSize(width , height);
     }
 
     onDestroy() {
