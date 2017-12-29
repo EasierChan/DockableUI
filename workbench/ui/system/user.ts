@@ -1,7 +1,7 @@
 "use strict";
 
 import { Component, OnInit, HostListener } from "@angular/core";
-import { AppStoreService, CryptoService, MessageBox } from "../../../base/api/services/backend.service";
+import { AppStoreService, CryptoService, MessageBox, Environment } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL, DataKey } from "../../bll/strategy.server";
 import { QtpService, QuoteService } from "../../bll/services";
 import { FGS_MSG, ServiceType, QTPMessage } from "../../../base/api/model/qtp/message.model";
@@ -88,7 +88,11 @@ export class UserComponent implements OnInit {
                 }
 
                 this.loginState = 2;
-                this.configBll.set("user", { userid: this.userid });
+
+                let dataObj = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo));
+                dataObj.term_id = obj.data.term_id;
+                AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(dataObj));
+                this.configBll.set("user", { userid: this.userid, termid: obj.data.term_id });
                 this.appSrv.setLoginTrade(true);
                 this.tradeSrv.sendToCMS("getStrategyServerTemplate", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
                 this.tradeSrv.sendToCMS("getProduct", JSON.stringify({ data: { body: { userid: parseInt(this.userid) } } }));
@@ -159,7 +163,14 @@ export class UserComponent implements OnInit {
             return;
         }
 
-        let loginObj: any = { user_id: this.userid, password: this.cryptoSrv.getTGWPass(this.password) };
+        let loginObj: any = {
+            user_id: this.userid,
+            password: this.cryptoSrv.getTGWPass(this.password),
+            dsn: "",
+            cpuid: ""
+        };
+
+        Object.assign(loginObj, Environment.getIPandMAC());
         this.tradeSrv.send(FGS_MSG.kLogin, JSON.stringify({ data: loginObj }), ServiceType.kLogin);
         this.appSrv.setUserProfile({ username: parseInt(this.userid), password: loginObj.password, roles: [], apps: [] });
         AppStoreService.setLocalStorageItem(DataKey.kUserInfo, JSON.stringify(loginObj));

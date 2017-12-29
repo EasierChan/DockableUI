@@ -74,7 +74,7 @@ export class BufferUtil {
      */
     static format(buf: Buffer, offset: number, fmt: string, msg: any): number {
         let props = Object.getOwnPropertyNames(msg);
-        let marr = fmt.match(/\d+[bBwWiIlLspfd]/g);
+        let marr = fmt.match(/\d+[bBwWiIlLspfdo]/g);
         let len = 0;
         let iprop = 0;
         marr.forEach(item => {
@@ -147,6 +147,10 @@ export class BufferUtil {
                         msg[props[iprop++]] = buf.readDoubleLE(offset);
                         offset += 8;
                     }
+                    break;
+                case "o":
+                    offset += len;
+                    ++iprop;
                     break;
                 default:
                     console.error(`unknown format identifier ${item}`);

@@ -81,8 +81,8 @@ export class ScrollerBarTable implements OnInit {
     ngOnInit() {
         this.dataSource.detectChanges = () => {
             if (this.ele.nativeElement.clientWidth > 0) {
-                this.ref.detectChanges();
                 this.resizeHeader();
+                this.ref.detectChanges();
             }
         };
     }

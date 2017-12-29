@@ -1,37 +1,63 @@
-<div class="listview u-col" *ngIf="page==0">
-    <div class="u-row">
-        <button (click)="selectAll()">全选</button>
-        <button (click)="unseletAll()">全不选</button>
-        <button>
-            <span>ALL</span>
-            <span class="glyphicon glyphicon-triangle-bottom"></span>
-        </button>
-        <input type="text" class="fill" #searcher>
-        <button (click)="search(searcher.value)">查询</button>
-        <button (click)="remove()">删除</button>
+<div class="backtest-article u-col" *ngIf="!selectedItem">
+    <div class="title u-row">
+        <div class="input-group u-row">
+            <label for="">策略名称：</label>
+            <input #condition type="text" [(ngModel)]="filter.condition" (input)="filterBacktest(condition.value)" >
+            <input type="button">
+        </div>
     </div>
-    <dock-table2 [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
+    <dock-table2 class="table-container" [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
 </div>
-<div class="report u-col" *ngIf="page==1">
-    <div class="u-row fill">
-        <div class="u-col">
-            <button (click)="back()">返回</button>
-            <table class="index">
-                <tr>
-                    <td>最大回撤：</td>
-                    <td>{{retraceRatio}}</td>
-                </tr>
-                <tr>
-                    <td>胜率：</td>
-                    <td>{{percentProfitable}}</td>
-                </tr>
-                <tr>
-                    <td>夏普率：</td>
-                    <td>{{sharpeRatio}}</td>
-                </tr>
-            </table>
-        </div>  
-        <div echarts [options]="chartOption" [loading]="bLoading" (chartInit)="chartInit($event)" class="fill"></div>
-        <dock-table2 [dataSource]="orderdetailsTable.dataSource" [styleObj]="orderdetailsTable.styleObj" class="fill"></dock-table2>
+<div class="u-col report" *ngIf="selectedItem" >
+    <div class="title u-row">
+        <span>回测报表</span>
+        <button class="close-btn" (click)="closeReport()" >×</button>
     </div>
+
+    <div class="report-head u-row">
+        <div class="title-article u-row">
+            <div class="title-list">
+                <div class="title-item">
+                    <span>策略名称：{{selectedItem?.name}}</span>
+                </div>
+                <div class="title-item">
+                    <span>回测ID：{{selectedItem?.id}}</span>
+                </div>
+                <div class="title-item">
+                    <span>开始时间：{{selectedItem?.timebegin}}</span>
+                </div>
+                <div class="title-item">
+                    <span>结束时间：{{selectedItem?.timeend}}</span>
+                </div>
+            </div>
+            <div class="title-list">
+                <div class="title-item">
+                    <span>最大回撤：{{currentReportData?.retraceRatio}}</span>
+                </div>
+                <div class="title-item">
+                    <span>胜率：{{currentReportData?.percentProfitable}}</span>
+                </div>
+                <div class="title-item">
+                    <span>夏普率：{{currentReportData?.sharpeRatio}}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-article u-row">
+            <div echarts [options]="chartOption" [loading]="bLoading" (chartInit)="chartInit($event)" class="fill"></div>
+        </div>
+    </div>
+
+    <div class="order-article u-col">
+        <div class="title u-row">
+            <span>订单列表</span>
+            <div class="pagination">
+                <button class="previous-btn" (click)="flipPreviousOrder()">上一页</button>
+                <span>{{orderPage.currentPage}}/{{orderPage.maxPage}}</span>
+                <button class="next-btn" (click)="flipNextOrder()" >下一页</button>
+            </div>
+        </div>
+        <dock-table2 [dataSource]="orderdetailsTable.dataSource" [styleObj]="orderdetailsTable.styleObj" class="fill dark-bg"></dock-table2>
+    </div>
+
 </div>

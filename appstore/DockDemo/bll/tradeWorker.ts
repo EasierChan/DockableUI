@@ -123,12 +123,48 @@ export class StrategyDealer {
     appid: number;
     loginInfo: any;
     connectState: number;
+    dataList: { type: number, subtype: number, data: Object[] }[];
+    chunkLen: number;
 
     constructor(appid: number, loginInfo) {
         this.tradePoint = new QtpService();
         this.appid = appid;
         this.loginInfo = loginInfo;
         this.connectState = 0;
+        this.dataList = [];
+        this.chunkLen = 30;
+
+        setInterval(() => {
+            let obj = { event: "ss-data", content: [] };
+            let count = this.chunkLen;
+            let i = 0;
+
+            for (; i < this.dataList.length; ++i) {
+                if (count > 0) {
+                    if (this.dataList[i].data.length > count) {
+                        obj.content.push({ type: this.dataList[i].type, subtype: this.dataList[i].subtype, data: this.dataList[i].data.splice(0, count) });
+                        break;
+                    } else {
+                        obj.content.push(this.dataList[i]);
+                        count -= this.dataList[i].data.length;
+                    }
+
+                    continue;
+                }
+
+                break;
+            }
+
+            if (obj.content.length > 0) {
+                process.send(obj);
+                console.error(`render to GUI[${Date.now()}] => ${obj.content.length}, datalist = ${this.dataList.length}, i=${i}`);
+                obj.content.length = 0;
+
+                this.dataList.splice(0, i);
+            }
+
+            count = this.chunkLen;
+        }, 1000);
     }
 
     connect(port, host) {
@@ -172,15 +208,6 @@ export class StrategyDealer {
                         data = null;
                     }
                 });
-
-                // if (tradeHeart !== null) {
-                //     clearInterval(tradeHeart);
-                //     tradeHeart = null;
-                // }
-
-                // tradeHeart = setInterval(() => {
-                //     this.tradePoint.send(0, "", ServiceType.kFGS);
-                // }, 60000);
             }
         }, {
                 service: ServiceType.kStrategy,
@@ -294,7 +321,6 @@ export class StrategyDealer {
                     msg = new ComProfitInfo();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
-                    logger.debug(`ComProfitInfo=>${msg} offset=${offset}`);
                 }
                 break;
             case 2013:
@@ -315,7 +341,6 @@ export class StrategyDealer {
                     msg = new ComRecordPos();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
-                    logger.debug(`ComRecordPos=>${msg} offset=${offset}`);
                 }
                 break;
             case 2015:
@@ -338,7 +363,6 @@ export class StrategyDealer {
                     msg = new StatArbOrder();
                     offset = msg.fromBuffer(content, offset);
                     msgArr.push(msg);
-                    logger.debug(`StatArbOrder=>${msg}`);
                 }
                 break;
             case 2021:
@@ -370,7 +394,6 @@ export class StrategyDealer {
                     msg = new FpPosUpdate();
                     offset = msg.fromBuffer(content, offset);
                     arr.push(msg);
-                    logger.debug(`FpPosUpdate=>${msg}`);
                 }
 
                 msgArr.push({ account: account, data: arr, count: count });
@@ -399,7 +422,10 @@ export class StrategyDealer {
 
         msg = null;
         count = null;
-        process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: msgArr } });
+        let type = header.type;
+        let subtype = header.subtype;
+        this.dataList.push({ type: type, subtype: subtype, data: msgArr });
+        logger.info(`count = ${this.dataList.length}`);
     }
 
     send(params) {
