@@ -282,7 +282,7 @@ export class AppComponent implements OnInit {
                 if (dd_status.SelectedItem.Value === "-1") {   // all
                     this.orderstatusTable.rows[i].hidden = false;
                 } else {
-                    this.orderstatusTable.rows[i].hidden = this.orderstatusTable.cell(i, this.langServ.get("Status")).Data !== dd_status.SelectedItem.Value;
+                    this.orderstatusTable.rows[i].hidden = this.orderstatusTable.cell(i, this.langServ.get("OrderStatus")).Text !== dd_status.SelectedItem.Text;
                 }
             }
         };
@@ -1344,7 +1344,7 @@ export class AppComponent implements OnInit {
     }
 
     showComorderstatusAndErrorInfo(data: any) {
-        let time = this.getCurrentTime();
+        let time = new Date().format("HH:mm:ss.SSS");
         let row = this.logTable.newRow();
         row.cells[0].Text = time;
         row.cells[1].Text = `errorid=${data[0].os.errorid}, errmsg=${data[0].os.errormsg}`;
@@ -1454,7 +1454,7 @@ export class AppComponent implements OnInit {
 
     showLog(data: any) {
         let logStr = data[0];
-        let time = this.getCurrentTime();
+        let time = new Date().format("HH:mm:ss.SSS");
         let rowLen = this.logTable.rows.length;
         if (rowLen > 500)
             this.logTable.rows.splice(0, 1);
@@ -1469,41 +1469,37 @@ export class AppComponent implements OnInit {
         if (rowLen > 500)
             this.logTable.rows.splice(0, 1);
         let row = this.logTable.newRow();
-        row.cells[0].Text = this.getCurrentTime();
+        row.cells[0].Text = new Date().format("HH:mm:ss.SSS");
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
     }
 
     showComOrderRecord(data: any) {
         console.info(`showComOrderRecord: len = ${data.length}`);
         let hasDone = false;
+        let orderStatus;
         let j;
+        let time;
+        let orderStatusMap: Object = {};
+        let doneMap: Object = {};
+
+        this.orderstatusTable.rows.forEach(row => {
+            orderStatusMap[row.cell(this.langServ.get("OrderId")).Text] = row;
+        });
+
+        this.doneOrdersTable.rows.forEach(row => {
+            doneMap[row.cell(this.langServ.get("OrderId")).Text] = row;
+        });
+
         for (let iData = 0; iData < data.length; ++iData) {
-            let orderStatus = data[iData].od.status;
+            orderStatus = data[iData].od.status;
+
             if (orderStatus === 9 || orderStatus === 6 || orderStatus === 7) {
+                hasDone = true;
                 // remove from orderstatus table
-                for (let i = 0; i < this.orderstatusTable.rows.length; ++i) {
-                    if (data[iData].od.orderid === this.orderstatusTable.cell(i, this.langServ.get("OrderId")).Text) {
-                        this.orderstatusTable.rows.splice(i, 1);
-                        break;
-                    }
-                }
+                this.orderstatusTable.rows.splice(this.orderstatusTable.rows.findIndex(item => { return item === orderStatusMap[data[iData].od.orderid]; }), 1);
+                delete orderStatusMap[data[iData].od.orderid];
 
-                for (j = 0; j < this.doneOrdersTable.rows.length; ++j) {
-                    if (data[iData].od.orderid === this.doneOrdersTable.cell(j, this.langServ.get("OrderId")).Text) { // refresh
-                        this.doneOrdersTable.cell(j, this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
-                        this.doneOrdersTable.cell(j, this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
-                        this.doneOrdersTable.cell(j, this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
-                        this.doneOrdersTable.cell(j, this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
-                        break;
-                    }
-                }
-
-                if (j === this.doneOrdersTable.rows.length) {
+                if (!doneMap.hasOwnProperty(data[iData].od.orderid)) {
                     let row = this.doneOrdersTable.newRow(true);
                     row.cell(this.langServ.get("UKEY")).Text = data[iData].od.innercode;
                     let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].od.innercode);
@@ -1512,63 +1508,46 @@ export class AppComponent implements OnInit {
                     row.cell(this.langServ.get("OrderId")).Text = data[iData].od.orderid;
                     row.cell(this.langServ.get("Strategy")).Text = data[iData].od.strategyid;
                     row.cell(this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
-                    row.cell(this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
-                    row.cell(this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
-                    row.cell(this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
-                    row.cell(this.langServ.get("DoneTime")).Text = this.formatTime(data[iData].od.idatetime.tv_sec);
-                    row.cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
-                    row.cell(this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
                     row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
-                    row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(data[iData].od.odatetime.tv_sec);
-                    row.cell(this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
+                    doneMap[data[iData].od.orderid] = row;
                 }
 
+                doneMap[data[iData].od.orderid].cell(this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
+                doneMap[data[iData].od.orderid].cell(this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
+                doneMap[data[iData].od.orderid].cell(this.langServ.get("DoneTime")).Text = new Date(data[iData].od.idatetime.tv_sec * 1000).format("HH:mm:ss");
+                doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
+                doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderTime")).Text = new Date(data[iData].od.odatetime.tv_sec * 1000).format("HH:mm:ss");
+                doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
+                doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
             } else {
-                for (j = 0; j < this.orderstatusTable.rows.length; ++j) {
-                    if (data[iData].od.orderid === this.orderstatusTable.cell(j, this.langServ.get("OrderId")).Text) {  // refresh
-                        this.refreshUndoneOrderInfo(data[iData], j);
-                        break;
-                    }
+                if (!orderStatusMap.hasOwnProperty(data[iData].od.orderid)) {
+                    let row = this.orderstatusTable.newRow(true);
+                    row.cells[0].Type = "checkbox";
+                    row.cells[0].Text = false;
+                    row.cells[0].Data = data[iData].od.innercode;
+                    row.cell(this.langServ.get("UKEY")).Text = data[iData].od.innercode;
+                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].od.innercode);
+                    row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuAbbr : "unknown";
+                    row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuCode : "unknown";
+                    row.cell(this.langServ.get("OrderId")).Text = data[iData].od.orderid;
+                    row.cell(this.langServ.get("Strategy")).Text = data[iData].od.strategyid;
+                    row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
+                    orderStatusMap[data[iData].od.orderid] = row;
                 }
 
-                if (j === this.orderstatusTable.rows.length) {
-                    this.addUndoneOrderInfo(data[iData]);
-                }
+                orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("OrderTime")).Text = new Date(data[iData].od.odatetime.tv_sec * 1000).format("HH:mm:ss");
+                orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
+                orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
+                orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
+                let statusCell = orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("OrderStatus"));
+                statusCell.Text = this.parseOrderStatus(data[iData].od.status);
+                statusCell.Data = data[iData].od.status;
             }
         }
 
         if (hasDone) {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
         }
-    }
-
-    addUndoneOrderInfo(obj: any) {
-        let row = this.orderstatusTable.newRow(true);
-        row.cells[0].Type = "checkbox";
-        row.cells[0].Text = false;
-        row.cells[0].Data = obj.od.innercode;
-        row.cell(this.langServ.get("UKEY")).Text = obj.od.innercode;
-        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(obj.od.innercode);
-        row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuAbbr : "unknown";
-        row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(obj.od.innercode) ? codeInfo[obj.od.innercode].SecuCode : "unknown";
-        row.cell(this.langServ.get("OrderId")).Text = obj.od.orderid;
-        row.cell(this.langServ.get("OrderTime")).Text = this.formatTime(obj.od.odatetime.tv_sec);
-        row.cell(this.langServ.get("Strategy")).Text = obj.od.strategyid;
-        row.cell(this.langServ.get("Ask/Bid")).Text = obj.od.action === 0 ? "Buy" : "Sell";
-        row.cell(this.langServ.get("OrderPrice")).Text = obj.od.oprice / 10000;
-        row.cell(this.langServ.get("OrderVol")).Text = obj.od.ovolume;
-        let statusCell = row.cell(this.langServ.get("OrderStatus"));
-        statusCell.Text = this.parseOrderStatus(obj.od.status);
-        statusCell.Data = obj.od.status;
-        row.cell(this.langServ.get("PortfolioID")).Text = obj.con.account;
-    }
-
-    formatTime(time: any): String {
-        return new Date(time * 1000).format("HH:mm:ss");
-    }
-
-    getCurrentTime(): String {
-        return new Date().format("HH:mm:ss.SSS");
     }
 
     parseOrderStatus(status: any): String {
@@ -1597,15 +1576,6 @@ export class AppComponent implements OnInit {
                 AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
                 return "10.废单";
         }
-    }
-
-    refreshUndoneOrderInfo(obj: any, idx: number) {
-        this.orderstatusTable.cell(idx, this.langServ.get("OrderTime")).Text = this.formatTime(obj.od.odatetime.tv_sec);
-        this.orderstatusTable.cell(idx, this.langServ.get("Ask/Bid")).Text = obj.od.action === 0 ? "Buy" : "Sell";
-        this.orderstatusTable.cell(idx, this.langServ.get("OrderPrice")).Text = obj.od.oprice / 10000;
-        this.orderstatusTable.cell(idx, this.langServ.get("OrderVol")).Text = obj.od.ovolume;
-        this.orderstatusTable.cell(idx, this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(obj.od.status);
-        this.orderstatusTable.cell(idx, this.langServ.get("OrderStatus")).Data = obj.od.status;
     }
 
     /**
@@ -1981,7 +1951,7 @@ export class AppComponent implements OnInit {
                     this.strategyTable.rows[iRow].cells[offset + idx].Type = "textbox";
                     this.strategyTable.rows[iRow].cells[offset + idx].Text = (item.value / Math.pow(10, item.decimal)).toFixed(item.decimal);
                     this.strategyTable.rows[iRow].cells[offset + idx].Class = item.level === 10 ? "info" : "default";
-                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function(cell) {
+                    this.strategyTable.rows[iRow].cells[offset + idx].onChange = function (cell) {
                         cell.Class = "warning";
                     };
                     this.strategyTable.columns[offset + idx].key = item.key;
@@ -2538,79 +2508,80 @@ export class AppComponent implements OnInit {
                     this.addStatus(false, "SS");
                     break;
                 case "ss-data":
+                    let item = data.content;
                     // console.info(`ss-data: type=${data.content.type}, len=${data.content.data.length}`);
-                    // let timer = Date.now();
-                    data.content.forEach(item => {
-                        console.info(`ss-data: type=${item.type}`);
-                        switch (item.type) {
-                            case 2011:
-                            case 2033:
-                                this.showStrategyInfo(item.data);
-                                break;
-                            case 2029:
-                                this.showStrategyCfg(item.data);
-                                break;
-                            case 2032:
-                                this.updateStrategyCfg(item.data);
-                                break;
-                            case 2031:
-                            case 2050:
-                            case 2001:
-                            case 2003:
-                            case 2005:
-                                this.showGuiCmdAck(item);
-                                break;
-                            case 2048:
-                                this.showComTotalProfitInfo(item.data);
-                                break;
-                            case 2013:
-                                this.showComAccountPos(item.data);
-                                break;
-                            case 3502:
-                            case 3504:
-                                this.showComRecordPos(item.data);
-                                break;
-                            case 2015:
-                            case 2017:
-                                this.showComGWNetGuiInfo(item.data);
-                                break;
-                            case 2023:
-                                this.showComProfitInfo(item.data);
-                                break;
-                            case 2025:
-                                this.showStatArbOrder(item);
-                                break;
-                            case 2021:
-                                this.showComorderstatusAndErrorInfo(item.data);
-                                break;
-                            case 2022:
-                            case 3011:
-                            case 3510:
-                                this.showComOrderRecord(item.data);
-                                break;
-                            case 2040:
-                            case 5022:
-                                this.showLog(item.data);
-                                break;
-                            case 5021:
-                                this.updateBasketPosition(item.data);
-                                break;
-                            case 5031:
-                                this.updateBasketExt(item.data);
-                                break;
-                            case 5024:
-                                this.showPortfolioSummary(item.data);
-                                break;
-                            case 8000:
-                                this.changeSSstatus(item.data);
-                                break;
-                            default:
-                                console.error(`unhandled type=${item.type}`);
-                                break;
-                        }
-                    });
+                    let timer = Date.now();
+                    // data.content.forEach(item => {
+                    console.info(`ss-data: type=${item.type}`);
+                    switch (item.type) {
+                        case 2011:
+                        case 2033:
+                            this.showStrategyInfo(item.data);
+                            break;
+                        case 2029:
+                            this.showStrategyCfg(item.data);
+                            break;
+                        case 2032:
+                            this.updateStrategyCfg(item.data);
+                            break;
+                        case 2031:
+                        case 2050:
+                        case 2001:
+                        case 2003:
+                        case 2005:
+                            this.showGuiCmdAck(item);
+                            break;
+                        case 2048:
+                            this.showComTotalProfitInfo(item.data);
+                            break;
+                        case 2013:
+                            this.showComAccountPos(item.data);
+                            break;
+                        case 3502:
+                        case 3504:
+                            this.showComRecordPos(item.data);
+                            break;
+                        case 2015:
+                        case 2017:
+                            this.showComGWNetGuiInfo(item.data);
+                            break;
+                        case 2023:
+                            this.showComProfitInfo(item.data);
+                            break;
+                        case 2025:
+                            this.showStatArbOrder(item);
+                            break;
+                        case 2021:
+                            this.showComorderstatusAndErrorInfo(item.data);
+                            break;
+                        case 2022:
+                        case 3011:
+                        case 3510:
+                            this.showComOrderRecord(item.data);
+                            break;
+                        case 2040:
+                        case 5022:
+                            this.showLog(item.data);
+                            break;
+                        case 5021:
+                            this.updateBasketPosition(item.data);
+                            break;
+                        case 5031:
+                            this.updateBasketExt(item.data);
+                            break;
+                        case 5024:
+                            this.showPortfolioSummary(item.data);
+                            break;
+                        case 8000:
+                            this.changeSSstatus(item.data);
+                            break;
+                        default:
+                            console.error(`unhandled type=${item.type}`);
+                            break;
+                    }
+                    // });
 
-                    // console.debug(`elapsed time: ${Date.now() - timer}`);
+                    console.debug(`elapsed time: ${Date.now() - timer}`);
                     break;
                 default:
                     console.info(`unhandled type ${data.event}`);
