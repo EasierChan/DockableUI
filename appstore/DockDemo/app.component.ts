@@ -316,7 +316,7 @@ export class AppComponent implements OnInit {
             }
         };
 
-        this.orderstatusTable = new DataTable("table2");
+        this.orderstatusTable = new DataTable("table3");
         ["Check", "OrderId", "UKEY", "SymbolCode", "Symbol", "Strategy", "PortfolioID", "OrderPrice", "OrderVol", "OrderTime",
             "Ask/Bid", "OrderStatus"].forEach(item => {
                 this.orderstatusTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
@@ -345,7 +345,7 @@ export class AppComponent implements OnInit {
         };
         doneOrdersHeader.addChild(dd_done_status);
         doneOrdersContent.addChild(doneOrdersHeader);
-        this.doneOrdersTable = new DataTable("table2");
+        this.doneOrdersTable = new DataTable("table3");
         ["OrderId", "UKEY", "SymbolCode", "Symbol", "Strategy", "PortfolioID", "OrderPrice", "OrderVol", "OrderTime",
             "Ask/Bid", "OrderStatus", "DonePrice", "DoneVol", "DoneTime", "OrderType"].forEach(item => {
                 this.doneOrdersTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));

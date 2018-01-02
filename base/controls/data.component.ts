@@ -61,7 +61,7 @@ export class DataTableComponent implements OnInit, AfterViewInit {
 
 @Component({
     moduleId: module.id,
-    selector: "dock-table2",
+    selector: "dock-table3",
     templateUrl: "data.scrollerbar-table.html",
     styleUrls: ["datatable.css"],
     inputs: ["className", "dataSource", "styleObj"]
@@ -136,6 +136,61 @@ export class ScrollerBarTable implements OnInit {
         this.head.nativeElement.style.width = this.content.nativeElement.clientWidth + "px";
         let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
         this.content.nativeElement.querySelectorAll("table > thead > tr:first-child > th").forEach((th, index) => {
+            headCells[index].style.width = th.clientWidth + "px";
+        });
+    }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "dock-table2",
+    templateUrl: "data.table2.html",
+    styleUrls: ["datatable.css"],
+    inputs: ["className", "dataSource", "styleObj"]
+})
+export class DataTable2 implements OnInit {
+    className: string;
+    dataSource: any;
+    styleObj: any;
+
+    @ViewChild("content") content: ElementRef;
+    @ViewChild("head") head: ElementRef;
+
+    constructor(private ele: ElementRef, private render: Renderer,
+        private ref: ChangeDetectorRef) {
+    }
+
+    ngOnInit() {
+        this.dataSource.detectChanges = () => {
+            if (this.ele.nativeElement.clientWidth > 0) {
+                this.resizeHeader();
+                this.ref.detectChanges();
+            }
+        };
+    }
+
+    @HostListener("scroll")
+    onScroll() {
+        this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
+        this.head.nativeElement.style.display = "table";
+
+        this.resizeHeader();
+    }
+
+    @HostListener("resize")
+    onResize() {
+        this.resizeHeader();
+    }
+
+    @HostListener("window:resize")
+    onWindowResize() {
+        this.resizeHeader();
+    }
+
+    resizeHeader() {
+        this.head.nativeElement.style.width = this.content.nativeElement.clientWidth + "px";
+        let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
+        this.content.nativeElement.querySelectorAll("thead > tr:first-child > th").forEach((th, index) => {
             headCells[index].style.width = th.clientWidth + "px";
         });
     }
