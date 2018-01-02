@@ -1828,6 +1828,8 @@ export class DataTable extends Control {
                     return col.onCompare(b.cells[idx].Text, a.cells[idx].Text);
                 });
             }
+
+            this.detectChanges();
         };
     }
 
