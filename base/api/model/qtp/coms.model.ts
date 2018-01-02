@@ -11,7 +11,8 @@ export enum COMS_MSG {
     kMtFCancelOrder = 5003, // 撤单
     kMtFCancelOrderAns = 5004,
     kMtFQueryOrder = 5005, // 查单
-    kMtBQueryOrderAns = 5006
+    kMtBQueryOrderAns = 5006,
+    kMtFOrderPush = 5100 // 推送
 }
 
 
@@ -173,14 +174,14 @@ export class QueryOrder extends Message {
 
     chronos_order: SendOrder = new SendOrder();
 
-    order_id: number = 0;   // 8 订单ID
+    order_id: number = 0;   // u8 订单ID
     cancelled_qty: number = 0;    // 8 已撤数量
     queued_qty: number = 0;       // 8 已确认？
     trade_qty: number = 0;        // 8 已成交数量
     trade_amt: number = 0;        // 8 已成交金额*10000（缺省值）
-    trade_date: number = 0;      // 4 最后成交时间
-    trade_time: number = 0;      // 4 最后成交时间
-    approver_id: number = 0;     // 4 审批人ID
+    trade_date: number = 0;      // u4 最后成交时间
+    trade_time: number = 0;      // u4 最后成交时间
+    approver_id: number = 0;     // u4 审批人ID
     status: number = 0;          // 4 订单状态
     ret_code: number = 0;        // 4
     broker_sn: string = "";    // 32 券商单号
@@ -190,14 +191,14 @@ export class QueryOrder extends Message {
         let offset = 0;
         let buf = Buffer.alloc(QueryOrder.len, 0);
         this.chronos_order.toBuffer().copy(buf, offset); offset += 120;
-        buf.writeIntLE(this.order_id, offset, 8); offset += 8;
+        buf.writeUIntLE(this.order_id, offset, 8); offset += 8;
         buf.writeIntLE(this.cancelled_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.queued_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.trade_qty, offset, 8); offset += 8;
         buf.writeIntLE(this.trade_amt, offset, 8); offset += 8;
-        buf.writeInt32LE(this.trade_date, offset); offset += 4;
-        buf.writeInt32LE(this.trade_time, offset); offset += 4;
-        buf.writeInt32LE(this.approver_id, offset); offset += 4;
+        buf.writeUInt32LE(this.trade_date, offset); offset += 4;
+        buf.writeUInt32LE(this.trade_time, offset); offset += 4;
+        buf.writeUInt32LE(this.approver_id, offset); offset += 4;
         buf.writeInt32LE(this.status, offset); offset += 4;
         buf.writeInt32LE(this.ret_code, offset); offset += 4;
         offset += 4;
@@ -208,7 +209,7 @@ export class QueryOrder extends Message {
 
     fromBuffer(buf: Buffer, offset = 0): number {
         this.chronos_order.fromBuffer(buf, offset);
-        return BufferUtil.format(buf, offset, "120o5L5I4p32s128s", this); // 大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "120o1l4L3i2I4p32s128s", this); // 大写为int 小写为uint
     }
 }
 
@@ -301,7 +302,7 @@ export class SendOrderAns extends QueryOrder {
 }
 
 export class CancelOrder extends Message {
-    static readonly len = 36;
+    static readonly len = 40;
 
     order_ref: number = 0;  // u8 撤单的客户端订单编号
     order_id: number = 0;   // u8 撤单订单编号
@@ -360,12 +361,12 @@ export class CancelOrderAns extends Message {
 }
 
 export class OrderPush extends Message {
-    static len = 0;
+    static len = 480;
 
-    order_status: QueryOrder = new QueryOrder();
-    fund: QueryFundAns = new QueryFundAns();
-    pos_count: number;
-    postions: Array<QueryPositionAns>;
+    order_status: QueryOrder = new QueryOrder(); // 344
+    fund: QueryFundAns = new QueryFundAns(); // 136
+    pos_count: number; // u4
+    postions: Array<QueryPositionAns>; // 184
 
     fromBuffer(buf: Buffer, offset = 0) {
         offset = this.order_status.fromBuffer(buf, offset);
@@ -383,6 +384,7 @@ export class OrderPush extends Message {
     }
 
     toBuffer(): Buffer {
+        let buf = Buffer.alloc(QueryOrder.len + QueryFundAns.len + 4 + QueryPositionAns.len * this.postions.length);
         return null;
     }
 }
