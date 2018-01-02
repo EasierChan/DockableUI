@@ -1791,7 +1791,7 @@ export class DataTable extends Control {
     private _rowDBClick: Function;
     private _menu: Menu = new Menu();
 
-    constructor(type: "table" | "table2" = "table") {
+    constructor(type: "table" | "table2" | "table3" = "table") {
         super();
         this.className = "table";
         this.dataSource = {
@@ -1828,6 +1828,8 @@ export class DataTable extends Control {
                     return col.onCompare(b.cells[idx].Text, a.cells[idx].Text);
                 });
             }
+
+            this.detectChanges();
         };
     }
 

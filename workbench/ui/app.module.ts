@@ -4,7 +4,7 @@ import { FormsModule } from "@angular/forms";
 import { CommonModule, PercentPipe } from "@angular/common";
 
 import { AppComponent } from "./app.component";
-import { DataTableComponent, ScrollerBarTable, EChartComponent } from "../../base/controls/data.component";
+import { DataTableComponent, ScrollerBarTable, EChartComponent, DataTable2 } from "../../base/controls/data.component";
 import {
   UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent,
   TileAreaComponent, CodeComponent, ButtonGroupComponent, VBoxDirective
@@ -70,7 +70,8 @@ import { SimQueryComponent } from "./home/simquery.component";
     AnalysisComponent,
     ProductsComponent,
     BasketComponent,
-    SimQueryComponent
+    SimQueryComponent,
+    DataTable2
   ],
   bootstrap: [AppComponent]
 })

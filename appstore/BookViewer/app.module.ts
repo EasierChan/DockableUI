@@ -6,7 +6,7 @@ import { CommonModule } from "@angular/common";
 import { AppComponent } from "./app.component";
 import {
   DataTableComponent, ScrollerBarTable, EChartComponent,
-  EchartsDirective
+  EchartsDirective, DataTable2
 } from "../../base/controls/data.component";
 import {
   UserControlComponent, DockContainerComponent, StatusBarComponent, DialogComponent, ActionBarComponent, CodeComponent,
@@ -31,7 +31,8 @@ import {
     ActionBarComponent,
     CodeComponent,
     EchartsDirective,
-    ButtonGroupComponent
+    ButtonGroupComponent,
+    DataTable2
   ],
   bootstrap: [AppComponent]
 })

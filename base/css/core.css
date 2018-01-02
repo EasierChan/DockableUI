@@ -204,14 +204,14 @@ usercontrol.col > dock-control > .tab-panel {
 }
 
 /* table */
-dock-table, dock-table2{
+dock-table, dock-table2, dock-table3{
     min-width: 200px;
     position: relative;
     overflow-y: hidden;
     flex: auto;
 }
 
-dock-table2 {
+dock-table2, dock-table3 {
     overflow-y: auto;
 }
 

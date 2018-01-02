@@ -61,12 +61,94 @@ export class DataTableComponent implements OnInit, AfterViewInit {
 
 @Component({
     moduleId: module.id,
-    selector: "dock-table2",
+    selector: "dock-table3",
     templateUrl: "data.scrollerbar-table.html",
     styleUrls: ["datatable.css"],
     inputs: ["className", "dataSource", "styleObj"]
 })
 export class ScrollerBarTable implements OnInit {
+    className: string;
+    dataSource: any;
+    styleObj: any;
+    clientRows: any[];
+    clientIdx: number;
+
+    @ViewChild("content") content: ElementRef;
+    @ViewChild("stable") stable: ElementRef;
+    @ViewChild("head") head: ElementRef;
+
+    constructor(private ele: ElementRef, private render: Renderer, private _zone: NgZone,
+        private ref: ChangeDetectorRef) {
+        this.clientRows = [];
+    }
+
+    ngOnInit() {
+        this.dataSource.detectChanges = () => {
+            this._zone.runOutsideAngular(() => {
+                if (this.dataSource.rows) {
+                    this.content.nativeElement.style.height = 22 * (this.dataSource.rows.length + 1) + "px";
+
+                    setTimeout(() => {
+                        let count = Math.round(this.ele.nativeElement.clientHeight / 22);
+                        this.clientIdx = Math.floor(this.ele.nativeElement.scrollTop / 22);
+                        this.clientRows = this.dataSource.rows.slice(this.clientIdx, 2 * count + this.clientIdx);
+                    }, 200);
+                }
+
+                if (this.ele.nativeElement.clientWidth > 0) {
+                    this.resizeHeader();
+                    this.ref.detectChanges();
+                }
+            });
+        };
+    }
+
+    @HostListener("scroll")
+    onScroll() {
+        this._zone.runOutsideAngular(() => {
+            if (this.ele.nativeElement.scrollTop + this.ele.nativeElement.clientHeight > this.ele.nativeElement.scrollHeight) {
+                return;
+            }
+
+            this.stable.nativeElement.style["margin-top"] = this.ele.nativeElement.scrollTop + "px";
+            this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
+            this.head.nativeElement.style.display = "table";
+
+            this.resizeHeader();
+            let count = Math.round(this.ele.nativeElement.clientHeight / 22);
+            this.clientIdx = Math.floor(this.ele.nativeElement.scrollTop / 22);
+            this.clientRows = this.dataSource.rows.slice(this.clientIdx, 2 * count + this.clientIdx);
+            this.ref.detectChanges();
+        });
+    }
+
+    @HostListener("resize")
+    onResize() {
+        this.resizeHeader();
+    }
+
+    @HostListener("window:resize")
+    onWindowResize() {
+        this.resizeHeader();
+    }
+
+    resizeHeader() {
+        this.head.nativeElement.style.width = this.content.nativeElement.clientWidth + "px";
+        let headCells = this.head.nativeElement.querySelectorAll("thead > tr:first-child > th");
+        this.content.nativeElement.querySelectorAll("table > thead > tr:first-child > th").forEach((th, index) => {
+            headCells[index].style.width = th.clientWidth + "px";
+        });
+    }
+}
+
+@Component({
+    moduleId: module.id,
+    selector: "dock-table2",
+    templateUrl: "data.table2.html",
+    styleUrls: ["datatable.css"],
+    inputs: ["className", "dataSource", "styleObj"]
+})
+export class DataTable2 implements OnInit {
     className: string;
     dataSource: any;
     styleObj: any;
@@ -91,6 +173,7 @@ export class ScrollerBarTable implements OnInit {
     onScroll() {
         this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
         this.head.nativeElement.style.display = "table";
+
         this.resizeHeader();
     }
 

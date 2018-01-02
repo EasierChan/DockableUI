@@ -134,37 +134,37 @@ export class StrategyDealer {
         this.dataList = [];
         this.chunkLen = 30;
 
-        setInterval(() => {
-            let obj = { event: "ss-data", content: [] };
-            let count = this.chunkLen;
-            let i = 0;
+        // setInterval(() => {
+        //     let obj = { event: "ss-data", content: [] };
+        //     let count = this.chunkLen;
+        //     let i = 0;
 
-            for (; i < this.dataList.length; ++i) {
-                if (count > 0) {
-                    if (this.dataList[i].data.length > count) {
-                        obj.content.push({ type: this.dataList[i].type, subtype: this.dataList[i].subtype, data: this.dataList[i].data.splice(0, count) });
-                        break;
-                    } else {
-                        obj.content.push(this.dataList[i]);
-                        count -= this.dataList[i].data.length;
-                    }
+        //     for (; i < this.dataList.length; ++i) {
+        //         if (count > 0) {
+        //             if (this.dataList[i].data.length > count) {
+        //                 obj.content.push({ type: this.dataList[i].type, subtype: this.dataList[i].subtype, data: this.dataList[i].data.splice(0, count) });
+        //                 break;
+        //             } else {
+        //                 obj.content.push(this.dataList[i]);
+        //                 count -= this.dataList[i].data.length;
+        //             }
 
-                    continue;
-                }
+        //             continue;
+        //         }
 
-                break;
-            }
+        //         break;
+        //     }
 
-            if (obj.content.length > 0) {
-                process.send(obj);
-                console.error(`render to GUI[${Date.now()}] => ${obj.content.length}, datalist = ${this.dataList.length}, i=${i}`);
-                obj.content.length = 0;
+        //     if (obj.content.length > 0) {
+        //         process.send(obj);
+        //         console.error(`render to GUI[${Date.now()}] => ${obj.content.length}, datalist = ${this.dataList.length}, i=${i}`);
+        //         obj.content.length = 0;
 
-                this.dataList.splice(0, i);
-            }
+        //         this.dataList.splice(0, i);
+        //     }
 
-            count = this.chunkLen;
-        }, 1000);
+        //     count = this.chunkLen;
+        // }, 1000);
     }
 
     connect(port, host) {
@@ -424,8 +424,9 @@ export class StrategyDealer {
         count = null;
         let type = header.type;
         let subtype = header.subtype;
-        this.dataList.push({ type: type, subtype: subtype, data: msgArr });
-        logger.info(`count = ${this.dataList.length}`);
+        // this.dataList.push({ type: type, subtype: subtype, data: msgArr });
+        process.send({ event: "ss-data", content: { type: type, subtype: subtype, data: msgArr } });
+        // logger.info(`count = ${this.dataList.length}`);
     }
 
     send(params) {
