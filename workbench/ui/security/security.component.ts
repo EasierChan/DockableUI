@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, OnInit, ViewChild, ElementRef, OnDestroy } from "@angular/core";
+import { Component, OnInit, ViewChild, ElementRef, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { DatePipe } from "@angular/common";
 import { DataTable, DataTableColumn, ChartViewer, Section, ListItem } from "../../../base/controls/control";
 import { SecuMasterService, File } from "../../../base/api/services/backend.service";
@@ -36,7 +36,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     selectKs: string[] = [];
     KType: number = 0;
 
-    constructor(private quote: QuoteService, private secuinfo: SecuMasterService, private datePipe: DatePipe) {
+    constructor(private quote: QuoteService, private secuinfo: SecuMasterService, private datePipe: DatePipe, private ref: ChangeDetectorRef) {
 
     }
 
@@ -772,6 +772,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         alert("未找到" + this.selectedItem.symbolCode + "的合约信息！");
                     }
                 }
+                this.ref.detectChanges();
             }
         });
 
@@ -785,7 +786,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
                     let kData = [String(item.o / 10000), String(item.c / 10000), String(item.l / 10000), String(item.h / 10000)];
                     option.series[0].data.push(kData);
                 });
-
+                option.series[0].name = this.selectK;
                 this.marketChart.setOption(this.mdSection.content.option);
             }
         });

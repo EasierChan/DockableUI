@@ -37,6 +37,10 @@ export class QuoteDal {
                 this.kwlist = _.difference(this.kwlist, client.ukeys);
                 this.quotePoint.send(17, 101, { topic: 3112, kwlist: this.kwlist });
             });
+
+            client.on("error", (err) => {
+                console.info(`client err ${err}`);
+            });
         });
 
         this.quotePoint.connect(port, host);

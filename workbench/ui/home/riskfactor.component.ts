@@ -1,6 +1,6 @@
 "use strict";
 
-import { Component, HostListener, OnDestroy } from "@angular/core";
+import { Component, HostListener, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { File, path } from "../../../base/api/services/backend.service"; // File operator
 import { QtpService, QuoteService } from "../../bll/services";
 import { ServiceType } from "../../../base/api/model";
@@ -39,7 +39,7 @@ export class FactorProfitComponent implements OnDestroy {
     userId: number = 0;
     translateResult: string = "";
 
-    constructor(private tradePoint: QtpService, private datePipe: DatePipe, private config: ConfigurationBLL) {
+    constructor(private tradePoint: QtpService, private datePipe: DatePipe, private config: ConfigurationBLL, private ref: ChangeDetectorRef) {
         FactorProfitComponent.self = this;
     }
 
@@ -108,8 +108,8 @@ export class FactorProfitComponent implements OnDestroy {
             }
         }, this);
 
-        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {userid: this.userId} } }));
-        this.tradePoint.sendToCMS("getRiskFactorReturn", JSON.stringify({ data: { body: {userid: this.userId} } }));
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { head: {userid: this.userId}, body: {} } }));
+        this.tradePoint.sendToCMS("getRiskFactorReturn", JSON.stringify({ data: { head: {userid: this.userId}, body: {} } }));
 
         this.riskFactorReturnEchart = echarts.init(document.getElementById("riskFactorReturnEchart") as HTMLDivElement);
         this.everyDayReturnEchart = echarts.init(document.getElementById("everyDayReturnEchart") as HTMLDivElement);
@@ -478,7 +478,7 @@ export class FactorAnalysisComponent implements OnDestroy {
     userId: number = 0;
     translateResult: string = "";
 
-    constructor(private tradePoint: QtpService, private appsrv: AppStoreService, private datePipe: DatePipe, private config: ConfigurationBLL) {
+    constructor(private tradePoint: QtpService, private appsrv: AppStoreService, private datePipe: DatePipe, private config: ConfigurationBLL, private ref: ChangeDetectorRef) {
         FactorAnalysisComponent.self = this;
         // this.loadData();
         this.iproducts = [];
@@ -550,7 +550,7 @@ export class FactorAnalysisComponent implements OnDestroy {
         console.log(tblockId);
         console.log(FactorAnalysisComponent.self.istrategys);
         FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { userid: this.userId, caid: tblockId } } }));
+        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { head: {userid: this.userId}, body: { caid: tblockId } } }));
        
 
         this.tradePoint.addSlotOfCMS("getCombStrategy", (body) => {
@@ -600,7 +600,7 @@ export class FactorAnalysisComponent implements OnDestroy {
             this.lookReturn();
         }, this);
 
-        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {userid: this.userId} } }));
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { head: {userid: this.userId}, body: {} } }));
 
         this.riskFactorExposureEchart = echarts.init(document.getElementById("riskFactorExposureEchart") as HTMLDivElement);
         this.everyDayRFEEchart = echarts.init(document.getElementById("everyDayRFEEchart") as HTMLDivElement);
@@ -644,7 +644,7 @@ export class FactorAnalysisComponent implements OnDestroy {
 
         console.log(FactorAnalysisComponent.self.istrategys);
         FactorAnalysisComponent.self.istrategy = FactorAnalysisComponent.self.istrategys[0];
-        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { body: { userid: this.userId, caid: tblockId } } }));
+        this.tradePoint.sendToCMS("getCombStrategy", JSON.stringify({ data: { head: {userid: this.userId}, body: { caid: tblockId } } }));
         FactorAnalysisComponent.strategyIndex = 0;
     }
 
@@ -707,7 +707,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                 }, this);
 
                 this.factorAnalysisData = [];
-                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { body: { userid: this.userId, begin_date: this.startDate, end_date: this.endDate, cellid: strategyId, celltype: 3, hedgingIndex: ratioId } } }));
+                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { head: {userid: this.userId}, body: { begin_date: this.startDate, end_date: this.endDate, cellid: strategyId, celltype: 3, hedgingIndex: ratioId } } }));
                 console.log("send strategy", strategyId, this.startDate, this.endDate, ratioId);
             } else {
                 console.log(tblockId);
@@ -720,7 +720,7 @@ export class FactorAnalysisComponent implements OnDestroy {
                 }, this);
 
                 this.factorAnalysisData = [];
-                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { body: { userid: this.userId, begin_date: this.startDate, end_date: this.endDate, cellid: tblockId, celltype: 2, hedgingIndex: ratioId } } }));
+                this.tradePoint.sendToCMS("getUnitFactorAnalysis", JSON.stringify({ data: { head: {userid: this.userId}, body: { begin_date: this.startDate, end_date: this.endDate, cellid: tblockId, celltype: 2, hedgingIndex: ratioId } } }));
                 console.log("send product", tblockId, this.startDate, this.endDate, ratioId);
             }
         } else {
@@ -1230,7 +1230,7 @@ export class FactorAlphaComponent {
     getFactorInfoString: string = "";
     userId: number = 0;    
 
-    constructor(private tradePoint: QtpService, private datePipe: DatePipe, private config: ConfigurationBLL) {
+    constructor(private tradePoint: QtpService, private datePipe: DatePipe, private config: ConfigurationBLL, private ref: ChangeDetectorRef) {
         FactorAlphaComponent.self = this;
     }
 
@@ -1292,7 +1292,7 @@ export class FactorAlphaComponent {
             }
         }, this);
 
-        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { body: {userid: this.userId} } }));
+        this.tradePoint.sendToCMS("getFactorInfo", JSON.stringify({ data: { head: {userid: this.userId}, body: {} } }));
 
         window.onresize = () => {
             this.resizeFunction();
@@ -1350,12 +1350,12 @@ export class FactorAlphaComponent {
         FactorAlphaComponent.self.alphaFactorInfoArray.forEach((item) => {
             item.returns = [];
         });
-        this.tradePoint.sendToCMS("getAlphaFactorReturn", JSON.stringify({ data: { body: { userid: this.userId, begin_date: this.openDate, end_date: this.closeDate } } }));
+        this.tradePoint.sendToCMS("getAlphaFactorReturn", JSON.stringify({ data: { head: {userid: this.userId}, body: { begin_date: this.openDate, end_date: this.closeDate } } }));
 
         this.getFactorCorrelationString = "";
         this.alphaRelevance = [];
         this.hotChartData = [];
-        this.tradePoint.sendToCMS("getFactorCorrelation", JSON.stringify({ data: { body: { userid: this.userId, begin_date: this.openDate, end_date: this.closeDate } } }));
+        this.tradePoint.sendToCMS("getFactorCorrelation", JSON.stringify({ data: { head: {userid: this.userId}, body: { begin_date: this.openDate, end_date: this.closeDate } } }));
     }
 
     // 计算平均值
@@ -1648,7 +1648,7 @@ export class AIBrandComponent {
     nowTimeStamp: any;//当前时间戳
 
     constructor(private tradePoint: QtpService, private quote: QuoteService, private config: ConfigurationBLL,
-        private secuinfo: SecuMasterService, private appsvr: AppStoreService) {
+        private secuinfo: SecuMasterService, private appsvr: AppStoreService, private ref: ChangeDetectorRef) {
 
     }
 
@@ -1751,6 +1751,7 @@ export class AIBrandComponent {
                             }
                         }
                     }
+                    this.ref.detectChanges();
                 }
             });
 
@@ -1785,6 +1786,7 @@ export class AIBrandComponent {
                 if (this.selfStockXdata.indexOf(this.nowTime) === -1) {//今天非交易时间段请求当日最后一条数据
                     this.historyMarket();
                 }
+                this.ref.detectChanges();
             }, this)
 
             //最差的30股
@@ -1818,6 +1820,7 @@ export class AIBrandComponent {
                 if (this.selfStockXdata.indexOf(this.nowTime) === -1) {//今天非交易时间段请求当日最后一条数据
                     this.historyMarket();
                 }
+                this.ref.detectChanges();
             }, this)
 
             //AI看盘数据
@@ -1829,8 +1832,8 @@ export class AIBrandComponent {
             this.bestStockUkMap = {};
             this.worstStockUkMap = {};
             this.aiStockDate = {};
-            this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { body: { userid: this.userId, amount: this.count } } }));
-            this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { body: { userid: this.userId, amount: this.count } } }));
+            this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { head: {userid: this.userId}, body: { amount: this.count } } }));
+            this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { head: {userid: this.userId}, body: { amount: this.count } } }));
         } else {
             alert("参考股数必须为数字！");
         }
@@ -1906,7 +1909,7 @@ export class AIBrandComponent {
                     let increase = ((item.p - item.pc) / 10000).toFixed(2);
                     let increasePer = ((item.p - item.pc) / item.pc).toFixed(2);
                     let referIncrease;
-                    if (allStockUkMap[item.k].type == "worst") {
+                    if (allStockUkMap[item.k] && allStockUkMap[item.k].type == "worst") {
                         referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
                         this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                         this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
@@ -1915,7 +1918,7 @@ export class AIBrandComponent {
                             this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
                             this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                         }
-                    } else if (allStockUkMap[item.k].type == "best") {
+                    } else if (allStockUkMap[item.k] && allStockUkMap[item.k].type == "best") {
                         referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
                         this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                         this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
@@ -1924,12 +1927,13 @@ export class AIBrandComponent {
                             this.bestStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
                             this.bestStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                         }
-                    } else if (allStockUkMap[item.k].type == "refer") {
+                    } else if (allStockUkMap[item.k] && allStockUkMap[item.k].type == "refer") {
                         this.refStock.price = nowPrice;
                         this.refStock.increase = increasePer;
                     }
                 })
-                console.log(allStockUkMap)
+                console.log(allStockUkMap);
+                this.ref.detectChanges();
             }
         })
     }
