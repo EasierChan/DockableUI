@@ -166,9 +166,30 @@ export class QueryPositionAns extends Message {
     }
 }
 
-
-
 export class QueryOrder extends Message {
+    static readonly len = 40;
+    portfolio_id: number = 0;
+    fund_account_id: number = 0;
+    order_id: number = 0;
+    order_ref: number = 0;
+    term_id: number = 0;
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(QueryOrder.len, 0);
+        buf.writeUIntLE(this.portfolio_id, offset, 8); offset += 8;
+        buf.writeUIntLE(this.fund_account_id, offset, 8); offset += 8;
+        buf.writeUIntLE(this.order_id, offset, 8); offset += 8;
+        buf.writeUIntLE(this.order_ref, offset, 8); offset += 8;
+        buf.writeUInt32LE(this.term_id, offset); offset += 4;
+        offset += 4;
+        return buf;
+    }
+
+    fromBuffer(buf: Buffer, offset = 0): number {
+        return BufferUtil.format(buf, offset, "4l1i4p", this); // 大写为int 小写为uint
+    }
+}
+export class OrderStatus extends Message {
     // QueryOrder; QueryOrderAns; SendOrderAns;
     static readonly len = 344;
 
@@ -189,7 +210,7 @@ export class QueryOrder extends Message {
 
     toBuffer(): Buffer {
         let offset = 0;
-        let buf = Buffer.alloc(QueryOrder.len, 0);
+        let buf = Buffer.alloc(OrderStatus.len, 0);
         this.chronos_order.toBuffer().copy(buf, offset); offset += 120;
         buf.writeUIntLE(this.order_id, offset, 8); offset += 8;
         buf.writeIntLE(this.cancelled_qty, offset, 8); offset += 8;
@@ -201,21 +222,21 @@ export class QueryOrder extends Message {
         buf.writeUInt32LE(this.approver_id, offset); offset += 4;
         buf.writeInt32LE(this.status, offset); offset += 4;
         buf.writeInt32LE(this.ret_code, offset); offset += 4;
-        offset += 4;
         buf.write(this.broker_sn, offset, 32); offset += 32;
         buf.write(this.message, offset, 128); offset += 128;
+        offset += 4;
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
         this.chronos_order.fromBuffer(buf, offset);
-        return BufferUtil.format(buf, offset, "120o1l4L3i2I4p32s128s", this); // 大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "120o1l4L3i2I32s128s4p", this); // 大写为int 小写为uint
     }
 }
 
 export class QueryOrderAns extends Message {
     static len = 344;
-    query_orderAns: QueryOrder = new QueryOrder();
+    query_orderAns: OrderStatus = new OrderStatus();
 
     fromBuffer(buf: Buffer, offset = 0) {
         offset = this.query_orderAns.fromBuffer(buf, offset);
@@ -287,7 +308,7 @@ export class SendOrder extends Message {
     }
 }
 
-export class SendOrderAns extends QueryOrder {
+export class SendOrderAns extends OrderStatus {
     static len = 344;
 
     fromBuffer(buf: Buffer, offset = 0) {
@@ -318,19 +339,19 @@ export class CancelOrder extends Message {
         buf.writeUIntLE(this.order_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.trader_id, offset, 8); offset += 8;
         buf.writeUInt32LE(this.term_id, offset); offset += 4;
+        offset += 4;
         buf.writeUInt32LE(this.order_date, offset); offset += 4;
         buf.writeUInt32LE(this.order_time, offset); offset += 4;
-        offset += 4;
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "3l3i4p", this); // 大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "3l1i4p2i", this); // 大写为int 小写为uint
     }
 }
 
 export class CancelOrderAns extends Message {
-    static readonly len = 168;
+    static readonly len = 176;
 
     order_ref: number = 0;  // u8 撤单的客户端订单编号
     order_id: number = 0;   // u8 撤单订单编号
@@ -348,22 +369,24 @@ export class CancelOrderAns extends Message {
         buf.writeUIntLE(this.order_id, offset, 8); offset += 8;
         buf.writeUIntLE(this.trader_id, offset, 8); offset += 8;
         buf.writeUInt32LE(this.term_id, offset); offset += 4;
+        offset += 4;
         buf.writeUInt32LE(this.order_date, offset); offset += 4;
         buf.writeUInt32LE(this.order_time, offset); offset += 4;
         buf.writeInt32LE(this.ret_code, offset); offset += 4;
         buf.write(this.ret_msg, offset, 128); offset += 128;
+        offset += 4;
         return buf;
     }
 
     fromBuffer(buf: Buffer, offset = 0): number {
-        return BufferUtil.format(buf, offset, "3l3i1I128s", this); // 大写为int 小写为uint
+        return BufferUtil.format(buf, offset, "3l1i4p2i1I128s4p", this); // 大写为int 小写为uint
     }
 }
 
 export class OrderPush extends Message {
     static len = 480;
 
-    order_status: QueryOrder = new QueryOrder(); // 344
+    order_status: OrderStatus = new OrderStatus(); // 344
     fund: QueryFundAns = new QueryFundAns(); // 136
     pos_count: number; // u4
     postions: Array<QueryPositionAns>; // 184
@@ -384,7 +407,7 @@ export class OrderPush extends Message {
     }
 
     toBuffer(): Buffer {
-        let buf = Buffer.alloc(QueryOrder.len + QueryFundAns.len + 4 + QueryPositionAns.len * this.postions.length);
+        let buf = Buffer.alloc(OrderStatus.len + QueryFundAns.len + 4 + QueryPositionAns.len * this.postions.length);
         return null;
     }
 }
