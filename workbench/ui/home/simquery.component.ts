@@ -22,20 +22,27 @@ declare const electron: Electron.ElectronMainAndRenderer;
 export class SimQueryComponent implements OnInit {
     products: any[] = [];
     strategys: any[] = [];
+    stgList: {
+        chname: string;
+        stgid: string | number;
+    }[] = [];
     cmsRequestFn = {
         SN: 100
     };
+    selectedStgid: string | number;
     selectedCaid: string | number;
     selectedTrid: string | number;
     startDate: string;
     endDate: string;
     isDownedAll = false;
     orderTable: DataTable;
+    holdTable: DataTable;
     pagination = {
         maxPage: 1,
         currentPage: 1,
         pageSize: 40
     };
+    cache: any = {};
     
     constructor(private trade: QtpService, private appsrv: AppStoreService,
         private datePipe: DatePipe, private config: ConfigurationBLL, private secuInfo: SecuMasterService) {
@@ -43,59 +50,105 @@ export class SimQueryComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.products = this.config.getProducts();
-        this.strategys = [{
-            trid: "",
-            trname: "全部"
-        }];
-        this.selectedCaid = this.products.length ? this.products[0].caid : null;
-        this.startDate = this.datePipe.transform(new Date().setDate(1), "yyyy-MM-dd");
-        this.endDate = this.datePipe.transform(Date.now(), "yyyy-MM-dd");
-        // this.dev();
-        this.caChangeListener(this.selectedCaid);
-        this.initTable();
-    }
-
-    dev() {
-        this.selectedCaid = "30301";
-    }
-
-    initTable() {
-        this.orderTable = new DataTable("table2");
-        this.orderTable.align = "center";
-        this.orderTable.addColumn(...this.getOrderRow());
-    }
-
-    caChangeListener(value) {
-        if(value) {
-            this.selectedCaid = value;
-            this.request("getCombStrategy", {caid: value}).then(data => {
-                this.strategys = [{
-                    trid: "",
-                    trname: "全部"
-                }]
-                if(data && data.length) {
-                    this.strategys = this.strategys.concat(data as any[]);
-                }
-                this.selectedTrid = this.strategys[0].trid;
-                this.checkoutForm(1);
+        this.config.getSimulationConfigs().forEach(simConfig => {
+            simConfig.items.forEach(item => {
+                this.stgList.push({
+                    chname: `${simConfig.chname}${item.key}`,
+                    stgid: item.key
+                })
             })
+        });
+        this.selectedStgid = this.stgList[0].stgid;
+        this.endDate = this.datePipe.transform(new Date().getTime(), "yyyy-MM-dd");
+        this.startDate = this.datePipe.transform(new Date().getTime() - 1 * 30 * 24 * 60 * 60 * 1000, "yyyy-MM-dd");
+
+        this.initTable("order");
+        this.initTable("hold");
+    }
+
+    search(isReset: boolean = false) {
+        // valid stgid 0(21), 141(2), 188(4), 193(3541)
+        if(isReset) this.reset();
+        this.getOrder().then(data => {
+            console.log(data);
+            this.initTable("order");
+            data.data.forEach(order => {
+                let row = this.orderTable.newRow();                
+                this.getOrderRow(order).forEach((value, index) => {
+                    row.cells[index].Text = value
+                })
+            });
+            this.pagination.maxPage = Math.floor(Number(data.totalCount) / this.pagination.pageSize) + 1;
+        });
+
+        this.request("getTradeUnitHoldPosition", {
+            stgid: this.selectedStgid
+        }).then(data => {
+            console.log(data);
+            this.initTable("hold");
+            data.forEach(item => {
+                let row = this.holdTable.newRow();
+                this.getHoldRow(item).forEach((value, index) => {
+                    row.cells[index].Text = value
+                })
+            })
+        });
+    }
+
+    reset() {
+        this.selectedStgid = this.cache.stgid || this.selectedStgid;
+        this.startDate = this.cache.startDate || this.startDate;
+        this.endDate = this.cache.endDate || this.endDate;
+        this.pagination.currentPage = 1;
+
+        this.cache.stgid = null;
+        this.cache.startDate = null;
+        this.cache.endDate = null;
+    }
+
+    getOrder(page = this.pagination.currentPage, stgid = this.selectedStgid, pageCount = this.pagination.pageSize,
+        startDate = this.startDate.replace(/-/g, ""), endDate = this.endDate.replace(/-/g, "")) {
+        let options = {
+            stgid,
+            startDate,
+            endDate,
+            page,
+            pageCount
+        };
+        if(page === 0) {
+            delete options.page;
+            delete options.pageCount; 
+        }
+        console.log(options);
+        return this.request("getTaorder", options)
+    }
+
+    initTable(name: "order" | "hold") {
+        let newTable = new DataTable("table2");
+        switch(name) {
+            case "order":
+                this.orderTable = newTable;
+                this.orderTable.align = "center";
+                this.orderTable.addColumn(...this.getOrderRow());
+                break;
+            case "hold":
+                this.holdTable = newTable;
+                this.holdTable.align = "center";
+                this.holdTable.addColumn(...this.getHoldRow());
+                break;
         }
     }
 
-    trChangeListener(value) {
-        this.selectedTrid = value;
-        this.checkoutForm(1);
+    resetStg(stgid) {
+        this.cache.stgid = stgid;
     }
 
-    startChangeListener(value) {
-        this.startDate = value;
-        this.checkoutForm(1);
+    resetStart(date) {
+        this.cache.startDate = date;
     }
 
-    endChangeListener(value) {
-        this.endDate = value;
-        this.checkoutForm(1);
+    resetEnd(date) {
+        this.cache.endDate = date;
     }
 
     downLoad() {
@@ -105,7 +158,7 @@ export class SimQueryComponent implements OnInit {
                 path = chosedPath;
                 let header = this.orderTable.columns.map(item => item.Name);
                 if(this.isDownedAll) {
-                    return this.getOrders()
+                    return this.getOrder(0)
                         .then(data => {
                             let csvData = (data.data as any[]).map(row => this.getOrderRow(row).join(",")).join("\n\r");
                             csvData = header.join(",") + "\n\r" + csvData;
@@ -143,55 +196,15 @@ export class SimQueryComponent implements OnInit {
     previousPage() {
         if(this.pagination.currentPage !== 1) {
             this.pagination.currentPage --;
-            this.checkoutForm(this.pagination.currentPage);
+            this.search();
         }
     }
 
     nextPage() {
         if(this.pagination.currentPage !== this.pagination.maxPage) {
             this.pagination.currentPage ++;
-            this.checkoutForm(this.pagination.currentPage);
+            this.search();
         }
-    }
-
-    checkoutForm(page: number) {
-        this.pagination.currentPage = page;
-        this.initTable();
-        this.getOrders(page || 1).then(data => {
-            this.pagination.maxPage = Math.floor(data.totalCount / this.pagination.pageSize) + 1;
-            this.loadTable(data.data);
-        }).catch(err => console.info(err))
-    }
-
-    getOrders(page: number = 0) {
-        let {selectedCaid: caid, selectedTrid: trid, startDate, endDate} = this;
-        if(caid && startDate && endDate) {
-            startDate = startDate.replace(/-/g, "");
-            endDate = endDate.replace(/-/g, "");
-            let options = {
-                pageCount: this.pagination.pageSize,
-                caid,
-                trid,
-                startDate,
-                endDate,
-                page
-            };
-            if(!trid) delete options.trid;
-            if(!page) { // 默认为0，获取所有
-                delete options.page;
-                delete options.pageCount;
-            }
-            return this.request("getTaorder", options);
-        } else return Promise.reject("查询条件缺失")
-    }
-
-    loadTable(orderList: any[]) {
-        orderList.forEach(order => {
-            let row = this.orderTable.newRow();
-            this.getOrderRow(order).forEach((value, index) => {
-                row.cells[index].Text = value
-            })
-        })
     }
 
     request(cmd: string, options): Promise<any> {
@@ -201,7 +214,8 @@ export class SimQueryComponent implements OnInit {
             this.trade.sendToCMS(cmd, JSON.stringify({
                 data: {
                     head: {reqsn, userid: this.config.get("user").userid},
-                    body: options
+                    body: options,
+                    userid: this.config.get("user").userid
                 }
             }));
             this.cmsRequestFn.SN = reqsn + 1;
@@ -234,7 +248,9 @@ export class SimQueryComponent implements OnInit {
     convertOrder(order) {
         order.caid = this.config.getProducts().find(item => item.caid === order.caid).caname;
         order.acid = this.config.get("asset_account").find(item => item.acid === order.acid).acname;
-        order.trid = this.strategys.find(item => item.trid === order.trid).trname;
+        // order.trid = this.strategys.find(item => item.trid === order.trid).trname;
+        // console.log(this.strategys)
+        // console.log(order)
         order.directive = this.mapDirective(order.directive);
         order.offset_flag = this.mapOffset(order.offset_flag);
         order.execution = this.mapExecution(order.execution);
@@ -283,142 +299,248 @@ export class SimQueryComponent implements OnInit {
     }
 
     getOrderRow(order = null) {
-        if(order) this.convertOrder(order)
-        let fields = [
+        order && this.convertOrder(order);
+        const fields = [
             {
-                field: "交易日期",
-                key: "trday"
-            }, {
-                field: "终端ID",
-                key: "termid"
-            }, {
-                field: "tgw地址",
-                key: "tgwpath"
-            }, {
-                field: "资产单元",
-                key: "caid"
-            }, {
-                field: "交易单元",
-                key: "trid"
-            }, {
-                field: "策略ID",
-                key: "stgid"
-            }, {
-                field: "交易员",
-                key: "traderid"
-            }, {
-                field: "资金账户",
-                key: "acid"
-            }, {
-                field: "交易账户",
-                key: "tracid"
-            }, {
-                field: "经纪商",
-                key: "bid"
-            }, {
-                field: "通道",
-                key: "chid"
-            }, {
-                field: "终端的订单号",
-                key: "termorderid"
-            }, {
-                field: "OMS订单ID",
+                field: "订单ID(OMS)",
                 key: "sysorderid"
-            }, {
-                field: "分组订单号",
-                key: "groupid"
-            }, {
-                field: "券商订单号",
-                key: "borderid"
-            }, {
-                field: "委托时间",
-                key: "ordertm"
-            }, {
+            },
+            {
                 field: "UKEY",
                 key: "ukcode"
-            }, {
-                field: "期货/期权对应的合约编码",
-                key: "contractid"
-            }, {
-                field: "市场",
-                key: "marketid"
-            }, {
+            }, 
+            {
                 field: "交易所证券code",
                 key: "marketcode"
-            }, {
+            }, 
+            {
                 field: "证券名称",
                 key: "cname"
-            }, {
-                field: "唯一的指令",
-                key: "cmdid"
-            }, {
-                field: "委托指令",
-                key: "directive"
-            }, {
-                field: "side",
-                key: "side"
-            }, {
-                field: "开平仓",
-                key: "offset_flag"
-            }, {
-                field: "执行类型",
-                key: "execution"
-            }, {
-                field: "报价货币币种",
-                key: "currencyid"
-            }, {
+            }, 
+            {
+                field: "策略ID",
+                key: "stgid"
+            }, 
+            // {
+            //     field: "组合ID",
+            //     key: ""
+            // }, 
+            {
                 field: "委托价格",
                 key: "orderprice"
-            }, {
+            }, 
+            {
                 field: "委托数量",
                 key: "ordervol"
-            }, {
-                field: "撤单数量",
-                key: "cancelvol"
-            }, {
-                field: "成交数量",
-                key: "tradevol"
-            }, {
-                field: "成交金额",
+            }, 
+            {
+                field: "委托时间",
+                key: "ordertm"
+            }, 
+            {
+                field: "买/卖", // "成交金额"
                 key: "tradeamt"
-            }, {
-                field: "已确认的挂单数量",
-                key: "confirmvol"
-            }, {
-                field: "废单数量",
-                key: "badvol"
-            }, {
-                field: "账户订单费用",
-                key: "tractfee"
-            }, {
-                field: "单元订单费用",
-                key: "trdfee"
-            }, {
-                field: "最后更新成交信息时间",
-                key: "newtm"
-            }, {
-                field: "撤单时间",
-                key: "cancelordertm"
-            }, {
-                field: "撤单标志",
-                key: "cancelorderflag"
-            }, {
-                field: "批人",
-                key: "approver"
-            }, {
+            }, 
+            {
                 field: "订单状态",
                 key: "orderstat"
-            }, {
-                field: "订单类型",
-                key: "addordertype"
-            }, {
-                field: "订单返回信息",
-                key: "msg"
             }
         ];
         if(order) {
             return fields.map(item => order[item.key] )
         } else return fields.map(item => item.field )
     }
-}
 
+    getHoldRow(hold=null) {
+        const fields = [
+            {
+                field: "交易日期",
+                key: "trday"
+            },
+            {
+                field: "交易单元ID",
+                key: "trid"
+            }, 
+            {
+                field: "资金账户",
+                key: "acid"
+            }, 
+            {
+                field: "交易账户",
+                key: "tracid"
+            }, 
+            {
+                field: "UKEY",
+                key: "ukcode"
+            }, 
+            {
+                field: "持仓类型",
+                key: "satype"
+            }, 
+            {
+                field: "市场Id",
+                key: "marketid"
+            }, 
+            {
+                field: "交易所证券code",
+                key: "marketcode"
+            }, 
+            {
+                field: "仓位方向",
+                key: "direction"
+            }, 
+            {
+                field: "总计数量",
+                key: "totalvol"
+            }, {
+                field: "可用数量",
+                key: "validvol"
+            }, {
+                field: "盯市成本",
+                key: "mtmcost"
+            }
+        ];
+        if(hold) {
+            return fields.map(item => hold[item.key] )
+        } else return fields.map(item => item.field )
+    }
+
+    // getOrderRow0(order = null) {
+    //     if(order) this.convertOrder(order)
+    //     let fields = [
+    //         {
+    //             field: "交易日期",
+    //             key: "trday"
+    //         }, {
+    //             field: "终端ID",
+    //             key: "termid"
+    //         }, {
+    //             field: "tgw地址",
+    //             key: "tgwpath"
+    //         }, {
+    //             field: "资产单元",
+    //             key: "caid"
+    //         }, {
+    //             field: "交易单元",
+    //             key: "trid"
+    //         }, {
+    //             field: "策略ID",
+    //             key: "stgid"
+    //         }, {
+    //             field: "交易员",
+    //             key: "traderid"
+    //         }, {
+    //             field: "资金账户",
+    //             key: "acid"
+    //         }, {
+    //             field: "交易账户",
+    //             key: "tracid"
+    //         }, {
+    //             field: "经纪商",
+    //             key: "bid"
+    //         }, {
+    //             field: "通道",
+    //             key: "chid"
+    //         }, {
+    //             field: "终端的订单号",
+    //             key: "termorderid"
+    //         }, {
+    //             field: "OMS订单ID",
+    //             key: "sysorderid"
+    //         }, {
+    //             field: "分组订单号",
+    //             key: "groupid"
+    //         }, {
+    //             field: "券商订单号",
+    //             key: "borderid"
+    //         }, {
+    //             field: "委托时间",
+    //             key: "ordertm"
+    //         }, {
+    //             field: "UKEY",
+    //             key: "ukcode"
+    //         }, {
+    //             field: "期货/期权对应的合约编码",
+    //             key: "contractid"
+    //         }, {
+    //             field: "市场",
+    //             key: "marketid"
+    //         }, {
+    //             field: "交易所证券code",
+    //             key: "marketcode"
+    //         }, {
+    //             field: "证券名称",
+    //             key: "cname"
+    //         }, {
+    //             field: "唯一的指令",
+    //             key: "cmdid"
+    //         }, {
+    //             field: "委托指令",
+    //             key: "directive"
+    //         }, {
+    //             field: "side",
+    //             key: "side"
+    //         }, {
+    //             field: "开平仓",
+    //             key: "offset_flag"
+    //         }, {
+    //             field: "执行类型",
+    //             key: "execution"
+    //         }, {
+    //             field: "报价货币币种",
+    //             key: "currencyid"
+    //         }, {
+    //             field: "委托价格",
+    //             key: "orderprice"
+    //         }, {
+    //             field: "委托数量",
+    //             key: "ordervol"
+    //         }, {
+    //             field: "撤单数量",
+    //             key: "cancelvol"
+    //         }, {
+    //             field: "成交数量",
+    //             key: "tradevol"
+    //         }, {
+    //             field: "成交金额",
+    //             key: "tradeamt"
+    //         }, {
+    //             field: "已确认的挂单数量",
+    //             key: "confirmvol"
+    //         }, {
+    //             field: "废单数量",
+    //             key: "badvol"
+    //         }, {
+    //             field: "账户订单费用",
+    //             key: "tractfee"
+    //         }, {
+    //             field: "单元订单费用",
+    //             key: "trdfee"
+    //         }, {
+    //             field: "最后更新成交信息时间",
+    //             key: "newtm"
+    //         }, {
+    //             field: "撤单时间",
+    //             key: "cancelordertm"
+    //         }, {
+    //             field: "撤单标志",
+    //             key: "cancelorderflag"
+    //         }, {
+    //             field: "批人",
+    //             key: "approver"
+    //         }, {
+    //             field: "订单状态",
+    //             key: "orderstat"
+    //         }, {
+    //             field: "订单类型",
+    //             key: "addordertype"
+    //         }, {
+    //             field: "订单返回信息",
+    //             key: "msg"
+    //         }
+    //     ];
+    //     if(order) {
+    //         return fields.map(item => order[item.key] )
+    //     } else return fields.map(item => item.field )
+    // }
+}

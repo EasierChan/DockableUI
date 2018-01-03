@@ -190,7 +190,6 @@ export class ReportComponent implements OnInit {
     }
 
     filterBacktest(condition) {
-        console.log(NgZone.isInAngularZone())
         this.resTable.rows.forEach(row => {
             if(condition) {
                 row.hidden = !row.cells[0].Data.name.includes(condition);
