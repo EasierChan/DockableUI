@@ -872,20 +872,6 @@ export class ComboControl extends Control {
     }
 
     set align(value: "left" | "right" | "center") {
-        switch (value) {
-            case "left":
-                this.styleObj.align = "flex-start";
-                break;
-            case "right":
-                this.styleObj.align = "flex-end";
-                break;
-            case "center":
-                this.styleObj.align = "center";
-                break;
-            default:
-                console.error(`unvalid align value => ${value}`);
-                break;
-        }
         this.styleObj.align = value;
     }
 
@@ -895,6 +881,10 @@ export class ComboControl extends Control {
 
     set top(value: number) {
         this.styleObj.top = value;
+    }
+
+    set right(value: number) {
+        this.styleObj.right = value;
     }
 }
 
@@ -911,6 +901,12 @@ export class HBox extends ComboControl {
 
     set height(value: string | number) {
         this.styleObj.height = value;
+    }
+}
+
+export class HFlexBox extends ComboControl {
+    constructor() {
+        super("row2");
     }
 }
 

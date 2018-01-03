@@ -4,7 +4,7 @@
         <span class="close close-round pull-right" (click)="dialog.hide()"></span>
     </div>
     <div class="body">
-        <usercontrol [class]="dialog.content.styleObj.type" [children]="dialog.content.children" [dataSource]="dialog.content.dataSource" [styleObj]="dialog.content.styleObj">
+        <usercontrol class="{{dialog.content.styleObj.type}} {{dialog.content.styleObj.align}}" [children]="dialog.content.children" [dataSource]="dialog.content.dataSource" [styleObj]="dialog.content.styleObj">
         </usercontrol>
     </div>
 </div>

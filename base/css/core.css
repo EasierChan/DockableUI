@@ -443,7 +443,8 @@ usercontrol{
     display: flex;
     position: relative;
 }
-usercontrol.row{
+usercontrol.row,
+usercontrol.row2 {
     flex-flow: row nowrap;
     flex: none;
     height: 25px;
@@ -451,11 +452,24 @@ usercontrol.row{
     margin: 0px;
     padding: 2px 0px;
 }
-
+usercontrol.row2.right {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+usercontrol.row2 > * {
+    flex: auto;
+}
+usercontrol.row2 pre {
+    display: inline-flex;
+}
 usercontrol.row > * {
     position: relative;
     margin-left: 5px;
     display: inherit;
+}
+usercontrol.col.right {
+    justify-content: flex-end;
+    margin-left: auto;
 }
 usercontrol.col > * {
     margin-top: 2px;
