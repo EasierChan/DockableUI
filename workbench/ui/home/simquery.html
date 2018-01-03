@@ -1,27 +1,21 @@
 <div class="sim-content u-col">
     <div class="head u-row">
         <div class="select-item u-row">
-            <span>产品：</span>
-            <select #product name="product" id="" [ngModel]="selectedCaid" (change)="caChangeListener(product.value)" >
-                <option *ngFor="let pd of products" [value]="pd.caid">{{pd.caname}}</option>
-            </select>
-        </div>
-        <div class="select-item u-row">
-            <span>策略组合：</span>
-            <select name="strategys" id="" #strategy [ngModel]="selectedTrid" (change)="trChangeListener(strategy.value)">
-                <option *ngFor="let stg of strategys" [value]="stg.trid">{{stg.trname}}</option>
+            <span>策略：</span>
+            <select name="strategys" id="" #strategy [ngModel]="selectedStgid" (change)="resetStg(strategy.value)" >
+                <option *ngFor="let stg of stgList" [value]="stg.stgid">{{stg.chname}}</option>
             </select>
         </div>
         <div class="select-item u-row">
             <span>起始时间：</span>
-            <input type="date" #startdate [ngModel]="startDate" (change)="startChangeListener(startdate.value)">
+            <input type="date" #startdate [ngModel]="startDate" (change)="resetStart(startdate.value)" >
         </div>
         <div class="select-item u-row">
             <span>截止时间：</span>
-            <input type="date" #enddate [ngModel]="endDate" (change)="endChangeListener(enddate.value)">
+            <input type="date" #enddate [ngModel]="endDate" (change)="resetEnd(enddate.value)" >
         </div>
         <div class="select-item u-row">
-            <button class="search-btn" (click)="checkoutForm(1)">搜索</button>
+            <button class="search-btn" (click)="search(true)">搜索</button>
         </div>
         <div class="u-row export-item">
             <button class="search-btn" (click)="downLoad()">导出</button>
@@ -40,8 +34,14 @@
         </div>
     </div>
 
-    <div class="main u-col">
-        <div class="title">订单列表</div>
-        <dock-table2 class="table-container" [dataSource]="orderTable.dataSource" [styleObj]="orderTable.styleObj"></dock-table2>
+    <div class="main u-row">
+        <div class="order-section u-col">
+            <div class="title">订单列表</div>
+            <dock-table2 class="table-container" [dataSource]="orderTable.dataSource" [styleObj]="orderTable.styleObj"></dock-table2>
+        </div>
+        <div class="hold-section u-col">
+            <div class="title">仓位</div>
+            <dock-table2 class="table-container" [dataSource]="holdTable.dataSource" [styleObj]="holdTable.styleObj"></dock-table2>
+        </div>
     </div>
 </div>
