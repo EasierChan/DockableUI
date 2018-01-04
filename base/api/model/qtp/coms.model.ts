@@ -411,3 +411,22 @@ export class OrderPush extends Message {
         return null;
     }
 }
+
+export class Peoduct extends Message {
+    static readonly len = 16;
+    portfolio_id: number = 0;  // 8
+    fund_account_id: number = 0;  // 8
+
+    toBuffer(): Buffer {
+        let offset = 0;
+        let buf = Buffer.alloc(QueryFund.len, 0);
+        buf.writeUIntLE(this.portfolio_id, offset, 8); offset += 8;
+        buf.writeUIntLE(this.fund_account_id, offset, 8); offset += 8;
+
+        return buf;
+    }
+
+    fromBuffer(buf: Buffer, offset = 0): number {
+        return BufferUtil.format(buf, offset, "2l", this); // 大写为int 小写为uint
+    }
+}

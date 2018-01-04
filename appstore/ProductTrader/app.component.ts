@@ -369,16 +369,10 @@ export class AppComponent implements OnInit {
         cb_SelAll.Title = this.langServ.get("All");
         orderstatusHeader.addChild(cb_SelAll);
         cb_SelAll.OnClick = () => {
-            let row: DataTableRow;
-
-            for (let i = 0; i < this.orderStatTable.rows.length; ++i) {
-                row = this.orderStatTable.rows[i];
-
-                if (!row.cells[0].Disable && !row.hidden)
-                    this.orderStatTable.rows[i].cells[0].Text = !cb_SelAll.Text;
-            }
-
-            row = null;
+            this.orderStatTable.rows.forEach((item, index) => {
+                if (!item.cells[0].Disable && !item.hidden)
+                    item.cells[0].Text = !cb_SelAll.Text;
+            });
         };
         let btn_cancel = new Button();
         btn_cancel.Left = 10;
@@ -389,7 +383,7 @@ export class AppComponent implements OnInit {
 
         dd_status.SelectChange = (item) => {
             this.orderStatTable.rows.forEach((item, index) => {
-                if (Number( dd_status.SelectedItem.Value ) === -2) {
+                if (Number(dd_status.SelectedItem.Value) === -2) {
                     item.hidden = false;
                     return;
                 }
@@ -399,54 +393,24 @@ export class AppComponent implements OnInit {
                 }
                 item.hidden = true;
             });
-            // for (let i = 0; i < this.orderStatTable.rows.length; ++i) {
-            //     if (dd_status.SelectedItem.Value === "-1") {   // all
-            //         this.orderStatTable.rows[i].hidden = false;
-            //     } else {
-            //         this.orderStatTable.rows[i].hidden = this.orderStatTable.cell(i, this.langServ.get("Status")).Data !== dd_status.SelectedItem.Value;
-            //     }
-            // }
         };
-
         btn_cancel.OnClick = () => {
-            let cancelOrder = new CancelOrder();
-            cancelOrder.order_ref = this.orderStatTable.rows[1].cells[1].Text;  // u8 撤单的客户端订单编号
-            cancelOrder.order_id = 0;   // u8 撤单订单编号
-            cancelOrder.trader_id = 0;  // u8 撤单交易员ID/交易账户id
-            cancelOrder.term_id = this.orderStatTable.rows[1].cells[1].Data;    // u4 终端ID
-            cancelOrder.order_date = 0;  // u4 撤单时间yymmdd
-            cancelOrder.order_time = 0; // u4 撤单时间hhmmss
-            this.tradePoint.send(COMS_MSG.kMtFCancelOrder, cancelOrder.toBuffer(), ServiceType.kCOMS);
-            // for (let i = 0; i < this.orderStatTable.rows.length; ++i) {
-            //     let getStatus = this.orderStatTable.cell(i, this.langServ.get("OrderStatus")).Data;
-            //     let strategyid = this.orderStatTable.cell(i, this.langServ.get("Strategy")).Text;
-            //     let ukey = this.orderStatTable.cell(i, this.langServ.get("UKEY")).Text;
-            //     let orderid = this.orderStatTable.cell(i, this.langServ.get("OrderId")).Text;
-            //     let account = this.orderStatTable.cell(i, this.langServ.get("PortfolioID")).Text;
-            //     let date = new Date();
-            //     if (getStatus === 6 || getStatus === 7 || getStatus === 9 || getStatus === 10)
-            //         continue;
-
-            //     if (!this.orderStatTable.rows[i].cells[0].Text)
-            //         continue;
-
-            //     let order = new ComConOrder();
-            //     order.ordertype = EOrderType.ORDER_TYPE_CANCEL;
-            //     order.con.account = parseInt(account);
-            //     order.datetime.tv_sec = date.getSeconds();
-            //     order.datetime.tv_usec = date.getMilliseconds();
-            //     order.data = new ComOrderCancel();
-            //     order.data.strategyid = parseInt(strategyid);
-            //     order.data.orderid = parseInt(orderid);
-            //     order.data.innercode = parseInt(ukey);
-            //     order.data.action = 1;
-            //     AppComponent.bgWorker.send({ command: "ss-send", params: { type: "order", data: order } });
-            //     order = null;
-            // }
+            this.orderStatTable.rows.forEach((item, index) => {
+                if (item.cells[0].Text) {
+                    let cancelOrder = new CancelOrder();
+                    cancelOrder.order_ref = item.cells[1].Text;  // u8 撤单的客户端订单编号
+                    cancelOrder.order_id = 0;   // u8 撤单订单编号
+                    cancelOrder.trader_id = 0;  // u8 撤单交易员ID/交易账户id
+                    cancelOrder.term_id = item.cells[1].Data;    // u4 终端ID
+                    cancelOrder.order_date = 0;  // u4 撤单时间yymmdd
+                    cancelOrder.order_time = 0; // u4 撤单时间hhmmss
+                    this.tradePoint.send(COMS_MSG.kMtFCancelOrder, cancelOrder.toBuffer(), ServiceType.kCOMS);
+                }
+            });
         };
         this.orderStatTable = new DataTable("table2");
-        this.orderStatTable.height = 200;
         this.orderStatTable.RowIndex = false;
+        this.orderStatTable.height = 200;
         ["Check", "OrderId", "UKEY", "SymbolCode", "Symbol", "OrderPrice", "OrderVol", "OrderTime",
             "Ask/Bid", "OrderStatus"].forEach(item => {
                 this.orderStatTable.addColumn(this.langServ.get(item));
@@ -610,6 +574,7 @@ export class AppComponent implements OnInit {
                     let ans = new SendOrderAns();
                     ans.fromBuffer(msg);
                     this.orderStateList.push(ans);
+                    this.addOrderStatRow(ans);
                     if (ans.ret_code !== 0) {
                         let rowLog = this.logTable.newRow();
                         rowLog.cells[0].Text = this.getNowDate("time", false);
@@ -702,19 +667,19 @@ export class AppComponent implements OnInit {
             });
             console.log(data);
         }, this);
-        this.tradePoint.addSlotOfCMS("getMonitorProducts", (res) => {
-            // 查询交易账户
-            let data = JSON.parse(res.toString()).body[0];
-            let row = this.profitAndLossTable.newRow();
-            row.cells[0].Text = data.hold_closepl;
-            row.cells[1].Text = "交易盈亏";
-            row.cells[2].Text = "item.hedgeflag";
-            row.cells[3].Text = "item.trcode";
-            row.cells[4].Text = "item.tracname";
-            row.cells[5].Text = "item.currencyid";
-            row.cells[6].Text = data.hold_posipl;
-            row.cells[7].Text = "item.creator";
-        }, this);
+        // this.tradePoint.addSlotOfCMS("getMonitorProducts", (res) => {
+        //     // 查询交易账户
+        //     let data = JSON.parse(res.toString()).body[0];
+        //     let row = this.profitAndLossTable.newRow();
+        //     row.cells[0].Text = data.hold_closepl;
+        //     row.cells[1].Text = "交易盈亏";
+        //     row.cells[2].Text = "item.hedgeflag";
+        //     row.cells[3].Text = "item.trcode";
+        //     row.cells[4].Text = "item.tracname";
+        //     row.cells[5].Text = "item.currencyid";
+        //     row.cells[6].Text = data.hold_posipl;
+        //     row.cells[7].Text = "item.creator";
+        // }, this);
         // 推送OrderPush
         this.tradePoint.addSlot({
             service: ServiceType.kCOMS,
@@ -723,52 +688,78 @@ export class AppComponent implements OnInit {
                 if (msg !== undefined) {
                     let ans = new OrderPush();
                     ans.fromBuffer(msg);
-                    let changeIndex;
+                    let changeOrderIndex;
+                    let changeOrderfinishIndex;
+                    let changeFundIndex;
+                    let changePositionIndex;
                     let isExistOrder = this.orderStatTable.rows.some((item, index) => {
                         let flag = item.cells[1].Data + "" + item.cells[1].Text;
-                        if (flag === ans.order_status.chronos_order.term_id + "" + ans.order_status.chronos_order.order_ref) {
-                            changeIndex = index;
+                        let changeFlag = ans.order_status.chronos_order.term_id + "" + ans.order_status.chronos_order.order_ref;
+                        if (flag === changeFlag) {
+                            changeOrderIndex = index;
                         }
-                        return flag === ans.order_status.chronos_order.term_id + "" + ans.order_status.chronos_order.order_ref;
+                        return flag === changeFlag;
                     });
+                    if (!isExistOrder) {
+                        this.orderStateList.push(ans.order_status);
+                        this.addOrderStatRow(ans.order_status);
+                    } else {
+                        this.addOrderStatRow(ans.order_status, this.orderStatTable.rows[changeOrderIndex]);
+                    }
+                    let isExistOrderfinish = this.finishOrderTable.rows.some((item, index) => {
+                        let flag = item.cells[0].Data + "" + item.cells[0].Text;
+                        let changeFlag = ans.order_status.chronos_order.term_id + "" + ans.order_status.chronos_order.order_ref;
+                        if (flag === changeFlag) {
+                            changeOrderfinishIndex = index;
+                        }
+                        return flag === changeFlag;
+                    });
+                    if (!isExistOrderfinish) {
+                        this.addFinishOrderRow(ans.order_status);
+                    } else {
+                        this.addFinishOrderRow(ans.order_status, this.finishOrderTable.rows[changeOrderfinishIndex]);
+                    }
                     let isExistFund = this.fundAccountTable.rows.some((item, index) => {
                         let flag = item.cells[0].Data.id + "" + item.cells[0].Data.currency;
                         let changeFlag = ans.fund.fund_account_id + "" + ans.fund.currency;
                         if (flag === changeFlag) {
-                            changeIndex = index;
+                            changeFundIndex = index;
                         }
                         return flag === changeFlag;
                     });
                     if (!isExistFund) {
                         this.addFundAccountRow(ans.fund);
                     } else {
-
+                        this.addFundAccountRow(ans.fund, this.fundAccountTable.rows[changeFundIndex]);
                     }
                     for (let i = 0; i < ans.pos_count; i++) {
                         let isExistPosition = this.positionTable.rows.some((item, index) => {
                             let flag = item.cells[0].Data.ukey + "" + item.cells[0].Data.direction + "" + item.cells[0].Data.trade_account_id + "" + item.cells[0].Data.ukey;
                             let changeFlag = ans.postions[i].ukey + "" + ans.postions[i].direction + "" + ans.postions[i].trade_account_id + "" + ans.postions[i].ukey;
                             if (flag === changeFlag) {
-                                changeIndex = index;
+                                changePositionIndex = index;
                             }
                             return flag === changeFlag;
                         });
                         if (!isExistPosition) {
                             this.addPositionRow(ans.postions[i]);
                         } else {
-
+                            this.addPositionRow(ans.postions[i], this.positionTable.rows[changePositionIndex]);
                         }
-                    }
-                    if (!isExistOrder) {
-                        this.orderStateList.push(ans.order_status);
-                        this.addOrderStatRow(ans.order_status);
-                        this.addFinishOrderRow(ans.order_status);
-                    } else {
                     }
                     console.log(ans);
                 }
 
 
+            }
+        });
+
+        this.tradePoint.addSlot({
+            service: 252,
+            msgtype: 11005,
+            callback: (msg) => {
+                let data = JSON.parse(msg.toString());
+                console.log(data);
             }
         });
         // 产品净值
@@ -807,7 +798,7 @@ export class AppComponent implements OnInit {
         };
         btn_submit.OnClick = () => {
             let sendOrder = new SendOrder();
-            sendOrder.order_ref = new Date().getTime();   // u8  客户端订单ID+term_id = 唯一
+            sendOrder.order_ref = Math.round (new Date().getTime() / 1000);   // u8  客户端订单ID+term_id = 唯一
             sendOrder.ukey = this.txt_UKey.Text;        // u8  Universal Key
             sendOrder.directive = this.dd_Action.SelectedItem.Value;   // u4 委托指令：普通买入，普通卖出
             sendOrder.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
@@ -830,14 +821,21 @@ export class AppComponent implements OnInit {
             sendOrder.reserve = 0;			// 4 预留(组合offset_flag)
 
             this.tradePoint.send(COMS_MSG.kMtFSendOrder, sendOrder.toBuffer(), ServiceType.kCOMS);
-
         };
-
     }
-    addOrderStatRow(ans) {
+    addOrderStatRow(ans, nowRow?) {
         let stockSecuinfo = this.secuinfo.getSecuinfoByUKey(ans.chronos_order.ukey);
-        let row = this.orderStatTable.newRow();
+        let row;
+        if (nowRow) {
+            row = nowRow;
+        } else {
+            row = this.orderStatTable.newRow();
+        }
         row.cells[0].Type = "checkbox";
+        if (ans.status === 5 || ans.status === 6 || ans.status === 8 || ans.status === 9 || ans.status === 40 ) {
+            row.cells[0].Disable = true;
+            row.cells[0].Text = false;
+        }
         row.cells[1].Text = ans.chronos_order.order_ref;
         row.cells[1].Data = ans.chronos_order.term_id;
         row.cells[2].Text = ans.chronos_order.ukey;
@@ -851,11 +849,18 @@ export class AppComponent implements OnInit {
         row.cells[8].Text = this.coms_directive[ans.chronos_order.directive];
         row.cells[9].Text = this.coms_statusType[ans.status];
         row.cells[9].Data = ans.status;
+        this.ref.detectChanges();
     }
-    addFinishOrderRow(ans) {
+    addFinishOrderRow(ans, nowRow?) {
         let stockSecuinfo = this.secuinfo.getSecuinfoByUKey(ans.chronos_order.ukey);
         if (ans.status === 8) {
-            let rowFinish = this.finishOrderTable.newRow();
+            let rowFinish;
+            if (nowRow) {
+                rowFinish = nowRow;
+            } else {
+                rowFinish = this.finishOrderTable.newRow();
+            }
+            rowFinish.cells[0].Data = ans.chronos_order.term_id;
             rowFinish.cells[0].Text = ans.chronos_order.order_ref;
             rowFinish.cells[1].Text = ans.chronos_order.ukey;
             if (stockSecuinfo[ans.chronos_order.ukey] !== undefined) {
@@ -872,10 +877,16 @@ export class AppComponent implements OnInit {
             rowFinish.cells[11].Text = ans.trade_date + ":" + ans.trade_time;
             rowFinish.cells[12].Text = this.coms_orderType[ans.chronos_order.property]; // "订单类型";
         }
+        this.ref.detectChanges();
     }
-    addPositionRow(ans) {
+    addPositionRow(ans, nowRow?) {
         let stockSecuinfo = this.secuinfo.getSecuinfoByUKey(ans.ukey);
-        let row = this.positionTable.newRow();
+        let row;
+        if (nowRow) {
+            row = nowRow;
+        } else {
+            row = this.positionTable.newRow();
+        }
         row.cells[0].Text = ans.ukey;
         row.cells[0].Data = {
             ukey: ans.ukey,
@@ -895,9 +906,15 @@ export class AppComponent implements OnInit {
         row.cells[8].Text = this.coms_positionType[ans.direction];
         // this.txt_Symbol.Text = stockSecuinfo[bookviewer.ukey].SecuAbbr;
         console.log(ans);
+        this.ref.detectChanges();
     }
-    addFundAccountRow(ans) {
-        let row = this.fundAccountTable.newRow();
+    addFundAccountRow(ans, nowRow?) {
+        let row;
+        if (nowRow) {
+            row = nowRow;
+        } else {
+            row = this.fundAccountTable.newRow();
+        }
         row.cells[0].Text = this.currency_type[ans.currency]; // 币种
         row.cells[0].Data = { id: ans.fund_account_id, currency: ans.currency };
         row.cells[1].Text = ans.total_amt;
@@ -913,6 +930,7 @@ export class AppComponent implements OnInit {
         row.cells[11].Text = ans.close_pl;
         this.dd_Account.addItem({ Text: this.acidObj[ans.fund_account_id], Value: ans.fund_account_id });
         console.log(ans);
+        this.ref.detectChanges();
     }
     addZero(num) {
         if (num < 10)
@@ -960,12 +978,18 @@ export class AppComponent implements OnInit {
                         body: { caid: this.productId }
                     }
                 }));
-                this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({
+                this.tradePoint.send(11005, JSON.stringify({
                     data: {
-                        head: { userid: this.userId },
+                        head: { userid: this.userId , reqsn: 1},
                         body: { caid: this.productId }
                     }
-                }));
+                }), 252);
+                // this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({
+                //     data: {
+                //         head: { userid: this.userId },
+                //         body: { caid: this.productId }
+                //     }
+                // }));
 
 
             }
