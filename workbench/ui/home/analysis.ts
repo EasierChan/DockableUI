@@ -81,6 +81,7 @@ export class AnalysisComponent implements OnInit {
 
             if (event.button === 0) {
                 if (!this.appsrv.startApp(item.title, AppType.kSpreadViewer, {
+                    title: item.title,
                     port: parseInt(this.quoteEndpoint[1]),
                     host: this.quoteEndpoint[0],
                     lang: this.setting.language
@@ -136,6 +137,7 @@ export class AnalysisComponent implements OnInit {
 
             if (event.button === 0) {
                 if (!this.appsrv.startApp(item.title, AppType.kAlphaViewer, {
+                    title: item.title,
                     port: parseInt(this.quoteEndpoint[1]),
                     host: this.quoteEndpoint[0],
                     lang: this.setting.language
@@ -191,6 +193,7 @@ export class AnalysisComponent implements OnInit {
 
             if (event.button === 0) {
                 if (!this.appsrv.startApp(item.title, AppType.kBookViewer, {
+                    title: item.title,
                     port: parseInt(this.quoteEndpoint[1]),
                     host: this.quoteEndpoint[0],
                     lang: this.setting.language

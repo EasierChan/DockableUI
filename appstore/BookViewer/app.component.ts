@@ -85,6 +85,7 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        document.title = this.option.title;
         this.name = this.option.name || "";
         this.ukeys = this.option.ukeys || [];
         this.tableMatrix = this.option.tableMatrix || [2, 2];

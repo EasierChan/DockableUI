@@ -116,6 +116,8 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        document.title = this.option.title;
+
         if (this.option) {
             this.codes = this.option.codes || ["", "", ""];
             this.lines = this.option.lines

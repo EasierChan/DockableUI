@@ -212,6 +212,8 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        document.title = this.option.title;
+
         let setting = this.appSrv.getSetting();
         switch (setting.language) {
             case "zh-cn":
