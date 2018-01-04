@@ -131,8 +131,8 @@ CurrQty,当前仓位
 FillPace,成交进度
 Send,送单
 Cancel,撤单
-PrePrice,上笔价
-LastPrice,昨收
+PrePrice,昨收
+LastPrice,最新价
 BidSize,买入量
 BidPrice,买入价
 AskPrice,卖出价
