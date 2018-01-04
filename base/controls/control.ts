@@ -2098,6 +2098,10 @@ export class DataTableRow extends Control {
         this.bHidden = value;
     }
 
+    get hidden() {
+        return this.bHidden;
+    }
+
     set backgroundColor(value: string) {
         this.bgcolor = value;
     }
