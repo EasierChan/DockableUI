@@ -1456,6 +1456,8 @@ export class AppComponent implements OnInit {
                     row.cell(this.langServ.get("OrderId")).Text = data[iData].od.orderid;
                     row.cell(this.langServ.get("Strategy")).Text = data[iData].od.strategyid;
                     row.cell(this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
+                    row.cell(this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
+                    row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
                     row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
                     doneMap[data[iData].od.orderid] = row;
                 }
