@@ -50,6 +50,8 @@ export class StrategyComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        document.title = "策略配置";
+
         if (this.config.activeChannel === Channel.BACKTEST && this.config.backtestConfig === undefined) {
             this.config.backtestConfig = {
                 timebegin: "2017-09-04",

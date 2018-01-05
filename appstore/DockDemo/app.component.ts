@@ -9,7 +9,7 @@ import { WorkerFactory } from "../../base/api/services/uworker.server";
 import {
     Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog, Label,
     DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem,
-    HBox, Button, CheckBox, TextBox, VBox, MetaControl
+    HBox, Button, CheckBox, TextBox, VBox, MetaControl, HFlexBox
 } from "../../base/controls/control";
 import {
     MessageBox, AppStateCheckerRef, File, Environment,
@@ -212,6 +212,8 @@ export class AppComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        document.title = this.option.title;
+
         let setting = this.appSrv.getSetting();
         switch (setting.language) {
             case "zh-cn":
@@ -402,145 +404,91 @@ export class AppComponent implements OnInit {
             let tradeRtn = this.langServ.get("Trade");
             Dialog.popup(this, this.tradeContent, { title: tradeRtn, height: 300 });
         };
-        let leftAlign = 20;
-        let rowSep = 5;
+
+        let rightPad = 50;
+        let rowPad = 5;
         this.tradePage = new TabPage("ManulTrader", this.langServ.get("ManulTrader"));
         this.tradeContent = new VBox();
         this.tradeContent.MinHeight = 500;
         this.tradeContent.MinWidth = 500;
 
-        let account_firrow = new HBox();
+        let account_firrow = new HFlexBox();
         this.dd_Account = new DropDown();
-        this.dd_Account.Width = 120;
-        let dd_accountRtn = this.langServ.get("PortfolioID");
-        let account_Label = new Label();
-        if (this.languageType === 0)
-            account_Label.Text = "  " + dd_accountRtn + ": ";
-        else
-            account_Label.Text = "　　　" + dd_accountRtn + ": ";
-        account_Label.Left = leftAlign;
-        account_Label.Top = rowSep;
-        this.dd_Account.Title = "";
-        this.dd_Account.Top = rowSep;
+        this.dd_Account.Title = `${this.langServ.get("PortfolioID")}:`;
         this.dd_Account.Width = 150;
         account_firrow.top = 10;
-        account_firrow.addChild(account_Label).addChild(this.dd_Account);
+        account_firrow.align = "right";
+        account_firrow.right = rightPad;
+        account_firrow.addChild(this.dd_Account);
         this.tradeContent.addChild(account_firrow);
 
-        let strategy_secrow = new HBox();
-        let dd_strategyRtn = this.langServ.get("Strategy");
-        let strategy_label = new Label();
-        if (0 === this.languageType)
-            strategy_label.Text = " " + dd_strategyRtn + ": ";
-        else
-            strategy_label.Text = "　　　" + dd_strategyRtn + ": ";
-        strategy_label.Left = leftAlign;
-        strategy_label.Top = rowSep;
+        let strategy_secrow = new HFlexBox();
         this.dd_Strategy = new DropDown();
-        this.dd_Strategy.Title = "";
-        this.dd_Strategy.Width = 120;
-        this.dd_Strategy.Top = rowSep;
+        this.dd_Strategy.Title = `${this.langServ.get("Strategy")}:`;
         this.dd_Strategy.Width = 150;
-        strategy_secrow.top = 5;
-        strategy_secrow.addChild(strategy_label).addChild(this.dd_Strategy);
+        strategy_secrow.top = rowPad;
+        strategy_secrow.align = "right";
+        strategy_secrow.right = rightPad;
+        strategy_secrow.addChild(this.dd_Strategy);
         this.tradeContent.addChild(strategy_secrow);
 
-        let action_sevenrow = new HBox();
-        let dd_ActionRtn = this.langServ.get("Action");
-        let action_label = new Label();
-        if (0 === this.languageType)
-            action_label.Text = "   " + dd_ActionRtn + ": ";
-        else
-            action_label.Text = "　　　" + dd_ActionRtn + ": ";
-        action_label.Left = leftAlign;
-        action_label.Top = rowSep;
+        let action_sevenrow = new HFlexBox();
         this.dd_Action = new DropDown();
-        this.dd_Action.Top = rowSep;
-        this.dd_Action.Title = "";
+        this.dd_Action.Title = `${this.langServ.get("Action")}:`;
         this.dd_Action.Width = 150;
         let buyRtn = this.langServ.get("Buy");
         let sellRtn = this.langServ.get("Sell");
         this.dd_Action.addItem({ Text: buyRtn, Value: 0 });
         this.dd_Action.addItem({ Text: sellRtn, Value: 1 });
-        action_sevenrow.top = 5;
-        action_sevenrow.addChild(action_label).addChild(this.dd_Action);
+        action_sevenrow.top = rowPad;
+        action_sevenrow.align = "right";
+        action_sevenrow.right = rightPad;
+        action_sevenrow.addChild(this.dd_Action);
         this.tradeContent.addChild(action_sevenrow);
 
-        let symbol_thirdrow = new HBox();
-        let txt_symbolRtn = this.langServ.get("Symbol");
-        let symbol_label = new Label();
-        symbol_label.Left = leftAlign;
-        if (0 === this.languageType)
-            symbol_label.Text = "   " + txt_symbolRtn + ": ";
-        else {
-            symbol_label.Left = 10;
-            symbol_label.Text = "　　" + txt_symbolRtn + ": ";
-        }
-        symbol_label.Top = rowSep;
-        this.txt_Symbol = new MetaControl("textbox");
-        this.txt_Symbol.Top = rowSep;
-        this.txt_Symbol.Title = "";
+        let symbol_thirdrow = new HFlexBox();
+        this.txt_Symbol = new TextBox();
+        this.txt_Symbol.Title = `${this.langServ.get("Symbol")}: `;
         this.txt_Symbol.Width = 150;
-        symbol_thirdrow.top = 5;
-        symbol_thirdrow.addChild(symbol_label).addChild(this.txt_Symbol);
+        symbol_thirdrow.top = rowPad;
+        symbol_thirdrow.align = "right";
+        symbol_thirdrow.right = rightPad;
+        symbol_thirdrow.addChild(this.txt_Symbol);
         this.tradeContent.addChild(symbol_thirdrow);
 
-        let ukey_fourthrow = new HBox();
-        let txt_UKeyRtn = this.langServ.get("UKEY");
-        let ukey_label = new Label();
-        ukey_label.Left = leftAlign;
-        if (0 === this.languageType)
-            ukey_label.Text = "    " + txt_UKeyRtn + ": ";
-        else {
-            ukey_label.Left = 22;
-            ukey_label.Text = "　　" + txt_UKeyRtn + ": ";
-        }
-        ukey_label.Top = rowSep;
-        this.txt_UKey = new MetaControl("textbox");
-        this.txt_UKey.Top = rowSep;
-        this.txt_UKey.Title = "";
-        ukey_fourthrow.top = 5;
+        let ukey_fourthrow = new HFlexBox();
+        this.txt_UKey = new TextBox();
+        this.txt_UKey.Title = `${this.langServ.get("UKey")}: `;
+        ukey_fourthrow.top = rowPad;
         this.txt_UKey.Width = 150;
-        ukey_fourthrow.addChild(ukey_label).addChild(this.txt_UKey);
+        ukey_fourthrow.align = "right";
+        ukey_fourthrow.right = rightPad;
+        ukey_fourthrow.addChild(this.txt_UKey);
         this.tradeContent.addChild(ukey_fourthrow);
 
-        let price_fifthrow = new HBox();
-        let txt_PriceRtn = this.langServ.get("Price");
-        let price_label = new Label();
-        if (0 === this.languageType)
-            price_label.Text = "    " + txt_PriceRtn + ": ";
-        else
-            price_label.Text = "　　　" + txt_PriceRtn + ": ";
-        price_label.Left = leftAlign;
-        price_label.Top = rowSep;
-        this.txt_Price = new MetaControl("textbox");
-        this.txt_Price.Top = rowSep;
-        this.txt_Price.Title = "";
-        price_fifthrow.top = 5;
+        let price_fifthrow = new HFlexBox();
+        this.txt_Price = new TextBox();
+        this.txt_Price.Title = `${this.langServ.get("Price")}: `;
+        price_fifthrow.top = rowPad;
         this.txt_Price.Width = 150;
-        price_fifthrow.addChild(price_label).addChild(this.txt_Price);
+        price_fifthrow.align = "right";
+        price_fifthrow.right = rightPad;
+        price_fifthrow.addChild(this.txt_Price);
         this.tradeContent.addChild(price_fifthrow);
 
-        let volume_sixrow = new HBox();
-        let txt_VolumeRtn = this.langServ.get("Volume");
-        let volume_label = new Label();
-        if (0 === this.languageType)
-            volume_label.Text = "   " + txt_VolumeRtn + ": ";
-        else
-            volume_label.Text = "　　　" + txt_VolumeRtn + ": ";
-        volume_label.Left = leftAlign;
-        volume_label.Top = rowSep;
-        let txt_Volume = new MetaControl("textbox");
-        txt_Volume.Top = rowSep;
-        txt_Volume.Title = "";
+        let volume_sixrow = new HFlexBox();
+        let txt_Volume = new TextBox();
+        txt_Volume.Title = `${this.langServ.get("Volume")}: `;
         txt_Volume.Width = 150;
-        volume_sixrow.top = 5;
-        volume_sixrow.addChild(volume_label).addChild(txt_Volume);
+        volume_sixrow.top = rowPad;
+        volume_sixrow.align = "right";
+        volume_sixrow.right = rightPad;
+        volume_sixrow.addChild(txt_Volume);
         this.tradeContent.addChild(volume_sixrow);
 
-        let btn_row = new HBox();
+        let btn_row = new HFlexBox();
         let btn_clear = new Button();
-        btn_clear.Left = leftAlign;
+        btn_row.right = rightPad;
         btn_clear.Text = this.langServ.get("Close");
         btn_row.addChild(btn_clear);
         let btn_submit = new Button();
