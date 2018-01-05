@@ -34,13 +34,20 @@ export class SimQueryComponent implements OnInit {
     selectedTrid: string | number;
     startDate: string;
     endDate: string;
-    isDownedAll = false;
+    // isDownedAll = false;
+    isDownOrderAll = false;
+    isDownHoldAll = false;
     orderTable: DataTable;
     holdTable: DataTable;
-    pagination = {
+    orderPagination = {
         maxPage: 1,
         currentPage: 1,
-        pageSize: 40
+        pageSize: 5
+    };
+    holdPagination = {
+        maxPage: 1,
+        currentPage: 1,
+        pageSize: 5
     };
     cache: any = {};
     
@@ -64,49 +71,169 @@ export class SimQueryComponent implements OnInit {
 
         this.initTable("order");
         this.initTable("hold");
+
+        this.test();
     }
 
-    search(isReset: boolean = false) {
-        // valid stgid 0(21), 141(2), 188(4), 193(3541)
-        if(isReset) this.reset();
-        this.getOrder().then(data => {
+    test() {
+        let mapStg = {};
+        this.request("getTaorder", {}).then(data => {
+            data.data.forEach(item => {
+                mapStg[item.stgid] = mapStg[item.stgid] + 1 || 1
+            })
+            console.log(mapStg)
+        }).catch(err => console.log(err))
+    }
+
+    search() {
+        this.cache.stgid = this.selectedStgid;
+        this.cache.startDate = this.startDate;
+        this.cache.endDate = this.endDate;
+
+        this.orderPagination.currentPage = 1;
+        this.orderPagination.maxPage = 1;
+
+        this.holdPagination.currentPage = 1;
+        this.holdPagination.maxPage = 1;
+
+        let orderOptions = {
+            stgid: this.selectedStgid,
+            startDate: this.startDate.replace(/-/g, ""),
+            endDate: this.endDate.replace(/-/g, ""),
+            page: this.orderPagination.currentPage,
+            pageCount: this.orderPagination.pageSize
+        }
+
+        this.request("getTaorder", orderOptions).then(data => {
+            console.log(orderOptions);
             console.log(data);
             this.initTable("order");
             data.data.forEach(order => {
-                let row = this.orderTable.newRow();                
+                let row = this.orderTable.newRow();
                 this.getOrderRow(order).forEach((value, index) => {
-                    row.cells[index].Text = value
-                })
+                    row.cells[index].Text = value;
+                });
             });
-            this.pagination.maxPage = Math.floor(Number(data.totalCount) / this.pagination.pageSize) + 1;
-        });
+            this.orderPagination.maxPage = Math.ceil(Number(data.totalCount) / this.orderPagination.pageSize) || 1;
+        })
 
-        this.request("getTradeUnitHoldPosition", {
-            stgid: this.selectedStgid
-        }).then(data => {
+        let holdOptions = {
+            stgid: this.cache.stgid,
+            begin_date: this.cache.endDate.replace(/-/g, ""),
+            end_date: this.cache.endDate.replace(/-/g, ""),
+            page: this.holdPagination.currentPage,
+            pageSize: this.holdPagination.pageSize
+        };
+
+        this.request("getTradeUnitHoldPosition", holdOptions).then(data => {
+            console.log(holdOptions);
             console.log(data);
             this.initTable("hold");
-            data.forEach(item => {
+            data.data.forEach(item => {
                 let row = this.holdTable.newRow();
                 this.getHoldRow(item).forEach((value, index) => {
-                    row.cells[index].Text = value
+                    row.cells[index].Text = value;
+                });
+            });
+            this.holdPagination.maxPage = Math.ceil(Number(data.totalCount) / this.holdPagination.pageSize) || 1;
+        })
+    }
+
+    flipOrderPrevious() {
+        if(this.orderPagination.currentPage !== 1) {
+            this.orderPagination.currentPage --;
+            let options = {
+                stgid: this.cache.stgid,
+                startDate: this.cache.startDate.replace(/-/g, ""),
+                endDate: this.cache.endDate.replace(/-/g, ""),
+                page: this.orderPagination.currentPage,
+                pageCount: this.orderPagination.pageSize
+            };
+            this.request("getTaorder", options).then(data => {
+                console.log(data);
+                this.initTable("order");
+                data.data.forEach(order => {
+                    let row = this.orderTable.newRow();
+                    this.getOrderRow(order).forEach((value, index) => {
+                        row.cells[index].Text = value;
+                    });
+                });
+            })
+
+        }
+    }
+
+    flipOrderNext() {
+        if(this.orderPagination.currentPage !== this.orderPagination.maxPage) {
+            this.orderPagination.currentPage ++;
+            let options = {
+                stgid: this.cache.stgid,
+                startDate: this.cache.startDate.replace(/-/g, ""),
+                endDate: this.cache.endDate.replace(/-/g, ""),
+                page: this.orderPagination.currentPage,
+                pageCount: this.orderPagination.pageSize
+            };
+            this.request("getTaorder", options).then(data => {
+                console.log(data);
+                this.initTable("order");
+                data.data.forEach(order => {
+                    let row = this.orderTable.newRow();
+                    this.getOrderRow(order).forEach((value, index) => {
+                        row.cells[index].Text = value;
+                    })
+                });
+            })
+        }
+    }
+
+    flipHoldPrevious() {
+        if(this.holdPagination.currentPage !== 1) {
+            this.holdPagination.currentPage --;
+            let options = {
+                stgid: this.cache.stgid,
+                begin_date: this.cache.endDate.replace(/-/g, ""),
+                dne_date: this.cache.endDate.replace(/-/g, ""),
+                page: this.holdPagination.currentPage,
+                pageSize: this.holdPagination.pageSize
+            };
+            this.request("getTradeUnitHoldPosition", options).then(data => {
+                console.log(data);
+                this.initTable("hold");
+                data.data.forEach(item => {
+                    let row = this.holdTable.newRow();
+                    this.getHoldRow(item).forEach((value, index) => {
+                        row.cells[index].Text = value;
+                    })
                 })
             })
-        });
+        }
     }
 
-    reset() {
-        this.selectedStgid = this.cache.stgid || this.selectedStgid;
-        this.startDate = this.cache.startDate || this.startDate;
-        this.endDate = this.cache.endDate || this.endDate;
-        this.pagination.currentPage = 1;
-
-        this.cache.stgid = null;
-        this.cache.startDate = null;
-        this.cache.endDate = null;
+    flipHoldNext() {
+        if(this.holdPagination.currentPage !== this.holdPagination.maxPage) {
+            this.holdPagination.currentPage ++;
+            let options = {
+                stgid: this.cache.stgid,
+                begin_date: this.cache.endDate.replace(/-/g, ""),
+                dne_date: this.cache.endDate.replace(/-/g, ""),
+                page: this.holdPagination.currentPage,
+                pageSize: this.holdPagination.pageSize
+            };
+            this.request("getTradeUnitHoldPosition", options).then(data => {
+                console.log(data);
+                this.initTable("hold");
+                data.data.forEach(item => {
+                    let row = this.holdTable.newRow();
+                    this.getHoldRow(item).forEach((value, index) => {
+                        row.cells[index].Text = value;
+                    })
+                });
+            })
+        }
     }
 
-    getOrder(page = this.pagination.currentPage, stgid = this.selectedStgid, pageCount = this.pagination.pageSize,
+
+    getOrder(page = this.orderPagination.currentPage, stgid = this.selectedStgid, pageCount = this.orderPagination.pageSize,
         startDate = this.startDate.replace(/-/g, ""), endDate = this.endDate.replace(/-/g, "")) {
         let options = {
             stgid,
@@ -118,7 +245,7 @@ export class SimQueryComponent implements OnInit {
         if(page === 0) {
             delete options.page;
             delete options.pageCount; 
-        }
+        };
         console.log(options);
         return this.request("getTaorder", options)
     }
@@ -128,8 +255,12 @@ export class SimQueryComponent implements OnInit {
         switch(name) {
             case "order":
                 this.orderTable = newTable;
-                this.orderTable.align = "center";
                 this.orderTable.addColumn(...this.getOrderRow());
+                this.orderTable.columnConfigurable = true;
+                this.orderTable.columns[5].sortable = true;
+                this.orderTable.columns[6].sortable = true;
+                this.orderTable.columns[7].sortable = true;
+                this.orderTable.align = "center";
                 break;
             case "hold":
                 this.holdTable = newTable;
@@ -140,43 +271,60 @@ export class SimQueryComponent implements OnInit {
     }
 
     resetStg(stgid) {
-        this.cache.stgid = stgid;
+        this.selectedStgid = stgid;
     }
 
     resetStart(date) {
-        this.cache.startDate = date;
+        this.startDate = date;
     }
 
     resetEnd(date) {
-        this.cache.endDate = date;
+        this.endDate = date;
     }
 
-    downLoad() {
-        let path: string;
-        this.chosedPath()
-            .then((chosedPath) => {
-                path = chosedPath;
-                let header = this.orderTable.columns.map(item => item.Name);
-                if(this.isDownedAll) {
-                    return this.getOrder(0)
-                        .then(data => {
-                            let csvData = (data.data as any[]).map(row => this.getOrderRow(row).join(",")).join("\n\r");
-                            csvData = header.join(",") + "\n\r" + csvData;
-                            return csvData
-                        })
-                } else {
-                    let data = this.orderTable.rows.map(item => item.cells.map(cell => cell.Text) )
-                    data.unshift(header);
-                    let csvData = data.map(row => row.join(",")).join("\n\r");
-                    return Promise.resolve(csvData);
-                }
-                
-            })
-            .then((csvData) => {
+    downLoadOrder(isAll) {
+        this.chosedPath().then(path => {
+            const header = this.orderTable.columns.map(item => item.Name);
+            if(isAll) {
+                this.request("getTaorder", {
+                    stgid: this.cache.stgid,
+                    startDate: this.cache.startDate.replace(/-/g, ""),
+                    endDate: this.cache.endDate.replace(/-/g, ""),
+                }).then(data => {
+                    let csvData = (data.data as any[]).map(row => this.getOrderRow(row).join(",")).join("\n\r");
+                    csvData = header.join(",") + "\n\r" + csvData;
+                    fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
+                })
+            } else {
+                let data = this.orderTable.rows.map(item => item.cells.map(cell => cell.Text) )
+                data.unshift(header);
+                let csvData = data.map(row => row.join(",")).join("\n\r");
                 fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
-            })
-            .catch(err => console.info(err))
+            }
+        }).catch(err => console.info(err))
+    }
 
+    downLoadHold(isAll) {
+        this.chosedPath().then(path => {
+            const header = this.holdTable.columns.map(item => item.Name);
+            if(isAll) {
+                this.request("getTradeUnitHoldPosition", {
+                    stgid: this.cache.stgid,
+                    startDate: this.cache.endDate.replace(/-/g, ""),
+                    endDate: this.cache.endDate.replace(/-/g, ""),
+                }).then(data => {
+                    console.log(data);
+                    let csvData = (data.data as any[]).map(row => this.getHoldRow(row).join(",")).join("\n\r");
+                    csvData = header.join(",") + "\n\r" + csvData;
+                    fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
+                })
+            } else {
+                let data = this.holdTable.rows.map(item => item.cells.map(cell => cell.Text) );
+                data.unshift(header);
+                let csvData = data.map(row => row.join(",")).join("\n\r");
+                fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
+            }
+        }).catch(err => console.info(err))
     }
 
     chosedPath(): Promise<string> {
@@ -191,20 +339,6 @@ export class SimQueryComponent implements OnInit {
                 else reject("取消保存")
             })
         })
-    }
-
-    previousPage() {
-        if(this.pagination.currentPage !== 1) {
-            this.pagination.currentPage --;
-            this.search();
-        }
-    }
-
-    nextPage() {
-        if(this.pagination.currentPage !== this.pagination.maxPage) {
-            this.pagination.currentPage ++;
-            this.search();
-        }
     }
 
     request(cmd: string, options): Promise<any> {

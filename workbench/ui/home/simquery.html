@@ -15,9 +15,9 @@
             <input type="date" #enddate [ngModel]="endDate" (change)="resetEnd(enddate.value)" >
         </div>
         <div class="select-item u-row">
-            <button class="search-btn" (click)="search(true)">搜索</button>
+            <button class="search-btn" (click)="search()">搜索</button>
         </div>
-        <div class="u-row export-item">
+        <!--<div class="u-row export-item">
             <button class="search-btn" (click)="downLoad()">导出</button>
             <span>(导出所有页</span>
             <input type="checkbox"[(ngModel)]="isDownedAll">
@@ -31,16 +31,52 @@
             <li (click)="nextPage()">
                 <span aria-hidden="true" class="next-btn">下一页</span>
             </li>
-        </div>
+        </div>-->
     </div>
 
     <div class="main u-row">
         <div class="order-section u-col">
-            <div class="title">订单列表</div>
+            <div class="title u-row">
+                <span class="title-name">
+                    订单列表
+                    <span class="text-brackets" *ngIf="cache.startDate && cache.endDate">({{cache.startDate}}至{{cache.endDate}})</span>
+                </span>
+                <span class="glyphicon glyphicon-download-alt" (click)="downLoadOrder(isOrderDownAll.value)" ></span>
+                <div class="checkbox-group">
+                    <label>
+                        (全部
+                        <input #isOrderDownAll="ngModel" type="checkbox" [ngModel]="false">
+                        )
+                    </label>
+                </div>
+                <div class="pagination">
+                    <button class="previous-btn" (click)="flipOrderPrevious()">上一页</button>
+                    <span>第{{orderPagination.currentPage}}/{{orderPagination.maxPage}}页</span>
+                    <button class="next-btn" (click)="flipOrderNext()">下一页</button>
+                </div>
+            </div>
             <dock-table2 class="table-container" [dataSource]="orderTable.dataSource" [styleObj]="orderTable.styleObj"></dock-table2>
         </div>
         <div class="hold-section u-col">
-            <div class="title">仓位</div>
+            <div class="title u-row">
+                <span class="title-name">
+                    仓位
+                    <span class="text-brackets" *ngIf="cache.endDate">({{cache.endDate}})</span>
+                </span>
+                <span class="glyphicon glyphicon-download-alt" (click)="downLoadHold(isHoldDownAll.value)"></span>
+                <div class="checkbox-group">
+                    <label>
+                        (全部
+                        <input #isHoldDownAll="ngModel" type="checkbox" [ngModel]="false" >
+                        )
+                    </label>
+                </div>
+                <div class="pagination">
+                    <button class="previous-btn" (click)="flipHoldPrevious()">上一页</button>
+                    <span>第{{holdPagination.currentPage}}/{{holdPagination.maxPage}}页</span>
+                    <button class="next-btn" (click)="flipHoldNext()">下一页</button>
+                </div>
+            </div>
             <dock-table2 class="table-container" [dataSource]="holdTable.dataSource" [styleObj]="holdTable.styleObj"></dock-table2>
         </div>
     </div>
