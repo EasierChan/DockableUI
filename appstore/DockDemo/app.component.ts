@@ -1423,10 +1423,8 @@ export class AppComponent implements OnInit {
 
     showComOrderRecord(data: any) {
         console.info(`showComOrderRecord: len = ${data.length}`);
-        let hasDone = false;
+        let isUpdateDone = false, isUpdateStatus = false;
         let orderStatus;
-        let j;
-        let time;
         let orderStatusMap: Object = {};
         let doneMap: Object = {};
 
@@ -1442,7 +1440,7 @@ export class AppComponent implements OnInit {
             orderStatus = data[iData].od.status;
 
             if (orderStatus === 9 || orderStatus === 6 || orderStatus === 7) {
-                hasDone = true;
+                isUpdateDone = true;
                 // remove from orderstatus table
                 this.orderstatusTable.rows.splice(this.orderstatusTable.rows.findIndex(item => { return item === orderStatusMap[data[iData].od.orderid]; }), 1);
                 delete orderStatusMap[data[iData].od.orderid];
@@ -1470,6 +1468,8 @@ export class AppComponent implements OnInit {
                 doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
                 doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
             } else {
+                isUpdateStatus = true;
+
                 if (!orderStatusMap.hasOwnProperty(data[iData].od.orderid)) {
                     let row = this.orderstatusTable.newRow(true);
                     row.cells[0].Type = "checkbox";
@@ -1495,8 +1495,13 @@ export class AppComponent implements OnInit {
             }
         }
 
-        if (hasDone) {
+        if (isUpdateDone) {
             AppComponent.bgWorker.send({ command: "send", params: { type: 0 } });
+            this.doneOrdersTable.detectChanges();
+        }
+
+        if (isUpdateStatus) {
+            this.orderstatusTable.detectChanges();
         }
     }
 

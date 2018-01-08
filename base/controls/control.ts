@@ -1790,6 +1790,9 @@ export class DataTable extends Control {
     private _rowclick: Function;
     private _rowDBClick: Function;
     private _menu: Menu = new Menu();
+    private static readonly UP_LIMIT_OF_DETECT: number = 1000; // millsecond unit
+    private _last_detect_time: number;
+    private _detect_timer: NodeJS.Timer;
 
     constructor(type: "table" | "table2" | "table3" = "table") {
         super();
@@ -1831,6 +1834,8 @@ export class DataTable extends Control {
 
             this.detectChanges();
         };
+
+        this._last_detect_time = 0; // millseconds
     }
 
     newRow(bInsertFirst: boolean = false): DataTableRow {
@@ -1972,8 +1977,22 @@ export class DataTable extends Control {
     }
 
     detectChanges(): void {
-        if (typeof this.dataSource.detectChanges === "function")
-            this.dataSource.detectChanges();
+        if (typeof this.dataSource.detectChanges === "function") {
+            if (this._detect_timer) {
+                clearTimeout(this._detect_timer);
+                this._detect_timer = null;
+            }
+
+            if (Date.now() - this._last_detect_time > DataTable.UP_LIMIT_OF_DETECT) {
+                this.dataSource.detectChanges();
+                this._last_detect_time = Date.now();
+            } else {
+                this._detect_timer = setTimeout(() => {
+                    this.dataSource.detectChanges();
+                    this._last_detect_time = Date.now();
+                }, DataTable.UP_LIMIT_OF_DETECT - (Date.now() - this._last_detect_time));
+            }
+        }
     }
 
     set pageSize(value: number) {
