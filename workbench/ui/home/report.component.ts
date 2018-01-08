@@ -8,6 +8,8 @@ import { ECharts } from "echarts";
 import { ConfigurationBLL } from "../../bll/strategy.server";
 import { SSGW_MSG, ServiceType } from "../../../base/api/model";
 
+import { Observable } from "rxjs";
+
 @Component({
     moduleId: module.id,
     selector: "report",
@@ -35,10 +37,10 @@ export class ReportComponent implements OnInit {
     reportDetails = [];
     currentReportData: {};
     nIds: number[];
-    orderPage: {
-        pageSize: number,
-        currentPage: number,
-        maxPage: number
+    orderPage = {
+        pageSize: 40,
+        currentPage: 1,
+        maxPage: 1
     };
     filter = {
         condition: "",
@@ -56,12 +58,12 @@ export class ReportComponent implements OnInit {
 
     initResTable() {
         this.resTable = new DataTable("table2");
-        this.resTable.addColumn("名称", "回测进度", "开始时间", "结束时间", "查看", "删除", "最大回撤", "胜率", "夏普率");
+        this.resTable.addColumn("名称", "回测进度", "删除",);
+        this.resTable.RowIndex = false;
         this.resTable.align = "center";
         this.resTable.columns[0].align = "left";
         this.resTable.columns[1].align = "left";
         this.resTable.cellPadding = 5;
-
         this.configBll.getLoopbackItems().forEach(item => this.addResTableRow(item));
     }
 
@@ -72,7 +74,13 @@ export class ReportComponent implements OnInit {
 
     addResTableRow(loopbackItem) {
         let row = this.resTable.newRow();
-        const reportData = this.reportDetails.find(item => item.id === loopbackItem.id);
+        row.onRowClick = (targetRow, index) => {
+            this.resTable.rows.forEach(row => {
+                row.backgroundColor = undefined;
+            });
+            targetRow.backgroundColor = "#555";
+            this.checkoutDetail(loopbackItem);
+        }
 
         row.cells[0].Data = loopbackItem;
         row.cells[0].Text = loopbackItem.name + "-" + loopbackItem.id;
@@ -80,26 +88,13 @@ export class ReportComponent implements OnInit {
         row.cells[1].Title = "0%";
         row.cells[1].Type = "progresser";
         row.cells[1].Colors = ["#d0d0d0", "#90c007"];
-        row.cells[2].Text = loopbackItem.timebegin;
-        row.cells[3].Text = loopbackItem.timeend;
+        row.cells[2].Type = "icon-button";
+        row.cells[2].Title = "trash";
+        row.cells[2].Text = "删除";
+        row.cells[2].Class = "primary";
+        row.cells[2].Color = "red";
+        row.cells[2].OnClick = () => this.removeLoopback(loopbackItem.id);
 
-        row.cells[4].Type = "icon-button";
-        row.cells[4].Title = "pencil";
-        row.cells[4].Text = "查看";
-        row.cells[4].Class = "primary";
-        row.cells[4].Color = "red";
-        row.cells[4].OnClick = () => this.checkoutDetail(loopbackItem);
-
-        row.cells[5].Type = "icon-button";
-        row.cells[5].Title = "trash";
-        row.cells[5].Text = "删除";
-        row.cells[5].Class = "primary";
-        row.cells[5].Color = "red";
-        row.cells[5].OnClick = () => this.removeLoopback(loopbackItem.id);
-
-        row.cells[6].Text = reportData ? reportData.retraceRatio : "--";
-        row.cells[7].Text = reportData ? reportData.percentProfitable : "--";
-        row.cells[8].Text = reportData ? reportData.sharpeRatio : "--";
     }
 
     checkoutDetail(item) {
@@ -267,7 +262,7 @@ export class ReportComponent implements OnInit {
     showOrderDetail(data) {
         if(data && data.nId === this.selectedItem.id && Array.isArray(data.orderdetails)) {
             let { nId, orderdetails, total } = data;
-            this.orderPage.maxPage = Math.floor( total / this.orderPage.pageSize ) + 1;
+            this.orderPage.maxPage = Math.ceil( total / this.orderPage.pageSize ) || 1;
             orderdetails.forEach((item, index) => {
                 let row = this.orderdetailsTable.newRow();
                 // row.cells[0].Text = (parseInt(this.txt_pageidx.Text) - 1) * parseInt(this.txt_pagesize.Text) + index + 1;

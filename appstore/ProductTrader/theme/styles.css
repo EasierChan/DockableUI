@@ -17,11 +17,13 @@ body {
 }
 .page-title {
   background-color: #383f54;
+  padding-left: 15px;
 }
 
 .page-body {
   /*background-color: #1f273e;*/
   background-color: rgb(16, 23, 39);
+  padding-left: 15px;
 }
 
 .panel-header-list {

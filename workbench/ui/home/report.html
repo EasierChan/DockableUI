@@ -1,46 +1,14 @@
-<div class="backtest-article u-col" *ngIf="!selectedItem">
-    <div class="title u-row">
-        <div class="input-group u-row">
-            <label for="">策略名称：</label>
-            <input #condition type="text" [(ngModel)]="filter.condition" (input)="filterBacktest(condition.value)" >
-            <input type="button">
-        </div>
-    </div>
-    <dock-table2 class="table-container" [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
-</div>
-<div class="u-col report" *ngIf="selectedItem" >
-    <div class="title u-row">
-        <span>回测报表</span>
-        <button class="close-btn" (click)="closeReport()" >×</button>
-    </div>
-
-    <div class="report-head u-row">
-        <div class="title-article u-row">
-            <div class="title-list">
-                <div class="title-item">
-                    <span>策略名称：{{selectedItem?.name}}</span>
-                </div>
-                <div class="title-item">
-                    <span>回测ID：{{selectedItem?.id}}</span>
-                </div>
-                <div class="title-item">
-                    <span>开始时间：{{selectedItem?.timebegin}}</span>
-                </div>
-                <div class="title-item">
-                    <span>结束时间：{{selectedItem?.timeend}}</span>
+<div class="fill wraper u-col">
+    <div class="u-row">
+        <div class="backtest-article u-col">
+            <div class="title u-row">
+                <div class="input-group u-row">
+                    <label for="">策略名称：</label>
+                    <input #condition type="text" [(ngModel)]="filter.condition" (input)="filterBacktest(condition.value)" >
+                    <!--<input type="button">-->
                 </div>
             </div>
-            <div class="title-list">
-                <div class="title-item">
-                    <span>最大回撤：{{currentReportData?.retraceRatio}}</span>
-                </div>
-                <div class="title-item">
-                    <span>胜率：{{currentReportData?.percentProfitable}}</span>
-                </div>
-                <div class="title-item">
-                    <span>夏普率：{{currentReportData?.sharpeRatio}}</span>
-                </div>
-            </div>
+            <dock-table2 class="table-container" [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
         </div>
 
         <div class="chart-article u-row">
@@ -50,7 +18,7 @@
 
     <div class="order-article u-col">
         <div class="title u-row">
-            <span>订单列表</span>
+            <span class="title-name">订单列表</span>
             <div class="pagination">
                 <button class="previous-btn" (click)="flipPreviousOrder()">上一页</button>
                 <span>{{orderPage.currentPage}}/{{orderPage.maxPage}}</span>
@@ -59,5 +27,45 @@
         </div>
         <dock-table2 [dataSource]="orderdetailsTable.dataSource" [styleObj]="orderdetailsTable.styleObj" class="fill dark-bg"></dock-table2>
     </div>
+
+    <!--<div class="u-col report" *ngIf="selectedItem" >
+        <div class="title u-row">
+            <span>回测报表</span>
+            <button class="close-btn" (click)="closeReport()" >×</button>
+        </div>
+
+        <div class="report-head u-row">
+            <div class="title-article u-row">
+                <div class="title-list">
+                    <div class="title-item">
+                        <span>策略名称：{{selectedItem?.name}}</span>
+                    </div>
+                    <div class="title-item">
+                        <span>回测ID：{{selectedItem?.id}}</span>
+                    </div>
+                    <div class="title-item">
+                        <span>开始时间：{{selectedItem?.timebegin}}</span>
+                    </div>
+                    <div class="title-item">
+                        <span>结束时间：{{selectedItem?.timeend}}</span>
+                    </div>
+                </div>
+                <div class="title-list">
+                    <div class="title-item">
+                        <span>最大回撤：{{currentReportData?.retraceRatio}}</span>
+                    </div>
+                    <div class="title-item">
+                        <span>胜率：{{currentReportData?.percentProfitable}}</span>
+                    </div>
+                    <div class="title-item">
+                        <span>夏普率：{{currentReportData?.sharpeRatio}}</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+    </div>-->
 
 </div>
