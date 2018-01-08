@@ -105,8 +105,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.historyMarket("lastDate");
         }
         let d = new Date();
-        this.nowDate = d.getFullYear() + "-" + (Number(d.getMonth()) + 1) + "-" + d.getDate();
-        this.nowTime = d.getHours() + ":" + d.getMinutes();
+        this.nowDate = d.getFullYear() + "-" + this.addZero(Number(d.getMonth()) + 1) + "-" + this.addZero(d.getDate());
+        this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
         this.nowTimeStamp = d.getTime();
 
         let selfStockSecuInfo = this.secuinfo.getSecuinfoByUKey(2490369, 1441794, 1441876, 1441949, 2490383, 2490381, 1441854, this.referStockUk);
@@ -480,6 +480,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // getMonitorProductsAns
         this.tradePoint.addSlotOfCMS("getMonitorProducts", (msg) => {
             let data = JSON.parse(msg.toString());
+            console.log(data.body[4]);
             if (data.msret.msgcode !== "00") {
                 alert("getMonitorProducts:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
@@ -866,10 +867,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
         return num;
     }
+     addZero(num) {
+        if (num < 10)
+            return "0" + num;
+        else
+            return num;
+    }
     dashGetTime(tm) {
         let myDate = new Date(tm * 1000);
-        let h = (myDate.getHours() < 10) ? ("0" + myDate.getHours()) : myDate.getHours();
-        let m = (myDate.getMinutes() < 10) ? ("0" + myDate.getMinutes()) : myDate.getMinutes();
+        let h = this.addZero(myDate.getHours());
+        let m = this.addZero(myDate.getMinutes());
         return h + ":" + m;
     }
     barginPriceUnit(price) {
