@@ -749,6 +749,8 @@ export class TabHeaders extends Control {
 
 export class TabPage extends Control {
     _content: ComboControl;
+    onClick: Function;
+
     constructor(private _id: string, private _title: string) {
         super();
         this.className = "tab-page";
@@ -782,14 +784,16 @@ export class TabPage extends Control {
         return this._title;
     }
 
-    setActive(): TabPage {
+    setActive(): void {
         this.className = this.className + " active";
-        return this;
+
+        if (this.onClick instanceof Function) this.onClick();
     }
 
     unActive() {
         if (this.className.indexOf("active") < 0)
             return;
+
         this.className = this.className.substr(0, this.className.indexOf("active") - 1);
     }
 
