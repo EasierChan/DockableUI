@@ -309,10 +309,9 @@ export class AppComponent implements OnInit {
         this.profitAndLossTable = new DataTable("table2");
         this.profitAndLossTable.height = 200;
         this.profitAndLossTable.RowIndex = false;
-        ["PositionPnl", "TradingPnl", "IntraTradingFee", "TotalTradingFee", "LastTradingFee", "LastPosPnl",
-            "TodayPosPnl", "TotalPnl", "LastPosition", "TodayPosition", "LastClose", "MarketPrice", "IOPV"].forEach(item => {
-                this.profitAndLossTable.addColumn(this.langServ.get(item));
-            });
+        ["Totalamt", "Validamt", "Frozenamt", "Loan", "Fee", "SubjectAmount", "Validloan", "Stockloan", "Stockvalue", "TotalMargin", "Buymargin", "SellMargin", "ClosePL", "HoldPosipl", "MtmClosepl", "MtmPosipl", "FuturesValue", "StockValidamt", "FuturesValidamt", "SpifCap", "CommodityFuturesCap", "RiskExposure", "CommodityFuturesNetting"].forEach(item => {
+            this.profitAndLossTable.addColumn(this.langServ.get(item));
+        });
         profitAndLossContent.addChild(this.profitAndLossTable);
         profitAndLossPage.setContent(profitAndLossContent);
         panel.addTab(profitAndLossPage, false);
@@ -338,15 +337,15 @@ export class AppComponent implements OnInit {
         let productNetContent = new VBox();
         this.productNet = new Section();
         this.productNetChart = new ChartViewer();
-        this.productNetChart.setOption(this.createProductNetChart());
-        this.productNetChart.onInit = (chart: ECharts) => {
-            setTimeout(() => {
-                chart.setOption(this.createProductNetChart());
-            }, 1000);
-        };
+        // productNetPage.onClick = () => {
+        //     setTimeout(() => {
+                this.productNetChart.setOption(this.createProductNetChart().option);
+        //     }, 500);
+        // };
         productNetContent.addChild(this.productNetChart);
         productNetPage.setContent(productNetContent);
         panel.addTab(productNetPage, false);
+        // panel.setActive("productNetViewer");
 
         let orderStatPage = new TabPage("orderStatViewer", "订单状态");
         let orderStatContent = new VBox();
@@ -729,14 +728,51 @@ export class AppComponent implements OnInit {
                 }
             }
         });
-
-        this.tradePoint.addSlot({
-            service: 252,
-            msgtype: 11005,
-            callback: (msg) => {
-                let data = JSON.parse(msg.toString());
-            }
+        this.tradePoint.onTopic(25200, (key, data) => {
+            let keyObj = JSON.parse(key.toSsetOptiontring());
+            let dataObj = JSON.parse(data.toString()).data;
+            console.log(dataObj);
         });
+        // this.tradePoint.addSlot({
+        //     service: 252,
+        //     msgtype: 11005,
+        //     callback: (msg) => {
+        //         let data = JSON.parse(msg.toString());
+        //         if (data.msret.msgcode !== "00") {
+        //             let rowLog = this.logTable.newRow();
+        //             rowLog.cells[0].Text = this.getNowDate("time", false);
+        //             rowLog.cells[1].Text = "获取产品信息推送： " + " msg = " + data.msret.msg;
+        //             return;
+        //         }
+        //         let productData = data.body[0];
+        //         let row = this.profitAndLossTable.newRow();
+        //         row.cells[0].Text = "资金余额";
+        //         row.cells[1].Text = "交易可用金额";
+        //         row.cells[2].Text = "交易冻结金额";
+        //         row.cells[3].Text = "融资负债";
+        //         row.cells[4].Text = "手续费";
+        //         row.cells[5].Text = "外部资产总价值";
+        //         row.cells[6].Text = productData.validloan;
+        //         row.cells[7].Text = productData.stockloan;
+        //         row.cells[8].Text = productData.stockvalue;
+        //         row.cells[9].Text = productData.totalmargin;
+        //         row.cells[10].Text = productData.buymargin;
+        //         row.cells[11].Text = productData.sellmargin;
+        //         row.cells[12].Text = productData.hold_closepl;
+        //         row.cells[13].Text = productData.hold_posipl;
+        //         row.cells[14].Text = productData.mtm_closepl;
+        //         row.cells[15].Text = productData.mtm_posipl;
+        //         row.cells[16].Text = productData.stock_value;
+        //         row.cells[17].Text = productData.futures_value;
+        //         row.cells[18].Text = productData.stock_validamt;
+        //         row.cells[19].Text = productData.futures_validamt;
+        //         row.cells[20].Text = productData.spifCap;
+        //         row.cells[21].Text = productData.commodityFuturesCap;
+        //         row.cells[22].Text = productData.risk_exposure;
+        //         row.cells[23].Text = productData.commodityFuturesNetting;
+        //         console.log(data);
+        //     }
+        // });
         // 产品净值
 
         // this.productNetChart.addC
@@ -764,7 +800,11 @@ export class AppComponent implements OnInit {
                     productNetChangeOpt.title.text = item.caname;
                     productNetChangeOpt.series[0].data.push(item.netvalue);
                 });
-                // this.productNetChart.setOption(productNetChangeOpt);
+                productNetPage.onClick = () => {
+                    setTimeout(() => {
+                        this.productNetChart.setOption(productNetChangeOpt);
+                    }, 500);
+                };
             }
         }, this);
 
@@ -773,7 +813,7 @@ export class AppComponent implements OnInit {
         };
         btn_submit.OnClick = () => {
             let sendOrder = new SendOrder();
-            sendOrder.order_ref = Math.round (new Date().getTime() / 1000);   // u8  客户端订单ID+term_id = 唯一
+            sendOrder.order_ref = Math.round(new Date().getTime() / 1000);   // u8  客户端订单ID+term_id = 唯一
             sendOrder.ukey = this.txt_UKey.Text;        // u8  Universal Key
             sendOrder.directive = this.dd_Action.SelectedItem.Value;   // u4 委托指令：普通买入，普通卖出
             sendOrder.offset_flag = 0; // u4 开平方向：开仓、平仓、平昨、平今
@@ -807,7 +847,7 @@ export class AppComponent implements OnInit {
             row = this.orderStatTable.newRow();
         }
         row.cells[0].Type = "checkbox";
-        if (ans.status === 5 || ans.status === 6 || ans.status === 8 || ans.status === 9 || ans.status === 40 ) {
+        if (ans.status === 5 || ans.status === 6 || ans.status === 8 || ans.status === 9 || ans.status === 40) {
             row.cells[0].Disable = true;
             row.cells[0].Text = false;
         }
@@ -820,7 +860,7 @@ export class AppComponent implements OnInit {
         }
         row.cells[5].Text = ans.chronos_order.price / 10000;
         row.cells[6].Text = ans.chronos_order.qty;
-        row.cells[7].Text = ans.chronos_order.order_date + " " + ans.chronos_order.order_time;
+        row.cells[7].Text = this.productFormatTime(ans.chronos_order.order_time);
         row.cells[8].Text = this.coms_directive[ans.chronos_order.directive];
         row.cells[9].Text = this.coms_statusType[ans.status];
         row.cells[9].Data = ans.status;
@@ -835,7 +875,7 @@ export class AppComponent implements OnInit {
             } else {
                 rowFinish = this.finishOrderTable.newRow();
             }
-            rowFinish.cells[0].Data = ans.chronos_order.term_id;
+            rowFinish.cells[0].Data = ans.chro25200nos_order.term_id;
             rowFinish.cells[0].Text = ans.chronos_order.order_ref;
             rowFinish.cells[1].Text = ans.chronos_order.ukey;
             if (stockSecuinfo[ans.chronos_order.ukey] !== undefined) {
@@ -844,12 +884,12 @@ export class AppComponent implements OnInit {
             }
             rowFinish.cells[4].Text = ans.chronos_order.price / 10000;
             rowFinish.cells[5].Text = ans.chronos_order.qty;
-            rowFinish.cells[6].Text = ans.chronos_order.order_date + " " + ans.chronos_order.order_time;
+            rowFinish.cells[6].Text = this.productFormatTime(ans.chronos_order.order_time);
             rowFinish.cells[7].Text = this.coms_directive[ans.chronos_order.directive];
             rowFinish.cells[8].Text = this.coms_statusType[ans.status];
             rowFinish.cells[9].Text = ans.trade_amt / 10000; // 成交金额
             rowFinish.cells[10].Text = ans.trade_qty;
-            rowFinish.cells[11].Text = ans.trade_date + ":" + ans.trade_time;
+            rowFinish.cells[11].Text = this.productFormatTime(ans.trade_time);
             rowFinish.cells[12].Text = this.coms_orderType[ans.chronos_order.property]; // "订单类型";
         }
         this.ref.detectChanges();
@@ -929,6 +969,13 @@ export class AppComponent implements OnInit {
             return y + "" + m + "" + day;
 
     }
+    productFormatTime(num, type?) {
+        num = num + "";
+        if (num.length === 8) {
+            num = "0" + num;
+        }
+        return num.slice(0, 2) + ":" + num.slice(2, 4) + ":" + num.slice(4, 6) + ":" + num.slice(6);
+    }
     registryListeners() {
         this.tradePoint.addSlot({
             service: ServiceType.kLogin,
@@ -949,12 +996,13 @@ export class AppComponent implements OnInit {
                         body: { caid: this.productId }
                     }
                 }));
-                this.tradePoint.send(11005, JSON.stringify({
-                    data: {
-                        head: { userid: this.userId , reqsn: 1},
-                        body: { caid: this.productId }
-                    }
-                }), 252);
+                // this.tradePoint.send(11005, JSON.stringify({
+                //     data: {
+                //         head: { userid: this.userId, reqsn: 1 },
+                //         body: { caid: this.productId }
+                //     }
+                // }), 252);
+                this.tradePoint.subscribe(25200, [11005]);
             }
         });
     }
@@ -988,7 +1036,7 @@ export class AppComponent implements OnInit {
                         axisLine: {
                             lineStyle: { color: "#717171" }
                         },
-                        data: [0, 1, 2, 3]
+                        data: [0]
                     }
                 ],
                 yAxis: [
@@ -1012,7 +1060,7 @@ export class AppComponent implements OnInit {
                     {
                         name: "净值",
                         type: "line",
-                        data: [0, 1, 2, 3],
+                        data: [0],
                         itemStyle: {
                             normal: {
                                 color: "#2378f7"
