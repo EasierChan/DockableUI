@@ -338,10 +338,12 @@ export class ComOrderRecord extends Message {
 };
 
 export enum ESSSecuCategory {
-    SS_SECU_CATEGORY_UNKNOW,
+    SS_SECU_CATEGORY_UNKNOWN,
     SS_SECU_CATEGORY_EQUIT,
     SS_SECU_CATEGORY_FUTURE
 };
+
+export const SecuCategoryNames = ["UNKNOWN", "EQUIT", "FUTURE"];
 
 class FundPos extends Message {
     date: number = 0; // 4

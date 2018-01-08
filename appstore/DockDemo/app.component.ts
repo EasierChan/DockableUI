@@ -18,7 +18,7 @@ import {
 import {
     EOrderType, AlphaSignalInfo, SECU_MARKET, EOrderStatus,
     EStrategyStatus, StrategyCfgType, ComConOrder, ComOrderCancel,
-    ComOrder
+    ComOrder, ESSSecuCategory, SecuCategoryNames
 } from "../../base/api/model/itrade/strategy.model";
 import { DataKey } from "../../base/api/model/workbench.model";
 
@@ -501,9 +501,7 @@ export class AppComponent implements OnInit {
         this.tradeContent.addChild(btn_row);
         this.tradePage.setContent(this.tradeContent);
 
-        btn_clear.OnClick = () => {
-            this.dialog.hide();
-        };
+        btn_clear.OnClick = () => { this.dialog.hide(); };
 
         btn_submit.OnClick = () => {
             let account = this.dd_Account.SelectedItem.Text;
@@ -514,7 +512,7 @@ export class AppComponent implements OnInit {
             let volume = parseInt(txt_Volume.Text);
             let actionValue = this.dd_Action.SelectedItem.Value;
 
-            if (isNaN(ukey) || isNaN(price) || price > Math.pow(2, 18) || isNaN(volume)) {
+            if (isNaN(ukey) || isNaN(price) || price > Math.pow(2, 18) || isNaN(volume) || Number.isSafeInteger(volume)) {
                 alert("输入不合法");
                 return;
             }
@@ -1542,9 +1540,9 @@ export class AppComponent implements OnInit {
         for (let iData = 0; iData < data.length; ++iData) {
             for (iRow = 0; iRow < this.positionTable.rows.length; ++iRow) {
                 if (this.positionTable.rows[iRow].cells[2].Text === data[iData].record.code) { // refresh
-                    secuCategory = this.positionTable.rows[iRow].cells[1].Text;
+                    secuCategory = this.positionTable.rows[iRow].cells[1].Data;
 
-                    if (secuCategory === 1) {
+                    if (secuCategory === ESSSecuCategory.SS_SECU_CATEGORY_EQUIT) {
                         this.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
                         this.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
                         this.positionTable.rows[iRow].cells[6].Text = data[iData].record.AvlCreRedempVol;
@@ -1552,7 +1550,7 @@ export class AppComponent implements OnInit {
                         this.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
                         this.positionTable.rows[iRow].cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
                         break;
-                    } else if (secuCategory === 2 && this.positionTable.rows[iRow].cells[12].Text === data[iData].record.type) {
+                    } else if (secuCategory === ESSSecuCategory.SS_SECU_CATEGORY_FUTURE && this.positionTable.rows[iRow].cells[12].Text === data[iData].record.type) {
                         this.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
                         this.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
                         this.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
@@ -1565,10 +1563,11 @@ export class AppComponent implements OnInit {
             }
 
             if (iRow === this.positionTable.rows.length) {
-                if (data[iData].secucategory === 1) {
+                if (data[iData].secucategory === ESSSecuCategory.SS_SECU_CATEGORY_EQUIT) {
                     let row = this.positionTable.newRow();
                     row.cells[0].Text = data[iData].record.account;
-                    row.cells[1].Text = data[iData].secucategory;
+                    row.cells[1].Data = data[iData].secucategory;
+                    row.cells[1].Text = SecuCategoryNames[data[iData].secucategory];
                     row.cells[2].Text = data[iData].record.code;
                     let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].record.code);
                     row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
@@ -1584,7 +1583,8 @@ export class AppComponent implements OnInit {
                 } else {
                     let row = this.positionTable.newRow();
                     row.cells[0].Text = data[iData].record.account;
-                    row.cells[1].Text = data[iData].secucategory;
+                    row.cells[1].Data = data[iData].secucategory;
+                    row.cells[1].Text = SecuCategoryNames[data[iData].secucategory];
                     row.cells[2].Text = data[iData].record.code;
                     let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].record.code);
                     row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
@@ -1757,13 +1757,14 @@ export class AppComponent implements OnInit {
             }
 
             let row = this.accountTable.rows.find(item => {
-                return item.cells[0].Text === account && item.cells[1].Text === secucategory;
+                return item.cells[0].Text === account && item.cells[1].Data === secucategory;
             });
 
             if (row === undefined) {
                 row = this.accountTable.newRow();
                 row.cells[0].Text = data[i].record.account;
-                row.cells[1].Text = data[i].secucategory;
+                row.cells[1].Data = data[i].secucategory;
+                row.cells[1].Text = SecuCategoryNames[data[i].secucategory];
                 row.cells[7].Text = 0;
                 row.cells[8].Text = 0;
             }
@@ -1775,7 +1776,7 @@ export class AppComponent implements OnInit {
             row.cells[6].Text = data[i].record.c;
             data[i].market === SECU_MARKET.SM_SH ? row.cells[7].Text = data[i].record.AvlAmount / 10000 : row.cells[8].Text = data[i].record.AvlAmount / 10000;
 
-            if (secucategory === 2) {
+            if (secucategory === ESSSecuCategory.SS_SECU_CATEGORY_FUTURE) {
                 row.cells[9].Text = data[i].record.BuyFrzAmt / 10000;
                 row.cells[10].Text = data[i].record.SellFrzAmt / 10000;
                 row.cells[11].Text = data[i].record.BuyMargin / 10000;
@@ -2392,7 +2393,7 @@ export class AppComponent implements OnInit {
                 }
             }
 
-            Dialog.popup(this, this.tradeContent, { title: this.langServ.get("Trade"), height: 300 });
+            Dialog.popup(this, this.tradeContent, { title: this.langServ.get("Trade Panel"), height: 300 });
         };
 
         let bookViewContent = new VBox();
