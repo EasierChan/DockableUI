@@ -1,11 +1,12 @@
 "use strict";
 
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import { QtpService } from "../../bll/services";
 import { AppStoreService, SecuMasterService } from "../../../base/api/services/backend.service";
 import { ConfigurationBLL } from "../../bll/strategy.server";
 import { DataTable } from "../../../base/controls/control";
 import { ServiceType } from "../../../base/api/model";
+import { Observable } from "rxjs/Rx";
 
 @Component({
     moduleId: module.id,
@@ -32,8 +33,9 @@ export class RiskComponent implements OnInit {
         block: [],
         trace: []
     };
+    tmpT: NodeJS.Timer;
 
-    constructor(private trade: QtpService, private config: ConfigurationBLL,
+    constructor(private trade: QtpService, private config: ConfigurationBLL, private ref: ChangeDetectorRef,
         private appSrv: AppStoreService,  private secuinfo: SecuMasterService) {
 
     }
@@ -50,8 +52,54 @@ export class RiskComponent implements OnInit {
         this.sendCmsRequest("getRiskCfg", { out_type: 3 }); // 获取策略风控配置
     }
 
+    ngOnDestroy() {
+        clearInterval(this.tmpT)
+    }
+
+    test() {
+        const accounts = this.config.get("asset_account");
+        const pds = this.config.getProducts();
+        const riskTypes = this.config.get("risk_index");
+
+        class Risk {
+            group_id: number;
+            risk_id: number;
+            used_v1: number;
+            constructor(group_id, risk_id, used_v1) {
+                this.group_id = group_id;
+                this.risk_id = risk_id;
+                this.used_v1 = used_v1;
+            }
+        }
+
+        let data = {
+            data: {
+                trade_account: [],
+                trade_block: []
+            }
+        }
+
+        accounts.forEach((account) => {
+            riskTypes.forEach(type => {
+                data.data.trade_account.push(new Risk(Number(account.acid), Number(type.riskid), Math.round(Math.random() * 1000 )));
+            })
+        })
+
+        pds.forEach(pd => {
+            riskTypes.forEach(type => {
+                data.data.trade_block.push(new Risk(Number(pd.caid), Number(type.riskid), Math.round(Math.random() * 1000)));
+            })
+        })
+
+        this.riskListener(data);
+
+        console.log(data)
+    }
+
     registerListeners() {
+        let count = 0;
         this.trade.addSlotOfCMS("getRiskCfg", (msg) => {
+            count ++;
             let data = JSON.parse(msg.toString());
             console.log(data)
             if (data.msret.msgcode !== "00") {
@@ -61,18 +109,24 @@ export class RiskComponent implements OnInit {
             if(!data.body.length) return
             this.initTableModel(data.body, data.body[0].celltype);
             this.sendKcomsRequest();
+            if(count === 3) this.tmpT = setInterval(() => { this.test() }, 2000);
         }, this)
 
         this.trade.addSlot({
             service: ServiceType.kCOMS,
             msgtype: 4010,
             callback: (msg) => {
-                let { trade_account, trade_block } = JSON.parse(msg.toString()).data;
-                this.updateData(trade_account, "5");
-                this.updateData(trade_block, "2");
-                this.updateData([], "3");
+                this.riskListener(console.log(JSON.parse(msg.toString())));
             }
         });
+    }
+
+    riskListener(data) {
+        let { trade_account, trade_block } = data.data;
+        this.updateData(trade_account, "5");
+        this.updateData(trade_block, "2");
+        this.updateData([], "3");
+        this.ref.detectChanges();
     }
 
     sendCmsRequest(cmd: string, options) {
@@ -131,6 +185,42 @@ export class RiskComponent implements OnInit {
                     cell.Text = record[tableFieldsOrder[record.tableName][index]];
                 })
             }
+        });
+        this.syncWarn();
+    }
+
+    syncWarn() {
+        this.reLoadTable("warn");
+        this.riskData.account.forEach(account => {
+            account.tableData.forEach(tableData => {
+                if(Number(tableData.used_v1) >= Number(tableData.limit_v1)) {
+                    let row = this.warnTable.newRow();
+                    row.cells[0].Text = tableData.celltype;
+                    row.cells[1].Text = tableData.cellname;
+                    row.cells[2].Text = tableData.categroyTop;
+                    row.cells[3].Text = tableData.categroy;
+                    row.cells[4].Text = tableData.riskname;
+                    row.cells[5].Text = tableData.limit_v1;
+                    row.cells[6].Text = tableData.used_v1;
+                    row.cells[7].Text = tableData.stat;
+                }
+            })
+        })
+
+        this.riskData.block.forEach(block => {
+            block.tableData.forEach(tableData => {
+                if(Number(tableData.used_v1) >= Number(tableData.limit_v1)) {
+                    let row = this.warnTable.newRow();
+                    row.cells[0].Text = tableData.celltype;
+                    row.cells[1].Text = tableData.cellname;
+                    row.cells[2].Text = tableData.categroyTop;
+                    row.cells[3].Text = tableData.categroy;
+                    row.cells[4].Text = tableData.riskname;
+                    row.cells[5].Text = tableData.limit_v1;
+                    row.cells[6].Text = tableData.used_v1;
+                    row.cells[7].Text = tableData.stat;
+                }
+            })
         })
     }
 
@@ -256,7 +346,7 @@ export class RiskComponent implements OnInit {
         this.isCollapsed = !this.isCollapsed;
     }
 
-    reLoadTable(name: string) {
+    reLoadTable(name: "warn" | "single" | "marketPlate" | "varieti" | "ukey" | "tactful") {
         let table: DataTable = new DataTable("table2");
         switch (name) {
             case "warn":
