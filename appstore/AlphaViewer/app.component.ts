@@ -152,6 +152,7 @@ export class AppComponent implements OnInit, OnDestroy {
         info.hover = () => { this.bTip = true; };
         info.blur = () => { this.bTip = false; };
         this.statusbar.items.push(info);
+        this.registerListeners();
 
         this.quote.connect(this.option.port, this.option.host);
         this.quote.onConnect = () => {
@@ -259,10 +260,12 @@ export class AppComponent implements OnInit, OnDestroy {
                 this.lines[0].coeffs[0] = basket.params["BasketMultiplier"] || "1";
 
                 basket.components.forEach(item => {
-                    group1[item.code].ukey = this.secuinfo.getSecuinfoByWindCodes([item.code]);
-                    group1[item.code].count = item.amount;
-                    group1[item.code].replace_amount = item.cash_rep;
-                    this.groupUKeys.push(group1[item.code].ukey);
+                    let infoArr = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+
+                    if (infoArr.length > 0) {
+                        group1[item.code] = { ukey: infoArr[0].ukey, count: item.amount, replace_amount: item.cash_rep };
+                        this.groupUKeys.push(group1[item.code].ukey);
+                    }
                 });
 
                 ok1 = true;
@@ -310,6 +313,7 @@ export class AppComponent implements OnInit, OnDestroy {
             }, 100);
         } else {
             console.error(`first is must be basket file.`);
+            this.addTips(`first is must be basket file.`);
         }
     }
 
@@ -327,7 +331,7 @@ export class AppComponent implements OnInit, OnDestroy {
             } else {
                 console.info(`filename = ${filenames}`);
             }
-        }, [{ name: "股票组合(csv文件)", extensions: ["csv"] }]);
+        }, [{ name: "股票组合(bkt文件)", extensions: ["bkt"] }]);
     }
 
     changeChartOption(type: number) {
