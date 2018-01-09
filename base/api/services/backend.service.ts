@@ -3,7 +3,6 @@
 declare var electron: Electron.ElectronMainAndRenderer;
 import { Injectable } from "@angular/core";
 import { UserProfile, BasketPCF } from "../model/app.model";
-
 export const os = require("@node/os");
 export const path = require("@node/path");
 export const fs = require("@node/fs");
@@ -30,8 +29,8 @@ export class AppStoreService {
         return electron.ipcRenderer.sendSync("appstore://startupAnApp", name, type, option);
     }
 
-    unloadApp(name: string): boolean {
-        return electron.ipcRenderer.sendSync("appstore://unloadApp", name);
+    unloadApp(name: string, type: string) {
+        electron.ipcRenderer.send("appstore://unloadApp", name, type);
     }
 
     getUserProfile(): UserProfile {
@@ -347,8 +346,33 @@ export class File {
         return fs.readdirSync(fpath, "utf-8");
     }
 
+    public static rmdir(fpath: string): void {
+        if (!fs.existsSync(fpath)) return;
+
+        let stats = fs.statSync(fpath);
+
+        if (stats.isFile()) {
+            fs.unlinkSync(fpath);
+            return;
+        }
+
+        if (stats.isDirectory()) {
+            let subpath = "";
+
+            fs.readdirSync(fpath).forEach((name) => {
+                subpath = path.join(fpath, name);
+
+                fs.statSync(subpath).isDirectory()
+                    ? File.rmdir(subpath)
+                    : fs.unlinkSync(subpath);
+            });
+
+            fs.rmdirSync(fpath);
+        }
+    }
+
     public static unlinkSync(fpath: string) {
-        if (fs.existsSync(fpath))
+        if (fs.existsSync(fpath) && fs.statSync(fpath).isFile())
             fs.unlinkSync(fpath);
     }
 

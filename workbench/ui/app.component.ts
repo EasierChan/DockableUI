@@ -261,7 +261,10 @@ export class AppComponent implements OnInit, OnDestroy {
                 service: ServiceType.kFGS,
                 msgtype: FGS_MSG.kFGSAns,
                 callback: (msg) => {
-                    console.info(msg.toString());
+                    let obj = JSON.parse(msg);
+                    if (obj.data.ret_code !== 0) {
+                        alert(obj.data.ret_msg);
+                    }
                 }
             },
             {

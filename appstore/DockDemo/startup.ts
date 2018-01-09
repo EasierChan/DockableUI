@@ -4,8 +4,8 @@
 "use strict";
 
 import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path, IPCManager } from "../../base/api/backend";
-const path = require("path");
-const fs = require("fs");
+import * as path from "path";
+import * as fs from "fs";
 declare let window: any;
 import { ipcMain, MenuItem, Menu } from "electron";
 
@@ -137,6 +137,22 @@ export class StartUp implements IApplication {
         this._mainWindow.close();
         // this._windowMgr.closeAll();
     }
+
+    static unload(name): void {
+        let appdir = path.join(Path.baseDir, "StrategyTrader", name);
+
+        fs.exists(appdir, (bexists) => {
+            if (bexists) {
+                fs.readdir(appdir, (err, files) => {
+                    files.forEach(fpath => {
+                        fs.unlink(path.join(appdir, fpath));
+                    });
+
+                    fs.rmdirSync(appdir);
+                });
+            }
+        });
+    }
     /**
      * restart
      */
@@ -185,7 +201,7 @@ export class StartUp implements IApplication {
             return this.defaultLayout;
         }
 
-        return JSON.parse(fs.readFileSync(flayout));
+        return JSON.parse(fs.readFileSync(flayout, "utf8"));
     }
 
     get defaultLayout() {
@@ -253,7 +269,7 @@ export class StartUp implements IApplication {
             return {};
         }
 
-        return JSON.parse(fs.readFileSync(config));
+        return JSON.parse(fs.readFileSync(config, "utf8"));
     }
 
     static instance(): StartUp {
