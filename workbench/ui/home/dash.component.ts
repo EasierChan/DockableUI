@@ -480,7 +480,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // getMonitorProductsAns
         this.tradePoint.addSlotOfCMS("getMonitorProducts", (msg) => {
             let data = JSON.parse(msg.toString());
-            console.log(data.body[4]);
             if (data.msret.msgcode !== "00") {
                 alert("getMonitorProducts:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                 return;
@@ -516,7 +515,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         this.productData.push(newItem);
                     });
                     this.productDataSort = this.productData.sort(this.compare("totalAssets"));
-                    this.productDataSort.forEach(item => {
+                    this.productDataSort.forEach((item, index) => {
+                        if (index > 9)
+                            return;
                         productScaleChangeOpt.yAxis.data.push(item.caname);
                         productScaleChangeOpt.series[0].data.push(Math.log(item.totalAssets < 1 ? 1 : item.totalAssets) / Math.log(2));
                     });
@@ -528,7 +529,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     };
                     // 产品资产比重改变值
                     if (this.monitorProductsData.length > 1) {
-                        this.monitorProductsData.forEach(item => {
+                        this.monitorProductsData.forEach((item, index) => {
+                            if (index > 9)
+                                return;
                             allProWeightGaugeChangeOpt.xAxis[0].data.push(item.caname);
                             let money = Number(item.stock_validamt) + Number(item.futures_validamt);
                             let totalMoney = money + Number(item.stock_value) + Number(item.totalmargin) + Number(item.subject_amount);
@@ -821,7 +824,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
             alert("Todo内容不能为空！");
             return;
         }
-        console.log((this.nowDate));
+        // console.log((this.nowDate));
         this.tradePoint.sendToCMS("createTodo", JSON.stringify({
             data: {
                 head: { userid: this.userId },
@@ -867,7 +870,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
         return num;
     }
-     addZero(num) {
+    addZero(num) {
         if (num < 10)
             return "0" + num;
         else
@@ -989,11 +992,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
         let d = new Date();
         let time = (d.getHours() < 10 ? ("0" + d.getHours()) : d.getHours()) + "" + (d.getMinutes() < 10 ? ("0" + d.getMinutes()) : d.getMinutes()) + "" + (d.getSeconds() < 10 ? ("0" + d.getSeconds()) : d.getSeconds()) + "000";
         let partIndex = 1;
+        let historyStockLineData;
         this.selfStockMarketChange.series[0].data = [];
         this.hasHistoryMarket = false;
         // 接历史行情
         if (historyType === "all") {
-            this.quote.send(181, 10001, { requestId: 1, dataType: 101002, ukeyCode: this.mainStockUk, timeFrom: 93000000 });
+            this.quote.send(181, 10001, { requestId: 1, dataType: 101002, ukeyCode: this.mainStockUk, timeFrom: 93000000, timeTo: 150059999 });
         } else {
             this.quote.send(181, 10001, { requestId: 1, dataType: 102000, ukeyList: this.dashAllUkcodeList.join(";"), subType: -1 });
         }
@@ -1012,7 +1016,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     lastDate.forEach(item => {
                         let nowPrice = (item.p / 10000).toFixed(2);
                         let increase = ((item.p - item.pc) / 10000).toFixed(2);
-                        let increasePer = ((item.p - item.pc) * 100  / item.pc).toFixed(2);
+                        let increasePer = ((item.p - item.pc) * 100 / item.pc).toFixed(2);
                         let referIncrease;
                         if (this.refStock.increase) {
                             referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
@@ -1049,7 +1053,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     });
                     // console.log(allStockUkMap)
                 } else if (msg.content.head.dataType === 101002) {
-                    let historyStockLineData = [];
+                    if (msg.content.head.partOrder === 1)
+                        historyStockLineData = [];
+                    let isAllNull = true;
                     if (partIndex === msg.content.head.partOrder) {
                         historyStockLineData = historyStockLineData.concat(msg.content.data);
                         partIndex++;
@@ -1062,10 +1068,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         let yBarData = [];
                         if (historyStockLineData.length > 0) {
                             historyStockLineData.forEach((item, index, arr) => {
-                                item.u = item.u * 100;
-                                item.c = item.c / 10000;
-                                yData.push(item.c);
-                                yBarData.push(item.u);
+                                let time = this.dashGetTime(item.t / 1000);
+                                this.historyMarketIndex = this.selfStockXdata.indexOf(time); // 当前行情在echarts中的位置
+                                if (this.historyMarketIndex > 0) {
+                                    isAllNull = false;
+                                    item.u = item.u * 100;
+                                    item.c = item.c / 10000;
+                                    yData.push(item.c);
+                                    yBarData.push(item.u);
+                                }
                             });
                             let min = Math.min.apply(null, yData);
                             let max = Math.max.apply(null, yData);
@@ -1115,7 +1126,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             this.selfStockMarketChange.yAxis[0].max = middle + abs;
                             this.selfStockMarketChange.yAxis[0].interval = abs / 2;
                             this.selfStockMarketChange.series[0].markLine.data[0].yAxis = this.mainStock.preClose;
-                            if (this.selfStockMarketChart) {
+                            if (this.selfStockMarketChart && !isAllNull) {
                                 this.selfStockMarketChart.setOption(this.selfStockMarketChange);
                             }
                         }
