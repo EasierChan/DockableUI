@@ -42,12 +42,12 @@ export class SimQueryComponent implements OnInit {
     orderPagination = {
         maxPage: 1,
         currentPage: 1,
-        pageSize: 5
+        pageSize: 40
     };
     holdPagination = {
         maxPage: 1,
         currentPage: 1,
-        pageSize: 5
+        pageSize: 40
     };
     cache: any = {};
     
@@ -77,12 +77,22 @@ export class SimQueryComponent implements OnInit {
 
     test() {
         let mapStg = {};
+        let holdMap = {};
         this.request("getTaorder", {}).then(data => {
             data.data.forEach(item => {
-                mapStg[item.stgid] = mapStg[item.stgid] + 1 || 1
+                mapStg[item.stgid] = mapStg[item.stgid] ? mapStg[item.stgid] + 1 : 1;
             })
-            console.log(mapStg)
+            console.info("order", mapStg);
         }).catch(err => console.log(err))
+
+        this.request("getTradeUnitHoldPosition", {}).then(data => {
+            let list = data.data || data;
+            list.forEach(item => {
+                holdMap[item.stgid] = holdMap[item.stgid] ? holdMap[item.stgid] + 1 : 1
+            })
+            console.info("hold", holdMap);
+        })
+        
     }
 
     search() {
@@ -115,7 +125,7 @@ export class SimQueryComponent implements OnInit {
                 });
             });
             this.orderPagination.maxPage = Math.ceil(Number(data.totalCount) / this.orderPagination.pageSize) || 1;
-        })
+        }).catch(err => console.log(err))
 
         let holdOptions = {
             stgid: this.cache.stgid,
@@ -136,6 +146,8 @@ export class SimQueryComponent implements OnInit {
                 });
             });
             this.holdPagination.maxPage = Math.ceil(Number(data.totalCount) / this.holdPagination.pageSize) || 1;
+        }).catch(err => {
+            console.log(err)
         })
     }
 
@@ -255,17 +267,17 @@ export class SimQueryComponent implements OnInit {
         switch(name) {
             case "order":
                 this.orderTable = newTable;
+                this.orderTable.align = "center";
                 this.orderTable.addColumn(...this.getOrderRow());
                 this.orderTable.columnConfigurable = true;
-                this.orderTable.columns[5].sortable = true;
-                this.orderTable.columns[6].sortable = true;
-                this.orderTable.columns[7].sortable = true;
-                this.orderTable.align = "center";
+                this.orderTable.columns.forEach(col => col.sortable = true );
                 break;
             case "hold":
                 this.holdTable = newTable;
                 this.holdTable.align = "center";
                 this.holdTable.addColumn(...this.getHoldRow());
+                this.holdTable.columnConfigurable = true;
+                this.holdTable.columns.forEach(col => col.sortable = true );
                 break;
         }
     }
@@ -283,55 +295,56 @@ export class SimQueryComponent implements OnInit {
     }
 
     downLoadOrder(isAll) {
-        this.chosedPath().then(path => {
-            const header = this.orderTable.columns.map(item => item.Name);
-            if(isAll) {
-                this.request("getTaorder", {
+        let path: string;
+        this.chosedPath("order.csv")
+            .then(chosedPath => {
+                path = chosedPath;
+                return this.request("getTaorder", {
                     stgid: this.cache.stgid,
                     startDate: this.cache.startDate.replace(/-/g, ""),
                     endDate: this.cache.endDate.replace(/-/g, ""),
-                }).then(data => {
-                    let csvData = (data.data as any[]).map(row => this.getOrderRow(row).join(",")).join("\n\r");
-                    csvData = header.join(",") + "\n\r" + csvData;
-                    fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
                 })
-            } else {
-                let data = this.orderTable.rows.map(item => item.cells.map(cell => cell.Text) )
-                data.unshift(header);
-                let csvData = data.map(row => row.join(",")).join("\n\r");
-                fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
-            }
-        }).catch(err => console.info(err))
+            })
+            .then(data => {
+                const header = this.orderTable.columns.map(item => item.Name);
+                let csvData = (data.data as any[]).map(row => this.getOrderRow(row).join(",")).join("\n\r");
+                csvData = header.join(",") + "\n\r" + csvData;
+                return fs.writeFile(path, csvData)
+            })
+            .then(() => {
+                console.info(`success saved file in ${path}`)
+            })
+            .catch(err => console.info(err))
     }
 
-    downLoadHold(isAll) {
-        this.chosedPath().then(path => {
-            const header = this.holdTable.columns.map(item => item.Name);
-            if(isAll) {
-                this.request("getTradeUnitHoldPosition", {
+    downLoadHold() {
+        let path;
+        this.chosedPath("hold.csv")
+            .then(chosedPath => {
+                path = chosedPath;
+                return this.request("getTradeUnitHoldPosition", {
                     stgid: this.cache.stgid,
                     startDate: this.cache.endDate.replace(/-/g, ""),
                     endDate: this.cache.endDate.replace(/-/g, ""),
-                }).then(data => {
-                    console.log(data);
-                    let csvData = (data.data as any[]).map(row => this.getHoldRow(row).join(",")).join("\n\r");
-                    csvData = header.join(",") + "\n\r" + csvData;
-                    fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
                 })
-            } else {
-                let data = this.holdTable.rows.map(item => item.cells.map(cell => cell.Text) );
-                data.unshift(header);
-                let csvData = data.map(row => row.join(",")).join("\n\r");
-                fs.writeFile(path, csvData, () => console.info(`success saved file in ${path}`));
-            }
-        }).catch(err => console.info(err))
+            })
+            .then(data => {
+                const header = this.holdTable.columns.map(item => item.Name);
+                let csvData = (data.data as any[]).map(row => this.getHoldRow(row).join(",")).join("\n\r");
+                csvData = header.join(",") + "\n\r" + csvData;
+                return fs.writeFile(path, csvData)
+            })
+            .then(() => {
+                console.info(`success saved file in ${path}`)
+            })
+            .catch(err => console.info(err))
     }
 
-    chosedPath(): Promise<string> {
+    chosedPath(filename: string): Promise<string> {
         return new Promise((resolve, reject) => {
             electron.remote.dialog.showSaveDialog({
                 title: "另存为",
-                defaultPath: "@/order.csv",
+                defaultPath: `@/${filename}`,
                 buttonLabel: "",
                 filters: []
             }, (path)=> {
@@ -382,15 +395,43 @@ export class SimQueryComponent implements OnInit {
     convertOrder(order) {
         order.caid = this.config.getProducts().find(item => item.caid === order.caid).caname;
         order.acid = this.config.get("asset_account").find(item => item.acid === order.acid).acname;
-        // order.trid = this.strategys.find(item => item.trid === order.trid).trname;
-        // console.log(this.strategys)
-        // console.log(order)
         order.directive = this.mapDirective(order.directive);
         order.offset_flag = this.mapOffset(order.offset_flag);
         order.execution = this.mapExecution(order.execution);
         order.orderstat = this.mapOrderStat(order.orderstat);
         order.addordertype = this.mapOrderType(order.addordertype);
-        order.ukcode = this.secuInfo.getSecuinfoByUKey(order.ukcode)[order.ukcode].SecuAbbr;
+    }
+
+    convertHold(hold) {
+        hold.acid = this.config.get("asset_account").find(item => item.acid === hold.acid).acname;
+        hold.satype = this.mapHoldtype(hold.satype);
+        hold.marketid = this.mapMarket(hold.marketid);
+    }
+
+    mapHoldtype(type) {
+        switch(Number(type)) {
+            case 10:
+                return "底仓"
+            case 11:
+                return "外部底仓"
+            case 20:
+                return "预约券"
+            case 21:
+                return "市场券"
+        }
+    }
+
+    mapMarket(type) {
+        switch(Number(type)) {
+            case 0:
+                return "无"
+            case 1:
+                return "深圳"
+            case 2:
+                return "上海"
+            case 3:
+                return "all"
+        }
     }
 
     mapDirective(type) {
@@ -444,7 +485,7 @@ export class SimQueryComponent implements OnInit {
                 key: "ukcode"
             }, 
             {
-                field: "交易所证券code",
+                field: "证券代码",
                 key: "marketcode"
             }, 
             {
@@ -472,7 +513,7 @@ export class SimQueryComponent implements OnInit {
                 key: "ordertm"
             }, 
             {
-                field: "买/卖", // "成交金额"
+                field: "成交金额", // "成交金额"
                 key: "tradeamt"
             }, 
             {
@@ -486,6 +527,7 @@ export class SimQueryComponent implements OnInit {
     }
 
     getHoldRow(hold=null) {
+        hold && this.convertHold(hold);
         const fields = [
             {
                 field: "交易日期",
@@ -516,7 +558,7 @@ export class SimQueryComponent implements OnInit {
                 key: "marketid"
             }, 
             {
-                field: "交易所证券code",
+                field: "证券代码",
                 key: "marketcode"
             }, 
             {
