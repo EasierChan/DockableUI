@@ -265,8 +265,8 @@ export class AppComponent implements OnInit, OnDestroy {
             return;
         }
 
-        if (this.codes[0].symbolCode.endsWith(".csv")
-            || this.codes[1].symbolCode.endsWith(".csv")) {
+        if (this.codes[0].symbolCode.endsWith(".bkt")
+            || this.codes[1].symbolCode.endsWith(".bkt")) {
             let nickCodes = [this.codes[0].symbolCode, this.codes[1].symbolCode];
             let ukeys = [0, 0];
 
@@ -296,7 +296,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
             let group2 = {};
             let ok2 = true;
-            if (this.codes[1].symbolCode.endsWith(".csv")) {
+            if (this.codes[1].symbolCode.endsWith(".bkt")) {
                 ok2 = false;
 
                 File.readPCF(this.codes[1].symbolCode).then((basket) => {
