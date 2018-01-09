@@ -131,8 +131,8 @@ export class UserComponent implements OnInit {
                     this.configBll.set("tcp-connect", false);
 
                     if (this.appSrv.isLoginTrade()) {
-                        MessageBox.show("warning", "Server Error", "Trade Connection Close!");
                         this.appSrv.setLoginTrade(false);
+                        MessageBox.show("warning", "Server Error", "Trade Connection Close!");
                     }
                 };
             };
@@ -147,7 +147,7 @@ export class UserComponent implements OnInit {
     }
 
     login() {
-        if (this.loginState > 0) {
+        if (this.loginState === 1) {
             return;
         }
 

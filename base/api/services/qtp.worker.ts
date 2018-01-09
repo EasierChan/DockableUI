@@ -263,7 +263,7 @@ export class QtpService {
             if (this.onConnect)
                 this.onConnect();
         });
-    };
+    }
 
     connect(port, host = "127.0.0.1") {
         this._port = port;

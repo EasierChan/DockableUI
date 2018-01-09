@@ -38,7 +38,7 @@ class SecuMaster {
 
         let [addr, port] = UConfig.default.endpoints[0].quote_addr.split(":");
         SecuMaster.secumasterData = "ukeycode" + SecuMaster.field_sep + "jycode" + SecuMaster.field_sep + "inputcode" + SecuMaster.field_sep +
-        "chabbr" + SecuMaster.field_sep + "windcode" + SecuMaster.field_sep + "tradingtime" + SecuMaster.field_sep + "presettlement" + SecuMaster.line_sep;
+            "chabbr" + SecuMaster.field_sep + "windcode" + SecuMaster.field_sep + "tradingtime" + SecuMaster.field_sep + "presettlement" + SecuMaster.line_sep;
         let timestamp: Date = new Date();
         let stimestamp = timestamp.getFullYear() + ("0" + (timestamp.getMonth() + 1)).slice(-2) +
             ("0" + timestamp.getDate()).slice(-2) + ("0" + timestamp.getHours()).slice(-2) + ("0" + timestamp.getMinutes()).slice(-2) +
@@ -54,8 +54,8 @@ class SecuMaster {
                         let secuData = "";
                         let inputcodeArr = msg.content.Structs[i].input_code.split(",");
                         secuData = msg.content.Structs[i].ukey + SecuMaster.field_sep + msg.content.Structs[i].jy_code + SecuMaster.field_sep + inputcodeArr[0] + SecuMaster.field_sep +
-                        msg.content.Structs[i].market_abbr + SecuMaster.field_sep + msg.content.Structs[i].wind_code + SecuMaster.field_sep + msg.content.Structs[i].trading_time + SecuMaster.field_sep +
-                        msg.content.Structs[i].pre_settlement + SecuMaster.line_sep;
+                            msg.content.Structs[i].market_abbr + SecuMaster.field_sep + msg.content.Structs[i].wind_code + SecuMaster.field_sep + msg.content.Structs[i].trading_time + SecuMaster.field_sep +
+                            msg.content.Structs[i].pre_settlement + SecuMaster.line_sep;
                         SecuMaster.secumasterData += secuData;
                     }
                     if (msg.content.IsLast === "Y") {
@@ -77,7 +77,7 @@ class SecuMaster {
                         } else {
                             console.log("needSerialID", SecuMaster.secumasterData.length, msg.content.Sum, SecuMaster.SerialIDArray.length, SecuMaster.needSerialIDArray, SecuMaster.needSerialIDArray.length);
                             SecuMaster.SerialIDArray = [];
-                            IP20Factory.instance.send(142, 26, { Seqno: 3, SecurityID: 0, TableType: 5, MarketID: 0, Date: 0, SerialID: SecuMaster.needSerialIDArray, PackSize: 10, Field: "ukey,market_abbr,jy_code,wind_code,pre_settlement,trading_time,input_code" });                        
+                            IP20Factory.instance.send(142, 26, { Seqno: 3, SecurityID: 0, TableType: 5, MarketID: 0, Date: 0, SerialID: SecuMaster.needSerialIDArray, PackSize: 10, Field: "ukey,market_abbr,jy_code,wind_code,pre_settlement,trading_time,input_code" });
                         }
                     }
                 }

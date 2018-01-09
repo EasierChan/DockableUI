@@ -14,7 +14,10 @@ import {
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox, File } from "../../base/api/services/backend.service";
+import {
+    AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox,
+    File, Environment, ULogger
+} from "../../base/api/services/backend.service";
 import * as echarts from "echarts";
 
 /**
@@ -65,7 +68,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
     onReady(option: any) {
         this.option = option;
-        this.quote.connect(this.option.port, this.option.host);
         let language = this.option.lang;
         switch (language) {
             case "zh-cn":
@@ -94,6 +96,10 @@ export class AppComponent implements OnInit, OnDestroy {
                     console.info(`quote ans=>${msg}`);
                     if (afterLogin)
                         afterLogin.call(this);
+
+                    if (this.kwlist.length > 0) {
+                        this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
+                    }
 
                     if (this.quoteHeart !== null) {
                         clearInterval(this.quoteHeart);
@@ -147,15 +153,24 @@ export class AppComponent implements OnInit, OnDestroy {
         this.statusbar = new StatusBar();
         let info = new StatusBarItem("INFO");
         info.section = "right";
-        info.hover = () => {
-            this.bTip = true;
-        };
-        info.blur = () => {
-            this.bTip = false;
-        };
+        info.hover = () => { this.bTip = true; };
+        info.blur = () => { this.bTip = false; };
         this.statusbar.items.push(info);
-        this.loginTGW(null);
         this.registerListeners();
+
+        this.quote.connect(this.option.port, this.option.host);
+        this.quote.onConnect = () => {
+            this.loginTGW(null);
+        };
+
+        this.quote.onClose = () => {
+            if (this.quoteHeart !== null) {
+                clearInterval(this.quoteHeart);
+                this.quoteHeart = null;
+            }
+        };
+
+        ULogger.init(`${this.option.name}.log`, Environment.getDataPath(this.apptype));
     }
 
     registerListeners() {
@@ -249,10 +264,12 @@ export class AppComponent implements OnInit, OnDestroy {
                 this.lines[0].coeffs[0] = basket.params["BasketMultiplier"] || "1";
 
                 basket.components.forEach(item => {
-                    group1[item.code].ukey = this.secuinfo.getSecuinfoByWindCodes([item.code]);
-                    group1[item.code].count = item.amount;
-                    group1[item.code].replace_amount = item.cash_rep;
-                    this.groupUKeys.push(group1[item.code].ukey);
+                    let infoArr = this.secuinfo.getSecuinfoByWindCodes([item.code]);
+
+                    if (infoArr.length > 0) {
+                        group1[item.code] = { ukey: infoArr[0].ukey, count: item.amount, replace_amount: item.cash_rep };
+                        this.groupUKeys.push(group1[item.code].ukey);
+                    }
                 });
 
                 ok1 = true;
@@ -300,6 +317,7 @@ export class AppComponent implements OnInit, OnDestroy {
             }, 100);
         } else {
             console.error(`first is must be basket file.`);
+            this.addTips(`first is must be basket file.`);
         }
     }
 
@@ -317,7 +335,7 @@ export class AppComponent implements OnInit, OnDestroy {
             } else {
                 console.info(`filename = ${filenames}`);
             }
-        }, [{ name: "股票组合(csv文件)", extensions: ["csv"] }]);
+        }, [{ name: "股票组合(bkt文件)", extensions: ["bkt"] }]);
     }
 
     changeChartOption(type: number) {
