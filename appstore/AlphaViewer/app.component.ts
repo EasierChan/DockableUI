@@ -14,7 +14,10 @@ import {
     VBox, HBox, TextBox, Button, DockContainer, ChartViewer, StatusBar, StatusBarItem
 } from "../../base/controls/control";
 import { IP20Service } from "../../base/api/services/ip20.service";
-import { AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox, File } from "../../base/api/services/backend.service";
+import {
+    AppStateCheckerRef, SecuMasterService, TranslateService, MessageBox,
+    File, Environment, ULogger
+} from "../../base/api/services/backend.service";
 import * as echarts from "echarts";
 
 /**
@@ -65,7 +68,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
     onReady(option: any) {
         this.option = option;
-        this.quote.connect(this.option.port, this.option.host);
         let language = this.option.lang;
         switch (language) {
             case "zh-cn":
@@ -147,15 +149,23 @@ export class AppComponent implements OnInit, OnDestroy {
         this.statusbar = new StatusBar();
         let info = new StatusBarItem("INFO");
         info.section = "right";
-        info.hover = () => {
-            this.bTip = true;
-        };
-        info.blur = () => {
-            this.bTip = false;
-        };
+        info.hover = () => { this.bTip = true; };
+        info.blur = () => { this.bTip = false; };
         this.statusbar.items.push(info);
-        this.loginTGW(null);
-        this.registerListeners();
+
+        this.quote.connect(this.option.port, this.option.host);
+        this.quote.onConnect = () => {
+            this.loginTGW(null);
+        };
+
+        this.quote.onClose = () => {
+            if (this.quoteHeart !== null) {
+                clearInterval(this.quoteHeart);
+                this.quoteHeart = null;
+            }
+        };
+
+        ULogger.init(`${this.option.name}.log`, Environment.getDataPath(this.apptype));
     }
 
     registerListeners() {
