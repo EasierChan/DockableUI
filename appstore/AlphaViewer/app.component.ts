@@ -97,6 +97,10 @@ export class AppComponent implements OnInit, OnDestroy {
                     if (afterLogin)
                         afterLogin.call(this);
 
+                    if (this.kwlist.length > 0) {
+                        this.quote.send(17, 101, { topic: 3112, kwlist: this.kwlist });
+                    }
+
                     if (this.quoteHeart !== null) {
                         clearInterval(this.quoteHeart);
                         this.quoteHeart = null;
