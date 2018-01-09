@@ -15,23 +15,8 @@
             <input type="date" #enddate [ngModel]="endDate" (change)="resetEnd(enddate.value)" >
         </div>
         <div class="select-item u-row">
-            <button class="search-btn" (click)="search()">搜索</button>
+            <button class="search-btn btn-primary" (click)="search()">搜索</button>
         </div>
-        <!--<div class="u-row export-item">
-            <button class="search-btn" (click)="downLoad()">导出</button>
-            <span>(导出所有页</span>
-            <input type="checkbox"[(ngModel)]="isDownedAll">
-            <span>)</span>
-        </div>
-        <div class="pagination u-row">
-            <li (click)="previousPage()">
-                <span aria-hidden="true" class="previous-btn">上一页</span>
-            </li>
-            <span class="page-num">第{{pagination.currentPage}}/{{pagination.maxPage}}页</span>
-            <li (click)="nextPage()">
-                <span aria-hidden="true" class="next-btn">下一页</span>
-            </li>
-        </div>-->
     </div>
 
     <div class="main u-row">
@@ -41,14 +26,9 @@
                     订单列表
                     <span class="text-brackets" *ngIf="cache.startDate && cache.endDate">({{cache.startDate}}至{{cache.endDate}})</span>
                 </span>
-                <span class="glyphicon glyphicon-download-alt" (click)="downLoadOrder(isOrderDownAll.value)" ></span>
-                <div class="checkbox-group">
-                    <label>
-                        (全部
-                        <input #isOrderDownAll="ngModel" type="checkbox" [ngModel]="false">
-                        )
-                    </label>
-                </div>
+                <span class="glyphicon glyphicon-download-alt" (click)="downLoadOrder()" ></span>
+                <span>(导出)</span>
+
                 <div class="pagination">
                     <button class="previous-btn" (click)="flipOrderPrevious()">上一页</button>
                     <span>第{{orderPagination.currentPage}}/{{orderPagination.maxPage}}页</span>
@@ -63,14 +43,8 @@
                     仓位
                     <span class="text-brackets" *ngIf="cache.endDate">({{cache.endDate}})</span>
                 </span>
-                <span class="glyphicon glyphicon-download-alt" (click)="downLoadHold(isHoldDownAll.value)"></span>
-                <div class="checkbox-group">
-                    <label>
-                        (全部
-                        <input #isHoldDownAll="ngModel" type="checkbox" [ngModel]="false" >
-                        )
-                    </label>
-                </div>
+                <span class="glyphicon glyphicon-download-alt" (click)="downLoadHold()"></span>
+                <span>(导出)</span>
                 <div class="pagination">
                     <button class="previous-btn" (click)="flipHoldPrevious()">上一页</button>
                     <span>第{{holdPagination.currentPage}}/{{holdPagination.maxPage}}页</span>
