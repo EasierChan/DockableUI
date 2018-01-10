@@ -7,7 +7,7 @@ import * as _ from "lodash";
 export class QuoteDal {
     quotePoint = new IP20Service();
     quoteHeart = null;
-    topicMap = {};
+    ukey_client_map = {};
     wsServer: WebSocket.Server;
     clients: any[];
     kwlist: number[];
@@ -25,16 +25,62 @@ export class QuoteDal {
             this.clients.push(client);
 
             client.on("message", (ukeyList) => {
-                let ukeys = JSON.parse(ukeyList);
-                client.ukeys = _.union(client.ukeys || [], ukeys);
+                let ukeys: number[] = JSON.parse(ukeyList);
+
+                (client.ukeys || []).forEach(ukey => {
+                    if (this.ukey_client_map.hasOwnProperty(ukey)) {
+                        let idx = this.ukey_client_map[ukey].indexOf(client);
+                        if (idx >= 0) {
+                            this.ukey_client_map[ukey].splice(idx, 1);
+
+                            if (this.ukey_client_map[ukey].length === 0) {
+                                delete this.ukey_client_map[ukey];
+                                this.kwlist.splice(this.kwlist.indexOf(ukey), 1);
+                            }
+                        }
+                    }
+                });
+
+                client.ukeys = ukeys;
                 this.kwlist = _.union(this.kwlist, ukeys);
+
+                ukeys.forEach((ukey) => {
+                    if (this.ukey_client_map[ukey] === undefined) {
+                        this.ukey_client_map[ukey] = [client];
+                    } else {
+                        if (!this.ukey_client_map[ukey].includes(client)) {
+                            this.ukey_client_map[ukey].push(client);
+                        } else {
+                            console.info(`duplicate client on same key.`);
+                        }
+                    }
+
+                    console.info(`ukey[${ukey}] length = ${this.ukey_client_map[ukey].length}`);
+                });
+
+                console.info(client.ukeys, this.kwlist);
                 this.quotePoint.send(17, 101, { topic: 3112, kwlist: this.kwlist });
             });
 
             client.on("close", () => {
                 console.info(`client close`);
                 this.clients.splice(this.clients.indexOf(client), 1);
-                this.kwlist = _.difference(this.kwlist, client.ukeys);
+
+                (client.ukeys || []).forEach(ukey => {
+                    if (this.ukey_client_map.hasOwnProperty(ukey)) {
+                        let idx = this.ukey_client_map[ukey].indexOf(client);
+                        if (idx >= 0) {
+                            this.ukey_client_map[ukey].splice(idx, 1);
+
+                            if (this.ukey_client_map[ukey].length === 0) {
+                                delete this.ukey_client_map[ukey];
+                                this.kwlist.splice(this.kwlist.indexOf(ukey), 1);
+                            }
+                        }
+                    }
+                });
+
+                console.info(this.kwlist);
                 this.quotePoint.send(17, 101, { topic: 3112, kwlist: this.kwlist });
             });
 
@@ -80,7 +126,8 @@ export class QuoteDal {
                 callback: (msg) => {
                     // logger.info(`tgw ans=>${msg}`);
                 }
-            }, {
+            },
+            {
                 appid: 17,
                 packid: 110,
                 callback: (msg) => {

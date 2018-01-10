@@ -2540,6 +2540,9 @@ export class BookViewer extends VBox {
 
         // events
         this.code.OnClick = (item) => {
+            if (item === undefined)
+                return;
+
             let len = this.table.rows.length;
             for (let i = 0; i < len; ++i) {
                 this.table.rows[i].cells[0].Text = "";
