@@ -68,16 +68,17 @@ export class AppComponent implements OnInit {
     private dd_Strategy: DropDown;
     private dd_symbol: DropDown;
     private languageType: number = 1;　 // * 0,English 1,chinese
-    private dd_Action: any;
-    private txt_UKey: any;
-    private txt_Symbol: any;
-    private txt_Price: any;
-    private txt_Volume: any;
+    private dd_Action: DropDown;
+    private txt_UKey: MetaControl;
+    private txt_Symbol: MetaControl;
+    private txt_Price: MetaControl;
+    private txt_Volume: MetaControl;
     coms_directive: any = {};
     coms_statusType: any = {};
     coms_orderType: any = {};
     currency_type: any = {};
     coms_positionType: any = {};
+    coms_hedgeFlagType: any = {};
     orderStateList: any[] = [];
 
     constructor(private tradePoint: QtpService, private ref: ChangeDetectorRef, private state: AppStateCheckerRef, private secuinfo: SecuMasterService,
@@ -167,6 +168,12 @@ export class AppComponent implements OnInit {
         this.coms_positionType = {
             1: "多仓",
             2: "空仓"
+        };
+        this.coms_hedgeFlagType = {
+            "0": "kHftNone",         // 期货产品外，为０
+            "1": "投机",  // kHftSpeculation
+            "2": "套利",    // kHftArbitrage
+            "3": "套保"       // kHftHedge
         };
         let leftAlign = 20;
         let rowSep = 5;
@@ -309,7 +316,7 @@ export class AppComponent implements OnInit {
         this.profitAndLossTable = new DataTable("table2");
         this.profitAndLossTable.height = 200;
         this.profitAndLossTable.RowIndex = false;
-        ["Totalamt", "Validamt", "Frozenamt", "Loan", "Fee", "SubjectAmount", "Validloan", "Stockloan", "Stockvalue", "TotalMargin", "Buymargin", "SellMargin", "ClosePL", "HoldPosipl", "MtmClosepl", "MtmPosipl", "FuturesValue", "StockValidamt", "FuturesValidamt", "SpifCap", "CommodityFuturesCap", "RiskExposure", "CommodityFuturesNetting"].forEach(item => {
+        ["Totalamt", "Validamt", "Frozenamt", "Loan", "Fee", "SubjectAmount", "Validloan", "Stockloan", "Stockvalue", "TotalMargin", "Buymargin", "SellMargin", "ClosePL", "HoldPosipl", "MtmClosepl", "MtmPosipl", "Stockvalue", "FuturesValue", "StockValidamt", "FuturesValidamt", "SpifCap", "CommodityFuturesCap", "RiskExposure", "CommodityFuturesNetting"].forEach(item => {
             this.profitAndLossTable.addColumn(this.langServ.get(item));
         });
         profitAndLossContent.addChild(this.profitAndLossTable);
@@ -339,7 +346,7 @@ export class AppComponent implements OnInit {
         this.productNetChart = new ChartViewer();
         // productNetPage.onClick = () => {
         //     setTimeout(() => {
-                this.productNetChart.setOption(this.createProductNetChart().option);
+        this.productNetChart.setOption(this.createProductNetChart().option);
         //     }, 500);
         // };
         productNetContent.addChild(this.productNetChart);
@@ -456,6 +463,9 @@ export class AppComponent implements OnInit {
         let panel2 = new TabPanel();
         let bookviewer = new BookViewer(this.langServ);
         bookviewer.onCellDBClick = (item, cellIndex, rowIndex, row) => {
+            if (cellIndex === 2 || cellIndex === 1 && rowIndex < 10)
+                this.dd_Action.SelectedItem = this.dd_Action.Items[1];
+            else this.dd_Action.SelectedItem = this.dd_Action.Items[0];
             if (bookviewer.ukey !== undefined) {
                 this.txt_UKey.Text = bookviewer.ukey;
                 let stockSecuinfo = this.secuinfo.getSecuinfoByUKey(bookviewer.ukey);
@@ -648,14 +658,14 @@ export class AppComponent implements OnInit {
                 let row = this.tradeAccountTable.newRow();
                 row.cells[0].Text = item.caname;
                 row.cells[1].Text = item.marketid;
-                row.cells[2].Text = item.hedgeflag;
+                row.cells[2].Text = this.coms_hedgeFlagType[item.hedgeflag];
                 row.cells[3].Text = item.trcode;
                 row.cells[4].Text = item.tracname;
-                row.cells[5].Text = item.currencyid;
+                row.cells[5].Text = this.currency_type[item.currencyid];
                 row.cells[6].Text = item.chid;
                 row.cells[7].Text = item.creator;
                 row.cells[8].Text = item.createtime;
-                row.cells[9].Text = item.stat;
+                row.cells[9].Text = item.stat === 1 ? "可用" : "不可用";
             });
         }, this);
         // 推送OrderPush
@@ -728,51 +738,41 @@ export class AppComponent implements OnInit {
                 }
             }
         });
-        this.tradePoint.onTopic(25200, (key, data) => {
-            let keyObj = JSON.parse(key.toSsetOptiontring());
-            let dataObj = JSON.parse(data.toString()).data;
-            console.log(dataObj);
+        this.tradePoint.onTopic(4101, (key, dataObj) => {
+            let data = JSON.parse(dataObj.toString());
+            if (data.msret.msgcode !== "00") {
+                let rowLog = this.logTable.newRow();
+                rowLog.cells[0].Text = this.getNowDate("time", false);
+                rowLog.cells[1].Text = "获取产品信息推送： " + " msg = " + data.msret.msg;
+                return;
+            }
+            let productData = data.body[0];
+            if (this.profitAndLossTable.rows.length === 0)
+                this.addProfitAndLossRow(productData);
+            else
+                this.addProfitAndLossRow(productData, this.profitAndLossTable.rows[0]);
+            console.log(data);
         });
-        // this.tradePoint.addSlot({
-        //     service: 252,
-        //     msgtype: 11005,
-        //     callback: (msg) => {
-        //         let data = JSON.parse(msg.toString());
-        //         if (data.msret.msgcode !== "00") {
-        //             let rowLog = this.logTable.newRow();
-        //             rowLog.cells[0].Text = this.getNowDate("time", false);
-        //             rowLog.cells[1].Text = "获取产品信息推送： " + " msg = " + data.msret.msg;
-        //             return;
-        //         }
-        //         let productData = data.body[0];
-        //         let row = this.profitAndLossTable.newRow();
-        //         row.cells[0].Text = "资金余额";
-        //         row.cells[1].Text = "交易可用金额";
-        //         row.cells[2].Text = "交易冻结金额";
-        //         row.cells[3].Text = "融资负债";
-        //         row.cells[4].Text = "手续费";
-        //         row.cells[5].Text = "外部资产总价值";
-        //         row.cells[6].Text = productData.validloan;
-        //         row.cells[7].Text = productData.stockloan;
-        //         row.cells[8].Text = productData.stockvalue;
-        //         row.cells[9].Text = productData.totalmargin;
-        //         row.cells[10].Text = productData.buymargin;
-        //         row.cells[11].Text = productData.sellmargin;
-        //         row.cells[12].Text = productData.hold_closepl;
-        //         row.cells[13].Text = productData.hold_posipl;
-        //         row.cells[14].Text = productData.mtm_closepl;
-        //         row.cells[15].Text = productData.mtm_posipl;
-        //         row.cells[16].Text = productData.stock_value;
-        //         row.cells[17].Text = productData.futures_value;
-        //         row.cells[18].Text = productData.stock_validamt;
-        //         row.cells[19].Text = productData.futures_validamt;
-        //         row.cells[20].Text = productData.spifCap;
-        //         row.cells[21].Text = productData.commodityFuturesCap;
-        //         row.cells[22].Text = productData.risk_exposure;
-        //         row.cells[23].Text = productData.commodityFuturesNetting;
-        //         console.log(data);
-        //     }
-        // });
+        this.tradePoint.addSlot({
+            service: 41,
+            msgtype: 11005,
+            callback: (msg) => {
+                console.log("===============" + new Date());
+                let data = JSON.parse(msg.toString());
+                if (data.msret.msgcode !== "00") {
+                    let rowLog = this.logTable.newRow();
+                    rowLog.cells[0].Text = this.getNowDate("time", false);
+                    rowLog.cells[1].Text = "获取产品信息： " + " msg = " + data.msret.msg;
+                    return;
+                }
+                let productData = data.body[0];
+                if (this.profitAndLossTable.rows.length === 0)
+                    this.addProfitAndLossRow(productData);
+                else
+                    this.addProfitAndLossRow(productData, this.profitAndLossTable.rows[0]);
+                console.log(data);
+            }
+        });
         // 产品净值
 
         // this.productNetChart.addC
@@ -807,7 +807,6 @@ export class AppComponent implements OnInit {
                 };
             }
         }, this);
-
         btn_clear.OnClick = () => {
             this.dialog = null;
         };
@@ -837,6 +836,45 @@ export class AppComponent implements OnInit {
 
             this.tradePoint.send(COMS_MSG.kMtFSendOrder, sendOrder.toBuffer(), ServiceType.kCOMS);
         };
+    }
+
+    registryListeners() {
+        this.tradePoint.addSlot(
+            {
+                service: ServiceType.kFGS,
+                msgtype: FGS_MSG.kFGSAns,
+                callback: (msg) => {
+                    console.info(msg.toString());
+                }
+            }, {
+                service: ServiceType.kLogin,
+                msgtype: FGS_MSG.kLoginAns,
+                callback: (msg) => {
+                    this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.productId } } }));
+                    this.tradePoint.sendToCMS("getAssetAccount", JSON.stringify({
+                        // 查询资产账户
+                        data: {
+                            head: { userid: this.userId },
+                            body: { caid: this.productId }
+                        }
+                    }));
+                    this.tradePoint.sendToCMS("getTradeAccount", JSON.stringify({
+                        // 查询交易账户
+                        data: {
+                            head: { userid: this.userId },
+                            body: { caid: this.productId }
+                        }
+                    }));
+                    console.log("===============" + new Date());
+                    this.tradePoint.send(11005, JSON.stringify({
+                        data: {
+                            head: { userid: this.userId, reqsn: 1 },
+                            body: { caid: this.productId }
+                        }
+                    }), 41);
+                    this.tradePoint.subscribe(4101, [Number(this.productId)]);
+                }
+            });
     }
     addOrderStatRow(ans, nowRow?) {
         let stockSecuinfo = this.secuinfo.getSecuinfoByUKey(ans.chronos_order.ukey);
@@ -875,7 +913,7 @@ export class AppComponent implements OnInit {
             } else {
                 rowFinish = this.finishOrderTable.newRow();
             }
-            rowFinish.cells[0].Data = ans.chro25200nos_order.term_id;
+            rowFinish.cells[0].Data = ans.chronos_order.term_id;
             rowFinish.cells[0].Text = ans.chronos_order.order_ref;
             rowFinish.cells[1].Text = ans.chronos_order.ukey;
             if (stockSecuinfo[ans.chronos_order.ukey] !== undefined) {
@@ -944,6 +982,40 @@ export class AppComponent implements OnInit {
         this.dd_Account.addItem({ Text: this.acidObj[ans.fund_account_id], Value: ans.fund_account_id });
         this.ref.detectChanges();
     }
+
+    addProfitAndLossRow(productData, nowRow?) {
+        let row;
+        if (nowRow) {
+            row = nowRow;
+        } else {
+            row = this.profitAndLossTable.newRow();
+        }
+        row.cells[0].Text = productData.totalamt;
+        row.cells[1].Text = productData.validamt;
+        row.cells[2].Text = productData.frozenamt;
+        row.cells[3].Text = productData.loan;
+        row.cells[4].Text = productData.fee;
+        row.cells[5].Text = productData.subject_amount;
+        row.cells[6].Text = productData.validloan;
+        row.cells[7].Text = productData.stockloan;
+        row.cells[8].Text = productData.stockvalue;
+        row.cells[9].Text = productData.totalmargin;
+        row.cells[10].Text = productData.buymargin;
+        row.cells[11].Text = productData.sellmargin;
+        row.cells[12].Text = productData.hold_closepl;
+        row.cells[13].Text = productData.hold_posipl;
+        row.cells[14].Text = productData.mtm_closepl;
+        row.cells[15].Text = productData.mtm_posipl;
+        row.cells[16].Text = productData.stock_value;
+        row.cells[17].Text = productData.futures_value;
+        row.cells[18].Text = productData.stock_validamt;
+        row.cells[19].Text = productData.futures_validamt;
+        row.cells[20].Text = productData.spifCap;
+        row.cells[21].Text = productData.commodityFuturesCap;
+        row.cells[22].Text = productData.risk_exposure;
+        row.cells[23].Text = productData.commodityFuturesNetting;
+        this.ref.detectChanges();
+    }
     addZero(num) {
         if (num < 10)
             return "0" + num;
@@ -975,36 +1047,6 @@ export class AppComponent implements OnInit {
             num = "0" + num;
         }
         return num.slice(0, 2) + ":" + num.slice(2, 4) + ":" + num.slice(4, 6) + ":" + num.slice(6);
-    }
-    registryListeners() {
-        this.tradePoint.addSlot({
-            service: ServiceType.kLogin,
-            msgtype: FGS_MSG.kLoginAns,
-            callback: (msg) => {
-                this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.productId } } }));
-                this.tradePoint.sendToCMS("getAssetAccount", JSON.stringify({
-                    // 查询资产账户
-                    data: {
-                        head: { userid: this.userId },
-                        body: { caid: this.productId }
-                    }
-                }));
-                this.tradePoint.sendToCMS("getTradeAccount", JSON.stringify({
-                    // 查询交易账户
-                    data: {
-                        head: { userid: this.userId },
-                        body: { caid: this.productId }
-                    }
-                }));
-                // this.tradePoint.send(11005, JSON.stringify({
-                //     data: {
-                //         head: { userid: this.userId, reqsn: 1 },
-                //         body: { caid: this.productId }
-                //     }
-                // }), 252);
-                this.tradePoint.subscribe(25200, [11005]);
-            }
-        });
     }
 
     createProductNetChart() {
