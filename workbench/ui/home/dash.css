@@ -170,8 +170,8 @@ section {
    
 }
 .todoCon .todoInput .addTodoList:hover,
-.todoCon .todoInput .addTodoList:active{
-    background: rgb(131, 191, 246);
+.todoCon .todoInput .addTodoList:active{    
+    background: #52849c;
 }
 
 
