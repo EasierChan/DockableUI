@@ -512,7 +512,7 @@ export class AppComponent implements OnInit {
             let volume = parseInt(txt_Volume.Text);
             let actionValue = this.dd_Action.SelectedItem.Value;
 
-            if (isNaN(ukey) || isNaN(price) || price > Math.pow(2, 18) || isNaN(volume) || Number.isSafeInteger(volume)) {
+            if (isNaN(ukey) || isNaN(price) || price > Math.pow(2, 18) || isNaN(volume) || !Number.isSafeInteger(volume)) {
                 alert("输入不合法");
                 return;
             }
