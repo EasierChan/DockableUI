@@ -125,46 +125,16 @@ export class StrategyDealer {
     connectState: number;
     dataList: { type: number, subtype: number, data: Object[] }[];
     chunkLen: number;
+    order_record_list: ComOrderRecord[] = [];
+    record_timer: any;
+    record_last_time: number = 0;
+    private readonly record_freq = 1000;
 
     constructor(appid: number, loginInfo) {
         this.tradePoint = new QtpService();
         this.appid = appid;
         this.loginInfo = loginInfo;
         this.connectState = 0;
-        this.dataList = [];
-        this.chunkLen = 30;
-
-        // setInterval(() => {
-        //     let obj = { event: "ss-data", content: [] };
-        //     let count = this.chunkLen;
-        //     let i = 0;
-
-        //     for (; i < this.dataList.length; ++i) {
-        //         if (count > 0) {
-        //             if (this.dataList[i].data.length > count) {
-        //                 obj.content.push({ type: this.dataList[i].type, subtype: this.dataList[i].subtype, data: this.dataList[i].data.splice(0, count) });
-        //                 break;
-        //             } else {
-        //                 obj.content.push(this.dataList[i]);
-        //                 count -= this.dataList[i].data.length;
-        //             }
-
-        //             continue;
-        //         }
-
-        //         break;
-        //     }
-
-        //     if (obj.content.length > 0) {
-        //         process.send(obj);
-        //         console.error(`render to GUI[${Date.now()}] => ${obj.content.length}, datalist = ${this.dataList.length}, i=${i}`);
-        //         obj.content.length = 0;
-
-        //         this.dataList.splice(0, i);
-        //     }
-
-        //     count = this.chunkLen;
-        // }, 1000);
     }
 
     connect(port, host) {
@@ -233,7 +203,6 @@ export class StrategyDealer {
         let offset: number = Header.len;
         let count = 0;
         let msg: Message | any;
-        let msgArr = [];
 
         switch (header.type) {
             case 2001: // ComGuiAckStrategy start
@@ -241,17 +210,22 @@ export class StrategyDealer {
             case 2005: // ComGuiAckStrategy pause
             case 2050: // ComGuiAckStrategy watch
             case 2031: // ComGuiAckStrategy submit
+                let gui_ack_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
                 for (let i = 0; i < count; ++i) {
                     msg = new ComGuiAckStrategy();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    gui_ack_list.push(msg);
                 }
+
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: gui_ack_list } });
+                gui_ack_list = null;
                 break;
             case 2033:
             case 2011: // ComStrategyInfo
+                let info_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 let askOffset: number = 0;
@@ -262,18 +236,21 @@ export class StrategyDealer {
                 for (let i = 0; i < count; ++i) {
                     msg = new ComStrategyInfo();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    info_list.push(msg);
                     ask = new ComGuiAskStrategy();
                     ask.strategyid = msg.key;
                     ask.toBuffer().copy(askBuf, askOffset);
                 }
 
                 this.sendQtp({ type: 2028, subtype: 0, body: askBuf });
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: info_list } });
+                info_list = null;
                 askBuf = null;
                 ask = null;
                 askOffset = null;
                 break;
             case 2048: // ComTotalProfitInfo
+                let total_profit_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
@@ -284,7 +261,10 @@ export class StrategyDealer {
                     dataArr.push(msg);
                 }
 
-                msgArr.push({ subtype: header.subtype, content: dataArr });
+                total_profit_list.push({ subtype: header.subtype, content: dataArr });
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: total_profit_list } });
+                total_profit_list = null;
+                dataArr = null;
                 break;
             case 2000:
             case 2002:
@@ -293,13 +273,17 @@ export class StrategyDealer {
             case 2030:
             case 2029:
             case 2032:
+                let cfg_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 for (let i = 0; i < count; ++i) {
                     msg = new ComStrategyCfg();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    cfg_list.push(msg);
                 }
+
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: cfg_list } });
+                cfg_list = null;
                 break;
             case 2022:
             case 3011:
@@ -310,81 +294,127 @@ export class StrategyDealer {
                 for (let i = 0; i < count; ++i) {
                     msg = new ComOrderRecord();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    this.order_record_list.push(msg);
+                }
+
+                if (this.record_timer) {
+                    clearTimeout(this.record_timer);
+                    this.record_timer = null;
+                }
+
+                if (Date.now() - this.record_last_time > this.record_freq) {
+                    let type = header.type;
+                    let subtype = header.subtype;
+                    process.send({ event: "ss-data", content: { type: type, subtype: subtype, data: this.order_record_list } });
+                    this.order_record_list.length = 0;
+                    this.record_last_time = Date.now();
+                } else {
+                    this.record_timer = setTimeout(() => {
+                        let type = header.type;
+                        let subtype = header.subtype;
+                        process.send({ event: "ss-data", content: { type: type, subtype: subtype, data: this.order_record_list } });
+                        this.order_record_list.length = 0;
+                        this.record_last_time = Date.now();
+                    }, this.record_freq - (Date.now() - this.record_last_time));
                 }
                 break;
             case 2023: // ComProfitInfo
+                let profit_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
                 for (let i = 0; i < count; ++i) {
                     msg = new ComProfitInfo();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    profit_list.push(msg);
                 }
+
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: profit_list } });
+                profit_list = null;
                 break;
             case 2013:
+                let account_pos_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
                 for (let i = 0; i < count; ++i) {
                     msg = new ComAccountPos();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    account_pos_list.push(msg);
                 }
+
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: account_pos_list } });
+                account_pos_list = null;
                 break;
             case 3502:
             case 3504:
+                let record_pos_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 for (let i = 0; i < count; ++i) {
                     msg = new ComRecordPos();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    record_pos_list.push(msg);
                 }
+
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: record_pos_list } });
+                record_pos_list = null;
                 break;
             case 2015:
             case 2017:
+                let net_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
                 for (let i = 0; i < count; ++i) {
                     msg = new ComGWNetGuiInfo();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    net_list.push(msg);
                     logger.debug(`ComGWNetGuiInfo=>${msg}`);
                 }
+
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: net_list } });
+                net_list = null;
                 break;
             case 2025:
+                let arb_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
                 for (let i = 0; i < count; ++i) {
                     msg = new StatArbOrder();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    arb_list.push(msg);
                 }
+
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: arb_list } });
+                arb_list = null;
                 break;
             case 2021:
+                let orderstatus_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
                 for (let i = 0; i < count; ++i) {
                     msg = header.subtype === 0 ? new ComConOrderStatus() : new ComConOrderErrorInfo();
                     offset = msg.fromBuffer(content, offset);
-                    msgArr.push(msg);
+                    orderstatus_list.push(msg);
                 }
 
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: orderstatus_list } });
+                orderstatus_list = null;
                 break;
             case 2040:
+                let msgArr = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
                 msg = content.slice(offset, content.indexOf(0, offset)).toString();
-                console.info(msg);
                 msgArr.push(msg);
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: msgArr } });
                 break;
             case 5031:
             case 5021:
+                let fp_pos_list = [];
                 count = content.readUInt32LE(offset); offset += 4;
                 let account = content.readUIntLE(offset, 8); offset += 8;
                 count = content.readUInt32LE(offset); offset += 4;
@@ -396,24 +426,33 @@ export class StrategyDealer {
                     arr.push(msg);
                 }
 
-                msgArr.push({ account: account, data: arr, count: count });
+                fp_pos_list.push({ account: account, data: arr, count: count });
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: fp_pos_list } });
+                fp_pos_list = null;
                 arr = null;
                 account = null;
                 break;
             case 5022:
                 offset += 20;
-                msgArr.push(content.slice(offset, content.indexOf(0, offset)).toString("utf-8"));
+                let msg_5022 = [];
+                msg_5022.push(content.slice(offset, content.indexOf(0, offset)).toString("utf-8"));
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: msg_5022 } });
+                msg_5022 = null;
                 break;
             case 5024:
                 offset += 24;
+                let msg_5024 = [];
                 let dayPnl = content.readIntLE(offset, 8); offset += 8;
                 let onPnl = content.readIntLE(offset, 8); offset += 8;
                 let value = content.readIntLE(offset, 8); offset += 8;
-                msgArr.push({
+                msg_5024.push({
                     dayPnl: dayPnl,
                     onPnl: onPnl,
                     value: value
                 });
+
+                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: msg_5024 } });
+                msg_5024 = null;
                 break;
             default:
                 logger.warn(`unhandle msg=> type=${header.type}, subtype=${header.subtype}, msglen=${header.msglen}`);
@@ -422,11 +461,6 @@ export class StrategyDealer {
 
         msg = null;
         count = null;
-        let type = header.type;
-        let subtype = header.subtype;
-        // this.dataList.push({ type: type, subtype: subtype, data: msgArr });
-        process.send({ event: "ss-data", content: { type: type, subtype: subtype, data: msgArr } });
-        // logger.info(`count = ${this.dataList.length}`);
     }
 
     send(params) {
