@@ -176,6 +176,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
         });
         this.mainStockUk = this.selfStockData[0].ukey;
         this.selfStockTable.onRowDBClick = (rowItem, rowIndex) => {// 点击切换指数行情
+            d = new Date();
+            this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
             this.mainStock.preClose = rowItem.cells[2].Data;
             this.initSelfStockMarket(this.mainStock.preClose);
             this.selfStockTable.rows.forEach((item, index) => {
@@ -557,6 +559,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         // 最好的30股票
         this.tradePoint.addSlotOfCMS("getBestStocks", msg => {
+            d = new Date();
+            this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode !== "00") {
                 alert("getBestStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
@@ -588,6 +592,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
         // 最差的30股
         this.tradePoint.addSlotOfCMS("getWorstStocks", msg => {
+            d = new Date();
+            this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
             let data = JSON.parse(msg.toString());
             if (data.msret.msgcode !== "00") {
                 alert("getWorstStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
