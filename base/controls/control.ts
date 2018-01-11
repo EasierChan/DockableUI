@@ -1801,6 +1801,7 @@ export class DataTable extends Control {
             columns: null,
             rows: null,
             detectChanges: null,
+            retrieveNextView: null,
             tableHeaderClick: () => { },
             sortKey: null,
             bAsc: true,
@@ -1993,6 +1994,10 @@ export class DataTable extends Control {
                 }, DataTable.UP_LIMIT_OF_DETECT - (Date.now() - this._last_detect_time));
             }
         }
+    }
+
+    set retrieveNextView(value: (curIdx) => void) {
+        this.dataSource.retrieveNextView = value;
     }
 
     set pageSize(value: number) {

@@ -90,6 +90,14 @@ process.on("message", (m: WSIP20, sock) => {
         case "send":
             Sound.play(m.params.type);
             break;
+        case "history-order-record":
+            if (trade.history_record.type > 0) {
+                process.send({
+                    event: "ss-histroy-data",
+                    content: { type: trade.history_record.type, subtype: trade.history_record.subtype, data: trade.history_record.orders.splice(trade.history_record.orders.length > 1000 ? trade.history_record.orders.length - 1000 : 0) }
+                });
+            }
+            break;
         default:
             logger.error(`unvalid command => ${m.command}`);
             break;
@@ -126,6 +134,7 @@ export class StrategyDealer {
     dataList: { type: number, subtype: number, data: Object[] }[];
     chunkLen: number;
     order_record_list: ComOrderRecord[] = [];
+    history_record: { type: number, subtype: number, orders: ComOrderRecord[] };
     record_timer: any;
     record_last_time: number = 0;
     private readonly record_freq = 1000;
@@ -135,6 +144,7 @@ export class StrategyDealer {
         this.appid = appid;
         this.loginInfo = loginInfo;
         this.connectState = 0;
+        this.history_record = { type: 0, subtype: 0, orders: [] };
     }
 
     connect(port, host) {
@@ -294,7 +304,14 @@ export class StrategyDealer {
                 for (let i = 0; i < count; ++i) {
                     msg = new ComOrderRecord();
                     offset = msg.fromBuffer(content, offset);
-                    this.order_record_list.push(msg);
+
+                    if (this.record_last_time === 0) {
+                        this.history_record.type = header.type;
+                        this.history_record.subtype = header.subtype;
+                        this.history_record.orders.push(msg);
+                    } else {
+                        this.order_record_list.push(msg);
+                    }
                 }
 
                 if (this.record_timer) {
@@ -305,8 +322,19 @@ export class StrategyDealer {
                 if (Date.now() - this.record_last_time > this.record_freq) {
                     let type = header.type;
                     let subtype = header.subtype;
-                    process.send({ event: "ss-data", content: { type: type, subtype: subtype, data: this.order_record_list } });
-                    this.order_record_list.length = 0;
+
+                    if (this.record_last_time === 0) {
+                        process.send({
+                            event: "ss-data", content: {
+                                type: type, subtype: subtype,
+                                data: this.history_record.orders.splice(this.history_record.orders.length > 1000 ? this.history_record.orders.length - 1000 : 0)
+                            }
+                        });
+                    } else {
+                        process.send({ event: "ss-data", content: { type: type, subtype: subtype, data: this.order_record_list } });
+                        this.order_record_list.length = 0;
+                    }
+
                     this.record_last_time = Date.now();
                 } else {
                     this.record_timer = setTimeout(() => {
