@@ -1070,7 +1070,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             historyStockLineData.forEach((item, index, arr) => {
                                 let time = this.dashGetTime(item.t / 1000);
                                 this.historyMarketIndex = this.selfStockXdata.indexOf(time); // 当前行情在echarts中的位置
-                                if (this.historyMarketIndex > 0) {
+                                if (this.historyMarketIndex >= 0) {
                                     isAllNull = false;
                                     item.u = item.u * 100;
                                     item.c = item.c / 10000;

@@ -24,9 +24,21 @@
     overflow-y: auto;
 }
 .listCon .productCon{
-    background: #101727;
     padding: 10px;
     margin: 10px 0;
+    overflow: hidden;
+}
+.listCon .productCon .productBox{
+    background: #101727;
+    overflow: hidden;
+    width: 49.5%;
+    float: left;
+    margin-top: 10px;
+    padding: 10px;
+    
+}
+.listCon .productCon .productBox:nth-of-type(even){
+    margin-left: 1%;
 }
 .producAnalysis .fontCon{
     text-align: left;

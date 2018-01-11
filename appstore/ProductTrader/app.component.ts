@@ -4,7 +4,7 @@
  * desc: show loopback test.
  */
 
-import { Component, OnInit, ChangeDetectorRef } from "@angular/core";
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from "@angular/core";
 import {
     VBox, HBox, DropDown, DropDownItem, Button, DataTable, Label, TabPanel, TabPage, ChartViewer, TextBox, DockContainer, Splitter,
     Dialog, Section, EChart, MetaControl, BookViewer, CheckBox, DataTableRow
@@ -35,7 +35,7 @@ import { ECharts } from "echarts";
         IP20Service
     ]
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
     private readonly apptype = "product-trader";
     main: DockContainer;
     dialog: Dialog;
@@ -84,7 +84,6 @@ export class AppComponent implements OnInit {
     constructor(private tradePoint: QtpService, private ref: ChangeDetectorRef, private state: AppStateCheckerRef, private secuinfo: SecuMasterService,
         private appSrv: AppStoreService, private langServ: TranslateService, private quote: IP20Service) {
         this.state.onInit(this, this.onReady);
-        this.state.onDestory(this, this.onDestroy);
         this.state.onResize(this, this.onResize);
     }
 
@@ -92,9 +91,6 @@ export class AppComponent implements OnInit {
         this.option = option;
         this.productId = this.option.productID;
         // this.qtp.connect(this.option.port, this.option.host);
-    }
-
-    onDestroy() {
     }
     onResize(event: any) {
         // minus 10 to remove the window's border.
@@ -531,6 +527,11 @@ export class AppComponent implements OnInit {
                     while (offset < msg.length) {
                         let ans = new QueryFundAns();
                         offset = ans.fromBuffer(msg, offset);
+                        this.dd_Account.Items.forEach(item => {
+                            if (item.Value === ans.fund_account_id)
+                                return;
+                        });
+                        this.dd_Account.addItem({ Text: this.acidObj[ans.fund_account_id], Value: ans.fund_account_id });
                         this.addFundAccountRow(ans);
                     }
                 }
@@ -608,12 +609,7 @@ export class AppComponent implements OnInit {
         this.tradePoint.addSlotOfCMS("getAssetAccount", (res) => {
             // 查询资产账户
             let data = JSON.parse(res.toString());
-            if (data.msret.msgcode !== "00") {
-                let rowLog = this.logTable.newRow();
-                rowLog.cells[0].Text = this.getNowDate("time", false);
-                rowLog.cells[1].Text = "getAssetAccount:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg;
-                return;
-            }
+            this.errorCallback(data, "getAssetAccount:msgcode = " + data.msret.msgcode);
             if (data.body.length === 0) {
                 return;
             }
@@ -644,12 +640,7 @@ export class AppComponent implements OnInit {
         this.tradePoint.addSlotOfCMS("getTradeAccount", (res) => {
             // 查询交易账户
             let data = JSON.parse(res.toString());
-            if (data.msret.msgcode !== "00") {
-                let rowLog = this.logTable.newRow();
-                rowLog.cells[0].Text = this.getNowDate("time", false);
-                rowLog.cells[1].Text = "getTradeAccount:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg;
-                return;
-            }
+            this.errorCallback(data, "getTradeAccount:msgcode = " + data.msret.msgcode);
             if (data.body.length === 0) {
                 return;
             }
@@ -739,13 +730,9 @@ export class AppComponent implements OnInit {
             }
         });
         this.tradePoint.onTopic(4101, (key, dataObj) => {
+            // console.log("&&&&&&&&&&&&===============" + new Date());
             let data = JSON.parse(dataObj.toString());
-            if (data.msret.msgcode !== "00") {
-                let rowLog = this.logTable.newRow();
-                rowLog.cells[0].Text = this.getNowDate("time", false);
-                rowLog.cells[1].Text = "获取产品信息推送： " + " msg = " + data.msret.msg;
-                return;
-            }
+            this.errorCallback(data, "getMonitorProducts推送： ");
             let productData = data.body[0];
             if (this.profitAndLossTable.rows.length === 0)
                 this.addProfitAndLossRow(productData);
@@ -757,14 +744,8 @@ export class AppComponent implements OnInit {
             service: 41,
             msgtype: 11005,
             callback: (msg) => {
-                console.log("===============" + new Date());
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    let rowLog = this.logTable.newRow();
-                    rowLog.cells[0].Text = this.getNowDate("time", false);
-                    rowLog.cells[1].Text = "获取产品信息： " + " msg = " + data.msret.msg;
-                    return;
-                }
+                this.errorCallback(data, "getMonitorProducts: ");
                 let productData = data.body[0];
                 if (this.profitAndLossTable.rows.length === 0)
                     this.addProfitAndLossRow(productData);
@@ -775,16 +756,39 @@ export class AppComponent implements OnInit {
         });
         // 产品净值
 
-        // this.productNetChart.addC
-
-        this.tradePoint.addSlotOfCMS("getProductNet", (msg) => {
-            let data = JSON.parse(msg.toString());
-            if (data.msret.msgcode !== "00") {
-                let rowLog = this.logTable.newRow();
-                rowLog.cells[0].Text = this.getNowDate("time", false);
-                rowLog.cells[1].Text = "getProductNet:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg;
-                return;
+        this.tradePoint.addSlot({
+            service: 41,
+            msgtype: 11000,
+            callback: (msg) => {
+                let data = JSON.parse(msg.toString());
+                this.errorCallback(data, "getProductNet:msgcode = " + data.msret.msgcode);
+                let productNetChangeOpt = {
+                    title: { text: "" },
+                    xAxis: [{ data: [] }],
+                    series: [{ data: [] }]
+                };
+                this.productNetData = data.body;
+                if (data.body.length === 0) {
+                    return;
+                }
+                if (this.productNetData.length > 0) {
+                    this.productNetData.forEach(item => {
+                        productNetChangeOpt.xAxis[0].data.push(item.trday);
+                        productNetChangeOpt.title.text = item.caname;
+                        productNetChangeOpt.series[0].data.push(item.netvalue);
+                    });
+                    productNetPage.onClick = () => {
+                        setTimeout(() => {
+                            this.productNetChart.setOption(productNetChangeOpt);
+                        }, 500);
+                    };
+                }
             }
+        });
+        this.tradePoint.onTopic(4100, (key, dataObj) => {
+            // console.log("!!!!!!!!!!!!!!===============" + new Date());
+            let data = JSON.parse(dataObj.toString());
+            this.errorCallback(data, "getProductNet推送： ");
             let productNetChangeOpt = {
                 title: { text: "" },
                 xAxis: [{ data: [] }],
@@ -800,13 +804,9 @@ export class AppComponent implements OnInit {
                     productNetChangeOpt.title.text = item.caname;
                     productNetChangeOpt.series[0].data.push(item.netvalue);
                 });
-                productNetPage.onClick = () => {
-                    setTimeout(() => {
-                        this.productNetChart.setOption(productNetChangeOpt);
-                    }, 500);
-                };
+                this.productNetChart.setOption(productNetChangeOpt);
             }
-        }, this);
+        });
         btn_clear.OnClick = () => {
             this.dialog = null;
         };
@@ -838,6 +838,9 @@ export class AppComponent implements OnInit {
         };
     }
 
+    ngOnDestroy() {
+        // this.tradePoint.subscribe(4101, [Number(this.productId)]);
+    }
     registryListeners() {
         this.tradePoint.addSlot(
             {
@@ -850,7 +853,6 @@ export class AppComponent implements OnInit {
                 service: ServiceType.kLogin,
                 msgtype: FGS_MSG.kLoginAns,
                 callback: (msg) => {
-                    this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.productId } } }));
                     this.tradePoint.sendToCMS("getAssetAccount", JSON.stringify({
                         // 查询资产账户
                         data: {
@@ -865,7 +867,7 @@ export class AppComponent implements OnInit {
                             body: { caid: this.productId }
                         }
                     }));
-                    console.log("===============" + new Date());
+                    // console.log("@@@@@@@@@@@@@===============" + new Date());
                     this.tradePoint.send(11005, JSON.stringify({
                         data: {
                             head: { userid: this.userId, reqsn: 1 },
@@ -873,8 +875,24 @@ export class AppComponent implements OnInit {
                         }
                     }), 41);
                     this.tradePoint.subscribe(4101, [Number(this.productId)]);
+                    this.tradePoint.send(11000, JSON.stringify({
+                        data: {
+                            head: { userid: this.userId, reqsn: 1 },
+                            body: { caid: this.productId }
+                        }
+                    }), 41);
+                    this.tradePoint.subscribe(4100, [Number(this.productId)]);
+                    // this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.productId } } }));
                 }
             });
+    }
+    errorCallback(data, msg) {
+        if (data.msret.msgcode !== "00") {
+            let rowLog = this.logTable.newRow();
+            rowLog.cells[0].Text = this.getNowDate("time", false);
+            rowLog.cells[1].Text = msg + "; msg = " + data.msret.msg;
+            return;
+        }
     }
     addOrderStatRow(ans, nowRow?) {
         let stockSecuinfo = this.secuinfo.getSecuinfoByUKey(ans.chronos_order.ukey);
@@ -979,7 +997,6 @@ export class AppComponent implements OnInit {
         row.cells[6].Text = ans.fee;
         row.cells[7].Text = ans.position_pl;
         row.cells[8].Text = ans.close_pl;
-        this.dd_Account.addItem({ Text: this.acidObj[ans.fund_account_id], Value: ans.fund_account_id });
         this.ref.detectChanges();
     }
 
@@ -1056,12 +1073,14 @@ export class AppComponent implements OnInit {
                     text: "",
                     x: "center",
                     align: "right",
+                    top: 20,
                     textStyle: {
                         color: "#717171"
                     }
                 },
                 grid: {
-                    bottom: 20
+                    bottom: 50,
+                    top: 100
                 },
                 tooltip: {
                     trigger: "axis"
@@ -1119,3 +1138,5 @@ export class AppComponent implements OnInit {
         };
     }
 }
+
+

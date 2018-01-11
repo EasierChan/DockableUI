@@ -46,6 +46,8 @@ export class ReportComponent implements OnInit {
         condition: "",
         result: []
     };
+    strategyNames: string[];
+
     constructor(private mock: QtpService, private configBll: ConfigurationBLL,
         private appsrv: AppStoreService, private zone: NgZone) {
     }
@@ -54,6 +56,11 @@ export class ReportComponent implements OnInit {
         this.initResTable();
         this.initOrderTable();
         this.registerListener();
+        this.strategyNames = [];
+        this.configBll.getLoopbackItems().forEach(value => {
+            if(!this.strategyNames.find(item => item === value.name)) this.strategyNames.push(value.name)
+        })
+
     }
 
     initResTable() {
@@ -184,10 +191,10 @@ export class ReportComponent implements OnInit {
         });
     }
 
-    filterBacktest(condition) {
+    filterStg(name) {
         this.resTable.rows.forEach(row => {
-            if(condition) {
-                row.hidden = !row.cells[0].Data.name.includes(condition);
+            if(name !== "all") {
+                row.hidden = !row.cells[0].Data.name.includes(name);
             } else row.hidden = false;
         })
     }
@@ -220,19 +227,6 @@ export class ReportComponent implements OnInit {
             currentPage: 1,
             maxPage: 1
         };
-    }
-
-
-    selectAll() {
-        this.resTable.rows.forEach(row => {
-            row.cells[0].Text = true;
-        });
-    }
-
-    unseletAll() {
-        this.resTable.rows.forEach(row => {
-            row.cells[0].Text = false;
-        });
     }
 
     search(value) {
@@ -368,8 +362,8 @@ export class ReportComponent implements OnInit {
             });
         }
 
-        reportData.retraceRatio = (drawdown * 100).toFixed(2) + "%";
-        reportData.percentProfitable = (winCount * 100 / profit.length).toFixed(2) + "%";
+        reportData.retraceRatio = isNaN(drawdown) ? "" : (drawdown * 100).toFixed(2) + "%";
+        reportData.percentProfitable = profit.length ? (winCount * 100 / profit.length).toFixed(2) + "%" : "";
         let avgratio = sumratio / profit.length;
         let variance = 0;
         total_ratios.forEach(ratio => {
@@ -386,7 +380,7 @@ export class ReportComponent implements OnInit {
                 multiper = 365 / parseInt(this.selectedItem.period);
             value = ((total_ratios.pop() - 1) * multiper / profit.length - this.freeriskrate) / (Math.sqrt(variance) * multiper);
             // console.info(value, variance);
-            reportData.sharpeRatio = value.toFixed(4);
+            reportData.sharpeRatio = isNaN(value) ? "" :  value.toFixed(4);
         } else {
             reportData.sharpeRatio = "0";
         }
@@ -408,6 +402,9 @@ export class ReportComponent implements OnInit {
                     type: "cross",
                     label: { show: true, backgroundColor: "rgba(0,0,0,1)" }
                 }
+            },
+            grid: {
+                left: 80
             },
             legend: {
                 data: ["净值"],

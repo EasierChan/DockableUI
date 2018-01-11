@@ -2,17 +2,36 @@
     <div class="u-row">
         <div class="backtest-article u-col">
             <div class="title u-row">
-                <div class="input-group u-row">
+                <div class="select-group u-row">
                     <label for="">策略名称：</label>
-                    <input #condition type="text" [(ngModel)]="filter.condition" (input)="filterBacktest(condition.value)" >
-                    <!--<input type="button">-->
+                    <select name="strategys" id="" #strategyname (change)="filterStg(strategyname.value)" >
+                        <option value="all">全部</option>
+                        <option *ngFor="let name of strategyNames" [value]="name">{{name}}</option>
+                    </select>
                 </div>
             </div>
             <dock-table2 class="table-container" [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
         </div>
 
         <div class="chart-article u-row">
-            <div echarts [options]="chartOption" [loading]="bLoading" (chartInit)="chartInit($event)" class="fill"></div>
+            <div echarts [options]="chartOption" [loading]="bLoading" (chartInit)="chartInit($event)"></div>
+            <div class="title-article u-row">
+                <div class="title-list">
+                    <ng-container *ngIf="currentReportData">
+                        <div class="title-item">最大回撤：{{currentReportData?.retraceRatio}}</div>
+                        <div class="title-item">胜率：{{currentReportData?.percentProfitable}}</div>
+                        <div class="title-item">夏普率：{{currentReportData?.sharpeRatio}}</div>
+                    </ng-container>
+                </div>
+                <div class="title-list">
+                    <ng-container *ngIf="selectedItem">
+                        <div class="title-item">策略名称：{{selectedItem?.name}}</div>
+                        <div class="title-item">回测ID：{{selectedItem?.id}}</div>
+                        <div class="title-item">开始时间：{{selectedItem?.timebegin}}</div>
+                        <div class="title-item">结束时间：{{selectedItem?.timeend}}</div>
+                    </ng-container>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -27,45 +46,4 @@
         </div>
         <dock-table2 [dataSource]="orderdetailsTable.dataSource" [styleObj]="orderdetailsTable.styleObj" class="fill dark-bg"></dock-table2>
     </div>
-
-    <!--<div class="u-col report" *ngIf="selectedItem" >
-        <div class="title u-row">
-            <span>回测报表</span>
-            <button class="close-btn" (click)="closeReport()" >×</button>
-        </div>
-
-        <div class="report-head u-row">
-            <div class="title-article u-row">
-                <div class="title-list">
-                    <div class="title-item">
-                        <span>策略名称：{{selectedItem?.name}}</span>
-                    </div>
-                    <div class="title-item">
-                        <span>回测ID：{{selectedItem?.id}}</span>
-                    </div>
-                    <div class="title-item">
-                        <span>开始时间：{{selectedItem?.timebegin}}</span>
-                    </div>
-                    <div class="title-item">
-                        <span>结束时间：{{selectedItem?.timeend}}</span>
-                    </div>
-                </div>
-                <div class="title-list">
-                    <div class="title-item">
-                        <span>最大回撤：{{currentReportData?.retraceRatio}}</span>
-                    </div>
-                    <div class="title-item">
-                        <span>胜率：{{currentReportData?.percentProfitable}}</span>
-                    </div>
-                    <div class="title-item">
-                        <span>夏普率：{{currentReportData?.sharpeRatio}}</span>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-
-    </div>-->
-
 </div>
