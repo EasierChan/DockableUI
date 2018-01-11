@@ -1434,62 +1434,64 @@ export class AppComponent implements OnInit {
             doneMap[row.cell(this.langServ.get("OrderId")).Text] = row;
         });
 
+        let item;
         for (let iData = 0; iData < data.length; ++iData) {
-            orderStatus = data[iData].od.status;
+            item = data[iData];
+            orderStatus = item.od.status;
 
             if (orderStatus === 9 || orderStatus === 6 || orderStatus === 7) {
                 isUpdateDone = true;
                 // remove from orderstatus table
-                this.orderstatusTable.rows.splice(this.orderstatusTable.rows.findIndex(item => { return item === orderStatusMap[data[iData].od.orderid]; }), 1);
-                delete orderStatusMap[data[iData].od.orderid];
+                this.orderstatusTable.rows.splice(this.orderstatusTable.rows.findIndex(row => { return row === orderStatusMap[item.od.orderid]; }), 1);
+                delete orderStatusMap[item.od.orderid];
 
-                if (!doneMap.hasOwnProperty(data[iData].od.orderid)) {
+                if (!doneMap.hasOwnProperty(item.od.orderid)) {
                     let row = this.doneOrdersTable.newRow(true);
-                    row.cell(this.langServ.get("UKEY")).Text = data[iData].od.innercode;
-                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].od.innercode);
-                    row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuAbbr : "unknown";
-                    row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuCode : "unknown";
-                    row.cell(this.langServ.get("OrderId")).Text = data[iData].od.orderid;
-                    row.cell(this.langServ.get("Strategy")).Text = data[iData].od.strategyid;
-                    row.cell(this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
-                    row.cell(this.langServ.get("OrderType")).Text = data[iData].donetype === 1 ? "Active" : (data[iData].donetype === 2 ? "Passive" : "UNKNOWN");
-                    row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
-                    row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
-                    doneMap[data[iData].od.orderid] = row;
+                    row.cell(this.langServ.get("UKEY")).Text = item.od.innercode;
+                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(item.od.innercode);
+                    row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(item.od.innercode) ? codeInfo[item.od.innercode].SecuAbbr : "unknown";
+                    row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(item.od.innercode) ? codeInfo[item.od.innercode].SecuCode : "unknown";
+                    row.cell(this.langServ.get("OrderId")).Text = item.od.orderid;
+                    row.cell(this.langServ.get("Strategy")).Text = item.od.strategyid;
+                    row.cell(this.langServ.get("Ask/Bid")).Text = item.od.action === 0 ? "Buy" : "Sell";
+                    row.cell(this.langServ.get("OrderType")).Text = item.donetype === 1 ? "Active" : (item.donetype === 2 ? "Passive" : "UNKNOWN");
+                    row.cell(this.langServ.get("PortfolioID")).Text = item.con.account;
+                    row.cell(this.langServ.get("PortfolioID")).Text = item.con.account;
+                    doneMap[item.od.orderid] = row;
                 }
 
-                doneMap[data[iData].od.orderid].cell(this.langServ.get("DonePrice")).Text = data[iData].od.iprice / 10000;
-                doneMap[data[iData].od.orderid].cell(this.langServ.get("DoneVol")).Text = data[iData].od.ivolume;
-                doneMap[data[iData].od.orderid].cell(this.langServ.get("DoneTime")).Text = new Date(data[iData].od.idatetime.tv_sec * 1000).format("HH:mm:ss");
-                doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(data[iData].od.status);
-                doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderTime")).Text = new Date(data[iData].od.odatetime.tv_sec * 1000).format("HH:mm:ss");
-                doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
-                doneMap[data[iData].od.orderid].cell(this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
+                doneMap[item.od.orderid].cell(this.langServ.get("DonePrice")).Text = item.od.iprice / 10000;
+                doneMap[item.od.orderid].cell(this.langServ.get("DoneVol")).Text = item.od.ivolume;
+                doneMap[item.od.orderid].cell(this.langServ.get("DoneTime")).Text = new Date(item.od.idatetime.tv_sec * 1000).format("HH:mm:ss");
+                doneMap[item.od.orderid].cell(this.langServ.get("OrderStatus")).Text = this.parseOrderStatus(item.od.status);
+                doneMap[item.od.orderid].cell(this.langServ.get("OrderTime")).Text = new Date(item.od.odatetime.tv_sec * 1000).format("HH:mm:ss");
+                doneMap[item.od.orderid].cell(this.langServ.get("OrderVol")).Text = item.od.ovolume;
+                doneMap[item.od.orderid].cell(this.langServ.get("OrderPrice")).Text = item.od.oprice / 10000;
             } else {
                 isUpdateStatus = true;
 
-                if (!orderStatusMap.hasOwnProperty(data[iData].od.orderid)) {
+                if (!orderStatusMap.hasOwnProperty(item.od.orderid)) {
                     let row = this.orderstatusTable.newRow(true);
                     row.cells[0].Type = "checkbox";
                     row.cells[0].Text = false;
-                    row.cells[0].Data = data[iData].od.innercode;
-                    row.cell(this.langServ.get("UKEY")).Text = data[iData].od.innercode;
-                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].od.innercode);
-                    row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuAbbr : "unknown";
-                    row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(data[iData].od.innercode) ? codeInfo[data[iData].od.innercode].SecuCode : "unknown";
-                    row.cell(this.langServ.get("OrderId")).Text = data[iData].od.orderid;
-                    row.cell(this.langServ.get("Strategy")).Text = data[iData].od.strategyid;
-                    row.cell(this.langServ.get("PortfolioID")).Text = data[iData].con.account;
-                    orderStatusMap[data[iData].od.orderid] = row;
+                    row.cells[0].Data = item.od.innercode;
+                    row.cell(this.langServ.get("UKEY")).Text = item.od.innercode;
+                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(item.od.innercode);
+                    row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(item.od.innercode) ? codeInfo[item.od.innercode].SecuAbbr : "unknown";
+                    row.cell(this.langServ.get("SymbolCode")).Text = codeInfo.hasOwnProperty(item.od.innercode) ? codeInfo[item.od.innercode].SecuCode : "unknown";
+                    row.cell(this.langServ.get("OrderId")).Text = item.od.orderid;
+                    row.cell(this.langServ.get("Strategy")).Text = item.od.strategyid;
+                    row.cell(this.langServ.get("PortfolioID")).Text = item.con.account;
+                    orderStatusMap[item.od.orderid] = row;
                 }
 
-                orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("OrderTime")).Text = new Date(data[iData].od.odatetime.tv_sec * 1000).format("HH:mm:ss");
-                orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("Ask/Bid")).Text = data[iData].od.action === 0 ? "Buy" : "Sell";
-                orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("OrderPrice")).Text = data[iData].od.oprice / 10000;
-                orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("OrderVol")).Text = data[iData].od.ovolume;
-                let statusCell = orderStatusMap[data[iData].od.orderid].cell(this.langServ.get("OrderStatus"));
-                statusCell.Text = this.parseOrderStatus(data[iData].od.status);
-                statusCell.Data = data[iData].od.status;
+                orderStatusMap[item.od.orderid].cell(this.langServ.get("OrderTime")).Text = new Date(item.od.odatetime.tv_sec * 1000).format("HH:mm:ss");
+                orderStatusMap[item.od.orderid].cell(this.langServ.get("Ask/Bid")).Text = item.od.action === 0 ? "Buy" : "Sell";
+                orderStatusMap[item.od.orderid].cell(this.langServ.get("OrderPrice")).Text = item.od.oprice / 10000;
+                orderStatusMap[item.od.orderid].cell(this.langServ.get("OrderVol")).Text = item.od.ovolume;
+                let statusCell = orderStatusMap[item.od.orderid].cell(this.langServ.get("OrderStatus"));
+                statusCell.Text = this.parseOrderStatus(item.od.status);
+                statusCell.Data = item.od.status;
             }
         }
 
@@ -1526,7 +1528,6 @@ export class AppComponent implements OnInit {
             case EOrderStatus.ORDER_STATUS_DEALED:
                 return "9.已成";
             default:
-                AppComponent.bgWorker.send({ command: "send", params: { type: 1 } });
                 return "10.废单";
         }
     }
