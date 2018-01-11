@@ -92,12 +92,12 @@ export class ScrollerBarTable implements OnInit {
                         let count = Math.round(this.ele.nativeElement.clientHeight / 22);
                         this.clientIdx = Math.floor(this.ele.nativeElement.scrollTop / 22);
                         this.clientRows = this.dataSource.rows.slice(this.clientIdx, 2 * count + this.clientIdx);
-                    }, 200);
-                }
 
-                if (this.ele.nativeElement.clientWidth > 0) {
-                    this.resizeHeader();
-                    this.ref.detectChanges();
+                        if (this.ele.nativeElement.clientWidth > 0) {
+                            this.ref.detectChanges();
+                            this.resizeHeader();
+                        }
+                    }, 200);
                 }
             });
         };
@@ -114,11 +114,27 @@ export class ScrollerBarTable implements OnInit {
             this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
             this.head.nativeElement.style.display = "table";
 
-            this.resizeHeader();
             let count = Math.round(this.ele.nativeElement.clientHeight / 22);
             this.clientIdx = Math.floor(this.ele.nativeElement.scrollTop / 22);
             this.clientRows = this.dataSource.rows.slice(this.clientIdx, 2 * count + this.clientIdx);
-            this.ref.detectChanges();
+
+            if (this.dataSource.retrieveNextView && this.clientIdx > Math.round(this.dataSource.rows.length * 0.8)) {
+                this.dataSource.retrieveNextView(this.clientIdx);
+
+                if (this.dataSource.rows) {
+                    this.content.nativeElement.style.height = 22 * (this.dataSource.rows.length + 1) + "px";
+
+                    setTimeout(() => {
+                        let count = Math.round(this.ele.nativeElement.clientHeight / 22);
+                        this.clientIdx = Math.floor(this.ele.nativeElement.scrollTop / 22);
+                        this.clientRows = this.dataSource.rows.slice(this.clientIdx, 2 * count + this.clientIdx);
+                    }, 200);
+
+                    this.ref.detectChanges();
+                    this.resizeHeader();
+                }
+            }
+
         });
     }
 

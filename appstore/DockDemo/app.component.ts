@@ -324,6 +324,7 @@ export class AppComponent implements OnInit {
                 this.orderstatusTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
             });
         this.orderstatusTable.columnConfigurable = true;
+        this.orderstatusTable.retrieveNextView = () => { AppComponent.bgWorker.send({ command: "history-order-record" }); };
         orderstatusContent.addChild(this.orderstatusTable);
         this.orderstatusPage.setContent(orderstatusContent);
 
@@ -1419,7 +1420,7 @@ export class AppComponent implements OnInit {
         row.cells[1].Text = name + " " + (data.connected ? "Connected" : "Disconnected");
     }
 
-    showComOrderRecord(data: any) {
+    showComOrderRecord(data: any, bPrepend = true) {
         console.info(`showComOrderRecord: len = ${data.length}`);
         let isUpdateDone = false, isUpdateStatus = false;
         let orderStatus;
@@ -1435,6 +1436,7 @@ export class AppComponent implements OnInit {
         });
 
         let item;
+        let idx;
         for (let iData = 0; iData < data.length; ++iData) {
             item = data[iData];
             orderStatus = item.od.status;
@@ -1442,11 +1444,15 @@ export class AppComponent implements OnInit {
             if (orderStatus === 9 || orderStatus === 6 || orderStatus === 7) {
                 isUpdateDone = true;
                 // remove from orderstatus table
-                this.orderstatusTable.rows.splice(this.orderstatusTable.rows.findIndex(row => { return row === orderStatusMap[item.od.orderid]; }), 1);
-                delete orderStatusMap[item.od.orderid];
+                idx = this.orderstatusTable.rows.findIndex(row => { return row === orderStatusMap[item.od.orderid]; });
+                if (idx >= 0) {
+                    isUpdateStatus = true;
+                    this.orderstatusTable.rows.splice(idx, 1);
+                    delete orderStatusMap[item.od.orderid];
+                }
 
                 if (!doneMap.hasOwnProperty(item.od.orderid)) {
-                    let row = this.doneOrdersTable.newRow(true);
+                    let row = this.doneOrdersTable.newRow(bPrepend);
                     row.cell(this.langServ.get("UKEY")).Text = item.od.innercode;
                     let codeInfo = this.secuinfo.getSecuinfoByInnerCode(item.od.innercode);
                     row.cell(this.langServ.get("Symbol")).Text = codeInfo.hasOwnProperty(item.od.innercode) ? codeInfo[item.od.innercode].SecuAbbr : "unknown";
@@ -1471,7 +1477,7 @@ export class AppComponent implements OnInit {
                 isUpdateStatus = true;
 
                 if (!orderStatusMap.hasOwnProperty(item.od.orderid)) {
-                    let row = this.orderstatusTable.newRow(true);
+                    let row = this.orderstatusTable.newRow(bPrepend);
                     row.cells[0].Type = "checkbox";
                     row.cells[0].Text = false;
                     row.cells[0].Data = item.od.innercode;
@@ -2540,6 +2546,8 @@ export class AppComponent implements OnInit {
 
                     console.debug(`elapsed time: ${Date.now() - timer}`);
                     break;
+                case "ss-histroy-data":
+                    this.showComOrderRecord(data.content.data, false);
                 default:
                     console.info(`unhandled type ${data.event}`);
                     break;
