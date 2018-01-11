@@ -1241,9 +1241,9 @@ export class AppComponent implements OnInit {
     changeSingleQty(rateVal: number) {
         let len = this.portfolioTable.rows.length;
         for (let i = 0; i < len; ++i) {
-            let targetVal = this.portfolioTable.rows[i].cells[3].Text;
-            let singleVal = (targetVal / 100 * rateVal).toFixed(0);
-            this.portfolioTable.rows[i].cells[9].Text = Math.abs(parseInt(singleVal));
+            let targetVal = Math.abs(this.portfolioTable.rows[i].cells[5].Text);
+            let singleVal = Math.round(targetVal / 100 * rateVal);
+            this.portfolioTable.rows[i].cells[9].Text = singleVal;
         }
     }
 
