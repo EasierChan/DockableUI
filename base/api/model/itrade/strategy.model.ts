@@ -830,7 +830,7 @@ export class FpQtyOrder extends Message {
     qty: number = 0; // uint32
 
     fromBuffer(buf, offset): number {
-        return BufferUtil.format(buf, offset, "1i2b2B1i", this);
+        return BufferUtil.format(buf, offset, "1i2b2B1I", this);
     }
 
     toBuffer(): Buffer {
@@ -842,7 +842,7 @@ export class FpQtyOrder extends Message {
         buf.writeUInt8(this.bidPriceLevel, offset); offset += 1;
         buf.writeInt8(this.askOffset, offset); offset += 1;
         buf.writeInt8(this.bidOffset, offset); offset += 1;
-        buf.writeUInt32LE(this.qty, offset); offset += 4;
+        buf.writeInt32LE(this.qty, offset); offset += 4;
         return buf;
     }
 }
