@@ -866,7 +866,7 @@ export class AppComponent implements OnInit {
             let account: number = parseInt(this.dd_portfolioAccount.SelectedItem.Text);
             AppComponent.bgWorker.send({ command: "ss-send", params: { type: "account-position-load", account: account } });
 
-            MessageBox.openFileDialog("Select CSV", (filenames) => {
+            MessageBox.openFileDialog("导入篮子", (filenames) => {
                 // console.log(filenames);
                 if (filenames === undefined || filenames.length < 1)
                     return;
