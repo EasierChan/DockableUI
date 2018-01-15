@@ -20,65 +20,9 @@ const logger = ULogger.file();
  * interface for single pro.
  */
 
-let quotePoint: IP20Service;
 let trade: StrategyDealer;
 process.on("message", (m: WSIP20, sock) => {
     switch (m.command) {
-        case "ps-start":
-            quotePoint = new IP20Service();
-            let quoteHeart = null;
-            quotePoint.onConnect = () => {
-                loginTGW(quotePoint);
-            };
-
-            quotePoint.onClose = () => {
-                process.send({ event: "ps-close" });
-                quotePoint = null;
-                if (quoteHeart !== null) {
-                    clearInterval(quoteHeart);
-                    quoteHeart = null;
-                }
-            };
-
-            quotePoint.addSlot(
-                {
-                    appid: 17,
-                    packid: 43,
-                    callback(msg) {
-                        logger.info(`tgw ans=>${msg}`);
-                        process.send({ event: "ps-connect" });
-
-                        if (quoteHeart !== null) {
-                            clearInterval(quoteHeart);
-                            quoteHeart = null;
-                        }
-
-                        quoteHeart = setInterval(() => {
-                            quotePoint.send(17, 0, {});
-                        }, 60000);
-                    }
-                }, {
-                    appid: 17,
-                    packid: 120,
-                    callback(msg) {
-                        logger.info(`tgw ans=>${msg}`);
-                    }
-                }, {
-                    appid: 17,
-                    packid: 110,
-                    callback(msg) {
-                        process.send({ event: "ps-data", content: msg });
-                    }
-                });
-
-            quotePoint.connect(m.params.port, m.params.host);
-            break;
-        case "ps-send":
-            if (quotePoint)
-                quotePoint.send(m.params.appid, m.params.packid, m.params.msg);
-            break;
-        case "ps-stop":
-            break;
         case "ss-start":
             logger.debug(`tradeWorker.ts:81  tgw-appid=${m.params.appid}`);
             trade = new StrategyDealer(m.params.appid, m.params.loginInfo);

@@ -2503,8 +2503,9 @@ export class BookViewer extends VBox {
     private lbl_code: Label;
     private code: UCodes;
     private timestamp: Label;
-    private table: DataTable;
-    ukey: number;
+    private _ukey: number;
+    table: DataTable;
+    private _selectedItem: any;
     private wsQuote: WebSocket;
 
     constructor(private langSrv: any) {
@@ -2514,6 +2515,7 @@ export class BookViewer extends VBox {
     }
 
     initializeComponents() {
+        this.wsQuote = new WebSocket("ws://127.0.0.1:10068");
         let row1 = new HBox();
         this.lbl_code = new Label();
         this.lbl_code.Title = this.langSrv.get("Code") + ": ";
@@ -2548,6 +2550,12 @@ export class BookViewer extends VBox {
             if (item === undefined)
                 return;
 
+            this._selectedItem = item;
+
+            if (typeof this.onChange === "function" && !this.onChange()) {
+                return;
+            }
+
             let len = this.table.rows.length;
             for (let i = 0; i < len; ++i) {
                 this.table.rows[i].cells[0].Text = "";
@@ -2557,45 +2565,62 @@ export class BookViewer extends VBox {
 
             this.ukey = item.ukey;
             this.wsQuote.send(JSON.stringify([this.ukey]));
-
-            this.wsQuote.onmessage = (ev) => {
-                let mdItem = JSON.parse(ev.data);
-
-                if (this.ukey !== mdItem.ukey) return;
-
-                this.timestamp.Text = new Date(mdItem.time * 1000).format("yyyy/MM/dd HH:mm:ss");
-
-                for (let i = 0; i < 10; ++i) {
-                    this.table.rows[i + 10].cells[0].Text = mdItem.bid_volume[i] + "";
-                    this.table.rows[i + 10].cells[1].Text = (mdItem.bid_price[i] / 10000).toFixed(4);
-                    this.table.rows[9 - i].cells[2].Text = mdItem.ask_volume[i] + "";
-                    this.table.rows[9 - i].cells[1].Text = (mdItem.ask_price[i] / 10000).toFixed(4);
-                }
-            };
         };
 
         this.addChild(row1).addChild(row2).addChild(this.table);
 
-        if (this.ukey) {
-            this.wsQuote.onopen = () => {
+        this.wsQuote.onopen = () => {
+            if (this.ukey) {
                 this.wsQuote.send(JSON.stringify([this.ukey]));
-            };
-        }
+            }
+        };
 
-        this.wsQuote = new WebSocket("ws://127.0.0.1:10068");
+        this.wsQuote.onmessage = (ev) => {
+            let mdItem = JSON.parse(ev.data);
+
+            if (this.ukey !== mdItem.ukey) return;
+
+            this.timestamp.Text = new Date(mdItem.time * 1000).format("yyyy/MM/dd HH:mm:ss");
+
+            for (let i = 0; i < 10; ++i) {
+                this.table.rows[i + 10].cells[0].Text = mdItem.bid_volume[i] + "";
+                this.table.rows[i + 10].cells[1].Text = (mdItem.bid_price[i] / 10000).toFixed(4);
+                this.table.rows[9 - i].cells[2].Text = mdItem.ask_volume[i] + "";
+                this.table.rows[9 - i].cells[1].Text = (mdItem.ask_price[i] / 10000).toFixed(4);
+            }
+        };
     }
 
     set timeValue(value: string) {
         this.timestamp.Text = value;
     }
 
-    set codeValue(value: any) {
+    set selectedItem(value: any) {
         this.code.Text = value;
+    }
+
+    get selectedItem() {
+        return this.code.Text;
+    }
+
+    set ukey(value: number) {
+        if (value) {
+            this._ukey = value;
+
+            if (this.wsQuote.readyState === this.wsQuote.OPEN)
+                this.wsQuote.send(JSON.stringify([this.ukey]));
+        }
+    }
+
+    get ukey() {
+        return this._ukey;
     }
 
     set onCellDBClick(value: (cell, cellIdx: number, rowIdx: number, row?: DataTableRow) => void) {
         this.table.onCellDBClick = value;
     }
+
+    onChange: Function;
 }
 
 class Slider {

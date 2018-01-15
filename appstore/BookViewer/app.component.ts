@@ -154,7 +154,7 @@ export class AppComponent implements OnInit, OnDestroy {
             this.ukeys.forEach((ukey, idx) => {
                 let codeInfo = this.secuinfo.getSecuinfoByUKey(ukey);
                 let bookviewer = new BookViewer(this.langSrv);
-                bookviewer.codeValue = { symbolCode: codeInfo[ukey].symbolCode };
+                bookviewer.selectedItem = { symbolCode: codeInfo[ukey].symbolCode };
                 bookviewer.ukey = ukey;
                 bvContainers[idx].addChild(bookviewer);
 

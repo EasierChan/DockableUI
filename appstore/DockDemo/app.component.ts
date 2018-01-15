@@ -9,7 +9,7 @@ import { WorkerFactory } from "../../base/api/services/uworker.server";
 import {
     Control, DockContainer, Splitter, TabPanel, TabPage, URange, Dialog, Label,
     DataTable, DataTableRow, DataTableColumn, DropDown, StatusBar, StatusBarItem,
-    HBox, Button, CheckBox, TextBox, VBox, MetaControl, HFlexBox
+    HBox, Button, CheckBox, TextBox, VBox, MetaControl, HFlexBox, BookViewer
 } from "../../base/controls/control";
 import {
     MessageBox, AppStateCheckerRef, File, Environment,
@@ -124,7 +124,6 @@ export class AppComponent implements OnInit {
     private option: any;
     private layout: any;
     private tradeEndpoint: any;
-    private quoteEndpoint: any;
     private strategyMap: any;
     private appStorage: any;
     private readonly kInitColumns = 7;
@@ -159,7 +158,6 @@ export class AppComponent implements OnInit {
             }
         }
 
-        AppComponent.self.subscribeMarketData(kwlist);
         AppComponent.self.statechecker.changeMenuItemState(pageid, false, 2);
     }
 
@@ -228,7 +226,6 @@ export class AppComponent implements OnInit {
         this.appStorage = JSON.parse(AppStoreService.getLocalStorageItem(this.option.name));
         this.strategyMap = {};
         this.tradeEndpoint = setting.endpoints[0].trade_addr.split(":");
-        this.quoteEndpoint = setting.endpoints[0].quote_addr.split(":");
 
         this.statusbar = new StatusBar();
         let order = "OrderStatus";
@@ -1090,15 +1087,14 @@ export class AppComponent implements OnInit {
             basketPage.setContent(basketContent);
         }
 
-
+        this.createBackgroundWork();
         this.onStrategyTableInit();
         this.loadLayout();
 
         AppComponent.bgWorker.send({ command: "ss-start", params: { port: parseInt(this.tradeEndpoint[1]), host: this.tradeEndpoint[0], appid: this.option.appid, loginInfo: JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)) } });
-        this.subMarketInit(parseInt(this.quoteEndpoint[1]), this.quoteEndpoint[0]);
         setInterval(() => {
             this.bookviewArr.forEach(item => {
-                item.table.detectChanges();
+                item.viewer.table.detectChanges();
             });
         }, 1000);
     }
@@ -1182,22 +1178,6 @@ export class AppComponent implements OnInit {
         }
 
         return dock;
-    }
-
-    subMarketInit(port: number, host: string) {
-        this.createBackgroundWork();
-        AppComponent.bgWorker.send({ command: "ps-start", params: { port: port, host: host } });
-
-        let kwlist = [];
-        this.bookviewArr.forEach(item => {
-            if (item.code !== null && !kwlist.includes(item.code)) {
-                kwlist.push(item.code);
-            }
-        });
-
-        setTimeout(() => {
-            this.subscribeMarketData(kwlist);
-        }, 1000);
     }
 
     changeIp20Status(data: any) {
@@ -1542,74 +1522,71 @@ export class AppComponent implements OnInit {
      * update by cl, date 2017/08/31
      */
     showComRecordPos(data: any) {
-        let iRow;
-        let secuCategory = 1;
-        for (let iData = 0; iData < data.length; ++iData) {
-            for (iRow = 0; iRow < this.positionTable.rows.length; ++iRow) {
-                if (this.positionTable.rows[iRow].cells[2].Text === data[iData].record.code) { // refresh
-                    secuCategory = this.positionTable.rows[iRow].cells[1].Data;
+        let item;
+        let key: string;
+        let recordMap: Object = {};
 
-                    if (secuCategory === ESSSecuCategory.SS_SECU_CATEGORY_EQUIT) {
-                        this.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
-                        this.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
-                        this.positionTable.rows[iRow].cells[6].Text = data[iData].record.AvlCreRedempVol;
-                        this.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
-                        this.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
-                        this.positionTable.rows[iRow].cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
+        this.positionTable.rows.forEach(row => {
+            recordMap[[row.cells[2].Text, row.cells[12].Text].join("")] = row;
+        });
+
+        for (let iData = 0; iData < data.length; ++iData) {
+            item = data[iData];
+            key = [item.record.code, item.record.type].join("");
+            let row: DataTableRow;
+
+            if (!recordMap.hasOwnProperty(key)) {
+                switch (item.secucategory) {
+                    case ESSSecuCategory.SS_SECU_CATEGORY_EQUIT:
+                        row = this.positionTable.newRow();
+                        row.cells[0].Text = item.record.account;
+                        row.cells[1].Data = item.secucategory;
+                        row.cells[1].Text = SecuCategoryNames[item.secucategory];
+                        row.cells[2].Text = item.record.code;
+                        let codeInfo1 = this.secuinfo.getSecuinfoByInnerCode(item.record.code);
+                        row.cells[3].Text = codeInfo1.hasOwnProperty(item.record.code) ? codeInfo1[item.record.code].SecuCode : "unknown";
+                        row.cells[9].Text = 0;
+                        row.cells[11].Text = item.strategyid;
+                        row.cells[12].Text = item.record.type;
+
+                        recordMap[key] = row;
                         break;
-                    } else if (secuCategory === ESSSecuCategory.SS_SECU_CATEGORY_FUTURE && this.positionTable.rows[iRow].cells[12].Text === data[iData].record.type) {
-                        this.positionTable.rows[iRow].cells[4].Text = data[iData].record.TotalVol;
-                        this.positionTable.rows[iRow].cells[5].Text = data[iData].record.AvlVol;
-                        this.positionTable.rows[iRow].cells[7].Text = data[iData].record.WorkingVol;
-                        this.positionTable.rows[iRow].cells[8].Text = data[iData].record.TotalCost / 10000;
-                        this.positionTable.rows[iRow].cells[9].Text = data[iData].record.TodayOpen;
-                        this.positionTable.rows[iRow].cells[10].Text = data[iData].record.AveragePrice / 10000;
+                    case ESSSecuCategory.SS_SECU_CATEGORY_FUTURE:
+                        row = this.positionTable.newRow();
+                        row.cells[0].Text = item.record.account;
+                        row.cells[1].Data = item.secucategory;
+                        row.cells[1].Text = SecuCategoryNames[item.secucategory];
+                        row.cells[2].Text = item.record.code;
+                        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(item.record.code);
+                        row.cells[3].Text = codeInfo.hasOwnProperty(item.record.code) ? codeInfo[item.record.code].SecuCode : "unknown";
+                        row.cells[6].Text = 0;
+                        row.cells[11].Text = item.strategyid;
+                        row.cells[12].Text = item.record.type;
+
+                        recordMap[key] = row;
                         break;
-                    }
                 }
             }
 
-            if (iRow === this.positionTable.rows.length) {
-                if (data[iData].secucategory === ESSSecuCategory.SS_SECU_CATEGORY_EQUIT) {
-                    let row = this.positionTable.newRow();
-                    row.cells[0].Text = data[iData].record.account;
-                    row.cells[1].Data = data[iData].secucategory;
-                    row.cells[1].Text = SecuCategoryNames[data[iData].secucategory];
-                    row.cells[2].Text = data[iData].record.code;
-                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].record.code);
-                    row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
-                    row.cells[4].Text = data[iData].record.TotalVol;
-                    row.cells[5].Text = data[iData].record.AvlVol;
-                    row.cells[6].Text = data[iData].record.AvlCreRedempVol;
-                    row.cells[7].Text = data[iData].record.WorkingVol;
-                    row.cells[8].Text = data[iData].record.TotalCost / 10000;
-                    row.cells[9].Text = 0;
-                    row.cells[10].Text = data[iData].record.TotalVol !== 0 ? (data[iData].record.TotalCost / data[iData].record.TotalVol / 10000).toFixed(4) : 0;
-                    row.cells[11].Text = data[iData].strategyid;
-                    row.cells[12].Text = data[iData].record.type;
-                } else {
-                    let row = this.positionTable.newRow();
-                    row.cells[0].Text = data[iData].record.account;
-                    row.cells[1].Data = data[iData].secucategory;
-                    row.cells[1].Text = SecuCategoryNames[data[iData].secucategory];
-                    row.cells[2].Text = data[iData].record.code;
-                    let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[iData].record.code);
-                    row.cells[3].Text = codeInfo.hasOwnProperty(data[iData].record.code) ? codeInfo[data[iData].record.code].SecuCode : "unknown";
-                    row.cells[4].Text = data[iData].record.TotalVol;
-                    row.cells[5].Text = data[iData].record.AvlVol;
-                    row.cells[6].Text = 0;
-                    row.cells[7].Text = data[iData].record.WorkingVol;
-                    row.cells[8].Text = data[iData].record.TotalCost / 10000;
-                    row.cells[9].Text = data[iData].record.TodayOpen;
-                    row.cells[10].Text = data[iData].record.AveragePrice / 10000;
-                    row.cells[11].Text = data[iData].strategyid;
-                    row.cells[12].Text = data[iData].record.type;
-                }
+            switch (item.secucategory) {
+                case ESSSecuCategory.SS_SECU_CATEGORY_EQUIT:
+                    recordMap[key].cells[4].Text = item.record.TotalVol;
+                    recordMap[key].cells[5].Text = item.record.AvlVol;
+                    recordMap[key].cells[6].Text = item.record.AvlCreRedempVol;
+                    recordMap[key].cells[7].Text = item.record.WorkingVol;
+                    recordMap[key].cells[8].Text = item.record.TotalCost / 10000;
+                    recordMap[key].cells[10].Text = item.record.TotalVol !== 0 ? (item.record.TotalCost / item.record.TotalVol / 10000).toFixed(4) : 0;
+                    break;
+                case ESSSecuCategory.SS_SECU_CATEGORY_FUTURE:
+                    recordMap[key].cells[4].Text = item.record.TotalVol;
+                    recordMap[key].cells[5].Text = item.record.AvlVol;
+                    recordMap[key].cells[7].Text = item.record.WorkingVol;
+                    recordMap[key].cells[8].Text = item.record.TotalCost / 10000;
+                    recordMap[key].cells[9].Text = item.record.TodayOpen;
+                    recordMap[key].cells[10].Text = item.record.AveragePrice / 10000;
+                    break;
             }
         }
-
-        iRow = null;
-        secuCategory = null;
     }
 
     showComGWNetGuiInfo(data: any) {
@@ -1687,69 +1664,44 @@ export class AppComponent implements OnInit {
     }
 
     showComProfitInfo(data: any) {
+        let item;
+        let profitMap: Object = {};
+
+        this.profitTable.rows.forEach(row => {
+            profitMap[row.cells[0].Text] = row;
+        });
+
         for (let i = 0; i < data.length; ++i) {
-            let profitTableRows: number = this.profitTable.rows.length;
-            let profitUkey: number = data[i].innercode;
+            item = data[i];
+            let row: DataTableRow;
 
-            if (profitTableRows === 0) {  // add
-                this.addProfitInfo(data[i]);
-            } else {
-                let checkFlag: boolean = false;
-                for (let j = 0; j < profitTableRows; ++j) {
-                    let getUkey = this.profitTable.rows[j].cells[0].Text;
-                    if (getUkey === profitUkey) { // refresh
-                        checkFlag = true;
-                        this.refreshProfitInfo(data[i], j);
-                    }
-                }
-                if (!checkFlag) {
-                    this.addProfitInfo(data[i]);
-                }
-                checkFlag = false;
+            if (!profitMap.hasOwnProperty(item.innercode)) {  // add
+                row = this.profitTable.newRow();
+                row.cells[0].Text = item.innercode;
+                let codeInfo = this.secuinfo.getSecuinfoByInnerCode(item.innercode);
+                row.cells[1].Text = codeInfo.hasOwnProperty(item.innercode) ? codeInfo[item.innercode].SecuCode : "unknown";
+                row.cells[2].Text = item.account;
+                row.cells[3].Text = item.strategyid;
+                row.cells[16].Text = item.lastclose / 10000;
+
+                profitMap[item.innercode] = row;
             }
+
+            profitMap[item.innercode].cells[4].Text = item.avgpriceforbuy / 10000;
+            profitMap[item.innercode].cells[5].Text = item.avgpriceforsell / 10000;
+            profitMap[item.innercode].cells[6].Text = item.positionpnl / 10000;
+            profitMap[item.innercode].cells[7].Text = item.tradingpnl / 10000;
+            profitMap[item.innercode].cells[8].Text = item.intradaytradingfee / 10000;
+            profitMap[item.innercode].cells[9].Text = item.tradingfee / 10000;
+            profitMap[item.innercode].cells[10].Text = item.lasttradingfee / 10000;
+            profitMap[item.innercode].cells[11].Text = item.lastpositionpnl / 10000;
+            profitMap[item.innercode].cells[12].Text = item.todaypositionpnl / 10000;
+            profitMap[item.innercode].cells[13].Text = item.pnl / 10000;
+            profitMap[item.innercode].cells[14].Text = item.lastposition;
+            profitMap[item.innercode].cells[15].Text = item.todayposition;
+            profitMap[item.innercode].cells[17].Text = item.marketprice / 10000;
+            profitMap[item.innercode].cells[18].Text = item.iopv;
         }
-    }
-
-    addProfitInfo(obj: any) {
-        let row = this.profitTable.newRow();
-        row.cells[0].Text = obj.innercode;
-        let codeInfo = this.secuinfo.getSecuinfoByInnerCode(obj.innercode);
-        row.cells[1].Text = codeInfo.hasOwnProperty(obj.innercode) ? codeInfo[obj.innercode].SecuCode : "unknown";
-        row.cells[2].Text = obj.account;
-        row.cells[3].Text = obj.strategyid;
-        row.cells[4].Text = obj.avgpriceforbuy / 10000;
-        row.cells[5].Text = obj.avgpriceforsell / 10000;
-        row.cells[6].Text = obj.positionpnl / 10000;
-        row.cells[7].Text = obj.tradingpnl / 10000;
-        row.cells[8].Text = obj.intradaytradingfee / 10000;
-        row.cells[9].Text = obj.tradingfee / 10000;
-        row.cells[10].Text = obj.lasttradingfee / 10000;
-        row.cells[11].Text = obj.lastpositionpnl / 10000;
-        row.cells[12].Text = obj.todaypositionpnl / 10000;
-        row.cells[13].Text = obj.pnl / 10000;
-        row.cells[14].Text = obj.lastposition;
-        row.cells[15].Text = obj.todayposition;
-        row.cells[16].Text = obj.lastclose / 10000;
-        row.cells[17].Text = obj.marketprice / 10000;
-        row.cells[18].Text = obj.iopv;
-    }
-
-    refreshProfitInfo(obj: any, idx: number) {
-        this.profitTable.rows[idx].cells[4].Text = obj.avgpriceforbuy / 10000;
-        this.profitTable.rows[idx].cells[5].Text = obj.avgpriceforsell / 10000;
-        this.profitTable.rows[idx].cells[6].Text = obj.positionpnl / 10000;
-        this.profitTable.rows[idx].cells[7].Text = obj.tradingpnl / 10000;
-        this.profitTable.rows[idx].cells[8].Text = obj.intradaytradingfee / 10000;
-        this.profitTable.rows[idx].cells[9].Text = obj.tradingfee / 10000;
-        this.profitTable.rows[idx].cells[10].Text = obj.lasttradingfee / 10000;
-        this.profitTable.rows[idx].cells[11].Text = obj.lastpositionpnl / 10000;
-        this.profitTable.rows[idx].cells[12].Text = obj.todaypositionpnl / 10000;
-        this.profitTable.rows[idx].cells[13].Text = obj.pnl / 10000;
-        this.profitTable.rows[idx].cells[14].Text = obj.lastposition;
-        this.profitTable.rows[idx].cells[15].Text = obj.todayposition;
-        this.profitTable.rows[idx].cells[16].Text = obj.lastclose / 10000;
-        this.profitTable.rows[idx].cells[17].Text = obj.marketprice / 10000;
-        this.profitTable.rows[idx].cells[18].Text = obj.iopv;
     }
 
     showComAccountPos(data: any) {
@@ -2301,91 +2253,25 @@ export class AppComponent implements OnInit {
         let bookviewPage = new TabPage(bookviewID, this.langServ.get("BookView"));
         this.pageMap[bookviewID] = bookviewPage;
 
-        let row1 = new HBox();
-        let dd_symbol = new DropDown();
-        dd_symbol.AcceptInput = true;
-        dd_symbol.Title = this.langServ.get("Code") + ": ";
+        let bookviewer = new BookViewer(this.langServ);
         let code = null;
 
         if (this.appStorage && this.appStorage.bookView && this.appStorage.bookView.hasOwnProperty(bookviewID)) {
             code = this.appStorage.bookView[bookviewID].code;
-            if (code !== null) {
+            if (code) {
                 let codeInfo = this.secuinfo.getSecuinfoByUKey(code);
-                dd_symbol.Text = codeInfo[code].SecuCode;
-                dd_symbol.SelectedItem = { Text: codeInfo[code].symbolCode, Value: codeInfo[code].InnerCode + "," + codeInfo[code].SecuCode + "," + codeInfo[code].ukey };
+                bookviewer.selectedItem = { symbolCode: codeInfo[code].SecuCode };
+                bookviewer.ukey = code;
             }
         }
 
-        row1.addChild(dd_symbol);
+        this.bookviewArr.push({ id: bookviewID, code: code, viewer: bookviewer });
 
-        let row2 = new HBox();
-        let lbl_timestamp = new Label();
-        lbl_timestamp.Title = this.langServ.get("Timestamp") + ": ";
-        row2.addChild(lbl_timestamp);
-
-        let bookViewTable = new DataTable("table2");
-        bookViewTable.RowIndex = false;
-        bookViewTable.align = "right";
-        ["BidVol", "Price", "AskVol", "TransVol"].forEach(item => { bookViewTable.addColumn(this.langServ.get(item)); });
-        bookViewTable.columns[3].hidden = true;
-
-        for (let i = 0; i < 20; ++i) {
-            let row = bookViewTable.newRow();
-            row.cells[0].bgColor = "#247094";
-            row.cells[0].Text = "";
-            row.cells[1].Text = "0.0000";
-            row.cells[1].bgColor = "rgb(216, 212, 214)";
-            row.cells[1].Color = "#333";
-            row.cells[2].bgColor = "#ac2220";
-            row.cells[3].bgColor = "transparent";
-        }
-
-        this.bookviewArr.push({ id: bookviewID, code: code, table: bookViewTable, lbl_timestamp: lbl_timestamp });
-
-        dd_symbol.SelectChange = () => {
-            this.clearBookViewTable(bookViewTable);
-            // bind bookivewID, and subscribe code
-            let kwlist = [];
-            let ukey = parseInt(dd_symbol.SelectedItem.Value.split(",")[2]);
-
-            for (let i = 0; i < this.bookviewArr.length; ++i) {
-                if (this.bookviewArr[i].id === bookviewID) {
-                    this.bookviewArr[i].code = ukey;
-                }
-
-                if (this.bookviewArr[i].code === null) {
-                    continue;
-                }
-
-                if (!kwlist.includes(this.bookviewArr[i].code)) {
-                    kwlist.push(this.bookviewArr[i].code);
-                }
-            }
-
-            this.subscribeMarketData(kwlist);
-            kwlist = null;
-        };
-
-        dd_symbol.matchMethod = (inputText) => {
-            let codes = this.secuinfo.getCodeList(inputText.toLocaleUpperCase());
-            let rtnArr = [];
-
-            dd_symbol.Items.length = 0;
-            for (let i = 0; i < codes.length; ++i) {
-                if (codes[i].SecuAbbr === codes[i].symbolCode)
-                    rtnArr.push({ Text: codes[i].symbolCode, Value: codes[i].code + "," + codes[i].symbolCode + "," + codes[i].ukey });
-                else
-                    rtnArr.push({ Text: codes[i].symbolCode + " " + codes[i].SecuAbbr, Value: codes[i].code + "," + codes[i].symbolCode + "," + codes[i].ukey });
-            }
-
-            return rtnArr;
-        };
-
-        bookViewTable.onCellDBClick = (cellItem, cellIdx, rowIndex) => {
-            if (dd_symbol.SelectedItem !== null) {
-                let rowItem = bookViewTable.rows[rowIndex];
-                [this.txt_UKey.Text, this.txt_Symbol.Text] = dd_symbol.SelectedItem.Value.split(",");
-                this.txt_Price.Text = rowItem.cells[1].Text;
+        bookviewer.onCellDBClick = (cellItem, cellIdx, rowIndex, row) => {
+            if (bookviewer.selectedItem) {
+                this.txt_UKey.Text = bookviewer.ukey;
+                this.txt_Symbol.Text = bookviewer.selectedItem.symbolCode;
+                this.txt_Price.Text = row.cells[1].Text;
                 // this.dd_Action.SelectedItem = (rowItem.cells[0].Text === "") ? this.dd_Action.Items[1] : this.dd_Action.Items[0];
                 switch (cellIdx) {
                     case 0:
@@ -2403,10 +2289,7 @@ export class AppComponent implements OnInit {
             Dialog.popup(this, this.tradeContent, { title: this.langServ.get("Trade Panel"), height: 300 });
         };
 
-        let bookViewContent = new VBox();
-        bookViewContent.addChild(row1).addChild(row2);
-        bookViewContent.addChild(bookViewTable);
-        bookviewPage.setContent(bookViewContent);
+        bookviewPage.setContent(bookviewer);
         return bookviewPage;
     }
 
@@ -2419,15 +2302,11 @@ export class AppComponent implements OnInit {
         }
     }
 
-    subscribeMarketData(codes: any) {
-        AppComponent.bgWorker.send({ command: "ps-send", params: { appid: 17, packid: 101, msg: { topic: 3112, kwlist: codes } } });
-    }
-
     onDestroy() {
         AppComponent.bgWorker.dispose();
         this.appStorage = { bookView: {} };
         this.bookviewArr.forEach(item => {
-            this.appStorage.bookView[item.id] = { code: item.code };
+            this.appStorage.bookView[item.id] = { code: item.viewer.ukey };
         });
 
         AppStoreService.setLocalStorageItem(this.option.name, JSON.stringify(this.appStorage));
@@ -2445,25 +2324,6 @@ export class AppComponent implements OnInit {
         AppComponent.bgWorker.onData = data => {
             console.info(data.event);
             switch (data.event) {
-                case "ps-data":
-                    for (let idx = 0; idx < this.bookviewArr.length; ++idx) {
-                        if (this.bookviewArr[idx].code === data.content.content.ukey) {
-                            this.bookviewArr[idx].lbl_timestamp.Text = new Date(data.content.content.time * 1000).format("yyyy/MM/dd HH:mm:ss");
-                            for (let i = 0; i < 10; ++i) {
-                                this.bookviewArr[idx].table.rows[i + 10].cells[0].Text = data.content.content.bid_volume[i] + "";
-                                this.bookviewArr[idx].table.rows[i + 10].cells[1].Text = (data.content.content.bid_price[i] / 10000).toFixed(4);
-                                this.bookviewArr[idx].table.rows[9 - i].cells[2].Text = data.content.content.ask_volume[i] + "";
-                                this.bookviewArr[idx].table.rows[9 - i].cells[1].Text = (data.content.content.ask_price[i] / 10000).toFixed(4);
-                            }
-                        }
-                    }
-                    break;
-                case "ps-connect":
-                    this.addStatus(true, "PS");
-                    break;
-                case "ps-close":
-                    this.addStatus(false, "PS");
-                    break;
                 case "ss-connect":
                     this.addStatus(true, "SS");
                     break;
