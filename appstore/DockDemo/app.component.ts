@@ -2023,21 +2023,23 @@ export class AppComponent implements OnInit {
         }
 
         let count = data[0].count;
-        let row: DataTableRow;
+        let ukey;
+        let portfolioMap: Object = {};
+        this.portfolioTable.rows.forEach(item => {
+            portfolioMap[item.cells[0].Data] = item;
+        });
 
         for (let iData = 0; iData < count; ++iData) {
-            row = this.portfolioTable.rows.find(item => {
-                return item.cells[0].Data === data[0].data[iData].UKey;
-            });
+            ukey = data[0].data[iData].UKey;
 
-            if (row === undefined) {
-                row = this.portfolioTable.newRow();
-                let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[0].data[iData].UKey);
+            if (!portfolioMap.hasOwnProperty(ukey)) {
+                let row = this.portfolioTable.newRow();
+                let codeInfo = this.secuinfo.getSecuinfoByInnerCode(ukey);
                 row.cells[0].Type = "checkbox";
-                row.cells[0].Title = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuCode : "unknown";
-                row.cells[0].Data = data[0].data[iData].UKey;
+                row.cells[0].Title = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuCode : "unknown";
+                row.cells[0].Data = ukey;
                 row.cells[0].Text = false;
-                row.cells[1].Text = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuAbbr : "unknown";
+                row.cells[1].Text = codeInfo.hasOwnProperty(ukey) ? codeInfo[ukey].SecuAbbr : "unknown";
                 row.cells[9].Type = "textbox";
                 row.cells[9].Text = 0;
                 row.cells[10].Type = "button";
@@ -2048,34 +2050,36 @@ export class AppComponent implements OnInit {
                 row.cells[12].Data = data[0].data[iData].Flag;
                 this.setTradingFlag(row, row.cells[12].Data);
                 ++this.portfolioCount.Text;
+
+                portfolioMap[ukey] = row;
             }
 
-            row.cells[2].Text = data[0].data[iData].InitPos;
-            row.cells[3].Text = data[0].data[iData].TgtPos;
-            row.cells[4].Text = data[0].data[iData].CurrPos;
-            row.cells[5].Text = data[0].data[iData].Diff;
-            row.cells[6].Text = data[0].data[iData].Traded;
-            row.cells[7].Text = data[0].data[iData].Percentage / 100 + "%";
-            row.cells[8].Text = data[0].data[iData].WorkingVol;
+            portfolioMap[ukey].cells[2].Text = data[0].data[iData].InitPos;
+            portfolioMap[ukey].cells[3].Text = data[0].data[iData].TgtPos;
+            portfolioMap[ukey].cells[4].Text = data[0].data[iData].CurrPos;
+            portfolioMap[ukey].cells[5].Text = data[0].data[iData].Diff;
+            portfolioMap[ukey].cells[6].Text = data[0].data[iData].Traded;
+            portfolioMap[ukey].cells[7].Text = data[0].data[iData].Percentage / 100 + "%";
+            portfolioMap[ukey].cells[8].Text = data[0].data[iData].WorkingVol;
 
-            row.cells[13].Text = data[0].data[iData].PreClose / 10000;
-            row.cells[14].Text = data[0].data[iData].LastPrice / 10000;
-            row.cells[15].Text = data[0].data[iData].BidSize;
-            row.cells[16].Text = data[0].data[iData].BidPrice / 10000;
-            row.cells[17].Text = data[0].data[iData].AskSize;
-            row.cells[18].Text = data[0].data[iData].AskPrice / 10000;
-            row.cells[19].Text = data[0].data[iData].AvgBuyPrice / 10000;
-            row.cells[20].Text = data[0].data[iData].AvgSellPrice / 10000;
-            row.cells[21].Text = data[0].data[iData].PreValue / 10000;
-            row.cells[22].Text = data[0].data[iData].ValueCon / 10000;
-            row.cells[23].Text = data[0].data[iData].DayPnLCon / 10000;
-            row.cells[24].Text = data[0].data[iData].ONPnLCon / 10000;
+            portfolioMap[ukey].cells[13].Text = data[0].data[iData].PreClose / 10000;
+            portfolioMap[ukey].cells[14].Text = data[0].data[iData].LastPrice / 10000;
+            portfolioMap[ukey].cells[15].Text = data[0].data[iData].BidSize;
+            portfolioMap[ukey].cells[16].Text = data[0].data[iData].BidPrice / 10000;
+            portfolioMap[ukey].cells[17].Text = data[0].data[iData].AskSize;
+            portfolioMap[ukey].cells[18].Text = data[0].data[iData].AskPrice / 10000;
+            portfolioMap[ukey].cells[19].Text = data[0].data[iData].AvgBuyPrice / 10000;
+            portfolioMap[ukey].cells[20].Text = data[0].data[iData].AvgSellPrice / 10000;
+            portfolioMap[ukey].cells[21].Text = data[0].data[iData].PreValue / 10000;
+            portfolioMap[ukey].cells[22].Text = data[0].data[iData].ValueCon / 10000;
+            portfolioMap[ukey].cells[23].Text = data[0].data[iData].DayPnLCon / 10000;
+            portfolioMap[ukey].cells[24].Text = data[0].data[iData].ONPnLCon / 10000;
 
-            if (row.cells[12].Data === data[0].data[iData].Flag)
+            if (portfolioMap[ukey].cells[12].Data === data[0].data[iData].Flag)
                 continue;
 
-            row.cells[12].Data = data[0].data[iData].Flag;
-            this.setTradingFlag(row, row.cells[12].Data);
+            portfolioMap[ukey].cells[12].Data = data[0].data[iData].Flag;
+            this.setTradingFlag(portfolioMap[ukey], portfolioMap[ukey].cells[12].Data);
         }
     }
 
@@ -2086,15 +2090,17 @@ export class AppComponent implements OnInit {
         }
 
         let count = data[0].count;
-        let row: DataTableRow;
+        let ukey;
+        let basketMap: Object = {};
+        this.basketTable.rows.forEach(item => {
+            basketMap[item.cells[0].Data] = item;
+        });
 
         for (let iData = 0; iData < count; ++iData) {
-            row = this.basketTable.rows.find(item => {
-                return item.cells[0].Data === data[0].data[iData].UKey;
-            });
+            ukey = data[0].data[iData].UKey;
 
-            if (row === undefined) {
-                row = this.basketTable.newRow();
+            if (!basketMap.hasOwnProperty(ukey)) {
+                let row = this.basketTable.newRow();
                 let codeInfo = this.secuinfo.getSecuinfoByInnerCode(data[0].data[iData].UKey);
                 row.cells[0].Type = "plaintext";
                 row.cells[0].Data = data[0].data[iData].UKey;
@@ -2102,35 +2108,35 @@ export class AppComponent implements OnInit {
                 row.cells[1].Text = codeInfo.hasOwnProperty(data[0].data[iData].UKey) ? codeInfo[data[0].data[iData].UKey].SecuAbbr : "unknown";
                 row.cells[9].Text = "Normal";
                 row.cells[9].Data = data[0].data[iData].Flag;
-                // this.setTradingFlag(row, row.cells[9].Data);
+
+                basketMap[ukey] = row;
             }
 
-            row.cells[2].Text = data[0].data[iData].InitPos;
-            row.cells[3].Text = data[0].data[iData].TgtPos;
-            row.cells[4].Text = data[0].data[iData].CurrPos;
-            row.cells[5].Text = data[0].data[iData].Diff;
-            row.cells[6].Text = data[0].data[iData].Traded;
-            row.cells[7].Text = data[0].data[iData].Percentage / 100 + "%";
-            row.cells[8].Text = data[0].data[iData].WorkingVol;
+            basketMap[ukey].cells[2].Text = data[0].data[iData].InitPos;
+            basketMap[ukey].cells[3].Text = data[0].data[iData].TgtPos;
+            basketMap[ukey].cells[4].Text = data[0].data[iData].CurrPos;
+            basketMap[ukey].cells[5].Text = data[0].data[iData].Diff;
+            basketMap[ukey].cells[6].Text = data[0].data[iData].Traded;
+            basketMap[ukey].cells[7].Text = data[0].data[iData].Percentage / 100 + "%";
+            basketMap[ukey].cells[8].Text = data[0].data[iData].WorkingVol;
 
-            row.cells[10].Text = data[0].data[iData].PreClose / 10000;
-            row.cells[11].Text = data[0].data[iData].LastPrice / 10000;
-            row.cells[12].Text = data[0].data[iData].BidSize;
-            row.cells[13].Text = data[0].data[iData].BidPrice / 10000;
-            row.cells[14].Text = data[0].data[iData].AskSize;
-            row.cells[15].Text = data[0].data[iData].AskPrice / 10000;
-            row.cells[16].Text = data[0].data[iData].AvgBuyPrice / 10000;
-            row.cells[17].Text = data[0].data[iData].AvgSellPrice / 10000;
-            row.cells[18].Text = data[0].data[iData].PreValue / 10000;
-            row.cells[19].Text = data[0].data[iData].ValueCon / 10000;
-            row.cells[20].Text = data[0].data[iData].DayPnLCon / 10000;
-            row.cells[21].Text = data[0].data[iData].ONPnLCon / 10000;
+            basketMap[ukey].cells[10].Text = data[0].data[iData].PreClose / 10000;
+            basketMap[ukey].cells[11].Text = data[0].data[iData].LastPrice / 10000;
+            basketMap[ukey].cells[12].Text = data[0].data[iData].BidSize;
+            basketMap[ukey].cells[13].Text = data[0].data[iData].BidPrice / 10000;
+            basketMap[ukey].cells[14].Text = data[0].data[iData].AskSize;
+            basketMap[ukey].cells[15].Text = data[0].data[iData].AskPrice / 10000;
+            basketMap[ukey].cells[16].Text = data[0].data[iData].AvgBuyPrice / 10000;
+            basketMap[ukey].cells[17].Text = data[0].data[iData].AvgSellPrice / 10000;
+            basketMap[ukey].cells[18].Text = data[0].data[iData].PreValue / 10000;
+            basketMap[ukey].cells[19].Text = data[0].data[iData].ValueCon / 10000;
+            basketMap[ukey].cells[20].Text = data[0].data[iData].DayPnLCon / 10000;
+            basketMap[ukey].cells[21].Text = data[0].data[iData].ONPnLCon / 10000;
 
-            if (row.cells[9].Data === data[0].data[iData].Flag)
+            if (basketMap[ukey].cells[9].Data === data[0].data[iData].Flag)
                 continue;
 
-            row.cells[9].Data = data[0].data[iData].Flag;
-            // this.setTradingFlag(row, row.cells[9].Data);
+            basketMap[ukey].cells[9].Data = data[0].data[iData].Flag;
         }
     }
 
