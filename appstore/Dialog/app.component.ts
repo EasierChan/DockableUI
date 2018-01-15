@@ -36,6 +36,7 @@ export class AppComponent implements OnInit {
 
     constructor(private state: AppStateCheckerRef, private langServ: TranslateService,
         private tradePoint: QtpService, private appsrv: AppStoreService) {
+        AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
         this.state.onInit(this, this.onReady);
     }
 
