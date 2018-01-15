@@ -145,7 +145,7 @@ export class StartUp implements IApplication {
             if (bexists) {
                 fs.readdir(appdir, (err, files) => {
                     files.forEach(fpath => {
-                        fs.unlink(path.join(appdir, fpath));
+                        fs.unlinkSync(path.join(appdir, fpath));
                     });
 
                     fs.rmdirSync(appdir);

@@ -93,7 +93,6 @@ export class StrategyComponent implements OnInit, OnDestroy {
         let vboxInstrument = new VBox();
         vboxInstrument.addChild(this.instrumentTable);
         instrumentPage.setContent(vboxInstrument);
-        AppStoreService.removeLocalStorageItem(DataKey.kStrategyCfg);
         this.strategyTemplates = JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kStrategyTemplates));
         if (this.strategyType !== undefined) {
             this.isCreate = false;
