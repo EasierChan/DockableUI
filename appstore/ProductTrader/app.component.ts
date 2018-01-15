@@ -90,11 +90,9 @@ export class AppComponent implements OnInit, OnDestroy {
     onReady(option: any) {
         this.option = option;
         this.productId = this.option.productID;
-        // this.qtp.connect(this.option.port, this.option.host);
     }
     onResize(event: any) {
-        // minus 10 to remove the window's border.
-        this.main.reallocSize(event.currentTarget.document.body.clientWidth - 10, event.currentTarget.document.body.clientHeight - 27);
+        this.main.reallocSize(event.currentTarget.document.body.clientWidth - 10, event.currentTarget.document.body.clientHeight);
         this.ref.detectChanges();
     }
 
@@ -173,7 +171,6 @@ export class AppComponent implements OnInit, OnDestroy {
         };
         let leftAlign = 20;
         let rowSep = 5;
-        // this.tradePage = new TabPage("ManulTrader", this.langServ.get("ManulTrader"));
         this.viewContentPop = new VBox();
         this.viewContentPop.MinHeight = 500;
         this.viewContentPop.MinWidth = 500;
@@ -306,21 +303,19 @@ export class AppComponent implements OnInit, OnDestroy {
         this.viewContentPop.addChild(btn_row);
 
         // 非弹框内容
-        let panel = new TabPanel();
-        let profitAndLossPage = new TabPage("profitAndLossPage", "盈亏");
-        let profitAndLossContent = new VBox();
-        this.profitAndLossTable = new DataTable("table2");
-        this.profitAndLossTable.height = 200;
-        this.profitAndLossTable.RowIndex = false;
-        ["Totalamt", "Validamt", "Frozenamt", "Loan", "Fee", "SubjectAmount", "Validloan", "Stockloan", "Stockvalue", "TotalMargin", "Buymargin", "SellMargin", "ClosePL", "HoldPosipl", "MtmClosepl", "MtmPosipl", "Stockvalue", "FuturesValue", "StockValidamt", "FuturesValidamt", "SpifCap", "CommodityFuturesCap", "RiskExposure", "CommodityFuturesNetting"].forEach(item => {
-            this.profitAndLossTable.addColumn(this.langServ.get(item));
-        });
-        profitAndLossContent.addChild(this.profitAndLossTable);
-        profitAndLossPage.setContent(profitAndLossContent);
-        panel.addTab(profitAndLossPage, false);
-        panel.setActive("profitAndLossPage");
+        let panelTop = new TabPanel();
+        let fundAccountPage = new TabPage("fundAccountViewer", "资金账户");
+        let fundAccountContent = new VBox();
+        this.fundAccountTable = new DataTable("table2");
+        this.fundAccountTable.height = 200;
+        this.fundAccountTable.RowIndex = false;
+        this.fundAccountTable.addColumn("币种", "资金余额", "交易可用金额", "总保证金", "买保证金", "卖保证金", "手续费", "持仓盈亏", "平仓盈亏");
+        fundAccountContent.addChild(this.fundAccountTable);
+        fundAccountPage.setContent(fundAccountContent);
+        panelTop.addTab(fundAccountPage, false);
+        panelTop.setActive("fundAccountViewer");
 
-
+        let panelMiddle = new TabPanel();
         let positionPage = new TabPage("productPosition", "仓位");
         let positionContent = new VBox();
         this.positionTable = new DataTable("table2");
@@ -330,25 +325,19 @@ export class AppComponent implements OnInit, OnDestroy {
             "TotalCost", "TodayOpen", "Type"].forEach(item => {
                 this.positionTable.addColumn(this.langServ.get(item));
             });
-
         positionContent.addChild(this.positionTable);
-
         positionPage.setContent(positionContent);
-        panel.addTab(positionPage, false);
+        panelMiddle.addTab(positionPage, false);
+        panelMiddle.setActive("productPosition");
 
         let productNetPage = new TabPage("productNetViewer", "净值");
         let productNetContent = new VBox();
         this.productNet = new Section();
         this.productNetChart = new ChartViewer();
-        // productNetPage.onClick = () => {
-        //     setTimeout(() => {
         this.productNetChart.setOption(this.createProductNetChart().option);
-        //     }, 500);
-        // };
         productNetContent.addChild(this.productNetChart);
         productNetPage.setContent(productNetContent);
-        panel.addTab(productNetPage, false);
-        // panel.setActive("productNetViewer");
+        panelMiddle.addTab(productNetPage, false);
 
         let orderStatPage = new TabPage("orderStatViewer", "订单状态");
         let orderStatContent = new VBox();
@@ -417,7 +406,7 @@ export class AppComponent implements OnInit, OnDestroy {
             });
         orderStatContent.addChild(this.orderStatTable);
         orderStatPage.setContent(orderStatContent);
-        panel.addTab(orderStatPage, false);
+        panelMiddle.addTab(orderStatPage, false);
 
         let finishOrderPage = new TabPage("finishOrderViewer", "完结订单");
         let finishOrderContent = new VBox();
@@ -430,17 +419,19 @@ export class AppComponent implements OnInit, OnDestroy {
             });
         finishOrderContent.addChild(this.finishOrderTable);
         finishOrderPage.setContent(finishOrderContent);
-        panel.addTab(finishOrderPage, false);
+        panelMiddle.addTab(finishOrderPage, false);
 
-        let fundAccountPage = new TabPage("fundAccountViewer", "资金账户");
-        let fundAccountContent = new VBox();
-        this.fundAccountTable = new DataTable("table2");
-        this.fundAccountTable.height = 200;
-        this.fundAccountTable.RowIndex = false;
-        this.fundAccountTable.addColumn("币种", "资金余额", "交易可用金额", "总保证金", "买保证金", "卖保证金", "手续费", "持仓盈亏", "平仓盈亏");
-        fundAccountContent.addChild(this.fundAccountTable);
-        fundAccountPage.setContent(fundAccountContent);
-        panel.addTab(fundAccountPage, false);
+        let profitAndLossPage = new TabPage("profitAndLossPage", "盈亏");
+        let profitAndLossContent = new VBox();
+        this.profitAndLossTable = new DataTable("table2");
+        this.profitAndLossTable.height = 200;
+        this.profitAndLossTable.RowIndex = false;
+        ["Totalamt", "Validamt", "Frozenamt", "Loan", "Fee", "SubjectAmount", "Validloan", "Stockloan", "Stockvalue", "TotalMargin", "Buymargin", "SellMargin", "ClosePL", "HoldPosipl", "MtmClosepl", "MtmPosipl", "Stockvalue", "FuturesValue", "StockValidamt", "FuturesValidamt", "SpifCap", "CommodityFuturesCap", "RiskExposure", "CommodityFuturesNetting"].forEach(item => {
+            this.profitAndLossTable.addColumn(this.langServ.get(item));
+        });
+        profitAndLossContent.addChild(this.profitAndLossTable);
+        profitAndLossPage.setContent(profitAndLossContent);
+        panelMiddle.addTab(profitAndLossPage, false);
 
         let tradeAccountPage = new TabPage("tradeAccountViewer", "交易账户");
         let tradeAccountContent = new VBox();
@@ -450,13 +441,12 @@ export class AppComponent implements OnInit, OnDestroy {
         this.tradeAccountTable.addColumn("资金账户名称", "市场ID", "对冲标志", "交易编码", "交易账户名称", "币种", "通道id", "创建者", "创建时间", "状态");
         tradeAccountContent.addChild(this.tradeAccountTable);
         tradeAccountPage.setContent(tradeAccountContent);
-        panel.addTab(tradeAccountPage, false);
-        // viewContent.addChild(panel);
+        panelMiddle.addTab(tradeAccountPage, false);
 
         let Market = new TabPage("MarketId", "行情");
         let MarketCon = new VBox();
         MarketCon.MinHeight = 200;
-        let panel2 = new TabPanel();
+        let panelMarket = new TabPanel();
         let bookviewer = new BookViewer(this.langServ);
         bookviewer.onCellDBClick = (item, cellIndex, rowIndex, row) => {
             if (cellIndex === 2 || cellIndex === 1 && rowIndex < 10)
@@ -470,14 +460,12 @@ export class AppComponent implements OnInit, OnDestroy {
             this.txt_Price.Text = row.cells[1].Text;
             Dialog.popup(this, this.viewContentPop, { title: this.langServ.get("Trade"), height: 300 });
         };
-        // bookviewer.
-        // this.quote.send(17, 101, { topic: 3112, kwlist: bookviewer.ukey });
         MarketCon.addChild(bookviewer);
         Market.setContent(MarketCon);
-        panel2.addTab(Market, false);
-        panel2.setActive("MarketId");
+        panelMarket.addTab(Market, false);
+        panelMarket.setActive("MarketId");
 
-        let panel3 = new TabPanel();
+        let panelLog = new TabPanel();
         let logPage = new TabPage("Log", this.langServ.get("LOG"));
         let logContent = new VBox();
         this.logTable = new DataTable("table2");
@@ -488,27 +476,34 @@ export class AppComponent implements OnInit, OnDestroy {
         this.logTable.addColumn(logContentTittleRtn);
         logContent.addChild(this.logTable);
         logPage.setContent(logContent);
-        panel3.addTab(logPage, false);
-        panel3.setActive("Log");
+        panelLog.addTab(logPage, false);
+        panelLog.setActive("Log");
 
         this.main = new DockContainer(null, "v", window.innerWidth, window.innerHeight);
-        this.main.addChild(new DockContainer(this.main, "h", null, Math.round(window.innerHeight / 2)).addChild(panel));
-        this.main.addChild(new Splitter("h", this.main));
-        let dock = new DockContainer(this.main, "h", null, window.innerHeight - Math.round(window.innerHeight / 2) - Splitter.size);
-        let vdock = new DockContainer(dock, "v", Math.round(window.innerWidth / 2), null);
-        vdock.addChild(panel2);
-        let vdock2 = new DockContainer(dock, "v", window.innerWidth - Math.round(window.innerWidth / 2) - Splitter.size, null);
-        vdock2.addChild(panel3);
 
-        dock.addChild(vdock);
-        dock.addChild(new Splitter("v", dock));
-        dock.addChild(vdock2);
-        this.main.addChild(dock);
+        let topdock = new DockContainer(this.main, "h", null, Math.round(window.innerHeight * 3 / 16));
+        topdock.addChild(panelTop);
+        this.main.addChild(topdock);
+        this.main.addChild(new Splitter("h", this.main));
+
+        let middock = new DockContainer(this.main, "h", null, Math.round(window.innerHeight * 5 / 16) - Splitter.size);
+        middock.addChild(panelMiddle);
+        this.main.addChild(middock);
+        this.main.addChild(new Splitter("h", this.main));
+
+        let bottomdock = new DockContainer(this.main, "h", null, window.innerHeight - Math.round(window.innerHeight / 2));
+        let marketdock = new DockContainer(bottomdock, "v", Math.round(window.innerWidth / 3), null);
+        marketdock.addChild(panelMarket);
+        bottomdock.addChild(marketdock);
+        bottomdock.addChild(new Splitter("v", bottomdock));
+        let logdock = new DockContainer(bottomdock, "v", window.innerWidth - Math.round(window.innerWidth / 3) - Splitter.size, null);
+        logdock.addChild(panelLog);
+        bottomdock.addChild(logdock);
+        this.main.addChild(bottomdock);
 
         // 建立TCP链接
         this.registryListeners();
         this.tradePoint.connect(parseInt(port), addr);
-
         this.tradePoint.onConnect = () => {
             this.tradePoint.send(FGS_MSG.kLogin, JSON.stringify({ data: JSON.parse(AppStoreService.getLocalStorageItem(DataKey.kUserInfo)) }), ServiceType.kLogin);
         };
@@ -730,7 +725,6 @@ export class AppComponent implements OnInit, OnDestroy {
             }
         });
         this.tradePoint.onTopic(4101, (key, dataObj) => {
-            // console.log("&&&&&&&&&&&&===============" + new Date());
             let data = JSON.parse(dataObj.toString());
             this.errorCallback(data, "getMonitorProducts推送： ");
             let productData = data.body[0];
@@ -786,7 +780,6 @@ export class AppComponent implements OnInit, OnDestroy {
             }
         });
         this.tradePoint.onTopic(4100, (key, dataObj) => {
-            // console.log("!!!!!!!!!!!!!!===============" + new Date());
             let data = JSON.parse(dataObj.toString());
             this.errorCallback(data, "getProductNet推送： ");
             let productNetChangeOpt = {
@@ -839,7 +832,6 @@ export class AppComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
-        // this.tradePoint.subscribe(4101, [Number(this.productId)]);
     }
     registryListeners() {
         this.tradePoint.addSlot(
@@ -1073,14 +1065,14 @@ export class AppComponent implements OnInit, OnDestroy {
                     text: "",
                     x: "center",
                     align: "right",
-                    top: 20,
+                    top: 15,
                     textStyle: {
                         color: "#717171"
                     }
                 },
                 grid: {
-                    bottom: 50,
-                    top: 100
+                    bottom: 40,
+                    top: 70
                 },
                 tooltip: {
                     trigger: "axis"

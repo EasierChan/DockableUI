@@ -9,28 +9,44 @@ body {
 .dialog .btn-group button {
     position: absolute;
 }
+dock-table2 {
+    padding-left: 7px;
+}
+.tab-page{
+    background-color: #2e344c;
+}
 .tab-panel{
     position: relative;
+    background-color: #2e344c;
 }
-.dock-container {
-    background-color: rgb(26, 34, 55);
+body>.dock-container {
+    padding-left: 10px;
+    padding-right: 10px;
 }
-.page-title {
-  background-color: #383f54;
-  padding-left: 15px;
+.page-title {    
+    background-color: #2e344c;
+    padding-left: 15px;
 }
 
 .page-body {
-  /*background-color: #1f273e;*/
-  background-color: rgb(16, 23, 39);
-  padding-left: 15px;
+    margin-left: 10px;
+    margin-right: 10px;
 }
 
+#Log .page-body {
+    margin-left: 0;
+}
+#MarketId .page-body {
+    margin-right: 0;
+}
 .panel-header-list {
-  background-color: #383f54;
-  box-shadow: 0 -2px 2px #060606;
+    box-shadow: 0 -2px 2px rgba(0,0,0,0);
+    background-color: #2e344c;
+    padding-left: 10px;
 }
-
+#Log .panel-header-list {
+    margin-left: 0;
+}
 .panel-header-list > .tab.active {
     background-color: #1b1b1b;
 }
@@ -70,10 +86,8 @@ usercontrol.row{
     flex-flow: row nowrap;
     flex: none;
     height: 25px;
-    /*line-height: 25px;*/
     vertical-align: middle;
     margin: 0px;
-    /*padding: 5px 5px;*/
 }
 usercontrol.col{
     flex: 1;
@@ -84,7 +98,6 @@ usercontrol.col{
 ::-webkit-scrollbar{
     width: 5px;
     height: 5px;
-    /*background-color: #111a30;*/
 }
 ::-webkit-scrollbar-button {
     display: none;
