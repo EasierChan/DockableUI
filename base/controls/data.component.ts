@@ -106,11 +106,6 @@ export class ScrollerBarTable implements OnInit {
     @HostListener("scroll")
     onScroll() {
         this._zone.runOutsideAngular(() => {
-            // if (this.ele.nativeElement.scrollTop + this.ele.nativeElement.clientHeight > this.content.nativeElement.scrollHeight) {
-            //     return;
-            // }
-
-            console.warn(this.ele.nativeElement.scrollTop, this.ele.nativeElement.clientHeight, this.content.nativeElement.scrollHeight);
             this.stable.nativeElement.style["margin-top"] = this.ele.nativeElement.scrollTop + "px";
             this.head.nativeElement.style.top = this.ele.nativeElement.scrollTop + "px";
             this.head.nativeElement.style.display = "table";
