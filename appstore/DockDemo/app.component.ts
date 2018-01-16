@@ -371,7 +371,7 @@ export class AppComponent implements OnInit {
         this.positionPage = new TabPage("Position", this.langServ.get("Position"));
         this.pageMap["Position"] = this.positionPage;
         let positionContent = new VBox();
-        this.positionTable = new DataTable("table2");
+        this.positionTable = new DataTable("table3");
         ["PortfolioID", "secucategory", "UKEY", "Code", "TotalQty", "AvlQty", "AvlCreRedempVol", "WorkingQty",
             "TotalCost", "TodayOpen", "AvgPrice", "StrategyID", "Type"].forEach(item => {
                 this.positionTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
@@ -609,7 +609,7 @@ export class AppComponent implements OnInit {
         this.sellamountLabel.Disable = true;
         this.sellamountLabel.Text = "0";
         statarbHeader.addChild(this.buyamountLabel).addChild(this.sellamountLabel);
-        this.statarbTable = new DataTable("table2");
+        this.statarbTable = new DataTable("table3");
         ["Symbol", "InnerCode", "Change(%)", "Position",
             "Trade", "Amount", "StrategyID", "DiffQty", "SymbolCode"].forEach(item => {
                 this.statarbTable.addColumn2(new DataTableColumn(this.langServ.get(item), false, true));
@@ -808,7 +808,7 @@ export class AppComponent implements OnInit {
         tradeitem.addChild(this.portfolioBuyCom).addChild(this.portfolioBUyOffset).addChild(this.portfolioSellCom).addChild(this.portfolioSellOffset).addChild(allbuyChk)
             .addChild(allsellChk).addChild(this.range).addChild(this.rateText).addChild(percentText).addChild(btn_sendSel).addChild(btn_cancelSel);
 
-        this.portfolioTable = new DataTable("table2");
+        this.portfolioTable = new DataTable("table3");
         ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
             "WorkingQty", "SingleOrderQty", "Send", "Cancel", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
             "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].forEach(col => {
@@ -1075,7 +1075,7 @@ export class AppComponent implements OnInit {
                     });
                 }, [{ name: "bkt", extensions: ["bkt"] }]);
             };
-            this.basketTable = new DataTable("table2");
+            this.basketTable = new DataTable("table3");
             ["SymbolCode", "Symbol", "PreQty", "TargetQty", "CurrQty", "TotalOrderQty", "FilledQty", "FillPace",
                 "WorkingQty", "Status", "PrePrice", "LastPrice", "BidSize", "BidPrice", "AskSize",
                 "AskPrice", "AvgBuyPrice", "AvgSellPrice", "PreValue", "CurrValue", "Day Pnl", "O/N Pnl"].
