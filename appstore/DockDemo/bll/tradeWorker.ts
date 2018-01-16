@@ -75,13 +75,20 @@ export class StrategyDealer {
     appid: number;
     loginInfo: any;
     connectState: number;
-    dataList: { type: number, subtype: number, data: Object[] }[];
-    chunkLen: number;
+    // ComOrderRecord Cache
     order_record_list: ComOrderRecord[] = [];
     history_record: { type: number, subtype: number, orders: ComOrderRecord[] };
     record_timer: any;
     record_last_time: number = 0;
     private readonly record_freq = 1000;
+    // ComProfitInfo Cache
+    profit_list: ComProfitInfo[] = [];
+    profit_timer: any;
+    profit_last_time: number = 0;
+    // FpPosUpdate Cache
+    fp_pos_list: FpPosUpdate[] = [];
+    fp_timer: any;
+    fp_last_time: number = 0;
 
     constructor(appid: number, loginInfo) {
         this.tradePoint = new QtpService();
@@ -291,18 +298,35 @@ export class StrategyDealer {
                 }
                 break;
             case 2023: // ComProfitInfo
-                let profit_list = [];
                 count = content.readUInt32LE(offset);
                 offset += 4;
 
                 for (let i = 0; i < count; ++i) {
                     msg = new ComProfitInfo();
                     offset = msg.fromBuffer(content, offset);
-                    profit_list.push(msg);
+                    this.profit_list.push(msg);
                 }
 
-                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: profit_list } });
-                profit_list = null;
+
+                if (this.profit_timer) {
+                    clearTimeout(this.profit_timer);
+                    this.profit_timer = null;
+                }
+
+                if (Date.now() - this.profit_last_time > this.record_freq) {
+                    let type = header.type;
+                    let subtype = header.subtype;
+                    process.send({ event: "ss-data", content: { type: type, subtype: subtype, data: this.profit_list } });
+                    this.profit_list.length = 0;
+                } else {
+                    this.profit_timer = setTimeout(() => {
+                        let type = header.type;
+                        let subtype = header.subtype;
+                        process.send({ event: "ss-data", content: { type: type, subtype: subtype, data: this.profit_list } });
+                        this.profit_list.length = 0;
+                        this.profit_last_time = Date.now();
+                    }, this.record_freq - (Date.now() - this.profit_last_time));
+                }
                 break;
             case 2013:
                 let account_pos_list = [];
@@ -386,23 +410,35 @@ export class StrategyDealer {
                 break;
             case 5031:
             case 5021:
-                let fp_pos_list = [];
                 count = content.readUInt32LE(offset); offset += 4;
                 let account = content.readUIntLE(offset, 8); offset += 8;
                 count = content.readUInt32LE(offset); offset += 4;
-                let arr = [];
 
                 for (let i = 0; i < count; ++i) {
                     msg = new FpPosUpdate();
                     offset = msg.fromBuffer(content, offset);
-                    arr.push(msg);
+                    this.fp_pos_list.push(msg);
                 }
 
-                fp_pos_list.push({ account: account, data: arr, count: count });
-                process.send({ event: "ss-data", content: { type: header.type, subtype: header.subtype, data: fp_pos_list } });
-                fp_pos_list = null;
-                arr = null;
-                account = null;
+                if (this.fp_timer) {
+                    clearTimeout(this.fp_timer);
+                    this.fp_timer = null;
+                }
+
+                if (Date.now() - this.fp_last_time > this.record_freq) {
+                    let type = header.type;
+                    let subtype = header.subtype;
+                    process.send({ event: "ss-data", content: { type: type, subtype: subtype, account: account, data: this.fp_pos_list } });
+                    this.fp_pos_list.length = 0;
+                } else {
+                    this.fp_timer = setTimeout(() => {
+                        let type = header.type;
+                        let subtype = header.subtype;
+                        process.send({ event: "ss-data", content: { type: type, subtype: subtype, account: account, data: this.fp_pos_list } });
+                        this.fp_pos_list.length = 0;
+                        this.fp_last_time = Date.now();
+                    }, this.record_freq - (Date.now() - this.fp_last_time));
+                }
                 break;
             case 5022:
                 offset += 20;
