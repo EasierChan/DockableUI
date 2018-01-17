@@ -1587,6 +1587,8 @@ export class AppComponent implements OnInit {
                     break;
             }
         }
+
+        this.positionTable.detectChanges();
     }
 
     showComGWNetGuiInfo(data: any) {
@@ -1746,6 +1748,8 @@ export class AppComponent implements OnInit {
                 row.cells[16].Text = data[i].record.ClosePL / 10000;
             }
         }
+
+        this.accountTable.detectChanges();
     }
 
     showStrategyCfg(data: any) {
@@ -2078,6 +2082,8 @@ export class AppComponent implements OnInit {
             portfolioMap[ukey].cells[12].Data = data[iData].Flag;
             this.setTradingFlag(portfolioMap[ukey], portfolioMap[ukey].cells[12].Data);
         }
+
+        this.portfolioTable.detectChanges();
     }
 
     updateBasketExt(data: any) {
@@ -2135,6 +2141,8 @@ export class AppComponent implements OnInit {
 
             basketMap[ukey].cells[9].Data = data[iData].Flag;
         }
+
+        this.basketTable.detectChanges();
     }
 
     setTradingFlag(row: DataTableRow, flag: number) {
