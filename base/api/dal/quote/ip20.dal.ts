@@ -110,6 +110,9 @@ export class QuoteDal {
                 appid: 17,
                 packid: 43,
                 callback: (msg) => {
+                    if (this.kwlist.length > 0)
+                        this.quotePoint.send(17, 101, { topic: 3112, kwlist: this.kwlist });
+
                     if (this.quoteHeart !== null) {
                         clearInterval(this.quoteHeart);
                         this.quoteHeart = null;
