@@ -7,7 +7,7 @@ import { IApplication, MenuWindow, ContentWindow, UWindwManager, Bound, Path, IP
 const path = require("path");
 const fs = require("fs");
 declare let window: any;
-import { ipcMain, MenuItem, Menu  } from "electron";
+import { ipcMain, MenuItem, Menu } from "electron";
 
 export class StartUp implements IApplication {
     _windowMgr: UWindwManager;
@@ -29,24 +29,21 @@ export class StartUp implements IApplication {
         this._menuTemplate.append(new MenuItem({
             label: "File",
             submenu: [
-                { label: "New BookView" },
-                // { label: "New SpreadView", click: this.itemClick },
-                { type: "separator" },
                 { role: "close" }
             ]
         }));
-        this._menuTemplate.append(new MenuItem({ label: "Window", submenu: this.subWindMenu }));
+        this._menuTemplate.append(new MenuItem({ label: "Window"}));
         this._menuTemplate.append(new MenuItem({
             label: "Help",
             submenu: [
                 { label: "Toggle Developer Tools", click: (item, owner) => { owner.webContents.openDevTools(); } },
-                { label: "Reload", click: (item, owner) => { owner.reload(); } },
+                { label: "Reload", click: (item, owner) =>  this.productReload(owner) },
                 { label: "Reset Layout", click: (item, owner) => this.removeLayout(owner) },
                 { type: "separator" },
                 { role: "about" }
             ]
         }));
- }
+    }
     /**
      * bootstrap
      */
@@ -68,9 +65,10 @@ export class StartUp implements IApplication {
             this._option.layout = this.loadLayout();
             this._mainWindow.loadURL(path.join(__dirname, "index.html"));
             this._mainWindow.win.setTitle(name);
+            this._mainWindow.setMenu(this._menuTemplate);
             this._mainWindow.setMenuBarVisibility(true);
             StartUp.instanceMap[this._mainWindow.win.webContents.id] = this;
-            // this._windowMgr.addContentWindow(this._mainWindow);
+            this._windowMgr.addContentWindow(this._mainWindow);
         }
         this._mainWindow.show();
     }
@@ -124,6 +122,10 @@ export class StartUp implements IApplication {
         this._option.layout = this.defaultLayout;
         owner.reload();
     }
+    productReload(owner) {
+        // this._option.layout = this.defaultLayout;
+        owner.reload();
+    }
     loadLayout() {
         let flayout = path.join(this._appdir, "layout.json");
         if (!fs.existsSync(flayout)) {
@@ -133,7 +135,7 @@ export class StartUp implements IApplication {
         return JSON.parse(fs.readFileSync(flayout, "utf8"));
     }
 
-     get defaultLayout() {
+    get defaultLayout() {
         let [width, height] = [this._mainWindow.getBounds().width - 10, this._mainWindow.getBounds().height];
 
         let res = {

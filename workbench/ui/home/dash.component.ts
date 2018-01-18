@@ -80,6 +80,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
     historyMarketIndex: number;
     isDestroy: boolean = false;
 
+    reqsnArr: any[] = [];
+
     constructor(private tradePoint: QtpService, private quote: QuoteService, private config: ConfigurationBLL,
         private secuinfo: SecuMasterService, private appsvr: AppStoreService, private ref: ChangeDetectorRef) {
     }
@@ -101,12 +103,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.dashAllUkcodeList.push(this.referStockUk);
         this.dashAllUkcodeList = this.dashAllUkcodeList.concat(this.selfStockUkList);
         this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-        if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求当日最后一条数据
-            this.historyMarket("lastDate");
-        }
+        this.nowTime = this.dashGetTime(new Date().getTime() / 1000 + 60);
         let d = new Date();
         this.nowDate = d.getFullYear() + "-" + this.addZero(Number(d.getMonth()) + 1) + "-" + this.addZero(d.getDate());
-        this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
         this.nowTimeStamp = d.getTime();
 
         let selfStockSecuInfo = this.secuinfo.getSecuinfoByUKey(2490369, 1441794, 1441876, 1441949, 2490383, 2490381, 1441854, this.referStockUk);
@@ -128,8 +127,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.selfStockMarketChange.xAxis[0].data = this.selfStockXdata;
         this.selfStockMarketChange.xAxis[1].data = this.selfStockXdata;
 
-        if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求历史数据
+        if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求历史数据,请求当日最后一条数据
             this.historyMarket("all");
+            this.historyMarket("lastDate");
         }
 
         this.bestStockList = new DataTable("table2");
@@ -176,8 +176,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         });
         this.mainStockUk = this.selfStockData[0].ukey;
         this.selfStockTable.onRowDBClick = (rowItem, rowIndex) => {// 点击切换指数行情
-            d = new Date();
-            this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
+            this.nowTime = this.dashGetTime(new Date().getTime() / 1000 + 60);
             this.mainStock.preClose = rowItem.cells[2].Data;
             this.initSelfStockMarket(this.mainStock.preClose);
             this.selfStockTable.rows.forEach((item, index) => {
@@ -434,14 +433,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }, this);
 
         // 产品信息
-        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: {} } }));
         this.config.on("getProduct", (data) => {
             if (data.length > 0 && !this.isDestroy) {
                 this.nowProductIndex = data.length;
                 this.nowProductCaid = data[0].caid;
                 this.productNetData = [];
-                this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
-                this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+                this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+                this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: { caid: this.nowProductCaid } } }));
             }
         });
 
@@ -551,8 +550,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // 最好的30股票
         this.tradePoint.addSlotOfCMS("getBestStocks", msg => {
             if (!this.isDestroy) {
-                d = new Date();
-                this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
+                this.nowTime = this.dashGetTime(new Date().getTime() / 1000 + 60);
                 let data = JSON.parse(msg.toString());
                 if (data.msret.msgcode !== "00") {
                     alert("getBestStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
@@ -560,6 +558,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
                 this.aiStockDate.bestStockListData = data.body;
                 this.bestStockList.RowIndex = false; // 去除序列
+                this.bestStockList.rows = [];
                 if (this.aiStockDate.bestStockListData.length > 0) {
                     this.aiStockDate.bestStockListData.forEach((item, index) => {
                         this.ukCodeList.push(Number(item.ukcode));
@@ -586,8 +585,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // 最差的30股
         this.tradePoint.addSlotOfCMS("getWorstStocks", msg => {
             if (!this.isDestroy) {
-                d = new Date();
-                this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
+                this.nowTime = this.dashGetTime(new Date().getTime() / 1000 + 60);
                 let data = JSON.parse(msg.toString());
                 if (data.msret.msgcode !== "00") {
                     alert("getWorstStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
@@ -595,6 +593,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 }
                 this.aiStockDate.worstStockListData = data.body;
                 this.worstStockList.RowIndex = false; // 去除序列
+                this.worstStockList.rows = [];
                 if (this.aiStockDate.worstStockListData.length > 0) {
                     this.aiStockDate.worstStockListData.forEach((item, index) => {
                         this.ukCodeList.push(Number(item.ukcode));
@@ -668,7 +667,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             this.nowOperateStat = this.todoList.rows[rowIndex].cells[0].Data.stat === "1" ? 0 : 1;
                             this.tradePoint.sendToCMS("editTodo", JSON.stringify({
                                 data: {
-                                    head: { userid: this.userId },
+                                    head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId },
                                     body: {
                                         id: this.nowOperateId,
                                         stat: this.nowOperateStat,
@@ -697,7 +696,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     }
                                     this.tradePoint.sendToCMS("editTodo", JSON.stringify({
                                         data: {
-                                            head: { userid: this.userId },
+                                            head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId },
                                             body: {
                                                 id: this.nowOperateId,
                                                 stat: this.nowOperateStat,
@@ -716,7 +715,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 }
                             } else if (row.cells[1].Type === "plaintext") {
                                 if (index === 1) {// 删除操作
-                                    this.tradePoint.sendToCMS("deleteTodo", JSON.stringify({ data: { head: { userid: this.userId }, body: { id: this.nowOperateId } } }));
+                                    this.tradePoint.sendToCMS("deleteTodo", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: { id: this.nowOperateId } } }));
                                 } else if (index === 0) {// 编辑
                                     row.cells[1].Type = "textbox";
                                     row.cells[2].Type = "date";
@@ -737,7 +736,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                     alert("createTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
                     return;
                 }
-                this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+                this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: {} } }));
             }
         }, this);
         // editTodo
@@ -788,13 +787,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.ref.detectChanges();
             }
         }, this);
-        this.tradePoint.sendToCMS("getAlarmMessage", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
-        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getAlarmMessage", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: {} } }));
         // AI看盘数据
-        this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
-        this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: {} } }));
         // 获取todo列表
-        this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { head: {reqsn: Math.round(Math.random() * 1000),  userid: this.userId }, body: {} } }));
     }
     createAlarmRow(item) {
         if (this.statObj[item.stat]) {
@@ -834,7 +833,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
         this.tradePoint.sendToCMS("createTodo", JSON.stringify({
             data: {
-                head: { userid: this.userId },
+                head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId },
                 body: { content: this.addTodoContent, stat: "0", oid: this.userId, todotime: this.nowDate }
             }
         }));
@@ -846,16 +845,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.nowProductIndex = this.nowProductIndex + this.productData.length - 1;
         this.nowProductIndex = this.nowProductIndex % this.productData.length;
         this.nowProductCaid = this.productData[this.nowProductIndex].caid;
-        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
-        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: { caid: this.nowProductCaid } } }));
     }
 
     getNowProductDataNext() {
         this.nowProductIndex++;
         this.nowProductIndex = this.nowProductIndex % this.productData.length;
         this.nowProductCaid = this.productData[this.nowProductIndex].caid;
-        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
-        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { reqsn: Math.round(Math.random() * 1000), userid: this.userId }, body: { caid: this.nowProductCaid } } }));
     }
 
     compare(property) {
@@ -1018,7 +1017,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         referStock[this.referStockUk] = {};
                         referStock[this.referStockUk].order = 0;
                         referStock[this.referStockUk].type = "refer";
-                        let allStockUkMap = Object.assign(this.bestStockUkMap, this.worstStockUkMap, this.selfStockUkMap, referStock);
+                        let allStockUkMap = Object.assign({}, this.bestStockUkMap, this.worstStockUkMap, this.selfStockUkMap, referStock);
                         lastDate.forEach(item => {
                             let nowPrice = (item.p / 10000).toFixed(2);
                             let increase = ((item.p - item.pc) / 10000).toFixed(2);
@@ -1027,7 +1026,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             if (this.refStock.increase) {
                                 referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
                             }
-                            if (allStockUkMap[item.k].type === "worst") {
+                            if (allStockUkMap[item.k] && allStockUkMap[item.k].type === "worst") {
                                 this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                                 this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
                                 this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increasePer, "color");
@@ -1035,7 +1034,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
                                     this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                                 }
-                            } else if (allStockUkMap[item.k].type === "best") {
+                            } else if (allStockUkMap[item.k] && allStockUkMap[item.k].type === "best") {
                                 this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                                 this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
                                 this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increasePer, "color");
@@ -1043,7 +1042,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     this.bestStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
                                     this.bestStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                                 }
-                            } else if (allStockUkMap[item.k].type === "self") {
+                            } else if (allStockUkMap[item.k] && allStockUkMap[item.k].type === "self") {
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[5].Text = this.barginPriceUnit(item.v);
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[6].Text = this.barginPriceUnit(item.u * 100);
@@ -1052,7 +1051,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[2].Color = this.dashGetColor(increase, "color");
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increase, "color");
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(increasePer, "color");
-                            } else if (allStockUkMap[item.k].type === "refer") {
+                            } else if (allStockUkMap[item.k] && allStockUkMap[item.k].type === "refer") {
                                 this.refStock.price = nowPrice;
                                 this.refStock.increase = increasePer;
                             }

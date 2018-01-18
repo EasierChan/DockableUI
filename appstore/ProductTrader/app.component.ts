@@ -74,6 +74,7 @@ export class AppComponent implements OnInit {
     private txt_Symbol: MetaControl;
     private txt_Price: MetaControl;
     private txt_Volume: MetaControl;
+    private bookviewer: BookViewer;
     coms_directive: any = {};
     coms_statusType: any = {};
     coms_orderType: any = {};
@@ -81,6 +82,7 @@ export class AppComponent implements OnInit {
     coms_positionType: any = {};
     coms_hedgeFlagType: any = {};
     orderStateList: any[] = [];
+    private appStorage: any;
 
     constructor(private tradePoint: QtpService, private ref: ChangeDetectorRef, private state: AppStateCheckerRef, private secuinfo: SecuMasterService,
         private appSrv: AppStoreService, private langServ: TranslateService, private quote: IP20Service) {
@@ -305,7 +307,6 @@ export class AppComponent implements OnInit {
         this.viewContentPop.addChild(btn_row);
 
         // 非弹框内容
-        // let panelTop = new TabPanel();
         let fundAccountPage = new TabPage("fundAccountId", "资金账户");
         this.pageMap["fundAccountId"] = fundAccountPage;
         let fundAccountContent = new VBox();
@@ -315,10 +316,7 @@ export class AppComponent implements OnInit {
         this.fundAccountTable.addColumn("币种", "资金余额", "交易可用金额", "总保证金", "买保证金", "卖保证金", "手续费", "持仓盈亏", "平仓盈亏");
         fundAccountContent.addChild(this.fundAccountTable);
         fundAccountPage.setContent(fundAccountContent);
-        // panelTop.addTab(fundAccountPage, false);
-        // panelTop.setActive("fundAccountId");
 
-        // let panelMiddle = new TabPanel();
         let positionPage = new TabPage("productPositionId", "仓位");
         this.pageMap["productPositionId"] = positionPage;
         let positionContent = new VBox();
@@ -331,8 +329,6 @@ export class AppComponent implements OnInit {
             });
         positionContent.addChild(this.positionTable);
         positionPage.setContent(positionContent);
-        // panelMiddle.addTab(positionPage, false);
-        // panelMiddle.setActive("productPositionId");
 
         let productNetPage = new TabPage("productNetId", "净值");
         this.pageMap["productNetId"] = productNetPage;
@@ -342,7 +338,6 @@ export class AppComponent implements OnInit {
         this.productNetChart.setOption(this.createProductNetChart().option);
         productNetContent.addChild(this.productNetChart);
         productNetPage.setContent(productNetContent);
-        // panelMiddle.addTab(productNetPage, false);
 
         let orderStatPage = new TabPage("orderStatId", "订单状态");
         this.pageMap["orderStatId"] = orderStatPage;
@@ -412,7 +407,6 @@ export class AppComponent implements OnInit {
             });
         orderStatContent.addChild(this.orderStatTable);
         orderStatPage.setContent(orderStatContent);
-        // panelMiddle.addTab(orderStatPage, false);
 
         let finishOrderPage = new TabPage("finishOrderId", "完结订单");
         this.pageMap["finishOrderId"] = finishOrderPage;
@@ -426,7 +420,6 @@ export class AppComponent implements OnInit {
             });
         finishOrderContent.addChild(this.finishOrderTable);
         finishOrderPage.setContent(finishOrderContent);
-        // panelMiddle.addTab(finishOrderPage, false);
 
         let profitAndLossPage = new TabPage("profitAndLossId", "盈亏");
         this.pageMap["profitAndLossId"] = profitAndLossPage;
@@ -439,7 +432,6 @@ export class AppComponent implements OnInit {
         });
         profitAndLossContent.addChild(this.profitAndLossTable);
         profitAndLossPage.setContent(profitAndLossContent);
-        // panelMiddle.addTab(profitAndLossPage, false);
 
         let tradeAccountPage = new TabPage("tradeAccountId", "交易账户");
         this.pageMap["tradeAccountId"] = tradeAccountPage;
@@ -450,32 +442,36 @@ export class AppComponent implements OnInit {
         this.tradeAccountTable.addColumn("资金账户名称", "市场ID", "对冲标志", "交易编码", "交易账户名称", "币种", "通道id", "创建者", "创建时间", "状态");
         tradeAccountContent.addChild(this.tradeAccountTable);
         tradeAccountPage.setContent(tradeAccountContent);
-        // panelMiddle.addTab(tradeAccountPage, false);
 
         let Market = new TabPage("MarketId", "行情");
         this.pageMap["MarketId"] = Market;
         let MarketCon = new VBox();
         MarketCon.MinHeight = 200;
-        // let panelMarket = new TabPanel();
-        let bookviewer = new BookViewer(this.langServ);
-        bookviewer.onCellDBClick = (item, cellIndex, rowIndex, row) => {
+        this.bookviewer = new BookViewer(this.langServ);
+        this.appStorage = JSON.parse(AppStoreService.getLocalStorageItem(this.option.name));
+        if (this.appStorage && this.appStorage.bookView) {
+            let code = this.appStorage.bookView.code;
+            if (code) {
+                this.bookviewer.ukey = code;
+                // this.bookviewer.selectedItem = { symbolCode: this.secuinfo.getSecuinfoByUKey(this.bookviewer.ukey)[this.bookviewer.ukey].SecuCode };
+                this.txt_Symbol.Text = this.secuinfo.getSecuinfoByUKey(this.bookviewer.ukey)[this.bookviewer.ukey].SecuAbbr;
+            }
+        }
+        this.bookviewer.onCellDBClick = (item, cellIndex, rowIndex, row) => {
             if (cellIndex === 2 || cellIndex === 1 && rowIndex < 10)
                 this.dd_Action.SelectedItem = this.dd_Action.Items[1];
             else this.dd_Action.SelectedItem = this.dd_Action.Items[0];
-            if (bookviewer.ukey !== undefined) {
-                this.txt_UKey.Text = bookviewer.ukey;
-                let stockSecuinfo = this.secuinfo.getSecuinfoByUKey(bookviewer.ukey);
-                this.txt_Symbol.Text = stockSecuinfo[bookviewer.ukey].SecuAbbr;
+            if (this.bookviewer.ukey !== undefined) {
+                this.txt_UKey.Text = this.bookviewer.ukey;
+                let stockSecuinfo = this.secuinfo.getSecuinfoByUKey(this.bookviewer.ukey);
+                this.txt_Symbol.Text = stockSecuinfo[this.bookviewer.ukey].SecuAbbr;
             }
             this.txt_Price.Text = row.cells[1].Text;
             Dialog.popup(this, this.viewContentPop, { title: this.langServ.get("Trade"), height: 300 });
         };
-        MarketCon.addChild(bookviewer);
+        MarketCon.addChild(this.bookviewer);
         Market.setContent(MarketCon);
-        // panelMarket.addTab(Market, false);
-        // panelMarket.setActive("MarketId");
 
-        // let panelLog = new TabPanel();
         let logPage = new TabPage("LogId", this.langServ.get("LOG"));
         this.pageMap["LogId"] = logPage;
         let logContent = new VBox();
@@ -487,30 +483,6 @@ export class AppComponent implements OnInit {
         this.logTable.addColumn(logContentTittleRtn);
         logContent.addChild(this.logTable);
         logPage.setContent(logContent);
-        // panelLog.addTab(logPage, false);
-        // panelLog.setActive("LogId");
-
-        // this.main = new DockContainer(null, "v", window.innerWidth, window.innerHeight);
-
-        // let topdock = new DockContainer(this.main, "h", null, Math.round(window.innerHeight * 3 / 16));
-        // topdock.addChild(panelTop);
-        // this.main.addChild(topdock);
-        // this.main.addChild(new Splitter("h", this.main));
-
-        // let middock = new DockContainer(this.main, "h", null, Math.round(window.innerHeight * 5 / 16) - Splitter.size);
-        // middock.addChild(panelMiddle);
-        // this.main.addChild(middock);
-        // this.main.addChild(new Splitter("h", this.main));
-
-        // let bottomdock = new DockContainer(this.main, "h", null, window.innerHeight - Math.round(window.innerHeight / 2));
-        // let marketdock = new DockContainer(bottomdock, "v", Math.round(window.innerWidth / 3), null);
-        // marketdock.addChild(panelMarket);
-        // bottomdock.addChild(marketdock);
-        // bottomdock.addChild(new Splitter("v", bottomdock));
-        // let logdock = new DockContainer(bottomdock, "v", window.innerWidth - Math.round(window.innerWidth / 3) - Splitter.size, null);
-        // logdock.addChild(panelLog);
-        // bottomdock.addChild(logdock);
-        // this.main.addChild(bottomdock);
         this.loadLayout();
 
         // 建立TCP链接
@@ -844,8 +816,14 @@ export class AppComponent implements OnInit {
     }
 
     onDestroy() {
-         File.writeSync(`${Environment.getDataPath(this.option.name, "ProductTrader")}/layout.json`, this.main.getLayout());
-         File.writeSync(`${Environment.getDataPath(this.option.name, "ProductTrader")}/config.json`, this.option.config);
+        this.appStorage = {
+            bookView: {
+                code: this.bookviewer.ukey
+            }
+        };
+        AppStoreService.setLocalStorageItem(this.option.name, JSON.stringify(this.appStorage));
+        File.writeSync(`${Environment.getDataPath(this.option.name, "ProductTrader")}/layout.json`, this.main.getLayout());
+        File.writeSync(`${Environment.getDataPath(this.option.name, "ProductTrader")}/config.json`, this.option.config);
     }
     registryListeners() {
         this.tradePoint.addSlot(
@@ -916,7 +894,7 @@ export class AppComponent implements OnInit {
             let panel = new TabPanel();
             childDock.modules.forEach(page => {
                 if (this.pageMap.hasOwnProperty(page)) {
-                    panel.addTab(this.pageMap[page]);
+                    panel.addTab(this.pageMap[page], false);
                     this.state.changeMenuItemState(page, true, 2);
                 } else {
                     if (page.startsWith("BookView")) {
