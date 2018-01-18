@@ -453,7 +453,7 @@ export class AppComponent implements OnInit {
             let code = this.appStorage.bookView.code;
             if (code) {
                 this.bookviewer.ukey = code;
-                // this.bookviewer.selectedItem = { symbolCode: this.secuinfo.getSecuinfoByUKey(this.bookviewer.ukey)[this.bookviewer.ukey].SecuCode };
+                this.bookviewer.selectedItem = { symbolCode: this.secuinfo.getSecuinfoByUKey(this.bookviewer.ukey)[this.bookviewer.ukey].SecuCode };
                 this.txt_Symbol.Text = this.secuinfo.getSecuinfoByUKey(this.bookviewer.ukey)[this.bookviewer.ukey].SecuAbbr;
             }
         }
