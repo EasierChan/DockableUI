@@ -17,7 +17,7 @@ import { ECharts } from "echarts";
 export class SecurityComponent implements OnInit, OnDestroy {
     tabs: string[];
     activeTab: string;
-
+    isDestroyed: boolean = false;
     symbol: string;
     code: string;
     summary: Section;
@@ -234,6 +234,7 @@ export class SecurityComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy() {
+        this.isDestroyed = true;
         if (this.marketChart) {
             this.marketChart = null;
         }
@@ -772,7 +773,9 @@ export class SecurityComponent implements OnInit, OnDestroy {
                         alert("未找到" + this.selectedItem.symbolCode + "的合约信息！");
                     }
                 }
-                this.ref.detectChanges();
+                if (this.isDestroyed === false) {
+                    this.ref.detectChanges();
+                }
             }
         });
 
