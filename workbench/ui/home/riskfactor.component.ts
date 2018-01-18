@@ -1627,6 +1627,7 @@ export class FactorAlphaComponent {
     inputs: ["activeTab"]
 })
 export class AIBrandComponent {
+    isDestroyed: boolean = false;
     index: string;
     allIndex: string[];
     count: number;
@@ -1751,7 +1752,9 @@ export class AIBrandComponent {
                             }
                         }
                     }
-                    this.ref.detectChanges();
+                    if (this.isDestroyed === false) {
+                        this.ref.detectChanges();
+                    }
                 }
             });
 
@@ -1786,7 +1789,9 @@ export class AIBrandComponent {
                 if (this.selfStockXdata.indexOf(this.nowTime) === -1) {//今天非交易时间段请求当日最后一条数据
                     this.historyMarket();
                 }
-                this.ref.detectChanges();
+                if (this.isDestroyed === false) {
+                    this.ref.detectChanges();
+                }
             }, this)
 
             //最差的30股
@@ -1820,7 +1825,9 @@ export class AIBrandComponent {
                 if (this.selfStockXdata.indexOf(this.nowTime) === -1) {//今天非交易时间段请求当日最后一条数据
                     this.historyMarket();
                 }
-                this.ref.detectChanges();
+                if (this.isDestroyed === false) {
+                    this.ref.detectChanges();
+                }
             }, this)
 
             //AI看盘数据
@@ -1933,12 +1940,15 @@ export class AIBrandComponent {
                     }
                 })
                 console.log(allStockUkMap);
-                this.ref.detectChanges();
+                if (this.isDestroyed === false) {
+                    this.ref.detectChanges();
+                }
             }
         })
     }
 
     ngOnDestroy() {
+        this.isDestroyed = true;
         // 防止订阅的行情在其他页面的时候回来，离开页面的时候取消订阅
         console.log("destroy");
         this.quote.send(17, 101, { topic: 3112, kwlist: [] });
