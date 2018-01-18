@@ -2419,6 +2419,7 @@ export class AppComponent implements OnInit {
                     break;
                 case "ss-histroy-data":
                     this.showComOrderRecord(data.content.data, false);
+                    break;
                 default:
                     console.info(`unhandled type ${data.event}`);
                     break;

@@ -124,10 +124,12 @@ export class ScrollerBarTable implements OnInit {
                         let count = Math.round(this.ele.nativeElement.clientHeight / 22);
                         this.clientIdx = Math.floor(this.ele.nativeElement.scrollTop / 22);
                         this.clientRows = this.dataSource.rows.slice(this.clientIdx, 2 * count + this.clientIdx);
-                    }, 200);
 
-                    this.ref.detectChanges();
-                    this.resizeHeader();
+                        if (this.ele.nativeElement.clientWidth > 0) {
+                            this.ref.detectChanges();
+                            this.resizeHeader();
+                        }
+                    }, 200);
                 }
             }
 

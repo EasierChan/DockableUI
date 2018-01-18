@@ -35,7 +35,7 @@ process.on("message", (m: WSIP20, sock) => {
             Sound.play(m.params.type);
             break;
         case "history-order-record":
-            if (trade.history_record.type > 0) {
+            if (trade.history_record.type > 0 && trade.history_record.orders.length > 0) {
                 process.send({
                     event: "ss-histroy-data",
                     content: { type: trade.history_record.type, subtype: trade.history_record.subtype, data: trade.history_record.orders.splice(trade.history_record.orders.length > 1000 ? trade.history_record.orders.length - 1000 : 0) }
