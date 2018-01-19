@@ -61,7 +61,8 @@ export class DockContainer extends Control {
             switch (location) {
                 case 0: // center
                     if (this.subpanel && this.subpanel.id !== panelId) {
-                        this.subpanel.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                        let newPage = TabPanel.fromPanelId(panelId).removeTab(pageid);
+                        this.subpanel.addTab(newPage, newPage.closeable);
                         this.subpanel.setActive(pageid);
                     }
                     break;
@@ -69,7 +70,8 @@ export class DockContainer extends Control {
                     let northHeight = Math.round(this.height / 2);
                     let dockNorth;
                     let panelNorth = new TabPanel();
-                    panelNorth.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    let newPanelNorthPage = TabPanel.fromPanelId(panelId).removeTab(pageid);
+                    panelNorth.addTab(newPanelNorthPage, newPanelNorthPage.closeable);
                     panelNorth.setActive(pageid);
 
                     if (this.styleObj.type === "v") {
@@ -99,7 +101,8 @@ export class DockContainer extends Control {
                     let eastWidth = Math.round(this.width / 2);
                     let dockEast;
                     let panelEast = new TabPanel();
-                    panelEast.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    let newPanelEastPage = TabPanel.fromPanelId(panelId).removeTab(pageid);
+                    panelEast.addTab(newPanelEastPage, newPanelEastPage.closeable);
                     panelEast.setActive(pageid);
 
                     if (this.styleObj.type === "v") {
@@ -128,7 +131,8 @@ export class DockContainer extends Control {
                     let southHeight = Math.round(this.height / 2);
                     let dockSouth;
                     let panelSouth = new TabPanel();
-                    panelSouth.addTab(TabPanel.fromPanelId(panelId).removeTab(pageid));
+                    let newPanelSouthPage = TabPanel.fromPanelId(panelId).removeTab(pageid);
+                    panelSouth.addTab(newPanelSouthPage, newPanelSouthPage.closeable);
                     panelSouth.setActive(pageid);
 
                     if (this.styleObj.type === "v") {
@@ -606,6 +610,7 @@ export class TabPanel extends Control {
     addTab(page: TabPage, closeable = true): TabPanel {
         let header = new TabHeader(page.id, page.title);
         header.closeable = closeable;
+        page.closeable = closeable;
         this.headers.addHeader(header);
         this.pages.addPage(page);
         return this;
@@ -750,10 +755,12 @@ export class TabHeaders extends Control {
 export class TabPage extends Control {
     _content: ComboControl;
     onClick: Function;
+    closeable: boolean;
 
     constructor(private _id: string, private _title: string) {
         super();
         this.className = "tab-page";
+        this.closeable = true;
     }
 
     onDrag(event: DragEvent, panelId: string) {
