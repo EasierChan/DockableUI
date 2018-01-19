@@ -60,7 +60,8 @@ export class ProductsComponent implements OnInit {
     toProductsDetail(product) {
         console.log(product);
         this.appsrv.startApp(product.caname, "ProductTrader", {
-            productID: product.caid
+            productID: product.caid,
+            name: product.caname
         });
     }
     // 千分符
