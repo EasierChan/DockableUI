@@ -11,13 +11,13 @@
             <option *ngFor="let opt of products" [value]="opt.caid">{{opt.caname}}</option>
         </select>
     </label>
+    <label *ngIf="hasFund" for="">{{fundLabel}}<input type="text" class="btn-default" [(ngModel)]="fund"></label>
     <label for="">{{basketLabel}}
         <select class="btn-default" [(ngModel)]="basketID">
             <option *ngFor="let opt of baskets" [value]="opt.basketid">{{opt.basket_name}}</option>
         </select>
     </label>
     <button class="btn btn-primary" (click)="save()">保存并关闭</button>
-    <span *ngIf="bShowID">{{config.appid}}</span>
 </div>
 <div *ngIf="config.activeChannel == 2" class="groupbox backtest">
     <div class="section">

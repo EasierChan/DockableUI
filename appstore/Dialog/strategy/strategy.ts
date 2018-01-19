@@ -29,6 +29,8 @@ export class StrategyComponent implements OnInit, OnDestroy {
     strategyType: string;
     productLabel: string;
     productID: string;
+    fundLabel: string;
+    fund: string;
     basketLabel: string;
     basketID: string;
     baskets: any[];
@@ -37,7 +39,6 @@ export class StrategyComponent implements OnInit, OnDestroy {
     instrumentTable: DataTable;
 
     strategyConfigPanel: TabPanel;
-    bShowID: boolean;
 
     constructor(
         private secuinfo: SecuMasterService,
@@ -47,6 +48,8 @@ export class StrategyComponent implements OnInit, OnDestroy {
         this.productLabel = "产品：";
         this.strategyLabel = "策略：";
         this.basketLabel = "篮子：";
+        this.fundLabel = "资金：";
+        this.fund = "";
     }
 
     ngOnInit() {
@@ -63,7 +66,6 @@ export class StrategyComponent implements OnInit, OnDestroy {
             };
         }
 
-        this.bShowID = false;
         this.enName = this.config.name;
         this.isCreate = true;
         this.chName = this.config.chname;
@@ -131,6 +133,10 @@ export class StrategyComponent implements OnInit, OnDestroy {
         }
     }
 
+    get hasFund() {
+        return this.isCreate && this.config.activeChannel !== Channel.ONLINE;
+    }
+
     save() {
         if (this.strategyType === undefined) {
             alert("未选择策略！");
@@ -156,6 +162,7 @@ export class StrategyComponent implements OnInit, OnDestroy {
             this.config.items = [new StrategyInstance()];
 
         this.config.items[0].basketID = this.basketID ? parseInt(this.basketID) : undefined;
+        this.config.items[0].fund = +this.fund;
         this.config.items[0].parameters = [];
         this.config.items[0].instruments = [];
         if (this.paramsTable.rows.length > 0) {

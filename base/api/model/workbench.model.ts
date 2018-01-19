@@ -54,6 +54,7 @@ export class StrategyInstance {
     key: number;
     name: string;
     basketID: number;
+    fund: number;
     accounts: number[];
     algoes: number[];
     checks: number[];
