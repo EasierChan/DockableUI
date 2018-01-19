@@ -34,7 +34,6 @@ export class SimQueryComponent implements OnInit {
     selectedTrid: string | number;
     startDate: string;
     endDate: string;
-    // isDownedAll = false;
     isDownOrderAll = false;
     isDownHoldAll = false;
     orderTable: DataTable;
@@ -65,14 +64,14 @@ export class SimQueryComponent implements OnInit {
                 })
             })
         });
-        this.selectedStgid = this.stgList[0].stgid;
+        this.selectedStgid = this.stgList.length ? this.stgList[0].stgid : "";
         this.endDate = this.datePipe.transform(new Date().getTime(), "yyyy-MM-dd");
         this.startDate = this.datePipe.transform(new Date().getTime() - 1 * 30 * 24 * 60 * 60 * 1000, "yyyy-MM-dd");
 
         this.initTable("order");
         this.initTable("hold");
 
-        this.test();
+        // this.test();
     }
 
     test() {

@@ -15,7 +15,7 @@
             <input type="date" #enddate [ngModel]="endDate" (change)="resetEnd(enddate.value)" >
         </div>
         <div class="select-item u-row">
-            <button class="search-btn btn-primary" (click)="search()">搜索</button>
+            <button class="search-btn btn-primary" (click)="selectedStgid && search()">搜索</button>
         </div>
     </div>
 
