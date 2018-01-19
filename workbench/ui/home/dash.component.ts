@@ -79,6 +79,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     marketIndex: number;
     historyMarketIndex: number;
     isDestroy: boolean = false;
+    reqsn: number = Math.round(Math.random() * 1000);
 
     constructor(private tradePoint: QtpService, private quote: QuoteService, private config: ConfigurationBLL,
         private secuinfo: SecuMasterService, private appsvr: AppStoreService, private ref: ChangeDetectorRef) {
@@ -101,12 +102,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.dashAllUkcodeList.push(this.referStockUk);
         this.dashAllUkcodeList = this.dashAllUkcodeList.concat(this.selfStockUkList);
         this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-        if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求当日最后一条数据
-            this.historyMarket("lastDate");
-        }
+        this.nowTime = this.dashGetTime(new Date().getTime() / 1000 + 60);
         let d = new Date();
         this.nowDate = d.getFullYear() + "-" + this.addZero(Number(d.getMonth()) + 1) + "-" + this.addZero(d.getDate());
-        this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
         this.nowTimeStamp = d.getTime();
 
         let selfStockSecuInfo = this.secuinfo.getSecuinfoByUKey(2490369, 1441794, 1441876, 1441949, 2490383, 2490381, 1441854, this.referStockUk);
@@ -128,8 +126,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.selfStockMarketChange.xAxis[0].data = this.selfStockXdata;
         this.selfStockMarketChange.xAxis[1].data = this.selfStockXdata;
 
-        if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求历史数据
+        if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求历史数据,请求当日最后一条数据
             this.historyMarket("all");
+            this.historyMarket("lastDate");
         }
 
         this.bestStockList = new DataTable("table2");
@@ -176,8 +175,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         });
         this.mainStockUk = this.selfStockData[0].ukey;
         this.selfStockTable.onRowDBClick = (rowItem, rowIndex) => {// 点击切换指数行情
-            d = new Date();
-            this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
+            this.nowTime = this.dashGetTime(new Date().getTime() / 1000 + 60);
             this.mainStock.preClose = rowItem.cells[2].Data;
             this.initSelfStockMarket(this.mainStock.preClose);
             this.selfStockTable.rows.forEach((item, index) => {
@@ -381,18 +379,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getAlarmMessage", (msg) => {
             if (!this.isDestroy) {
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
-                }
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("getAlarmMessage:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
+                    }
 
-                this.alarmTableData = data.body;
-                if (this.alarmTableData.length > 0) {
-                    this.alarmTableData.forEach(item => {
-                        this.createAlarmRow(item);
-                    });
+                    this.alarmTableData = data.body;
+                    if (this.alarmTableData.length > 0) {
+                        this.alarmTableData.forEach(item => {
+                            this.createAlarmRow(item);
+                        });
+                    }
+                    this.tradePoint.subscribeCom(1002, { data: { keys: [{ maid: "*" }] } });
                 }
-                this.tradePoint.subscribeCom(1002, { data: { keys: [{ maid: "*" }] } });
             }
         }, this);
 
@@ -434,14 +434,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }, this);
 
         // 产品信息
-        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: {} } }));
         this.config.on("getProduct", (data) => {
             if (data.length > 0 && !this.isDestroy) {
                 this.nowProductIndex = data.length;
                 this.nowProductCaid = data[0].caid;
                 this.productNetData = [];
-                this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
-                this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+                this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+                this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: { caid: this.nowProductCaid } } }));
             }
         });
 
@@ -449,23 +449,25 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getProductNet", (msg) => {
             if (!this.isDestroy) {
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("getProductNet:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
-                }
-                let productNetChangeOpt = {
-                    title: { text: "" },
-                    xAxis: [{ data: [] }],
-                    series: [{ data: [] }]
-                };
-                this.productNetData = data.body;
-                if (this.productNetData.length > 0) {
-                    this.productNetData.forEach(item => {
-                        productNetChangeOpt.xAxis[0].data.push(item.trday);
-                        productNetChangeOpt.title.text = item.caname;
-                        productNetChangeOpt.series[0].data.push(item.netvalue);
-                    });
-                    this.productNetChart.setOption(productNetChangeOpt);
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("getProductNet:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
+                    }
+                    let productNetChangeOpt = {
+                        title: { text: "" },
+                        xAxis: [{ data: [] }],
+                        series: [{ data: [] }]
+                    };
+                    this.productNetData = data.body;
+                    if (this.productNetData.length > 0) {
+                        this.productNetData.forEach(item => {
+                            productNetChangeOpt.xAxis[0].data.push(item.trday);
+                            productNetChangeOpt.title.text = item.caname;
+                            productNetChangeOpt.series[0].data.push(item.netvalue);
+                        });
+                        this.productNetChart.setOption(productNetChangeOpt);
+                    }
                 }
             }
         }, this);
@@ -474,72 +476,74 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getMonitorProducts", (msg) => {
             if (!this.isDestroy) {
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("getMonitorProducts:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
-                }
-                this.monitorProductsData = data.body;
-                if (this.monitorProductsData.length > 0) {
-                    if (this.monitorProductsData[0].caid === this.nowProductCaid && this.monitorProductsData.length === 1) {// 获取单个产品数据
-                        this.nowMonitorProductsData = this.monitorProductsData;
-                        // 期货权益
-                        this.futuresProfit = Number(this.nowMonitorProductsData[0].futures_validamt) + Number(this.nowMonitorProductsData[0].futures_value);
-                        // 风险度
-                        this.riskDegree = (this.futuresProfit === 0) ? 0 : 100 * this.nowMonitorProductsData[0].totalmargin / this.futuresProfit;
-                        this.riskDegree = Math.abs(this.riskDegree) > 100 ? Number(this.riskDegree.toFixed(0)) : Number(this.riskDegree.toFixed(2));
-                        // 当日盈亏
-                        this.totalProfitAndLoss = this.toThousands(((Number(this.nowMonitorProductsData[0].hold_closepl) + Number(this.nowMonitorProductsData[0].hold_posipl)) / 1000).toFixed(1));
-                        // 浮动盈亏
-                        this.floatProfitAndLoss = this.toThousands((this.nowMonitorProductsData[0].hold_posipl / 1000).toFixed(1));
-                        // 敞口比例
-                        this.riskExposure = (Number(this.nowMonitorProductsData[0].totalint) === 0) ? 0 : 100 * Number(Number(this.nowMonitorProductsData[0].risk_exposure) / Number(this.nowMonitorProductsData[0].totalint));
-                        this.riskExposure = Math.abs(this.riskExposure) > 100 ? Number(this.riskExposure.toFixed(0)) : Number(this.riskExposure.toFixed(2));
-                    } else if (this.monitorProductsData.length > 1) {
-                        let productScaleChangeOpt = {
-                            yAxis: { data: [] },
-                            series: [{ data: [] }]
-                        };
-                        data.body.forEach((item, index) => {
-                            let newItem: any = {};
-                            newItem.totalAssets = Number(item.totalint) + Number(item.subject_amount);
-                            newItem.caid = item.caid;
-                            newItem.caname = item.caname;
-                            this.productData.push(newItem);
-                        });
-                        this.productDataSort = this.productData.sort(this.compare("totalAssets"));
-                        this.productDataSort.forEach((item, index) => {
-                            if (index > 9)
-                                return;
-                            productScaleChangeOpt.yAxis.data.push(item.caname);
-                            productScaleChangeOpt.series[0].data.push(Math.log(item.totalAssets < 1 ? 1 : item.totalAssets) / Math.log(2));
-                        });
-                        this.productScaleBar.setOption(productScaleChangeOpt);
-
-                        let allProWeightGaugeChangeOpt = {
-                            xAxis: [{ data: [] }],
-                            series: [{ data: [] }, { data: [] }, { data: [] }, { data: [] }]
-                        };
-                        // 产品资产比重改变值
-                        if (this.monitorProductsData.length > 1) {
-                            this.monitorProductsData.forEach((item, index) => {
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("getMonitorProducts:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
+                    }
+                    this.monitorProductsData = data.body;
+                    if (this.monitorProductsData.length > 0) {
+                        if (this.monitorProductsData[0].caid === this.nowProductCaid && this.monitorProductsData.length === 1) {// 获取单个产品数据
+                            this.nowMonitorProductsData = this.monitorProductsData;
+                            // 期货权益
+                            this.futuresProfit = Number(this.nowMonitorProductsData[0].futures_validamt) + Number(this.nowMonitorProductsData[0].futures_value);
+                            // 风险度
+                            this.riskDegree = (this.futuresProfit === 0) ? 0 : 100 * this.nowMonitorProductsData[0].totalmargin / this.futuresProfit;
+                            this.riskDegree = Math.abs(this.riskDegree) > 100 ? Number(this.riskDegree.toFixed(0)) : Number(this.riskDegree.toFixed(2));
+                            // 当日盈亏
+                            this.totalProfitAndLoss = this.toThousands(((Number(this.nowMonitorProductsData[0].hold_closepl) + Number(this.nowMonitorProductsData[0].hold_posipl)) / 1000).toFixed(1));
+                            // 浮动盈亏
+                            this.floatProfitAndLoss = this.toThousands((this.nowMonitorProductsData[0].hold_posipl / 1000).toFixed(1));
+                            // 敞口比例
+                            this.riskExposure = (Number(this.nowMonitorProductsData[0].totalint) === 0) ? 0 : 100 * Number(Number(this.nowMonitorProductsData[0].risk_exposure) / Number(this.nowMonitorProductsData[0].totalint));
+                            this.riskExposure = Math.abs(this.riskExposure) > 100 ? Number(this.riskExposure.toFixed(0)) : Number(this.riskExposure.toFixed(2));
+                        } else if (this.monitorProductsData.length > 1) {
+                            let productScaleChangeOpt = {
+                                yAxis: { data: [] },
+                                series: [{ data: [] }]
+                            };
+                            data.body.forEach((item, index) => {
+                                let newItem: any = {};
+                                newItem.totalAssets = Number(item.totalint) + Number(item.subject_amount);
+                                newItem.caid = item.caid;
+                                newItem.caname = item.caname;
+                                this.productData.push(newItem);
+                            });
+                            this.productDataSort = this.productData.sort(this.compare("totalAssets"));
+                            this.productDataSort.forEach((item, index) => {
                                 if (index > 9)
                                     return;
-                                allProWeightGaugeChangeOpt.xAxis[0].data.push(item.caname);
-                                let money = Number(item.stock_validamt) + Number(item.futures_validamt);
-                                let totalMoney = money + Number(item.stock_value) + Number(item.totalmargin) + Number(item.subject_amount);
-                                if (totalMoney === 0) {
-                                    totalMoney = 1;
-                                }
-                                // 股票市值
-                                allProWeightGaugeChangeOpt.series[0].data.push(Math.round(10000 * Number(item.stock_value) / totalMoney) / 100);
-                                // 期货保证金
-                                allProWeightGaugeChangeOpt.series[1].data.push(Math.round(10000 * Number(item.totalmargin) / totalMoney) / 100);
-                                // 现金
-                                allProWeightGaugeChangeOpt.series[2].data.push(Math.round(10000 * money / totalMoney) / 100);
-                                // 其他资产
-                                allProWeightGaugeChangeOpt.series[3].data.push(Math.round(10000 * Number(item.subject_amount) / totalMoney) / 100);
+                                productScaleChangeOpt.yAxis.data.push(item.caname);
+                                productScaleChangeOpt.series[0].data.push(Math.log(item.totalAssets < 1 ? 1 : item.totalAssets) / Math.log(2));
                             });
-                            this.allProductWeightGauge.setOption(allProWeightGaugeChangeOpt);
+                            this.productScaleBar.setOption(productScaleChangeOpt);
+
+                            let allProWeightGaugeChangeOpt = {
+                                xAxis: [{ data: [] }],
+                                series: [{ data: [] }, { data: [] }, { data: [] }, { data: [] }]
+                            };
+                            // 产品资产比重改变值
+                            if (this.monitorProductsData.length > 1) {
+                                this.monitorProductsData.forEach((item, index) => {
+                                    if (index > 9)
+                                        return;
+                                    allProWeightGaugeChangeOpt.xAxis[0].data.push(item.caname);
+                                    let money = Number(item.stock_validamt) + Number(item.futures_validamt);
+                                    let totalMoney = money + Number(item.stock_value) + Number(item.totalmargin) + Number(item.subject_amount);
+                                    if (totalMoney === 0) {
+                                        totalMoney = 1;
+                                    }
+                                    // 股票市值
+                                    allProWeightGaugeChangeOpt.series[0].data.push(Math.round(10000 * Number(item.stock_value) / totalMoney) / 100);
+                                    // 期货保证金
+                                    allProWeightGaugeChangeOpt.series[1].data.push(Math.round(10000 * Number(item.totalmargin) / totalMoney) / 100);
+                                    // 现金
+                                    allProWeightGaugeChangeOpt.series[2].data.push(Math.round(10000 * money / totalMoney) / 100);
+                                    // 其他资产
+                                    allProWeightGaugeChangeOpt.series[3].data.push(Math.round(10000 * Number(item.subject_amount) / totalMoney) / 100);
+                                });
+                                this.allProductWeightGauge.setOption(allProWeightGaugeChangeOpt);
+                            }
                         }
                     }
                 }
@@ -551,34 +555,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // 最好的30股票
         this.tradePoint.addSlotOfCMS("getBestStocks", msg => {
             if (!this.isDestroy) {
-                d = new Date();
-                this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
+                this.nowTime = this.dashGetTime(new Date().getTime() / 1000 + 60);
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("getBestStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
-                }
-                this.aiStockDate.bestStockListData = data.body;
-                this.bestStockList.RowIndex = false; // 去除序列
-                if (this.aiStockDate.bestStockListData.length > 0) {
-                    this.aiStockDate.bestStockListData.forEach((item, index) => {
-                        this.ukCodeList.push(Number(item.ukcode));
-                        this.dashAllUkcodeList.push(Number(item.ukcode));
-                        let row = this.bestStockList.newRow();
-                        this.bestStockUkMap[item.ukcode] = {};
-                        this.bestStockUkMap[item.ukcode].order = index;
-                        this.bestStockUkMap[item.ukcode].type = "best";
-                        row.cells[0].Text = item.windcode;
-                        row.cells[0].Color = "rgb(234, 47, 47)";
-                        row.cells[1].Text = item.chabbr;
-                        row.cells[2].Text = "--";
-                        row.cells[3].Text = "--";
-                        row.cells[4].Text = "--";
-                    });
-                }
-                this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-                if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求当日最后一条数据
-                    this.historyMarket("lastDate");
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("getBestStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
+                    }
+                    this.aiStockDate.bestStockListData = data.body;
+                    this.bestStockList.RowIndex = false; // 去除序列
+                    if (this.aiStockDate.bestStockListData.length > 0) {
+                        this.aiStockDate.bestStockListData.forEach((item, index) => {
+                            this.ukCodeList.push(Number(item.ukcode));
+                            this.dashAllUkcodeList.push(Number(item.ukcode));
+                            let row = this.bestStockList.newRow();
+                            this.bestStockUkMap[item.ukcode] = {};
+                            this.bestStockUkMap[item.ukcode].order = index;
+                            this.bestStockUkMap[item.ukcode].type = "best";
+                            row.cells[0].Text = item.windcode;
+                            row.cells[0].Color = "rgb(234, 47, 47)";
+                            row.cells[1].Text = item.chabbr;
+                            row.cells[2].Text = "--";
+                            row.cells[3].Text = "--";
+                            row.cells[4].Text = "--";
+                        });
+                    }
+                    this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
+                    if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求当日最后一条数据
+                        this.historyMarket("lastDate");
+                    }
                 }
             }
         }, this);
@@ -586,34 +591,35 @@ export class DashboardComponent implements OnInit, OnDestroy {
         // 最差的30股
         this.tradePoint.addSlotOfCMS("getWorstStocks", msg => {
             if (!this.isDestroy) {
-                d = new Date();
-                this.nowTime = this.addZero(d.getHours()) + ":" + this.addZero(d.getMinutes());
+                this.nowTime = this.dashGetTime(new Date().getTime() / 1000 + 60);
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("getWorstStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
-                }
-                this.aiStockDate.worstStockListData = data.body;
-                this.worstStockList.RowIndex = false; // 去除序列
-                if (this.aiStockDate.worstStockListData.length > 0) {
-                    this.aiStockDate.worstStockListData.forEach((item, index) => {
-                        this.ukCodeList.push(Number(item.ukcode));
-                        this.dashAllUkcodeList.push(Number(item.ukcode));
-                        let row = this.worstStockList.newRow();
-                        this.worstStockUkMap[item.ukcode] = {};
-                        this.worstStockUkMap[item.ukcode].order = index;
-                        this.worstStockUkMap[item.ukcode].type = "worst";
-                        row.cells[0].Text = item.windcode;
-                        row.cells[0].Color = "rgb(55, 177, 78)";
-                        row.cells[1].Text = item.chabbr;
-                        row.cells[2].Text = "--";
-                        row.cells[3].Text = "--";
-                        row.cells[4].Text = "--";
-                    });
-                }
-                this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
-                if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求当日最后一条数据
-                    this.historyMarket("lastDate");
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("getWorstStocks:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
+                    }
+                    this.aiStockDate.worstStockListData = data.body;
+                    this.worstStockList.RowIndex = false; // 去除序列
+                    if (this.aiStockDate.worstStockListData.length > 0) {
+                        this.aiStockDate.worstStockListData.forEach((item, index) => {
+                            this.ukCodeList.push(Number(item.ukcode));
+                            this.dashAllUkcodeList.push(Number(item.ukcode));
+                            let row = this.worstStockList.newRow();
+                            this.worstStockUkMap[item.ukcode] = {};
+                            this.worstStockUkMap[item.ukcode].order = index;
+                            this.worstStockUkMap[item.ukcode].type = "worst";
+                            row.cells[0].Text = item.windcode;
+                            row.cells[0].Color = "rgb(55, 177, 78)";
+                            row.cells[1].Text = item.chabbr;
+                            row.cells[2].Text = "--";
+                            row.cells[3].Text = "--";
+                            row.cells[4].Text = "--";
+                        });
+                    }
+                    this.quote.send(17, 101, { topic: 3112, kwlist: this.dashAllUkcodeList });
+                    if (this.selfStockXdata.indexOf(this.nowTime) === -1) {// 今天非交易时间段请求当日最后一条数据
+                        this.historyMarket("lastDate");
+                    }
                 }
             }
         }, this);
@@ -622,179 +628,187 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.tradePoint.addSlotOfCMS("getTodoList", msg => {
             if (!this.isDestroy) {
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("getTodoList:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
-                }
-                this.todoListData = data.body;
-                this.todoList.rows.length = 0;
-                if (this.todoListData.length > 0) {
-                    this.todoListData.forEach((item, itemIndex) => {
-                        if (item.updatetime < this.nowDate && item.stat === "1") {
-                            return;
-                        }
-                        let row = this.todoList.newRow();
-                        let todoTime = new Date(item.todotime.substring(0, 10));
-                        if (item.stat === "1") {
-                            row.cells[1].Color = "rgb(93, 83, 84)";
-                            row.cells[2].Color = "rgb(93, 83, 84)";
-                        } else {
-                            if (new Date(this.nowDate) > todoTime) {
-                                row.cells[1].Color = "rgb(234, 47, 47)";
-                                row.cells[2].Color = "rgb(234, 47, 47)";
-                            } else {
-                                row.cells[1].Color = "rgb(208, 208, 208)";
-                                row.cells[2].Color = "rgb(208, 208, 208)";
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("getTodoList:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
+                    }
+                    this.todoListData = data.body;
+                    this.todoList.rows.length = 0;
+                    if (this.todoListData.length > 0) {
+                        this.todoListData.forEach((item, itemIndex) => {
+                            if (item.updatetime < this.nowDate && item.stat === "1") {
+                                return;
                             }
-                        }
-                        row.cells[0].Type = "icon";
-                        row.cells[0].Data = { id: item.id, stat: item.stat };
-                        if (row.cells[0].Data.stat === "1") {
-                            row.cells[0].Title = "check";
-                            row.cells[0].Color = "rgb(93, 83, 84)";
-                        } else {
-                            row.cells[0].Title = "unchecked";
-                            if (new Date(this.nowDate) > todoTime) {
-                                row.cells[0].Color = "rgb(234, 47, 47)";
+                            let row = this.todoList.newRow();
+                            let todoTime = new Date(item.todotime.substring(0, 10));
+                            if (item.stat === "1") {
+                                row.cells[1].Color = "rgb(93, 83, 84)";
+                                row.cells[2].Color = "rgb(93, 83, 84)";
                             } else {
-                                row.cells[0].Color = "rgb(208, 208, 208)";
-                            }
-                        }
-                        // 复选框单击事件，颜色变化和请求的发送
-                        row.cells[0].OnClick = (event, cellIndex, rowIndex) => {
-                            this.todoCellIndex = cellIndex;
-                            this.todoRowIndex = rowIndex;
-                            this.nowOperateId = this.todoList.rows[rowIndex].cells[0].Data.id;
-                            this.nowOperateStat = this.todoList.rows[rowIndex].cells[0].Data.stat === "1" ? 0 : 1;
-                            this.tradePoint.sendToCMS("editTodo", JSON.stringify({
-                                data: {
-                                    head: { userid: this.userId },
-                                    body: {
-                                        id: this.nowOperateId,
-                                        stat: this.nowOperateStat,
-                                        content: this.todoList.rows[rowIndex].cells[1].Text,
-                                        todotime: this.todoList.rows[rowIndex].cells[2].Text
-                                    }
+                                if (new Date(this.nowDate) > todoTime) {
+                                    row.cells[1].Color = "rgb(234, 47, 47)";
+                                    row.cells[2].Color = "rgb(234, 47, 47)";
+                                } else {
+                                    row.cells[1].Color = "rgb(208, 208, 208)";
+                                    row.cells[2].Color = "rgb(208, 208, 208)";
                                 }
-                            }));
-                        };
-                        row.cells[1].Text = item.content;
-                        row.cells[1].Type === "plaintext";
-                        row.cells[2].Text = item.todotime.substring(0, 10);
-                        row.cells[3].Type = "button-group";
-                        row.cells[3].Class = "default";
-                        row.cells[3].Text = ["pencil", "trash"];
-                        row.cells[3].OnClick = (index, cellIndex, rowIndex) => {
-                            this.todoCellIndex = cellIndex;
-                            this.todoRowIndex = rowIndex;
-                            this.nowOperateId = this.todoList.rows[rowIndex].cells[0].Data.id;
-                            this.nowOperateStat = this.todoList.rows[rowIndex].cells[0].Data.stat;
-                            if (row.cells[1].Type === "textbox") {
-                                if (index === 0) {// 确认编辑
-                                    if (row.cells[1].Text.length === 0) {
-                                        alert("Todo内容不能为空！");
+                            }
+                            row.cells[0].Type = "icon";
+                            row.cells[0].Data = { id: item.id, stat: item.stat };
+                            if (row.cells[0].Data.stat === "1") {
+                                row.cells[0].Title = "check";
+                                row.cells[0].Color = "rgb(93, 83, 84)";
+                            } else {
+                                row.cells[0].Title = "unchecked";
+                                if (new Date(this.nowDate) > todoTime) {
+                                    row.cells[0].Color = "rgb(234, 47, 47)";
+                                } else {
+                                    row.cells[0].Color = "rgb(208, 208, 208)";
+                                }
+                            }
+                            // 复选框单击事件，颜色变化和请求的发送
+                            row.cells[0].OnClick = (event, cellIndex, rowIndex) => {
+                                this.todoCellIndex = cellIndex;
+                                this.todoRowIndex = rowIndex;
+                                this.nowOperateId = this.todoList.rows[rowIndex].cells[0].Data.id;
+                                this.nowOperateStat = this.todoList.rows[rowIndex].cells[0].Data.stat === "1" ? 0 : 1;
+                                this.tradePoint.sendToCMS("editTodo", JSON.stringify({
+                                    data: {
+                                        head: { reqsn: this.reqsn, userid: this.userId },
+                                        body: {
+                                            id: this.nowOperateId,
+                                            stat: this.nowOperateStat,
+                                            content: this.todoList.rows[rowIndex].cells[1].Text,
+                                            todotime: this.todoList.rows[rowIndex].cells[2].Text
+                                        }
+                                    }
+                                }));
+                            };
+                            row.cells[1].Text = item.content;
+                            row.cells[1].Type === "plaintext";
+                            row.cells[2].Text = item.todotime.substring(0, 10);
+                            row.cells[3].Type = "button-group";
+                            row.cells[3].Class = "default";
+                            row.cells[3].Text = ["pencil", "trash"];
+                            row.cells[3].OnClick = (index, cellIndex, rowIndex) => {
+                                this.todoCellIndex = cellIndex;
+                                this.todoRowIndex = rowIndex;
+                                this.nowOperateId = this.todoList.rows[rowIndex].cells[0].Data.id;
+                                this.nowOperateStat = this.todoList.rows[rowIndex].cells[0].Data.stat;
+                                if (row.cells[1].Type === "textbox") {
+                                    if (index === 0) {// 确认编辑
+                                        if (row.cells[1].Text.length === 0) {
+                                            alert("Todo内容不能为空！");
+                                            return;
+                                        }
+                                        this.tradePoint.sendToCMS("editTodo", JSON.stringify({
+                                            data: {
+                                                head: { reqsn: this.reqsn, userid: this.userId },
+                                                body: {
+                                                    id: this.nowOperateId,
+                                                    stat: this.nowOperateStat,
+                                                    content: row.cells[1].Text,
+                                                    todotime: row.cells[2].Text
+                                                }
+                                            }
+                                        }));
+                                    } else if (index === 1) {// 取消编辑
+                                        row.cells[1].Text = item.content;
+                                        row.cells[2].Text = item.todotime.substring(0, 10);
+                                        row.cells[3].Text = ["pencil", "trash"];
+                                        row.cells[1].Type = "plaintext";
+                                        row.cells[2].Type = "plaintext";
                                         return;
                                     }
-                                    this.tradePoint.sendToCMS("editTodo", JSON.stringify({
-                                        data: {
-                                            head: { userid: this.userId },
-                                            body: {
-                                                id: this.nowOperateId,
-                                                stat: this.nowOperateStat,
-                                                content: row.cells[1].Text,
-                                                todotime: row.cells[2].Text
-                                            }
-                                        }
-                                    }));
-                                } else if (index === 1) {// 取消编辑
-                                    row.cells[1].Text = item.content;
-                                    row.cells[2].Text = item.todotime.substring(0, 10);
-                                    row.cells[3].Text = ["pencil", "trash"];
-                                    row.cells[1].Type = "plaintext";
-                                    row.cells[2].Type = "plaintext";
-                                    return;
+                                } else if (row.cells[1].Type === "plaintext") {
+                                    if (index === 1) {// 删除操作
+                                        this.tradePoint.sendToCMS("deleteTodo", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: { id: this.nowOperateId } } }));
+                                    } else if (index === 0) {// 编辑
+                                        row.cells[1].Type = "textbox";
+                                        row.cells[2].Type = "date";
+                                        row.cells[3].Text = ["ok", "remove"];
+                                    }
                                 }
-                            } else if (row.cells[1].Type === "plaintext") {
-                                if (index === 1) {// 删除操作
-                                    this.tradePoint.sendToCMS("deleteTodo", JSON.stringify({ data: { head: { userid: this.userId }, body: { id: this.nowOperateId } } }));
-                                } else if (index === 0) {// 编辑
-                                    row.cells[1].Type = "textbox";
-                                    row.cells[2].Type = "date";
-                                    row.cells[3].Text = ["ok", "remove"];
-                                }
-                            }
-                        };
-                    });
+                            };
+                        });
+                    }
+                    this.ref.detectChanges();
                 }
-                this.ref.detectChanges();
             }
         }, this);
         // addTodo
         this.tradePoint.addSlotOfCMS("createTodo", msg => {
             if (!this.isDestroy) {
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("createTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("createTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
+                    }
+                    this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: {} } }));
                 }
-                this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
             }
         }, this);
         // editTodo
         this.tradePoint.addSlotOfCMS("editTodo", msg => {
             if (!this.isDestroy) {
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("editTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
-                }
-                if (this.todoCellIndex === 0)
-                    this.todoList.rows[this.todoRowIndex].cells[0].Data.stat = this.todoList.rows[this.todoRowIndex].cells[0].Data.stat === "0" ? "1" : "0";
-
-                let isPast = new Date(this.nowDate) > new Date(this.todoList.rows[this.todoRowIndex].cells[2].Text);
-                this.todoList.rows[this.todoRowIndex].cells[3].Text = ["pencil", "trash"];
-                this.todoList.rows[this.todoRowIndex].cells[1].Type = "plaintext";
-                this.todoList.rows[this.todoRowIndex].cells[2].Type = "plaintext";
-                this.nowOperateStat = Number(this.todoList.rows[this.todoRowIndex].cells[0].Data.stat);
-                if (this.nowOperateStat) {// 已完成
-                    this.todoList.rows[this.todoRowIndex].cells[0].Title = "check";
-                    this.todoList.rows[this.todoRowIndex].cells[0].Color = "rgb(93, 83, 84)";
-                    this.todoList.rows[this.todoRowIndex].cells[1].Color = "rgb(93, 83, 84)";
-                    this.todoList.rows[this.todoRowIndex].cells[2].Color = "rgb(93, 83, 84)";
-                } else {// 未完成
-                    this.todoList.rows[this.todoRowIndex].cells[0].Title = "unchecked";
-                    if (isPast) {// 已过期
-                        this.todoList.rows[this.todoRowIndex].cells[1].Color = "rgb(234, 47, 47)";
-                        this.todoList.rows[this.todoRowIndex].cells[2].Color = "rgb(234, 47, 47)";
-                        this.todoList.rows[this.todoRowIndex].cells[0].Color = "rgb(234, 47, 47)";
-                    } else {
-                        this.todoList.rows[this.todoRowIndex].cells[1].Color = "rgb(208, 208, 208)";
-                        this.todoList.rows[this.todoRowIndex].cells[2].Color = "rgb(208, 208, 208)";
-                        this.todoList.rows[this.todoRowIndex].cells[0].Color = "rgb(208, 208, 208)";
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("editTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
                     }
+                    if (this.todoCellIndex === 0)
+                        this.todoList.rows[this.todoRowIndex].cells[0].Data.stat = this.todoList.rows[this.todoRowIndex].cells[0].Data.stat === "0" ? "1" : "0";
+
+                    let isPast = new Date(this.nowDate) > new Date(this.todoList.rows[this.todoRowIndex].cells[2].Text);
+                    this.todoList.rows[this.todoRowIndex].cells[3].Text = ["pencil", "trash"];
+                    this.todoList.rows[this.todoRowIndex].cells[1].Type = "plaintext";
+                    this.todoList.rows[this.todoRowIndex].cells[2].Type = "plaintext";
+                    this.nowOperateStat = Number(this.todoList.rows[this.todoRowIndex].cells[0].Data.stat);
+                    if (this.nowOperateStat) {// 已完成
+                        this.todoList.rows[this.todoRowIndex].cells[0].Title = "check";
+                        this.todoList.rows[this.todoRowIndex].cells[0].Color = "rgb(93, 83, 84)";
+                        this.todoList.rows[this.todoRowIndex].cells[1].Color = "rgb(93, 83, 84)";
+                        this.todoList.rows[this.todoRowIndex].cells[2].Color = "rgb(93, 83, 84)";
+                    } else {// 未完成
+                        this.todoList.rows[this.todoRowIndex].cells[0].Title = "unchecked";
+                        if (isPast) {// 已过期
+                            this.todoList.rows[this.todoRowIndex].cells[1].Color = "rgb(234, 47, 47)";
+                            this.todoList.rows[this.todoRowIndex].cells[2].Color = "rgb(234, 47, 47)";
+                            this.todoList.rows[this.todoRowIndex].cells[0].Color = "rgb(234, 47, 47)";
+                        } else {
+                            this.todoList.rows[this.todoRowIndex].cells[1].Color = "rgb(208, 208, 208)";
+                            this.todoList.rows[this.todoRowIndex].cells[2].Color = "rgb(208, 208, 208)";
+                            this.todoList.rows[this.todoRowIndex].cells[0].Color = "rgb(208, 208, 208)";
+                        }
+                    }
+                    this.ref.detectChanges();
                 }
-                this.ref.detectChanges();
             }
         }, this);
         // 删除todo列表
         this.tradePoint.addSlotOfCMS("deleteTodo", msg => {
             if (!this.isDestroy) {
                 let data = JSON.parse(msg.toString());
-                if (data.msret.msgcode !== "00") {
-                    alert("deleteTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
-                    return;
+                if (data.head.reqsn === this.reqsn) {
+                    if (data.msret.msgcode !== "00") {
+                        alert("deleteTodo:msgcode = " + data.msret.msgcode + "; msg = " + data.msret.msg);
+                        return;
+                    }
+                    this.todoList.rows.splice(this.todoRowIndex, 1);
+                    this.ref.detectChanges();
                 }
-                this.todoList.rows.splice(this.todoRowIndex, 1);
-                this.ref.detectChanges();
             }
         }, this);
-        this.tradePoint.sendToCMS("getAlarmMessage", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
-        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getAlarmMessage", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getProduct", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: {} } }));
         // AI看盘数据
-        this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
-        this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getWorstStocks", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getBestStocks", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: {} } }));
         // 获取todo列表
-        this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { head: { userid: this.userId }, body: {} } }));
+        this.tradePoint.sendToCMS("getTodoList", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: {} } }));
     }
     createAlarmRow(item) {
         if (this.statObj[item.stat]) {
@@ -834,7 +848,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         }
         this.tradePoint.sendToCMS("createTodo", JSON.stringify({
             data: {
-                head: { userid: this.userId },
+                head: { reqsn: this.reqsn, userid: this.userId },
                 body: { content: this.addTodoContent, stat: "0", oid: this.userId, todotime: this.nowDate }
             }
         }));
@@ -846,16 +860,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.nowProductIndex = this.nowProductIndex + this.productData.length - 1;
         this.nowProductIndex = this.nowProductIndex % this.productData.length;
         this.nowProductCaid = this.productData[this.nowProductIndex].caid;
-        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
-        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: { caid: this.nowProductCaid } } }));
     }
 
     getNowProductDataNext() {
         this.nowProductIndex++;
         this.nowProductIndex = this.nowProductIndex % this.productData.length;
         this.nowProductCaid = this.productData[this.nowProductIndex].caid;
-        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
-        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getMonitorProducts", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: { caid: this.nowProductCaid } } }));
+        this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { reqsn: this.reqsn, userid: this.userId }, body: { caid: this.nowProductCaid } } }));
     }
 
     compare(property) {
@@ -1018,7 +1032,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                         referStock[this.referStockUk] = {};
                         referStock[this.referStockUk].order = 0;
                         referStock[this.referStockUk].type = "refer";
-                        let allStockUkMap = Object.assign(this.bestStockUkMap, this.worstStockUkMap, this.selfStockUkMap, referStock);
+                        let allStockUkMap = Object.assign({}, this.bestStockUkMap, this.worstStockUkMap, this.selfStockUkMap, referStock);
                         lastDate.forEach(item => {
                             let nowPrice = (item.p / 10000).toFixed(2);
                             let increase = ((item.p - item.pc) / 10000).toFixed(2);
@@ -1027,7 +1041,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                             if (this.refStock.increase) {
                                 referIncrease = (Number(increasePer) - Number(this.refStock.increase)).toFixed(2);
                             }
-                            if (allStockUkMap[item.k].type === "worst") {
+                            if (allStockUkMap[item.k] && allStockUkMap[item.k].type === "worst") {
                                 this.worstStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                                 this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
                                 this.worstStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increasePer, "color");
@@ -1035,7 +1049,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
                                     this.worstStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                                 }
-                            } else if (allStockUkMap[item.k].type === "best") {
+                            } else if (allStockUkMap[item.k] && allStockUkMap[item.k].type === "best") {
                                 this.bestStockList.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                                 this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Text = this.dashGetColor(increasePer, "value") + "%";
                                 this.bestStockList.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increasePer, "color");
@@ -1043,7 +1057,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                     this.bestStockList.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(referIncrease, "color");
                                     this.bestStockList.rows[allStockUkMap[item.k].order].cells[4].Text = this.dashGetColor(referIncrease, "value") + "%";
                                 }
-                            } else if (allStockUkMap[item.k].type === "self") {
+                            } else if (allStockUkMap[item.k] && allStockUkMap[item.k].type === "self") {
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[2].Text = nowPrice;
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[5].Text = this.barginPriceUnit(item.v);
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[6].Text = this.barginPriceUnit(item.u * 100);
@@ -1052,7 +1066,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[2].Color = this.dashGetColor(increase, "color");
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[3].Color = this.dashGetColor(increase, "color");
                                 this.selfStockTable.rows[allStockUkMap[item.k].order].cells[4].Color = this.dashGetColor(increasePer, "color");
-                            } else if (allStockUkMap[item.k].type === "refer") {
+                            } else if (allStockUkMap[item.k] && allStockUkMap[item.k].type === "refer") {
                                 this.refStock.price = nowPrice;
                                 this.refStock.increase = increasePer;
                             }

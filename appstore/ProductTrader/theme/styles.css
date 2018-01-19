@@ -2,6 +2,8 @@
 
 body {
     background-color: #2e344c;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 .table > thead > tr > th, .table > tbody > tr > th, .table > tfoot > tr > th, .table > thead > tr > td, .table > tbody > tr > td, .table > tfoot > tr > td {
     border-top: 1px solid transparent;
@@ -10,7 +12,7 @@ body {
     position: absolute;
 }
 dock-table2 {
-    padding-left: 7px;
+    /*padding-left: 7px;*/
 }
 .tab-page{
     background-color: #2e344c;
@@ -20,21 +22,21 @@ dock-table2 {
     background-color: #2e344c;
 }
 body>.dock-container {
-    padding-left: 10px;
-    padding-right: 10px;
+    /*padding-left: 10px;*/
+    /*padding-right: 10px;*/
 }
 .page-title {    
     background-color: #2e344c;
-    padding-left: 15px;
+    /*padding-left: 15px;*/
 }
 
 .page-body {
-    margin-left: 10px;
-    margin-right: 10px;
+    /*margin-left: 10px;*/
+    /*margin-right: 10px;*/
 }
 
 #Log .page-body {
-    margin-left: 0;
+    /*margin-left: 0;*/
 }
 #MarketId .page-body {
     margin-right: 0;
@@ -42,10 +44,10 @@ body>.dock-container {
 .panel-header-list {
     box-shadow: 0 -2px 2px rgba(0,0,0,0);
     background-color: #2e344c;
-    padding-left: 10px;
+    /*padding-left: 10px;*/
 }
 #Log .panel-header-list {
-    margin-left: 0;
+    /*margin-left: 0;*/
 }
 .panel-header-list > .tab.active {
     background-color: #1b1b1b;
@@ -87,7 +89,7 @@ usercontrol.row{
     flex: none;
     height: 25px;
     vertical-align: middle;
-    margin: 0px;
+    /*margin: 0px;*/
 }
 usercontrol.col{
     flex: 1;

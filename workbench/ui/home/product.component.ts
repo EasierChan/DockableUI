@@ -58,7 +58,6 @@ export class ProductsComponent implements OnInit {
         }, this);
     }
     toProductsDetail(product) {
-        console.log(product);
         this.appsrv.startApp(product.caname, "ProductTrader", {
             productID: product.caid,
             name: product.caname
