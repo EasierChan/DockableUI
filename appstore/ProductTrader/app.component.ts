@@ -766,10 +766,73 @@ export class AppComponent implements OnInit {
         this.tradePoint.onTopic(4100, (key, dataObj) => {
             let data = JSON.parse(dataObj.toString());
             this.errorCallback(data, "getProductNet推送： ");
+            this.productNetChart.setOption(this.createProductNetChart().option);
             let productNetChangeOpt = {
-                title: { text: "" },
-                xAxis: [{ data: [] }],
-                series: [{ data: [] }]
+                title: {
+                    text: "",
+                    x: "center",
+                    align: "right",
+                    top: 15,
+                    textStyle: {
+                        color: "#717171"
+                    }
+                },
+                grid: {
+                    bottom: 40,
+                    top: 70
+                },
+                tooltip: {
+                    trigger: "axis"
+                },
+                dataZoom: {
+                    type: "inside"
+                },
+                xAxis: [
+                    {
+                        axisLabel: {
+                            show: true,
+                            textStyle: { color: "#717171" }
+                        },
+                        axisLine: {
+                            lineStyle: { color: "#717171" }
+                        },
+                        data: []
+                    }
+                ],
+                yAxis: [
+                    {
+                        axisLabel: {
+                            show: true,
+                            textStyle: { color: "#717171" }
+                        },
+                        axisLine: {
+                            lineStyle: { color: "#717171" }
+                        },
+                        splitLine: {
+                            show: false
+                        },
+                        name: "净值",
+                        type: "value",
+                        nameLocation: "end"
+                    }
+                ],
+                series: [
+                    {
+                        name: "净值",
+                        type: "line",
+                        data: [],
+                        itemStyle: {
+                            normal: {
+                                color: "#2378f7"
+                            }
+                        },
+                        areaStyle: {
+                            normal: {
+                                color: "#83bff6"
+                            }
+                        }
+                    }
+                ]
             };
             this.productNetData = data.body;
             if (data.body.length === 0) {
@@ -851,8 +914,7 @@ export class AppComponent implements OnInit {
                             body: { caid: this.productId }
                         }
                     }));
-                    // console.log("@@@@@@@@@@@@@===============" + new Date());
-                    this.tradePoint.send(11005, JSON.stringify({
+                   this.tradePoint.send(11005, JSON.stringify({
                         data: {
                             head: { userid: this.userId, reqsn: 1 },
                             body: { caid: this.productId }
@@ -866,8 +928,7 @@ export class AppComponent implements OnInit {
                         }
                     }), 41);
                     this.tradePoint.subscribe(4100, [Number(this.productId)]);
-                    // this.tradePoint.sendToCMS("getProductNet", JSON.stringify({ data: { head: { userid: this.userId }, body: { caid: this.productId } } }));
-                }
+                 }
             });
     }
     loadLayout() {
@@ -893,14 +954,8 @@ export class AppComponent implements OnInit {
         } else if (childDock.modules && childDock.modules.length > 0) {
             let panel = new TabPanel();
             childDock.modules.forEach(page => {
-                if (this.pageMap.hasOwnProperty(page)) {
-                    panel.addTab(this.pageMap[page], false);
-                    this.state.changeMenuItemState(page, true, 2);
-                } else {
-                    if (page.startsWith("BookView")) {
-                        panel.addTab(this.createBookView(page));
-                    }
-                }
+                panel.addTab(this.pageMap[page], false);
+                this.state.changeMenuItemState(page, false, 2);
             });
 
             dock.addChild(panel);
