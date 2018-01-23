@@ -1,0 +1,78 @@
+<ng-template ngFor let-child [ngForOf]="children">
+  <button *ngIf="child.styleObj.type=='button'" class="btn btn-{{child.className}} btn-xs" [name]="child.dataSource.name" (click)="child.dataSource.click()"
+    [style.margin-left.px]="child.styleObj.left" [style.margin-top.px]="child.styleObj.top" [disabled]="child.styleObj?.disable">
+    {{child.dataSource.text}}
+  </button>
+  <div *ngIf="child.styleObj.type=='textbox'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"
+    (input)="child.dataSource.input ? child.dataSource.input() : null" (change)="child.dataSource.change ? child.dataSource.change() : null"
+    [style.line-height.px]="styleObj?.height">
+    <span>{{child.dataSource.title}}</span>
+    <input type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" placeholder="" [style.width.px]="child.styleObj?.width"
+      class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
+  </div>
+  <div *ngIf="child.styleObj.type=='date'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"
+    [style.line-height.px]="styleObj?.height">
+    <span>{{child.dataSource.title}}</span>
+    <input type="date" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name" [style.width.px]="child.styleObj?.width"
+      class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable" [readonly]="child.styleObj?.readonly">
+  </div>
+  <div *ngIf="child.styleObj.type=='dropdown'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"
+    [style.line-height.px]="styleObj?.height">
+    <span>{{child.dataSource.title}}</span>
+    <div class="btn-group" [style.width.px]="child.styleObj?.width">
+      <input *ngIf="child.styleObj.acceptInput" type="text" [(ngModel)]="child.dataSource.text" [name]="child.dataSource.name"
+        [style.width.px]="child.styleObj?.width" class="btn-{{child.className}} btn-xs" [disabled]="child.styleObj?.disable"
+        [readonly]="child.styleObj?.readonly" (input)="child.dataSource.input($event)" (blur)="child.dataSource.blur()" (keyup)="child.dataSource.keyup($event)">
+      <ul *ngIf="child.styleObj.acceptInput" class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'" (mouseover)="child.dataSource.mouseover()"
+        (mouseleave)="child.dataSource.mouseleave()">
+        <li *ngFor="let item of child.dataSource.completelist; let i = index;" (click)="child.dataSource?.select(item)" [style.background-color]="i === child.curidx ? '#2A9FD6': null">
+          <a href="#">{{item.Text}}</a>
+        </li>
+      </ul>
+      <button *ngIf="!child.styleObj.acceptInput" type="button" class="btn-xs btn-default dropdown-toggle" (click)="child.dataSource.click()"
+        (blur)="child.dataSource.blur()" [disabled]="child.styleObj?.disable">
+          <pre style="width:100%">{{child.dataSource.selectedItem?.Text}}</pre> <span class="caret"></span>
+      </button>
+      <ul *ngIf="!child.styleObj.acceptInput" class="dropdown-menu" [style.display]="child.styleObj.dropdown?'block':'none'" (mouseover)="child.dataSource.mouseover()"
+        (mouseleave)="child.dataSource.mouseleave()">
+        <li *ngFor="let item of child.dataSource.items" (click)="child.dataSource?.select(item)"><a href="#">{{item.Text}}</a></li>
+      </ul>
+    </div>
+  </div>
+  <div *ngIf="child.styleObj.type=='radio'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"
+    [style.line-height.px]="styleObj?.height">
+    <span>{{child.dataSource.title}}</span >
+                <input [name]="child.dataSource.name" type="radio" [(ngModel)]="child.dataSource.text" [disabled]="child.styleObj?.disable"> 
+             </div>
+  <div *ngIf="child.styleObj.type=='checkbox'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"
+  [style.line-height.px]="styleObj?.height">
+                <input [name]="child.dataSource.name" type="checkbox" [(ngModel)]="child.dataSource.text"
+                 [disabled]="child.styleObj?.disable" (click)="child.dataSource.click()"> 
+                <span style="white-space: nowrap">{{child.dataSource.title}}</span>
+  </div>
+  <div *ngIf="child.styleObj.type=='range'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"
+    [style.line-height.px]="styleObj?.height">
+    <span>{{child.dataSource.title}}</span >
+                <input type="range" [class]="child.className" [min]="child.dataSource.min" [max]="child.dataSource.max" [(ngModel)]="child.dataSource.text"
+                [style.width.px]="child.styleObj?.width" (change)="child.dataSource.click()" [disabled]="child.styleObj?.disable">
+             </div>
+  <div *ngIf="child.styleObj.type=='plaintext'" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"
+    [style.width.px]="child.styleObj?.width" [style.line-height.px]="styleObj?.height">
+                <span>{{child.dataSource.title}}</span >
+                <span [class]="child.className">{{child.dataSource.text}}</span>
+  </div>
+  <action-bar *ngIf="child.styleObj.type=='actionbar'" [styleObj]="child.styleObj" [dataSource]="child.dataSource"></action-bar>
+  <dock-table *ngIf="child.styleObj.type=='table'" [className]="child.className" [dataSource]="child.dataSource" [styleObj]="child.styleObj"
+    [style.max-height]="child.styleObj?.height" [style.max-width]="child.styleObj?.width" [style.margin-left.px]="child.styleObj?.left"
+    [style.margin-top.px]="child.styleObj?.top"></dock-table>
+  <dock-table2 *ngIf="child.styleObj.type=='table2'" [className]="child.className" [dataSource]="child.dataSource" [styleObj]="child.styleObj"
+    [style.max-height]="child.styleObj?.height" [style.max-width]="child.styleObj?.width"></dock-table2>
+  <echart *ngIf="child.styleObj.type=='echart'&&child.className!='hidden'" [dataSource]="child.dataSource" [style.margin-left.px]="child.styleObj?.left"
+    [style.margin-top.px]="child.styleObj?.top"></echart>
+  <dock-control *ngIf="child.styleObj.type=='tabpanel'" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj"
+    [dataSource]="child.dataSource" [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top"></dock-control>
+  <usercontrol *ngIf="child.className=='controls'" [children]="child.children" [dataSource]="child.dataSource" [class]="child.styleObj.type"
+    [style.min-width.px]="child.styleObj?.minWidth" [style.min-height.px]="child.styleObj?.minHeight" [style.justify-content]="child.styleObj?.align"
+    [style.margin-left.px]="child.styleObj?.left" [style.margin-top.px]="child.styleObj?.top" [style.height.px]="child.styleObj?.height">
+  </usercontrol>
+</ng-template>

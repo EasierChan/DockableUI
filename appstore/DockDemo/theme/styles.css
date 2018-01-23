@@ -1,0 +1,91 @@
+/* Master Styles */
+
+body {
+    background-color: #2e344c;
+}
+
+.tab-panel{
+    position: relative;
+}
+
+.page-title {
+  background-color: #2e344c;
+}
+
+.page-body {
+  /*background-color: #1f273e;*/
+  background-color: #1b1b1b;
+}
+
+.panel-header-list {
+  background-color: #2e344c;
+  box-shadow: 0 -2px 2px #060606;
+}
+
+.panel-header-list > .tab.active {
+    background-color: #1b1b1b;
+}
+
+.splitter-bar {
+    background-color: #2e344c;
+}
+.splitter-bar.horizental {
+    border-top: 1px solid #1b2437;
+}
+.loading {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 140, 240, 1);
+    font-size: 30px;
+}
+.table{
+    font-size: 12px;
+    margin-bottom: 0;
+}
+
+table {
+    background-color: #1b1b1b;
+}
+/*user control*/
+.controls{
+    height: 100%;
+    width: 100%;
+    display: flex;
+}
+usercontrol{
+    display: flex;
+}
+usercontrol.row{
+    flex-flow: row nowrap;
+    flex: none;
+    height: 25px;
+    /*line-height: 25px;*/
+    vertical-align: middle;
+    margin: 0px;
+    /*padding: 5px 5px;*/
+}
+usercontrol.col{
+    flex: 1;
+    flex-flow: column nowrap;
+    width: 100%;
+}
+/* scroller */
+::-webkit-scrollbar{
+    width: 7px;
+    height: 7px;
+    /*background-color: #111a30;*/
+}
+::-webkit-scrollbar-button {
+    display: none;
+}
+::-webkit-scrollbar-thumb{
+    background-color: #bebebe;
+}
+::-webkit-scrollbar-thumb:hover{
+    background-color: #e9b837;
+}
+
+

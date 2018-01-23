@@ -1,0 +1,64 @@
+<div class="groupbox">
+    <!--<label for="">{{enNameLabel}}<input type="text" class="btn-default" [(ngModel)]="enName" [readonly]="!isCreate"></label>-->
+    <label for="">{{chNameLabel}}<input type="text" class="btn-default" [(ngModel)]="chName"></label>
+    <label for="">{{strategyLabel}}
+        <select class="btn-default" [(ngModel)]="strategyType" (change)="changeStrategy(strategy.value)" #strategy>
+            <option *ngFor="let opt of strategies" [value]="opt.name">{{opt.chname}}</option>
+        </select>
+    </label>
+    <label *ngIf="products" for="">{{productLabel}}
+        <select class="btn-default" [(ngModel)]="productID">
+            <option *ngFor="let opt of products" [value]="opt.caid">{{opt.caname}}</option>
+        </select>
+    </label>
+    <label *ngIf="products" for="">{{comboLabel}}
+        <select class="btn-default" [(ngModel)]="comboID">
+            <option *ngFor="let opt of combos" [value]="opt.trid">{{opt.trname}}</option>
+        </select>
+    </label>
+    <label *ngIf="hasFund" for="">{{fundLabel}}<input type="text" class="btn-default" [(ngModel)]="fund"></label>
+    <label for="">{{basketLabel}}
+        <select class="btn-default" [(ngModel)]="basketID">
+            <option *ngFor="let opt of baskets" [value]="opt.basketid">{{opt.basket_name}}</option>
+        </select>
+    </label>
+    <button class="btn btn-primary" (click)="save()">保存并关闭</button>
+</div>
+<div *ngIf="config.activeChannel == 2" class="groupbox backtest">
+    <div class="section">
+        <label>撮合模式：</label>
+        <label for=""><input type="radio" name="match_mode" value="1" [(ngModel)]="config.backtestConfig.simlevel">&nbsp;无条件成交</label>
+        <label for=""><input type="radio" name="match_mode" value="2" [(ngModel)]="config.backtestConfig.simlevel">&nbsp;按价格成交</label>
+        <label for=""><input type="radio" name="match_mode" value="3" [(ngModel)]="config.backtestConfig.simlevel">&nbsp;按价量成交</label>
+    </div>
+    <label for="">回测区间：
+    <input type="date" class="btn-default" [(ngModel)]="config.backtestConfig.timebegin">
+    -
+    <input type="date" class="btn-default" [(ngModel)]="config.backtestConfig.timeend">
+    </label><br>
+    <div class="section">
+        <label>回测速度：</label>
+        <label for=""><input type="radio" name="speed" value="1" [(ngModel)]="config.backtestConfig.speed">&nbsp;1</label>
+        <label for=""><input type="radio" name="speed" value="2" [(ngModel)]="config.backtestConfig.speed">&nbsp;2</label>
+        <label for=""><input type="radio" name="speed" value="3" [(ngModel)]="config.backtestConfig.speed">&nbsp;3</label>
+        <label for=""><input type="radio" name="speed" value="4" [(ngModel)]="config.backtestConfig.speed">&nbsp;4</label>
+        <label for=""><input type="radio" name="speed" value="5" [(ngModel)]="config.backtestConfig.speed">&nbsp;5</label>
+        <label for=""><input type="radio" name="speed" value="6" [(ngModel)]="config.backtestConfig.speed">&nbsp;6</label>
+        <label for=""><input type="radio" name="speed" value="7" [(ngModel)]="config.backtestConfig.speed">&nbsp;7</label>
+        <label for=""><input type="radio" name="speed" value="8" [(ngModel)]="config.backtestConfig.speed">&nbsp;8</label>
+        <label for=""><input type="radio" name="speed" value="9" [(ngModel)]="config.backtestConfig.speed">&nbsp;9</label>
+        <label for=""><input type="radio" name="speed" value="10" [(ngModel)]="config.backtestConfig.speed">&nbsp;10</label>
+    </div>
+    <div class="section generate">
+        <div class="section">
+            <label>实时净值计算频率：<input type="text" class="btn-default" [(ngModel)]="config.backtestConfig.period"></label>
+            <label for=""><input type="radio" name="unit" value="0" [(ngModel)]="config.backtestConfig.unit">&nbsp;分钟</label>
+            <label for=""><input type="radio" name="unit" value="1" [(ngModel)]="config.backtestConfig.unit">&nbsp;天</label>
+        </div>
+        <!--<button class="btn btn-primary">生成</button>-->
+    </div>
+</div>
+<div class="groupbox stragtegy">
+    <dock-control style="height: 100%" [className]="strategyConfigPanel.className" [children]="strategyConfigPanel.children"
+        [styleObj]="strategyConfigPanel.styleObj" [dataSource]="strategyConfigPanel.dataSource"></dock-control>
+</div>

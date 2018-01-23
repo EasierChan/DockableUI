@@ -1,0 +1,112 @@
+/*
+* spreadview.css
+*/
+
+.charts {
+    flex: auto;
+    display: flex;
+    flex-flow: column;
+    background: #1A2237;
+}
+
+.u-warning {
+    background-color: #1A2237;
+    color: white;
+}
+
+.u-primary {
+    background-color: #2e344c;
+    color: white;
+}
+
+.condition {    
+    position: relative;
+    flex: none;
+    left: 10%;
+    width: 90%;
+}
+
+.condition input {
+    padding: 0 5px;
+}
+
+.u-row {
+    margin-top: 5px;
+    display: flex;
+    flex-flow: row;
+    align-items: center
+}
+
+.fill {
+    flex: auto;
+}
+
+select {
+    padding: 0;
+    height: 21px;
+}
+
+.span {
+    margin-right: 5px;
+    text-align: right;
+}
+
+.u-col {
+    display: flex;
+    flex-flow: column;
+}
+
+.condition .item {
+    width: 200px;
+    margin: 0 10px;
+}
+
+.condition .code {
+    width: 100%;
+}
+
+.condition .params {
+    flex: auto;
+    width: 30px;
+}
+
+.condition .yparams {
+    width: 100px;
+    margin: 0 10px;
+}
+
+.operator {
+    height: auto;
+    line-height: auto;
+    padding: 0 10px;
+}
+
+.right {
+    float: right;
+}
+
+.condition .u-file {
+    padding: 0 10px;
+}
+
+.addon-btns {
+    position: relative;
+    left: 10%;
+    width: 80%;
+}
+
+.chart {
+    flex: auto;
+}
+
+.u-tooltip {
+    position: absolute;
+    right: 10px;
+    bottom: 30px;
+    z-index: 999;
+    width: auto;
+    height: auto;
+    background-color: #424B62;
+    border: 1px solid white;
+    padding: 5px 10px;
+}

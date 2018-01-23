@@ -1,0 +1,22 @@
+<div class="workbench">
+    <action-bar [styleObj]="actionBar.styleObj" [dataSource]="actionBar.dataSource"></action-bar>
+    <div class="content" [ngSwitch]="curPage">
+        <ng-template [ngSwitchCase]="'security'">
+            <security-master></security-master>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'setting'">
+            <setting></setting>
+        </ng-template>
+        <ng-template [ngSwitchCase]="'user'">
+            <user></user>
+        </ng-template>
+        <!--<ng-template [ngSwitchCase]="'support'">
+            <support></support>
+        </ng-template>-->
+        <ng-template ngSwitchDefault>
+            <home [currentMod]="homeMod" [activeTab]="activeTab"></home>
+        </ng-template>
+    </div>
+</div>
+<div *ngIf="dialog && dialog.bshow" class="dialog" [dialog]="dialog">
+</div>

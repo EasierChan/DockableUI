@@ -1,0 +1,12 @@
+<div [ngSwitch]="option.dlg_name" class="container">
+    <ng-template [ngSwitchCase]="'product'">
+        <product class="u-col"></product>
+    </ng-template>
+    <ng-template [ngSwitchCase]="'strategy'">
+        <strategy [config]="option.config" [products]="option.products" [strategies]="option.strategies" [forbidNames]="option.forbidNames"
+            class="u-col"></strategy>
+    </ng-template>
+    <ng-template [ngSwitchDefault>
+        <span>Hello world</span>
+    </ng-template>
+</div>

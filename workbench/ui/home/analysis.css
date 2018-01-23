@@ -1,0 +1,9 @@
+tilearea {
+    flex: auto;
+}
+
+.areas {
+    flex: auto;
+    display: flex;
+    flex-flow: row;
+}

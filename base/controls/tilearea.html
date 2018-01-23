@@ -1,0 +1,20 @@
+<div class="area-title">
+    <span class="glyphicon glyphicon-blackboard"></span>
+    <span>{{ dataSource.title }}</span>
+    <span *ngIf="dataSource.setting" class="setting-button glyphicon glyphicon-cog" (click)="dataSource.setting()"></span>
+</div>
+<div class="area-tiles">
+    <div *ngFor="let item of dataSource.items" class="tile" (mouseup)="dataSource.click($event, item)" [style.background-color]="item?.backgroundColor"
+        [style.color]="item?.color" (mousedown)="dataSource.pickID($event, item)">
+        <div class="icon">
+            <span class="glyphicon glyphicon-{{item.iconName}}" [@tileState]="item.state"></span>
+        </div>
+        <div class="title" [title]="item.title">
+            <span>{{ item.title }}</span>
+        </div>
+    </div>
+    <div *ngIf="dataSource.create" class="tile create" (click)="dataSource.create($event)" [style.background-color]="creater?.backgroundColor"
+        [style.color]="creater?.color">
+        <span class="glyphicon glyphicon-plus"></span>
+    </div>
+</div>

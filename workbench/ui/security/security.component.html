@@ -1,0 +1,83 @@
+<div class="title">
+  <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
+  <span class="big">chronos</span>
+  <ul class="tabs">
+    <li *ngFor="let tab of tabs" [class.active]="activeTab==tab" (click)="activeTab=tab"><a>{{tab}}</a></li>
+  </ul>
+  <u-codes class="u-input-group" (onSelect)="listClick($event)"></u-codes>
+  <!--<button class="btn btn-default" [disabled]="selectedValue" (click)="searchInfo()">搜索</button>-->
+</div>
+<div *ngIf="activeTab=='证券信息'" class="u-col fill">
+  <div class="content">
+    <h6>{{codeName}}</h6>
+    <div class="u-row" style="min-height: 100px;">
+      <section class="fill" style="width: 100px;height: 390px">
+        <div class="chartTit">{{baseInfo.title}}</div>
+        <div class="holder">
+          <table>
+            <tr *ngFor="let item of baseInfo.content">
+              <td style="width: fit-content">{{item.name}}</td>
+              <td>{{item.value}}</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+      <section class="fill" style="width: 100px;height: 390px">
+        <div class="chartTit">{{mdSection.title}}</div>
+        <div class="select">
+          <select [(ngModel)]='selectK' (ngModelChange)="selectK=$event;searchMD()">
+            <option *ngFor="let item of selectKs" [value]='item'>{{item}}</option>
+          </select>
+        </div>  
+        <div class="holder">
+          <div echarts [options]="mdSection.content.option" (chartInit)="mdSection.content.onInit($event)" style="height: 300px"></div>
+        </div>
+      </section>
+    </div>
+    <div class="u-row">
+      <section class="fill" style="width: 100px;height: 260px">
+        <div class="chartTit">{{marketInfo.title}}</div>
+        <div class="holder">
+          <table>
+            <tr *ngFor="let item of marketInfo.content">
+              <td style="width: fit-content">{{item.name}}</td>
+              <td>{{item.value}}</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+      <section class="fill" style="width: 100px;height: 260px">
+        <div class="chartTit">{{keyInfo.title}}</div>
+        <div class="holder">
+          <table>
+            <tr *ngFor="let item of keyInfo.content">
+              <td style="width: fit-content">{{item.name}}</td>
+              <td>{{item.value}}</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+    </div>
+    <div *ngIf="!isStock" class="u-row">
+      <section class="fill" style="width: 100px;height: 260px">
+        <div class="chartTit">{{summary.title}}</div>
+        <p>
+          {{summary.content}}
+        </p>
+      </section>
+      <section class="fill" style="width: 100px;height: 260px">
+        <div class="chartTit">{{standardInfo.title}}</div>
+        <div class="holder">
+          <table align="left" style="table-layout: fixed">
+            <tr *ngFor="let row of standardInfo.content">
+              <td style="word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="{{row[0]}}">{{row[0]}}</td>
+              <td style="word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="{{row[1]}}">{{row[1]}}</td>
+              <td style="word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="{{row[2]}}">{{row[2]}}</td>
+              <td style="word-break: keep-all; white-space: nowrap; overflow: hidden; text-overflow: ellipsis" title="{{row[3]}}">{{row[3]}}</td>
+            </tr>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

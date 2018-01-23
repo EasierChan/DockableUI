@@ -1,0 +1,56 @@
+<div #container [ngSwitch]="className" [class]="className" [style.width.px]="styleObj?.width != null ? styleObj?.width : null"
+    [style.height.px]="styleObj?.height != null ? styleObj?.height : null">
+    <ng-template [ngSwitchCase]="'tab-panel'">
+        <!-- tab pages-->
+        <div class="tab-pages">
+            <div *ngFor="let page of children[0].pages" [id]="page.id" [class]="page.className">
+                <div class="page-title" draggable="true" (dragstart)="page?.onDrag($event, dataSource.id)" (dragend)="page?.onDragEnd($event)"><span>{{page.title}}</span></div>
+                <div class="page-body">
+                    <usercontrol *ngIf="page.content" [class]="page.content.styleObj.type" [children]="page.content.children" [dataSource]="page.content.dataSource"
+                        [style.min-width.px]="page.content.styleObj?.minWidth" [style.min-height.px]="page.content.styleObj?.minHeight"
+                        [style.height.px]="page.content.styleObj?.height">
+                    </usercontrol>
+                </div>
+            </div>
+        </div>
+        <!-- panel headers-->
+        <div class="panel-header-list">
+            <div *ngFor="let header of children[1].headers" [attr.data-target]="header.targetId" [class]="header.className" (click)="dataSource.setActive(header.targetId)">
+                {{header.tabName}} <span *ngIf="header.bcloseable" class="header-close" aria-hidden="true" (click)="dataSource.onClose(header.targetId)">&times;</span>
+            </div>
+        </div>
+    </ng-template>
+    <ng-template [ngSwitchCase]="'table'">
+        <dock-table [className]="className" [dataSource]="dataSource"></dock-table>
+    </ng-template>
+    <ng-template [ngSwitchCase]="'controls'">
+        <usercontrol [class]="styleObj.type" [children]="children" [dataSource]="dataSource" [styleObj]="styleObj"></usercontrol>
+    </ng-template>
+    <ng-template ngSwitchDefault>
+        <dock-control *ngFor="let child of children" [className]="child.className" [children]="child.children" [styleObj]="child.styleObj"
+            [dataSource]="child.dataSource">
+        </dock-control>
+        <div *ngIf="children&&children.length==1" #navSN class="dock-nav" [style.display]="styleObj?.showNavbar?'flex':'none'">
+            <div #north class="dock-north">
+                <div class="bar-block"></div>
+                <div class="bar-arrow"></div>
+            </div>
+            <div class="u-row">
+                <div #west class="dock-west">
+                    <div class="bar-block"></div>
+                    <div class="bar-arrow"></div>
+                </div>
+                <div #center class="dock-center"></div>
+                <div #east class="dock-east">
+                    <div class="bar-block"></div>
+                    <div class="bar-arrow"></div>
+                </div>
+            </div>
+            <div #south class="dock-south">
+                <div class="bar-block"></div>
+                <div class="bar-arrow"></div>
+            </div>
+        </div>
+        <div #navCover class="dock-cover" [style.display]="styleObj?.showCover?'block':'none'"></div>
+    </ng-template>
+</div>

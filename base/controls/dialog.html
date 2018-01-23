@@ -1,0 +1,10 @@
+<div #holder class="holder" [style.width.px]="dialog?.width" [style.height.px]="dialog?.height">
+    <div #head class="head">
+        <span class="title">{{dialog?.title}}</span>
+        <span class="close close-round pull-right" (click)="dialog.hide()"></span>
+    </div>
+    <div class="body">
+        <usercontrol class="{{dialog.content.styleObj.type}} {{dialog.content.styleObj.align}}" [children]="dialog.content.children" [dataSource]="dialog.content.dataSource" [styleObj]="dialog.content.styleObj">
+        </usercontrol>
+    </div>
+</div>

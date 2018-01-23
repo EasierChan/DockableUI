@@ -1,0 +1,16 @@
+table {
+    background-color: #222A41;
+    font-size: 12px;
+}
+
+.page-title, .panel-header-list {
+    background-color: #2e344c;
+}
+
+.page-body {
+    background-color: #222a41;
+}
+
+.table > tbody > tr > td {
+    overflow: visible;
+}

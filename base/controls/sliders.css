@@ -1,0 +1,30 @@
+/* slider bar */
+.sliders {
+    position: relative;
+}
+
+.sliders > img {
+    display: none;
+}
+
+.sliders > img.prev,
+.sliders > img.next {
+    display: block;
+    height: 90%;
+    width: 40%;
+    object-fit: cover;
+    float: left;
+}
+
+.sliders > img.next {
+    float: right;
+}
+
+.sliders > img.curr {
+    display: block;
+    position: absolute;
+    top: 5%;
+    width: 50%;
+    left: 25%;
+    z-index: 555;
+}

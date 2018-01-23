@@ -1,0 +1,24 @@
+<div class="title">
+  <img class="logo" src="../base/images/logo-white.png" alt="Chronos" />
+  <span class="big">chronos</span>
+  <ul class="tabs">
+    <li *ngFor="let tab of curModule.tabs" [class.active]="activeTab==tab" (click)="onTabClick(tab)"><a>{{tab}}</a></li>
+  </ul>
+</div>
+<div class="content">
+  <dashboard *ngIf="activeTab=='Dashboard'||activeTab=='资讯动态'" class="fill"></dashboard>
+  <trade *ngIf="activeTab=='Trading'||activeTab=='策略'" class="fill"></trade>
+  <products *ngIf="activeTab=='Trading'||activeTab=='产品'" class="fill"></products>
+  <simulation *ngIf="activeTab=='Simulation'||activeTab=='仿真交易'" class="fill"></simulation>
+  <sim-query *ngIf="activeTab=='SimulationQuery'||activeTab=='仿真记录查询'" class="fill" ></sim-query>
+  <risk *ngIf="activeTab=='Risk'||activeTab=='风控'" class="fill"></risk>
+  <admin *ngIf="activeTab=='Admin'||activeTab=='管理'"></admin>
+  <backtest *ngIf="activeTab=='BackTest'||activeTab=='回测'" class="fill"></backtest>
+  <analysis *ngIf="activeTab=='Analysis'||activeTab=='价差分析'" class="fill"></analysis>
+  <basket-admin *ngIf="activeTab=='Basket'||activeTab=='篮子分析管理'" class="fill"></basket-admin>
+  <report *ngIf="activeTab=='Report'||activeTab=='回测报表'" class="fill"></report>
+  <rf-profit *ngIf="activeTab=='FactorProfit'||activeTab=='风险因子收益'" [activeTab]="activeTab" class="fill"></rf-profit>
+  <rf-analysis *ngIf="activeTab=='FactorAnalysis'||activeTab=='风险因子分析'" [activeTab]="activeTab" class="fill"></rf-analysis>
+  <rf-alpha *ngIf="activeTab=='FactorAlpha'||activeTab=='Alpha因子'" [activeTab]="activeTab" class="fill"></rf-alpha>
+  <rf-aibrand *ngIf="activeTab=='AIBrand'||activeTab=='AI看盘'" [activeTab]="activeTab" class="fill"></rf-aibrand>
+</div>

@@ -1,0 +1,5 @@
+<div *ngFor="let item of statusbar.items" [class]="item.section" [style.color]="item?.color" [style.background]="item?.bgColor"
+ (click)="item.click()" (blur)="item.blur()" (mouseover)="item.hover()" (mouseout)="item.blur()" [style.width.px]="item?.width">
+    <span class="glyphicon glyphicon-info-sign"></span>
+    {{ item.text }}
+</div>

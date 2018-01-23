@@ -1,0 +1,23 @@
+<div class="u-action-bar">
+    <ul class="actions-container">
+        <li class="action-item menu">
+            <a class="action-label" role="button" (click)="dataSource?.menuClick(item)">
+                <span class="glyphicon glyphicon-menu-hamburger"></span>
+            </a>
+        </li>
+        <li *ngFor="let item of dataSource.features" class="action-item" [class.active]="item.active" (click)="dataSource?.onClick(item)">
+            <a class="action-label" [class.detail]="styleObj.showDetailView" role="button" [title]="item?.tooltip">
+                <span class="glyphicon glyphicon-{{item.iconName}}"></span>
+                <span *ngIf="styleObj.showDetailView" class="title">{{item.title}}</span>
+            </a>
+        </li>
+    </ul>
+    <ul class="actions-container bottom">
+        <li *ngFor="let item of dataSource.settings" class="action-item" [class.active]="item.active" (click)="dataSource?.onClick(item)">
+            <a class="action-label" [class.detail]="styleObj.showDetailView" role="button" [title]="item?.tooltip">
+                <span class="glyphicon glyphicon-{{item.iconName}}"></span>
+                <span *ngIf="styleObj.showDetailView" class="title">{{item.title}}</span>
+            </a>
+        </li>
+    </ul>
+</div>

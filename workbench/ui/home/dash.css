@@ -1,0 +1,227 @@
+.dash-body {
+    flex: auto;
+    flex-flow: column;
+    overflow-y: auto;
+}
+
+table {
+    background-color: transparent;
+}
+
+.table > thead > tr > th {
+    padding: 2px;
+    cursor:none;
+}
+
+.dash-body > .banner {
+    flex: auto;
+    background-color: #222A41;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+
+
+section {
+    display: flex;
+    flex-flow: column;
+}
+
+
+.dash-body section{
+    float: left;
+    margin-bottom: 50px;
+}
+
+.chartCon{
+    box-sizing: border-box;
+    border-top: 10px solid rgb(26, 34, 55);
+    border-bottom: 10px solid rgb(26, 34, 55);
+    background: rgba(1, 3, 12, 0.37);
+}
+
+
+.chartTit{
+    height: 30px;
+    background: rgb(56, 63, 84);
+    line-height: 30px;
+    padding-left: 10px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.chartBody{
+    padding: 10px;
+}
+.leftSection{
+     width: 40%;
+}
+
+.mainStockCon .selfSelectStockChart{
+    border-top: 10px solid rgb(56, 63, 84);
+}
+.middleSection{
+     width: 30%;
+}
+.middleSection .chartCon{
+    border-left: 20px solid rgb(26, 34, 55);
+    border-right: 20px solid rgb(26, 34, 55);
+}
+.rightSection{
+     width: 30%;
+}
+.mainStockCon{
+    min-height: 600px;
+}
+.producAnalysis{
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.producAnalysis .fontCon{
+    text-align: left;
+    background: rgba(132, 138, 152, 0.14);
+    padding: 8px;
+    font-size: 10px;
+    display: inline-block;
+    min-width: 20%;
+}
+.producAnalysis .fontCon:nth-of-type(1),
+.producAnalysis .fontCon:nth-of-type(2){
+    max-width: 30%;
+}
+.producAnalysis .fontCon:nth-of-type(1){
+   border-left: 4px solid #f3c239;
+}
+.producAnalysis .fontCon:nth-of-type(2){
+   border-left: 4px solid #f77749;
+}
+.producAnalysis .fontCon:nth-of-type(3){
+   border-left: 4px solid #25bf7c;
+}
+.producAnalysis .fontCon:nth-of-type(4){
+   border-left: 4px solid #ff5564;
+}
+.producAnalysis .fontCon:nth-of-type(3),
+.producAnalysis .fontCon:nth-of-type(4){
+     max-width: 20%;
+}
+
+.producAnalysis .fontCon .value .num{
+    font-size: 24px;
+    color: #f3c239;
+}
+.producAnalysis .fontCon:nth-of-type(2) .value .num{
+    color: #f77749;
+}
+.producAnalysis .fontCon:nth-of-type(3) .value .num{
+    color: #25bf7c;
+}
+.producAnalysis .fontCon:nth-of-type(4) .value .num{
+    color: #ff5564;
+}
+
+.aiArea{
+    min-height: 350px;
+}
+.aiArea .chartBody>div{
+    float: left;
+    width: 50%;
+    padding-left: 10px;
+}
+.aiArea .chartBody>.theBestList{
+    padding-left: 0;
+    padding-right: 10px;
+}
+
+
+
+.todoCon .chartBody, .alarmCon .chartBody{
+    max-height: 500px;
+    display: flex;
+}
+.todoCon,.alarmCon{
+    min-height: 300px;
+}
+.todoCon .todoInput  .addTodoList{
+    float: right;
+    cursor: pointer;
+    width: 19%;
+    height: 28px;
+    background: #464c61;
+    text-align: center;
+    line-height: 28px;
+    border-radius: 3px;
+    color: #fff;
+    text-decoration: none;
+   
+}
+.todoCon .todoInput .addTodoList:hover,
+.todoCon .todoInput .addTodoList:active{    
+    background: #52849c;
+}
+
+
+.todoCon .todoInput{
+    padding: 10px 10px 20px 10px;
+}
+.todoCon .todoInput input{
+    color: #717171;
+    outline: 0;
+    height: 18px;
+    padding: 6px 11px;
+    line-height: 18px;
+    font-size: 13px;
+    background-color: rgba(245, 245, 245, 0);
+    min-height: 29px;
+    border: 1px solid #5d5f63;
+    border-radius: 3px;
+    width: 80%;
+}
+
+.todoCon .todoInput input::-webkit-input-placeholder{
+    color: rgba(136, 136, 136, 0.55);
+}
+.todoCon .todoInput input:focus::-webkit-input-placeholder{
+    color: rgb(16, 23, 39);
+}
+
+
+.chartTit span{
+    float: right;
+    margin-right: 10px;
+    color: #ccc;
+    line-height: 30px;
+    cursor: pointer;
+}
+.chartTit span:hover,
+.chartTit span:active{
+    color: #f3c239;
+}
+.selfSelectStockChart>p{
+    padding-left: 50px;
+    margin: 0;
+    margin-top: 20px;
+}
+.selfSelectStockChart>p span{
+    margin-right: 20px;
+}
+.selfSelectStockChart>p span i{
+    font-style: normal;
+}
+.selfSelectStockChart>p span.maxPrice .value{
+   color: rgb(234, 47, 47);
+}
+
+.selfSelectStockChart>p span.preClose .value,
+.selfSelectStockChart>p span.minPrice .value{
+   color: rgb(55, 177, 78);
+}
+
+
+
+
+
+

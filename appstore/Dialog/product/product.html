@@ -1,0 +1,13 @@
+<div class="holder">
+    <table class="header">
+        <tr *ngFor="let row of productDetail.rows">
+            <td *ngFor="let col of row" style="width: 100px">
+                {{col}}
+            </td>
+        </tr>
+    </table>
+</div>
+<div class="u-row holds fill">
+    <dock-table2 [dataSource]="futureTable.dataSource" [styleObj]="futureTable.styleObj"></dock-table2>
+    <dock-table2 [dataSource]="stockTable.dataSource" [styleObj]="stockTable.styleObj"></dock-table2>
+</div>

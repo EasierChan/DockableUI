@@ -1,0 +1,49 @@
+<div class="fill wraper u-col">
+    <div class="u-row">
+        <div class="backtest-article u-col">
+            <div class="title u-row">
+                <div class="select-group u-row">
+                    <label for="">策略名称：</label>
+                    <select name="strategys" id="" #strategyname (change)="filterStg(strategyname.value)" >
+                        <option value="all">全部</option>
+                        <option *ngFor="let name of strategyNames" [value]="name">{{name}}</option>
+                    </select>
+                </div>
+            </div>
+            <dock-table2 class="table-container" [dataSource]="resTable.dataSource" [styleObj]="resTable.styleObj"></dock-table2>
+        </div>
+
+        <div class="chart-article u-row">
+            <div echarts [options]="chartOption" [loading]="bLoading" (chartInit)="chartInit($event)"></div>
+            <div class="title-article u-row">
+                <div class="title-list">
+                    <ng-container *ngIf="currentReportData">
+                        <div class="title-item">最大回撤：{{currentReportData?.retraceRatio}}</div>
+                        <div class="title-item">胜率：{{currentReportData?.percentProfitable}}</div>
+                        <div class="title-item">夏普率：{{currentReportData?.sharpeRatio}}</div>
+                    </ng-container>
+                </div>
+                <div class="title-list">
+                    <ng-container *ngIf="selectedItem">
+                        <div class="title-item">策略名称：{{selectedItem?.name}}</div>
+                        <div class="title-item">回测ID：{{selectedItem?.id}}</div>
+                        <div class="title-item">开始时间：{{selectedItem?.timebegin}}</div>
+                        <div class="title-item">结束时间：{{selectedItem?.timeend}}</div>
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="order-article u-col">
+        <div class="title u-row">
+            <span class="title-name">订单列表</span>
+            <div class="pagination">
+                <button class="previous-btn" (click)="flipPreviousOrder()">上一页</button>
+                <span>{{orderPage.currentPage}}/{{orderPage.maxPage}}</span>
+                <button class="next-btn" (click)="flipNextOrder()" >下一页</button>
+            </div>
+        </div>
+        <dock-table2 [dataSource]="orderdetailsTable.dataSource" [styleObj]="orderdetailsTable.styleObj" class="fill dark-bg"></dock-table2>
+    </div>
+</div>

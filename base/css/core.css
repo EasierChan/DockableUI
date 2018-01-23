@@ -1,0 +1,686 @@
+/*
+* dockable-layout style created by chenlei.
+* 2016-11-25
+*/
+
+/*responsive and resizable layout*/
+* {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    font-size: 12px;
+    font-family: "Microsoft YaHei", "Segoe UI", "Open Sans", sans-serif, serif;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    background-color: rgba(45, 45, 45, 1);
+    overflow: hidden;
+}
+
+body > .toolbar,
+body > .statusbar {
+    flex: none;
+    height: 25px;
+    line-height: 1.5;
+    background-color: #424B62;
+    padding: 0 10px;
+}
+body > .statusbar {
+    margin-top: 1px;
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+body > .statusbar > .left {
+    float: left;
+}
+body > .statusbar > .right {
+    float: right;
+}
+body > .statusbar > * {
+    padding: 3px 5px;
+    font-weight: bolder;
+}
+body > .statusbar > div:hover {
+    background-color: rgba(222, 222, 222, 0.2);
+    cursor: pointer;
+}
+
+body > .main {
+    flex: auto;
+    width: 100%;
+    padding: 1px 5px;
+    background-color: transparent;
+    overflow: hidden;
+}
+
+usercontrol.col > dock-control {
+    flex: auto;
+    display: flex;
+}
+
+usercontrol.col > dock-control > .tab-panel {
+    height: auto;
+}
+
+.dock-container {
+    background-color: #000010;
+    color: #F0F0F0;
+    overflow: hidden;
+    position: relative;
+}
+
+.vertical {
+    float: left;
+    height: 100%;
+}
+
+.horizental {
+    width: 100%;
+}
+
+.splitter-bar {
+    /*flex: 0 0 5px;*/
+    /*float: left;*/
+    background-color: rgba(45, 45, 45, 1);
+}
+
+.splitter-bar.vertical {
+    /*flex: 1 1 auto;*/
+    width: 5px;
+    cursor: col-resize;
+}
+
+.splitter-bar.horizental {
+    height: 5px;
+    cursor: row-resize;
+    border-top: 1px solid black;
+}
+
+.dock-container.horizental {
+    height: 200px;
+    flex-flow: row nowrap;
+}
+
+.dock-container.vertical {
+    width: 300px;
+    flex-flow: column nowrap;
+}
+
+.tab-panel {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+}
+
+.tab-pages {
+    flex: 1 1 auto;
+    display: flex;
+}
+
+.tab-page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-user-drag: none;
+}
+
+.tab-page:not(.active) {
+    display: none;
+}
+
+.page-title {
+    flex: none;
+    height: 25px;
+    line-height: 25px;
+    padding-left: 5px;
+    background-color: rgba(45, 45, 45, 1);
+    overflow: hidden;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+}
+
+.page-body {
+    background-color: #1e1e1e;
+    flex: 1 1 auto;
+    display: flex;
+    -webkit-user-drag: none;
+}
+
+.panel-header-list {
+    flex: 0 0 25px;
+    background-color: rgba(45, 45, 45, 1);
+    box-shadow: 0 -2px 2px #060606;
+    display: flex;
+    -webkit-user-drag: none;
+}
+
+.panel-header-list > .tab {
+    flex: none;
+    height: 23px;
+    line-height: 23px;
+    width: fit-content;
+    /*width: 60px;*/
+    padding: 0 5px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-overflow: ellipsis;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+
+.panel-header-list > .tab > .header-close {
+    visibility: hidden;
+    margin-left: 10px;
+}
+
+.panel-header-list > .tab > .header-close:hover {
+    font-weight: bolder;
+}
+
+.tab:hover > .header-close,
+.tab.active > .header-close {
+    visibility: visible;
+}
+
+.panel-header-list > .tab.active {
+    background-color: #1e1e1e; /* #060606 */
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+/* table */
+dock-table, dock-table2, dock-table3{
+    min-width: 200px;
+    position: relative;
+    overflow-y: hidden;
+    flex: auto;
+}
+
+dock-table2, dock-table3 {
+    overflow-y: auto;
+}
+
+table {
+    color: #d0d0d0;
+}
+
+.table > thead > tr > th {
+    padding: 2px;
+    cursor: pointer;
+}
+
+.table > tbody > tr > td {
+    vertical-align: middle;
+    word-break: keep-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+td input {
+    width: 100%;
+}
+
+td > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/*.scroller-table{
+    position: relative;
+    width: 100%;
+}*/
+.vscrollerbar {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+.vscrollerbar .arrow-top,
+.vscrollerbar .arrow-bottom {
+    width: 100%;
+    flex: none;
+    background-color: transparent;
+}
+.vscrollerbar .arrow-top {
+    height: 22px;
+}
+.vscrollerbar .arrow-bottom {
+    height: 0px;
+}
+.vscrollerbar .tracker {
+    width: 100%;
+    flex: auto;
+    background-color: transparent;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+}
+.vscrollerbar .thumb {
+    display: none;
+    width: 100%;
+    min-height: 10px;
+    background-color: rgba(120, 120, 120, 0.4);
+}
+.hscrollerbar{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    height: 8px;
+    display: flex;
+    flex-direction: column;
+}
+.hscrollerbar .arrow-left,
+.hscrollerbar .arrow-right {
+    display: none;
+    flex: none;
+}
+.hscrollerbar .tracker {
+    height: 100%;
+    flex: auto;
+    background-color: transparent;
+}
+.hscrollerbar .thumb {
+    display: none;
+    min-width: 10px;
+    height: 100%;
+}
+/*dock-nav*/
+.dock-nav {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 1001;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.u-row {
+    display: flex;
+    flex-flow: row;
+}
+
+.dock-sn,
+.dock-ew {
+    display: none;
+    position: absolute;
+    z-index: 1001;
+    overflow: hidden;
+}
+
+.dock-sn {
+    height: 100%;
+    width: 30px;
+    align-items: center;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.dock-ew {
+    width: 100%;
+    height: 30px;
+    /*width: 100px;*/
+    justify-content: space-between;
+}
+
+.dock-center,
+.dock-west,
+.dock-east,
+.dock-north,
+.dock-south {
+    flex: none;
+    background-color: white;
+    border: 1px solid grey;
+    padding: 4px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/*.dock-center {
+    display: flex;
+}*/
+
+.bar-block {
+    background-color: dodgerblue;
+}
+
+.bar-arrow {
+    width: 0px;
+    height: 0px;
+    border-color: transparent;
+}
+/* west and east*/
+
+.dock-west > .bar-block,
+.dock-east > .bar-block {
+    height: 100%;
+    width: 10px;
+}
+
+.dock-east .bar-arrow {
+    border-width: 10px 5px;
+    border-left-color: dodgerblue;
+    border-style: dashed dashed dashed solid;
+    order: -1;
+}
+
+.dock-west .bar-arrow {
+    border-width: 10px 5px;
+    border-right-color: dodgerblue;
+    border-style: dashed solid dashed dashed;
+}
+/* north and south*/
+
+.dock-north > .bar-block,
+.dock-south > .bar-block {
+    flex: none;
+    width: 100%;
+    height: 10px;
+}
+
+.dock-north > .bar-arrow {
+    flex: none;
+    border-width: 5px 10px;
+    border-bottom-color: dodgerblue;
+    border-style: dashed dashed solid dashed;
+}
+
+.dock-south > .bar-arrow {
+    flex: none;
+    border-width: 5px 10px;
+    border-top-color: dodgerblue;
+    border-style: solid dashed dashed dashed;
+    order: -1;
+}
+
+.dock-cover {
+    display: none;
+    position: absolute;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+/* end dockable layout style*/
+
+/* begin other */
+
+.loading {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 140, 240, 1);
+    font-size: 30px;
+}
+/*user control*/
+.controls{
+    height: 100%;
+    width: 100%;
+    display: flex;
+}
+usercontrol{
+    display: flex;
+    position: relative;
+}
+usercontrol.row,
+usercontrol.row2 {
+    flex-flow: row nowrap;
+    flex: none;
+    height: 25px;
+    vertical-align: middle;
+    margin: 0px;
+    padding: 2px 0px;
+}
+usercontrol.row2.right {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+usercontrol.row2 > * {
+    flex: auto;
+}
+usercontrol.row2 pre {
+    display: inline-flex;
+}
+usercontrol.row > * {
+    position: relative;
+    margin-left: 5px;
+    display: inherit;
+}
+usercontrol.col.right {
+    justify-content: flex-end;
+    margin-left: auto;
+}
+usercontrol.col > * {
+    margin-top: 2px;
+    display: inherit;
+}
+usercontrol.col{
+    flex: 1;
+    flex-flow: column nowrap;
+    width: 100%;
+    /*padding: 0px 2px;*/
+}
+span, th {
+    white-space: nowrap;
+}
+
+input,
+button,
+label{
+    display: inline-flex;
+    margin: 0px;
+    line-height: 21px;
+    height: 21px;
+    font-family: "Microsoft YaHei", "Segoe UI", "Open Sans", sans-serif, serif;
+    font-weight: normal;
+}
+button > pre, label > pre, pre {
+    display: inline-block;
+    padding: 0px;
+    margin: 0px;
+    background-color: transparent;
+    border: 0;
+    color: white;
+    line-height: 21px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: "Microsoft YaHei", "Segoe UI", "Open Sans", sans-serif, serif;
+    font-weight: normal;
+}
+
+.dropdown-toggle, .dropdown-toggle > prev{
+    width: 100% !important;
+    text-align: left;
+}
+
+button > span.caret{
+    margin-top: 8px;
+    margin-left: 10px;
+}
+
+input[type="radio"], input[type="checkbox"]{
+    margin: 0;
+}
+
+.u-checkbox {
+    height: 16px;
+    position: relative;
+}
+.u-ok-round{
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    position: absolute;
+    top: 2px;
+    left: 0;
+    border-radius: 50px;
+    border: 1px solid rgba(62, 62, 66, 1);
+    background: transparent;
+}
+.u-checkbox .u-ok-round:after {
+    content: '';
+    width: 9px;
+    height: 5px;
+    border: 3px solid rgba(62, 62, 66, 1);
+    border-top: none;
+    border-right: none;
+    position: absolute;
+    top: 4px;
+    left: 3px;
+    background: transparent;
+    transform: rotate(-45deg);
+}
+.u-checkbox input[type=checkbox]:checked+span {
+    background: #e9b837;
+}
+.u-checkbox input[type=checkbox] {
+    visibility: hidden;
+    margin-right: 8px;
+}
+
+input[type=date]::-webkit-clear-button {
+   display: none;
+}
+
+input[type=date]::-webkit-inner-spin-button {
+    display: none;
+}
+
+input[type=date]::-webkit-calendar-picker-indicator:hover {
+    background-color: transparent;
+}
+
+/* echart */
+div[echarts],
+echart{
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.hidden{
+    display: none;
+}
+
+/* scroller */
+::-webkit-scrollbar{
+    width: 5px;
+    height: 5px;
+    background-color: rgba(62, 62, 66, 0);
+}
+::-webkit-scrollbar-button{
+    display: none;
+}
+::-webkit-scrollbar-corner {
+    display: none;
+}
+::-webkit-scrollbar-thumb{
+    border-radius: 5px;
+    background-color: rgb(104, 104, 104);
+}
+::-webkit-scrollbar-thumb:hover{
+    background-color: rgb(158,158,158);
+}
+
+/* dialog */
+/* overlay */
+.dialog{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(red, green, blue, 0.1);
+    z-index: 1002;
+}
+/* content */
+.dialog > .holder {
+    position: relative;
+    min-width: 300px;
+    min-height: 300px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    background-color: black;
+    border: 1px solid rgb(10,10,10);
+    border-radius: 5px;
+    box-shadow: 2px 2px 10px lightblue, -2px -2px 10px lightblue;
+}
+.dialog > .holder > .head {
+    flex: none;
+    height: 25px;
+    padding: 2px 5px;
+    border-bottom: 1px solid;
+}
+.dialog > .holder > .head > .title {
+    font-weight: bold;
+    line-height: 2rem;
+}
+.dialog > .holder > .body {
+    flex: auto;
+}
+
+/* cover bootstrap */
+.dropdown-menu{
+    max-height: 150px;
+    overflow-y: auto;
+}
+.dropdown-menu > li > a {
+    padding: 1px 10px;
+}
+
+/* action bar */
+action-bar {
+    flex: none;
+    width: 50px;
+    margin-left: 0;
+    min-width: 50px;
+}
+
+/* iconfont */
+@font-face {
+  font-family: 'Easier icon';
+  src: url('../fonts/iconfont.eot');
+  src: url('../fonts/iconfont.eot?#iefix') format('embedded-opentype'),
+  url('../fonts/iconfont.woff') format('woff'),
+  url('../fonts/iconfont.ttf') format('truetype'),
+  url('../fonts/iconfont.svg#Easiericon') format('svg');
+}
+
+.easiericon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: "Easier icon";
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.easiericon-sort-asc:before {
+    content: "\e62a";
+}
+
+.easiericon-sort-desc:before {
+    content: "\e624";
+}

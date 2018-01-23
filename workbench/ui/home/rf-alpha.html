@@ -1,0 +1,21 @@
+<div style="overflow:auto">
+<div class="menu">
+<div class="menuItem">
+<font color='#A5ACBE'>请选择日期:</font>
+<input  class="item3" [(ngModel)]='opendate' type="date"  required>
+-
+<input  class="item4" [(ngModel)]='closedate' type="date"  required>
+</div>
+<input class="search" type="submit" value="查询" (click)="searchresult()">
+</div>
+<div>
+  <div class="big_chart">
+    <p class="chartTit">Alpha因子累计收益</p>
+    <div class="chart " id="alphachart" >chart</div>
+  </div>
+  <div class="small_chart">
+    <p class="chartTit">Alpha因子相关性</p>
+      <div class="chart " id="alphahotchart" >chart</div>
+  </div>
+</div>
+</div>

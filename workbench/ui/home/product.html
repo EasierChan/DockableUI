@@ -1,0 +1,26 @@
+<div class="productModule">
+    <p class=" pageTit glyphicon glyphicon-blackboard"><span class="font">产品</span></p>
+    <div class="listCon">
+        <div class="productCon">
+            <div class="productBox" *ngFor="let item of products">
+                <p>
+                    {{item.caname}}
+                    <button type="button" (click)="toProductsDetail(item)" class="btn btn-primary">详情</button>
+                </p>
+
+                <div class="producAnalysis">
+                    <p class="fontCon "><span class="name">当日盈亏</span><br/><span class="value"><span class="num">{{item.totalProfitAndLoss}}</span>                        K</span>
+                    </p>
+                    <p class="fontCon"><span class="name">浮动盈亏</span><br/><span class="value"><span class="num">{{item.floatProfitAndLoss}}</span>                        K</span>
+                    </p>
+                    <p class="fontCon"><span class="name">敞口比例</span><br/><span class="value"><span class="num">{{item.riskExposure}}</span>                        %</span>
+                    </p>
+                    <p class="fontCon"><span class="name">风险度</span><br/><span class="value"><span class="num">{{item.riskDegree}}</span> %</span>
+                    </p>
+                    <p class="fontCon"><span class="name">可用资金</span><br/><span class="value"><span class="num">{{item.availableFund}}</span>                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

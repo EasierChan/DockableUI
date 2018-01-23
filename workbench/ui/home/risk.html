@@ -1,0 +1,55 @@
+<div class="content u-col fill">
+    <div class="table-section u-col header" [ngClass]="{'header-collapsed': isCollapsed, 'header-open': !isCollapsed}">
+        <div class="title u-row">
+            <b>风控预警</b>
+            <div class="toggle-btn" (click)="sendKcomsRequest()" >刷新</div>
+            <div class="toggle-btn" (click)="toggleWarn()" >
+                <span class="arrow-btn" [ngClass]="{'arrow-btn-b': !isCollapsed, 'arrow-btn-r': isCollapsed}" ></span>    
+            </div>
+        </div>
+        <dock-table2 class="table-container" [dataSource]="warnTable.dataSource" [styleObj]="warnTable.styleObj"></dock-table2>
+    </div>
+
+    <div class="u-row main">
+        <div class="aside-tab u-col" style="width: auto;">
+            <div class="title"><b>{{tab.selectedTab?.name}}</b></div>
+            <ul>
+                <li *ngFor="let item of tab.selectedTab.contentList" (click)="checkoutGroup(tab.selectedTab.tabId, item.id)" class="list-item" [class.active]="tab.selectedChild?.id === item.id">{{item.name}}</li>
+            </ul>
+            <div class="tab-list u-row">
+                <div *ngFor="let item of tab.tabList" class="tab" [class.active]="tab.selectedTab && tab.selectedTab.tabId === item.tabId" (click)="checkoutTab(item.tabId)">{{item.name}}</div>
+            </div>
+        </div>
+
+        <div class="u-col article">
+            <div class="table-section u-col">
+                <div class="title"><b>{{singleTableName}}</b></div>
+                <dock-table2 class="table-container" [dataSource]="singleTable.dataSource" [styleObj]="singleTable.styleObj"></dock-table2>
+            </div>
+            <div class="u-row article-inner">
+                <div class="u-col">
+                    <div class="table-section u-col">
+                        <div class="title"><b>市场/板块</b></div>
+                        <dock-table2 class="table-container" [dataSource]="marketPlateTable.dataSource" [styleObj]="marketPlateTable.styleObj"></dock-table2>
+                    </div>
+                    <div class="table-section u-col">
+                        <div class="title"><b>品种</b></div>
+                        <dock-table2 class="table-container" [dataSource]="varietiTable.dataSource" [styleObj]="varietiTable.styleObj"></dock-table2>
+                    </div>
+                </div>
+                <div class="u-col">
+                    <div class="table-section u-col">
+                        <div class="title"><b>标的</b></div>
+                        <dock-table2 class="table-container" [dataSource]="ukeyTable.dataSource" [styleObj]="ukeyTable.styleObj"></dock-table2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--<div class="table-section u-col">
+            <div class="title"><b>策略</b></div>
+            <dock-table2 class="table-container" [dataSource]="tactfulTable.dataSource" [styleObj]="tactfulTable.styleObj"></dock-table2>
+        </div>-->
+
+    </div>
+</div>

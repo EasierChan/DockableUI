@@ -1,0 +1,57 @@
+<div class="sim-content u-col">
+    <div class="head u-row">
+        <div class="select-item u-row">
+            <span>策略：</span>
+            <select name="strategys" id="" #strategy [ngModel]="selectedStgid" (change)="resetStg(strategy.value)" >
+                <option *ngFor="let stg of stgList" [value]="stg.stgid">{{stg.chname}}</option>
+            </select>
+        </div>
+        <div class="select-item u-row">
+            <span>起始时间：</span>
+            <input type="date" #startdate [ngModel]="startDate" (change)="resetStart(startdate.value)" >
+        </div>
+        <div class="select-item u-row">
+            <span>截止时间：</span>
+            <input type="date" #enddate [ngModel]="endDate" (change)="resetEnd(enddate.value)" >
+        </div>
+        <div class="select-item u-row">
+            <button class="search-btn btn-primary" (click)="selectedStgid && search()">搜索</button>
+        </div>
+    </div>
+
+    <div class="main u-row">
+        <div class="order-section u-col">
+            <div class="title u-row">
+                <span class="title-name">
+                    订单列表
+                    <span class="text-brackets" *ngIf="cache.startDate && cache.endDate">({{cache.startDate}}至{{cache.endDate}})</span>
+                </span>
+                <span class="glyphicon glyphicon-download-alt" (click)="downLoadOrder()" ></span>
+                <span>(导出)</span>
+
+                <div class="pagination">
+                    <button class="previous-btn" (click)="flipOrderPrevious()">上一页</button>
+                    <span>第{{orderPagination.currentPage}}/{{orderPagination.maxPage}}页</span>
+                    <button class="next-btn" (click)="flipOrderNext()">下一页</button>
+                </div>
+            </div>
+            <dock-table2 class="table-container" [dataSource]="orderTable.dataSource" [styleObj]="orderTable.styleObj"></dock-table2>
+        </div>
+        <div class="hold-section u-col">
+            <div class="title u-row">
+                <span class="title-name">
+                    仓位
+                    <span class="text-brackets" *ngIf="cache.endDate">({{cache.endDate}})</span>
+                </span>
+                <span class="glyphicon glyphicon-download-alt" (click)="downLoadHold()"></span>
+                <span>(导出)</span>
+                <div class="pagination">
+                    <button class="previous-btn" (click)="flipHoldPrevious()">上一页</button>
+                    <span>第{{holdPagination.currentPage}}/{{holdPagination.maxPage}}页</span>
+                    <button class="next-btn" (click)="flipHoldNext()">下一页</button>
+                </div>
+            </div>
+            <dock-table2 class="table-container" [dataSource]="holdTable.dataSource" [styleObj]="holdTable.styleObj"></dock-table2>
+        </div>
+    </div>
+</div>

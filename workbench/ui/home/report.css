@@ -1,0 +1,146 @@
+/* base style */
+.u-row,
+.u-col {
+    flex: none;
+    display: flex;
+}
+
+.u-col {
+    flex-flow: column;
+}
+
+.u-row {
+    flex-flow: row;
+}
+
+.fill {
+    flex: auto;
+}
+
+.title {
+    padding-left: 1%;
+    line-height: 30px;
+    font-size: 14px;
+    color: #F3F3F5;
+    background-color: rgb(56, 63, 84);
+}
+
+.wraper {
+    
+}
+.wraper > div {
+    margin-bottom: 10px;
+}
+.wraper > .order-article {
+    flex: 1;
+}
+
+.order-article .title .title-name {
+    flex: 1;
+}
+
+.backtest-article {
+    flex: 1;
+}
+
+.backtest-article .title {
+    justify-content: flex-start;
+    align-items: center;
+    height: 30px;
+}
+
+.backtest-article .title > *:not(:first-child) {
+    margin-left: 18px;
+}
+
+.backtest-article .table-container {
+    height: 260px;
+    background-color: rgba(1, 3, 12, .37);
+}
+
+.chart-article {
+    margin-left: 10px;
+}
+
+.chart-article > div[echarts] {
+    width: 430px;
+    background-color: rgba(1, 3, 12, .37);
+}
+
+.title-article .title-list:not(:first-child) {
+    margin-left: 20px;
+}
+
+.title-list {
+    width: 160px;
+    padding-top: 30px;
+    /*line-height: 30px;*/
+    word-break: break-all;
+}
+
+.title-list .title-item {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.dark-bg, .title-article, .chart-article, .backtest-article {
+    background-color: rgba(1, 3, 12, .37);
+}
+
+
+.close-btn {
+    box-sizing: border-box;
+    height: 30px;
+    padding: 0 15px;
+    background-color: inherit;
+}
+.close-btn:active {
+    transform: scale(.97);
+    transition: transform .1s ease-in;
+}
+
+.select-group {
+
+}
+
+.select-group > label {
+
+}
+
+.select-group select {
+    color: #A5ACBE;
+    background-color: #2E344C;
+}
+
+.pagination {
+    margin: 0 15px;
+}
+
+.pagination .previous-btn {
+}
+
+.pagination .next-btn {
+}
+
+.pagination span {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.previous-btn, .next-btn {
+    padding: 1px 3px;
+    border-radius: 3px;
+    background-color: #2a9fd6;
+    border-color: #2a9fd6;
+}
+.previous-btn:hover, .next-btn:hover {
+    background-color: #008fd6;
+}
+.previous-btn:active, .next-btn:active {
+    border-color: #2a9fd6;
+    transform: scale(.98);
+    transition: transform .05s ease-in;
+}
+.previous-btn:focus, .next-btn:focus {
+    border-color: #2a9fd6;
+}

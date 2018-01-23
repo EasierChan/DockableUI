@@ -1,0 +1,118 @@
+li > a:hover,
+li > a.active {
+  cursor: pointer;
+  opacity: 1;
+  text-decoration: none;
+}
+
+.title {
+  flex: none;
+  padding-left: 1%;
+  text-align: left;
+  text-transform: uppercase;
+  /*font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;*/
+  font-size: 1em;
+  background-color: #222A41;
+  color: #F3F3F5;
+  position: relative;
+}
+
+.title > img.logo {
+  width: 20px;
+  margin-right: 5px;
+  margin-top: 3px;
+  margin-bottom: 8px;
+}
+
+.title > span.big {
+  font-size: 1.5em;
+  line-height: 2;
+  padding-right: 50px;
+  vertical-align: bottom;
+}
+
+.title > ul.tabs {
+  flex: none;
+  display: inline-block;
+  margin-left: 20px;
+  margin-bottom: 0;
+  font-size: 1.2em;
+  line-height: 2;
+}
+.title > ul.tabs > li {
+  display: inline-block;
+  list-style: none;
+  padding: 4px 20px;
+  border-bottom: none;
+  opacity: .6;
+}
+.title > ul.tabs > li > a {
+  color: #ccc;
+}
+.title > ul.tabs > li.active {
+  background-color: #394054;
+  opacity: 1;
+}
+
+.u-input-group {
+  display: inline-flex;
+  flex-flow: row;
+  width: 200px;
+  position: absolute;
+  right: 10px;
+  top: 8px;
+}
+
+.u-input-group + button {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  padding: 0 5px;
+}
+
+
+.content {
+  flex: auto;
+  height: 300px;
+  padding: 1% 1% 0 1%;
+  display: flex;
+  flex-flow: column;
+  overflow: hidden;
+}
+.content > * {
+  flex: auto;
+  width: 100%;
+}
+.content > .fill {
+  display: flex;
+  flex-flow: column;
+}
+
+.u-row {
+    display: flex;
+    flex-flow: row;
+}
+
+.u-col {
+  display: flex;
+  flex-flow: column;
+}
+
+.u-row > *:not(*:first-child) {
+    margin-left: 10px;
+}
+
+.fill {
+    flex: auto;
+}
+
+section {
+    display: flex;
+    flex-flow: column;
+}
+
+section > .holder {
+    flex: auto;
+    padding: 5px;
+    background-color: #222A41;
+};

@@ -1,0 +1,10 @@
+/* created by cl on 17th July */
+
+.content > .settings {
+    flex: auto;
+    overflow-y: auto;
+}
+
+.content > .settings > * {
+    width: 300px;
+}

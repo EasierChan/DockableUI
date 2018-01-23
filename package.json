@@ -1,0 +1,49 @@
+{
+  "name": "chronos-ui",
+  "version": "1.0.2",
+  "description": "make the controls to be dockable",
+  "main": "index.js",
+  "scripts": {
+    "start": "electron index.js",
+    "tsc": "tsc",
+    "tsc:w": "tsc -w"
+  },
+  "keywords": [
+    "dockable",
+    "ui",
+    "angular2"
+  ],
+  "author": "easier-chan",
+  "license": "MIT",
+  "dependencies": {
+    "@angular/animations": "^5.2.1",
+    "@angular/common": "^5.0.0",
+    "@angular/compiler": "^5.0.0",
+    "@angular/core": "^5.0.0",
+    "@angular/forms": "^5.0.0",
+    "@angular/platform-browser": "^5.0.0",
+    "@angular/platform-browser-dynamic": "^5.0.0",
+    "core-js": "^2.4.1",
+    "echarts": "^3.6.2",
+    "lodash": "^4.17.2",
+    "log4js": "^1.0.1",
+    "reflect-metadata": "^0.1.8",
+    "rxjs": "^5.5.2",
+    "systemjs": "0.19.39",
+    "ws": "^3.3.3",
+    "zone.js": "^0.8.20"
+  },
+  "devDependencies": {
+    "@types/ws": "^3.2.1",
+    "@types/core-js": "^0.9.34",
+    "@types/echarts": "0.0.6",
+    "@types/electron": "^1.4.27",
+    "@types/jquery": "^2.0.34",
+    "@types/lodash": "^4.14.41",
+    "@types/log4js": "0.0.32",
+    "@types/mongodb": "^2.1.37",
+    "@types/node": "^6.0.63",
+    "concurrently": "^3.0.0",
+    "typescript": "^2.0.3"
+  }
+}

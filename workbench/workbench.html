@@ -1,0 +1,605 @@
+<div id="workbench">
+
+    <div class="body">
+        <form *ngIf="!isAuthorized" class="loginForm" #loginForm="ngForm" (ngSubmit)="onLogin()">
+            <div class="userImage">
+                <span class="mif-user mif-4x fg-blue"></span>
+            </div>
+            <div class="input-control text">
+                <input name="serverinfo" class="dropdown-toggle" type="text" required readonly placeholder="Server Name" [ngModel]="selectedServer?.name"
+                    #server="ngModel">
+                <ul class="d-menu" data-role="dropdown">
+                    <li *ngFor="let server of setting.endpoints"><a href="#" (click)="onSelectServer(server)">{{ server.name }}</a></li>
+                </ul>
+            </div>
+            <div [hidden]="server.valid || server.pristine" class="bg-lightOrange fg-darkRed alert">
+                Server is required.
+            </div>
+            <div class="input-control text">
+                <input name="username" type="text" required placeholder="User Name" [(ngModel)]="username" #name="ngModel">
+            </div>
+            <div [hidden]="name.valid || name.pristine" class="bg-lightOrange fg-darkRed alert">
+                UserName is required.
+            </div>
+            <div class="input-control password">
+                <input name="password" type="Password" required placeholder="Password" [(ngModel)]="password" #passwd="ngModel">
+            </div>
+            <div [hidden]="passwd.valid || passwd.pristine" class="bg-lightOrange fg-darkRed alert">
+                Password is required.
+            </div>
+            <div class="accept-buttons">
+                <button type="submit" class="button primary" [disabled]="!loginForm.form.valid">
+                            登录
+                        </button>
+                <button type="button" class="button danger" (click)="onReset()">
+                            重置
+                        </button>
+            </div>
+        </form>
+        <div class="appstore" *ngIf="isAuthorized">
+            <!--<div class="fg-white" style="padding-left: 80px; position: fixed; width: 100%; box-shadow: 0 2px 2px black; background-color: #2c2c2c; z-index: 99">
+                <h3>Applications</h3>
+            </div>-->
+            <div class="tile-area fg-white tile-area-scheme-dark" style="min-width: 1000px; overflow-y: auto;">
+                <h1 class="tile-area-title">Start</h1>
+                <div class="tile-area-controls">
+                    <button class="square-button bg-transparent fg-white bg-blue no-border" (click)="toggleDetails();">
+                        <span class="mif-list"></span>
+                    </button>
+                    <div style="position: relative; display:inline-block;">
+                        <button class="square-button bg-transparent fg-white bg-blue no-border" (click)="newlist.hidden=!newlist.hidden">
+                            <span class="mif-plus"></span>
+                        </button>
+                        <ul #newlist class="rd-menu" hidden="hidden">
+                            <li (click)="onPopup();newlist.hidden='hidden';" class="bg-blue"><a href="#" class="fg-white">New SS</a></li>
+                            <li (click)="onCreateSpreadViewer();newlist.hidden='hidden';" class="bg-blue"><a href="#" class="fg-white">New SV</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="tile-group double" style="width: 40%;">
+                    <span class="tile-group-title">Transactional</span>
+                    <div class="tile-container">
+                        <ng-template ngFor let-item [ngForOf]="configs">
+                            <div [class]="detailClass" data-role="tile" (mouseup)="onClick($event, item);">
+                                <div class="tile-content iconic {{item.state===1?'bg-green':''}}">
+                                    <!--<span class="icon mif-play"></span>-->
+                                    <span class="tile-label">{{ item.name }}</span>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </div>
+                </div>
+                <div class="tile-group double" style="width: 40%;">
+                    <span class="tile-group-title">Analytical</span>
+                    <div class="tile-container">
+                        <ng-template ngFor let-app [ngForOf]="svconfigs">
+                            <div [class]="detailClass" data-role="tile" (mouseup)="onSVConfigClick($event, app)">
+                                <div class="tile-content">
+                                    <!--<span class="icon mif-library"></span>-->
+                                    <span class="tile-label">{{ app.name }}</span>
+                                </div>
+                            </div>
+                        </ng-template>
+                    </div>
+                </div>
+            </div>
+            <div class="block-shadow-info" data-role="dialog" id="config" data-overlay="true" data-close-button="true" data-width="800"
+                data-height="600">
+                <div class="pop-center fg-white bg-darker">
+                    <div class="header">
+                        <a href="#" class="icon mif-home fg-white"></a>
+                        <span class="title">{{panelTitle}}</span>
+                        <!--<span href="#" class="icon mif-minus place-right"></span>-->
+                        <!--<span class="bg-transparent fg-white place-right">Close</span>
+                        <span class="bg-transparent fg-white place-right">Save</span>-->
+                    </div>
+                    <div class="content">
+                        <div *ngIf="config.curstep==1" class="page">
+                            <div class="row">
+                                <label for="configName">Configuration Name: </label>
+                                <div class="input-control text">
+                                    <input type="text" id="configName" [(ngModel)]="config.name" [readonly]="isModify">
+                                </div>
+                            </div>
+                            <div>
+                                <h4>Trading Universe</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <div class="input-control text full-size">
+                                        <input type="text" placeholder="市场">
+                                        <button class="button dropdown-toggle"></button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a href="#">上交所</a></li>
+                                            <li><a href="#">深交所</a></li>
+                                            <li><a href="#">金交所</a></li>
+                                            <li><a href="#">上期所</a></li>
+                                            <li><a href="#">郑商所</a></li>
+                                            <li><a href="#">中金所</a></li>
+                                            <li><a href="#">新交所</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <div class="input-control text full-size">
+                                        <input type="text" placeholder="行业">
+                                        <button class="button dropdown-toggle"></button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a href="#">电力</a></li>
+                                            <li><a href="#">煤炭</a></li>
+                                            <li><a href="#">石油</a></li>
+                                            <li><a href="#">钢铁</a></li>
+                                            <li><a href="#">证券</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <div class="input-control text full-size">
+                                        <input type="text" placeholder="类别">
+                                        <button class="button dropdown-toggle"></button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a href="#">期货</a></li>
+                                            <li><a href="#">股票</a></li>
+                                            <li><a href="#">基金</a></li>
+                                            <li><a href="#">期权</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <div class="input-control text full-size">
+                                        <input type="text" placeholder="板块">
+                                        <button class="button dropdown-toggle"></button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li><a href="#">创业板</a></li>
+                                            <li><a href="#">上证</a></li>
+                                            <li><a href="#">深证</a></li>
+                                            <li><a href="#">中小板</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell" style="padding-right: 2px">
+                                    <div class="input-control file full-size" data-role="input">
+                                        <input type="file" placeholder="import codes from file">
+                                        <button class="button"><span class="mif-folder"></span></button>
+                                    </div>
+                                </div>
+                                <div class="cell">
+                                    <div class="input-control text full-size" data-role="input">
+                                        <input type="text" placeholder="Symbol Code">
+                                        <button class="button" (click)="queryCodes()"><span class="mif-search"></span></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row fill">
+                                <div class="cell2 scroller">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th><input type="checkbox" [checked]="bLeftSelectedAll" (change)="leftSelectAll()"></th>
+                                                <td>UKey</td>
+                                                <th>Code</th>
+                                                <th>Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let item of queryList">
+                                                <td><input type="checkbox" [(ngModel)]="item.bChecked"></td>
+                                                <td>{{item.ukey}}</td>
+                                                <td>{{item.code}}</td>
+                                                <td>{{item.name}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="cell">
+                                    <div style="display: flex; flex-flow: column; justify-content: center; height: 100%;align-items: center">
+                                        <button (click)="removeCodes()"><span class="mif-chevron-thin-left"></span>删除</button>
+                                        <button (click)="appendCodes()">添加<span class="mif-chevron-thin-right"></span></button>
+                                    </div>
+                                </div>
+                                <div class="cell2 scroller">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th><input type="checkbox" [checked]="bRightSelectedAll" (change)="rightSelectAll()"></th>
+                                                <td>UKey</td>
+                                                <th>Code</th>
+                                                <th>Name</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr *ngFor="let item of selectedList">
+                                                <td><input type="checkbox" [(ngModel)]="item.bChecked"></td>
+                                                <td>{{item.ukey}}</td>
+                                                <td>{{item.code}}</td>
+                                                <td>{{item.name}}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="config.curstep==2" class="page">
+                            <div>
+                                <h4>Choose Strategy</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <div class="dropdown-button">
+                                        <button class="button dropdown-toggle" style="min-width: 150px">{{config.strategyCoreName}}</button>
+                                        <ul class="split-content d-menu" data-role="dropdown">
+                                            <li *ngFor="let name of strategyCores"><a (click)="onSelectStrategy(name)" href="#">{{name}}</a></li>
+                                        </ul>
+                                    </div>
+                                    <button class="button">Add Strategy</button>
+                                    <br><br>
+                                    <fieldset>
+                                        <legend>StrategyServer Info</legend>
+                                        <label>Port: <input type="text" placeholder="server port" [(ngModel)]="config._port"></label>
+                                    </fieldset>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="config.curstep==3" class="page">
+                            <div>
+                                <h4>Config Strategy Instances</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <label>Current Strategy: {{config.strategyCoreName}}</label>
+                            </div>
+                            <div class="row">
+                                <div>
+                                    <input class="button" type="text" style="text-align: left; cursor: default;" placeholder="Strategy ID" [(ngModel)]="strategyId">
+                                    <input class="button" type="text" style="text-align: left; cursor: default;" placeholder="Strategy Name" [(ngModel)]="strategyName">
+                                    <button class="button" (click)="addInstance()">Add Instance</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell" style="max-height: 375px; overflow-y: auto;">
+                                    <div class="accordion" data-role="accordion" data-close-any="true">
+                                        <div *ngFor="let instance of config.strategyInstances;let i = index" class="frame">
+                                            <div class="heading bg-grayLight">
+                                                <div class="cell">strategyid: {{instance.key}}</div>
+                                                <div class="cell"><span class="mif-cancel" (click)="removeInstance($event, i)"></span></div>
+                                            </div>
+                                            <div class="content bg-gray">
+                                                <div class="accordion" data-role="accordion" data-close-any="true">
+                                                    <div class="frame">
+                                                        <div class="heading bg-grayLight">
+                                                            <div class="cell">BaseInfo</div>
+                                                        </div>
+                                                        <div class="content bg-gray">
+                                                            <label class="col2">Accounts:<input type="text" [(ngModel)]="instance.accounts"></label>
+                                                            <fieldset>
+                                                                <legend>Algoes</legend>
+                                                                <label *ngFor="let algo of curTemplate.body.data.Order"><input type="checkbox" [checked]="instance.algoes.includes(algo.key)" (change)="updateAlgo($event, algo, instance)">{{algo.name}}</label>
+                                                            </fieldset>
+                                                            <fieldset>
+                                                                <legend>Checks</legend>
+                                                                <label *ngFor="let check of curTemplate.body.data.Check"><input type="checkbox" [checked]="instance.checks.includes(check.key)" (change)="updateCheck($event, check, instance)">{{check.name}}</label>
+                                                            </fieldset>
+                                                            <fieldset *ngIf="instance.sendChecks">
+                                                                <legend>SendChecks</legend>
+                                                                <div style="max-width: 700px; overflow-x: auto;">
+                                                                    <!--<label *ngFor="let icheck of instance.sendChecks"><input type="text" [placeholder]="icheck.name" [(ngModel)]="icheck.value"></label>-->
+                                                                    <table>
+                                                                        <tr>
+                                                                            <th *ngFor="let icheck of instance.sendChecks">{{icheck.name}}</th>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td *ngFor="let icheck of instance.sendChecks"><label><input type="text" [placeholder]="icheck.name" [(ngModel)]="icheck.value"></label></td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                            <div class="col3">
+                                                                <label>MinOrderid:<input type="text"></label>
+                                                                <label>MaxOrderid:<input type="text"></label>
+                                                                <label>OrderStep:<input type="text"></label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="frame">
+                                                        <div class="heading bg-grayLight">
+                                                            <div class="cell">OtherInfo</div>
+                                                        </div>
+                                                        <div class="content bg-gray">
+                                                            <fieldset>
+                                                                <legend>Parameters</legend>
+                                                                <div style="max-width: 700px; overflow-x: auto;">
+                                                                    <!--<label *ngFor="let param of instance.parameters"><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label>-->
+                                                                    <table>
+                                                                        <tr>
+                                                                            <th *ngFor="let param of instance.parameters">{{param.name}}</th>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td *ngFor="let param of instance.parameters"><label><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label></td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                            <fieldset>
+                                                                <legend>Comments</legend>
+                                                                <div style="max-width: 700px; overflow-x: auto;">
+                                                                    <!--<label *ngFor="let param of instance.parameters"><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label>-->
+                                                                    <table>
+                                                                        <tr>
+                                                                            <th *ngFor="let comment of instance.comments">{{comment.name}}</th>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td *ngFor="let comment of instance.comments"><label><input type="text" [placeholder]="comment.name" [(ngModel)]="comment.value"></label></td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                            <fieldset>
+                                                                <legend>Instruments</legend>
+                                                                <div style="max-width: 700px; overflow-x: auto;">
+                                                                    <!--<label *ngFor="let param of instance.parameters"><input type="text" [placeholder]="param.name" [(ngModel)]="param.value"></label>-->
+                                                                    <table>
+                                                                        <tr>
+                                                                            <th *ngFor="let instrument of instance.instruments">{{instrument.name}}</th>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td *ngFor="let instrument of instance.instruments"><label><input type="text" [placeholder]="instrument.name" [(ngModel)]="instrument.value"></label></td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                            </fieldset>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="config.curstep==4" class="page">
+                            <div>
+                                <h4>Channels Info</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <div class="cell">
+                                    <div>
+                                        <span>Active Channel: </span>
+                                        <label><input name="groupChannel" type="radio" value="default" [(ngModel)]="config.activeChannel">Default</label>
+                                        <label><input name="groupChannel" type="radio" value="loopback" [(ngModel)]="config.activeChannel">Loopback Test</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="cell" style="max-height: 375px; overflow-y: auto;">
+                                    <div class="accordion" data-role="accordion" data-close-any="true">
+                                        <div class="frame active">
+                                            <div class="heading bg-grayLight">
+                                                <div class="cell">Default</div>
+                                            </div>
+                                            <div class="content bg-darker">
+                                                <fieldset *ngIf="config.channels.gateway">
+                                                    <legend>Trade Channel</legend>
+                                                    <table class="table condensed">
+                                                        <thead>
+                                                            <tr>
+                                                                <!--<th><input type="checkbox"></th>-->
+                                                                <th>name</th>
+                                                                <th>type</th>
+                                                                <th>host</th>
+                                                                <th>port</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr *ngFor="let channel of config.channels.gateway">
+                                                                <!--<td><input type="checkbox" [(ngModel)]="channel.enable"></td>-->
+                                                                <td>{{channel.name}}</td>
+                                                                <td>{{channel.type === 1 ? "Stock": "Future"}}</td>
+                                                                <td><input type="text" [(ngModel)]="channel.addr"></td>
+                                                                <td><input type="text" [(ngModel)]="channel.port"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </fieldset>
+                                                <fieldset *ngIf="config.channels.feedhandler">
+                                                    <legend>MarketData Channel</legend>
+                                                    <table class="table condensed">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>name</th>
+                                                                <th>host</th>
+                                                                <th>port</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>{{config.channels.feedhandler.name}}</td>
+                                                                <td><input type="text" [(ngModel)]="config.channels.feedhandler.addr"></td>
+                                                                <td><input type="text" [(ngModel)]="config.channels.feedhandler.port"></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                        <div class="frame">
+                                            <div class="heading bg-grayLight">
+                                                <div class="cell">Loopback Test</div>
+                                            </div>
+                                            <div class="content bg-darker">
+                                                <fieldset *ngIf="config.channels.gateway">
+                                                    <legend>Preference</legend>
+                                                    <div>
+                                                        MatchMode:
+                                                        <label><input name="matchmode" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.simlevel">无条件成交</label>
+                                                        <label><input name="matchmode" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.simlevel">按价格成交</label>
+                                                        <label><input name="matchmode" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.simlevel">按价量成交</label>
+                                                    </div>
+                                                    <div>
+                                                        Duration:
+                                                        <input type="date" [(ngModel)]="config.loopbackConfig.option.timebegin">
+                                                        <span>-</span>
+                                                        <input type="date" [(ngModel)]="config.loopbackConfig.option.timeend">
+                                                    </div>
+                                                    <div>
+                                                        Calc Tick:
+                                                        <input type="text" [(ngModel)]="config.loopbackConfig.option.period">
+                                                        <label><input name="unit" type="radio" value="0" [(ngModel)]="config.loopbackConfig.option.unit">分钟</label>
+                                                        <label><input name="unit" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.unit">天</label>
+                                                    </div>
+                                                    <div>
+                                                        Speed:
+                                                        <label><input name="speed" type="radio" value="1" [(ngModel)]="config.loopbackConfig.option.speed">1</label>
+                                                        <label><input name="speed" type="radio" value="2" [(ngModel)]="config.loopbackConfig.option.speed">2</label>
+                                                        <label><input name="speed" type="radio" value="3" [(ngModel)]="config.loopbackConfig.option.speed">3</label>
+                                                        <label><input name="speed" type="radio" value="4" [(ngModel)]="config.loopbackConfig.option.speed">4</label>
+                                                        <label><input name="speed" type="radio" value="5" [(ngModel)]="config.loopbackConfig.option.speed">5</label>
+                                                        <label><input name="speed" type="radio" value="6" [(ngModel)]="config.loopbackConfig.option.speed">6</label>
+                                                        <label><input name="speed" type="radio" value="7" [(ngModel)]="config.loopbackConfig.option.speed">7</label>
+                                                        <label><input name="speed" type="radio" value="8" [(ngModel)]="config.loopbackConfig.option.speed">8</label>
+                                                        <label><input name="speed" type="radio" value="9" [(ngModel)]="config.loopbackConfig.option.speed">9</label>
+                                                        <label><input name="speed" type="radio" value="10" [(ngModel)]="config.loopbackConfig.option.speed">10</label>
+                                                    </div>
+                                                    <button style="float: right" (click)="createLoopbackTest()">generate</button>
+                                                </fieldset>
+                                                <fieldset *ngIf="config.loopbackConfig.result">
+                                                    <legend>Result</legend>
+                                                    <div>
+                                                        <table class="table condensed">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>name</th>
+                                                                    <th>host</th>
+                                                                    <th>port</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <tr>
+                                                                    <td>{{config.channels.gateway[0].name}}</td>
+                                                                    <td>{{config.loopbackConfig.result.url}}</td>
+                                                                    <td>{{config.loopbackConfig.result.port}}</td>
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>{{config.channels.feedhandler.name}}</td>
+                                                                    <td>{{config.loopbackConfig.result.hqurl}}</td>
+                                                                    <td>{{config.loopbackConfig.result.hqport}}</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </fieldset>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div *ngIf="config.curstep==5" class="page">
+                            <div>
+                                <h4>Are you Sure?</h4>
+                                <hr>
+                            </div>
+                            <div class="row">
+                                <label for="maxordersize">Make sure whether you have done a correct setting, then click 'Finish' Or reset them.</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <div class="place-right">
+                            <button class="button" [disabled]="config.curstep==1" (click)="prev()">Prev</button>
+                            <button class="button" [disabled]="config.curstep==5" (click)="next()">Next</button>
+                            <button class="button" [disabled]="config.curstep!=5" (click)="finish()">Finish</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="block-shadow-info" data-role="dialog" id="svconfig" data-overlay="true" data-close-button="true" data-width="600"
+                data-height="400">
+                <div class="pop-center fg-white bg-darker">
+                    <div class="header">
+                        <a href="#" class="icon mif-home fg-white"></a>
+                        <span class="title">SpreadViewerConfig</span>
+                    </div>
+                    <div class="content">
+                        <div>
+                            <div>
+                                Name: <input type="text" [(ngModel)]="svconfig.name">
+                            </div>
+                            <br> Code1: <input type="text" [(ngModel)]="svconfig.code1"> Code2: <input type="text" [(ngModel)]="svconfig.code2">
+                            <br>
+                            <h5>Formula:</h5>
+                            <textarea name="formula" style="width: 100%; line-height: 20px;" cols="30" rows="10" [(ngModel)]="svconfig.formula"></textarea>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <div class="place-right">
+                            <button class="button" (click)="onCloseSVConfig();">Finish</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- details -->
+            <div id="detailCharm" data-role="charm" data-position="bottom" class="block-shadow-info keep-open" style="min-height: 300px">
+                <h5>Strategy Moniter</h5>
+
+                <div class="accordion" data-role="accordion" data-close-any="true">
+                    <!--<div *ngFor="let item of strategyContainer.items" >-->
+                    <!--<div class="heading bg-grayLight">
+                            <div class="cell">{{item.name}}</div>
+                            <div class="cell">{{item.conn.connState}}</div>
+                        </div>
+                        <div class="content bg-darker">-->
+                    <table class="table condensed">
+                        <thead>
+                            <tr>
+                                <th>StrategyID</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Operations</th>
+                                <th>TotalPnl</th>
+                                <th>TotalPosition</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <ng-template ngFor let-item [ngForOf]="strategyContainer.items">
+                                <tr *ngFor="let strategy of item.conn.strategies">
+                                    <td>{{strategy.id}}</td>
+                                    <td>{{strategy.name}}</td>
+                                    <td>{{strategy.status}}</td>
+                                    <td>
+                                        <div data-role="group" data-group-type="one-state">
+                                            <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 2)" [disabled]="strategy.status=='RUN'||strategy.status=='STOP'">
+                                                    <span class="mif-play"></span>
+                                                </button>
+                                            <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 3)" [disabled]="strategy.status=='PAUSE'||strategy.status=='STOP'">
+                                                    <span class="mif-pause"></span>
+                                                </button>
+                                            <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 4)" [disabled]="strategy.status=='STOP'">
+                                                    <span class="mif-stop"></span>
+                                                </button>
+                                            <button class="button small-button" (click)="item.conn.changeStatus(strategy.id, 5)" [disabled]="strategy.status=='WATCH'">
+                                                    <span class="mif-eye"></span>
+                                                </button>
+                                        </div>
+                                    </td>
+                                    <td>{{strategy?.totalpnl}}</td>
+                                    <td>{{strategy?.totalposition}}</td>
+                                </tr>
+                            </ng-template>
+                        </tbody>
+                    </table>
+                    <!--</div>-->
+                    <!--</div>-->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

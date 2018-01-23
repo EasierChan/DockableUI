@@ -1,0 +1,108 @@
+/* date: 20170713
+** author: cl
+*/
+.content {
+    overflow-y: auto;
+    text-align: left;
+}
+.content > * {
+    flex: none;
+}
+
+.u-row {
+    margin-top: 10px;
+    display: flex;
+    flex-flow: row;
+}
+
+.fill{
+    flex: auto;
+}
+
+.u-row > *:not(*:first-child) {
+    margin-left: 10px; 
+}
+
+section {
+    display: flex;
+    flex-flow: column;
+    background: rgba(1, 3, 12, 0.37);
+}
+
+section > p,
+section > table,
+section > .holder {
+    flex: auto;
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: rgba(1, 3, 12, 0.37);
+}
+
+section > .holder > table,
+section > .holder > dock-table > table {
+    width: 100%;
+    background-color: transparent;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+section > p > canvas {
+    display: inline-block;
+}
+
+.u-col {
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.income {
+    width: 100px;
+    display: inline-block;
+}
+
+.income > .item1:before,
+.income > .item2:before {
+    content: "";
+    width: 30px;
+    height: 15px;
+    background-color: #40f;
+    display: inline-block;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+.income > .item2:before {
+    background-color: #0f0;
+}
+
+section > .chartTit{
+    height: 28px !important;
+    background: rgb(56, 63, 84) !important;
+    line-height: 28px;
+    padding-left: 10px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 0 !important;
+}
+.select {
+    height: 40px;
+    width: 100%;
+    background-color: rgba(1, 3, 12, 0.37);
+    text-align: center;
+}
+select {
+    width: auto;
+    height: 22px;
+    margin-top: 12px;
+    line-height: 22px;
+    background-color: #2E344C;
+    color: #A5ACBE;
+}

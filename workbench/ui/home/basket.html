@@ -1,0 +1,26 @@
+<div class="u-row fill">
+    <div class="u-col fill u-block">
+        <div class="title">
+            <span>篮子模板列表</span>
+            <span title="Add" class="glyphicon glyphicon-plus menu" (click)="onBasketCreate()"></span>
+            <span title="Remove" class="glyphicon glyphicon-trash menu" (click)="onBasketRemove()"></span>
+            <span title="Submit" class="glyphicon glyphicon-ok menu" [class.disable]="!changing" (click)="onSubmit()"></span>
+            <span title="Undo" class="glyphicon glyphicon-ban-circle menu" [class.disable]="!changing" (click)="onUndo()"></span>
+        </div>
+        <dock-table2 [dataSource]="basketsTable.dataSource" [styleObj]="basketsTable.styleObj"></dock-table2>
+    </div>
+    <div class="u-col fill u-block">
+        <div class="title">
+            <span>篮子信息/交易日 || {{ curBasketName }}: 
+                <select [(ngModel)]="curTrday" (change)="viewBasketInfo(trday.value)" #trday>
+                    <option *ngFor="let item of items" value="{{item.trday}}">{{ item.trday }}</option>
+                </select>
+            </span>
+            <span title="Import" class="glyphicon glyphicon-import menu" (click)="onImport()"></span>
+        </div>
+        <div class="params">
+            <pre *ngFor="let name of paramNames">{{name}}:{{params[name]}}</pre>
+        </div>
+        <dock-table2 [dataSource]="stockTable.dataSource" [styleObj]="stockTable.styleObj"></dock-table2>
+    </div>
+</div>

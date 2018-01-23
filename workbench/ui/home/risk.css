@@ -1,0 +1,161 @@
+.content {
+    flex: auto;
+    align-items: stretch;
+    padding-top: 0;
+    padding-bottom: 1%;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.u-row,
+.u-col {
+    flex: none;
+    display: flex;
+}
+
+.u-col {
+    flex-flow: column;
+}
+
+.fill {
+    flex: auto;
+}
+
+.content .header-open {
+    flex: 1;
+}
+.content .header-collapsed {
+    flex: 0 0 auto;
+    height: 100px;
+}
+
+
+.content .main {
+    flex: 3;
+    margin-top: 5px;
+    /*cursor: ns-resize;*/
+}
+
+.header .title b {
+    flex: 1;
+}
+.header .toggle-btn {
+    width: 30px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.aside-tab {
+    min-width: 200px;
+}
+
+.aside-tab .title {
+    line-height: 30px;
+    text-align: center;
+    background: rgb(56,63,84);
+}
+
+.aside-tab .tab-list {
+    width: 100%;
+    height: 30px;
+    color: #F3F3F5;
+    background: rgb(56,63,84);
+}
+
+.aside-tab .title {
+    text-align: center;
+    line-height: 30px;
+}
+
+.aside-tab .tab-list .active {
+    background: rgba(1, 3, 12, .37);
+}
+
+.aside-tab ul {
+    flex: 1;
+    margin-bottom: 0;
+    overflow-y: scroll;
+    cursor: pointer;
+    background-color: rgba(1, 3, 12, .37);
+}
+
+.aside-tab ul .active {
+    background: #1A2237;
+    color: #fff;
+}
+
+.aside-tab .tab {
+    padding: 0 5px;
+    line-height: 30px;
+    cursor: pointer;
+}
+
+.aside-tab .list-item {
+    padding: 5px;
+    line-height: 1;
+}
+
+.aside-tab .list-item:hover {
+    color: #fff;
+}
+
+.article {
+    flex: 1;
+}
+
+.article > .table-section {
+    flex: 1;
+}
+.article > .article-inner {
+    flex: 2;
+}
+
+.article > div .table-section {
+    flex: 1;
+}
+
+.article-inner {
+    margin-top: 5px;
+}
+.article-inner > div {
+    flex: 1;
+}
+
+.table-section .title {
+    line-height: 30px;
+    background: rgb(56,63,84);
+}
+
+.table-section .table-container {
+    flex: 1;
+    background: rgba(1, 3, 12, .37);
+}
+
+.title {
+    background-color: #1A2237;
+}
+
+dock-table2 {
+    width: auto;
+}
+
+.arrow-btn {
+    display: inline-block;
+    color: #787878;
+}
+.arrow-btn::before {
+    display: inline-block;
+    content: "";
+    width: 12px;
+    height: 12px;
+    border-style: solid;
+    border-width: 2px 2px 0 0;
+}
+
+.arrow-btn-r::before {
+    transform: rotate(45deg);
+}
+
+.arrow-btn-b::before {
+    transform: rotate(135deg);
+}

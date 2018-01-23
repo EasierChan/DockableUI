@@ -1,0 +1,21 @@
+{
+  "endpoints": [
+    {
+      "name": "首选节点",
+      "quote_addr": "172.24.51.4:8012",
+      "trade_addr": "172.24.51.4:6114",
+      "tgw_apps": {
+        "backtest": 200,
+        "ssgw": 107,
+        "scms": 270,
+        "ids": 260
+      }
+    }
+  ],
+  "externalLinks": {
+    "CSP": "",
+    "TimeMachine": "",
+    "SuperGraph": ""
+  },
+  "language": "zh-cn"
+}
